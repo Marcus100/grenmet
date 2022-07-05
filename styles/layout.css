@@ -1,0 +1,320 @@
+/* || GENERAL STYLES */
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+h3 {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #012970;
+  margin-bottom: 0rem;
+}
+
+/* || HTML & BODY */
+
+html {
+  box-sizing: border-box;
+  font-size: 62.5%;
+}
+
+body {
+  background-color: #85baee;
+  color: #444444;
+  font-size: 1.7rem;
+  font-family: "Open Sans", sans-serif;
+}
+
+.maincontainer {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: repeat(12, auto);
+  grid-template-areas:
+    "mainheader"
+    "warnings"
+    "weather"
+    "videofcst"
+    "audiofcst"
+    "briefings"
+    "outlook"
+    "climate"
+    "reports"
+    "blog"
+    "mainfooter"
+    "copyright";
+}
+
+/* || MAIN HEADER AND NAVIATION */
+
+/* || Header */
+
+.mainheaderbox {
+  grid-area: mainheader;
+  background-color: #172344;
+}
+
+/* || Navigation */
+
+.main-navbox {
+  padding: 1.1rem 0rem 0rem 1.1rem;
+  min-height: 1vh;
+}
+
+.metlogotextbox {
+  font-family: "Suez One", serif;
+  color: #fbbf24;
+  font-size: 2.4rem;
+}
+
+/* || SECTIONS */
+
+.main-section {
+  padding: 1.1rem;
+}
+
+/* || Warnings */
+
+.warningsbox {
+  grid-area: warnings;
+}
+
+/* || Weather */
+
+.weatherbox {
+  grid-area: weather;
+  color: #172344;
+}
+
+.forecastinfo {
+  float: left;
+}
+
+.fcst-nav-bar {
+  padding: 0.3rem;
+  border-bottom: none;
+}
+
+.main-wxinfo {
+  display: flex;
+  flex-direction: row;
+}
+
+.current-wx {
+  padding: 0.4rem;
+  font-size: 1.4rem;
+}
+
+.hr-y {
+  border: none;
+  border-left: 1px solid hsla(200, 10%, 50%, 100);
+  height: 100vh;
+  width: 1px;
+}
+
+/* || Video Forecast */
+
+.accordion-style {
+  background-color: #1d4b87;
+  color: #fff;
+  font-size: 1.6rem;
+  font-weight: bold;
+}
+
+.videofcstbox {
+  grid-area: videofcst;
+  margin-top: 1rem;
+}
+
+/* || Audio Forecast */
+
+.audiofcstbox {
+  grid-area: audiofcst;
+  margin-top: 1rem;
+}
+
+/* || Daily Briefing */
+
+.briefingsbox {
+  grid-area: briefings;
+  color: #172344;
+  margin-top: 2rem;
+}
+
+.briefing-card-style {
+  padding: 0.2rem;
+}
+
+/* || Weather Outlook */
+
+.card-style {
+  padding: 0.2rem;
+}
+
+.outlookbox {
+  grid-area: outlook;
+  border-radius: 0px 3px 0px 0px;
+  color: #172344;
+  margin-top: 2rem;
+}
+
+/* || Climate */
+
+.climatebox {
+  grid-area: climate;
+  color: #172344;
+}
+
+/* || Reports */
+
+.reportsbox {
+  grid-area: reports;
+  color: #172344;
+  border-radius: 0px 0px 0px 0px;
+}
+
+/* || Blog */
+
+.blogbox {
+  grid-area: blog;
+  border-radius: 0px 0px 3px 0px;
+  color: #172344;
+}
+
+.nav-links-style {
+  font-weight: bold;
+}
+
+.box-body {
+  padding: 0.2rem 0.2rem 0.2rem 0.2rem;
+}
+
+.date-below {
+  margin-bottom: 0rem;
+}
+
+.date-updated {
+  font-size: 1.3rem;
+}
+
+/* || Footer */
+
+footer {
+  grid-area: footer;
+  text-align: center;
+  background-color: #172344;
+  color: #f9fafb;
+  padding: 0rem;
+  margin: 2rem 0 0 0;
+}
+
+.mainfooterbox {
+  grid-area: mainfooter;
+}
+
+.metlogofooter {
+  font-family: "Suez One", serif;
+  color: #fbbf24;
+  font-size: 3rem;
+}
+
+.footertop {
+  background-color: #1d4b87;
+  margin: 0rem;
+}
+
+.footertop-links {
+  color: #fff;
+  text-decoration: none;
+}
+
+.copyrightbox {
+  grid-area: copyright;
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin: 0;
+}
+
+.copyright-links {
+  color: #fff;
+}
+
+/* || IMAGES */
+
+.warningsimg {
+  width: 8rem;
+  height: 8rem;
+  margin-right: 0.2rem;
+}
+
+.videofcstimg {
+  float: left;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0.4rem 0.5rem 0rem 0rem;
+}
+
+.audiofcstimg {
+  float: left;
+  width: 1.6rem;
+  height: 1.6rem;
+  margin: 0.4rem 0.5rem 0rem 0rem;
+}
+
+.briefingsimg {
+  float: left;
+  width: 13rem;
+  height: 9rem;
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+.outlookimg {
+  float: left;
+  width: 8rem;
+  height: 8rem;
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+.climateimg {
+  float: left;
+  width: 8rem;
+  height: 8rem;
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+.reportsimg {
+  float: left;
+  width: 8rem;
+  height: 8rem;
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+.blogimg {
+  float: left;
+  width: 8rem;
+  height: 8rem;
+  margin: 0rem 0.5rem 0rem 0rem;
+}
+
+/* Extra small devices (phones, 600px and down) */
+@media only screen and (max-width: 600px) {
+  
+
+}
+
+/* Small devices (portrait tablets and large phones, 600px and up) */
+@media only screen and (min-width: 600px) {
+  body {
+    background-color: red;
+  }
+}
+
+/* Medium devices (landscape tablets, 768px and up) */
+@media only screen and (min-width: 768px) {
+  body {
+    background-color: green;
+  }
+}
