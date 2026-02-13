@@ -1,0 +1,188 @@
+interface MorningForecastProps {
+  organization?: string;
+  documentNumber?: string;
+  year?: string;
+  date?: string;
+  location?: string;
+  validity?: string;
+  weather?: string;
+  generalWarning?: string;
+  maxTemperature?: string;
+  wind?: string;
+  seas?: string;
+  marineWarning?: string;
+  tideLow?: string;
+  tideHigh?: string;
+  sunset?: string;
+  sunrise?: string;
+  forecasterName?: string;
+}
+
+export default function MorningForecast({
+  organization = "Meteorological Services, MBIA",
+  documentNumber = "F 750 - 02",
+  year = "2020",
+  date = "Sunday, December 21, 2025",
+  location = "the state of Grenada",
+  validity = "Today & tonight (6:00 am until 6:00 am)",
+  weather = "Generally fair.",
+  generalWarning = "None",
+  maxTemperature = "31.0°C",
+  wind = "ENE'ly to ESE'ly @ 12 to 22 mph",
+  seas = "Moderate to slightly rough with waves 6 to 8 ft. in NE'ly to E'ly swell.",
+  marineWarning,
+  tideLow = "10:00 a.m.",
+  tideHigh = "4:00 p.m.",
+  sunset = "6:23",
+  sunrise = "5:48",
+  forecasterName = "Trisha Miller",
+}: MorningForecastProps) {
+  const hasGeneralWarning = generalWarning && generalWarning !== "None";
+  const hasMarineWarning = marineWarning && marineWarning.length > 0;
+
+  return (
+    <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
+      {/* Header Section */}
+      <div className="mb-8">
+        <div className="mb-4 flex items-start justify-between">
+          <div className="text-sm font-medium text-zinc-700">
+            {organization}
+          </div>
+          <div className="flex gap-4 text-right text-xs font-medium text-zinc-600">
+            <span>{year}</span>
+            <span>{documentNumber}</span>
+          </div>
+        </div>
+        <h1 className="mb-2 text-xl font-semibold tracking-tight text-zinc-900">
+          Morning Weather Report
+        </h1>
+        <div className="text-sm font-medium text-zinc-600">
+          Date: {date}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="mb-8 border-t border-zinc-200" />
+
+      {/* Main Forecast Section */}
+      <div className="mb-6">
+        <h2 className="mb-2 text-lg font-semibold tracking-tight text-zinc-900">
+          Public weather forecast for {location}
+        </h2>
+        <p className="mb-6 text-sm font-medium text-zinc-600">
+          Validity: {validity}
+        </p>
+
+        {/* Forecast Box */}
+        <div className="rounded-lg bg-zinc-50 p-6 ring-1 ring-zinc-200">
+          <div className="space-y-2">
+            {/* Weather */}
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="text-sm">
+                <span className="font-semibold text-zinc-900">Weather:</span>{" "}
+                <span className="text-zinc-700">{weather}</span>
+              </div>
+            </div>
+
+            {/* General Warning */}
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="text-sm">
+                <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
+                <span
+                  className={
+                    hasGeneralWarning
+                      ? "font-bold text-zinc-900"
+                      : "text-zinc-600"
+                  }
+                >
+                  {generalWarning}
+                </span>
+              </div>
+            </div>
+
+            {/* Max Temperature */}
+            <div className="flex items-center gap-4 rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="flex-1 text-sm">
+                <span className="font-semibold text-zinc-900">
+                  Today&apos;s maximum temperature:
+                </span>{" "}
+                <span className="text-zinc-700">{maxTemperature}</span>
+              </div>
+              <div className="h-6 w-6 shrink-0 rounded bg-white ring-1 ring-zinc-300" />
+            </div>
+
+            {/* Wind */}
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="text-sm">
+                <span className="font-semibold text-zinc-900">Wind:</span>{" "}
+                <span className="text-zinc-700">{wind}</span>
+              </div>
+            </div>
+
+            {/* Seas */}
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="text-sm">
+                <span className="font-semibold text-zinc-900">Seas:</span>{" "}
+                <span className="text-zinc-700">{seas}</span>
+              </div>
+            </div>
+
+            {/* Marine Warning */}
+            {hasMarineWarning && (
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+                <div className="text-sm">
+                  <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
+                  <span className="font-bold text-zinc-900">
+                    {marineWarning}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Tides */}
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="text-sm">
+                <span className="font-semibold text-zinc-900">Tides:</span>{" "}
+                <span className="text-zinc-700">
+                  Low: {tideLow} High: {tideHigh}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sunset/Sunrise Box */}
+      <div className="mb-6 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="text-sm">
+              <span className="font-semibold text-zinc-900">
+                Today&apos;s sunset:
+              </span>{" "}
+              <span className="text-zinc-700">{sunset}</span>
+            </div>
+          </div>
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="text-sm">
+              <span className="font-semibold text-zinc-900">
+                Tomorrow&apos;s sunrise:
+              </span>{" "}
+              <span className="text-zinc-700">{sunrise}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div className="mb-6 border-t border-zinc-200" />
+
+      {/* Signature Section */}
+      <div className="text-sm">
+        <div className="font-semibold text-zinc-900">{forecasterName}</div>
+        <div className="text-xs font-medium text-zinc-600">Forecaster</div>
+      </div>
+    </div>
+  );
+}
+

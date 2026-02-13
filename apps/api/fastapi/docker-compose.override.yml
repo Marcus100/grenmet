@@ -1,0 +1,29 @@
+# Local development overrides
+# Automatically merged with docker-compose.yml
+# NOT used in staging or production.
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+    restart: "no"
+
+  adminer:
+    restart: "no"
+
+  prestart:
+    restart: "no"
+
+  api:
+    restart: "no"
+    environment:
+      SMTP_HOST: "mailcatcher"
+      SMTP_PORT: "1025"
+      SMTP_TLS: "false"
+      EMAILS_FROM_EMAIL: "noreply@weather.gd"
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"
