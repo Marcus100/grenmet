@@ -12,7 +12,7 @@
     "build:web": "turbo run build --filter='./apps/web/*'",
     "build:packages": "turbo run build --filter='./packages/*'",
     "dev": "turbo run dev --parallel",
-     "dev:api": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml -f apps/api/fastapi/docker-compose.override.yml up",
+    "dev:api": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml -f apps/api/fastapi/docker-compose.override.yml up",
     "dev:api:down": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml -f apps/api/fastapi/docker-compose.override.yml down --remove-orphans",
     "dev:web": "turbo run dev --filter='./apps/web/*'",
     "dev:web:wximage": "turbo run dev --filter=@grenmet/web-wximage",
