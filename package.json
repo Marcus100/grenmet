@@ -1,0 +1,48 @@
+{
+  "name": "grenmet-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=22",
+    "pnpm": ">=10"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "build:web": "turbo run build --filter='./apps/web/*'",
+    "build:packages": "turbo run build --filter='./packages/*'",
+    "dev": "turbo run dev --parallel",
+     "dev:api": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml -f apps/api/fastapi/docker-compose.override.yml up",
+    "dev:api:down": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml -f apps/api/fastapi/docker-compose.override.yml down --remove-orphans",
+    "dev:web": "turbo run dev --filter='./apps/web/*'",
+    "dev:web:wximage": "turbo run dev --filter=@grenmet/web-wximage",
+    "dev:web:templates-draft": "turbo run dev --filter=@grenmet/web-templates-draft",
+    "dev:web:admin": "turbo run dev --filter=@grenmet/web-admin",
+    "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
+    "lint": "turbo run lint",
+    "check": "turbo run check",
+    "check:fix": "turbo run check:fix",
+    "check:ci": "turbo run check:ci",
+    "type-check": "turbo run type-check",
+    "generate:api-client": "turbo run generate --filter=@grenmet/api-client"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.11",
+    "turbo": "^2.8.6",
+    "ultracite": "7.1.4"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@react-jvectormap/core>react": "^19",
+        "@react-jvectormap/core>react-dom": "^19",
+        "@react-jvectormap/world>react": "^19",
+        "@react-jvectormap/world>react-dom": "^19",
+        "@tanstack/zod-form-adapter>zod": "^4"
+      }
+    },
+    "onlyBuiltDependencies": [
+      "msw"
+    ]
+  }
+}

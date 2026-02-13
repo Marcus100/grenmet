@@ -1,0 +1,28 @@
+{
+  "name": "@grenmet/api-client",
+  "version": "0.1.0",
+  "description": "TypeScript client generated from FastAPI OpenAPI schema",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "generate": "openapi-ts",
+    "build": "tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.90.10",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "private": true
+}

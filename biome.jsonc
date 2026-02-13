@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": [
+    "ultracite/biome/core",
+    "ultracite/biome/react",
+    "ultracite/biome/next"
+  ],
+  "linter": {
+    "rules": {
+      "style": {
+        "useFilenamingConvention": "off",
+        "useBlockStatements": "off",
+        "useConsistentTypeDefinitions": "warn",
+        "useTemplate": "warn",
+        "noNestedTernary": "warn"
+      },
+      "performance": {
+        "noBarrelFile": "off"
+      },
+      "a11y": {
+        "noSvgWithoutTitle": "warn"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "warn"
+      }
+    }
+  }
+}
