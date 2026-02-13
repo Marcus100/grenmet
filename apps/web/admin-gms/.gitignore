@@ -16,6 +16,8 @@
 
 # production
 /build
+!lib/
+!.env.ts
 
 # misc
 .DS_Store
