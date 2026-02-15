@@ -26,7 +26,7 @@ function InlineField({
   return (
     <div className="flex items-end gap-2">
       <span className="text-[19px] text-zinc-900">{label}</span>
-      <span className={`h-7 border-b border-zinc-900 ${lineClass}`} />
+      <span className={`h-7 border-zinc-900 border-b ${lineClass}`} />
     </div>
   );
 }
@@ -51,13 +51,17 @@ export default function LeaveOfAbsenceApplication({
   return (
     <div className="rounded-xl bg-white p-7 shadow-sm ring-1 ring-zinc-900/5">
       <header className="mb-6 text-center">
-        <div className="text-[35px] font-semibold tracking-wide text-zinc-900">
+        <div className="font-semibold text-[35px] text-zinc-900 tracking-wide">
           {organization}
         </div>
-        <div className="text-[30px] font-semibold text-zinc-900">{subtitle}</div>
+        <div className="font-semibold text-[30px] text-zinc-900">
+          {subtitle}
+        </div>
         <div className="text-[30px] text-zinc-900">{location}</div>
-        <div className="mt-2 text-[24px] text-zinc-700">[{establishedYear}]</div>
-        <h1 className="mt-3 text-[34px] font-bold tracking-wide text-zinc-900">
+        <div className="mt-2 text-[24px] text-zinc-700">
+          [{establishedYear}]
+        </div>
+        <h1 className="mt-3 font-bold text-[34px] text-zinc-900 tracking-wide">
           {title}
         </h1>
       </header>
@@ -72,7 +76,7 @@ export default function LeaveOfAbsenceApplication({
       </section>
 
       <section className="mb-4">
-        <h2 className="mb-3 text-center text-[30px] font-bold text-zinc-900">
+        <h2 className="mb-3 text-center font-bold text-[30px] text-zinc-900">
           TYPE OF LEAVE OF ABSENCE
         </h2>
         <div className="grid grid-cols-2 gap-x-10 gap-y-2">
@@ -81,8 +85,10 @@ export default function LeaveOfAbsenceApplication({
           ))}
           <div className="col-span-2 flex items-end gap-2">
             <CheckLabel text="Other" />
-            <span className="text-[19px] text-zinc-900">Please state reason:</span>
-            <span className="h-7 w-56 border-b border-zinc-900" />
+            <span className="text-[19px] text-zinc-900">
+              Please state reason:
+            </span>
+            <span className="h-7 w-56 border-zinc-900 border-b" />
           </div>
         </div>
       </section>
@@ -98,13 +104,13 @@ export default function LeaveOfAbsenceApplication({
         <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
           <InlineField label="From:" />
           <span className="text-[19px] text-zinc-900">To:</span>
-          <span className="h-7 border-b border-zinc-900" />
+          <span className="h-7 border-zinc-900 border-b" />
         </div>
         <InlineField label="Employee Signature:" />
         <InlineField label="Date:" lineClass="w-44" />
       </section>
 
-      <section className="mb-4 border-y-2 border-zinc-900 py-2">
+      <section className="mb-4 border-zinc-900 border-y-2 py-2">
         <div className="mb-2 flex items-end gap-3 text-[18px] text-zinc-900">
           <span>Will require acting appointment</span>
           <CheckLabel text="Yes" />
@@ -122,30 +128,30 @@ export default function LeaveOfAbsenceApplication({
         </div>
         <div className="flex items-end gap-2">
           <span className="text-[19px] text-zinc-900">Comments:</span>
-          <span className="h-7 flex-1 border-b border-zinc-900" />
+          <span className="h-7 flex-1 border-zinc-900 border-b" />
         </div>
       </section>
 
       <section className="mb-4 grid grid-cols-[1fr_auto_1fr] items-end gap-x-4 gap-y-2">
         <InlineField label="Supervisor's Signature:" />
         <span className="text-[19px] text-zinc-900">Date:</span>
-        <span className="h-7 border-b border-zinc-900" />
+        <span className="h-7 border-zinc-900 border-b" />
 
         <InlineField label="Dept. Manager's Signature:" />
         <span className="text-[19px] text-zinc-900">Date:</span>
-        <span className="h-7 border-b border-zinc-900" />
+        <span className="h-7 border-zinc-900 border-b" />
 
         <InlineField label="Divisional Director of Operations Signature:" />
         <span className="text-[19px] text-zinc-900">Date:</span>
-        <span className="h-7 border-b border-zinc-900" />
+        <span className="h-7 border-zinc-900 border-b" />
 
         <InlineField label="CEO's Signature:" />
         <span className="text-[19px] text-zinc-900">Date:</span>
-        <span className="h-7 border-b border-zinc-900" />
+        <span className="h-7 border-zinc-900 border-b" />
       </section>
 
-      <section className="border-t-2 border-zinc-900 pt-2">
-        <h3 className="mb-2 text-center text-[30px] font-bold leading-tight text-zinc-900">
+      <section className="border-zinc-900 border-t-2 pt-2">
+        <h3 className="mb-2 text-center font-bold text-[30px] text-zinc-900 leading-tight">
           APPROVAL
           <br />
           HUMAN RESOURCES DEPT. OFFICIAL ONLY
@@ -160,7 +166,7 @@ export default function LeaveOfAbsenceApplication({
           <span className="text-[19px] text-zinc-900">
             You are expected to return to work
           </span>
-          <span className="h-7 flex-1 border-b border-zinc-900" />
+          <span className="h-7 flex-1 border-zinc-900 border-b" />
         </div>
         <div className="grid grid-cols-2 gap-8">
           <InlineField label="Signature:" lineClass="w-64" />

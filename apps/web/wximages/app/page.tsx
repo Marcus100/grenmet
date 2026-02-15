@@ -1,7 +1,7 @@
-import { redirect } from 'next/navigation';
-import { getTodayUTC, formatDateForUrl } from '@/lib/utils';
+import { redirect } from "next/navigation";
+import { formatDateForUrl, getTodayUTC } from "@/lib/utils";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function Home() {

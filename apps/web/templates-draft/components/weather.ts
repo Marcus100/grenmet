@@ -9,7 +9,7 @@ export interface WeatherOffice {
 
 export interface ValidityPeriod {
   start: string; // ISO 8601 datetime
-  end: string;   // ISO 8601 datetime
+  end: string; // ISO 8601 datetime
   description: string;
 }
 
@@ -49,7 +49,7 @@ export interface Tides {
 
 export interface SolarData {
   sunrise: string; // HH:MM format
-  sunset: string;  // HH:MM format
+  sunset: string; // HH:MM format
 }
 
 export interface Forecaster {
@@ -101,75 +101,76 @@ export const morning: MorningWeatherReport = {
   report_type: "morning_weather_report",
   office: {
     name: "Meteorological Services, MBIA",
-    country: "Grenada"
+    country: "Grenada",
   },
   issue_date: "2026-02-08",
   issue_time_local: "06:00",
   validity: {
     start: "2026-02-08T06:00:00-04:00",
     end: "2026-02-09T06:00:00-04:00",
-    description: "Today & tonight"
+    description: "Today & tonight",
   },
   forecast_area: "Grenada",
   weather_summary: {
-    description: "Partly cloudy with occasional showers, improving as the day progresses."
+    description:
+      "Partly cloudy with occasional showers, improving as the day progresses.",
   },
   warnings: {
     public: [],
-    marine: []
+    marine: [],
   },
   meteorological_elements: {
     temperature: {
       max_celsius: 30.0,
-      min_celsius: null
+      min_celsius: null,
     },
     wind: {
       direction: {
         from: "E",
-        to: "SE"
+        to: "SE",
       },
       speed: {
         min_mph: 10,
-        max_mph: 20
-      }
+        max_mph: 20,
+      },
     },
     seas: {
       state: "Slight to moderate",
       wave_height_feet: {
         min: 3,
-        max: 5
+        max: 5,
       },
-      area: "open waters"
-    }
+      area: "open waters",
+    },
   },
   marine_warning: null,
   tides: {
     high: [
       {
-        time_local: "08:00"
-      }
+        time_local: "08:00",
+      },
     ],
     low: [
       {
-        time_local: "14:30"
-      }
-    ]
+        time_local: "14:30",
+      },
+    ],
   },
   solar: {
     sunrise: "06:30",
-    sunset: "18:12"
+    sunset: "18:12",
   },
   forecaster: {
     name: "Kassia Johnson",
-    role: "Forecaster"
+    role: "Forecaster",
   },
   document_control: {
     form_number: "F 750-02",
     issue_date_original: "2020-01-11",
-    status: "operational"
+    status: "operational",
   },
   created_at: "2026-02-08T06:05:00-04:00",
-  updated_at: "2026-02-08T06:05:00-04:00"
+  updated_at: "2026-02-08T06:05:00-04:00",
 };
 
 // ============================================================================
@@ -206,12 +207,15 @@ export function formatTemperature(celsius: number | null): string {
  * Formats validity period with time range
  * Example: "Today & tonight (06:00 until 06:00)"
  */
-export function formatValidity(validity: ValidityPeriod, issueTime: string): string {
+export function formatValidity(
+  validity: ValidityPeriod,
+  issueTime: string
+): string {
   // Extract time from end datetime (simplified - assumes same format)
-  const endTime = new Date(validity.end).toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit',
-    hour12: false 
+  const endTime = new Date(validity.end).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   });
   return `${validity.description} (${issueTime} until ${endTime})`;
 }
@@ -222,11 +226,11 @@ export function formatValidity(validity: ValidityPeriod, issueTime: string): str
  */
 export function formatDate(isoDate: string): string {
   const date = new Date(isoDate);
-  return date.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 }
 
@@ -241,7 +245,7 @@ export function getFirstTideTime(tides: TideTime[], fallback = "N/A"): string {
  * Formats warnings array into string or "None"
  */
 export function formatWarnings(warnings: string[]): string {
-  return warnings.length > 0 ? warnings.join('; ') : "None";
+  return warnings.length > 0 ? warnings.join("; ") : "None";
 }
 
 // ============================================================================
@@ -255,13 +259,17 @@ export function transformToMorningForecastProps(data: MorningWeatherReport) {
   return {
     organization: data.office.name,
     documentNumber: data.document_control.form_number,
-    year: new Date(data.document_control.issue_date_original).getFullYear().toString(),
+    year: new Date(data.document_control.issue_date_original)
+      .getFullYear()
+      .toString(),
     date: formatDate(data.issue_date),
     location: `the state of ${data.forecast_area}`,
     validity: formatValidity(data.validity, data.issue_time_local),
     weather: data.weather_summary.description,
     generalWarning: formatWarnings(data.warnings.public),
-    maxTemperature: formatTemperature(data.meteorological_elements.temperature.max_celsius),
+    maxTemperature: formatTemperature(
+      data.meteorological_elements.temperature.max_celsius
+    ),
     wind: formatWind(data.meteorological_elements.wind),
     seas: formatSeas(data.meteorological_elements.seas),
     marineWarning: data.marine_warning || undefined,

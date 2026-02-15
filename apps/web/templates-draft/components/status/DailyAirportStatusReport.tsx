@@ -13,7 +13,9 @@ function Line({
   widthClass?: string;
   heightClass?: string;
 }) {
-  return <span className={`${heightClass} ${widthClass} border-b border-zinc-900`} />;
+  return (
+    <span className={`${heightClass} ${widthClass} border-zinc-900 border-b`} />
+  );
 }
 
 function InlineLine({
@@ -45,20 +47,22 @@ export default function DailyAirportStatusReport({
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       <header className="mb-5 text-center">
-        <div className="text-xl font-semibold tracking-wide text-zinc-900">
+        <div className="font-semibold text-xl text-zinc-900 tracking-wide">
           {organization}
         </div>
-        <div className="text-lg font-semibold text-zinc-900">{subtitle}</div>
+        <div className="font-semibold text-lg text-zinc-900">{subtitle}</div>
         <div className="text-lg text-zinc-900">{location}</div>
         <div className="mt-2 text-base text-zinc-700">({establishedYear})</div>
-        <h1 className="mt-3 text-2xl font-bold text-zinc-900">{title}</h1>
+        <h1 className="mt-3 font-bold text-2xl text-zinc-900">{title}</h1>
       </header>
 
       <section className="mb-3 grid grid-cols-2 gap-x-10 gap-y-2">
         <InlineLine label="DEPARTMENT" widthClass="w-28" />
         <InlineLine label="DATE:" widthClass="w-28" />
         <div className="flex items-center gap-8">
-          <span className="text-[15px] font-semibold text-zinc-900">SHIFT:</span>
+          <span className="font-semibold text-[15px] text-zinc-900">
+            SHIFT:
+          </span>
           <div className="flex items-center gap-2 text-[15px]">
             <span>A.M.</span>
             <Box />
@@ -71,13 +75,13 @@ export default function DailyAirportStatusReport({
         <InlineLine label="ABSENTEEISM" widthClass="w-20" />
       </section>
 
-      <p className="mb-3 text-[15px] leading-snug text-zinc-900">
+      <p className="mb-3 text-[15px] text-zinc-900 leading-snug">
         Comments on the Operational Status of the following areas and any other
         which may affect the status or efficiency of the Airport.
       </p>
 
       <section className="mb-3">
-        <h2 className="mb-2 text-xl font-bold text-zinc-900">PERSONNEL:</h2>
+        <h2 className="mb-2 font-bold text-xl text-zinc-900">PERSONNEL:</h2>
         <div className="space-y-2 text-[15px] text-zinc-900">
           <p>a) Have all persons scheduled for the shift reported on time?</p>
           <div className="flex items-center gap-4 pl-5">
@@ -94,7 +98,9 @@ export default function DailyAirportStatusReport({
             <span>b) If No, please explain</span>
             <Line widthClass="w-28" />
           </div>
-          <p>c) Has this affected the status of efficiency of your operations?</p>
+          <p>
+            c) Has this affected the status of efficiency of your operations?
+          </p>
           <div className="flex items-center gap-4 pl-5">
             <div className="flex items-center gap-1.5">
               <span>Yes</span>
@@ -113,7 +119,7 @@ export default function DailyAirportStatusReport({
       </section>
 
       <section className="mb-3">
-        <h2 className="mb-2 text-xl font-bold text-zinc-900">EQUIPMENT:</h2>
+        <h2 className="mb-2 font-bold text-xl text-zinc-900">EQUIPMENT:</h2>
         <div className="space-y-2 text-[15px] text-zinc-900">
           <p>a) Are all equipments under your jurisdiction operational?</p>
           <div className="flex items-center gap-4 pl-5">
@@ -131,7 +137,9 @@ export default function DailyAirportStatusReport({
             <Line widthClass="w-32" />
           </div>
           <div className="flex items-end gap-2">
-            <span>c) State what action has been taken to remedy the situation</span>
+            <span>
+              c) State what action has been taken to remedy the situation
+            </span>
             <Line widthClass="w-32" />
           </div>
         </div>

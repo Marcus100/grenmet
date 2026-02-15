@@ -66,7 +66,7 @@ ITEM_PIPELINES = {
     "app.pipelines.ImageMetadataPipeline": 2,     # Extract metadata with Pillow
     "app.pipelines.PostgresPipeline": 3,          # Write to PostgreSQL
 }
-IMAGES_STORE = "wximages/public/wximages"
+IMAGES_STORE = "apps/web/wximages/public/wximages"
 
 # Allow redirects for image downloads (fixes http->https redirects)
 MEDIA_ALLOW_REDIRECTS = True

@@ -46,8 +46,12 @@ export default function MeteorologicalDutyRoster({
   return (
     <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-zinc-900/5">
       <header className="mb-3 text-center">
-        <h1 className="text-2xl font-bold uppercase tracking-wide underline">{title}</h1>
-        <h2 className="text-2xl font-bold uppercase tracking-wide underline">{subtitle}</h2>
+        <h1 className="font-bold text-2xl uppercase tracking-wide underline">
+          {title}
+        </h1>
+        <h2 className="font-bold text-2xl uppercase tracking-wide underline">
+          {subtitle}
+        </h2>
       </header>
 
       <section className="mb-3 flex items-start justify-between text-[13px] text-zinc-900">
@@ -63,7 +67,7 @@ export default function MeteorologicalDutyRoster({
           <div>L = LEAVE (OTHER)</div>
           <div>* - Public Holiday</div>
         </div>
-        <div className="pt-8 text-3xl font-semibold">
+        <div className="pt-8 font-semibold text-3xl">
           PERIOD: <span className="font-bold">{period}</span>{" "}
           <span className="text-red-600">({statusTag})</span>
         </div>
@@ -73,17 +77,27 @@ export default function MeteorologicalDutyRoster({
         <table className="w-full border-collapse text-center text-[12px] text-zinc-900">
           <thead>
             <tr>
-              <th className="w-36 border border-zinc-900 px-1 py-1 text-left">Names /</th>
+              <th className="w-36 border border-zinc-900 px-1 py-1 text-left">
+                Names /
+              </th>
               {dayHeaders.map((header) => (
-                <th key={`wk-${header.day}`} className="w-6 border border-zinc-900 px-0 py-0.5">
+                <th
+                  className="w-6 border border-zinc-900 px-0 py-0.5"
+                  key={`wk-${header.day}`}
+                >
                   {header.week}
                 </th>
               ))}
             </tr>
             <tr>
-              <th className="border border-zinc-900 px-1 py-1 text-left">Date</th>
+              <th className="border border-zinc-900 px-1 py-1 text-left">
+                Date
+              </th>
               {dayHeaders.map((header) => (
-                <th key={`day-${header.day}`} className="border border-zinc-900 px-0 py-0.5">
+                <th
+                  className="border border-zinc-900 px-0 py-0.5"
+                  key={`day-${header.day}`}
+                >
                   {header.day}
                 </th>
               ))}
@@ -92,9 +106,14 @@ export default function MeteorologicalDutyRoster({
           <tbody>
             {staffNames.map((name) => (
               <tr key={name}>
-                <td className="border border-zinc-900 px-1 py-0.5 text-left">{name}</td>
+                <td className="border border-zinc-900 px-1 py-0.5 text-left">
+                  {name}
+                </td>
                 {dayHeaders.map((header) => (
-                  <td key={`${name}-${header.day}`} className="h-5 border border-zinc-900">
+                  <td
+                    className="h-5 border border-zinc-900"
+                    key={`${name}-${header.day}`}
+                  >
                     &nbsp;
                   </td>
                 ))}

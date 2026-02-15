@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-templates-draft",
+  "name": "@grenmet/web-wximages",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -14,8 +14,10 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "lucide-react": "catalog:",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "next": "catalog:",
+    "pg": "^8.17.1",
     "react": "catalog:",
     "react-dom": "catalog:"
   },
@@ -23,9 +25,12 @@
     "@grenmet/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
+    "@types/pg": "^8.16.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "drizzle-kit": "^0.31.8",
     "tailwindcss": "catalog:",
+    "tsx": "^4.21.0",
     "typescript": "catalog:"
   }
 }

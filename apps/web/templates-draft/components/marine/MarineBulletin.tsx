@@ -69,23 +69,23 @@ export default function MarineBulletin({
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
-          <div className="text-sm font-medium text-zinc-700">
+          <div className="font-medium text-sm text-zinc-700">
             <div>{date}</div>
             <div>{time}</div>
           </div>
           <div className="text-center">
-            <h1 className="mb-1 text-xl font-semibold tracking-tight text-zinc-900">
+            <h1 className="mb-1 font-semibold text-xl text-zinc-900 tracking-tight">
               MARINE BULLETIN
             </h1>
-            <div className="text-xs font-medium text-zinc-600">
+            <div className="font-medium text-xs text-zinc-600">
               {organization}
             </div>
           </div>
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-zinc-800 text-xs font-bold text-white">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded bg-zinc-800 font-bold text-white text-xs">
             GAA
           </div>
         </div>
-        <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+        <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
           {validity}
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function MarineBulletin({
       {/* Warning Level and Synopsis Section */}
       <div className="mb-6 flex gap-4">
         <div className="flex h-20 w-24 shrink-0 items-center justify-center rounded-lg bg-zinc-200 ring-1 ring-zinc-300">
-          <span className="text-lg font-bold uppercase tracking-tight text-zinc-900">
+          <span className="font-bold text-lg text-zinc-900 uppercase tracking-tight">
             {warningLevel}
           </span>
         </div>
@@ -116,7 +116,7 @@ export default function MarineBulletin({
       {/* Wave Icons Placeholder */}
       <div className="mb-6 grid grid-cols-2 gap-4">
         <div className="rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-200">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-700">
+          <div className="mb-2 font-semibold text-xs text-zinc-700 uppercase tracking-wide">
             West
           </div>
           <div className="flex h-12 items-center justify-center rounded bg-white text-xs text-zinc-500 ring-1 ring-zinc-200">
@@ -124,7 +124,7 @@ export default function MarineBulletin({
           </div>
         </div>
         <div className="rounded-lg bg-zinc-50 px-4 py-3 ring-1 ring-zinc-200">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-700">
+          <div className="mb-2 font-semibold text-xs text-zinc-700 uppercase tracking-wide">
             East
           </div>
           <div className="flex h-12 items-center justify-center rounded bg-white text-xs text-zinc-500 ring-1 ring-zinc-200">
@@ -136,33 +136,33 @@ export default function MarineBulletin({
       {/* Detailed Marine Conditions */}
       <div className="mb-6">
         <div className="mb-4 flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wide text-zinc-900">
+          <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
             LIKELIHOOD
           </span>
-          <span className="rounded-full bg-zinc-900 px-2.5 py-0.5 text-xs font-bold text-white">
+          <span className="rounded-full bg-zinc-900 px-2.5 py-0.5 font-bold text-white text-xs">
             {likelihood}
           </span>
         </div>
         <div className="space-y-2 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">SEA STATE:</span>{" "}
               <span className="text-zinc-700">{seaState}</span>
             </div>
           </div>
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">VISIBILITY:</span>{" "}
               <span className="text-zinc-700">{visibility}</span>
             </div>
           </div>
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">WIND:</span>{" "}
               <span className="text-zinc-700">{wind}</span>
             </div>
           </div>
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">TIDE:</span>{" "}
               <span className="text-zinc-700">
@@ -177,10 +177,10 @@ export default function MarineBulletin({
       <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
           <div className="mb-3 flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wide text-zinc-900">
+            <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
               IMPACT
             </span>
-            <span className="rounded-full bg-zinc-700 px-2.5 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-zinc-700 px-2.5 py-0.5 font-bold text-white text-xs">
               {impact}
             </span>
           </div>
@@ -192,10 +192,10 @@ export default function MarineBulletin({
         </div>
         <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
           <div className="mb-3 flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wide text-zinc-900">
+            <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
               RESPONSE
             </span>
-            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-xs font-bold text-white">
+            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 font-bold text-white text-xs">
               {response}
             </span>
           </div>
@@ -211,50 +211,50 @@ export default function MarineBulletin({
       <div className="mb-6 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               LAST MOON PHASE
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {lastMoonPhase}
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               NEXT MOON PHASE
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {nextMoonPhase}
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               MOONRISE
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {moonrise}
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               MOONSET
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {moonset}
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               SUNRISE
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {sunrise}
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+            <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
               SUNSET
             </div>
-            <div className="mt-1 text-sm font-medium text-zinc-900">
+            <div className="mt-1 font-medium text-sm text-zinc-900">
               {sunset}
             </div>
           </div>
@@ -262,7 +262,7 @@ export default function MarineBulletin({
       </div>
 
       {/* Divider */}
-      <div className="mb-6 border-t border-zinc-200" />
+      <div className="mb-6 border-zinc-200 border-t" />
 
       {/* Footer Section */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -271,9 +271,7 @@ export default function MarineBulletin({
             FORECASTER {forecasterName}
           </div>
         </div>
-
       </div>
     </div>
   );
 }
-

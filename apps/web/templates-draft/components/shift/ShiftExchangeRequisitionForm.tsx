@@ -16,7 +16,9 @@ function Rule({
   widthClass?: string;
   heightClass?: string;
 }) {
-  return <span className={`${heightClass} ${widthClass} border-b border-zinc-900`} />;
+  return (
+    <span className={`${heightClass} ${widthClass} border-zinc-900 border-b`} />
+  );
 }
 
 function InlineRule({
@@ -56,13 +58,13 @@ export default function ShiftExchangeRequisitionForm({
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       <header className="mb-5 text-center">
-        <div className="text-xl font-semibold tracking-wide text-zinc-900">
+        <div className="font-semibold text-xl text-zinc-900 tracking-wide">
           {organization}
         </div>
-        <div className="text-lg font-semibold text-zinc-900">{subtitle}</div>
+        <div className="font-semibold text-lg text-zinc-900">{subtitle}</div>
         <div className="text-lg text-zinc-900">{location}</div>
         <div className="mt-2 text-base text-zinc-700">({establishedYear})</div>
-        <h1 className="mt-3 text-2xl font-bold text-zinc-900">{title}</h1>
+        <h1 className="mt-3 font-bold text-2xl text-zinc-900">{title}</h1>
       </header>
 
       <section className="mb-3 space-y-2">
@@ -85,7 +87,10 @@ export default function ShiftExchangeRequisitionForm({
 
       <section className="mb-3 space-y-2">
         <InlineRule label="Name of Requesting Employee" widthClass="w-20" />
-        <InlineRule label="Signature of Requesting Employee" widthClass="w-56" />
+        <InlineRule
+          label="Signature of Requesting Employee"
+          widthClass="w-56"
+        />
         <InlineRule
           label="Name of Employee Agreeing to the Change"
           widthClass="w-16"
@@ -108,8 +113,10 @@ export default function ShiftExchangeRequisitionForm({
         <InlineRule label="Supervisor&apos;s Signature" widthClass="w-80" />
       </section>
 
-      <section className="mb-3 border-y border-zinc-900 py-1.5">
-        <h2 className="text-lg font-semibold text-zinc-900">For Official Use Only</h2>
+      <section className="mb-3 border-zinc-900 border-y py-1.5">
+        <h2 className="font-semibold text-lg text-zinc-900">
+          For Official Use Only
+        </h2>
         <div className="mt-2 flex items-center gap-2">
           <span className="text-[15px] text-zinc-900">Approved:</span>
           <CheckboxLabel label="Yes" />
@@ -126,15 +133,20 @@ export default function ShiftExchangeRequisitionForm({
         </div>
       </section>
 
-      <section className="border-t border-zinc-900 pt-2">
-        <h3 className="mb-2 text-[17px] text-zinc-900">Human Resource Department:</h3>
+      <section className="border-zinc-900 border-t pt-2">
+        <h3 className="mb-2 text-[17px] text-zinc-900">
+          Human Resource Department:
+        </h3>
         <div className="mb-3 grid grid-cols-2 items-end gap-6">
           <InlineRule label="Date:" widthClass="w-24" />
           <InlineRule label="Signature:" widthClass="w-56" />
         </div>
         <p className="text-[15px] text-zinc-900">
           Email:{" "}
-          <a className="text-blue-700 underline" href={`mailto:${contactEmail}`}>
+          <a
+            className="text-blue-700 underline"
+            href={`mailto:${contactEmail}`}
+          >
             {contactEmail}
           </a>{" "}
           Telephone: {contactPhone} Fax: {contactFax}
