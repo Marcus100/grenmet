@@ -31,12 +31,12 @@ body {
     size: A4;
     margin: 0;
   }
-  
+
   body {
     margin: 0;
     padding: 0;
   }
-  
+
   /* Ensure each A4 container is on its own page */
   .print-page {
     page-break-after: always;

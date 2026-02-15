@@ -1,20 +1,20 @@
+import type { LucideIcon } from "lucide-react";
 import {
-  Thermometer,
-  Droplet,
-  Sun,
-  Cloud,
-  Sunrise,
-  Flower2,
-  CloudRain,
-  Gauge,
-  Eye,
-  Wind,
-  Sunset,
   AirVent,
+  Cloud,
+  CloudRain,
+  Droplet,
+  Eye,
+  Flower2,
+  Gauge,
   Info,
   Percent,
+  Sun,
+  Sunrise,
+  Sunset,
+  Thermometer,
+  Wind,
 } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 
 interface WeatherMetric {
   label: string;
@@ -109,21 +109,24 @@ function MetricItem({ metric }: MetricItemProps) {
   return (
     <div className="flex items-center gap-4">
       {/* Icon with circular background - using light gray shades for contrast */}
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-inset ring-zinc-200">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
         <Icon className="h-5 w-5 text-zinc-700" strokeWidth={1.75} />
       </div>
 
       {/* Value and label - hierarchy through size and weight */}
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold tracking-tight text-zinc-900">
+          <span className="font-bold text-2xl text-zinc-900 tracking-tight">
             {metric.value}
           </span>
           {metric.showInfo && (
-            <Info className="h-3.5 w-3.5 shrink-0 text-zinc-500" strokeWidth={2.5} />
+            <Info
+              className="h-3.5 w-3.5 shrink-0 text-zinc-500"
+              strokeWidth={2.5}
+            />
           )}
         </div>
-        <span className="text-xs font-medium text-zinc-600 uppercase tracking-wide">
+        <span className="font-medium text-xs text-zinc-600 uppercase tracking-wide">
           {metric.label}
         </span>
       </div>
@@ -141,7 +144,7 @@ export default function WeatherDashboard({
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       {/* Header - size and weight create hierarchy */}
-      <h2 className="mb-8 text-xl font-semibold tracking-tight text-zinc-900">
+      <h2 className="mb-8 font-semibold text-xl text-zinc-900 tracking-tight">
         {title}
       </h2>
 
@@ -164,4 +167,3 @@ export default function WeatherDashboard({
     </div>
   );
 }
-

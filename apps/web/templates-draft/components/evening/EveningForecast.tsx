@@ -16,10 +16,10 @@ interface DayForecast {
 function DayForecastCard({ day }: { day: DayForecast }) {
   return (
     <div className="min-w-0 flex-1 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
-      <div className="mb-3 text-sm font-semibold text-zinc-900">{day.date}</div>
+      <div className="mb-3 font-semibold text-sm text-zinc-900">{day.date}</div>
       <div className="space-y-2">
         {(day.sunrise || day.sunset) && (
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               {day.sunrise && (
                 <span className="text-zinc-700">
@@ -37,20 +37,20 @@ function DayForecastCard({ day }: { day: DayForecast }) {
             </div>
           </div>
         )}
-        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
           <div className="text-sm">
             <span className="font-semibold text-zinc-900">Weather:</span>{" "}
             <span className="text-zinc-700">{day.weather}</span>
           </div>
         </div>
-        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
           <div className="text-sm">
             <span className="font-semibold text-zinc-900">Warning:</span>{" "}
             <span className="text-zinc-700">{day.warning}</span>
           </div>
         </div>
         {(day.maxTemp || day.minTemp) && (
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">Max/Min Temp:</span>{" "}
               <span className="text-zinc-700">
@@ -59,28 +59,30 @@ function DayForecastCard({ day }: { day: DayForecast }) {
             </div>
           </div>
         )}
-        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
           <div className="text-sm">
             <span className="font-semibold text-zinc-900">Wind:</span>{" "}
             <span className="text-zinc-700">{day.wind}</span>
           </div>
         </div>
-        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
           <div className="text-sm">
             <span className="font-semibold text-zinc-900">Seas:</span>{" "}
             <span className="text-zinc-700">{day.seas}</span>
           </div>
         </div>
         {day.marineWarning && (
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">Warning:</span>{" "}
-              <span className="font-bold text-zinc-900">{day.marineWarning}</span>
+              <span className="font-bold text-zinc-900">
+                {day.marineWarning}
+              </span>
             </div>
           </div>
         )}
         {(day.tideLow || day.tideHigh) && (
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">Tides:</span>{" "}
               <span className="text-zinc-700">
@@ -117,7 +119,8 @@ export default function EveningForecast({
   validity = "6:00 pm until 6:00 am & the following three (3) days",
   currentDay = {
     date: "6:00 pm until 6:00 am",
-    weather: "Mostly fair, with a few, light showers during partly cloudy spells.",
+    weather:
+      "Mostly fair, with a few, light showers during partly cloudy spells.",
     warning: "None",
     wind: "NE'ly - E'ly @ 12-22 mph",
     seas: "Moderate to rough with waves 6 - 9 ft in open NE to E'ly swells.",
@@ -144,7 +147,8 @@ export default function EveningForecast({
       date: "Monday, December 22, 2025",
       sunrise: "6:23",
       sunset: "5:48",
-      weather: "Mostly fair with a low chance of brief isolated showers overnight.",
+      weather:
+        "Mostly fair with a low chance of brief isolated showers overnight.",
       warning: "None",
       maxTemp: "31.5°C",
       minTemp: "24.0°C",
@@ -172,21 +176,21 @@ export default function EveningForecast({
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
-          <div className="text-sm font-medium text-zinc-700">
+          <div className="font-medium text-sm text-zinc-700">
             {organization}
           </div>
-          <div className="flex gap-4 text-right text-xs font-medium text-zinc-600">
+          <div className="flex gap-4 text-right font-medium text-xs text-zinc-600">
             <span>{year}</span>
             <span>{documentNumber}</span>
           </div>
         </div>
-        <h1 className="mb-2 text-xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="mb-2 font-semibold text-xl text-zinc-900 tracking-tight">
           Public weather forecast for {location}
         </h1>
-        <div className="mb-1 text-sm font-medium text-zinc-600">
+        <div className="mb-1 font-medium text-sm text-zinc-600">
           Date: {currentDate}
         </div>
-        <div className="text-sm font-medium text-zinc-600">
+        <div className="font-medium text-sm text-zinc-600">
           Validity: {validity}
         </div>
       </div>
@@ -198,16 +202,16 @@ export default function EveningForecast({
           {/* Current Day Forecast (Tonight) */}
           <div className="min-w-0 flex-1 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="text-sm font-semibold text-zinc-900">
+              <div className="font-semibold text-sm text-zinc-900">
                 {currentDate} - {currentDay.date}
               </div>
               {currentDay.minTemp && (
                 <div className="shrink-0">
                   <div className="rounded bg-white px-4 py-3 ring-1 ring-zinc-200">
-                    <div className="text-xs font-semibold uppercase tracking-wide text-zinc-700">
+                    <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
                       Tonight&apos;s Minimum Temperature
                     </div>
-                    <div className="mt-1 text-xl font-bold text-zinc-900">
+                    <div className="mt-1 font-bold text-xl text-zinc-900">
                       {currentDay.minTemp}
                     </div>
                   </div>
@@ -215,41 +219,43 @@ export default function EveningForecast({
               )}
             </div>
             <div className="space-y-2">
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Weather:</span>{" "}
                   <span className="text-zinc-700">{currentDay.weather}</span>
                 </div>
               </div>
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Warning:</span>{" "}
                   <span className="text-zinc-700">{currentDay.warning}</span>
                 </div>
               </div>
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Wind:</span>{" "}
                   <span className="text-zinc-700">{currentDay.wind}</span>
                 </div>
               </div>
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Seas:</span>{" "}
                   <span className="text-zinc-700">{currentDay.seas}</span>
                 </div>
               </div>
               {currentDay.marineWarning && (
-                <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+                <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                   <div className="text-sm">
-                    <span className="font-semibold text-zinc-900">Warning:</span>{" "}
+                    <span className="font-semibold text-zinc-900">
+                      Warning:
+                    </span>{" "}
                     <span className="font-bold text-zinc-900">
                       {currentDay.marineWarning}
                     </span>
                   </div>
                 </div>
               )}
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Tides:</span>{" "}
                   <span className="text-zinc-700">
@@ -273,14 +279,15 @@ export default function EveningForecast({
       </div>
 
       {/* Divider */}
-      <div className="mb-6 border-t border-zinc-200" />
+      <div className="mb-6 border-zinc-200 border-t" />
 
       {/* Footer Section */}
       <div className="text-sm">
         <div className="font-semibold text-zinc-900">Forecaster</div>
-        <div className="text-xs font-medium text-zinc-600">{forecasterName}</div>
+        <div className="font-medium text-xs text-zinc-600">
+          {forecasterName}
+        </div>
       </div>
     </div>
   );
 }
-

@@ -7,13 +7,17 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "biome lint .",
+    "check": "biome check --write .",
+    "check:ci": "biome ci ."
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
     "hono": "^4.11.5"
   },
   "devDependencies": {
+    "@grenmet/tsconfig": "workspace:*",
     "@types/node": "catalog:",
     "tsx": "^4.7.1",
     "typescript": "catalog:"

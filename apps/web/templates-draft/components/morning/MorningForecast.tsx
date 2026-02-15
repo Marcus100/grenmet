@@ -45,31 +45,29 @@ export default function MorningForecast({
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
-          <div className="text-sm font-medium text-zinc-700">
+          <div className="font-medium text-sm text-zinc-700">
             {organization}
           </div>
-          <div className="flex gap-4 text-right text-xs font-medium text-zinc-600">
+          <div className="flex gap-4 text-right font-medium text-xs text-zinc-600">
             <span>{year}</span>
             <span>{documentNumber}</span>
           </div>
         </div>
-        <h1 className="mb-2 text-xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="mb-2 font-semibold text-xl text-zinc-900 tracking-tight">
           Morning Weather Report
         </h1>
-        <div className="text-sm font-medium text-zinc-600">
-          Date: {date}
-        </div>
+        <div className="font-medium text-sm text-zinc-600">Date: {date}</div>
       </div>
 
       {/* Divider */}
-      <div className="mb-8 border-t border-zinc-200" />
+      <div className="mb-8 border-zinc-200 border-t" />
 
       {/* Main Forecast Section */}
       <div className="mb-6">
-        <h2 className="mb-2 text-lg font-semibold tracking-tight text-zinc-900">
+        <h2 className="mb-2 font-semibold text-lg text-zinc-900 tracking-tight">
           Public weather forecast for {location}
         </h2>
-        <p className="mb-6 text-sm font-medium text-zinc-600">
+        <p className="mb-6 font-medium text-sm text-zinc-600">
           Validity: {validity}
         </p>
 
@@ -77,7 +75,7 @@ export default function MorningForecast({
         <div className="rounded-lg bg-zinc-50 p-6 ring-1 ring-zinc-200">
           <div className="space-y-2">
             {/* Weather */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Weather:</span>{" "}
                 <span className="text-zinc-700">{weather}</span>
@@ -85,7 +83,7 @@ export default function MorningForecast({
             </div>
 
             {/* General Warning */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
                 <span
@@ -101,7 +99,7 @@ export default function MorningForecast({
             </div>
 
             {/* Max Temperature */}
-            <div className="flex items-center gap-4 rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="flex items-center gap-4 rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="flex-1 text-sm">
                 <span className="font-semibold text-zinc-900">
                   Today&apos;s maximum temperature:
@@ -112,7 +110,7 @@ export default function MorningForecast({
             </div>
 
             {/* Wind */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Wind:</span>{" "}
                 <span className="text-zinc-700">{wind}</span>
@@ -120,7 +118,7 @@ export default function MorningForecast({
             </div>
 
             {/* Seas */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Seas:</span>{" "}
                 <span className="text-zinc-700">{seas}</span>
@@ -129,7 +127,7 @@ export default function MorningForecast({
 
             {/* Marine Warning */}
             {hasMarineWarning && (
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
                   <span className="font-bold text-zinc-900">
@@ -140,7 +138,7 @@ export default function MorningForecast({
             )}
 
             {/* Tides */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Tides:</span>{" "}
                 <span className="text-zinc-700">
@@ -155,7 +153,7 @@ export default function MorningForecast({
       {/* Sunset/Sunrise Box */}
       <div className="mb-6 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">
                 Today&apos;s sunset:
@@ -163,7 +161,7 @@ export default function MorningForecast({
               <span className="text-zinc-700">{sunset}</span>
             </div>
           </div>
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">
                 Tomorrow&apos;s sunrise:
@@ -175,14 +173,13 @@ export default function MorningForecast({
       </div>
 
       {/* Divider */}
-      <div className="mb-6 border-t border-zinc-200" />
+      <div className="mb-6 border-zinc-200 border-t" />
 
       {/* Signature Section */}
       <div className="text-sm">
         <div className="font-semibold text-zinc-900">{forecasterName}</div>
-        <div className="text-xs font-medium text-zinc-600">Forecaster</div>
+        <div className="font-medium text-xs text-zinc-600">Forecaster</div>
       </div>
     </div>
   );
 }
-

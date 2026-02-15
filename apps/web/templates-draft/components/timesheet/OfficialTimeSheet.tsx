@@ -23,7 +23,7 @@ function BlankRows({ count }: { count: number }) {
       {Array.from({ length: count }).map((_, idx) => (
         <tr key={idx}>
           {columns.map((col) => (
-            <td key={`${idx}-${col}`} className="h-6 border border-zinc-900" />
+            <td className="h-6 border border-zinc-900" key={`${idx}-${col}`} />
           ))}
         </tr>
       ))}
@@ -41,20 +41,28 @@ export default function OfficialTimeSheet({
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       <header className="mb-8 text-center">
-        <div className="text-2xl font-semibold text-zinc-900">{organization}</div>
-        <div className="text-xl font-semibold text-zinc-900">{airportLineOne}</div>
-        <div className="text-xl font-semibold text-zinc-900">{airportLineTwo}</div>
-        <h1 className="mt-1 text-2xl font-bold text-zinc-900">{title}</h1>
+        <div className="font-semibold text-2xl text-zinc-900">
+          {organization}
+        </div>
+        <div className="font-semibold text-xl text-zinc-900">
+          {airportLineOne}
+        </div>
+        <div className="font-semibold text-xl text-zinc-900">
+          {airportLineTwo}
+        </div>
+        <h1 className="mt-1 font-bold text-2xl text-zinc-900">{title}</h1>
       </header>
 
       <section className="mb-6 grid grid-cols-2 gap-8">
         <div className="flex items-end gap-2">
-          <span className="text-2xl font-semibold text-zinc-900">DEPARTMENT:</span>
-          <span className="h-7 w-24 border-b border-zinc-900" />
+          <span className="font-semibold text-2xl text-zinc-900">
+            DEPARTMENT:
+          </span>
+          <span className="h-7 w-24 border-zinc-900 border-b" />
         </div>
         <div className="flex items-end justify-end gap-2">
-          <span className="text-2xl font-semibold text-zinc-900">PERIOD:</span>
-          <span className="h-7 w-28 border-b border-zinc-900" />
+          <span className="font-semibold text-2xl text-zinc-900">PERIOD:</span>
+          <span className="h-7 w-28 border-zinc-900 border-b" />
         </div>
       </section>
 
@@ -64,8 +72,8 @@ export default function OfficialTimeSheet({
             <tr>
               {columns.map((column) => (
                 <th
-                  key={column}
                   className="border border-zinc-900 px-1 py-1 font-semibold leading-tight"
+                  key={column}
                 >
                   {column}
                 </th>
@@ -80,15 +88,17 @@ export default function OfficialTimeSheet({
 
       <section className="mb-6 flex justify-center">
         <div className="w-[62%] text-center text-[27px] text-zinc-900">
-          <div className="mb-1 border-b border-zinc-900" />
+          <div className="mb-1 border-zinc-900 border-b" />
           <span>Department Manager/Supervisor</span>
         </div>
       </section>
 
-      <section className="space-y-1 text-[27px] leading-tight text-zinc-900">
+      <section className="space-y-1 text-[27px] text-zinc-900 leading-tight">
         <p>
           (a) To be completed each shift per day and{" "}
-          <span className="underline">submitted weekly to the Human Resource Department</span>
+          <span className="underline">
+            submitted weekly to the Human Resource Department
+          </span>
         </p>
         <p>(b) All Staff Movement must be accounted for .</p>
         <p>(c) Brief explanation to be provided in Remark Column</p>

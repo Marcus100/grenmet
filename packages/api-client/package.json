@@ -17,6 +17,7 @@
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@grenmet/tsconfig": "workspace:*",
     "@hey-api/openapi-ts": "^0.90.10",
     "@types/node": "catalog:",
     "typescript": "catalog:"

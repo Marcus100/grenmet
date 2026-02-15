@@ -51,32 +51,32 @@ export default function MiddayReport({
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
-          <div className="text-sm font-medium text-zinc-700">
+          <div className="font-medium text-sm text-zinc-700">
             {organization}
           </div>
-          <div className="flex gap-4 text-right text-xs font-medium text-zinc-600">
+          <div className="flex gap-4 text-right font-medium text-xs text-zinc-600">
             <span>{year}</span>
             <span>{documentNumber}</span>
           </div>
         </div>
-        <h1 className="mb-2 text-xl font-semibold tracking-tight text-zinc-900">
+        <h1 className="mb-2 font-semibold text-xl text-zinc-900 tracking-tight">
           Midday Weather Report
         </h1>
-        <div className="text-sm font-medium text-zinc-600">Date: {date}</div>
+        <div className="font-medium text-sm text-zinc-600">Date: {date}</div>
       </div>
 
       {/* Actual Temperature Section */}
       <div className="mb-6">
         <div className="rounded-lg bg-zinc-50 px-6 py-4 ring-1 ring-zinc-200">
-          <div className="text-sm font-semibold text-zinc-900">
+          <div className="font-semibold text-sm text-zinc-900">
             Actual at {airportName}:
           </div>
-          <div className="mt-2 rounded bg-white px-4 py-3 ring-1 ring-inset ring-zinc-200">
+          <div className="mt-2 rounded bg-white px-4 py-3 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
               <span className="font-semibold text-zinc-900">
                 Air temperature @ midday:
               </span>{" "}
-              <span className="text-xl font-bold text-zinc-900">
+              <span className="font-bold text-xl text-zinc-900">
                 {airTemperature}
               </span>
             </div>
@@ -86,10 +86,10 @@ export default function MiddayReport({
 
       {/* Public Weather Forecast Section */}
       <div className="mb-6">
-        <h2 className="mb-2 text-lg font-semibold tracking-tight text-zinc-900">
+        <h2 className="mb-2 font-semibold text-lg text-zinc-900 tracking-tight">
           Public weather forecast for {location}
         </h2>
-        <p className="mb-6 text-sm font-medium text-zinc-600">
+        <p className="mb-6 font-medium text-sm text-zinc-600">
           Validity: {validity}
         </p>
 
@@ -97,7 +97,7 @@ export default function MiddayReport({
         <div className="rounded-lg bg-zinc-50 p-6 ring-1 ring-zinc-200">
           <div className="space-y-2">
             {/* Weather */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Weather:</span>{" "}
                 <span className="text-zinc-700">{weather}</span>
@@ -105,7 +105,7 @@ export default function MiddayReport({
             </div>
 
             {/* General Warning */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
                 <span
@@ -121,7 +121,7 @@ export default function MiddayReport({
             </div>
 
             {/* Wind */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Wind:</span>{" "}
                 <span className="text-zinc-700">{wind}</span>
@@ -129,7 +129,7 @@ export default function MiddayReport({
             </div>
 
             {/* Seas */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Seas:</span>{" "}
                 <span className="text-zinc-700">{seas}</span>
@@ -138,7 +138,7 @@ export default function MiddayReport({
 
             {/* Marine Warning */}
             {hasMarineWarning && (
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">WARNING:</span>{" "}
                   <span className="font-bold text-zinc-900">
@@ -149,7 +149,7 @@ export default function MiddayReport({
             )}
 
             {/* Tides */}
-            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-inset ring-zinc-200">
+            <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
               <div className="text-sm">
                 <span className="font-semibold text-zinc-900">Tides:</span>{" "}
                 <span className="text-zinc-700">
@@ -186,27 +186,24 @@ export default function MiddayReport({
       {/* Word of the Day Section */}
       {wordOfTheDay && (
         <div className="mb-6 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
-          <div className="mb-2 text-xs font-bold uppercase tracking-wide text-zinc-900">
+          <div className="mb-2 font-bold text-xs text-zinc-900 uppercase tracking-wide">
             WORD OF THE DAY:
           </div>
           <div className="text-sm">
-            <span className="font-semibold text-zinc-900">
-              {wordOfTheDay}:
-            </span>{" "}
+            <span className="font-semibold text-zinc-900">{wordOfTheDay}:</span>{" "}
             <span className="text-zinc-700">{wordOfTheDayDefinition}</span>
           </div>
         </div>
       )}
 
       {/* Divider */}
-      <div className="mb-6 border-t border-zinc-200" />
+      <div className="mb-6 border-zinc-200 border-t" />
 
       {/* Footer Section */}
       <div className="text-sm">
         <div className="font-semibold text-zinc-900">{forecasterName}</div>
-        <div className="text-xs font-medium text-zinc-600">Forecaster</div>
+        <div className="font-medium text-xs text-zinc-600">Forecaster</div>
       </div>
     </div>
   );
 }
-
