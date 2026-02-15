@@ -7,7 +7,7 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 
 export const metadata: Metadata = {
-  title: "SpiceWeather Dashboard",
+  title: "Home",
   description: "SpiceWeather Dashboard for Staff",
 };
 

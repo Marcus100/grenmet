@@ -321,7 +321,7 @@ const AppSidebar: React.FC = () => {
                 alt="Logo"
                 className="dark:hidden"
                 height={40}
-                src="/images/logo/logo.svg"
+                src="/images/logo/spicewxlogo.svg"
                 width={150}
               />
               <Image
@@ -380,7 +380,7 @@ const AppSidebar: React.FC = () => {
             </div>
           </div>
         </nav>
-        {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null}
+        {/* {isExpanded || isHovered || isMobileOpen ? <SidebarWidget /> : null} */}
       </div>
     </aside>
   );
