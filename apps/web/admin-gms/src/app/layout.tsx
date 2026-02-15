@@ -8,8 +8,8 @@ import { QueryProvider } from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
   title: {
-    default: "SpiceWeather Dashboard",
-    template: "%s | SpiceWeather",
+    default: "Grenada Meteorological Service",
+    template: "%s | Grenada Meteorological Service",
   },
   description: "Your weather dashboard description",
 };

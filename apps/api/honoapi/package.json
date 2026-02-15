@@ -1,5 +1,5 @@
 {
-  "name": "@barrelsgd/api-hono",
+  "name": "@grenmet/api-hono",
   "version": "0.1.0",
   "private": true,
   "type": "module",
