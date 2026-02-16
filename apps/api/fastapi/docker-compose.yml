@@ -1,44 +1,21 @@
-# Local development only.
+# ===========================================
+# FastAPI - Local Development
+# ===========================================
+# Requires shared infra running first:
+#   pnpm infra:up        - Start Postgres
+#   pnpm infra:up:all    - Start Postgres + Adminer + Mailcatcher
+#
+# Then start FastAPI:
+#   pnpm dev:api         - Start prestart + API
+#   pnpm dev:api:down    - Stop FastAPI services
+# ===========================================
 
 services:
-  db:
-    image: postgres:17
-    restart: "no"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      retries: 5
-      start_period: 30s
-      timeout: 10s
-    ports:
-      - "5432:5432"
-    volumes:
-      - app-db-data:/var/lib/postgresql/data/pgdata
-    environment:
-      - PGDATA=/var/lib/postgresql/data/pgdata
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
-      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
-
-  adminer:
-    image: adminer
-    restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
-    ports:
-      - "8080:8080"
-    environment:
-      - ADMINER_DESIGN=pepa-linha-dark
-
   prestart:
     build:
       context: .
       dockerfile: Dockerfile
     restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
     command: bash scripts/prestart.sh
     volumes:
       - ./scripts:/app/scripts
@@ -50,11 +27,13 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=db
+      - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+    networks:
+      - grenmet
 
   api:
     build:
@@ -62,9 +41,6 @@ services:
       dockerfile: Dockerfile
     restart: "no"
     depends_on:
-      db:
-        condition: service_healthy
-        restart: true
       prestart:
         condition: service_completed_successfully
     ports:
@@ -72,12 +48,12 @@ services:
     env_file:
       - .env
     environment:
-      - POSTGRES_SERVER=db
+      - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
       - POSTGRES_USER=${POSTGRES_USER?Variable not set}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
-      - SMTP_HOST=mailcatcher
+      - SMTP_HOST=grenmet-mailcatcher
       - SMTP_PORT=1025
       - SMTP_TLS=false
       - EMAILS_FROM_EMAIL=noreply@weather.gd
@@ -104,12 +80,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+    networks:
+      - grenmet
 
-  mailcatcher:
-    image: schickling/mailcatcher
-    ports:
-      - "1080:1080"
-      - "1025:1025"
-
-volumes:
-  app-db-data:
+networks:
+  grenmet:
+    external: true

@@ -13,10 +13,12 @@
     "build:packages": "turbo run build --filter='./packages/*'",
     "clean": "git clean -xdf node_modules",
     "dev": "turbo run dev --parallel",
-    "dev:api": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml up",
-    "dev:api:down": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml down --remove-orphans",
+    "start": "docker compose -f infra/docker/docker-compose.yml --profile tools up -d && docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml up",
+    "stop": "docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml down --remove-orphans && docker compose -f infra/docker/docker-compose.yml --profile tools down",
+    "reset": "docker compose -f infra/docker/docker-compose.yml --profile tools down -v && docker compose -f infra/docker/docker-compose.yml up postgres -d",
+    "status": "docker compose -f infra/docker/docker-compose.yml --profile tools ps && docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml ps",
     "dev:web": "turbo run dev --filter='./apps/web/*'",
-    "dev:web:wximage": "turbo run dev --filter=@grenmet/web-wximage",
+    "dev:web:wximages": "turbo run dev --filter=@grenmet/web-wximages",
     "dev:web:templates-draft": "turbo run dev --filter=@grenmet/web-templates-draft",
     "dev:web:admin": "turbo run dev --filter=@grenmet/web-admin",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
@@ -44,6 +46,8 @@
         "@tanstack/zod-form-adapter>zod": "^4"
       }
     },
-    "onlyBuiltDependencies": ["msw"]
+    "onlyBuiltDependencies": [
+      "msw"
+    ]
   }
 }
