@@ -10,9 +10,5 @@ wheels/
 .venv
 .mypy_cache/
 
-/wximages/public
-/data
-.env
-
 # Scrapy cache
 .scrapy/
