@@ -11,7 +11,9 @@
     "format": "biome format --write .",
     "check": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "db:generate": "dotenv -e .env -- drizzle-kit generate",
+    "db:migrate": "dotenv -e .env -- drizzle-kit migrate"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
@@ -28,6 +30,7 @@
     "@types/pg": "^8.16.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.8",
     "tailwindcss": "catalog:",
     "tsx": "^4.21.0",

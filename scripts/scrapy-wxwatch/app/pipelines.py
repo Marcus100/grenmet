@@ -229,7 +229,7 @@ class PostgresPipeline:
             db_port=crawler.settings.getint("DB_PORT", 5432),
             db_name=crawler.settings.get("DB_NAME", "wxwatch"),
             db_user=crawler.settings.get("DB_USER", "wxwatch"),
-            db_password=crawler.settings.get("DB_PASSWORD", "wxwatch_password"),
+            db_password=crawler.settings.get("DB_PASSWORD", "changethis"),
         )
 
     def open_spider(self, spider):
@@ -249,8 +249,6 @@ class PostgresPipeline:
                 self.db_port,
                 self.db_name,
             )
-            # Ensure table exists
-            self._create_table_if_not_exists(spider)
         except psycopg.Error as e:
             spider.logger.error("PostgresPipeline: Failed to connect to database: %s", e)
             raise

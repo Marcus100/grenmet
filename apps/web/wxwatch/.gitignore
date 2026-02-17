@@ -20,6 +20,7 @@
 /data
 !/db
 !/lib
+/public/wxwatch
 
 
 # production

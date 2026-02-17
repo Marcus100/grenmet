@@ -8,6 +8,10 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import os
+from pathlib import Path
+
+
+
 
 BOT_NAME = "app"
 
@@ -66,7 +70,10 @@ ITEM_PIPELINES = {
     "app.pipelines.ImageMetadataPipeline": 2,     # Extract metadata with Pillow
     "app.pipelines.PostgresPipeline": 3,          # Write to PostgreSQL
 }
-IMAGES_STORE = "apps/web/wxwatch/public/wxwatch"
+
+# Resolve to absolute path: scrapy-wxwatch -> scripts -> repo root -> apps/web/wxwatch/public/wxwatch
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+IMAGES_STORE = str(_REPO_ROOT / "apps" / "web" / "wxwatch" / "public" / "wxwatch")
 
 # Allow redirects for image downloads (fixes http->https redirects)
 MEDIA_ALLOW_REDIRECTS = True
