@@ -58,7 +58,7 @@ export default function InputStates() {
         <div>
           <Label>Email</Label>
           <Input
-            defaultValue="disabled@barrels.gd"
+            defaultValue="disabled@weather.gd"
             disabled={true}
             hint="This field is disabled."
             placeholder="Disabled email"

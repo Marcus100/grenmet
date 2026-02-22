@@ -3,11 +3,11 @@ import type React from "react";
 import { useState } from "react";
 
 interface SwitchProps {
-  label: string;
+  color?: "blue" | "gray"; // Added prop to toggle color theme
   defaultChecked?: boolean;
   disabled?: boolean;
+  label: string;
   onChange?: (checked: boolean) => void;
-  color?: "blue" | "gray"; // Added prop to toggle color theme
 }
 
 const Switch: React.FC<SwitchProps> = ({

@@ -1,12 +1,12 @@
 interface ShiftExchangeRequisitionFormProps {
+  contactEmail?: string;
+  contactFax?: string;
+  contactPhone?: string;
+  establishedYear?: string;
+  location?: string;
   organization?: string;
   subtitle?: string;
-  location?: string;
-  establishedYear?: string;
   title?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-  contactFax?: string;
 }
 
 function Rule({

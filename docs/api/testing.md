@@ -27,11 +27,13 @@ bash scripts/pre-deploy.sh
 ### 1. Code Formatting
 
 **Check formatting:**
+
 ```bash
 docker compose exec api uv run ruff format src --check
 ```
 
 **Auto-fix formatting:**
+
 ```bash
 docker compose exec api uv run ruff format src
 # Or use the script:
@@ -41,11 +43,13 @@ docker compose exec api uv run ruff format src
 ### 2. Linting
 
 **Check for code issues:**
+
 ```bash
 docker compose exec api uv run ruff check src
 ```
 
 **Auto-fix linting issues:**
+
 ```bash
 docker compose exec api uv run ruff check src --fix
 ```
@@ -53,6 +57,7 @@ docker compose exec api uv run ruff check src --fix
 ### 3. Type Checking
 
 **Run mypy:**
+
 ```bash
 docker compose exec api uv run mypy src
 ```
@@ -60,21 +65,25 @@ docker compose exec api uv run mypy src
 ### 4. Run Tests
 
 **Run all tests:**
+
 ```bash
 docker compose exec api uv run pytest
 ```
 
 **Run with verbose output:**
+
 ```bash
 docker compose exec api uv run pytest -v
 ```
 
 **Run specific test file:**
+
 ```bash
 docker compose exec api uv run pytest tests/api/test_items.py
 ```
 
 **Run with coverage:**
+
 ```bash
 docker compose exec api uv run pytest --cov=src --cov-report=html
 ```
@@ -85,21 +94,25 @@ Open `htmlcov/index.html` in your browser after running coverage.
 ### 5. Database Migrations
 
 **Check current migration:**
+
 ```bash
 docker compose exec api uv run alembic current
 ```
 
 **Create new migration:**
+
 ```bash
 docker compose exec api uv run alembic revision --autogenerate -m "description"
 ```
 
 **Apply migrations:**
+
 ```bash
 docker compose exec api uv run alembic upgrade head
 ```
 
 **Rollback migration:**
+
 ```bash
 docker compose exec api uv run alembic downgrade -1
 ```
@@ -107,15 +120,17 @@ docker compose exec api uv run alembic downgrade -1
 ### 6. API Health Check
 
 **Test API is running:**
+
 ```bash
 curl http://localhost:8000/api/v1/utils/health-check/
 ```
 
 **Test authentication:**
+
 ```bash
 curl -X POST http://localhost:8000/api/v1/login/access-token \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=admin@barrels.gd&password=changethis"
+  -d "username=admin@weather.gd&password=changethis"
 ```
 
 ## 📋 Pre-Deployment Checklist
@@ -123,6 +138,7 @@ curl -X POST http://localhost:8000/api/v1/login/access-token \
 Before deploying to production, ensure:
 
 ### ✅ Code Quality
+
 - [ ] All tests pass
 - [ ] Code is formatted (ruff format)
 - [ ] No linting errors (ruff check)
@@ -130,6 +146,7 @@ Before deploying to production, ensure:
 - [ ] Code coverage > 80%
 
 ### ✅ Security
+
 - [ ] `SECRET_KEY` is changed from "changethis"
 - [ ] `POSTGRES_PASSWORD` is changed from "changethis"
 - [ ] `FIRST_SUPERUSER_PASSWORD` is changed from "changethis"
@@ -139,23 +156,27 @@ Before deploying to production, ensure:
 - [ ] HTTPS is enabled in production
 
 ### ✅ Database
+
 - [ ] All migrations are applied
 - [ ] Database backup is created
 - [ ] Migration rollback plan exists
 
 ### ✅ Environment
+
 - [ ] `.env` file is configured for production
 - [ ] Environment variables are set correctly
 - [ ] Sentry DSN is configured (if using)
 - [ ] Email settings are configured (if using)
 
 ### ✅ Docker
+
 - [ ] Docker build succeeds
 - [ ] All containers start successfully
 - [ ] Health check endpoint responds
 - [ ] Logs show no errors
 
 ### ✅ API
+
 - [ ] OpenAPI docs are accessible
 - [ ] All endpoints return expected responses
 - [ ] Authentication works correctly
@@ -218,6 +239,7 @@ docker compose exec api python scripts/quick_test.py
 ```
 
 **7 Tests:**
+
 1. ✅ API Health Check
 2. ✅ Router Structure (6 tag groups)
 3. ✅ Enhanced Documentation
@@ -227,6 +249,7 @@ docker compose exec api python scripts/quick_test.py
 7. ✅ Constants Usage
 
 **Perfect for:**
+
 - Quick validation after changes
 - CI/CD pipelines
 - Deployment verification
@@ -244,11 +267,13 @@ Generates coverage report in `htmlcov/index.html`
 ### Tests Failing
 
 1. **Check database is running:**
+
    ```bash
    docker compose ps
    ```
 
 2. **Reset database:**
+
    ```bash
    docker compose down -v
    docker compose up -d
@@ -262,6 +287,7 @@ Generates coverage report in `htmlcov/index.html`
 ### Linting Errors
 
 **Auto-fix most issues:**
+
 ```bash
 docker compose exec api uv run ruff check src --fix
 docker compose exec api uv run ruff format src
@@ -270,6 +296,7 @@ docker compose exec api uv run ruff format src
 ### Type Errors
 
 **Common fixes:**
+
 - Add type hints to function parameters
 - Use `Optional[Type]` for nullable values
 - Import types from `typing` module
@@ -277,6 +304,7 @@ docker compose exec api uv run ruff format src
 ### Migration Errors
 
 **Reset migrations (development only):**
+
 ```bash
 # WARNING: This deletes all data
 docker compose down -v
@@ -287,12 +315,14 @@ docker compose exec api uv run alembic upgrade head
 ## 📊 Test Coverage Goals
 
 ### Minimum Coverage Targets
+
 - **Unit Tests**: > 80%
 - **Integration Tests**: > 70%
 - **API Endpoints**: 100%
 - **Critical Paths**: 100%
 
 ### Coverage Reports
+
 ```bash
 # Generate HTML coverage report
 docker compose exec api uv run pytest --cov=src --cov-report=html
@@ -304,24 +334,28 @@ open htmlcov/index.html
 ## 🔍 Test Categories
 
 ### 1. Unit Tests
+
 - Test individual functions and methods
 - Mock external dependencies
 - Fast execution
 - High coverage
 
 ### 2. Integration Tests
+
 - Test component interactions
 - Use real database (test instance)
 - Test API endpoints
 - Verify data flow
 
 ### 3. End-to-End Tests
+
 - Test complete user workflows
 - Test authentication flows
 - Test error scenarios
 - Verify business logic
 
 ### 4. Performance Tests
+
 - Load testing
 - Stress testing
 - Memory usage
@@ -330,6 +364,7 @@ open htmlcov/index.html
 ## 🎯 Testing Checklist
 
 ### Before Committing
+
 - [ ] All tests pass locally
 - [ ] Code is formatted
 - [ ] No linting errors
@@ -337,6 +372,7 @@ open htmlcov/index.html
 - [ ] New tests added for new features
 
 ### Before Deploying
+
 - [ ] Full test suite passes
 - [ ] Pre-deployment checks pass
 - [ ] Database migrations tested
@@ -344,6 +380,7 @@ open htmlcov/index.html
 - [ ] Performance tests pass
 
 ### After Deploying
+
 - [ ] Health checks pass
 - [ ] Smoke tests pass
 - [ ] Monitoring alerts configured
@@ -373,6 +410,7 @@ cd apps/api/fastapi
 ```
 
 **Before every deployment:**
+
 ```bash
 # Run all checks
 ./scripts/format.sh

@@ -18,11 +18,13 @@ python scripts/seed_data.py
 ```
 
 **What it does:**
-- Creates 5 test users (testuser0@barrels.gd through testuser4@barrels.gd)
+
+- Creates 5 test users (testuser0@weather.gd through testuser4@weather.gd)
 - Creates 3 items for each user (15 items total)
 - Password for all users: `testpass123`
 
 **Result:**
+
 - 5 users
 - 15 items
 
@@ -44,7 +46,8 @@ python scripts/seed_data.py
 ```
 
 **What happens:**
-1. Removes all existing test users (testuser0-4@barrels.gd) and their items
+
+1. Removes all existing test users (testuser0-4@weather.gd) and their items
 2. Creates fresh test data
 
 ---
@@ -90,6 +93,7 @@ python scripts/seed_data.py --reset --count 10
 ```
 
 **What happens:**
+
 1. Deletes all existing test users and their items
 2. Creates 10 new users with 3 items each
 
@@ -106,6 +110,7 @@ python scripts/seed_data.py -v
 ```
 
 **What you'll see:**
+
 - Detailed debug information
 - Which users already existed
 - Which items were skipped
@@ -121,7 +126,8 @@ python scripts/clear_seed_data.py
 ```
 
 **What it does:**
-- Finds all users with email pattern `testuser*@barrels.gd`
+
+- Finds all users with email pattern `testuser*@weather.gd`
 - Deletes those users and all their items
 - Shows summary of what was deleted
 
@@ -173,8 +179,8 @@ Starting database seeding...
 Configuration: 5 users, 3 items each
 ============================================================
 Creating 5 test users...
-Created user: testuser0@barrels.gd
-Created user: testuser1@barrels.gd
+Created user: testuser0@weather.gd
+Created user: testuser1@weather.gd
 ...
 Users: 5 created, 0 already existed
 Creating 3 items per user...
@@ -183,7 +189,7 @@ Database seeding completed!
 Users: 5 total
 Items: 15 created, 0 skipped (already existed)
 ============================================================
-Test credentials: testuser0@barrels.gd / testpass123
+Test credentials: testuser0@weather.gd / testpass123
 ```
 
 ### With Existing Data
@@ -204,6 +210,7 @@ Items: 0 created, 15 skipped (already existed)
 ```
 
 **What this means:**
+
 - Users already existed, so none were created
 - Items already existed, so none were created
 - Script is **idempotent** - safe to run multiple times!
@@ -214,12 +221,12 @@ Items: 0 created, 15 skipped (already existed)
 
 ### `seed_data.py` Options
 
-| Option | Short | Description | Default |
-|--------|-------|-------------|---------|
-| `--count` | | Number of test users to create | 5 |
-| `--items-per-user` | | Number of items per user | 3 |
-| `--reset` | | Clear existing seed data first | False |
-| `--verbose` | `-v` | Enable detailed logging | False |
+| Option             | Short | Description                    | Default |
+| ------------------ | ----- | ------------------------------ | ------- |
+| `--count`          |       | Number of test users to create | 5       |
+| `--items-per-user` |       | Number of items per user       | 3       |
+| `--reset`          |       | Clear existing seed data first | False   |
+| `--verbose`        | `-v`  | Enable detailed logging        | False   |
 
 ### Examples
 
@@ -236,20 +243,24 @@ python scripts/seed_data.py --count 10 --items-per-user 5 --reset --verbose
 ## 🛡️ Safety Features
 
 ### 1. **Idempotent**
+
 - Safe to run multiple times
 - Won't create duplicates
 - Checks before creating
 
 ### 2. **Transaction Safety**
+
 - All changes commit together
 - If something fails, nothing is saved
 
 ### 3. **Smart Duplicate Detection**
+
 - Checks if users exist before creating
 - Checks if items exist before creating
 - Only creates what's missing
 
 ### 4. **Clear Logging**
+
 - Shows what was created
 - Shows what was skipped
 - Shows what was cleared (if using --reset)
@@ -288,6 +299,7 @@ python scripts/seed_data.py --count 10 --items-per-user 5 --reset --verbose
 ### Error: "Database connection failed"
 
 **Solution:** Make sure your database is running
+
 ```bash
 # If using Docker
 docker compose up -d db
@@ -299,6 +311,7 @@ python scripts/backend_pre_start.py
 ### Error: "User already exists"
 
 **This is normal!** The script handles this automatically. If you want fresh data:
+
 ```bash
 python scripts/seed_data.py --reset
 ```
@@ -306,6 +319,7 @@ python scripts/seed_data.py --reset
 ### Want to see what's happening?
 
 Use verbose mode:
+
 ```bash
 python scripts/seed_data.py --verbose
 ```
@@ -315,17 +329,20 @@ python scripts/seed_data.py --verbose
 ## 📝 Summary
 
 **Basic commands:**
+
 - `python scripts/seed_data.py` - Create default test data
 - `python scripts/seed_data.py --reset` - Fresh start
 - `python scripts/clear_seed_data.py` - Remove test data
 
 **Advanced usage:**
+
 - `python scripts/seed_data.py --count 10` - More users
 - `python scripts/seed_data.py --items-per-user 5` - More items
 - `python scripts/seed_data.py --verbose` - Detailed logs
 
 **Test credentials:**
-- Email: `testuser0@barrels.gd`
+
+- Email: `testuser0@weather.gd`
 - Password: `testpass123`
 
 ---
@@ -337,4 +354,3 @@ python scripts/seed_data.py --verbose
 3. **Use `--verbose`** to debug issues or see what's happening
 4. **The script is safe** - it won't delete your admin user or other non-test data
 5. **Idempotent** - you can run it multiple times without issues
-

@@ -55,14 +55,14 @@ def test_recovery_password(
     with (
         patch("src.email.send_email", return_value=None),
         patch("smtplib.SMTP") as mock_smtp,
-        patch("src.config.settings.SMTP_HOST", "smtp.barrels.gd"),
-        patch("src.config.settings.SMTP_USER", "admin@barrels.gd"),
+        patch("src.config.settings.SMTP_HOST", "smtp.weather.gd"),
+        patch("src.config.settings.SMTP_USER", "admin@weather.gd"),
     ):
         # Configure the mock SMTP server
         mock_server = mock_smtp.return_value
         mock_server.send_message.return_value = {}
 
-        email = "test@barrels.gd"
+        email = "test@weather.gd"
         r = client.post(
             f"{settings.API_V1_STR}/password-recovery/{email}",
             headers=normal_user_token_headers,
@@ -75,7 +75,7 @@ def test_recovery_password_user_not_exists(
     client: TestClient, normal_user_token_headers: dict[str, str]
 ) -> None:
     """Test password recovery for non-existent user."""
-    email = "jVgQr@barrels.gd"
+    email = "jVgQr@weather.gd"
     r = client.post(
         f"{settings.API_V1_STR}/password-recovery/{email}",
         headers=normal_user_token_headers,

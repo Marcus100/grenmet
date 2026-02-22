@@ -2,21 +2,21 @@ import type React from "react";
 import type { FC } from "react";
 
 interface InputProps {
-  type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
-  id?: string;
-  name?: string;
-  placeholder?: string;
-  defaultValue?: string | number;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: () => void;
   className?: string;
-  min?: string;
-  max?: string;
-  step?: number;
+  defaultValue?: string | number;
   disabled?: boolean;
-  success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
+  id?: string;
+  max?: string;
+  min?: string;
+  name?: string;
+  onBlur?: () => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+  step?: number;
+  success?: boolean;
+  type?: "text" | "number" | "email" | "password" | "date" | "time" | string;
 }
 
 const Input: FC<InputProps> = ({

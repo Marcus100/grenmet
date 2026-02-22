@@ -107,7 +107,7 @@ class Settings(BaseSettings):
     def EMAILS_ENABLED(self) -> bool:
         return self.emails_enabled
 
-    EMAIL_TEST_USER: EmailStr = "test@barrels.gd"
+    EMAIL_TEST_USER: EmailStr = "test@weather.gd"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 

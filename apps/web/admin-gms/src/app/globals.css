@@ -4,10 +4,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-*: initial;
   --font-outfit: Outfit, sans-serif;
-
-  --breakpoint-*: initial;
   --breakpoint-2xsm: 375px;
   --breakpoint-xsm: 425px;
   --breakpoint-3xl: 2000px;
@@ -166,6 +163,9 @@
   --z-index-9999: 9999;
   --z-index-99999: 99999;
   --z-index-999999: 999999;
+  --font-*: initial;
+
+  --breakpoint-*: initial;
 }
 
 /*
@@ -255,11 +255,12 @@
 
 @utility no-scrollbar {
   /* Chrome, Safari and Opera */
-  &::-webkit-scrollbar {
-    display: none;
-  }
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+  /* Chrome, Safari and Opera */
+  &::-webkit-scrollbar {
+    display: none;
+  } /* Firefox */
 }
 
 @utility custom-scrollbar {
@@ -376,10 +377,10 @@
   background: none !important;
 }
 .flatpickr-month .flatpickr-current-month .flatpickr-monthDropdown-months {
-  background: none !important;
-  appearance: none;
-  background-image: none !important;
   font-weight: 500;
+  appearance: none;
+  background: none !important;
+  background-image: none !important;
 }
 .flatpickr-month
   .flatpickr-current-month
@@ -504,12 +505,12 @@ span.flatpickr-weekday,
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
-  @apply inline-block mt-1;
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  @apply inline-block mt-1;
 }
 .fc-button-group .fc-button.fc-next-button:before {
-  @apply inline-block mt-1;
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
+  @apply inline-block mt-1;
 }
 .dark .fc-button-group .fc-button.fc-prev-button:before {
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
@@ -614,9 +615,9 @@ span.flatpickr-weekday,
   @apply text-sm font-medium text-gray-500 dark:text-gray-400;
 }
 .custom-calendar .fc-h-event {
+  color: black;
   background-color: transparent;
   border: none;
-  color: black;
 }
 .fc.fc-media-screen {
   @apply min-h-screen;
@@ -624,8 +625,8 @@ span.flatpickr-weekday,
 
 .input-date-icon::-webkit-inner-spin-button,
 .input-date-icon::-webkit-calendar-picker-indicator {
-  opacity: 0;
   -webkit-appearance: none;
+  opacity: 0;
 }
 
 .stocks-slider-outer .swiper-button-next:after,
@@ -733,12 +734,12 @@ span.flatpickr-weekday,
 }
 
 .task {
+  cursor: grabbing; /* Changes the cursor to indicate dragging */
   border-radius: 0.75rem;
   box-shadow:
     0 1px 3px 0 rgba(16, 24, 40, 0.1),
     0 1px 2px 0 rgba(16, 24, 40, 0.06);
-  opacity: 0.8;
-  cursor: grabbing; /* Changes the cursor to indicate dragging */
+  opacity: 0.8; /* Changes the cursor to indicate dragging */
 }
 
 /*

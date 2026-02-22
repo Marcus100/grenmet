@@ -3,10 +3,10 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 
 interface DropdownProps {
-  isOpen: boolean;
-  onClose: () => void;
   children: React.ReactNode;
   className?: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({

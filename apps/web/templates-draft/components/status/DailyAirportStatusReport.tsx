@@ -1,8 +1,8 @@
 interface DailyAirportStatusReportProps {
+  establishedYear?: string;
+  location?: string;
   organization?: string;
   subtitle?: string;
-  location?: string;
-  establishedYear?: string;
   title?: string;
 }
 

@@ -3,14 +3,14 @@
 // ============================================================================
 
 export interface WeatherOffice {
-  name: string;
   country: string;
+  name: string;
 }
 
 export interface ValidityPeriod {
-  start: string; // ISO 8601 datetime
-  end: string; // ISO 8601 datetime
   description: string;
+  end: string; // ISO 8601 datetime
+  start: string; // ISO 8601 datetime
 }
 
 export interface TemperatureData {
@@ -30,12 +30,12 @@ export interface WindData {
 }
 
 export interface SeasData {
+  area: string; // e.g., "open waters"
   state: string; // e.g., "Slight to moderate"
   wave_height_feet: {
     min: number;
     max: number;
   };
-  area: string; // e.g., "open waters"
 }
 
 export interface TideTime {
@@ -64,32 +64,32 @@ export interface DocumentControl {
 }
 
 export interface MorningWeatherReport {
+  created_at: string; // ISO 8601 datetime
+  document_control: DocumentControl;
+  forecast_area: string;
+  forecaster: Forecaster;
   id: string;
-  report_type: "morning_weather_report";
-  office: WeatherOffice;
   issue_date: string; // YYYY-MM-DD
   issue_time_local: string; // HH:MM format
-  validity: ValidityPeriod;
-  forecast_area: string;
-  weather_summary: {
-    description: string;
-  };
-  warnings: {
-    public: string[];
-    marine: string[];
-  };
+  marine_warning: string | null;
   meteorological_elements: {
     temperature: TemperatureData;
     wind: WindData;
     seas: SeasData;
   };
-  marine_warning: string | null;
-  tides: Tides;
+  office: WeatherOffice;
+  report_type: "morning_weather_report";
   solar: SolarData;
-  forecaster: Forecaster;
-  document_control: DocumentControl;
-  created_at: string; // ISO 8601 datetime
+  tides: Tides;
   updated_at: string; // ISO 8601 datetime
+  validity: ValidityPeriod;
+  warnings: {
+    public: string[];
+    marine: string[];
+  };
+  weather_summary: {
+    description: string;
+  };
 }
 
 // ============================================================================

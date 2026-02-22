@@ -1,9 +1,9 @@
 # Grenmet Monorepo - Shared Infrastructure
-# Usage (from repo root):
-#   pnpm infra:up        - Start Postgres only
-#   pnpm infra:up:all    - Start Postgres + Adminer + Mailcatcher
-#   pnpm infra:down      - Stop all infra
-#   pnpm infra:reset     - Wipe DB and start fresh
+# From repo root:
+#   pnpm start   - Start infra (tools profile) + FastAPI
+#   pnpm stop    - Stop FastAPI and infra
+#   pnpm status  - Show container status
+#   pnpm reset   - Tear down infra with volumes, then start Postgres only
 services:
   postgres:
     image: postgres:17

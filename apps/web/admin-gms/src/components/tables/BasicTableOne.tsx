@@ -29,18 +29,18 @@ import {
 } from "@/components/ui/table";
 
 interface Order {
+  budget: string;
   id: number;
+  projectName: string;
+  status: string;
+  team: {
+    images: string[];
+  };
   user: {
     image: string;
     name: string;
     role: string;
   };
-  projectName: string;
-  team: {
-    images: string[];
-  };
-  status: string;
-  budget: string;
 }
 
 // Base data for generating larger datasets

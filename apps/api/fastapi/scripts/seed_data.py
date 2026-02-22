@@ -199,7 +199,7 @@ def clear_seed_data(session: Session) -> tuple[int, int]:
     test_users = [
         u
         for u in all_users
-        if u.email.startswith("testuser") and u.email.endswith("@barrels.gd")
+        if u.email.startswith("testuser") and u.email.endswith("@weather.gd")
     ]
 
     user_count = len(test_users)

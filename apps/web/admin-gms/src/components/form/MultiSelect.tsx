@@ -2,17 +2,17 @@ import type React from "react";
 import { useState } from "react";
 
 interface Option {
-  value: string;
-  text: string;
   selected: boolean;
+  text: string;
+  value: string;
 }
 
 interface MultiSelectProps {
-  label: string;
-  options: Option[];
   defaultSelected?: string[];
-  onChange?: (selected: string[]) => void;
   disabled?: boolean;
+  label: string;
+  onChange?: (selected: string[]) => void;
+  options: Option[];
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({

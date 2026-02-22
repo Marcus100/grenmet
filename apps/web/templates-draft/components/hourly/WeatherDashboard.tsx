@@ -17,10 +17,10 @@ import {
 } from "lucide-react";
 
 interface WeatherMetric {
-  label: string;
-  value: string;
   icon: LucideIcon;
+  label: string;
   showInfo?: boolean;
+  value: string;
 }
 
 const leftColumnMetrics: WeatherMetric[] = [

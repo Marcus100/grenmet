@@ -1,21 +1,21 @@
 interface MorningForecastProps {
-  organization?: string;
-  documentNumber?: string;
-  year?: string;
   date?: string;
+  documentNumber?: string;
+  forecasterName?: string;
+  generalWarning?: string;
   location?: string;
+  marineWarning?: string;
+  maxTemperature?: string;
+  organization?: string;
+  seas?: string;
+  sunrise?: string;
+  sunset?: string;
+  tideHigh?: string;
+  tideLow?: string;
   validity?: string;
   weather?: string;
-  generalWarning?: string;
-  maxTemperature?: string;
   wind?: string;
-  seas?: string;
-  marineWarning?: string;
-  tideLow?: string;
-  tideHigh?: string;
-  sunset?: string;
-  sunrise?: string;
-  forecasterName?: string;
+  year?: string;
 }
 
 export default function MorningForecast({

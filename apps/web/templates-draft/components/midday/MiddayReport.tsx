@@ -1,24 +1,24 @@
 interface MiddayReportProps {
-  organization?: string;
-  documentNumber?: string;
-  year?: string;
-  date?: string;
-  location?: string;
   airportName?: string;
   airTemperature?: string;
-  validity?: string;
-  weather?: string;
+  date?: string;
+  documentNumber?: string;
+  forecasterName?: string;
   generalWarning?: string;
-  wind?: string;
-  seas?: string;
+  location?: string;
   marineWarning?: string;
+  organization?: string;
+  seas?: string;
+  sunrise?: string;
+  sunset?: string;
   tideHigh?: string;
   tideLow?: string;
-  sunset?: string;
-  sunrise?: string;
+  validity?: string;
+  weather?: string;
+  wind?: string;
   wordOfTheDay?: string;
   wordOfTheDayDefinition?: string;
-  forecasterName?: string;
+  year?: string;
 }
 
 export default function MiddayReport({
