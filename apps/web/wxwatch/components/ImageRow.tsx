@@ -5,7 +5,7 @@ import type { WeatherImage } from "@/db/schema";
 import { getImageUrl } from "@/lib/utils";
 
 interface ImageRowProps {
-  title: string;
+  onImageClick: (image: WeatherImage) => void;
   synopticImages: {
     "00": WeatherImage | null;
     "03": WeatherImage | null;
@@ -16,7 +16,7 @@ interface ImageRowProps {
     "18": WeatherImage | null;
     "21": WeatherImage | null;
   };
-  onImageClick: (image: WeatherImage) => void;
+  title: string;
 }
 
 const SYNOPTIC_HOURS: Array<

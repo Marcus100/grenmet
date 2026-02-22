@@ -21,14 +21,14 @@ import {
 
 interface SubItem {
   name: string;
+  new?: boolean;
   path: string;
   pro?: boolean;
-  new?: boolean;
 }
 
 interface NavItem {
-  name: string;
   icon: React.ReactNode;
+  name: string;
   path?: string;
   subItems?: SubItem[];
 }

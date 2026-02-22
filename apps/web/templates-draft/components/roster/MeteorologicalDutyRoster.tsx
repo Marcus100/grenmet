@@ -1,8 +1,8 @@
 interface MeteorologicalDutyRosterProps {
-  title?: string;
-  subtitle?: string;
   period?: string;
   statusTag?: string;
+  subtitle?: string;
+  title?: string;
 }
 
 const weekDays = ["S", "M", "T", "W", "T", "F", "S"];

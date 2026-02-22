@@ -1,49 +1,55 @@
-# FastAPI Backend - Barrels API
+# Grenmet – FastAPI backend
 
 A modern FastAPI backend following [FastAPI Best Practices](https://github.com/zhanymkanov/fastapi-best-practices) with comprehensive development workflow.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker Desktop (with Docker Compose v2.22+)
 - Git
 
 ### Setup
-1. **Clone and navigate to project**:
+
+1. **Navigate to this app** (from monorepo root):
+
 ```bash
-cd fast-back
+cd apps/api/fastapi
 ```
 
 2. **Copy environment file**:
+
 ```bash
 cp .env.example .env
 ```
 
 3. **Edit `.env` and set secure values**:
+
 ```env
 SECRET_KEY=your-secret-key-here  # Generate with: openssl rand -base64 32
-FIRST_SUPERUSER=admin@barrels.gd
+FIRST_SUPERUSER=admin@weather.gd
 FIRST_SUPERUSER_PASSWORD=your-secure-password
 POSTGRES_PASSWORD=your-db-password
 ```
 
 4. **Start development environment**:
+
 ```bash
 docker compose watch
 ```
 
 5. **Access your services**:
+
 - API: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 - Adminer: http://localhost:8080
 - MailCatcher: http://localhost:1080
 - Traefik: http://localhost:8090
 
-## 📚 Documentation
+## Documentation
 
-- **[DEVELOPMENT.md](DEVELOPMENT.md)** - Complete development guide with Docker, scripts, and workflows
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide with CI/CD and monitoring
-- **[TESTING.md](TESTING.md)** - Testing strategies, pre-deployment checks, and quality assurance
+- **[Development](../../../docs/api/development.md)** – Complete development guide with Docker, scripts, and workflows
+- **[Testing](../../../docs/api/testing.md)** – Testing strategies, pre-deployment checks, and quality assurance
 
 ## 🏗️ Architecture
 
@@ -77,11 +83,13 @@ This project follows **FastAPI Best Practices**:
 ## 🧪 Testing
 
 ### Quick API Test
+
 ```bash
 docker compose exec api python scripts/quick_test.py
 ```
 
 ### Full Test Suite
+
 ```bash
 docker compose exec api uv run pytest --cov=src --cov-report=html
 ```
@@ -89,9 +97,11 @@ docker compose exec api uv run pytest --cov=src --cov-report=html
 ## 🔧 Development Workflow
 
 ### Making Changes
+
 Edit any file in `src/`, `alembic/`, `templates/`, or `scripts/` - changes sync automatically and the server reloads instantly.
 
 ### Helper Scripts
+
 ```bash
 # Start development
 ./scripts/dev.sh start
@@ -116,6 +126,7 @@ Edit any file in `src/`, `alembic/`, `templates/`, or `scripts/` - changes sync 
 ```
 
 ### Database Migrations
+
 ```bash
 # Create a new migration
 docker compose exec api uv run alembic revision --autogenerate -m "add users table"
@@ -124,20 +135,20 @@ docker compose exec api uv run alembic revision --autogenerate -m "add users tab
 docker compose exec api uv run alembic upgrade head
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Pre-Deployment Checklist
+
 ```bash
 ./scripts/pre-deploy.sh
 ```
 
-### Production Deployment
-See [DEPLOYMENT.md](DEPLOYMENT.md) for detailed instructions.
+Deployment (to be documented in docs/api when needed).
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-fast-back/
+apps/api/fastapi/
 ├── src/                          # Application code
 │   ├── auth/                     # Authentication module
 │   │   ├── routers/              # Split auth routers
@@ -168,7 +179,6 @@ fast-back/
 ├── scripts/                      # Development scripts
 ├── email-templates/              # Email templates
 ├── alembic/                      # Database migrations
-├── .github/workflows/            # CI/CD workflows
 ├── docker-compose.yml            # Main Docker config
 ├── docker-compose.override.yml   # Local dev overrides
 ├── docker-compose.prod.yml       # Production config
@@ -182,26 +192,29 @@ fast-back/
 
 Key variables in `.env`:
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `ENVIRONMENT` | Environment name | `local`, `staging`, `production` |
-| `DOMAIN` | Base domain | `localhost` or `localhost.tiangolo.com` |
-| `SECRET_KEY` | JWT secret | Generate with `openssl rand -base64 32` |
-| `POSTGRES_*` | Database credentials | See `.env.example` |
-| `FIRST_SUPERUSER` | Admin email | `admin@barrels.gd` |
-| `FIRST_SUPERUSER_PASSWORD` | Admin password | Strong password |
+| Variable                   | Description          | Example                                 |
+| -------------------------- | -------------------- | --------------------------------------- |
+| `ENVIRONMENT`              | Environment name     | `local`, `staging`, `production`        |
+| `DOMAIN`                   | Base domain          | `localhost` or `localhost.tiangolo.com` |
+| `SECRET_KEY`               | JWT secret           | Generate with `openssl rand -base64 32` |
+| `POSTGRES_*`               | Database credentials | See `.env.example`                      |
+| `FIRST_SUPERUSER`          | Admin email          | `admin@weather.gd`                      |
+| `FIRST_SUPERUSER_PASSWORD` | Admin password       | Strong password                         |
 
 ## 🛠️ Troubleshooting
 
 ### Port conflicts
+
 Change ports in `docker-compose.override.yml`:
+
 ```yaml
 api:
   ports:
-    - "8001:80"  # Change 8000 to 8001
+    - "8001:80" # Change 8000 to 8001
 ```
 
 ### Container won't start
+
 ```bash
 docker compose down
 docker compose build --no-cache
@@ -209,12 +222,14 @@ docker compose watch
 ```
 
 ### Changes not reflecting
+
 ```bash
 docker compose logs -f api  # Check for errors
 docker compose restart api   # Restart API service
 ```
 
 ### Clear everything
+
 ```bash
 docker compose down -v
 docker compose build --no-cache
@@ -224,12 +239,14 @@ docker compose watch
 ## 🎓 Learning Resources
 
 ### Your Project
-1. **Start with**: [DEVELOPMENT.md](DEVELOPMENT.md)
+
+1. **Start with**: [Development guide](../../../docs/api/development.md)
 2. **Understand structure**: Explore `src/` directory
 3. **Try scripts**: Use `./scripts/dev.sh` commands
-4. **Read docs**: Check [TESTING.md](TESTING.md) for quality assurance
+4. **Read docs**: [Testing guide](../../../docs/api/testing.md) for quality assurance
 
 ### External Resources
+
 - **FastAPI Best Practices**: https://github.com/zhanymkanov/fastapi-best-practices
 - **FastAPI Docs**: https://fastapi.tiangolo.com
 - **SQLModel Docs**: https://sqlmodel.tiangolo.com
@@ -262,4 +279,4 @@ docker compose watch
 
 **Happy coding!** 🚀
 
-For detailed development instructions, see [DEVELOPMENT.md](DEVELOPMENT.md).
+For detailed development instructions, see [docs/api/development.md](../../../docs/api/development.md).

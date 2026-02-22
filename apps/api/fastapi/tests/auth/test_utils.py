@@ -18,7 +18,7 @@ def test_password_hashing() -> None:
 def test_access_token_creation() -> None:
     """Test access token creation."""
     token = create_access_token(
-        subject="test@barrels.gd", expires_delta=timedelta(minutes=30)
+        subject="test@weather.gd", expires_delta=timedelta(minutes=30)
     )
 
     assert isinstance(token, str)

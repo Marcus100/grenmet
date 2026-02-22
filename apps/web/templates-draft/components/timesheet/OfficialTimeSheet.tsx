@@ -1,9 +1,9 @@
 interface OfficialTimeSheetProps {
-  organization?: string;
   airportLineOne?: string;
   airportLineTwo?: string;
-  title?: string;
+  organization?: string;
   rowCount?: number;
+  title?: string;
 }
 
 const columns = [

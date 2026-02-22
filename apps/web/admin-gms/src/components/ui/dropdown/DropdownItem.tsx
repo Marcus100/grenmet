@@ -2,13 +2,13 @@ import Link from "next/link";
 import type React from "react";
 
 interface DropdownItemProps {
-  tag?: "a" | "button";
+  baseClassName?: string;
+  children: React.ReactNode;
+  className?: string;
   href?: string;
   onClick?: () => void;
   onItemClick?: () => void;
-  baseClassName?: string;
-  className?: string;
-  children: React.ReactNode;
+  tag?: "a" | "button";
 }
 
 export const DropdownItem: React.FC<DropdownItemProps> = ({

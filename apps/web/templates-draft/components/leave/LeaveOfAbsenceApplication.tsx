@@ -1,10 +1,10 @@
 interface LeaveOfAbsenceApplicationProps {
+  establishedYear?: string;
+  leaveTypes?: string[];
+  location?: string;
   organization?: string;
   subtitle?: string;
-  location?: string;
-  establishedYear?: string;
   title?: string;
-  leaveTypes?: string[];
 }
 
 const defaultLeaveTypes = [

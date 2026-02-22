@@ -1,12 +1,12 @@
 packages:
   # Apps
-  - 'apps/web/*'
-  - 'apps/api/honoapi'
+  - "apps/web/*"
+  - "apps/api/honoapi"
   # Note: mobile app uses npm, not pnpm (excluded from workspace)
   # Note: fastapi is Python, not managed by pnpm
 
   # Shared packages
-  - 'packages/*'
+  - "packages/*"
 
 catalog:
   # Core
@@ -14,6 +14,8 @@ catalog:
   react-dom: "^19.2.0"
   next: "16.1.1"
   typescript: "^5.9.3"
+
+  tsx: "^4.21.0"
 
   # Styling
   tailwindcss: "^4.1.18"

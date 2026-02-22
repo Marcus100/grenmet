@@ -1,13 +1,13 @@
 import {
+  bigint,
+  boolean,
+  index,
+  integer,
+  jsonb,
+  pgTable,
   serial,
   text,
   timestamp,
-  pgTable,
-  integer,
-  boolean,
-  bigint,
-  jsonb,
-  index,
 } from "drizzle-orm/pg-core";
 
 export const weatherImages = pgTable(

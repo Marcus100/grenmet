@@ -31,7 +31,7 @@ def main():
         with Session(engine) as session:
             # Find all test users
             test_users = session.exec(
-                select(User).where(User.email.like("testuser%@barrels.gd"))
+                select(User).where(User.email.like("testuser%@weather.gd"))
             ).all()
 
             if not test_users:

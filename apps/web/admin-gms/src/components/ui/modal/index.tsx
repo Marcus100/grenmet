@@ -3,12 +3,12 @@ import type React from "react";
 import { useEffect, useRef } from "react";
 
 interface ModalProps {
+  children: React.ReactNode;
+  className?: string;
+  isFullscreen?: boolean; // Default to false for backwards compatibility
   isOpen: boolean;
   onClose: () => void;
-  className?: string;
-  children: React.ReactNode;
   showCloseButton?: boolean; // New prop to control close button visibility
-  isFullscreen?: boolean; // Default to false for backwards compatibility
 }
 
 export const Modal: React.FC<ModalProps> = ({

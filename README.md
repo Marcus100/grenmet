@@ -1,127 +1,147 @@
-# Barrels GD Monorepo
+# Grenmet
 
-A monorepo containing all Barrels GD applications and infrastructure.
+A monorepo containing Grenmet applications and infrastructure.
 
-## 📁 Project Structure
+## Project Structure
 
 ```
-barrelsgd/
-├── .github/                    # GitHub configuration (workflows, dependabot, labeler)
-│   ├── workflows/
-│   │   ├── api/                # API-specific workflows (CI, deploy, backup)
-│   │   ├── shared/             # Reusable workflows (future)
-│   │   └── labeler.yml         # PR auto-labeling
-│   ├── dependabot.yml          # Dependency updates
-│   └── labeler.yml             # Label configuration
+grenmet/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   └── fastapi/            # FastAPI backend (Python)
-│   ├── web/
-│   │   └── salesbus/           # Next.js web app (TypeScript)
-│   └── mobile/                 # Mobile app (future)
-├── docs/                       # Documentation
-│   ├── api/                    # API documentation
-│   └── web/                    # Web documentation
-├── infra/                      # Infrastructure configuration
-│   └── docker/                 # Docker configurations
+│   │   ├── fastapi/            # FastAPI backend (Python)
+│   │   └── honoapi/            # Hono API
+│   └── web/
+│       ├── admin-gms/          # Admin dashboard
+│       ├── wxwatch/            # WxWatch app
+│       └── templates-draft/    # Templates draft
+├── packages/
+│   ├── api-client/             # Shared API client
+│   └── tsconfig/               # Shared TypeScript config
+├── docs/
+│   └── api/                    # API documentation
+├── infra/
+│   └── docker/                 # Shared infrastructure (Postgres, Adminer, Mailcatcher)
+├── scripts/
+│   └── scrapy-wxwatch/         # Weather images downloader (Scrapy, Python/uv)
+├── notebooks/                  # Data / exploration
 └── README.md                   # This file
 ```
 
-## 🚀 Quick Start
+**notebooks/** – Data and exploration (e.g. cartopy, ECMWF). See [notebooks/README.md](notebooks/README.md).
 
-### Option 1: Full Stack from Root (Recommended)
+## Quick Start
 
-Start all services from the monorepo root:
-
-```bash
-# 1. Setup Docker networks (first time only)
-chmod +x scripts/setup-docker.sh
-./scripts/setup-docker.sh
-
-# 2. Copy environment template (if not exists)
-cp .env.example .env
-
-# 3. Start all services
-docker compose up -d
-
-# 4. View logs
-docker compose logs -f api
-
-# 5. Access services
-# - API Docs: http://localhost:8000/docs
-# - Health Check: http://localhost:8000/api/v1/utils/health-check/
-```
-
-### Option 2: Individual App Development
-
-#### API (FastAPI Backend)
+### From monorepo root
 
 ```bash
-cd apps/api/fastapi
+# Install dependencies
+pnpm install
 
-# Copy environment template
-cp .env.example .env
+# Start shared infra + FastAPI
+pnpm start
 
-# Start development server with hot reload
-docker compose watch
+# Or run Turbo dev (all apps)
+pnpm dev
 ```
 
 - **API Docs**: http://localhost:8000/docs
 - **Health Check**: http://localhost:8000/api/v1/utils/health-check/
+- **Hono API**: `pnpm dev:honoapi`
+
+For all available scripts, see [Scripts](#scripts) below.
+
+### API only (from app directory)
+
+```bash
+cd apps/api/fastapi
+cp .env.example .env
+docker compose watch
+```
 
 See [API Development Guide](docs/api/development.md) for full documentation.
 
-### Web (Next.js Frontend)
+### Web apps
 
-```bash
-cd apps/web/salesbus
+Each web app has its own README. From root you can run:
 
-# Install dependencies
-pnpm install
+- [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
+- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
+- [templates-draft](apps/web/templates-draft/README.md) – `pnpm dev:web:templates-draft`
 
-# Start development server
-pnpm dev
-```
+See each app's README for setup and run instructions.
 
-- **Web App**: http://localhost:3000
+## Scripts
 
-## 📚 Documentation
+All commands are run from the monorepo root.
 
-| App | Development | Deployment | Testing |
-|-----|-------------|------------|---------|
-| API | [Development](docs/api/development.md) | [Deployment](docs/api/deployment.md) | [Testing](docs/api/testing.md) |
-| Web | Coming soon | Coming soon | Coming soon |
+### Run / infrastructure
 
-## 🔄 CI/CD
+| Script        | Description                                                       |
+| ------------- | ----------------------------------------------------------------- |
+| `pnpm start`  | Start shared infra (Postgres, Adminer, Mailcatcher) + FastAPI app |
+| `pnpm stop`   | Stop FastAPI stack and shared infra                               |
+| `pnpm status` | Show status of infra and FastAPI containers                       |
+| `pnpm reset`  | Wipe infra volumes and start Postgres only (fresh DB)             |
 
-All CI/CD workflows are centralized in `.github/workflows/`:
+### Development – run one or all apps
 
-### API Workflows (`api/`)
+| Script                         | App / scope                                 |
+| ------------------------------ | ------------------------------------------- |
+| `pnpm dev`                     | All apps (Turbo dev in parallel)            |
+| `pnpm dev:web`                 | All web apps                                |
+| `pnpm dev:web:admin`           | [admin-gms](apps/web/admin-gms)             |
+| `pnpm dev:web:wxwatch`         | [wxwatch](apps/web/wxwatch)                 |
+| `pnpm dev:web:templates-draft` | [templates-draft](apps/web/templates-draft) |
+| `pnpm dev:honoapi`             | [Hono API](apps/api/honoapi)                |
 
-| Workflow | Trigger | Description |
-|----------|---------|-------------|
-| `ci.yml` | Push/PR to `master`, `dev` | Linting, testing, security scans |
-| `build-images.yml` | CI success, release | Build and push Docker images |
-| `deploy-production.yml` | Release published | Deploy to production |
-| `deploy-staging.yml` | Build success on master | Deploy to staging |
-| `test-docker-compose.yml` | Push/PR | Test Docker Compose setup |
-| `backup-database.yml` | Daily (2 AM UTC) | Automated database backup |
-| `smokeshow.yml` | CI success | Coverage report upload |
+API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && docker compose watch` for API-only.
 
-## 🛠️ Development
+### Build and quality
+
+| Script                                  | Description                                                         |
+| --------------------------------------- | ------------------------------------------------------------------- |
+| `pnpm build`                            | Build all (Turbo)                                                   |
+| `pnpm build:web`                        | Build web apps only                                                 |
+| `pnpm build:packages`                   | Build packages only                                                 |
+| `pnpm lint`                             | Lint all                                                            |
+| `pnpm check` / `check:fix` / `check:ci` | Check / fix / CI                                                    |
+| `pnpm type-check`                       | Type-check all                                                      |
+| `pnpm test`                             | Test all                                                            |
+| `pnpm fix`                              | Run ultracite fix                                                   |
+| `pnpm generate:api-client`              | Generate API client from [packages/api-client](packages/api-client) |
+| `pnpm clean`                            | Remove node_modules (git clean)                                     |
+
+### Scripts / tools (not in package.json)
+
+- **scrapy-wxwatch** – [scripts/scrapy-wxwatch](scripts/scrapy-wxwatch): Weather images downloader (Scrapy). From repo root: `cd scripts/scrapy-wxwatch && uv sync && uv run python run_crawlers.py` (or `uv run scrapy crawl <spider>`). Requires Python 3.13+; see [scripts/scrapy-wxwatch/pyproject.toml](scripts/scrapy-wxwatch/pyproject.toml). Optional: [scripts/scrapy-wxwatch/README.md](scripts/scrapy-wxwatch/README.md).
+
+## Documentation
+
+| App | Development                                                                                                                             | Testing                        |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| API | [Development](docs/api/development.md)                                                                                                  | [Testing](docs/api/testing.md) |
+| Web | [admin-gms](apps/web/admin-gms/README.md), [wxwatch](apps/web/wxwatch/README.md), [templates-draft](apps/web/templates-draft/README.md) | See app README                 |
+
+## Development
 
 ### Prerequisites
 
 - Docker & Docker Compose
 - Python 3.11+ (for API)
-- Node.js 18+ (for Web)
-- pnpm (for Web)
+- Node.js 22+ (for Web)
+- pnpm 10+ (for Web)
 
-### Code Quality
+### Packages
+
+- **api-client** – Shared API client; generate with `pnpm generate:api-client`.
+- **tsconfig** – Shared TypeScript config for the monorepo.
+
+### Code quality
 
 Each app has its own code quality tools:
 
 **API (Python)**
+
 ```bash
 cd apps/api/fastapi
 ./scripts/format.sh    # Format code
@@ -129,75 +149,37 @@ cd apps/api/fastapi
 ```
 
 **Web (TypeScript)**
-```bash
-cd apps/web/salesbus
-pnpm lint             # Lint code
-pnpm format           # Format code (if configured)
-```
 
-## 📦 Dependencies
+See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
 
-Dependencies are managed per-app:
+### Dependencies
 
 - **API**: `apps/api/fastapi/pyproject.toml` (uv)
-- **Web**: `apps/web/salesbus/package.json` (pnpm)
+- **Web**: per-app `package.json` (pnpm)
 
-Dependabot is configured to auto-update all dependencies weekly.
+## Infrastructure
 
-## 🔐 Security
+- `pnpm start` starts shared services from [infra/docker/docker-compose.yml](infra/docker/docker-compose.yml) (Postgres, Adminer, Mailcatcher) and the FastAPI app from `apps/api/fastapi`.
+- Use `pnpm stop`, `pnpm status`, and `pnpm reset` from root to control services (see [Scripts](#scripts)).
+- For API-only development: `cd apps/api/fastapi` and run `docker compose watch`.
 
-- Automated security scans in CI (Trivy)
-- Dependabot for dependency updates
-- Secret scanning enabled
+### Environment files
 
-## 🏗️ Infrastructure
+- API: `apps/api/fastapi/.env.example` — copy to `.env` and set values as needed.
 
-### Docker Setup
-
-The monorepo includes:
-
-- **Root `docker-compose.yml`**: Orchestrates all services from root
-- **App-specific compose files**: In each app directory for standalone development
-- **Setup script**: `scripts/setup-docker.sh` creates required Docker networks
-
-### Local Development
-
-**From root** (full stack):
-```bash
-./scripts/setup-docker.sh    # One-time setup
-docker compose up -d          # Start all services
-```
-
-**From app directory** (individual app):
-```bash
-cd apps/api/fastapi
-docker compose watch          # Start with hot reload
-```
-
-### Environment Files
-
-- Root: `.env.example` - Shared variables for root docker-compose
-- API: `apps/api/fastapi/.env.example` - API-specific variables
-
-Copy these to `.env` and update values as needed.
-
-## 📝 Contributing
+## Contributing
 
 1. Create a feature branch from `dev`
 2. Make your changes
 3. Ensure all tests pass
 4. Submit a PR to `dev`
 
-PRs are automatically labeled based on changed files.
+## License
 
-## 📜 License
+Proprietary - Grenmet
 
-Proprietary - Barrels GD
+Production URLs (when deployed) — to be documented.
 
----
+### Shared dependency versions
 
-**URLs**
-
-- 🌐 Production API: https://api.barrels.gd
-- 🧪 Staging API: https://staging.api.barrels.gd
-- 📚 API Docs: https://api.barrels.gd/docs
+Shared dependency versions are defined in `pnpm-workspace.yaml` under the `catalog:` key. Workspace packages reference them with `"package-name": "catalog:"`. To add or change a shared version, edit the catalog and run `pnpm install`.

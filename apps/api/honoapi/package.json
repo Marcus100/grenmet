@@ -9,6 +9,8 @@
     "start": "node dist/index.js",
     "type-check": "tsc --noEmit",
     "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
     "check": "biome check --write .",
     "check:ci": "biome ci ."
   },
@@ -19,7 +21,7 @@
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
     "@types/node": "catalog:",
-    "tsx": "^4.7.1",
+    "tsx": "catalog:",
     "typescript": "catalog:"
   }
 }

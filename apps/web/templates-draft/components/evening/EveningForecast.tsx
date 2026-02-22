@@ -1,16 +1,16 @@
 interface DayForecast {
   date: string;
-  sunrise?: string;
-  sunset?: string;
-  weather: string;
-  warning: string;
+  marineWarning?: string;
   maxTemp?: string;
   minTemp?: string;
-  wind: string;
   seas: string;
-  marineWarning?: string;
-  tideLow?: string;
+  sunrise?: string;
+  sunset?: string;
   tideHigh?: string;
+  tideLow?: string;
+  warning: string;
+  weather: string;
+  wind: string;
 }
 
 function DayForecastCard({ day }: { day: DayForecast }) {
@@ -99,15 +99,15 @@ function DayForecastCard({ day }: { day: DayForecast }) {
 }
 
 interface EveningForecastProps {
-  organization?: string;
-  documentNumber?: string;
-  year?: string;
-  location?: string;
   currentDate?: string;
-  validity?: string;
   currentDay?: DayForecast;
+  documentNumber?: string;
   forecastDays?: DayForecast[];
   forecasterName?: string;
+  location?: string;
+  organization?: string;
+  validity?: string;
+  year?: string;
 }
 
 export default function EveningForecast({

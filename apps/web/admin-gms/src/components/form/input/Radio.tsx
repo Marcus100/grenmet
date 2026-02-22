@@ -1,14 +1,14 @@
 import type React from "react";
 
 interface RadioProps {
-  id: string; // Unique ID for the radio button
-  name: string; // Radio group name
-  value: string; // Value of the radio button
   checked: boolean; // Whether the radio button is checked
-  label: string; // Label for the radio button
-  onChange: (value: string) => void; // Handler for value change
   className?: string; // Optional additional classes
   disabled?: boolean; // Optional disabled state for the radio button
+  id: string; // Unique ID for the radio button
+  label: string; // Label for the radio button
+  name: string; // Radio group name
+  onChange: (value: string) => void; // Handler for value change
+  value: string; // Value of the radio button
 }
 
 const Radio: React.FC<RadioProps> = ({

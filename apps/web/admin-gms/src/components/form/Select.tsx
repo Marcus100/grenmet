@@ -2,16 +2,16 @@ import type React from "react";
 import { useState } from "react";
 
 interface Option {
-  value: string;
   label: string;
+  value: string;
 }
 
 interface SelectProps {
-  options: Option[];
-  placeholder?: string;
-  onChange: (value: string) => void;
   className?: string;
   defaultValue?: string;
+  onChange: (value: string) => void;
+  options: Option[];
+  placeholder?: string;
 }
 
 const Select: React.FC<SelectProps> = ({

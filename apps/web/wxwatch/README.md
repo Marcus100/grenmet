@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Part of the Grenmet monorepo. From the repo root, run this app with: **`pnpm dev:web:wxwatch`**.
+
 ## Getting Started
 
 First, run the development server:

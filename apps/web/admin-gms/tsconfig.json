@@ -1,5 +1,5 @@
 {
-  "extends": "../../../packages/tsconfig/tsconfig.nextjs.json",
+  "extends": "@grenmet/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
     "paths": { "@/*": ["./src/*"] }
   },
@@ -8,7 +8,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
   ],
   "exclude": ["node_modules"]
 }

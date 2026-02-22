@@ -28,13 +28,13 @@ import {
 
 // Define the TypeScript interface for the table rows
 interface Product {
-  id: number;
-  name: string;
-  variants: string;
   category: string;
-  price: string;
+  id: number;
   image: string;
+  name: string;
+  price: string;
   status: "Delivered" | "Pending" | "Canceled";
+  variants: string;
 }
 
 // Define the table data using the interface

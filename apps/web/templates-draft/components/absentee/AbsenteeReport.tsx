@@ -1,13 +1,13 @@
 interface AbsenteeReportProps {
-  organization?: string;
-  subtitle?: string;
-  location?: string;
   establishedYear?: string;
-  title?: string;
-  reasonOptions?: string[];
-  notesHeading?: string;
+  location?: string;
   noteLineOne?: string;
   noteLineTwo?: string;
+  notesHeading?: string;
+  organization?: string;
+  reasonOptions?: string[];
+  subtitle?: string;
+  title?: string;
 }
 
 const defaultReasonOptions = [

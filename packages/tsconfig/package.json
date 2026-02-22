@@ -2,5 +2,8 @@
   "name": "@grenmet/tsconfig",
   "version": "0.0.0",
   "private": true,
-  "files": ["tsconfig.json", "tsconfig.nextjs.json"]
+  "files": [
+    "tsconfig.json",
+    "tsconfig.nextjs.json"
+  ]
 }

@@ -127,7 +127,7 @@ def test_user_registration():
     try:
         import httpx
 
-        test_email = f"testuser_{int(time.time())}@barrels.gd"
+        test_email = f"testuser_{int(time.time())}@weather.gd"
 
         data = {
             "email": test_email,
@@ -221,7 +221,7 @@ def test_constants_usage():
         import httpx
 
         # Try to register with duplicate email
-        test_email = "test@barrels.gd"
+        test_email = "test@weather.gd"
 
         data = {
             "email": test_email,

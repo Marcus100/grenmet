@@ -2,9 +2,9 @@ import type { FC, ReactNode } from "react";
 import { twMerge } from "tailwind-merge";
 
 interface LabelProps {
-  htmlFor?: string;
   children: ReactNode;
   className?: string;
+  htmlFor?: string;
 }
 
 const Label: FC<LabelProps> = ({ htmlFor, children, className }) => {
