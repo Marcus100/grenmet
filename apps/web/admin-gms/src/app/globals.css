@@ -4,7 +4,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  --font-*: initial;
+  --breakpoint-*: initial;
+
   --font-outfit: Outfit, sans-serif;
+
   --breakpoint-2xsm: 375px;
   --breakpoint-xsm: 425px;
   --breakpoint-3xl: 2000px;
@@ -163,9 +167,6 @@
   --z-index-9999: 9999;
   --z-index-99999: 99999;
   --z-index-999999: 999999;
-  --font-*: initial;
-
-  --breakpoint-*: initial;
 }
 
 /*
