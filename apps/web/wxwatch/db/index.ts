@@ -7,8 +7,6 @@ const pool = new Pool({
   connectionString: process.env.DB_URL!,
 });
 
-console.log("DB_URL:", process.env.DB_URL);
-
 const db = drizzle(pool);
 
 export { db };
