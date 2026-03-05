@@ -4,7 +4,8 @@ from datetime import datetime
 from fastapi import HTTPException
 from sqlmodel import Session, col, delete, select
 
-from src.auth.models import User
+from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.policy import can_act_on_user
 
 from .models import (
     ApprovalAuthority,
@@ -12,7 +13,6 @@ from .models import (
     EmploymentRecord,
     LeaveBalance,
     LeaveCarryOver,
-    RoleScope,
     RosterPreference,
     RosterPreferredShift,
     RosterRestrictedShift,
@@ -55,22 +55,38 @@ def _normalize_shift_codes(codes: list[str]) -> list[str]:
     return normalized_codes
 
 
-def _role_scope_for_user(role_name: str, is_superuser: bool) -> RoleScope:
-    if is_superuser:
-        return RoleScope.ALL
-    if role_name.upper() == "SUPERVISOR":
-        return RoleScope.DEPARTMENT
-    return RoleScope.SELF
-
-
 def _permissions_for_user(user: User) -> list[str]:
     permissions: set[str] = set()
     for role in user.roles:
         for permission in role.permissions:
-            permissions.add(
-                f"{permission.entity}.{permission.action}.{permission.access}".lower()
-            )
+            permissions.add(permission.key.lower())
     return sorted(permissions)
+
+
+def _active_role_assignment_scope_by_role(
+    *, session: Session, user_id: uuid.UUID
+) -> dict[uuid.UUID, RoleAssignmentScope]:
+    now = datetime.utcnow()
+    assignments = list(
+        session.exec(
+            select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
+        ).all()
+    )
+    precedence = {
+        RoleAssignmentScope.SELF: 1,
+        RoleAssignmentScope.DEPARTMENT: 2,
+        RoleAssignmentScope.ALL: 3,
+    }
+    scope_by_role: dict[uuid.UUID, RoleAssignmentScope] = {}
+    for assignment in assignments:
+        if assignment.effective_from > now:
+            continue
+        if assignment.effective_to and assignment.effective_to < now:
+            continue
+        current_scope = scope_by_role.get(assignment.role_id)
+        if current_scope is None or precedence[assignment.scope] > precedence[current_scope]:
+            scope_by_role[assignment.role_id] = assignment.scope
+    return scope_by_role
 
 
 def _get_or_create_profile(session: Session, user: User) -> UserProfile:
@@ -170,11 +186,14 @@ def _build_profile_response(
     carry_over = session.exec(
         select(LeaveCarryOver).where(LeaveCarryOver.user_id == user.id)
     ).all()
+    scope_by_role = _active_role_assignment_scope_by_role(
+        session=session, user_id=user.id
+    )
 
     roles = [
         RolePublic(
             name=role.name,
-            scope=_role_scope_for_user(role.name, user.is_superuser),
+            scope=scope_by_role.get(role.id, RoleAssignmentScope.SELF),
         )
         for role in user.roles
     ]
@@ -212,9 +231,9 @@ def _build_profile_response(
             status=profile.status,
         ),
         profile=ProfileDetailsPublic(
-            first_name=profile.first_name,
-            middle_name=profile.middle_name,
-            last_name=profile.last_name,
+            first_name=user.first_name,
+            middle_name=user.middle_name,
+            last_name=user.last_name,
             display_name=profile.display_name,
             date_of_birth=profile.date_of_birth,
             nationality=profile.nationality,
@@ -281,7 +300,12 @@ def update_profile_details(
     profile_data: dict[str, object],
 ) -> UserProfile:
     profile = _get_or_create_profile(session=session, user=user)
-    profile.sqlmodel_update(profile_data)
+    safe_profile_data = {
+        key: value
+        for key, value in profile_data.items()
+        if key not in {"first_name", "middle_name", "last_name"}
+    }
+    profile.sqlmodel_update(safe_profile_data)
     profile.updated_at = datetime.utcnow()
     session.add(profile)
     return profile
@@ -361,7 +385,7 @@ def update_profile_for_current_user(
         )
 
     if isinstance(profile_updates, dict):
-        # Keep auth user names aligned with profile names.
+        # Auth user names are canonical identity fields.
         auth_updates = {
             key: value
             for key, value in profile_updates.items()
@@ -370,6 +394,12 @@ def update_profile_for_current_user(
         if auth_updates:
             current_user.sqlmodel_update(auth_updates)
             session.add(current_user)
+            profile = _get_or_create_profile(session=session, user=current_user)
+            profile.first_name = current_user.first_name
+            profile.middle_name = current_user.middle_name
+            profile.last_name = current_user.last_name
+            profile.updated_at = datetime.utcnow()
+            session.add(profile)
 
     session.commit()
     session.refresh(current_user)
@@ -379,18 +409,12 @@ def update_profile_for_current_user(
 def _can_manage_employment(
     *, session: Session, current_user: User, target_user_id: uuid.UUID
 ) -> bool:
-    if current_user.is_superuser:
-        return True
-    role_names = {role.name.upper() for role in current_user.roles}
-    if "SUPERVISOR" not in role_names:
-        return False
-    current_employment = _get_employment_record(session=session, user_id=current_user.id)
-    target_employment = _get_employment_record(session=session, user_id=target_user_id)
-    if not current_employment or not target_employment:
-        return False
-    if current_employment.department_id != target_employment.department_id:
-        return False
-    return True
+    return can_act_on_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=target_user_id,
+        permission_key="hr.employment.manage",
+    )
 
 
 def _apply_employment_update(
@@ -428,13 +452,7 @@ def update_employment_for_user(
     if not _can_manage_employment(
         session=session, current_user=current_user, target_user_id=target_user_id
     ):
-        role_names = {role.name.upper() for role in current_user.roles}
-        if "SUPERVISOR" not in role_names and not current_user.is_superuser:
-            raise HTTPException(status_code=403, detail=ERROR_ONLY_SUPERVISOR_OR_ADMIN)
-        raise HTTPException(
-            status_code=403,
-            detail=ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT,
-        )
+        raise HTTPException(status_code=403, detail=ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT)
 
     employment = _get_employment_record(session=session, user_id=target_user_id)
     if not employment:

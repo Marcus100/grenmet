@@ -4,8 +4,8 @@ from datetime import datetime
 from fastapi import HTTPException
 from sqlmodel import Session, col, select
 
-from src.auth.models import Role, User
-from src.hr.authz import can_act_on_user
+from src.auth.models import User
+from src.auth.policy import can_act_on_user_for_role, require_permission
 
 from .models import (
     ApprovalActionLog,
@@ -32,6 +32,7 @@ ERROR_WORKFLOW_PERMISSION_DENIED = "Not allowed to perform this workflow action"
 def create_workflow_template(
     *, session: Session, current_user: User, template_in: WorkflowTemplateCreate
 ) -> WorkflowTemplate:
+    require_permission(current_user=current_user, permission_key="workflow.template.manage")
     db_template = WorkflowTemplate.model_validate(
         template_in,
         update={
@@ -47,9 +48,11 @@ def create_workflow_template(
 def create_workflow_step_template(
     *,
     session: Session,
+    current_user: User,
     workflow_template_id: uuid.UUID,
     step_in: WorkflowStepTemplateCreate,
 ) -> WorkflowStepTemplate:
+    require_permission(current_user=current_user, permission_key="workflow.template.manage")
     workflow_template = session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
         raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_TEMPLATE_NOT_FOUND)
@@ -63,8 +66,9 @@ def create_workflow_step_template(
 
 
 def read_workflow_templates(
-    *, session: Session, department_id: str | None = None
+    *, session: Session, current_user: User, department_id: str | None = None
 ) -> list[WorkflowTemplate]:
+    require_permission(current_user=current_user, permission_key="workflow.template.view")
     statement = select(WorkflowTemplate)
     if department_id:
         statement = statement.where(col(WorkflowTemplate.department_id) == department_id)
@@ -122,8 +126,13 @@ def create_workflow_instance(
 
 
 def read_workflow_instance_details(
-    *, session: Session, workflow_instance_id: uuid.UUID
+    *,
+    session: Session,
+    workflow_instance_id: uuid.UUID,
+    current_user: User | None = None,
 ) -> tuple[WorkflowInstance, list[WorkflowStepInstance]]:
+    if current_user:
+        require_permission(current_user=current_user, permission_key="workflow.instance.view")
     workflow_instance = session.get(WorkflowInstance, workflow_instance_id)
     if not workflow_instance:
         raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_INSTANCE_NOT_FOUND)
@@ -144,13 +153,11 @@ def _is_actor_allowed_for_step(
     workflow_instance: WorkflowInstance,
     workflow_step: WorkflowStepInstance,
 ) -> bool:
-    required_role = session.get(Role, workflow_step.required_role_id)
-    required_role_name = required_role.name if required_role else "SUPERVISOR"
-    return can_act_on_user(
+    return can_act_on_user_for_role(
         session=session,
         current_user=current_user,
         target_user_id=workflow_instance.requested_by_user_id,
-        required_role_name=required_role_name,
+        required_role_id=workflow_step.required_role_id,
     )
 
 
@@ -161,8 +168,11 @@ def apply_workflow_action(
     workflow_instance_id: uuid.UUID,
     action_in: WorkflowActionRequest,
 ) -> WorkflowInstance:
+    require_permission(current_user=current_user, permission_key="workflow.instance.action")
     workflow_instance, steps = read_workflow_instance_details(
-        session=session, workflow_instance_id=workflow_instance_id
+        session=session,
+        workflow_instance_id=workflow_instance_id,
+        current_user=current_user,
     )
 
     if action_in.action == WorkflowAction.SUBMIT:

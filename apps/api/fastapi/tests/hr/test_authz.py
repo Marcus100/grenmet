@@ -1,9 +1,9 @@
 from sqlmodel import Session, select
 
-from src.auth.models import Role, RoleAssignmentScope, UserRoleAssignment
+from src.auth.models import Permission, Role, RoleAssignmentScope, UserRoleAssignment
+from src.auth.policy import can_act_on_user
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
-from src.hr.authz import can_act_on_user
 from src.hr.models import Department, EmploymentRecord
 from tests.utils.utils import random_email, random_lower_string
 
@@ -35,6 +35,22 @@ def test_department_scope_assignment_enforced(db: Session) -> None:
         db.add(role)
         db.commit()
         db.refresh(role)
+    permission = db.exec(
+        select(Permission).where(Permission.key == "timesheet.approve")
+    ).first()
+    if not permission:
+        permission = Permission(
+            key="timesheet.approve",
+            action="update",
+            entity="timesheet",
+            access="department",
+            description="Approve timesheet",
+        )
+    role.permissions.append(permission)
+    supervisor.roles.append(role)
+    db.add(role)
+    db.add(permission)
+    db.add(supervisor)
 
     if not db.get(Department, "dept_scope_a"):
         db.add(Department(id="dept_scope_a", name="Dept Scope A"))
@@ -73,7 +89,7 @@ def test_department_scope_assignment_enforced(db: Session) -> None:
             session=db,
             current_user=supervisor,
             target_user_id=target.id,
-            required_role_name="SUPERVISOR",
+            permission_key="timesheet.approve",
         )
         is False
     )

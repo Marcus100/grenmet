@@ -30,8 +30,8 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
 
 
 @router.get("/shifts", response_model=ShiftCatalogsPublic)
-def list_shift_catalog(session: SessionDep) -> Any:
-    shifts = read_shift_catalog(session=session)
+def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
+    shifts = read_shift_catalog(session=session, current_user=current_user)
     return ShiftCatalogsPublic(
         data=[ShiftCatalogPublic.model_validate(shift, from_attributes=True) for shift in shifts],
         count=len(shifts),
@@ -59,8 +59,12 @@ def bulk_assignments(
 
 
 @router.get("/periods/{period_id}", response_model=RosterPeriodDetails)
-def get_period(session: SessionDep, period_id: uuid.UUID) -> Any:
-    period, assignments = read_roster_period_details(session=session, period_id=period_id)
+def get_period(
+    session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+) -> Any:
+    period, assignments = read_roster_period_details(
+        session=session, current_user=current_user, period_id=period_id
+    )
     return RosterPeriodDetails(
         period=RosterPeriodPublic.model_validate(period, from_attributes=True),
         assignments=[

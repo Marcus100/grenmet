@@ -1,6 +1,6 @@
 from sqlmodel import Session, select
 
-from src.auth.models import Role
+from src.auth.models import Permission, Role
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.hr.models import Department
@@ -40,6 +40,36 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
         db.add(role)
         db.commit()
         db.refresh(role)
+    workflow_manage_permission = db.exec(
+        select(Permission).where(Permission.key == "workflow.template.manage")
+    ).first()
+    if not workflow_manage_permission:
+        workflow_manage_permission = Permission(
+            key="workflow.template.manage",
+            action="update",
+            entity="workflow_template",
+            access="department",
+            description="Manage workflow template",
+        )
+    workflow_action_permission = db.exec(
+        select(Permission).where(Permission.key == "workflow.instance.action")
+    ).first()
+    if not workflow_action_permission:
+        workflow_action_permission = Permission(
+            key="workflow.instance.action",
+            action="update",
+            entity="workflow_instance",
+            access="department",
+            description="Action workflow instance",
+        )
+    role.permissions.append(workflow_manage_permission)
+    role.permissions.append(workflow_action_permission)
+    user.roles.append(role)
+    db.add(role)
+    db.add(workflow_manage_permission)
+    db.add(workflow_action_permission)
+    db.add(user)
+    db.commit()
 
     template = create_workflow_template(
         session=db,
@@ -52,6 +82,7 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
     )
     create_workflow_step_template(
         session=db,
+        current_user=user,
         workflow_template_id=template.id,
         step_in=WorkflowStepTemplateCreate(step_order=1, required_role_id=role.id),
     )

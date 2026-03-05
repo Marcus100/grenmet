@@ -39,8 +39,12 @@ def create_template(
 
 
 @router.get("/templates", response_model=WorkflowTemplatesPublic)
-def read_templates(session: SessionDep, department_id: str | None = None) -> Any:
-    templates = read_workflow_templates(session=session, department_id=department_id)
+def read_templates(
+    session: SessionDep, current_user: CurrentUser, department_id: str | None = None
+) -> Any:
+    templates = read_workflow_templates(
+        session=session, current_user=current_user, department_id=department_id
+    )
     return WorkflowTemplatesPublic(
         data=[
             WorkflowTemplatePublic.model_validate(template, from_attributes=True)
@@ -54,11 +58,15 @@ def read_templates(session: SessionDep, department_id: str | None = None) -> Any
 def create_template_step(
     *,
     session: SessionDep,
+    current_user: CurrentUser,
     template_id: uuid.UUID,
     step_in: WorkflowStepTemplateCreate,
 ) -> Any:
     return create_workflow_step_template(
-        session=session, workflow_template_id=template_id, step_in=step_in
+        session=session,
+        current_user=current_user,
+        workflow_template_id=template_id,
+        step_in=step_in,
     )
 
 
@@ -72,9 +80,11 @@ def create_instance(
 
 
 @router.get("/instances/{instance_id}", response_model=WorkflowInstanceDetails)
-def read_instance(session: SessionDep, instance_id: uuid.UUID) -> Any:
+def read_instance(
+    session: SessionDep, current_user: CurrentUser, instance_id: uuid.UUID
+) -> Any:
     workflow_instance, steps = read_workflow_instance_details(
-        session=session, workflow_instance_id=instance_id
+        session=session, current_user=current_user, workflow_instance_id=instance_id
     )
     return WorkflowInstanceDetails(
         instance=WorkflowInstancePublic.model_validate(

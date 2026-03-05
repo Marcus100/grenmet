@@ -30,12 +30,6 @@ class ShiftPattern(str, Enum):
     FLEX = "FLEX"
 
 
-class RoleScope(str, Enum):
-    SELF = "SELF"
-    DEPARTMENT = "DEPARTMENT"
-    ALL = "ALL"
-
-
 class Department(SQLModel, table=True):
     __tablename__ = "department"
     __table_args__ = {"schema": "hr"}
