@@ -12,18 +12,7 @@ export const EcommerceMetrics = () => {
         </div>
 
         <div className="mt-5 flex items-end justify-between">
-          <div>
-            <span className="text-gray-500 text-sm dark:text-gray-400">
-              Customers
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              3,782
-            </h4>
-          </div>
-          <Badge variant="light-success">
-            <ArrowUpIcon />
-            11.01%
-          </Badge>
+<p>METAR GOES HERE</p>
         </div>
       </div>
       {/* <!-- Metric Item End --> */}
@@ -33,21 +22,7 @@ export const EcommerceMetrics = () => {
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
           <BoxIconLine className="text-gray-800 dark:text-white/90" />
         </div>
-        <div className="mt-5 flex items-end justify-between">
-          <div>
-            <span className="text-gray-500 text-sm dark:text-gray-400">
-              Orders
-            </span>
-            <h4 className="mt-2 font-bold text-gray-800 text-title-sm dark:text-white/90">
-              5,359
-            </h4>
-          </div>
-
-          <Badge variant="light-error">
-            <ArrowDownIcon className="text-error-500" />
-            9.05%
-          </Badge>
-        </div>
+<p>TAF GOES HERE</p>
       </div>
       {/* <!-- Metric Item End --> */}
     </div>

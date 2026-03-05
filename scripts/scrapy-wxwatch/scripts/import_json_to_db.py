@@ -7,6 +7,8 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 
 def parse_iso_datetime(value):
     if not value:
@@ -22,6 +24,10 @@ def parse_iso_datetime(value):
 
 def main():
     import psycopg
+
+    # Load .env from scrapy-wxwatch project root
+    project_root = Path(__file__).resolve().parent.parent
+    load_dotenv(project_root / ".env")
 
     data_dir = Path(__file__).parent.parent / "data"
     if not data_dir.exists():
@@ -40,8 +46,11 @@ def main():
     db_password = os.getenv("DB_PASSWORD", "changethis")
 
     conn = psycopg.connect(
-        host=db_host, port=db_port, dbname=db_name,
-        user=db_user, password=db_password,
+        host=db_host,
+        port=db_port,
+        dbname=db_name,
+        user=db_user,
+        password=db_password,
     )
     print(f"Connected to {db_name}@{db_host}:{db_port}")
 
@@ -122,7 +131,9 @@ def main():
         total_skipped += skipped
 
     conn.close()
-    print(f"\nDone: {total_inserted} total inserted, {total_skipped} skipped, from {len(json_files)} files")
+    print(
+        f"\nDone: {total_inserted} total inserted, {total_skipped} skipped, from {len(json_files)} files"
+    )
 
 
 if __name__ == "__main__":

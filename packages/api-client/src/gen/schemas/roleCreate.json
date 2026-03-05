@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "name": { "type": "string", "title": "Name" },
+    "description": { "type": "string", "title": "Description", "default": "" }
+  },
+  "type": "object",
+  "required": ["name"],
+  "title": "RoleCreate",
+  "x-readme-ref-name": "RoleCreate"
+}

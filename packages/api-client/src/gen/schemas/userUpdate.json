@@ -1,0 +1,48 @@
+{
+  "properties": {
+    "email": {
+      "anyOf": [{ "type": "string", "format": "email" }, { "type": "null" }],
+      "title": "Email"
+    },
+    "username": {
+      "anyOf": [
+        { "type": "string", "maxLength": 255, "minLength": 3 },
+        { "type": "null" }
+      ],
+      "title": "Username"
+    },
+    "first_name": {
+      "anyOf": [
+        { "type": "string", "maxLength": 100, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "First Name"
+    },
+    "middle_name": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Middle Name"
+    },
+    "last_name": {
+      "anyOf": [
+        { "type": "string", "maxLength": 100, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Last Name"
+    },
+    "password": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Password"
+    },
+    "is_active": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Is Active"
+    },
+    "is_superuser": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Is Superuser"
+    }
+  },
+  "type": "object",
+  "title": "UserUpdate",
+  "x-readme-ref-name": "UserUpdate"
+}

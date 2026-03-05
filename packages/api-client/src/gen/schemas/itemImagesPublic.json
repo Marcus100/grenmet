@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "alt_text": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Alt Text"
+          },
+          "object_key": { "type": "string", "title": "Object Key" },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "item_id": { "type": "string", "format": "uuid", "title": "Item Id" }
+        },
+        "type": "object",
+        "required": ["object_key", "id", "created_at", "updated_at", "item_id"],
+        "title": "ItemImagePublic",
+        "x-readme-ref-name": "ItemImagePublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "ItemImagesPublic",
+  "x-readme-ref-name": "ItemImagesPublic"
+}

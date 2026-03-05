@@ -1,0 +1,80 @@
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "format": "email",
+            "title": "Email"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Username"
+          },
+          "first_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "First Name"
+          },
+          "middle_name": {
+            "anyOf": [
+              { "type": "string", "maxLength": 100 },
+              { "type": "null" }
+            ],
+            "title": "Middle Name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Last Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser",
+            "default": false
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "full_name": { "type": "string", "title": "Full Name" }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "username",
+          "first_name",
+          "last_name",
+          "id",
+          "created_at",
+          "updated_at",
+          "full_name"
+        ],
+        "title": "UserPublic",
+        "x-readme-ref-name": "UserPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "UsersPublic",
+  "x-readme-ref-name": "UsersPublic"
+}

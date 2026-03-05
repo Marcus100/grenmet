@@ -10,8 +10,10 @@
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 
-
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env")
 
 BOT_NAME = "app"
 
@@ -32,43 +34,43 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 1
 DOWNLOAD_DELAY = 1
 
 # Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+# COOKIES_ENABLED = False
 
 # Disable Telnet Console (enabled by default)
-#TELNETCONSOLE_ENABLED = False
+# TELNETCONSOLE_ENABLED = False
 
 # Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
+# DEFAULT_REQUEST_HEADERS = {
 #    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 #    "Accept-Language": "en",
-#}
+# }
 
 # Enable or disable spider middlewares
 # See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
+# SPIDER_MIDDLEWARES = {
 #    "app.middlewares.AppSpiderMiddleware": 543,
-#}
+# }
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
+# DOWNLOADER_MIDDLEWARES = {
 #    "app.middlewares.AppDownloaderMiddleware": 543,
-#}
+# }
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
+# EXTENSIONS = {
 #    "scrapy.extensions.telnet.TelnetConsole": None,
-#}
+# }
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/media-pipeline.html
 # Pipeline order matters: SpiderName first, then download, then metadata, then DB
 ITEM_PIPELINES = {
-    "app.pipelines.SpiderNamePipeline": 0,        # Add spider name to items
+    "app.pipelines.SpiderNamePipeline": 0,  # Add spider name to items
     "app.pipelines.MinutePathImagesPipeline": 1,  # Download images
-    "app.pipelines.ImageMetadataPipeline": 2,     # Extract metadata with Pillow
-    "app.pipelines.PostgresPipeline": 3,          # Write to PostgreSQL
+    "app.pipelines.ImageMetadataPipeline": 2,  # Extract metadata with Pillow
+    "app.pipelines.PostgresPipeline": 3,  # Write to PostgreSQL
 }
 
 # Resolve to absolute path: scrapy-wxwatch -> scripts -> repo root -> apps/web/wxwatch/public/wxwatch

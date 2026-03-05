@@ -1,0 +1,50 @@
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "title": { "type": "string", "title": "Title" },
+          "content": { "type": "string", "title": "Content" },
+          "description": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Description"
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "owner_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Owner Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "content",
+          "id",
+          "created_at",
+          "updated_at",
+          "owner_id"
+        ],
+        "title": "Item",
+        "x-readme-ref-name": "Item"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "ItemsPublic",
+  "x-readme-ref-name": "ItemsPublic"
+}
