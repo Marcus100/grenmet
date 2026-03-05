@@ -3,12 +3,12 @@ from datetime import date, datetime
 
 from pydantic import Field
 
+from src.auth.models import RoleAssignmentScope
 from src.models import BaseModel
 
 from .models import (
     EmploymentStatus,
     EmploymentType,
-    RoleScope,
     ShiftPattern,
     UserStatus,
 )
@@ -59,7 +59,7 @@ class EmploymentPublic(BaseModel):
 
 class RolePublic(BaseModel):
     name: str
-    scope: RoleScope
+    scope: RoleAssignmentScope
 
 
 class RosterPreferencesPublic(BaseModel):

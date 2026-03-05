@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from sqlmodel import Session, col, select
 
 from src.auth.models import User
-from src.hr.authz import can_act_on_user
+from src.auth.policy import can_act_on_user, require_permission
 from src.hr.workflow.models import WorkflowTemplate, WorkflowType
 from src.hr.workflow.schemas import WorkflowInstanceCreate
 from src.hr.workflow.service import create_workflow_instance
@@ -45,11 +45,15 @@ def create_timesheet(
         raise HTTPException(status_code=403, detail="Self submission is disabled")
     if is_proxy and not policy.allow_supervisor_proxy_submit:
         raise HTTPException(status_code=403, detail="Proxy submission is disabled")
+    if not is_proxy:
+        require_permission(current_user=current_user, permission_key="timesheet.submit.self")
+    if is_proxy:
+        require_permission(current_user=current_user, permission_key="timesheet.submit.proxy")
     if is_proxy and not can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=target_user_id,
-        required_role_name="SUPERVISOR",
+        permission_key="timesheet.submit.proxy",
     ):
         raise HTTPException(status_code=403, detail="Not allowed to submit for this user")
 
@@ -96,13 +100,17 @@ def submit_timesheet(
 
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:
         raise HTTPException(status_code=403, detail="Self submission only for own timesheet")
-    if submission_mode == SubmissionMode.PROXY and not can_act_on_user(
-        session=session,
-        current_user=current_user,
-        target_user_id=timesheet.user_id,
-        required_role_name="SUPERVISOR",
-    ):
-        raise HTTPException(status_code=403, detail="Proxy submit not allowed")
+    if submission_mode == SubmissionMode.SELF:
+        require_permission(current_user=current_user, permission_key="timesheet.submit.self")
+    if submission_mode == SubmissionMode.PROXY:
+        require_permission(current_user=current_user, permission_key="timesheet.submit.proxy")
+        if not can_act_on_user(
+            session=session,
+            current_user=current_user,
+            target_user_id=timesheet.user_id,
+            permission_key="timesheet.submit.proxy",
+        ):
+            raise HTTPException(status_code=403, detail="Proxy submit not allowed")
 
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
@@ -124,6 +132,7 @@ def submit_timesheet(
 def approve_timesheet(
     *, session: Session, current_user: User, timesheet_id: uuid.UUID
 ) -> Timesheet:
+    require_permission(current_user=current_user, permission_key="timesheet.approve")
     timesheet = session.get(Timesheet, timesheet_id)
     if not timesheet:
         raise HTTPException(status_code=404, detail="Timesheet not found")
@@ -133,7 +142,7 @@ def approve_timesheet(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
-        required_role_name="SUPERVISOR",
+        permission_key="timesheet.approve",
     ):
         raise HTTPException(status_code=403, detail="Not allowed to approve this timesheet")
 
@@ -160,13 +169,7 @@ def list_my_timesheets(*, session: Session, current_user: User) -> list[Timeshee
 def list_department_timesheets(
     *, session: Session, current_user: User, department_id: str
 ) -> list[Timesheet]:
-    if not can_act_on_user(
-        session=session,
-        current_user=current_user,
-        target_user_id=current_user.id,
-        required_role_name="SUPERVISOR",
-    ):
-        raise HTTPException(status_code=403, detail="Not allowed to read department timesheets")
+    require_permission(current_user=current_user, permission_key="timesheet.read.department")
     return list(
         session.exec(
             select(Timesheet)
@@ -177,11 +180,18 @@ def list_department_timesheets(
 
 
 def read_timesheet_details(
-    *, session: Session, timesheet_id: uuid.UUID
+    *, session: Session, current_user: User, timesheet_id: uuid.UUID
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
     timesheet = session.get(Timesheet, timesheet_id)
     if not timesheet:
         raise HTTPException(status_code=404, detail="Timesheet not found")
+    if current_user.id != timesheet.user_id and not can_act_on_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=timesheet.user_id,
+        permission_key="timesheet.read.department",
+    ):
+        raise HTTPException(status_code=403, detail="Not allowed to read this timesheet")
     entries = list(
         session.exec(
             select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)

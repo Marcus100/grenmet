@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from sqlmodel import Session, col, delete, select
 
 from src.auth.models import User
-from src.hr.authz import require_permission
+from src.auth.policy import require_permission
 
 from .models import (
     ImportStatus,
@@ -29,7 +29,8 @@ from .schemas import (
 REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
 
 
-def read_shift_catalog(session: Session) -> list[ShiftCatalog]:
+def read_shift_catalog(*, session: Session, current_user: User) -> list[ShiftCatalog]:
+    require_permission(current_user=current_user, permission_key="roster.view")
     return list(
         session.exec(
             select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
@@ -93,8 +94,9 @@ def bulk_upsert_roster_assignments(
 
 
 def read_roster_period_details(
-    *, session: Session, period_id: uuid.UUID
+    *, session: Session, current_user: User, period_id: uuid.UUID
 ) -> tuple[RosterPeriod, list[RosterAssignment]]:
+    require_permission(current_user=current_user, permission_key="roster.view")
     period = session.get(RosterPeriod, period_id)
     if not period:
         raise HTTPException(status_code=404, detail="Roster period not found")

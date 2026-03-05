@@ -124,9 +124,12 @@ def create_status_report_endpoint(
 @router.get("/status-reports", response_model=StatusReportListPublic)
 def read_status_reports(
     session: SessionDep,
+    current_user: CurrentUser,
     department_id: str | None = None,
 ) -> Any:
-    rows = list_status_reports(session=session, department_id=department_id)
+    rows = list_status_reports(
+        session=session, current_user=current_user, department_id=department_id
+    )
     return StatusReportListPublic(
         data=[StatusReportPublic.model_validate(item, from_attributes=True) for item in rows],
         count=len(rows),

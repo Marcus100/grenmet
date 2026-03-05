@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlmodel import Session, col, select
 
 from src.auth.models import User
-from src.hr.authz import can_act_on_user
+from src.auth.policy import can_act_on_user, require_permission
 from src.hr.workflow.models import (
     WorkflowAction,
     WorkflowStatus,
@@ -77,6 +77,7 @@ def _start_workflow_for_entity(
 def create_leave_request(
     *, session: Session, current_user: User, payload: LeaveRequestCreate
 ) -> LeaveRequest:
+    require_permission(current_user=current_user, permission_key="leave.request.create.self")
     leave_request = LeaveRequest(
         user_id=current_user.id,
         department_id=payload.department_id,
@@ -113,6 +114,7 @@ def action_leave_request(
     leave_request_id: uuid.UUID,
     payload: LeaveRequestAction,
 ) -> LeaveRequest:
+    require_permission(current_user=current_user, permission_key="leave.request.action")
     leave_request = session.get(LeaveRequest, leave_request_id)
     if not leave_request:
         raise HTTPException(status_code=404, detail="Leave request not found")
@@ -120,7 +122,7 @@ def action_leave_request(
         session=session,
         current_user=current_user,
         target_user_id=leave_request.user_id,
-        required_role_name="SUPERVISOR",
+        permission_key="leave.request.action",
     ):
         raise HTTPException(status_code=403, detail="Not allowed to action this leave request")
     leave_request.status = payload.status
@@ -166,6 +168,9 @@ def list_leave_requests(*, session: Session, current_user: User) -> list[LeaveRe
 def create_shift_swap_request(
     *, session: Session, current_user: User, payload: ShiftSwapRequestCreate
 ) -> ShiftSwapRequest:
+    require_permission(
+        current_user=current_user, permission_key="shift_swap.request.create.self"
+    )
     request = ShiftSwapRequest(
         requesting_user_id=current_user.id,
         counterpart_user_id=payload.counterpart_user_id,
@@ -200,6 +205,7 @@ def action_shift_swap_request(
     shift_swap_id: uuid.UUID,
     payload: ShiftSwapAction,
 ) -> ShiftSwapRequest:
+    require_permission(current_user=current_user, permission_key="shift_swap.request.action")
     request = session.get(ShiftSwapRequest, shift_swap_id)
     if not request:
         raise HTTPException(status_code=404, detail="Shift swap request not found")
@@ -207,7 +213,7 @@ def action_shift_swap_request(
         session=session,
         current_user=current_user,
         target_user_id=request.requesting_user_id,
-        required_role_name="SUPERVISOR",
+        permission_key="shift_swap.request.action",
     ):
         raise HTTPException(status_code=403, detail="Not allowed to action this shift swap")
     request.status = payload.status
@@ -221,6 +227,7 @@ def action_shift_swap_request(
 def create_absentee_report(
     *, session: Session, current_user: User, payload: AbsenteeReportCreate
 ) -> AbsenteeReport:
+    require_permission(current_user=current_user, permission_key="absentee.report.create")
     report = AbsenteeReport(
         user_id=payload.user_id,
         department_id=payload.department_id,
@@ -251,6 +258,9 @@ def list_absentee_reports(
 ) -> list[AbsenteeReport]:
     statement = select(AbsenteeReport)
     if department_id:
+        require_permission(
+            current_user=current_user, permission_key="absentee.report.read.department"
+        )
         statement = statement.where(col(AbsenteeReport.department_id) == department_id)
     else:
         statement = statement.where(col(AbsenteeReport.user_id) == current_user.id)
@@ -260,6 +270,7 @@ def list_absentee_reports(
 def create_status_report(
     *, session: Session, current_user: User, payload: StatusReportCreate
 ) -> StatusReport:
+    require_permission(current_user=current_user, permission_key="status.report.create")
     report = StatusReport(
         department_id=payload.department_id,
         report_date=payload.report_date,
@@ -287,8 +298,9 @@ def create_status_report(
 
 
 def list_status_reports(
-    *, session: Session, department_id: str | None = None
+    *, session: Session, current_user: User, department_id: str | None = None
 ) -> list[StatusReport]:
+    require_permission(current_user=current_user, permission_key="status.report.read")
     statement = select(StatusReport)
     if department_id:
         statement = statement.where(col(StatusReport.department_id) == department_id)

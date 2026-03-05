@@ -86,8 +86,12 @@ def read_department_timesheets(
 
 
 @router.get("/{timesheet_id}", response_model=TimesheetDetails)
-def read_timesheet_endpoint(session: SessionDep, timesheet_id: uuid.UUID) -> Any:
-    timesheet, entries = read_timesheet_details(session=session, timesheet_id=timesheet_id)
+def read_timesheet_endpoint(
+    session: SessionDep, current_user: CurrentUser, timesheet_id: uuid.UUID
+) -> Any:
+    timesheet, entries = read_timesheet_details(
+        session=session, current_user=current_user, timesheet_id=timesheet_id
+    )
     return TimesheetDetails(
         timesheet=TimesheetPublic.model_validate(timesheet, from_attributes=True),
         entries=[
