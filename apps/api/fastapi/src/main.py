@@ -1,4 +1,4 @@
-from typing import cast
+from typing import Any, cast
 
 import sentry_sdk
 from fastapi import FastAPI
@@ -10,6 +10,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
+from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.users import router as users_router
 from src.config import settings
@@ -19,7 +20,13 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
+from src.hr.operations.router import router as hr_operations_router
+from src.hr.roster.router import router as hr_roster_router
+from src.hr.routers.profile import router as hr_profile_router
+from src.hr.timesheet.router import router as hr_timesheet_router
+from src.hr.workflow.router import router as hr_workflow_router
 from src.items.router import router as items_router
+
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
 
@@ -72,6 +79,12 @@ app.include_router(login_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
 app.include_router(roles_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
+app.include_router(role_assignments_router, prefix="/api/v1")
+app.include_router(hr_profile_router, prefix="/api/v1")
+app.include_router(hr_workflow_router, prefix="/api/v1")
+app.include_router(hr_roster_router, prefix="/api/v1")
+app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_operations_router, prefix="/api/v1")
 
 # Other routers
 
@@ -97,7 +110,7 @@ if settings.ENVIRONMENT == "local":
 
 
 @app.get("/scalar", include_in_schema=False)
-def get_scalar_docs():
+def get_scalar_docs() -> Any:
     return get_scalar_api_reference(
         openapi_url=openapi_url,
         title=settings.PROJECT_NAME,

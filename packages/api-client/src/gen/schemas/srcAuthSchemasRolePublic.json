@@ -17,5 +17,5 @@
   "type": "object",
   "required": ["name", "id", "created_at", "updated_at"],
   "title": "RolePublic",
-  "x-readme-ref-name": "RolePublic"
+  "x-readme-ref-name": "src__auth__schemas__RolePublic"
 }

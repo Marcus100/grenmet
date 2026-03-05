@@ -13,9 +13,12 @@ grenmet/
 │   └── web/
 │       ├── admin-gms/          # Admin dashboard
 │       ├── wxwatch/            # WxWatch app
-│       └── templates-draft/    # Templates draft
+│       ├── templates-draft/    # Templates draft
+│       ├── wxproducts/         # WxProducts app
+│       └── spicewx/            # SpiceWx app
 ├── packages/
-│   ├── api-client/             # Shared API client
+│   ├── api-client/             # Shared API client (generated from OpenAPI)
+│   ├── auth-client/            # Shared auth client
 │   └── tsconfig/               # Shared TypeScript config
 ├── docs/
 │   └── api/                    # API documentation
@@ -67,6 +70,8 @@ Each web app has its own README. From root you can run:
 - [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
 - [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
 - [templates-draft](apps/web/templates-draft/README.md) – `pnpm dev:web:templates-draft`
+- [wxproducts](apps/web/wxproducts/README.md) – `pnpm dev:web:wxproducts`
+- [spicewx](apps/web/spicewx/README.md) – run from app directory (`cd apps/web/spicewx && pnpm dev`)
 
 See each app's README for setup and run instructions.
 
@@ -88,10 +93,10 @@ All commands are run from the monorepo root.
 | Script                         | App / scope                                 |
 | ------------------------------ | ------------------------------------------- |
 | `pnpm dev`                     | All apps (Turbo dev in parallel)            |
-| `pnpm dev:web`                 | All web apps                                |
 | `pnpm dev:web:admin`           | [admin-gms](apps/web/admin-gms)             |
 | `pnpm dev:web:wxwatch`         | [wxwatch](apps/web/wxwatch)                 |
 | `pnpm dev:web:templates-draft` | [templates-draft](apps/web/templates-draft) |
+| `pnpm dev:web:wxproducts`      | [wxproducts](apps/web/wxproducts)           |
 | `pnpm dev:honoapi`             | [Hono API](apps/api/honoapi)                |
 
 API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && docker compose watch` for API-only.
@@ -101,15 +106,14 @@ API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && dock
 | Script                                  | Description                                                         |
 | --------------------------------------- | ------------------------------------------------------------------- |
 | `pnpm build`                            | Build all (Turbo)                                                   |
-| `pnpm build:web`                        | Build web apps only                                                 |
-| `pnpm build:packages`                   | Build packages only                                                 |
 | `pnpm lint`                             | Lint all                                                            |
 | `pnpm check` / `check:fix` / `check:ci` | Check / fix / CI                                                    |
 | `pnpm type-check`                       | Type-check all                                                      |
-| `pnpm test`                             | Test all                                                            |
 | `pnpm fix`                              | Run ultracite fix                                                   |
 | `pnpm generate:api-client`              | Generate API client from [packages/api-client](packages/api-client) |
 | `pnpm clean`                            | Remove node_modules (git clean)                                     |
+
+Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: see each app's README).
 
 ### Scripts / tools (not in package.json)
 
@@ -120,20 +124,21 @@ API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && dock
 | App | Development                                                                                                                             | Testing                        |
 | --- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | API | [Development](docs/api/development.md)                                                                                                  | [Testing](docs/api/testing.md) |
-| Web | [admin-gms](apps/web/admin-gms/README.md), [wxwatch](apps/web/wxwatch/README.md), [templates-draft](apps/web/templates-draft/README.md) | See app README                 |
+| Web | [admin-gms](apps/web/admin-gms/README.md), [wxwatch](apps/web/wxwatch/README.md), [templates-draft](apps/web/templates-draft/README.md), [wxproducts](apps/web/wxproducts/README.md), [spicewx](apps/web/spicewx/README.md) | See app README                 |
 
 ## Development
 
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.11+ (for API)
+- Python 3.10+ (for API); Python 3.13+ (for notebooks and scrapy-wxwatch)
 - Node.js 22+ (for Web)
 - pnpm 10+ (for Web)
 
 ### Packages
 
 - **api-client** – Shared API client; generate with `pnpm generate:api-client`.
+- **auth-client** – Shared auth client for web apps.
 - **tsconfig** – Shared TypeScript config for the monorepo.
 
 ### Code quality

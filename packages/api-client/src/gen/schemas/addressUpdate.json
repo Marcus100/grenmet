@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "line_1": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Line 1"
+    },
+    "line_2": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Line 2"
+    },
+    "city": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "City"
+    },
+    "parish": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Parish"
+    },
+    "postal_code": {
+      "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }],
+      "title": "Postal Code"
+    },
+    "country": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Country"
+    }
+  },
+  "type": "object",
+  "title": "AddressUpdate",
+  "x-readme-ref-name": "AddressUpdate"
+}

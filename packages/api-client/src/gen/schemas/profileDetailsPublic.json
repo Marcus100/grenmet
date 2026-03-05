@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "first_name": { "type": "string", "title": "First Name" },
+    "middle_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Middle Name"
+    },
+    "last_name": { "type": "string", "title": "Last Name" },
+    "display_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Display Name"
+    },
+    "date_of_birth": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Date Of Birth"
+    },
+    "nationality": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Nationality"
+    },
+    "gender": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Gender"
+    }
+  },
+  "type": "object",
+  "required": ["first_name", "last_name"],
+  "title": "ProfileDetailsPublic",
+  "x-readme-ref-name": "ProfileDetailsPublic"
+}

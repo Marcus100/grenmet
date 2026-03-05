@@ -15,6 +15,45 @@ sys.path.append(str(Path(__file__).parent.parent))
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
 from src.items.models import Item  # noqa: F401
+from src.hr.models import (  # noqa: F401
+    ApprovalAuthority,
+    Department,
+    EmploymentRecord,
+    LeaveBalance,
+    LeaveCarryOver,
+    RosterPreference,
+    RosterPreferredShift,
+    RosterRestrictedShift,
+    UserAddress,
+    UserProfile,
+)
+from src.hr.operations.models import (  # noqa: F401
+    AbsenteeReport,
+    LeaveBalanceEvent,
+    LeaveRequest,
+    ShiftSwapRequest,
+    StatusReport,
+)
+from src.hr.roster.models import (  # noqa: F401
+    RosterAssignment,
+    RosterImportJob,
+    RosterImportRow,
+    RosterPeriod,
+    ShiftCatalog,
+)
+from src.hr.timesheet.models import (  # noqa: F401
+    DepartmentPolicy,
+    Timesheet,
+    TimesheetEntry,
+    TimesheetSubmission,
+)
+from src.hr.workflow.models import (  # noqa: F401
+    ApprovalActionLog,
+    WorkflowInstance,
+    WorkflowStepInstance,
+    WorkflowStepTemplate,
+    WorkflowTemplate,
+)
 from src.config import settings
 
 # this is the Alembic Config object, which provides

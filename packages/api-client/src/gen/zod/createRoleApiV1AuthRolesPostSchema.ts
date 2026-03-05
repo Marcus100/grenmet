@@ -5,14 +5,14 @@
 
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { roleCreateSchema } from "./roleCreateSchema.js";
-import { rolePublicSchema } from "./rolePublicSchema.js";
+import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 import { z } from "zod/v4";
 
 /**
  * @description Successful Response
  */
 export const createRoleApiV1AuthRolesPost200Schema = z.lazy(
-  () => rolePublicSchema
+  () => srcAuthSchemasRolePublicSchema
 );
 
 /**

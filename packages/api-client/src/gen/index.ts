@@ -11,6 +11,8 @@ export type { GetItemImagesApiV1ItemsItemIdImagesGetSuspenseQueryKey } from "./h
 export type { HealthCheckApiV1UtilsHealthCheckGetQueryKey } from "./hooks/useHealthCheckApiV1UtilsHealthCheckGet.js";
 export type { HealthCheckApiV1UtilsHealthCheckGetSuspenseQueryKey } from "./hooks/useHealthCheckApiV1UtilsHealthCheckGetSuspense.js";
 export type { LoginAccessTokenApiV1LoginAccessTokenPostMutationKey } from "./hooks/useLoginAccessTokenApiV1LoginAccessTokenPost.js";
+export type { ReadHrProfileMeApiV1HrProfileMeGetQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
+export type { ReadHrProfileMeApiV1HrProfileMeGetSuspenseQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGetSuspense.js";
 export type { ReadItemApiV1ItemsIdGetQueryKey } from "./hooks/useReadItemApiV1ItemsIdGet.js";
 export type { ReadItemApiV1ItemsIdGetSuspenseQueryKey } from "./hooks/useReadItemApiV1ItemsIdGetSuspense.js";
 export type { ReadItemsApiV1ItemsGetQueryKey } from "./hooks/useReadItemsApiV1ItemsGet.js";
@@ -35,10 +37,16 @@ export type { RegisterUserApiV1AuthUsersSignupPostMutationKey } from "./hooks/us
 export type { ResetPasswordApiV1ResetPasswordPostMutationKey } from "./hooks/useResetPasswordApiV1ResetPasswordPost.js";
 export type { TestEmailApiV1UtilsTestEmailPostMutationKey } from "./hooks/useTestEmailApiV1UtilsTestEmailPost.js";
 export type { TestTokenApiV1LoginTestTokenPostMutationKey } from "./hooks/useTestTokenApiV1LoginTestTokenPost.js";
+export type { UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey } from "./hooks/useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export type { UpdateHrProfileMeApiV1HrProfileMePatchMutationKey } from "./hooks/useUpdateHrProfileMeApiV1HrProfileMePatch.js";
 export type { UpdateItemApiV1ItemsIdPutMutationKey } from "./hooks/useUpdateItemApiV1ItemsIdPut.js";
 export type { UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey } from "./hooks/useUpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export type { UpdateUserApiV1AuthUsersUserIdPatchMutationKey } from "./hooks/useUpdateUserApiV1AuthUsersUserIdPatch.js";
 export type { UpdateUserMeApiV1AuthUsersMePatchMutationKey } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
+export type { AddressPublic } from "./models/AddressPublic.js";
+export type { AddressUpdate } from "./models/AddressUpdate.js";
+export type { ApprovalAuthorityPublic } from "./models/ApprovalAuthorityPublic.js";
+export type { ApprovalAuthorityUpdate } from "./models/ApprovalAuthorityUpdate.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./models/BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type {
   CreateItemApiV1ItemsPost201,
@@ -99,6 +107,18 @@ export type {
   DeleteUserMeApiV1AuthUsersMeDeleteMutation,
   DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
 } from "./models/DeleteUserMeApiV1AuthUsersMeDelete.js";
+export type { DepartmentPublic } from "./models/DepartmentPublic.js";
+export type { EmploymentAdminUpdate } from "./models/EmploymentAdminUpdate.js";
+export type { EmploymentPublic } from "./models/EmploymentPublic.js";
+export type {
+  EmploymentStatus,
+  EmploymentStatusEnumKey,
+} from "./models/EmploymentStatus.js";
+export type {
+  EmploymentType,
+  EmploymentTypeEnumKey,
+} from "./models/EmploymentType.js";
+export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
 export type {
   GetItemImagesApiV1ItemsItemIdImagesGet200,
   GetItemImagesApiV1ItemsItemIdImagesGet422,
@@ -119,6 +139,7 @@ export type { ItemImagePublic } from "./models/ItemImagePublic.js";
 export type { ItemImagesPublic } from "./models/ItemImagesPublic.js";
 export type { ItemUpdate } from "./models/ItemUpdate.js";
 export type { ItemsPublic } from "./models/ItemsPublic.js";
+export type { LeavePublic } from "./models/LeavePublic.js";
 export type {
   LoginAccessTokenApiV1LoginAccessTokenPost200,
   LoginAccessTokenApiV1LoginAccessTokenPost400,
@@ -132,6 +153,15 @@ export type { NewPassword } from "./models/NewPassword.js";
 export type { PermissionCreate } from "./models/PermissionCreate.js";
 export type { PermissionPublic } from "./models/PermissionPublic.js";
 export type { PermissionsPublic } from "./models/PermissionsPublic.js";
+export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
+export type { ProfileDetailsPublic } from "./models/ProfileDetailsPublic.js";
+export type { ProfileDetailsUpdate } from "./models/ProfileDetailsUpdate.js";
+export type { ProfileIdentityPublic } from "./models/ProfileIdentityPublic.js";
+export type {
+  ReadHrProfileMeApiV1HrProfileMeGet200,
+  ReadHrProfileMeApiV1HrProfileMeGetQuery,
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+} from "./models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 export type {
   ReadItemApiV1ItemsIdGet200,
   ReadItemApiV1ItemsIdGet422,
@@ -224,8 +254,16 @@ export type {
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "./models/ResetPasswordApiV1ResetPasswordPost.js";
 export type { RoleCreate } from "./models/RoleCreate.js";
-export type { RolePublic } from "./models/RolePublic.js";
+export type { RoleScope, RoleScopeEnumKey } from "./models/RoleScope.js";
 export type { RolesPublic } from "./models/RolesPublic.js";
+export type { RosterPreferencesPublic } from "./models/RosterPreferencesPublic.js";
+export type { RosterPreferencesUpdate } from "./models/RosterPreferencesUpdate.js";
+export type {
+  ShiftPattern,
+  ShiftPatternEnumKey,
+} from "./models/ShiftPattern.js";
+export type { SrcAuthSchemasRolePublic } from "./models/SrcAuthSchemasRolePublic.js";
+export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js";
 export type {
   TestEmailApiV1UtilsTestEmailPost201,
   TestEmailApiV1UtilsTestEmailPost422,
@@ -239,6 +277,21 @@ export type {
   TestTokenApiV1LoginTestTokenPostMutationResponse,
 } from "./models/TestTokenApiV1LoginTestTokenPost.js";
 export type { Token } from "./models/Token.js";
+export type {
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutation,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+} from "./models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export type {
+  UpdateHrProfileMeApiV1HrProfileMePatch200,
+  UpdateHrProfileMeApiV1HrProfileMePatch422,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutation,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+} from "./models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
 export type {
   UpdateItemApiV1ItemsIdPut200,
   UpdateItemApiV1ItemsIdPut422,
@@ -271,8 +324,11 @@ export type {
   UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
 } from "./models/UpdateUserMeApiV1AuthUsersMePatch.js";
 export type { UserCreate } from "./models/UserCreate.js";
+export type { UserProfilePublic } from "./models/UserProfilePublic.js";
+export type { UserProfileUpdateMe } from "./models/UserProfileUpdateMe.js";
 export type { UserPublic } from "./models/UserPublic.js";
 export type { UserRegister } from "./models/UserRegister.js";
+export type { UserStatus, UserStatusEnumKey } from "./models/UserStatus.js";
 export type { UserUpdate } from "./models/UserUpdate.js";
 export type { UserUpdateMe } from "./models/UserUpdateMe.js";
 export type { UsersPublic } from "./models/UsersPublic.js";
@@ -288,6 +344,7 @@ export { deleteUserMeApiV1AuthUsersMeDelete } from "./clients/deleteUserMeApiV1A
 export { getItemImagesApiV1ItemsItemIdImagesGet } from "./clients/getItemImagesApiV1ItemsItemIdImagesGet.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./clients/healthCheckApiV1UtilsHealthCheckGet.js";
 export { loginAccessTokenApiV1LoginAccessTokenPost } from "./clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
+export { readHrProfileMeApiV1HrProfileMeGet } from "./clients/readHrProfileMeApiV1HrProfileMeGet.js";
 export { readItemApiV1ItemsIdGet } from "./clients/readItemApiV1ItemsIdGet.js";
 export { readItemsApiV1ItemsGet } from "./clients/readItemsApiV1ItemsGet.js";
 export { readPermissionApiV1AuthPermissionsPermissionIdGet } from "./clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
@@ -303,6 +360,8 @@ export { registerUserApiV1AuthUsersSignupPost } from "./clients/registerUserApiV
 export { resetPasswordApiV1ResetPasswordPost } from "./clients/resetPasswordApiV1ResetPasswordPost.js";
 export { testEmailApiV1UtilsTestEmailPost } from "./clients/testEmailApiV1UtilsTestEmailPost.js";
 export { testTokenApiV1LoginTestTokenPost } from "./clients/testTokenApiV1LoginTestTokenPost.js";
+export { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export { updateHrProfileMeApiV1HrProfileMePatch } from "./clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 export { updateItemApiV1ItemsIdPut } from "./clients/updateItemApiV1ItemsIdPut.js";
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./clients/updateUserApiV1AuthUsersUserIdPatch.js";
@@ -346,6 +405,12 @@ export { useHealthCheckApiV1UtilsHealthCheckGetSuspense } from "./hooks/useHealt
 export { loginAccessTokenApiV1LoginAccessTokenPostMutationKey } from "./hooks/useLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export { loginAccessTokenApiV1LoginAccessTokenPostMutationOptions } from "./hooks/useLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export { useLoginAccessTokenApiV1LoginAccessTokenPost } from "./hooks/useLoginAccessTokenApiV1LoginAccessTokenPost.js";
+export { readHrProfileMeApiV1HrProfileMeGetQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
+export { readHrProfileMeApiV1HrProfileMeGetQueryOptions } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
+export { useReadHrProfileMeApiV1HrProfileMeGet } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
+export { readHrProfileMeApiV1HrProfileMeGetSuspenseQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGetSuspense.js";
+export { readHrProfileMeApiV1HrProfileMeGetSuspenseQueryOptions } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGetSuspense.js";
+export { useReadHrProfileMeApiV1HrProfileMeGetSuspense } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGetSuspense.js";
 export { readItemApiV1ItemsIdGetQueryKey } from "./hooks/useReadItemApiV1ItemsIdGet.js";
 export { readItemApiV1ItemsIdGetQueryOptions } from "./hooks/useReadItemApiV1ItemsIdGet.js";
 export { useReadItemApiV1ItemsIdGet } from "./hooks/useReadItemApiV1ItemsIdGet.js";
@@ -418,6 +483,12 @@ export { useTestEmailApiV1UtilsTestEmailPost } from "./hooks/useTestEmailApiV1Ut
 export { testTokenApiV1LoginTestTokenPostMutationKey } from "./hooks/useTestTokenApiV1LoginTestTokenPost.js";
 export { testTokenApiV1LoginTestTokenPostMutationOptions } from "./hooks/useTestTokenApiV1LoginTestTokenPost.js";
 export { useTestTokenApiV1LoginTestTokenPost } from "./hooks/useTestTokenApiV1LoginTestTokenPost.js";
+export { updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey } from "./hooks/useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export { updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions } from "./hooks/useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export { useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./hooks/useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export { updateHrProfileMeApiV1HrProfileMePatchMutationKey } from "./hooks/useUpdateHrProfileMeApiV1HrProfileMePatch.js";
+export { updateHrProfileMeApiV1HrProfileMePatchMutationOptions } from "./hooks/useUpdateHrProfileMeApiV1HrProfileMePatch.js";
+export { useUpdateHrProfileMeApiV1HrProfileMePatch } from "./hooks/useUpdateHrProfileMeApiV1HrProfileMePatch.js";
 export { updateItemApiV1ItemsIdPutMutationKey } from "./hooks/useUpdateItemApiV1ItemsIdPut.js";
 export { updateItemApiV1ItemsIdPutMutationOptions } from "./hooks/useUpdateItemApiV1ItemsIdPut.js";
 export { useUpdateItemApiV1ItemsIdPut } from "./hooks/useUpdateItemApiV1ItemsIdPut.js";
@@ -430,7 +501,16 @@ export { useUpdateUserApiV1AuthUsersUserIdPatch } from "./hooks/useUpdateUserApi
 export { updateUserMeApiV1AuthUsersMePatchMutationKey } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
 export { updateUserMeApiV1AuthUsersMePatchMutationOptions } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
 export { useUpdateUserMeApiV1AuthUsersMePatch } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
+export { employmentStatusEnum } from "./models/EmploymentStatus.js";
+export { employmentTypeEnum } from "./models/EmploymentType.js";
+export { roleScopeEnum } from "./models/RoleScope.js";
+export { shiftPatternEnum } from "./models/ShiftPattern.js";
+export { userStatusEnum } from "./models/UserStatus.js";
 export { HTTPValidationErrorSchema } from "./zod/HTTPValidationErrorSchema.js";
+export { addressPublicSchema } from "./zod/addressPublicSchema.js";
+export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
+export { approvalAuthorityPublicSchema } from "./zod/approvalAuthorityPublicSchema.js";
+export { approvalAuthorityUpdateSchema } from "./zod/approvalAuthorityUpdateSchema.js";
 export { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./zod/bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
 export {
   createItemApiV1ItemsPost201Schema,
@@ -483,6 +563,12 @@ export {
   deleteUserMeApiV1AuthUsersMeDelete200Schema,
   deleteUserMeApiV1AuthUsersMeDeleteMutationResponseSchema,
 } from "./zod/deleteUserMeApiV1AuthUsersMeDeleteSchema.js";
+export { departmentPublicSchema } from "./zod/departmentPublicSchema.js";
+export { employmentAdminUpdateSchema } from "./zod/employmentAdminUpdateSchema.js";
+export { employmentPublicSchema } from "./zod/employmentPublicSchema.js";
+export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
+export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
+export { employmentUpdateSchema } from "./zod/employmentUpdateSchema.js";
 export {
   getItemImagesApiV1ItemsItemIdImagesGet200Schema,
   getItemImagesApiV1ItemsItemIdImagesGet422Schema,
@@ -500,6 +586,7 @@ export { itemImagesPublicSchema } from "./zod/itemImagesPublicSchema.js";
 export { itemSchema } from "./zod/itemSchema.js";
 export { itemUpdateSchema } from "./zod/itemUpdateSchema.js";
 export { itemsPublicSchema } from "./zod/itemsPublicSchema.js";
+export { leavePublicSchema } from "./zod/leavePublicSchema.js";
 export {
   loginAccessTokenApiV1LoginAccessTokenPost200Schema,
   loginAccessTokenApiV1LoginAccessTokenPost400Schema,
@@ -512,6 +599,14 @@ export { newPasswordSchema } from "./zod/newPasswordSchema.js";
 export { permissionCreateSchema } from "./zod/permissionCreateSchema.js";
 export { permissionPublicSchema } from "./zod/permissionPublicSchema.js";
 export { permissionsPublicSchema } from "./zod/permissionsPublicSchema.js";
+export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
+export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
+export { profileDetailsUpdateSchema } from "./zod/profileDetailsUpdateSchema.js";
+export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.js";
+export {
+  readHrProfileMeApiV1HrProfileMeGet200Schema,
+  readHrProfileMeApiV1HrProfileMeGetQueryResponseSchema,
+} from "./zod/readHrProfileMeApiV1HrProfileMeGetSchema.js";
 export {
   readItemApiV1ItemsIdGet200Schema,
   readItemApiV1ItemsIdGet422Schema,
@@ -591,8 +686,13 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationResponseSchema,
 } from "./zod/resetPasswordApiV1ResetPasswordPostSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";
-export { rolePublicSchema } from "./zod/rolePublicSchema.js";
+export { roleScopeSchema } from "./zod/roleScopeSchema.js";
 export { rolesPublicSchema } from "./zod/rolesPublicSchema.js";
+export { rosterPreferencesPublicSchema } from "./zod/rosterPreferencesPublicSchema.js";
+export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSchema.js";
+export { shiftPatternSchema } from "./zod/shiftPatternSchema.js";
+export { srcAuthSchemasRolePublicSchema } from "./zod/srcAuthSchemasRolePublicSchema.js";
+export { srcHrSchemasRolePublicSchema } from "./zod/srcHrSchemasRolePublicSchema.js";
 export {
   testEmailApiV1UtilsTestEmailPost201Schema,
   testEmailApiV1UtilsTestEmailPost422Schema,
@@ -604,6 +704,19 @@ export {
   testTokenApiV1LoginTestTokenPostMutationResponseSchema,
 } from "./zod/testTokenApiV1LoginTestTokenPostSchema.js";
 export { tokenSchema } from "./zod/tokenSchema.js";
+export {
+  updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema,
+  updateHrEmploymentApiV1HrEmploymentUserIdPatch422Schema,
+  updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequestSchema,
+  updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponseSchema,
+  updateHrEmploymentApiV1HrEmploymentUserIdPatchPathParamsSchema,
+} from "./zod/updateHrEmploymentApiV1HrEmploymentUserIdPatchSchema.js";
+export {
+  updateHrProfileMeApiV1HrProfileMePatch200Schema,
+  updateHrProfileMeApiV1HrProfileMePatch422Schema,
+  updateHrProfileMeApiV1HrProfileMePatchMutationRequestSchema,
+  updateHrProfileMeApiV1HrProfileMePatchMutationResponseSchema,
+} from "./zod/updateHrProfileMeApiV1HrProfileMePatchSchema.js";
 export {
   updateItemApiV1ItemsIdPut200Schema,
   updateItemApiV1ItemsIdPut422Schema,
@@ -632,8 +745,11 @@ export {
   updateUserMeApiV1AuthUsersMePatchMutationResponseSchema,
 } from "./zod/updateUserMeApiV1AuthUsersMePatchSchema.js";
 export { userCreateSchema } from "./zod/userCreateSchema.js";
+export { userProfilePublicSchema } from "./zod/userProfilePublicSchema.js";
+export { userProfileUpdateMeSchema } from "./zod/userProfileUpdateMeSchema.js";
 export { userPublicSchema } from "./zod/userPublicSchema.js";
 export { userRegisterSchema } from "./zod/userRegisterSchema.js";
+export { userStatusSchema } from "./zod/userStatusSchema.js";
 export { userUpdateMeSchema } from "./zod/userUpdateMeSchema.js";
 export { userUpdateSchema } from "./zod/userUpdateSchema.js";
 export { usersPublicSchema } from "./zod/usersPublicSchema.js";

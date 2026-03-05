@@ -1,5 +1,7 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+Part of the Grenmet monorepo. Run from app directory: **`cd apps/web/spicewx && pnpm dev`**.
+
 ## Getting Started
 
 First, run the development server:

@@ -1,0 +1,73 @@
+"""User role assignment management endpoints."""
+
+import uuid
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
+
+from src.auth import service
+from src.auth.dependencies import get_current_active_superuser
+from src.auth.schemas import (
+    UserRoleAssignmentCreate,
+    UserRoleAssignmentPublic,
+    UserRoleAssignmentsPublic,
+    UserRoleAssignmentUpdate,
+)
+from src.dependencies import SessionDep
+
+router = APIRouter(
+    prefix="/auth/role-assignments",
+    tags=["role-assignments"],
+    dependencies=[Depends(get_current_active_superuser)],
+)
+
+
+@router.get("/", response_model=UserRoleAssignmentsPublic)
+def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None) -> Any:
+    assignments = service.get_user_role_assignments(session=session, user_id=user_id)
+    return UserRoleAssignmentsPublic(
+        data=[
+            UserRoleAssignmentPublic.model_validate(assignment, from_attributes=True)
+            for assignment in assignments
+        ],
+        count=len(assignments),
+    )
+
+
+@router.get("/{assignment_id}", response_model=UserRoleAssignmentPublic)
+def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
+    assignment = service.get_user_role_assignment(
+        session=session, assignment_id=assignment_id
+    )
+    if not assignment:
+        raise HTTPException(status_code=404, detail="Role assignment not found")
+    return assignment
+
+
+@router.post("/", response_model=UserRoleAssignmentPublic)
+def create_role_assignment(
+    *, session: SessionDep, assignment_in: UserRoleAssignmentCreate
+) -> Any:
+    assignment = service.create_user_role_assignment(
+        session=session, assignment_in=assignment_in
+    )
+    return assignment
+
+
+@router.patch("/{assignment_id}", response_model=UserRoleAssignmentPublic)
+def update_role_assignment(
+    *,
+    session: SessionDep,
+    assignment_id: uuid.UUID,
+    assignment_in: UserRoleAssignmentUpdate,
+) -> Any:
+    db_assignment = service.get_user_role_assignment(
+        session=session, assignment_id=assignment_id
+    )
+    if not db_assignment:
+        raise HTTPException(status_code=404, detail="Role assignment not found")
+    return service.update_user_role_assignment(
+        session=session,
+        db_assignment=db_assignment,
+        assignment_in=assignment_in,
+    )

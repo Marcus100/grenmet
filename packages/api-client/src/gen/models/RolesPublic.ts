@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { RolePublic } from "./RolePublic.js";
+import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
 /**
  * RolesPublic
@@ -12,7 +12,7 @@ export type RolesPublic = {
   /**
    * @type array
    */
-  data: RolePublic[];
+  data: SrcAuthSchemasRolePublic[];
   /**
    * @type integer
    */

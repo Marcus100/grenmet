@@ -339,7 +339,11 @@ apps/api/fastapi/
 │   │   ├── service.py            # Business logic
 │   │   └── dependencies.py       # Auth dependencies
 │   ├── items/                    # Items module
-│   │   └── ...                  # Same structure
+│   │   ├── router.py            # Item endpoints
+│   │   ├── schemas.py           # Pydantic schemas
+│   │   ├── service.py           # Business logic
+│   │   ├── models.py            # Item models
+│   │   └── ...                  # dependencies, constants, etc.
 │   ├── config.py                # Global configuration
 │   ├── database.py              # Database connection
 │   ├── models.py                # Global models
