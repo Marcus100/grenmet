@@ -1,10 +1,15 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "Barrels GD API", "version": "1.0.0" },
+  "info": {
+    "title": "Grenmet API",
+    "version": "1.0.0"
+  },
   "paths": {
     "/api/v1/login/access-token": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Login with OAuth2",
         "description": "OAuth2 compatible token login. Returns an access token for future requests.",
         "operationId": "login_access_token_api_v1_login_access_token_post",
@@ -23,16 +28,22 @@
             "description": "Login successful, access token returned",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Token" }
+                "schema": {
+                  "$ref": "#/components/schemas/Token"
+                }
               }
             }
           },
-          "400": { "description": "Incorrect email/password or inactive user" },
+          "400": {
+            "description": "Incorrect email/password or inactive user"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -41,7 +52,9 @@
     },
     "/api/v1/login/test-token": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Test Token",
         "description": "Test access token.",
         "operationId": "test_token_api_v1_login_test_token_post",
@@ -50,17 +63,25 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           }
         },
-        "security": [{ "OAuth2PasswordBearer": [] }]
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/password-recovery/{email}": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Recover Password",
         "description": "Password Recovery.",
         "operationId": "recover_password_api_v1_password_recovery__email__post",
@@ -69,7 +90,10 @@
             "name": "email",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "title": "Email" }
+            "schema": {
+              "type": "string",
+              "title": "Email"
+            }
           }
         ],
         "responses": {
@@ -77,7 +101,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
@@ -85,7 +111,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -94,14 +122,18 @@
     },
     "/api/v1/reset-password/": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Reset Password",
         "description": "Reset password.",
         "operationId": "reset_password_api_v1_reset_password__post",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/NewPassword" }
+              "schema": {
+                "$ref": "#/components/schemas/NewPassword"
+              }
             }
           },
           "required": true
@@ -111,7 +143,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
@@ -119,7 +153,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -128,29 +164,46 @@
     },
     "/api/v1/password-recovery-html-content/{email}": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Recover Password Html Content",
         "description": "HTML Content for Password Recovery.",
         "operationId": "recover_password_html_content_api_v1_password_recovery_html_content__email__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "email",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "title": "Email" }
+            "schema": {
+              "type": "string",
+              "title": "Email"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "Successful Response",
-            "content": { "text/html": { "schema": { "type": "string" } } }
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -159,23 +212,37 @@
     },
     "/api/v1/auth/users/": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Read Users",
         "description": "Retrieve users.",
         "operationId": "read_users_api_v1_auth_users__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 0, "title": "Skip" }
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 100, "title": "Limit" }
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
           }
         ],
         "responses": {
@@ -183,7 +250,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UsersPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UsersPublic"
+                }
               }
             }
           },
@@ -191,23 +260,33 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Create User",
         "description": "Create new user.",
         "operationId": "create_user_api_v1_auth_users__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/UserCreate"
+              }
             }
           }
         },
@@ -216,7 +295,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           },
@@ -224,7 +305,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -233,7 +316,9 @@
     },
     "/api/v1/auth/users/me": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Read User Me",
         "description": "Get current user.",
         "operationId": "read_user_me_api_v1_auth_users_me_get",
@@ -242,15 +327,23 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           }
         },
-        "security": [{ "OAuth2PasswordBearer": [] }]
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       },
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Delete User Me",
         "description": "Delete own user.",
         "operationId": "delete_user_me_api_v1_auth_users_me_delete",
@@ -259,22 +352,32 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           }
         },
-        "security": [{ "OAuth2PasswordBearer": [] }]
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       },
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update User Me",
         "description": "Update own user.",
         "operationId": "update_user_me_api_v1_auth_users_me_patch",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserUpdateMe" }
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateMe"
+              }
             }
           },
           "required": true
@@ -284,7 +387,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           },
@@ -292,24 +397,34 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         },
-        "security": [{ "OAuth2PasswordBearer": [] }]
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/auth/users/me/password": {
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update Password Me",
         "description": "Update own password.",
         "operationId": "update_password_me_api_v1_auth_users_me_password_patch",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdatePassword" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePassword"
+              }
             }
           },
           "required": true
@@ -319,7 +434,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
@@ -327,24 +444,34 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         },
-        "security": [{ "OAuth2PasswordBearer": [] }]
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/auth/users/signup": {
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Register new user",
         "description": "Create a new user account without authentication. Public endpoint for user registration.",
         "operationId": "register_user_api_v1_auth_users_signup_post",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserRegister" }
+              "schema": {
+                "$ref": "#/components/schemas/UserRegister"
+              }
             }
           },
           "required": true
@@ -354,16 +481,22 @@
             "description": "User registered successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           },
-          "400": { "description": "User with this email already exists" },
+          "400": {
+            "description": "User with this email already exists"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -372,17 +505,27 @@
     },
     "/api/v1/auth/users/{user_id}": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Read User By Id",
         "description": "Get a specific user by id.",
         "operationId": "read_user_by_id_api_v1_auth_users__user_id__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "User Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
           }
         ],
         "responses": {
@@ -390,7 +533,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           },
@@ -398,31 +543,45 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update User",
         "description": "Update a user.",
         "operationId": "update_user_api_v1_auth_users__user_id__patch",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "User Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserUpdate" }
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdate"
+              }
             }
           }
         },
@@ -431,7 +590,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UserPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
               }
             }
           },
@@ -439,24 +600,36 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Delete User",
         "description": "Delete a user.",
         "operationId": "delete_user_api_v1_auth_users__user_id__delete",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "user_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "User Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
           }
         ],
         "responses": {
@@ -464,7 +637,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
@@ -472,7 +647,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -481,23 +658,37 @@
     },
     "/api/v1/auth/roles/": {
       "get": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "Read Roles",
         "description": "Retrieve roles (superuser only).",
         "operationId": "read_roles_api_v1_auth_roles__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 0, "title": "Skip" }
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 100, "title": "Limit" }
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
           }
         ],
         "responses": {
@@ -505,7 +696,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RolesPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/RolesPublic"
+                }
               }
             }
           },
@@ -513,23 +706,33 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "post": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "Create Role",
         "description": "Create new role (superuser only).",
         "operationId": "create_role_api_v1_auth_roles__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RoleCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/RoleCreate"
+              }
             }
           }
         },
@@ -538,7 +741,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RolePublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                }
               }
             }
           },
@@ -546,7 +751,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -555,17 +762,27 @@
     },
     "/api/v1/auth/roles/{role_id}": {
       "get": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "Read Role",
         "description": "Get role by ID (superuser only).",
         "operationId": "read_role_api_v1_auth_roles__role_id__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "role_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Role Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
           }
         ],
         "responses": {
@@ -573,7 +790,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/RolePublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                }
               }
             }
           },
@@ -581,7 +800,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -590,23 +811,37 @@
     },
     "/api/v1/auth/permissions/": {
       "get": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "Read Permissions",
         "description": "Retrieve permissions (superuser only).",
         "operationId": "read_permissions_api_v1_auth_permissions__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 0, "title": "Skip" }
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 100, "title": "Limit" }
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
           }
         ],
         "responses": {
@@ -614,7 +849,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PermissionsPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionsPublic"
+                }
               }
             }
           },
@@ -622,23 +859,33 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "post": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "Create Permission",
         "description": "Create new permission (superuser only).",
         "operationId": "create_permission_api_v1_auth_permissions__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PermissionCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/PermissionCreate"
+              }
             }
           }
         },
@@ -647,7 +894,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PermissionPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionPublic"
+                }
               }
             }
           },
@@ -655,7 +904,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -664,11 +915,17 @@
     },
     "/api/v1/auth/permissions/{permission_id}": {
       "get": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "Read Permission",
         "description": "Get permission by ID (superuser only).",
         "operationId": "read_permission_api_v1_auth_permissions__permission_id__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "permission_id",
@@ -686,7 +943,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/PermissionPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionPublic"
+                }
               }
             }
           },
@@ -694,7 +953,137 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/profile/me": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Read Hr Profile Me",
+        "operationId": "read_hr_profile_me_api_v1_hr_profile_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Update Hr Profile Me",
+        "operationId": "update_hr_profile_me_api_v1_hr_profile_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileUpdateMe"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/employment/{user_id}": {
+      "patch": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Update Hr Employment",
+        "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmploymentAdminUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -703,23 +1092,37 @@
     },
     "/api/v1/items/": {
       "get": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Retrieve items",
         "description": "Retrieve a list of items. Regular users see only their own items. Superusers see all items.",
         "operationId": "read_items_api_v1_items__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "skip",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 0, "title": "Skip" }
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Skip"
+            }
           },
           {
             "name": "limit",
             "in": "query",
             "required": false,
-            "schema": { "type": "integer", "default": 100, "title": "Limit" }
+            "schema": {
+              "type": "integer",
+              "default": 100,
+              "title": "Limit"
+            }
           }
         ],
         "responses": {
@@ -727,32 +1130,46 @@
             "description": "List of items retrieved successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ItemsPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/ItemsPublic"
+                }
               }
             }
           },
-          "401": { "description": "Not authenticated" },
+          "401": {
+            "description": "Not authenticated"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "post": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Create a new item",
         "description": "Create a new item owned by the current user. Requires authentication.",
         "operationId": "create_item_api_v1_items__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ItemCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/ItemCreate"
+              }
             }
           }
         },
@@ -761,16 +1178,22 @@
             "description": "Item created successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Item" }
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
               }
             }
           },
-          "401": { "description": "Not authenticated" },
+          "401": {
+            "description": "Not authenticated"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -779,17 +1202,27 @@
     },
     "/api/v1/items/{id}": {
       "get": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Read Item",
         "description": "Get item by ID.",
         "operationId": "read_item_api_v1_items__id__get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Id"
+            }
           }
         ],
         "responses": {
@@ -797,7 +1230,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Item" }
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
               }
             }
           },
@@ -805,31 +1240,45 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "put": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Update Item",
         "description": "Update an item.",
         "operationId": "update_item_api_v1_items__id__put",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Id"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ItemUpdate" }
+              "schema": {
+                "$ref": "#/components/schemas/ItemUpdate"
+              }
             }
           }
         },
@@ -838,7 +1287,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Item" }
+                "schema": {
+                  "$ref": "#/components/schemas/Item"
+                }
               }
             }
           },
@@ -846,24 +1297,36 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "delete": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Delete an item",
         "description": "Delete an item by ID. Users can only delete their own items unless they are superusers.",
         "operationId": "delete_item_api_v1_items__id__delete",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Id"
+            }
           }
         ],
         "responses": {
@@ -871,20 +1334,28 @@
             "description": "Item deleted successfully",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
           "400": {
             "description": "Not enough permissions to delete this item"
           },
-          "401": { "description": "Not authenticated" },
-          "404": { "description": "Item not found" },
+          "401": {
+            "description": "Not authenticated"
+          },
+          "404": {
+            "description": "Item not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -893,17 +1364,27 @@
     },
     "/api/v1/items/{item_id}/images": {
       "get": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Get Item Images",
         "description": "Get all images for an item.",
         "operationId": "get_item_images_api_v1_items__item_id__images_get",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "item_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Item Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
           }
         ],
         "responses": {
@@ -911,7 +1392,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ItemImagesPublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/ItemImagesPublic"
+                }
               }
             }
           },
@@ -919,31 +1402,45 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
         }
       },
       "post": {
-        "tags": ["items"],
+        "tags": [
+          "items"
+        ],
         "summary": "Create Item Image",
         "description": "Upload an image for an item.",
         "operationId": "create_item_image_api_v1_items__item_id__images_post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "item_id",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid", "title": "Item Id" }
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Item Id"
+            }
           }
         ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ItemImageCreate" }
+              "schema": {
+                "$ref": "#/components/schemas/ItemImageCreate"
+              }
             }
           }
         },
@@ -952,7 +1449,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ItemImagePublic" }
+                "schema": {
+                  "$ref": "#/components/schemas/ItemImagePublic"
+                }
               }
             }
           },
@@ -960,7 +1459,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -969,11 +1470,17 @@
     },
     "/api/v1/utils/test-email/": {
       "post": {
-        "tags": ["utils"],
+        "tags": [
+          "utils"
+        ],
         "summary": "Test Email",
         "description": "Test emails.",
         "operationId": "test_email_api_v1_utils_test_email__post",
-        "security": [{ "OAuth2PasswordBearer": [] }],
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "parameters": [
           {
             "name": "email_to",
@@ -991,7 +1498,9 @@
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Message" }
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
               }
             }
           },
@@ -999,7 +1508,9 @@
             "description": "Validation Error",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/HTTPValidationError" }
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
               }
             }
           }
@@ -1008,7 +1519,9 @@
     },
     "/api/v1/utils/health-check/": {
       "get": {
-        "tags": ["utils"],
+        "tags": [
+          "utils"
+        ],
         "summary": "Health Check",
         "operationId": "health_check_api_v1_utils_health_check__get",
         "responses": {
@@ -1029,40 +1542,551 @@
   },
   "components": {
     "schemas": {
+      "AddressPublic": {
+        "properties": {
+          "line_1": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line 1"
+          },
+          "line_2": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line 2"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "parish": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parish"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          }
+        },
+        "type": "object",
+        "title": "AddressPublic"
+      },
+      "AddressUpdate": {
+        "properties": {
+          "line_1": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line 1"
+          },
+          "line_2": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line 2"
+          },
+          "city": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City"
+          },
+          "parish": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parish"
+          },
+          "postal_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Postal Code"
+          },
+          "country": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          }
+        },
+        "type": "object",
+        "title": "AddressUpdate"
+      },
+      "ApprovalAuthorityPublic": {
+        "properties": {
+          "can_approve_leave": {
+            "type": "boolean",
+            "title": "Can Approve Leave",
+            "default": false
+          },
+          "can_approve_shift_swap": {
+            "type": "boolean",
+            "title": "Can Approve Shift Swap",
+            "default": false
+          },
+          "can_approve_timesheets": {
+            "type": "boolean",
+            "title": "Can Approve Timesheets",
+            "default": false
+          },
+          "can_approve_absentee_reports": {
+            "type": "boolean",
+            "title": "Can Approve Absentee Reports",
+            "default": false
+          }
+        },
+        "type": "object",
+        "title": "ApprovalAuthorityPublic"
+      },
+      "ApprovalAuthorityUpdate": {
+        "properties": {
+          "can_approve_leave": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Approve Leave"
+          },
+          "can_approve_shift_swap": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Approve Shift Swap"
+          },
+          "can_approve_timesheets": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Approve Timesheets"
+          },
+          "can_approve_absentee_reports": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Can Approve Absentee Reports"
+          }
+        },
+        "type": "object",
+        "title": "ApprovalAuthorityUpdate"
+      },
       "Body_login_access_token_api_v1_login_access_token_post": {
         "properties": {
           "grant_type": {
             "anyOf": [
-              { "type": "string", "pattern": "^password$" },
-              { "type": "null" }
+              {
+                "type": "string",
+                "pattern": "^password$"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Grant Type"
           },
-          "username": { "type": "string", "title": "Username" },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
           "password": {
             "type": "string",
             "format": "password",
             "title": "Password"
           },
-          "scope": { "type": "string", "title": "Scope", "default": "" },
+          "scope": {
+            "type": "string",
+            "title": "Scope",
+            "default": ""
+          },
           "client_id": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Client Id"
           },
           "client_secret": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "format": "password",
             "title": "Client Secret"
           }
         },
         "type": "object",
-        "required": ["username", "password"],
+        "required": [
+          "username",
+          "password"
+        ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
+      },
+      "DepartmentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DepartmentPublic"
+      },
+      "EmploymentAdminUpdate": {
+        "properties": {
+          "employment": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "approval_authority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ApprovalAuthorityUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EmploymentAdminUpdate"
+      },
+      "EmploymentPublic": {
+        "properties": {
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "department": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DepartmentPublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EmploymentPublic"
+      },
+      "EmploymentStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "TERMINATED"
+        ],
+        "title": "EmploymentStatus"
+      },
+      "EmploymentType": {
+        "type": "string",
+        "enum": [
+          "FULL_TIME",
+          "PART_TIME",
+          "CONTRACT",
+          "TEMPORARY"
+        ],
+        "title": "EmploymentType"
+      },
+      "EmploymentUpdate": {
+        "properties": {
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 150
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "EmploymentUpdate"
       },
       "HTTPValidationError": {
         "properties": {
           "detail": {
-            "items": { "$ref": "#/components/schemas/ValidationError" },
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
             "type": "array",
             "title": "Detail"
           }
@@ -1072,13 +2096,30 @@
       },
       "Item": {
         "properties": {
-          "title": { "type": "string", "title": "Title" },
-          "content": { "type": "string", "title": "Content" },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           },
-          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1108,37 +2149,79 @@
       },
       "ItemCreate": {
         "properties": {
-          "title": { "type": "string", "title": "Title" },
-          "content": { "type": "string", "title": "Content", "default": "" },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "default": ""
+          },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
         "type": "object",
-        "required": ["title"],
+        "required": [
+          "title"
+        ],
         "title": "ItemCreate"
       },
       "ItemImageCreate": {
         "properties": {
           "alt_text": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Alt Text"
           },
-          "object_key": { "type": "string", "title": "Object Key" }
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          }
         },
         "type": "object",
-        "required": ["object_key"],
+        "required": [
+          "object_key"
+        ],
         "title": "ItemImageCreate"
       },
       "ItemImagePublic": {
         "properties": {
           "alt_text": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Alt Text"
           },
-          "object_key": { "type": "string", "title": "Object Key" },
-          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "object_key": {
+            "type": "string",
+            "title": "Object Key"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1149,37 +2232,76 @@
             "format": "date-time",
             "title": "Updated At"
           },
-          "item_id": { "type": "string", "format": "uuid", "title": "Item Id" }
+          "item_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Item Id"
+          }
         },
         "type": "object",
-        "required": ["object_key", "id", "created_at", "updated_at", "item_id"],
+        "required": [
+          "object_key",
+          "id",
+          "created_at",
+          "updated_at",
+          "item_id"
+        ],
         "title": "ItemImagePublic"
       },
       "ItemImagesPublic": {
         "properties": {
           "data": {
-            "items": { "$ref": "#/components/schemas/ItemImagePublic" },
+            "items": {
+              "$ref": "#/components/schemas/ItemImagePublic"
+            },
             "type": "array",
             "title": "Data"
           },
-          "count": { "type": "integer", "title": "Count" }
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
         },
         "type": "object",
-        "required": ["data", "count"],
+        "required": [
+          "data",
+          "count"
+        ],
         "title": "ItemImagesPublic"
       },
       "ItemUpdate": {
         "properties": {
           "title": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Title"
           },
           "content": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Content"
           },
           "description": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Description"
           }
         },
@@ -1189,36 +2311,89 @@
       "ItemsPublic": {
         "properties": {
           "data": {
-            "items": { "$ref": "#/components/schemas/Item" },
+            "items": {
+              "$ref": "#/components/schemas/Item"
+            },
             "type": "array",
             "title": "Data"
           },
-          "count": { "type": "integer", "title": "Count" }
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
         },
         "type": "object",
-        "required": ["data", "count"],
+        "required": [
+          "data",
+          "count"
+        ],
         "title": "ItemsPublic"
       },
-      "Message": {
-        "properties": { "message": { "type": "string", "title": "Message" } },
+      "LeavePublic": {
+        "properties": {
+          "balances": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Balances"
+          },
+          "carry_over": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Carry Over"
+          }
+        },
         "type": "object",
-        "required": ["message"],
+        "title": "LeavePublic"
+      },
+      "Message": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
         "title": "Message"
       },
       "NewPassword": {
         "properties": {
-          "token": { "type": "string", "title": "Token" },
-          "new_password": { "type": "string", "title": "New Password" }
+          "token": {
+            "type": "string",
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
         },
         "type": "object",
-        "required": ["token", "new_password"],
+        "required": [
+          "token",
+          "new_password"
+        ],
         "title": "NewPassword"
       },
       "PermissionCreate": {
         "properties": {
-          "action": { "type": "string", "title": "Action" },
-          "entity": { "type": "string", "title": "Entity" },
-          "access": { "type": "string", "title": "Access" },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "access": {
+            "type": "string",
+            "title": "Access"
+          },
           "description": {
             "type": "string",
             "title": "Description",
@@ -1226,20 +2401,37 @@
           }
         },
         "type": "object",
-        "required": ["action", "entity", "access"],
+        "required": [
+          "action",
+          "entity",
+          "access"
+        ],
         "title": "PermissionCreate"
       },
       "PermissionPublic": {
         "properties": {
-          "action": { "type": "string", "title": "Action" },
-          "entity": { "type": "string", "title": "Entity" },
-          "access": { "type": "string", "title": "Access" },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "entity": {
+            "type": "string",
+            "title": "Entity"
+          },
+          "access": {
+            "type": "string",
+            "title": "Access"
+          },
           "description": {
             "type": "string",
             "title": "Description",
             "default": ""
           },
-          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1265,69 +2457,458 @@
       "PermissionsPublic": {
         "properties": {
           "data": {
-            "items": { "$ref": "#/components/schemas/PermissionPublic" },
+            "items": {
+              "$ref": "#/components/schemas/PermissionPublic"
+            },
             "type": "array",
             "title": "Data"
           },
-          "count": { "type": "integer", "title": "Count" }
-        },
-        "type": "object",
-        "required": ["data", "count"],
-        "title": "PermissionsPublic"
-      },
-      "RoleCreate": {
-        "properties": {
-          "name": { "type": "string", "title": "Name" },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
+          "count": {
+            "type": "integer",
+            "title": "Count"
           }
         },
         "type": "object",
-        "required": ["name"],
-        "title": "RoleCreate"
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PermissionsPublic"
       },
-      "RolePublic": {
+      "ProfileAuditPublic": {
         "properties": {
-          "name": { "type": "string", "title": "Name" },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
-          },
-          "id": { "type": "string", "format": "uuid", "title": "Id" },
           "created_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Created At"
           },
+          "created_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By"
+          },
           "updated_at": {
-            "type": "string",
-            "format": "date-time",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Updated At"
           }
         },
         "type": "object",
-        "required": ["name", "id", "created_at", "updated_at"],
-        "title": "RolePublic"
+        "title": "ProfileAuditPublic"
+      },
+      "ProfileDetailsPublic": {
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "middle_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Middle Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "date_of_birth": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Of Birth"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          }
+        },
+        "type": "object",
+        "required": [
+          "first_name",
+          "last_name"
+        ],
+        "title": "ProfileDetailsPublic"
+      },
+      "ProfileDetailsUpdate": {
+        "properties": {
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "middle_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Middle Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 150
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "date_of_birth": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Date Of Birth"
+          },
+          "nationality": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nationality"
+          },
+          "gender": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gender"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "ProfileDetailsUpdate"
+      },
+      "ProfileIdentityPublic": {
+        "properties": {
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "username",
+          "email",
+          "status"
+        ],
+        "title": "ProfileIdentityPublic"
+      },
+      "RoleCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "RoleCreate"
+      },
+      "RoleScope": {
+        "type": "string",
+        "enum": [
+          "SELF",
+          "DEPARTMENT",
+          "ALL"
+        ],
+        "title": "RoleScope"
       },
       "RolesPublic": {
         "properties": {
           "data": {
-            "items": { "$ref": "#/components/schemas/RolePublic" },
+            "items": {
+              "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+            },
             "type": "array",
             "title": "Data"
           },
-          "count": { "type": "integer", "title": "Count" }
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
         },
         "type": "object",
-        "required": ["data", "count"],
+        "required": [
+          "data",
+          "count"
+        ],
         "title": "RolesPublic"
+      },
+      "RosterPreferencesPublic": {
+        "properties": {
+          "default_shift_pattern": {
+            "$ref": "#/components/schemas/ShiftPattern",
+            "default": "ROTATION"
+          },
+          "preferred_shifts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Preferred Shifts"
+          },
+          "restricted_shifts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Restricted Shifts"
+          },
+          "max_night_shifts_per_month": {
+            "type": "integer",
+            "title": "Max Night Shifts Per Month",
+            "default": 6
+          }
+        },
+        "type": "object",
+        "title": "RosterPreferencesPublic"
+      },
+      "RosterPreferencesUpdate": {
+        "properties": {
+          "default_shift_pattern": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShiftPattern"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "preferred_shifts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preferred Shifts"
+          },
+          "restricted_shifts": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restricted Shifts"
+          },
+          "max_night_shifts_per_month": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Night Shifts Per Month"
+          }
+        },
+        "type": "object",
+        "title": "RosterPreferencesUpdate"
+      },
+      "ShiftPattern": {
+        "type": "string",
+        "enum": [
+          "ROTATION",
+          "FIXED",
+          "FLEX"
+        ],
+        "title": "ShiftPattern"
       },
       "Token": {
         "properties": {
-          "access_token": { "type": "string", "title": "Access Token" },
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
           "token_type": {
             "type": "string",
             "title": "Token Type",
@@ -1335,16 +2916,27 @@
           }
         },
         "type": "object",
-        "required": ["access_token"],
+        "required": [
+          "access_token"
+        ],
         "title": "Token"
       },
       "UpdatePassword": {
         "properties": {
-          "current_password": { "type": "string", "title": "Current Password" },
-          "new_password": { "type": "string", "title": "New Password" }
+          "current_password": {
+            "type": "string",
+            "title": "Current Password"
+          },
+          "new_password": {
+            "type": "string",
+            "title": "New Password"
+          }
         },
         "type": "object",
-        "required": ["current_password", "new_password"],
+        "required": [
+          "current_password",
+          "new_password"
+        ],
         "title": "UpdatePassword"
       },
       "UserCreate": {
@@ -1367,8 +2959,13 @@
           },
           "middle_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Middle Name"
           },
@@ -1404,6 +3001,102 @@
         ],
         "title": "UserCreate"
       },
+      "UserProfilePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "identity": {
+            "$ref": "#/components/schemas/ProfileIdentityPublic"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/ProfileDetailsPublic"
+          },
+          "address": {
+            "$ref": "#/components/schemas/AddressPublic"
+          },
+          "employment": {
+            "$ref": "#/components/schemas/EmploymentPublic"
+          },
+          "roles": {
+            "items": {
+              "$ref": "#/components/schemas/src__hr__schemas__RolePublic"
+            },
+            "type": "array",
+            "title": "Roles"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permissions"
+          },
+          "roster_preferences": {
+            "$ref": "#/components/schemas/RosterPreferencesPublic"
+          },
+          "leave": {
+            "$ref": "#/components/schemas/LeavePublic"
+          },
+          "approval_authority": {
+            "$ref": "#/components/schemas/ApprovalAuthorityPublic"
+          },
+          "audit": {
+            "$ref": "#/components/schemas/ProfileAuditPublic"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identity",
+          "profile",
+          "address",
+          "employment",
+          "roster_preferences",
+          "leave",
+          "approval_authority",
+          "audit"
+        ],
+        "title": "UserProfilePublic"
+      },
+      "UserProfileUpdateMe": {
+        "properties": {
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfileDetailsUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "address": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AddressUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "roster_preferences": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RosterPreferencesUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "UserProfileUpdateMe"
+      },
       "UserPublic": {
         "properties": {
           "email": {
@@ -1424,8 +3117,13 @@
           },
           "middle_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Middle Name"
           },
@@ -1444,7 +3142,11 @@
             "title": "Is Superuser",
             "default": false
           },
-          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -1455,7 +3157,10 @@
             "format": "date-time",
             "title": "Updated At"
           },
-          "full_name": { "type": "string", "title": "Full Name" }
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          }
         },
         "type": "object",
         "required": [
@@ -1472,7 +3177,11 @@
       },
       "UserRegister": {
         "properties": {
-          "email": { "type": "string", "format": "email", "title": "Email" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
           "username": {
             "type": "string",
             "maxLength": 255,
@@ -1492,7 +3201,14 @@
             "title": "First Name"
           },
           "middle_name": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Middle Name"
           },
           "last_name": {
@@ -1512,53 +3228,110 @@
         ],
         "title": "UserRegister"
       },
+      "UserStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE"
+        ],
+        "title": "UserStatus"
+      },
       "UserUpdate": {
         "properties": {
           "email": {
             "anyOf": [
-              { "type": "string", "format": "email" },
-              { "type": "null" }
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Email"
           },
           "username": {
             "anyOf": [
-              { "type": "string", "maxLength": 255, "minLength": 3 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Username"
           },
           "first_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100, "minLength": 1 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "First Name"
           },
           "middle_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Middle Name"
           },
           "last_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100, "minLength": 1 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Last Name"
           },
           "password": {
-            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Password"
           },
           "is_active": {
-            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Is Active"
           },
           "is_superuser": {
-            "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Is Superuser"
           }
         },
@@ -1569,36 +3342,64 @@
         "properties": {
           "email": {
             "anyOf": [
-              { "type": "string", "format": "email" },
-              { "type": "null" }
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Email"
           },
           "username": {
             "anyOf": [
-              { "type": "string", "maxLength": 255, "minLength": 3 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 3
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Username"
           },
           "first_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100, "minLength": 1 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "First Name"
           },
           "middle_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Middle Name"
           },
           "last_name": {
             "anyOf": [
-              { "type": "string", "maxLength": 100, "minLength": 1 },
-              { "type": "null" }
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
             ],
             "title": "Last Name"
           }
@@ -1609,36 +3410,119 @@
       "UsersPublic": {
         "properties": {
           "data": {
-            "items": { "$ref": "#/components/schemas/UserPublic" },
+            "items": {
+              "$ref": "#/components/schemas/UserPublic"
+            },
             "type": "array",
             "title": "Data"
           },
-          "count": { "type": "integer", "title": "Count" }
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
         },
         "type": "object",
-        "required": ["data", "count"],
+        "required": [
+          "data",
+          "count"
+        ],
         "title": "UsersPublic"
       },
       "ValidationError": {
         "properties": {
           "loc": {
-            "items": { "anyOf": [{ "type": "string" }, { "type": "integer" }] },
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
             "type": "array",
             "title": "Location"
           },
-          "msg": { "type": "string", "title": "Message" },
-          "type": { "type": "string", "title": "Error Type" }
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
         },
         "type": "object",
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError"
+      },
+      "src__auth__schemas__RolePublic": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RolePublic"
+      },
+      "src__hr__schemas__RolePublic": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/RoleScope"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "scope"
+        ],
+        "title": "RolePublic"
       }
     },
     "securitySchemes": {
       "OAuth2PasswordBearer": {
         "type": "oauth2",
         "flows": {
-          "password": { "scopes": {}, "tokenUrl": "/api/v1/login/access-token" }
+          "password": {
+            "scopes": {},
+            "tokenUrl": "/api/v1/login/access-token"
+          }
         }
       }
     }

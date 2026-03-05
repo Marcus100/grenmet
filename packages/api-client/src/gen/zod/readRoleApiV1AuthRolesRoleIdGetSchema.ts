@@ -4,7 +4,7 @@
  */
 
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { rolePublicSchema } from "./rolePublicSchema.js";
+import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 import { z } from "zod/v4";
 
 export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
@@ -15,7 +15,7 @@ export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
  * @description Successful Response
  */
 export const readRoleApiV1AuthRolesRoleIdGet200Schema = z.lazy(
-  () => rolePublicSchema
+  () => srcAuthSchemasRolePublicSchema
 );
 
 /**

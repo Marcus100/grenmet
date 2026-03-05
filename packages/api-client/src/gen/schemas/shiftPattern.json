@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["ROTATION", "FIXED", "FLEX"],
+  "title": "ShiftPattern",
+  "x-readme-ref-name": "ShiftPattern"
+}

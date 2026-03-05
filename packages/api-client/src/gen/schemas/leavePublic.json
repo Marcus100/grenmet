@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "balances": {
+      "additionalProperties": { "type": "integer" },
+      "type": "object",
+      "title": "Balances"
+    },
+    "carry_over": {
+      "additionalProperties": { "type": "integer" },
+      "type": "object",
+      "title": "Carry Over"
+    }
+  },
+  "type": "object",
+  "title": "LeavePublic",
+  "x-readme-ref-name": "LeavePublic"
+}

@@ -1,0 +1,290 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "identity": {
+      "properties": {
+        "username": { "type": "string", "title": "Username" },
+        "email": { "type": "string", "title": "Email" },
+        "phone": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Phone"
+        },
+        "avatar_url": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Avatar Url"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "INACTIVE"],
+          "title": "UserStatus",
+          "x-readme-ref-name": "UserStatus"
+        }
+      },
+      "type": "object",
+      "required": ["username", "email", "status"],
+      "title": "ProfileIdentityPublic",
+      "x-readme-ref-name": "ProfileIdentityPublic"
+    },
+    "profile": {
+      "properties": {
+        "first_name": { "type": "string", "title": "First Name" },
+        "middle_name": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Middle Name"
+        },
+        "last_name": { "type": "string", "title": "Last Name" },
+        "display_name": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Display Name"
+        },
+        "date_of_birth": {
+          "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+          "title": "Date Of Birth"
+        },
+        "nationality": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Nationality"
+        },
+        "gender": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Gender"
+        }
+      },
+      "type": "object",
+      "required": ["first_name", "last_name"],
+      "title": "ProfileDetailsPublic",
+      "x-readme-ref-name": "ProfileDetailsPublic"
+    },
+    "address": {
+      "properties": {
+        "line_1": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Line 1"
+        },
+        "line_2": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Line 2"
+        },
+        "city": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "City"
+        },
+        "parish": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Parish"
+        },
+        "postal_code": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Postal Code"
+        },
+        "country": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Country"
+        }
+      },
+      "type": "object",
+      "title": "AddressPublic",
+      "x-readme-ref-name": "AddressPublic"
+    },
+    "employment": {
+      "properties": {
+        "employee_number": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Employee Number"
+        },
+        "department": {
+          "anyOf": [
+            {
+              "properties": {
+                "id": { "type": "string", "title": "Id" },
+                "name": { "type": "string", "title": "Name" }
+              },
+              "type": "object",
+              "required": ["id", "name"],
+              "title": "DepartmentPublic",
+              "x-readme-ref-name": "DepartmentPublic"
+            },
+            { "type": "null" }
+          ]
+        },
+        "position": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Position"
+        },
+        "employment_type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+              "title": "EmploymentType",
+              "x-readme-ref-name": "EmploymentType"
+            },
+            { "type": "null" }
+          ]
+        },
+        "start_date": {
+          "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+          "title": "Start Date"
+        },
+        "supervisor_id": {
+          "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+          "title": "Supervisor Id"
+        },
+        "work_location": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Work Location"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
+              "title": "EmploymentStatus",
+              "x-readme-ref-name": "EmploymentStatus"
+            },
+            { "type": "null" }
+          ]
+        }
+      },
+      "type": "object",
+      "title": "EmploymentPublic",
+      "x-readme-ref-name": "EmploymentPublic"
+    },
+    "roles": {
+      "items": {
+        "properties": {
+          "name": { "type": "string", "title": "Name" },
+          "scope": {
+            "type": "string",
+            "enum": ["SELF", "DEPARTMENT", "ALL"],
+            "title": "RoleScope",
+            "x-readme-ref-name": "RoleScope"
+          }
+        },
+        "type": "object",
+        "required": ["name", "scope"],
+        "title": "RolePublic",
+        "x-readme-ref-name": "src__hr__schemas__RolePublic"
+      },
+      "type": "array",
+      "title": "Roles"
+    },
+    "permissions": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Permissions"
+    },
+    "roster_preferences": {
+      "properties": {
+        "default_shift_pattern": {
+          "default": "ROTATION",
+          "type": "string",
+          "enum": ["ROTATION", "FIXED", "FLEX"],
+          "title": "ShiftPattern",
+          "x-readme-ref-name": "ShiftPattern"
+        },
+        "preferred_shifts": {
+          "items": { "type": "string" },
+          "type": "array",
+          "title": "Preferred Shifts"
+        },
+        "restricted_shifts": {
+          "items": { "type": "string" },
+          "type": "array",
+          "title": "Restricted Shifts"
+        },
+        "max_night_shifts_per_month": {
+          "type": "integer",
+          "title": "Max Night Shifts Per Month",
+          "default": 6
+        }
+      },
+      "type": "object",
+      "title": "RosterPreferencesPublic",
+      "x-readme-ref-name": "RosterPreferencesPublic"
+    },
+    "leave": {
+      "properties": {
+        "balances": {
+          "additionalProperties": { "type": "integer" },
+          "type": "object",
+          "title": "Balances"
+        },
+        "carry_over": {
+          "additionalProperties": { "type": "integer" },
+          "type": "object",
+          "title": "Carry Over"
+        }
+      },
+      "type": "object",
+      "title": "LeavePublic",
+      "x-readme-ref-name": "LeavePublic"
+    },
+    "approval_authority": {
+      "properties": {
+        "can_approve_leave": {
+          "type": "boolean",
+          "title": "Can Approve Leave",
+          "default": false
+        },
+        "can_approve_shift_swap": {
+          "type": "boolean",
+          "title": "Can Approve Shift Swap",
+          "default": false
+        },
+        "can_approve_timesheets": {
+          "type": "boolean",
+          "title": "Can Approve Timesheets",
+          "default": false
+        },
+        "can_approve_absentee_reports": {
+          "type": "boolean",
+          "title": "Can Approve Absentee Reports",
+          "default": false
+        }
+      },
+      "type": "object",
+      "title": "ApprovalAuthorityPublic",
+      "x-readme-ref-name": "ApprovalAuthorityPublic"
+    },
+    "audit": {
+      "properties": {
+        "created_at": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ],
+          "title": "Created At"
+        },
+        "created_by": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Created By"
+        },
+        "updated_at": {
+          "anyOf": [
+            { "type": "string", "format": "date-time" },
+            { "type": "null" }
+          ],
+          "title": "Updated At"
+        }
+      },
+      "type": "object",
+      "title": "ProfileAuditPublic",
+      "x-readme-ref-name": "ProfileAuditPublic"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "identity",
+    "profile",
+    "address",
+    "employment",
+    "roster_preferences",
+    "leave",
+    "approval_authority",
+    "audit"
+  ],
+  "title": "UserProfilePublic",
+  "x-readme-ref-name": "UserProfilePublic"
+}

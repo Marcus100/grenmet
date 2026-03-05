@@ -6,7 +6,7 @@
 /**
  * RolePublic
  */
-export type RolePublic = {
+export type SrcAuthSchemasRolePublic = {
   /**
    * @type string
    */

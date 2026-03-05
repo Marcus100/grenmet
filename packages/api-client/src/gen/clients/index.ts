@@ -9,6 +9,7 @@ export { deleteUserMeApiV1AuthUsersMeDelete } from "./deleteUserMeApiV1AuthUsers
 export { getItemImagesApiV1ItemsItemIdImagesGet } from "./getItemImagesApiV1ItemsItemIdImagesGet.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./healthCheckApiV1UtilsHealthCheckGet.js";
 export { loginAccessTokenApiV1LoginAccessTokenPost } from "./loginAccessTokenApiV1LoginAccessTokenPost.js";
+export { readHrProfileMeApiV1HrProfileMeGet } from "./readHrProfileMeApiV1HrProfileMeGet.js";
 export { readItemApiV1ItemsIdGet } from "./readItemApiV1ItemsIdGet.js";
 export { readItemsApiV1ItemsGet } from "./readItemsApiV1ItemsGet.js";
 export { readPermissionApiV1AuthPermissionsPermissionIdGet } from "./readPermissionApiV1AuthPermissionsPermissionIdGet.js";
@@ -24,6 +25,8 @@ export { registerUserApiV1AuthUsersSignupPost } from "./registerUserApiV1AuthUse
 export { resetPasswordApiV1ResetPasswordPost } from "./resetPasswordApiV1ResetPasswordPost.js";
 export { testEmailApiV1UtilsTestEmailPost } from "./testEmailApiV1UtilsTestEmailPost.js";
 export { testTokenApiV1LoginTestTokenPost } from "./testTokenApiV1LoginTestTokenPost.js";
+export { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
+export { updateHrProfileMeApiV1HrProfileMePatch } from "./updateHrProfileMeApiV1HrProfileMePatch.js";
 export { updateItemApiV1ItemsIdPut } from "./updateItemApiV1ItemsIdPut.js";
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./updateUserApiV1AuthUsersUserIdPatch.js";

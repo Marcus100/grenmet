@@ -5,7 +5,7 @@ from pydantic import EmailStr, Field
 
 from src.models import BaseModel
 
-from .models import UserBase
+from .models import RoleAssignmentScope, UserBase
 
 
 # Properties to receive via API on creation
@@ -111,6 +111,7 @@ class RolesPublic(BaseModel):
 
 # Permission schemas
 class PermissionBase(BaseModel):
+    key: str | None = None
     action: str
     entity: str
     access: str
@@ -118,10 +119,11 @@ class PermissionBase(BaseModel):
 
 
 class PermissionCreate(PermissionBase):
-    pass
+    key: str | None = None
 
 
 class PermissionUpdate(BaseModel):
+    key: str | None = None
     action: str | None = None
     entity: str | None = None
     access: str | None = None
@@ -159,3 +161,33 @@ class SessionPublic(SessionBase):
 class NewPassword(BaseModel):
     token: str
     new_password: str
+
+
+class UserRoleAssignmentBase(BaseModel):
+    user_id: uuid.UUID
+    role_id: uuid.UUID
+    scope: RoleAssignmentScope = RoleAssignmentScope.SELF
+    department_id: str | None = None
+    effective_to: datetime | None = None
+
+
+class UserRoleAssignmentCreate(UserRoleAssignmentBase):
+    pass
+
+
+class UserRoleAssignmentUpdate(BaseModel):
+    scope: RoleAssignmentScope | None = None
+    department_id: str | None = None
+    effective_to: datetime | None = None
+
+
+class UserRoleAssignmentPublic(UserRoleAssignmentBase):
+    id: uuid.UUID
+    effective_from: datetime
+    created_at: datetime
+    updated_at: datetime
+
+
+class UserRoleAssignmentsPublic(BaseModel):
+    data: list[UserRoleAssignmentPublic]
+    count: int

@@ -3,11 +3,14 @@ from typing import Any
 
 from sqlmodel import Session, select
 
-from src.auth.models import Permission, Role, User
+from src.auth.models import Permission, Role, User, UserRoleAssignment
 from src.auth.schemas import (
     PermissionCreate,
+    PermissionUpdate,
     RoleCreate,
     UserCreate,
+    UserRoleAssignmentCreate,
+    UserRoleAssignmentUpdate,
     UserUpdate,
 )
 from src.auth.utils import create_access_token, get_password_hash, verify_password
@@ -83,7 +86,32 @@ def create_permission(
     *, session: Session, permission_in: PermissionCreate
 ) -> Permission:
     """Create a new permission."""
-    db_permission = Permission.model_validate(permission_in)
+    permission_data = permission_in.model_dump()
+    if not permission_data.get("key"):
+        permission_data["key"] = (
+            f"{permission_in.entity}.{permission_in.action}".strip().lower()
+        )
+    db_permission = Permission.model_validate(permission_data)
+    session.add(db_permission)
+    session.commit()
+    session.refresh(db_permission)
+    return db_permission
+
+
+def update_permission(
+    *, session: Session, db_permission: Permission, permission_in: PermissionUpdate
+) -> Permission:
+    """Update a permission."""
+    permission_data = permission_in.model_dump(exclude_unset=True)
+    if (
+        "key" not in permission_data
+        and ("entity" in permission_data or "action" in permission_data)
+    ):
+        permission_data["key"] = (
+            f"{permission_data.get('entity', db_permission.entity)}."
+            f"{permission_data.get('action', db_permission.action)}"
+        ).lower()
+    db_permission.sqlmodel_update(permission_data)
     session.add(db_permission)
     session.commit()
     session.refresh(db_permission)
@@ -104,6 +132,46 @@ def get_permissions(
     return list(session.exec(statement).all())
 
 
+def create_user_role_assignment(
+    *, session: Session, assignment_in: UserRoleAssignmentCreate
+) -> UserRoleAssignment:
+    db_assignment = UserRoleAssignment.model_validate(assignment_in)
+    session.add(db_assignment)
+    session.commit()
+    session.refresh(db_assignment)
+    return db_assignment
+
+
+def update_user_role_assignment(
+    *,
+    session: Session,
+    db_assignment: UserRoleAssignment,
+    assignment_in: UserRoleAssignmentUpdate,
+) -> UserRoleAssignment:
+    assignment_data = assignment_in.model_dump(exclude_unset=True)
+    db_assignment.sqlmodel_update(assignment_data)
+    session.add(db_assignment)
+    session.commit()
+    session.refresh(db_assignment)
+    return db_assignment
+
+
+def get_user_role_assignment(
+    *, session: Session, assignment_id: uuid.UUID
+) -> UserRoleAssignment | None:
+    statement = select(UserRoleAssignment).where(UserRoleAssignment.id == assignment_id)
+    return session.exec(statement).first()
+
+
+def get_user_role_assignments(
+    *, session: Session, user_id: uuid.UUID | None = None
+) -> list[UserRoleAssignment]:
+    statement = select(UserRoleAssignment)
+    if user_id:
+        statement = statement.where(UserRoleAssignment.user_id == user_id)
+    return list(session.exec(statement).all())
+
+
 __all__ = [
     "create_user",
     "update_user",
@@ -116,8 +184,14 @@ __all__ = [
     "get_role",
     "get_roles",
     "create_permission",
+    "update_permission",
     "get_permission",
     "get_permissions",
+    "create_user_role_assignment",
+    "update_user_role_assignment",
+    "get_user_role_assignment",
+    "get_user_role_assignments",
     "Role",
     "Permission",
+    "UserRoleAssignment",
 ]

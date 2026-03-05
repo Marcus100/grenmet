@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
 from pydantic import EmailStr
@@ -7,6 +8,12 @@ from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
     from src.items.models import Item
+
+
+class RoleAssignmentScope(str, Enum):
+    SELF = "SELF"
+    DEPARTMENT = "DEPARTMENT"
+    ALL = "ALL"
 
 
 # Shared properties
@@ -86,6 +93,7 @@ class Role(RoleBase, table=True):
 
 # Permission model
 class PermissionBase(SQLModel):
+    key: str = Field(unique=True, index=True, max_length=120)
     action: str = Field(max_length=50)  # e.g. create, read, update, delete
     entity: str = Field(max_length=50)  # e.g. item, user, etc.
     access: str = Field(max_length=50)  # e.g. own or any
@@ -135,3 +143,17 @@ class RolePermissionLink(SQLModel, table=True):
 
     role_id: uuid.UUID = Field(foreign_key="role.id", primary_key=True)
     permission_id: uuid.UUID = Field(foreign_key="permission.id", primary_key=True)
+
+
+class UserRoleAssignment(SQLModel, table=True):
+    __tablename__ = "user_role_assignment"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
+    scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
+    department_id: str | None = Field(default=None, max_length=100)
+    effective_from: datetime = Field(default_factory=datetime.utcnow)
+    effective_to: datetime | None = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)

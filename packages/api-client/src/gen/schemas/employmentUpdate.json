@@ -1,0 +1,53 @@
+{
+  "properties": {
+    "employee_number": {
+      "anyOf": [{ "type": "string", "maxLength": 50 }, { "type": "null" }],
+      "title": "Employee Number"
+    },
+    "department_id": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Department Id"
+    },
+    "position": {
+      "anyOf": [{ "type": "string", "maxLength": 150 }, { "type": "null" }],
+      "title": "Position"
+    },
+    "employment_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+          "title": "EmploymentType",
+          "x-readme-ref-name": "EmploymentType"
+        },
+        { "type": "null" }
+      ]
+    },
+    "start_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Start Date"
+    },
+    "supervisor_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Supervisor Id"
+    },
+    "work_location": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Work Location"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
+          "title": "EmploymentStatus",
+          "x-readme-ref-name": "EmploymentStatus"
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "type": "object",
+  "title": "EmploymentUpdate",
+  "x-readme-ref-name": "EmploymentUpdate"
+}

@@ -1,0 +1,191 @@
+{
+  "properties": {
+    "profile": {
+      "anyOf": [
+        {
+          "properties": {
+            "first_name": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100, "minLength": 1 },
+                { "type": "null" }
+              ],
+              "title": "First Name"
+            },
+            "middle_name": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "Middle Name"
+            },
+            "last_name": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100, "minLength": 1 },
+                { "type": "null" }
+              ],
+              "title": "Last Name"
+            },
+            "display_name": {
+              "anyOf": [
+                { "type": "string", "maxLength": 150 },
+                { "type": "null" }
+              ],
+              "title": "Display Name"
+            },
+            "date_of_birth": {
+              "anyOf": [
+                { "type": "string", "format": "date" },
+                { "type": "null" }
+              ],
+              "title": "Date Of Birth"
+            },
+            "nationality": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "Nationality"
+            },
+            "gender": {
+              "anyOf": [
+                { "type": "string", "maxLength": 50 },
+                { "type": "null" }
+              ],
+              "title": "Gender"
+            },
+            "phone": {
+              "anyOf": [
+                { "type": "string", "maxLength": 30 },
+                { "type": "null" }
+              ],
+              "title": "Phone"
+            },
+            "avatar_url": {
+              "anyOf": [
+                { "type": "string", "maxLength": 500 },
+                { "type": "null" }
+              ],
+              "title": "Avatar Url"
+            },
+            "status": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["ACTIVE", "INACTIVE"],
+                  "title": "UserStatus",
+                  "x-readme-ref-name": "UserStatus"
+                },
+                { "type": "null" }
+              ]
+            }
+          },
+          "type": "object",
+          "title": "ProfileDetailsUpdate",
+          "x-readme-ref-name": "ProfileDetailsUpdate"
+        },
+        { "type": "null" }
+      ]
+    },
+    "address": {
+      "anyOf": [
+        {
+          "properties": {
+            "line_1": {
+              "anyOf": [
+                { "type": "string", "maxLength": 255 },
+                { "type": "null" }
+              ],
+              "title": "Line 1"
+            },
+            "line_2": {
+              "anyOf": [
+                { "type": "string", "maxLength": 255 },
+                { "type": "null" }
+              ],
+              "title": "Line 2"
+            },
+            "city": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "City"
+            },
+            "parish": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "Parish"
+            },
+            "postal_code": {
+              "anyOf": [
+                { "type": "string", "maxLength": 20 },
+                { "type": "null" }
+              ],
+              "title": "Postal Code"
+            },
+            "country": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "Country"
+            }
+          },
+          "type": "object",
+          "title": "AddressUpdate",
+          "x-readme-ref-name": "AddressUpdate"
+        },
+        { "type": "null" }
+      ]
+    },
+    "roster_preferences": {
+      "anyOf": [
+        {
+          "properties": {
+            "default_shift_pattern": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["ROTATION", "FIXED", "FLEX"],
+                  "title": "ShiftPattern",
+                  "x-readme-ref-name": "ShiftPattern"
+                },
+                { "type": "null" }
+              ]
+            },
+            "preferred_shifts": {
+              "anyOf": [
+                { "items": { "type": "string" }, "type": "array" },
+                { "type": "null" }
+              ],
+              "title": "Preferred Shifts"
+            },
+            "restricted_shifts": {
+              "anyOf": [
+                { "items": { "type": "string" }, "type": "array" },
+                { "type": "null" }
+              ],
+              "title": "Restricted Shifts"
+            },
+            "max_night_shifts_per_month": {
+              "anyOf": [
+                { "type": "integer", "maximum": 31, "minimum": 0 },
+                { "type": "null" }
+              ],
+              "title": "Max Night Shifts Per Month"
+            }
+          },
+          "type": "object",
+          "title": "RosterPreferencesUpdate",
+          "x-readme-ref-name": "RosterPreferencesUpdate"
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "type": "object",
+  "title": "UserProfileUpdateMe",
+  "x-readme-ref-name": "UserProfileUpdateMe"
+}

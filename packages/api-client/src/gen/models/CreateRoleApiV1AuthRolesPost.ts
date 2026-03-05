@@ -5,13 +5,13 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RoleCreate } from "./RoleCreate.js";
-import type { RolePublic } from "./RolePublic.js";
+import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
 /**
  * RolePublic
  * @description Successful Response
  */
-export type CreateRoleApiV1AuthRolesPost200 = RolePublic;
+export type CreateRoleApiV1AuthRolesPost200 = SrcAuthSchemasRolePublic;
 
 /**
  * HTTPValidationError

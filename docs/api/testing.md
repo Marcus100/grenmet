@@ -8,6 +8,8 @@ Comprehensive testing strategies, pre-deployment checks, and quality assurance f
 
 ### Run All Pre-Deployment Checks
 
+Run from the FastAPI app directory (`apps/api/fastapi`):
+
 ```bash
 cd apps/api/fastapi
 
