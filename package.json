@@ -2,7 +2,7 @@
   "name": "grenmet-monorepo",
   "version": "0.2.0",
   "private": true,
-  "packageManager": "pnpm@10.30.1",
+  "packageManager": "pnpm@10.30.3",
   "engines": {
     "node": ">=22",
     "pnpm": ">=10"
@@ -40,7 +40,8 @@
         "@react-jvectormap/core>react-dom": "^19",
         "@react-jvectormap/world>react": "^19",
         "@react-jvectormap/world>react-dom": "^19",
-        "@tanstack/zod-form-adapter>zod": "^4"
+        "@tanstack/zod-form-adapter>zod": "^4",
+        "@kubb/react-fabric": "0.13.1"
       }
     },
     "onlyBuiltDependencies": [

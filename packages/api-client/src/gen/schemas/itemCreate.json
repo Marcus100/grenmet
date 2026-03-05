@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "title": { "type": "string", "title": "Title" },
+    "content": { "type": "string", "title": "Content", "default": "" },
+    "description": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Description"
+    }
+  },
+  "type": "object",
+  "required": ["title"],
+  "title": "ItemCreate",
+  "x-readme-ref-name": "ItemCreate"
+}

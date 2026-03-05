@@ -12,18 +12,31 @@
     }
   },
   "scripts": {
-    "generate": "openapi-ts",
+    "generate": "kubb generate",
     "build": "tsc",
     "type-check": "tsc --noEmit"
   },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.0.0",
+    "typescript": "^5.0.0",
+    "zod": "^4"
+  },
   "devDependencies": {
+    "@tanstack/react-query": "catalog:",
     "@grenmet/tsconfig": "workspace:*",
-    "@hey-api/openapi-ts": "^0.90.10",
+    "@kubb/cli": "^4.29.1",
+    "@kubb/core": "^4.29.1",
+    "@kubb/plugin-client": "^4.29.1",
+    "@kubb/plugin-oas": "^4.29.1",
+    "@kubb/plugin-react-query": "^4.29.1",
+    "@kubb/plugin-ts": "^4.29.1",
+    "@kubb/plugin-zod": "^4.29.1",
+    "@kubb/react-fabric": "0.13.0",
     "@types/node": "catalog:",
     "typescript": "catalog:"
   },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "private": true
+  "private": true,
+  "dependencies": {
+    "zod": "^4.3.5"
+  }
 }

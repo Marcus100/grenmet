@@ -1,0 +1,246 @@
+manifest_version: "1.0"
+
+# ----------------------------
+# 1) Client options (repo-supported)
+# ----------------------------
+ecmwf_opendata:
+  client:
+    # repo-supported: server name or fully qualified URL
+    # values: ecmwf | aws | google | azure | "https://..."
+    source: "aws" # choose cloud replica for reliability in continuous ops :contentReference[oaicite:5]{index=5}
+
+    # repo-supported: ifs | aifs-single | aifs-ens :contentReference[oaicite:6]{index=6}
+    model: "ifs"
+
+    # repo-supported: only 0p25 currently available :contentReference[oaicite:7]{index=7}
+    resol: "0p25"
+
+    # repo-supported: keep output fields ordered like your request (avoid for big pulls) :contentReference[oaicite:8]{index=8}
+    preserve_request_order: false
+
+    # repo-supported: infer stream from type+time where possible :contentReference[oaicite:9]{index=9}
+    infer_stream_keyword: true
+
+# ----------------------------
+# 2) Defaults (runner-level convenience)
+# ----------------------------
+defaults:
+  # default run cycles you want to track
+  cycles_utc: [0, 6, 12, 18]
+
+  # path layout template variables:
+  # {model} {stream} {type} {run_yyyymmdd} {run_hh} {job} {step}
+  storage:
+    root_dir: "./data/ecmwf"
+    grib_dir_template: "{root_dir}/{model}/{stream}/{type}/{run_yyyymmdd}/{run_hh}/{job}"
+    file_template: "{job}__step{step:03d}__{param_tag}__{lev_tag}.grib2"
+    metadata_sidecar: "run.json" # per-run or per-file metadata marker
+
+  # if you don't specify date/time, the library can pick latest matching run.
+  # for continuous ops, you usually want: "latest -> then retrieve deterministically"
+  run_selection:
+    strategy: "latest_then_retrieve" # runner policy (recommended)
+    # alternative: "implicit_latest" (omit date/time in retrieve) :contentReference[oaicite:10]{index=10}
+
+# ----------------------------
+# 3) Continuous operation settings (runner-level)
+# ----------------------------
+runner:
+  poll:
+    enabled: true
+    interval_seconds: 900 # check every 15 min
+    jitter_seconds: 60 # avoid thundering herd
+    lookback_days: 2 # if missed runs, catch up
+
+  retry:
+    max_attempts: 5
+    backoff_seconds: [10, 30, 90, 300, 900] # exponential-ish
+
+  integrity:
+    # a “done marker” prevents re-downloading the same file on restart
+    done_marker_suffix: ".done"
+    # store request + result metadata; useful for auditing and debugging
+    write_request_metadata: true
+
+  download_strategy:
+    # safest approach: partition by step (small, restartable files)
+    partition: "per_step"
+    # alternatives: "per_param", "per_param_per_step", "single_big_file" (risky)
+
+  logging:
+    level: "INFO"
+    log_dir: "./logs/ecmwf"
+    structured_json: true
+
+# ----------------------------
+# 4) Jobs (each job becomes a repeatable download plan)
+# ----------------------------
+jobs:
+  # ------------------------
+  # Job A: HRES surface core (public + aviation baseline)
+  # ------------------------
+  - name: "hres_sfc_core"
+    description: "HRES single-level fields (surface). One GRIB per step."
+
+    # repo-supported stream values :contentReference[oaicite:11]{index=11}
+    # For HRES atmosphere:
+    # 00/12 -> oper, 06/18 -> scda (explicit mapping avoids ambiguity)
+    stream_by_cycle:
+      "0": "oper"
+      "12": "oper"
+      "6": "scda"
+      "18": "scda"
+
+    request:
+      # repo-supported: HRES uses type=fc :contentReference[oaicite:12]{index=12}
+      type: "fc"
+
+      # runner chooses cycle and passes as `time`
+      time: "{cycle}"
+
+      # repo-supported slicing keywords (optional but you should ALWAYS set them)
+      param:
+        - "2t" # 2m temperature
+        - "msl" # mean sea-level pressure
+        - "10u"
+        - "10v"
+        - "tp" # total precipitation (often used for rainfall products)
+
+      # IMPORTANT: levtype omitted for surface/single-level fields
+      levtype: null
+      levelist: null
+
+      # repo-supported: step can be one value; runner expands list into per-step calls :contentReference[oaicite:13]{index=13}
+      steps:
+        # “ops sensible” subset; expand later
+        - 0
+        - 3
+        - 6
+        - 9
+        - 12
+        - 24
+        - 36
+        - 48
+        - 72
+        - 96
+        - 120
+        - 144
+        - 168
+        - 192
+        - 216
+        - 240
+
+    output:
+      param_tag: "2t-msl-10u-10v-tp"
+      lev_tag: "sfc"
+
+  # ------------------------
+  # Job B: HRES pressure-level synoptic bundle (IBF / aviation / dynamics)
+  # ------------------------
+  - name: "hres_pl_synoptic"
+    description: "HRES pressure levels for dynamics/thermo. One GRIB per step."
+
+    stream_by_cycle:
+      "0": "oper"
+      "12": "oper"
+      "6": "scda"
+      "18": "scda"
+
+    request:
+      type: "fc"
+      time: "{cycle}"
+
+      # common PL variables (adjust as needed)
+      param: ["t", "u", "v", "q", "z"]
+
+      # repo-supported: levtype + levelist :contentReference[oaicite:14]{index=14}
+      levtype: "pl"
+      levelist: [1000, 925, 850, 700, 500, 300, 200]
+
+      steps: [0, 6, 12, 24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
+
+    output:
+      param_tag: "t-u-v-q-z"
+      lev_tag: "pl_1000-925-850-700-500-300-200"
+
+  # ------------------------
+  # Job C: ENS mean+spread (fast products without huge member volume)
+  # ------------------------
+  - name: "ens_mean_spread_sfc"
+    description: "ENS mean (em) + spread (es) at surface — cheap, stable products."
+
+    # ENS atmos stream :contentReference[oaicite:15]{index=15}
+    stream_by_cycle:
+      "0": "enfo"
+      "12": "enfo"
+      "6": "enfo"
+      "18": "enfo"
+
+    request:
+      # ENS types include em/es :contentReference[oaicite:16]{index=16}
+      types: ["em", "es"]
+      time: "{cycle}"
+
+      param: ["msl", "2t", "tp"]
+      levtype: null
+      levelist: null
+
+      steps: [0, 6, 12, 24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
+
+    output:
+      param_tag: "msl-2t-tp"
+      lev_tag: "sfc"
+
+  # ------------------------
+  # Job D: ENS members (heavy; only if you truly need it)
+  # ------------------------
+  - name: "ens_members_msl"
+    description: "ENS perturbed members (pf). VERY large if you pull all params/steps."
+
+    stream_by_cycle:
+      "0": "enfo"
+      "12": "enfo"
+      "6": "enfo"
+      "18": "enfo"
+
+    request:
+      type: "pf" # perturbed forecast :contentReference[oaicite:17]{index=17}
+      time: "{cycle}"
+      param: ["msl"]
+      levtype: null
+      levelist: null
+
+      # repo-supported: number 1..50; omit to download all members :contentReference[oaicite:18]{index=18}
+      number: [1, 2, 3, 4, 5, 10, 20, 30, 40, 50]
+
+      steps: [24, 48, 72, 96, 120, 144, 168, 192, 216, 240]
+
+    output:
+      param_tag: "msl"
+      lev_tag: "sfc_members_subset"
+
+  # ------------------------
+  # Job E: AIFS-ENS (AI ensemble) example
+  # ------------------------
+  - name: "aifs_ens_msl"
+    description: "AIFS-ENS mean sea-level pressure; model switches to aifs-ens."
+
+    override_client:
+      model: "aifs-ens" # repo-supported model option :contentReference[oaicite:19]{index=19}
+
+    stream_by_cycle:
+      "0": "enfo"
+      "12": "enfo"
+      "6": "enfo"
+      "18": "enfo"
+
+    request:
+      type: "pf"
+      time: "{cycle}"
+      param: ["msl"]
+      steps: [0, 6, 12, 24, 48, 72, 96, 120]
+      number: [1, 2, 3, 4, 5]
+
+    output:
+      param_tag: "msl"
+      lev_tag: "aifs_ens_members_subset"

@@ -63,11 +63,12 @@
     "spin-delay": "^2.0.1",
     "swiper": "^11.2.10",
     "tailwind-merge": "^2.6.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.5",
+    "@grenmet/api-client": "workspace:*",
+    "@grenmet/auth-client": "workspace:*"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.2.0",
-    "@grenmet/api-client": "workspace:*",
     "@grenmet/tsconfig": "workspace:*",
     "@playwright/test": "^1.57.0",
     "@svgr/webpack": "^8.1.0",
