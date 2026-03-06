@@ -2,16 +2,19 @@
 
 import uuid
 
-from fastapi.testclient import TestClient
+import httpx
 
 from src.config import settings
 
 
-def test_get_permissions(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+async def test_get_permissions(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
     """Test getting all permissions."""
-    response = client.get(
+    response = await async_client.get(
         f"{settings.API_V1_STR}/auth/permissions/",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
     )
     assert response.status_code == 200
     content = response.json()
@@ -21,17 +24,20 @@ def test_get_permissions(client: TestClient, superuser_token_headers: dict[str, 
     assert isinstance(content["data"], list)
 
 
-def test_create_permission(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+async def test_create_permission(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
     """Test creating a new permission."""
     data = {
         "action": "read",
         "entity": "user",
         "access": "own",
-        "description": "Read own user data"
+        "description": "Read own user data",
     }
-    response = client.post(
+    response = await async_client.post(
         f"{settings.API_V1_STR}/auth/permissions/",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
         json=data,
     )
     assert response.status_code == 200
@@ -41,40 +47,42 @@ def test_create_permission(client: TestClient, superuser_token_headers: dict[str
     assert content["access"] == "own"
 
 
-def test_get_permission(client: TestClient, superuser_token_headers: dict[str, str]) -> None:
+async def test_get_permission(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
     """Test getting a specific permission."""
-    # First create a permission
     data = {
         "action": "read",
         "entity": "user",
         "access": "own",
-        "description": "Read own user data"
+        "description": "Read own user data",
     }
-    create_response = client.post(
+    create_response = await async_client.post(
         f"{settings.API_V1_STR}/auth/permissions/",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
         json=data,
     )
     permission_id = create_response.json()["id"]
 
-    # Then get it
-    response = client.get(
+    response = await async_client.get(
         f"{settings.API_V1_STR}/auth/permissions/{permission_id}",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
     )
     assert response.status_code == 200
     content = response.json()
     assert content["action"] == "read"
 
 
-def test_get_permission_not_found(
-    client: TestClient, superuser_token_headers: dict[str, str]
+async def test_get_permission_not_found(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
 ) -> None:
     """Test 404 detail shape for unknown permission ID."""
     missing_id = uuid.uuid4()
-    response = client.get(
+    response = await async_client.get(
         f"{settings.API_V1_STR}/auth/permissions/{missing_id}",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
     )
     assert response.status_code == 404
     assert response.json()["detail"] == "Permission not found"

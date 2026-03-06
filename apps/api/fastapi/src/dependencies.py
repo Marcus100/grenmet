@@ -7,19 +7,20 @@ This module provides reusable dependencies following FastAPI best practices:
 3. Type annotations make dependencies clear and reusable
 
 Dependency Chain Example:
-    SessionDep -> get_db() -> yields database session
+    SessionDep -> get_db() -> yields async database session
     TokenDep -> reusable_oauth2 -> extracts JWT token from header
     CurrentUser -> get_current_user(SessionDep, TokenDep) -> validates and returns user
     SettingsDep -> get_settings() -> returns app settings
 
 Usage Example:
     @router.get("/me")
-    def get_me(current_user: CurrentUser):
+    async def get_me(current_user: CurrentUser):
         # current_user is automatically injected and validated
         return current_user
 """
 
-from collections.abc import Generator
+import uuid
+from collections.abc import AsyncGenerator
 from typing import Annotated
 
 import jwt
@@ -27,7 +28,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlmodel import select
 
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
@@ -35,40 +38,36 @@ from src.auth.constants import (
     ERROR_INVALID_CREDENTIALS,
     ERROR_USER_NOT_FOUND,
 )
-from src.auth.models import User
+from src.auth.config import auth_settings
+from src.auth.models import Role, User
 from src.auth.utils import ALGORITHM
-from src.config import Settings, get_settings, settings
-from src.database import engine
+from src.config import Settings, get_settings
+from src.database import async_session_factory
 from src.models import TokenPayload
 
 # OAuth2 scheme for token extraction
 # This extracts the Bearer token from the Authorization header
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{auth_settings.API_V1_STR}/login/access-token"
 )
 
 
-def get_db() -> Generator[Session, None, None]:
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
-    Database session dependency.
+    Async database session dependency.
 
-    Yields a SQLModel session that is automatically closed after the request.
-    This ensures proper connection management and prevents connection leaks.
-
-    The session is cached per request, so multiple dependencies can use
-    the same session without creating multiple connections.
+    Yields an AsyncSession for the request path.
     """
-    with Session(engine) as session:
+    async with async_session_factory() as session:
         yield session
 
 
 # Typed dependency annotations
-# These make dependencies easy to use with type hints
-SessionDep = Annotated[Session, Depends(get_db)]
+SessionDep = Annotated[AsyncSession, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
-def get_current_user(session: SessionDep, token: TokenDep) -> User:
+async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     """
     Get current authenticated user dependency.
 
@@ -82,14 +81,34 @@ def get_current_user(session: SessionDep, token: TokenDep) -> User:
     This dependency is cached, so you can use it multiple times in
     chained dependencies without additional database queries."""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=ERROR_INVALID_CREDENTIALS,
         )
-    user = session.get(User, token_data.sub)
+    if not token_data.sub:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_INVALID_CREDENTIALS,
+        )
+    try:
+        user_id = uuid.UUID(token_data.sub)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_INVALID_CREDENTIALS,
+        )
+    stmt = (
+        select(User)
+        .where(User.id == user_id)
+        .options(
+            selectinload(User.roles).selectinload(Role.permissions),
+        )
+    )
+    result = await session.execute(stmt)
+    user = result.scalars().unique().first()
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if not user.is_active:
@@ -103,7 +122,7 @@ CurrentUser = Annotated[User, Depends(get_current_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
-def get_current_active_superuser(current_user: CurrentUser) -> User:
+async def get_current_active_superuser(current_user: CurrentUser) -> User:
     """Shared superuser dependency (canonical in src.dependencies)."""
     if not current_user.is_superuser:
         raise HTTPException(
@@ -111,3 +130,5 @@ def get_current_active_superuser(current_user: CurrentUser) -> User:
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
     return current_user
+
+

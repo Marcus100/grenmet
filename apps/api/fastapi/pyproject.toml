@@ -15,7 +15,9 @@ dependencies = [
     "alembic<2.0.0,>=1.12.1",
     "httpx<1.0.0,>=0.25.1",
     "psycopg[binary]<4.0.0,>=3.1.13",
+    "asyncpg>=0.29.0",
     "sqlmodel<1.0.0,>=0.0.21",
+    "greenlet>=3.0.0",
     # Pin bcrypt until passlib supports the latest
     "bcrypt==4.3.0",
     "pydantic-settings<3.0.0,>=2.2.1",
@@ -23,6 +25,7 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "pyyaml>=6.0.3",
     "scalar-fastapi>=1.4.4",
+    "slowapi>=0.1.9",
 ]
 
 [dependency-groups]

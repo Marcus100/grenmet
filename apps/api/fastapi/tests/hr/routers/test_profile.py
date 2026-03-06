@@ -1,21 +1,23 @@
-from fastapi.testclient import TestClient
-from sqlmodel import Session, select
+import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.models import Role
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.config import settings
 from src.hr.models import Department, EmploymentRecord
-from tests.utils.user import user_authentication_headers
+from tests.utils.user import user_authentication_headers_async
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_read_hr_profile_me(
-    client: TestClient, normal_user_token_headers: dict[str, str]
+async def test_read_hr_profile_me(
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
 ) -> None:
-    response = client.get(
+    response = await async_client.get(
         f"{settings.API_V1_STR}/hr/profile/me",
-        headers=normal_user_token_headers,
+        headers=normal_user_token_headers_async,
     )
 
     assert response.status_code == 200
@@ -26,17 +28,17 @@ def test_read_hr_profile_me(
     assert "employment" in payload
 
 
-def test_update_hr_profile_me(
-    client: TestClient, normal_user_token_headers: dict[str, str]
+async def test_update_hr_profile_me(
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
 ) -> None:
-    response = client.patch(
+    response = await async_client.patch(
         f"{settings.API_V1_STR}/hr/profile/me",
-        headers=normal_user_token_headers,
+        headers=normal_user_token_headers_async,
         json={
             "profile": {
                 "first_name": "Updated",
                 "last_name": "Person",
-                "display_name": "Updated Person",
                 "nationality": "Grenadian",
             },
             "address": {
@@ -54,11 +56,11 @@ def test_update_hr_profile_me(
     assert payload["address"]["city"] == "St. George's"
 
 
-def test_supervisor_cannot_update_other_department(
-    client: TestClient, db: Session
+async def test_supervisor_cannot_update_other_department(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
-    supervisor = create_user(
-        session=db,
+    supervisor = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"sup_{random_lower_string()}",
@@ -67,8 +69,8 @@ def test_supervisor_cannot_update_other_department(
             last_name="Supervisor",
         ),
     )
-    target_user = create_user(
-        session=db,
+    target_user = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"emp_{random_lower_string()}",
@@ -78,23 +80,24 @@ def test_supervisor_cannot_update_other_department(
         ),
     )
 
-    role = db.exec(select(Role).where(Role.name == "SUPERVISOR")).first()
+    result = await db_async.execute(select(Role).where(Role.name == "SUPERVISOR"))
+    role = result.scalars().first()
     if not role:
         role = Role(name="SUPERVISOR")
-        db.add(role)
-        db.commit()
-        db.refresh(role)
+        db_async.add(role)
+        await db_async.commit()
+        await db_async.refresh(role)
 
-    db.refresh(supervisor)
+    await db_async.refresh(supervisor)
     if role.id not in {assigned_role.id for assigned_role in supervisor.roles}:
         supervisor.roles.append(role)
-        db.add(supervisor)
+        db_async.add(supervisor)
 
-    if not db.get(Department, "dept_one"):
-        db.add(Department(id="dept_one", name="Dept One"))
-    if not db.get(Department, "dept_two"):
-        db.add(Department(id="dept_two", name="Dept Two"))
-    db.commit()
+    if not await db_async.get(Department, "dept_one"):
+        db_async.add(Department(id="dept_one", name="Dept One"))
+    if not await db_async.get(Department, "dept_two"):
+        db_async.add(Department(id="dept_two", name="Dept Two"))
+    await db_async.commit()
 
     supervisor_employment = EmploymentRecord(
         user_id=supervisor.id,
@@ -108,14 +111,16 @@ def test_supervisor_cannot_update_other_department(
         department_id="dept_two",
         position="Officer",
     )
-    db.add(supervisor_employment)
-    db.add(target_employment)
-    db.commit()
+    db_async.add(supervisor_employment)
+    db_async.add(target_employment)
+    await db_async.commit()
 
-    headers = user_authentication_headers(
-        client=client, email=supervisor.email, password="password123"
+    headers = await user_authentication_headers_async(
+        client=async_client,
+        email=supervisor.email,
+        password="password123",
     )
-    response = client.patch(
+    response = await async_client.patch(
         f"{settings.API_V1_STR}/hr/employment/{target_user.id}",
         headers=headers,
         json={

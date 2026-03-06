@@ -8,7 +8,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import func, select
 
 from src.auth import service
 from src.auth.dependencies import get_current_active_superuser
@@ -29,13 +28,13 @@ router = APIRouter(
     description="Return permissions (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Permissions returned"}},
 )
-def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+async def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
     Retrieve permissions (superuser only).
     """
-    permissions = service.get_permissions(session=session, skip=skip, limit=limit)
-    count_statement = select(func.count()).select_from(service.Permission)
-    count = session.exec(count_statement).one()
+    permissions, count = await service.get_permissions_with_count(
+        session=session, skip=skip, limit=limit
+    )
     return PermissionsPublic(
         data=[
             PermissionPublic.model_validate(perm, from_attributes=True)
@@ -55,11 +54,13 @@ def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> An
         status.HTTP_404_NOT_FOUND: {"description": "Permission not found"},
     },
 )
-def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
+async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
     """
     Get permission by ID (superuser only).
     """
-    permission = service.get_permission(session=session, permission_id=permission_id)
+    permission = await service.get_permission(
+        session=session, permission_id=permission_id
+    )
     if not permission:
         raise HTTPException(status_code=404, detail="Permission not found")
     return permission
@@ -72,9 +73,10 @@ def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
     description="Create a permission (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Permission created"}},
 )
-def create_permission(*, session: SessionDep, permission_in: PermissionCreate) -> Any:
+async def create_permission(*, session: SessionDep, permission_in: PermissionCreate) -> Any:
     """
     Create new permission (superuser only).
     """
-    permission = service.create_permission(session=session, permission_in=permission_in)
-    return permission
+    return await service.create_permission(
+        session=session, permission_in=permission_in
+    )

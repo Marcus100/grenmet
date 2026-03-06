@@ -1,9 +1,9 @@
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.dependencies import LeaveRequestDep
 
 from .schemas import (
     LeaveRequestAction,
@@ -23,6 +23,7 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
 @router.post(
     "/leave-requests",
     response_model=LeaveRequestPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create leave request",
     description="Create a leave request for the current user. Requires leave.request.create.self permission.",
     responses={
@@ -30,10 +31,12 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_leave_request_endpoint(
+async def create_leave_request_endpoint(
     *, session: SessionDep, current_user: CurrentUser, payload: LeaveRequestCreate
 ) -> Any:
-    return create_leave_request(session=session, current_user=current_user, payload=payload)
+    return await create_leave_request(
+        session=session, current_user=current_user, payload=payload
+    )
 
 
 @router.patch(
@@ -47,17 +50,17 @@ def create_leave_request_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
     },
 )
-def action_leave_request_endpoint(
+async def action_leave_request_endpoint(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    leave_request_id: uuid.UUID,
+    leave_request: LeaveRequestDep,
     payload: LeaveRequestAction,
 ) -> Any:
-    return action_leave_request(
+    return await action_leave_request(
         session=session,
         current_user=current_user,
-        leave_request_id=leave_request_id,
+        leave_request_id=leave_request.id,
         payload=payload,
     )
 
@@ -69,8 +72,10 @@ def action_leave_request_endpoint(
     description="Return leave requests for the current user.",
     responses={status.HTTP_200_OK: {"description": "Leave requests returned"}},
 )
-def read_my_leave_requests(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = list_leave_requests(session=session, current_user=current_user)
+async def read_my_leave_requests(session: SessionDep, current_user: CurrentUser) -> Any:
+    rows = await list_leave_requests(
+        session=session, current_user=current_user
+    )
     return LeaveRequestListPublic(
         data=[LeaveRequestPublic.model_validate(item, from_attributes=True) for item in rows],
         count=len(rows),

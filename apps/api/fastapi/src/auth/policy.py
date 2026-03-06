@@ -1,27 +1,23 @@
 import uuid
-from datetime import datetime, timezone
 
 from fastapi import HTTPException
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.utils.datetime import utc_now
 
 ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 
 
-def _now_utc_naive() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
-def _active_assignments(
-    *, session: Session, user_id: uuid.UUID
+async def _active_assignments(
+    *, session: AsyncSession, user_id: uuid.UUID
 ) -> list[UserRoleAssignment]:
-    now = _now_utc_naive()
-    assignments = list(
-        session.exec(
-            select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
-        ).all()
+    now = utc_now()
+    result = await session.execute(
+        select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
     )
+    assignments = list(result.scalars().all())
     return [
         assignment
         for assignment in assignments
@@ -46,9 +42,9 @@ def require_permission(*, current_user: User, permission_key: str) -> None:
         raise HTTPException(status_code=403, detail=ERROR_PERMISSION_DENIED)
 
 
-def can_act_on_user(
+async def can_act_on_user(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     target_user_id: uuid.UUID,
     permission_key: str,
@@ -76,10 +72,10 @@ def can_act_on_user(
 
     assignments = [
         assignment
-        for assignment in _active_assignments(session=session, user_id=current_user.id)
+        for assignment in await _active_assignments(session=session, user_id=current_user.id)
         if assignment.role_id in role_ids_with_permission
     ]
-    return _assignment_allows_target(
+    return await _assignment_allows_target(
         session=session,
         assignments=assignments,
         current_user_id=current_user.id,
@@ -87,9 +83,9 @@ def can_act_on_user(
     )
 
 
-def can_act_on_user_for_role(
+async def can_act_on_user_for_role(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     target_user_id: uuid.UUID,
     required_role_id: uuid.UUID,
@@ -101,10 +97,10 @@ def can_act_on_user_for_role(
         return True
     assignments = [
         assignment
-        for assignment in _active_assignments(session=session, user_id=current_user.id)
+        for assignment in await _active_assignments(session=session, user_id=current_user.id)
         if assignment.role_id == required_role_id
     ]
-    return _assignment_allows_target(
+    return await _assignment_allows_target(
         session=session,
         assignments=assignments,
         current_user_id=current_user.id,
@@ -112,9 +108,9 @@ def can_act_on_user_for_role(
     )
 
 
-def _assignment_allows_target(
+async def _assignment_allows_target(
     *,
-    session: Session,
+    session: AsyncSession,
     assignments: list[UserRoleAssignment],
     current_user_id: uuid.UUID,
     target_user_id: uuid.UUID,
@@ -125,12 +121,14 @@ def _assignment_allows_target(
     # Local import to avoid hard coupling auth package import graph.
     from src.hr.models import EmploymentRecord
 
-    target_employment = session.exec(
+    target_result = await session.execute(
         select(EmploymentRecord).where(EmploymentRecord.user_id == target_user_id)
-    ).first()
-    current_employment = session.exec(
+    )
+    target_employment = target_result.scalars().first()
+    current_result = await session.execute(
         select(EmploymentRecord).where(EmploymentRecord.user_id == current_user_id)
-    ).first()
+    )
+    current_employment = current_result.scalars().first()
 
     for assignment in assignments:
         if assignment.scope == RoleAssignmentScope.ALL:

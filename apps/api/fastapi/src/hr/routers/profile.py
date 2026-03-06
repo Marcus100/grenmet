@@ -25,8 +25,10 @@ router = APIRouter(prefix="/hr", tags=["hr"])
         status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
     },
 )
-def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    return read_profile_for_user(session=session, current_user=current_user)
+async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
+    return await read_profile_for_user(
+        session=session, current_user=current_user
+    )
 
 
 @router.patch(
@@ -39,14 +41,14 @@ def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
         status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
     },
 )
-def update_hr_profile_me(
+async def update_hr_profile_me(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     payload: UserProfileUpdateMe,
 ) -> Any:
     update_payload = payload.model_dump(exclude_unset=True)
-    return update_profile_for_current_user(
+    return await update_profile_for_current_user(
         session=session,
         current_user=current_user,
         payload=update_payload,
@@ -64,14 +66,14 @@ def update_hr_profile_me(
         status.HTTP_404_NOT_FOUND: {"description": "User or employment record not found"},
     },
 )
-def update_hr_employment(
+async def update_hr_employment(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     user_id: uuid.UUID,
     payload: EmploymentAdminUpdate,
 ) -> Any:
-    return update_employment_for_user(
+    return await update_employment_for_user(
         session=session,
         current_user=current_user,
         target_user_id=user_id,

@@ -1,9 +1,9 @@
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
 
 from .schemas import (
     WorkflowActionRequest,
@@ -32,6 +32,7 @@ router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
 @router.post(
     "/templates",
     response_model=WorkflowTemplatePublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create workflow template",
     description="Create a new workflow template. Requires workflow.template.manage permission.",
     responses={
@@ -39,10 +40,10 @@ router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_template(
+async def create_template(
     *, session: SessionDep, current_user: CurrentUser, template_in: WorkflowTemplateCreate
 ) -> Any:
-    return create_workflow_template(
+    return await create_workflow_template(
         session=session, current_user=current_user, template_in=template_in
     )
 
@@ -57,10 +58,10 @@ def create_template(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def read_templates(
+async def read_templates(
     session: SessionDep, current_user: CurrentUser, department_id: str | None = None
 ) -> Any:
-    templates = read_workflow_templates(
+    templates = await read_workflow_templates(
         session=session, current_user=current_user, department_id=department_id
     )
     return WorkflowTemplatesPublic(
@@ -75,6 +76,7 @@ def read_templates(
 @router.post(
     "/templates/{template_id}/steps",
     response_model=WorkflowStepTemplatePublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Add step to workflow template",
     description="Create a step template for a workflow template. Requires workflow.template.manage permission.",
     responses={
@@ -83,17 +85,17 @@ def read_templates(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_template_step(
+async def create_template_step(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    template_id: uuid.UUID,
+    _template: WorkflowTemplateDep,
     step_in: WorkflowStepTemplateCreate,
 ) -> Any:
-    return create_workflow_step_template(
+    return await create_workflow_step_template(
         session=session,
         current_user=current_user,
-        workflow_template_id=template_id,
+        workflow_template_id=_template.id,
         step_in=step_in,
     )
 
@@ -101,6 +103,7 @@ def create_template_step(
 @router.post(
     "/instances",
     response_model=WorkflowInstancePublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create workflow instance",
     description="Create a new workflow instance from a template. Template must exist.",
     responses={
@@ -109,10 +112,10 @@ def create_template_step(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_instance(
+async def create_instance(
     *, session: SessionDep, current_user: CurrentUser, instance_in: WorkflowInstanceCreate
 ) -> Any:
-    return create_workflow_instance(
+    return await create_workflow_instance(
         session=session, current_user=current_user, instance_in=instance_in
     )
 
@@ -128,15 +131,19 @@ def create_instance(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def read_instance(
-    session: SessionDep, current_user: CurrentUser, instance_id: uuid.UUID
+async def read_instance(
+    session: SessionDep,
+    current_user: CurrentUser,
+    workflow_instance: WorkflowInstanceDep,
 ) -> Any:
-    workflow_instance, steps = read_workflow_instance_details(
-        session=session, current_user=current_user, workflow_instance_id=instance_id
+    instance, steps = await read_workflow_instance_details(
+        session=session,
+        current_user=current_user,
+        workflow_instance_id=workflow_instance.id,
     )
     return WorkflowInstanceDetails(
         instance=WorkflowInstancePublic.model_validate(
-            workflow_instance, from_attributes=True
+            instance, from_attributes=True
         ),
         steps=[
             WorkflowStepInstancePublic.model_validate(step, from_attributes=True)
@@ -157,16 +164,16 @@ def read_instance(
         status.HTTP_403_FORBIDDEN: {"description": "Not allowed to perform this workflow action"},
     },
 )
-def take_action(
+async def take_action(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    instance_id: uuid.UUID,
+    workflow_instance: WorkflowInstanceDep,
     action_in: WorkflowActionRequest,
 ) -> Any:
-    return apply_workflow_action(
+    return await apply_workflow_action(
         session=session,
         current_user=current_user,
-        workflow_instance_id=instance_id,
+        workflow_instance_id=workflow_instance.id,
         action_in=action_in,
     )

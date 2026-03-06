@@ -1,12 +1,13 @@
 import uuid
 from collections import defaultdict
-from datetime import datetime
 from decimal import Decimal
 
-from sqlmodel import Session, col, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
+from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_TIMESHEET_ALREADY_SUBMITTED,
     ERROR_TIMESHEET_APPROVE_NOT_ALLOWED,
@@ -39,23 +40,30 @@ from .models import (
 from .schemas import ShiftHoursSummary, TimesheetCreate, TimesheetSummaryByShift
 
 
-def _get_or_create_policy(*, session: Session, department_id: str) -> DepartmentPolicy:
-    policy = session.exec(
-        select(DepartmentPolicy).where(col(DepartmentPolicy.department_id) == department_id)
-    ).first()
+async def _get_or_create_policy(
+    *, session: AsyncSession, department_id: str
+) -> DepartmentPolicy:
+    result = await session.execute(
+        select(DepartmentPolicy).where(
+            col(DepartmentPolicy.department_id) == department_id
+        )
+    )
+    policy = result.scalars().first()
     if policy:
         return policy
     policy = DepartmentPolicy(department_id=department_id)
     session.add(policy)
-    session.commit()
-    session.refresh(policy)
+    await session.commit()
+    await session.refresh(policy)
     return policy
 
 
-def create_timesheet(
-    *, session: Session, current_user: User, payload: TimesheetCreate
+async def create_timesheet(
+    *, session: AsyncSession, current_user: User, payload: TimesheetCreate
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
-    policy = _get_or_create_policy(session=session, department_id=payload.department_id)
+    policy = await _get_or_create_policy(
+        session=session, department_id=payload.department_id
+    )
     target_user_id = payload.user_id or current_user.id
     is_proxy = target_user_id != current_user.id
 
@@ -64,10 +72,14 @@ def create_timesheet(
     if is_proxy and not policy.allow_supervisor_proxy_submit:
         raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
     if not is_proxy:
-        require_permission(current_user=current_user, permission_key="timesheet.submit.self")
+        require_permission(
+            current_user=current_user, permission_key="timesheet.submit.self"
+        )
     if is_proxy:
-        require_permission(current_user=current_user, permission_key="timesheet.submit.proxy")
-    if is_proxy and not can_act_on_user(
+        require_permission(
+            current_user=current_user, permission_key="timesheet.submit.proxy"
+        )
+    if is_proxy and not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=target_user_id,
@@ -82,18 +94,18 @@ def create_timesheet(
         period_end=payload.period_end,
     )
     session.add(timesheet)
-    session.commit()
-    session.refresh(timesheet)
+    await session.commit()
+    await session.refresh(timesheet)
 
+    roster_result = await session.execute(
+        select(RosterAssignment).where(
+            col(RosterAssignment.user_id) == target_user_id,
+            col(RosterAssignment.assignment_date) >= payload.period_start,
+            col(RosterAssignment.assignment_date) <= payload.period_end,
+        )
+    )
     roster_assignments = {
-        ra.assignment_date: ra
-        for ra in session.exec(
-            select(RosterAssignment).where(
-                col(RosterAssignment.user_id) == target_user_id,
-                col(RosterAssignment.assignment_date) >= payload.period_start,
-                col(RosterAssignment.assignment_date) <= payload.period_end,
-            )
-        ).all()
+        ra.assignment_date: ra for ra in roster_result.scalars().all()
     }
 
     entries: list[TimesheetEntry] = []
@@ -102,7 +114,8 @@ def create_timesheet(
         db_entry = TimesheetEntry(
             timesheet_id=timesheet.id,
             entry_date=entry.entry_date,
-            shift_code=entry.shift_code or (linked_ra.shift_code if linked_ra else None),
+            shift_code=entry.shift_code
+            or (linked_ra.shift_code if linked_ra else None),
             roster_assignment_id=linked_ra.id if linked_ra else None,
             roster_hours=entry.roster_hours,
             actual_hours=entry.actual_hours,
@@ -112,41 +125,49 @@ def create_timesheet(
         )
         session.add(db_entry)
         entries.append(db_entry)
-    session.commit()
+    await session.commit()
     for created_entry in entries:
-        session.refresh(created_entry)
+        await session.refresh(created_entry)
     return timesheet, entries
 
 
-def submit_timesheet(
+async def submit_timesheet(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
 ) -> Timesheet:
-    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
+    timesheet = await get_timesheet_or_404(
+        session=session, timesheet_id=timesheet_id
+    )
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:
         raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
     if submission_mode == SubmissionMode.SELF:
-        require_permission(current_user=current_user, permission_key="timesheet.submit.self")
+        require_permission(
+            current_user=current_user, permission_key="timesheet.submit.self"
+        )
     if submission_mode == SubmissionMode.PROXY:
-        require_permission(current_user=current_user, permission_key="timesheet.submit.proxy")
-        if not can_act_on_user(
+        require_permission(
+            current_user=current_user, permission_key="timesheet.submit.proxy"
+        )
+        if not await can_act_on_user(
             session=session,
             current_user=current_user,
             target_user_id=timesheet.user_id,
             permission_key="timesheet.submit.proxy",
         ):
-            raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED)
+            raise HRPermissionDeniedError(
+                ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED
+            )
 
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
-    timesheet.submitted_at = datetime.utcnow()
-    timesheet.updated_at = datetime.utcnow()
+    timesheet.submitted_at = utc_now()
+    timesheet.updated_at = utc_now()
     session.add(timesheet)
     session.add(
         TimesheetSubmission(
@@ -155,19 +176,23 @@ def submit_timesheet(
             submission_mode=submission_mode,
         )
     )
-    session.commit()
-    session.refresh(timesheet)
+    await session.commit()
+    await session.refresh(timesheet)
     return timesheet
 
 
-def approve_timesheet(
-    *, session: Session, current_user: User, timesheet_id: uuid.UUID
+async def approve_timesheet(
+    *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> Timesheet:
-    require_permission(current_user=current_user, permission_key="timesheet.approve")
-    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
+    require_permission(
+        current_user=current_user, permission_key="timesheet.approve"
+    )
+    timesheet = await get_timesheet_or_404(
+        session=session, timesheet_id=timesheet_id
+    )
     if timesheet.status != TimesheetStatus.SUBMITTED:
         raise HRValidationError(ERROR_TIMESHEET_NOT_SUBMITTED)
-    if not can_act_on_user(
+    if not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
@@ -177,61 +202,68 @@ def approve_timesheet(
 
     timesheet.status = TimesheetStatus.APPROVED
     timesheet.approved_by_user_id = current_user.id
-    timesheet.approved_at = datetime.utcnow()
-    timesheet.updated_at = datetime.utcnow()
+    timesheet.approved_at = utc_now()
+    timesheet.updated_at = utc_now()
     session.add(timesheet)
-    session.commit()
-    session.refresh(timesheet)
+    await session.commit()
+    await session.refresh(timesheet)
     return timesheet
 
 
-def list_my_timesheets(*, session: Session, current_user: User) -> list[Timesheet]:
-    return list(
-        session.exec(
-            select(Timesheet)
-            .where(col(Timesheet.user_id) == current_user.id)
-            .order_by(col(Timesheet.created_at).desc())
-        ).all()
-    )
-
-
-def list_department_timesheets(
-    *, session: Session, current_user: User, department_id: str
+async def list_my_timesheets(
+    *, session: AsyncSession, current_user: User
 ) -> list[Timesheet]:
-    require_permission(current_user=current_user, permission_key="timesheet.read.department")
-    return list(
-        session.exec(
-            select(Timesheet)
-            .where(col(Timesheet.department_id) == department_id)
-            .order_by(col(Timesheet.created_at).desc())
-        ).all()
+    result = await session.execute(
+        select(Timesheet)
+        .where(col(Timesheet.user_id) == current_user.id)
+        .order_by(col(Timesheet.created_at).desc())
     )
+    return list(result.scalars().all())
 
 
-def read_timesheet_details(
-    *, session: Session, current_user: User, timesheet_id: uuid.UUID
+async def list_department_timesheets(
+    *, session: AsyncSession, current_user: User, department_id: str
+) -> list[Timesheet]:
+    require_permission(
+        current_user=current_user, permission_key="timesheet.read.department"
+    )
+    result = await session.execute(
+        select(Timesheet)
+        .where(col(Timesheet.department_id) == department_id)
+        .order_by(col(Timesheet.created_at).desc())
+    )
+    return list(result.scalars().all())
+
+
+async def read_timesheet_details(
+    *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
-    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
-    if current_user.id != timesheet.user_id and not can_act_on_user(
+    timesheet = await get_timesheet_or_404(
+        session=session, timesheet_id=timesheet_id
+    )
+    if current_user.id != timesheet.user_id and not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
         permission_key="timesheet.read.department",
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
-    entries = list(
-        session.exec(
-            select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
-        ).all()
+    result = await session.execute(
+        select(TimesheetEntry).where(
+            col(TimesheetEntry.timesheet_id) == timesheet_id
+        )
     )
+    entries = list(result.scalars().all())
     return timesheet, entries
 
 
-def get_timesheet_summary(
-    *, session: Session, current_user: User, timesheet_id: uuid.UUID
+async def get_timesheet_summary(
+    *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> TimesheetSummaryByShift:
-    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
-    if current_user.id != timesheet.user_id and not can_act_on_user(
+    timesheet = await get_timesheet_or_404(
+        session=session, timesheet_id=timesheet_id
+    )
+    if current_user.id != timesheet.user_id and not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
@@ -239,11 +271,12 @@ def get_timesheet_summary(
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
 
-    entries = list(
-        session.exec(
-            select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
-        ).all()
+    result = await session.execute(
+        select(TimesheetEntry).where(
+            col(TimesheetEntry.timesheet_id) == timesheet_id
+        )
     )
+    entries = list(result.scalars().all())
 
     by_shift: dict[str, list[TimesheetEntry]] = defaultdict(list)
     for entry in entries:
@@ -282,19 +315,19 @@ def get_timesheet_summary(
     )
 
 
-def ensure_timesheet_workflow(
-    *, session: Session, current_user: User, timesheet: Timesheet
+async def ensure_timesheet_workflow(
+    *, session: AsyncSession, current_user: User, timesheet: Timesheet
 ) -> None:
-    template = session.exec(
+    result = await session.execute(
         select(WorkflowTemplate).where(
             col(WorkflowTemplate.department_id) == timesheet.department_id,
-            col(WorkflowTemplate.workflow_type)
-            == WorkflowType.TIMESHEET,
+            col(WorkflowTemplate.workflow_type) == WorkflowType.TIMESHEET,
         )
-    ).first()
+    )
+    template = result.scalars().first()
     if not template:
         return
-    create_workflow_instance(
+    await create_workflow_instance(
         session=session,
         current_user=current_user,
         instance_in=WorkflowInstanceCreate(

@@ -1,3 +1,4 @@
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlmodel import Session, SQLModel, create_engine, select
 
 # Import all models to ensure they're registered with SQLModel
@@ -58,6 +59,21 @@ SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
+# Async engine and session for request path (Phase 2)
+_async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
+    "postgresql+psycopg", "postgresql+asyncpg", 1
+)
+async_engine = create_async_engine(
+    _async_url,
+    echo=False,
+)
+async_session_factory = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autoflush=False,
+)
+
 
 # make sure all SQLModel models are imported before initializing DB
 # otherwise, SQLModel might fail to initialize relationships properly
@@ -88,4 +104,25 @@ def init_db(session: Session) -> None:
             last_name="User",
             is_superuser=True,
         )
-        user = service.create_user(session=session, user_create=user_in)
+        user = service.create_user_sync(session=session, user_create=user_in)
+
+
+async def init_db_async(session: AsyncSession) -> None:
+    """Ensure initial data exists (e.g. first superuser). For use with async session."""
+    from src.auth import service
+    from src.auth.schemas import UserCreate
+
+    result = await session.execute(
+        select(User).where(User.email == settings.FIRST_SUPERUSER)
+    )
+    user = result.scalars().first()
+    if not user:
+        user_in = UserCreate(
+            email=settings.FIRST_SUPERUSER,
+            username="admin",
+            password=settings.FIRST_SUPERUSER_PASSWORD,
+            first_name="Admin",
+            last_name="User",
+            is_superuser=True,
+        )
+        await service.create_user(session=session, user_create=user_in)

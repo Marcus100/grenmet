@@ -20,6 +20,7 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
 @router.post(
     "/absentee-reports",
     response_model=AbsenteeReportPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create absentee report",
     description="Create an absentee report. Requires absentee.report.create permission.",
     responses={
@@ -27,10 +28,12 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_absentee_endpoint(
+async def create_absentee_endpoint(
     *, session: SessionDep, current_user: CurrentUser, payload: AbsenteeReportCreate
 ) -> Any:
-    return create_absentee_report(session=session, current_user=current_user, payload=payload)
+    return await create_absentee_report(
+        session=session, current_user=current_user, payload=payload
+    )
 
 
 @router.get(
@@ -43,12 +46,12 @@ def create_absentee_endpoint(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def read_absentee_reports(
+async def read_absentee_reports(
     session: SessionDep,
     current_user: CurrentUser,
     department_id: str | None = None,
 ) -> Any:
-    rows = list_absentee_reports(
+    rows = await list_absentee_reports(
         session=session,
         current_user=current_user,
         department_id=department_id,

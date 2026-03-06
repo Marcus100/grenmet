@@ -5,6 +5,8 @@ from enum import Enum
 
 from sqlmodel import Field, SQLModel
 
+from src.utils.datetime import utc_now
+
 
 class TimesheetStatus(str, Enum):
     DRAFT = "DRAFT"
@@ -26,8 +28,8 @@ class DepartmentPolicy(SQLModel, table=True):
     department_id: str = Field(foreign_key="hr.department.id", index=True, unique=True)
     allow_employee_self_submit: bool = True
     allow_supervisor_proxy_submit: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class Timesheet(SQLModel, table=True):
@@ -44,8 +46,8 @@ class Timesheet(SQLModel, table=True):
     approved_by_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
     submitted_at: datetime | None = None
     approved_at: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class TimesheetEntry(SQLModel, table=True):
@@ -66,8 +68,8 @@ class TimesheetEntry(SQLModel, table=True):
     overtime_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     break_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     comments: str | None = Field(default=None, max_length=500)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class TimesheetSubmission(SQLModel, table=True):
@@ -78,4 +80,4 @@ class TimesheetSubmission(SQLModel, table=True):
     timesheet_id: uuid.UUID = Field(foreign_key="hr.timesheet.id", index=True)
     submitted_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     submission_mode: SubmissionMode = Field(default=SubmissionMode.SELF)
-    submitted_at: datetime = Field(default_factory=datetime.utcnow)
+    submitted_at: datetime = Field(default_factory=utc_now)

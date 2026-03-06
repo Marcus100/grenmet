@@ -105,7 +105,6 @@ class ProfileDetailsUpdate(BaseModel):
     first_name: str | None = Field(default=None, min_length=1, max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
-    display_name: str | None = Field(default=None, max_length=150)
     date_of_birth: date | None = None
     nationality: str | None = Field(default=None, max_length=100)
     gender: str | None = Field(default=None, max_length=50)

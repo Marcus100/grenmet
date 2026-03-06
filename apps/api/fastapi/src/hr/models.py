@@ -5,6 +5,8 @@ from enum import Enum
 import sqlalchemy as sa
 from sqlmodel import Field, SQLModel
 
+from src.utils.datetime import utc_now
+
 
 class RequestStatus(str, Enum):
     DRAFT = "DRAFT"
@@ -44,11 +46,13 @@ class Department(SQLModel, table=True):
 
     id: str = Field(primary_key=True, max_length=100)
     name: str = Field(max_length=255, unique=True, index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class UserProfile(SQLModel, table=True):
+    """HR profile extension by user_id. Names come from auth User (canonical source)."""
+
     __tablename__ = "user_profile"
     __table_args__ = {"schema": "hr"}
 
@@ -59,16 +63,12 @@ class UserProfile(SQLModel, table=True):
     phone: str | None = Field(default=None, max_length=30)
     avatar_url: str | None = Field(default=None, max_length=500)
     status: UserStatus = Field(default=UserStatus.ACTIVE)
-    first_name: str = Field(max_length=100)
-    middle_name: str | None = Field(default=None, max_length=100)
-    last_name: str = Field(max_length=100)
-    display_name: str | None = Field(default=None, max_length=150)
     date_of_birth: date | None = Field(default=None)
     nationality: str | None = Field(default=None, max_length=100)
     gender: str | None = Field(default=None, max_length=50)
     created_by: str | None = Field(default=None, max_length=255)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class UserAddress(SQLModel, table=True):
@@ -85,8 +85,8 @@ class UserAddress(SQLModel, table=True):
     parish: str | None = Field(default=None, max_length=100)
     postal_code: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=100)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class EmploymentRecord(SQLModel, table=True):
@@ -112,8 +112,8 @@ class EmploymentRecord(SQLModel, table=True):
     )
     work_location: str | None = Field(default=None, max_length=255)
     status: EmploymentStatus = Field(default=EmploymentStatus.ACTIVE)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterPreference(SQLModel, table=True):
@@ -126,8 +126,8 @@ class RosterPreference(SQLModel, table=True):
     )
     default_shift_pattern: ShiftPattern = Field(default=ShiftPattern.ROTATION)
     max_night_shifts_per_month: int = Field(default=6, ge=0, le=31)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterPreferredShift(SQLModel, table=True):
@@ -144,7 +144,7 @@ class RosterPreferredShift(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
     shift_code: str = Field(max_length=10)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterRestrictedShift(SQLModel, table=True):
@@ -161,7 +161,7 @@ class RosterRestrictedShift(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
     shift_code: str = Field(max_length=10)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class LeaveBalance(SQLModel, table=True):
@@ -175,7 +175,7 @@ class LeaveBalance(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
     leave_type: str = Field(max_length=50)
     balance: int = Field(default=0, ge=0)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class LeaveCarryOver(SQLModel, table=True):
@@ -193,7 +193,7 @@ class LeaveCarryOver(SQLModel, table=True):
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
     leave_type: str = Field(max_length=50)
     days: int = Field(default=0, ge=0)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class ApprovalAuthority(SQLModel, table=True):
@@ -208,5 +208,5 @@ class ApprovalAuthority(SQLModel, table=True):
     can_approve_shift_swap: bool = False
     can_approve_timesheets: bool = False
     can_approve_absentee_reports: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

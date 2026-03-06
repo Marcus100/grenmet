@@ -1,9 +1,9 @@
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
 
 from .schemas import (
     PublicHolidayCreate,
@@ -50,8 +50,10 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
-    shifts = read_shift_catalog(session=session, current_user=current_user)
+async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
+    shifts = await read_shift_catalog(
+        session=session, current_user=current_user
+    )
     return ShiftCatalogsPublic(
         data=[ShiftCatalogPublic.model_validate(shift, from_attributes=True) for shift in shifts],
         count=len(shifts),
@@ -61,6 +63,7 @@ def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
 @router.post(
     "/periods",
     response_model=RosterPeriodPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create roster period",
     description="Create a new roster period. Requires roster.manage permission.",
     responses={
@@ -69,10 +72,12 @@ def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_period(
+async def create_period(
     *, session: SessionDep, current_user: CurrentUser, payload: RosterPeriodCreate
 ) -> Any:
-    return create_roster_period(session=session, current_user=current_user, period_in=payload)
+    return await create_roster_period(
+        session=session, current_user=current_user, period_in=payload
+    )
 
 
 @router.post(
@@ -86,10 +91,10 @@ def create_period(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def bulk_assignments(
+async def bulk_assignments(
     *, session: SessionDep, current_user: CurrentUser, payload: RosterAssignmentBulkCreate
 ) -> Any:
-    assignments = bulk_upsert_roster_assignments(
+    assignments = await bulk_upsert_roster_assignments(
         session=session, current_user=current_user, payload=payload
     )
     return [
@@ -109,14 +114,16 @@ def bulk_assignments(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def get_period(
-    session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+async def get_period(
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: RosterPeriodDep,
 ) -> Any:
-    period, assignments = read_roster_period_details(
-        session=session, current_user=current_user, period_id=period_id
+    period_data, assignments = await read_roster_period_details(
+        session=session, current_user=current_user, period_id=period.id
     )
     return RosterPeriodDetails(
-        period=RosterPeriodPublic.model_validate(period, from_attributes=True),
+        period=RosterPeriodPublic.model_validate(period_data, from_attributes=True),
         assignments=[
             RosterAssignmentPublic.model_validate(assignment, from_attributes=True)
             for assignment in assignments
@@ -135,10 +142,12 @@ def get_period(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def validate_csv(
+async def validate_csv(
     *, session: SessionDep, current_user: CurrentUser, payload: RosterCsvValidationRequest
 ) -> Any:
-    return validate_roster_csv(session=session, current_user=current_user, payload=payload)
+    return await validate_roster_csv(
+        session=session, current_user=current_user, payload=payload
+    )
 
 
 @router.post(
@@ -152,10 +161,12 @@ def validate_csv(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def import_csv(
+async def import_csv(
     *, session: SessionDep, current_user: CurrentUser, payload: RosterCsvValidationRequest
 ) -> Any:
-    job = import_roster_csv(session=session, current_user=current_user, payload=payload)
+    job = await import_roster_csv(
+        session=session, current_user=current_user, payload=payload
+    )
     return RosterCsvImportResponse(
         job_id=job.id,
         status=job.status,
@@ -182,10 +193,12 @@ def import_csv(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def publish_period(
-    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+async def publish_period(
+    *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return publish_roster_period(session=session, current_user=current_user, period_id=period_id)
+    return await publish_roster_period(
+        session=session, current_user=current_user, period_id=period.id
+    )
 
 
 @router.patch(
@@ -200,10 +213,12 @@ def publish_period(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def close_period(
-    *, session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+async def close_period(
+    *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return close_roster_period(session=session, current_user=current_user, period_id=period_id)
+    return await close_roster_period(
+        session=session, current_user=current_user, period_id=period.id
+    )
 
 
 @router.get(
@@ -217,11 +232,13 @@ def close_period(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def get_period_revisions(
-    session: SessionDep, current_user: CurrentUser, period_id: uuid.UUID
+async def get_period_revisions(
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: RosterPeriodDep,
 ) -> Any:
-    revisions = list_roster_revisions(
-        session=session, current_user=current_user, period_id=period_id
+    revisions = await list_roster_revisions(
+        session=session, current_user=current_user, period_id=period.id
     )
     return RosterRevisionsPublic(
         data=[
@@ -240,6 +257,7 @@ def get_period_revisions(
 @router.post(
     "/public-holidays",
     response_model=PublicHolidayPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create public holiday",
     description="Add a public holiday. Requires roster.manage permission.",
     responses={
@@ -248,10 +266,12 @@ def get_period_revisions(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def create_holiday(
+async def create_holiday(
     *, session: SessionDep, current_user: CurrentUser, payload: PublicHolidayCreate
 ) -> Any:
-    return create_public_holiday(session=session, current_user=current_user, payload=payload)
+    return await create_public_holiday(
+        session=session, current_user=current_user, payload=payload
+    )
 
 
 @router.get(
@@ -264,10 +284,12 @@ def create_holiday(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def list_holidays(
+async def list_holidays(
     session: SessionDep, current_user: CurrentUser, year: int | None = None
 ) -> Any:
-    holidays = list_public_holidays(session=session, current_user=current_user, year=year)
+    holidays = await list_public_holidays(
+        session=session, current_user=current_user, year=year
+    )
     return PublicHolidaysPublic(
         data=[
             PublicHolidayPublic.model_validate(h, from_attributes=True)
@@ -288,7 +310,9 @@ def list_holidays(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def remove_holiday(
-    *, session: SessionDep, current_user: CurrentUser, holiday_id: uuid.UUID
+async def remove_holiday(
+    *, session: SessionDep, current_user: CurrentUser, holiday: PublicHolidayDep
 ) -> None:
-    delete_public_holiday(session=session, current_user=current_user, holiday_id=holiday_id)
+    await delete_public_holiday(
+        session=session, current_user=current_user, holiday_id=holiday.id
+    )
