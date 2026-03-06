@@ -55,8 +55,15 @@ class TimesheetEntry(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     timesheet_id: uuid.UUID = Field(foreign_key="hr.timesheet.id", index=True)
     entry_date: date
+    shift_code: str | None = Field(
+        default=None, foreign_key="hr.shift_catalog.code", max_length=10
+    )
+    roster_assignment_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.roster_assignment.id"
+    )
     roster_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     actual_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
+    overtime_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     break_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     comments: str | None = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=datetime.utcnow)

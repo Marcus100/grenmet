@@ -31,6 +31,7 @@ from sqlmodel import Session
 
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
+    ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_INVALID_CREDENTIALS,
     ERROR_USER_NOT_FOUND,
 )
@@ -103,23 +104,10 @@ SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 
 def get_current_active_superuser(current_user: CurrentUser) -> User:
-    """
-    Get current superuser dependency.
-
-    This dependency chains CurrentUser, demonstrating dependency composition:
-    CurrentUser -> get_current_user -> SessionDep + TokenDep
-
-    Returns the user if they are a superuser.
-    Raises HTTPException if the user lacks superuser privileges.
-
-    Example:
-        @router.delete("/admin/users/{user_id}")
-        def delete_user(superuser: Annotated[User, Depends(get_current_active_superuser)]):
-            # Only superusers can access this route
-            pass
-    """
+    """Shared superuser dependency (canonical in src.dependencies)."""
     if not current_user.is_superuser:
         raise HTTPException(
-            status_code=403, detail="The user doesn't have enough privileges"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
     return current_user

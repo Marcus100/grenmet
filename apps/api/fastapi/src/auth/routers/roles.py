@@ -7,7 +7,7 @@ This router handles role CRUD operations. All endpoints require superuser privil
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import func, select
 
 from src.auth import service
@@ -25,6 +25,9 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=RolesPublic,
+    summary="List roles",
+    description="Return roles (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Roles returned"}},
 )
 def read_roles(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -42,6 +45,12 @@ def read_roles(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 @router.get(
     "/{role_id}",
     response_model=RolePublic,
+    summary="Get role by ID",
+    description="Return a role by ID (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "Role returned"},
+        status.HTTP_404_NOT_FOUND: {"description": "Role not found"},
+    },
 )
 def read_role(session: SessionDep, role_id: uuid.UUID) -> Any:
     """
@@ -56,6 +65,9 @@ def read_role(session: SessionDep, role_id: uuid.UUID) -> Any:
 @router.post(
     "/",
     response_model=RolePublic,
+    summary="Create role",
+    description="Create a role (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Role created"}},
 )
 def create_role(*, session: SessionDep, role_in: RoleCreate) -> Any:
     """

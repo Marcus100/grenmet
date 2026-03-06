@@ -1,11 +1,25 @@
 import uuid
 from datetime import datetime
 
-from fastapi import HTTPException
 from sqlmodel import Session, col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user_for_role, require_permission
+from src.hr.constants import (
+    ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
+    ERROR_WORKFLOW_INSTANCE_NOT_FOUND,
+    ERROR_WORKFLOW_NOT_PENDING,
+    ERROR_WORKFLOW_PERMISSION_DENIED,
+    ERROR_WORKFLOW_STEP_NOT_FOUND,
+    ERROR_WORKFLOW_TEMPLATE_NOT_FOUND,
+)
+from src.hr.exceptions import (
+    HRPermissionDeniedError,
+    HRValidationError,
+    WorkflowInstanceNotFoundError,
+    WorkflowStepNotFoundError,
+    WorkflowTemplateNotFoundError,
+)
 
 from .models import (
     ApprovalActionLog,
@@ -15,6 +29,7 @@ from .models import (
     WorkflowStepInstance,
     WorkflowStepTemplate,
     WorkflowTemplate,
+    WorkflowType,
 )
 from .schemas import (
     WorkflowActionRequest,
@@ -22,11 +37,6 @@ from .schemas import (
     WorkflowStepTemplateCreate,
     WorkflowTemplateCreate,
 )
-
-ERROR_WORKFLOW_TEMPLATE_NOT_FOUND = "Workflow template not found"
-ERROR_WORKFLOW_INSTANCE_NOT_FOUND = "Workflow instance not found"
-ERROR_WORKFLOW_STEP_NOT_FOUND = "Workflow step not found"
-ERROR_WORKFLOW_PERMISSION_DENIED = "Not allowed to perform this workflow action"
 
 
 def create_workflow_template(
@@ -55,7 +65,7 @@ def create_workflow_step_template(
     require_permission(current_user=current_user, permission_key="workflow.template.manage")
     workflow_template = session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
-        raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_TEMPLATE_NOT_FOUND)
+        raise WorkflowTemplateNotFoundError()
     db_step = WorkflowStepTemplate.model_validate(
         step_in, update={"workflow_template_id": workflow_template_id}
     )
@@ -102,7 +112,7 @@ def create_workflow_instance(
 ) -> WorkflowInstance:
     workflow_template = session.get(WorkflowTemplate, instance_in.workflow_template_id)
     if not workflow_template:
-        raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_TEMPLATE_NOT_FOUND)
+        raise WorkflowTemplateNotFoundError()
     db_instance = WorkflowInstance(
         workflow_template_id=workflow_template.id,
         department_id=workflow_template.department_id,
@@ -135,7 +145,7 @@ def read_workflow_instance_details(
         require_permission(current_user=current_user, permission_key="workflow.instance.view")
     workflow_instance = session.get(WorkflowInstance, workflow_instance_id)
     if not workflow_instance:
-        raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_INSTANCE_NOT_FOUND)
+        raise WorkflowInstanceNotFoundError()
     steps = list(
         session.exec(
             select(WorkflowStepInstance)
@@ -177,7 +187,7 @@ def apply_workflow_action(
 
     if action_in.action == WorkflowAction.SUBMIT:
         if workflow_instance.status not in {WorkflowStatus.DRAFT, WorkflowStatus.RETURNED}:
-            raise HTTPException(status_code=400, detail="Workflow cannot be submitted")
+            raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
         workflow_instance.status = WorkflowStatus.PENDING
         workflow_instance.submitted_at = datetime.utcnow()
         workflow_instance.current_step_order = 1
@@ -195,14 +205,14 @@ def apply_workflow_action(
         return workflow_instance
 
     if workflow_instance.status != WorkflowStatus.PENDING:
-        raise HTTPException(status_code=400, detail="Workflow is not pending")
+        raise HRValidationError(ERROR_WORKFLOW_NOT_PENDING)
 
     current_step = next(
         (step for step in steps if step.step_order == workflow_instance.current_step_order),
         None,
     )
     if not current_step:
-        raise HTTPException(status_code=404, detail=ERROR_WORKFLOW_STEP_NOT_FOUND)
+        raise WorkflowStepNotFoundError()
 
     if not _is_actor_allowed_for_step(
         session=session,
@@ -210,7 +220,7 @@ def apply_workflow_action(
         workflow_instance=workflow_instance,
         workflow_step=current_step,
     ):
-        raise HTTPException(status_code=403, detail=ERROR_WORKFLOW_PERMISSION_DENIED)
+        raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
 
     current_step.approver_user_id = current_user.id
     current_step.action = action_in.action
@@ -252,3 +262,40 @@ def apply_workflow_action(
     session.commit()
     session.refresh(workflow_instance)
     return workflow_instance
+
+
+def start_workflow_for_entity(
+    *,
+    session: Session,
+    current_user: User,
+    department_id: str,
+    workflow_type: WorkflowType,
+    entity_type: str,
+    entity_id: uuid.UUID,
+) -> uuid.UUID | None:
+    """Look up an active workflow template and kick off SUBMIT if found."""
+    template = session.exec(
+        select(WorkflowTemplate).where(
+            col(WorkflowTemplate.department_id) == department_id,
+            col(WorkflowTemplate.workflow_type) == workflow_type,
+            col(WorkflowTemplate.is_active) == True,  # noqa: E712
+        )
+    ).first()
+    if not template:
+        return None
+    instance = create_workflow_instance(
+        session=session,
+        current_user=current_user,
+        instance_in=WorkflowInstanceCreate(
+            workflow_template_id=template.id,
+            entity_type=entity_type,
+            entity_id=entity_id,
+        ),
+    )
+    instance = apply_workflow_action(
+        session=session,
+        current_user=current_user,
+        workflow_instance_id=instance.id,
+        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+    )
+    return instance.id if instance else None

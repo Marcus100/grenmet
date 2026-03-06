@@ -7,7 +7,7 @@ This router handles permission CRUD operations. All endpoints require superuser 
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import func, select
 
 from src.auth import service
@@ -25,6 +25,9 @@ router = APIRouter(
 @router.get(
     "/",
     response_model=PermissionsPublic,
+    summary="List permissions",
+    description="Return permissions (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Permissions returned"}},
 )
 def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -45,6 +48,12 @@ def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> An
 @router.get(
     "/{permission_id}",
     response_model=PermissionPublic,
+    summary="Get permission by ID",
+    description="Return a permission by ID (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "Permission returned"},
+        status.HTTP_404_NOT_FOUND: {"description": "Permission not found"},
+    },
 )
 def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
     """
@@ -59,6 +68,9 @@ def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
 @router.post(
     "/",
     response_model=PermissionPublic,
+    summary="Create permission",
+    description="Create a permission (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Permission created"}},
 )
 def create_permission(*, session: SessionDep, permission_in: PermissionCreate) -> Any:
     """

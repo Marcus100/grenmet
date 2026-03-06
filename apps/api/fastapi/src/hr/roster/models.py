@@ -10,6 +10,7 @@ class ShiftCategory(str, Enum):
     WORK = "WORK"
     OFF = "OFF"
     LEAVE = "LEAVE"
+    HOLIDAY = "HOLIDAY"
 
 
 class RosterPeriodStatus(str, Enum):
@@ -75,6 +76,40 @@ class RosterAssignment(SQLModel, table=True):
     remarks: str | None = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class PublicHoliday(SQLModel, table=True):
+    __tablename__ = "public_holiday"
+    __table_args__ = {"schema": "hr"}
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=150)
+    holiday_date: date = Field(index=True)
+    is_recurring: bool = Field(default=False)
+    country_code: str = Field(default="GD", max_length=3)
+    created_by_user_id: uuid.UUID = Field(foreign_key="user.id")
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class RosterRevisionAction(str, Enum):
+    CREATED = "CREATED"
+    ASSIGNMENTS_UPDATED = "ASSIGNMENTS_UPDATED"
+    PUBLISHED = "PUBLISHED"
+    CLOSED = "CLOSED"
+
+
+class RosterRevision(SQLModel, table=True):
+    __tablename__ = "roster_revision"
+    __table_args__ = {"schema": "hr"}
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    roster_period_id: uuid.UUID = Field(foreign_key="hr.roster_period.id", index=True)
+    revision_number: int = Field(ge=1)
+    action: RosterRevisionAction
+    changed_by_user_id: uuid.UUID = Field(foreign_key="user.id")
+    summary: str | None = Field(default=None, max_length=500)
+    snapshot: dict = Field(default_factory=dict, sa_column=sa.Column(sa.JSON))
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class RosterImportJob(SQLModel, table=True):

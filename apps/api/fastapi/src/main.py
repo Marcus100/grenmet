@@ -25,12 +25,14 @@ from src.exceptions import (
     integrity_error_handler,
     validation_exception_handler,
 )
-from src.hr.operations.router import router as hr_operations_router
+from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.dailystatus.router import router as hr_dailystatus_router
+from src.hr.exchange.router import router as hr_exchange_router
+from src.hr.leave.router import router as hr_leave_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.workflow.router import router as hr_workflow_router
-from src.items.router import router as items_router
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
@@ -122,11 +124,13 @@ app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
-app.include_router(hr_operations_router, prefix="/api/v1")
+app.include_router(hr_leave_router, prefix="/api/v1")
+app.include_router(hr_absentee_router, prefix="/api/v1")
+app.include_router(hr_exchange_router, prefix="/api/v1")
+app.include_router(hr_dailystatus_router, prefix="/api/v1")
 
 # Other routers
 
-app.include_router(items_router, prefix="/api/v1")
 app.include_router(utils_router, prefix="/api/v1")
 
 # Register exception handlers

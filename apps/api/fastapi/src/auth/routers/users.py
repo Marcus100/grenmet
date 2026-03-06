@@ -14,7 +14,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import col, delete, func, select
+from sqlmodel import func, select
 
 from src.auth import service
 from src.auth.constants import (
@@ -42,7 +42,6 @@ from src.auth.utils import get_password_hash, verify_password
 from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
-from src.items.models import Item
 from src.models import Message
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
@@ -52,6 +51,9 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
+    summary="List users",
+    description="Return users (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Users returned"}},
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     """
@@ -72,6 +74,12 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
+    summary="Create user",
+    description="Create a user (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "User created"},
+        status.HTTP_400_BAD_REQUEST: {"description": "User with this email already exists"},
+    },
 )
 def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     """
@@ -97,7 +105,13 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     return user
 
 
-@router.get("/me", response_model=UserPublic)
+@router.get(
+    "/me",
+    response_model=UserPublic,
+    summary="Get current user",
+    description="Return the currently authenticated user.",
+    responses={status.HTTP_200_OK: {"description": "Current user returned"}},
+)
 def read_user_me(current_user: CurrentUser) -> Any:
     """
     Get current user.
@@ -105,7 +119,16 @@ def read_user_me(current_user: CurrentUser) -> Any:
     return current_user
 
 
-@router.patch("/me", response_model=UserPublic)
+@router.patch(
+    "/me",
+    response_model=UserPublic,
+    summary="Update current user",
+    description="Update profile fields for the currently authenticated user.",
+    responses={
+        status.HTTP_200_OK: {"description": "User updated"},
+        status.HTTP_409_CONFLICT: {"description": "Email already exists"},
+    },
+)
 def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
@@ -124,7 +147,16 @@ def update_user_me(
     return current_user
 
 
-@router.patch("/me/password", response_model=Message)
+@router.patch(
+    "/me/password",
+    response_model=Message,
+    summary="Change current user password",
+    description="Change password for the currently authenticated user.",
+    responses={
+        status.HTTP_200_OK: {"description": "Password updated"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Current password incorrect or new password unchanged"},
+    },
+)
 def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
@@ -142,7 +174,16 @@ def update_password_me(
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 
-@router.delete("/me", response_model=Message)
+@router.delete(
+    "/me",
+    response_model=Message,
+    summary="Delete current user",
+    description="Delete currently authenticated user account.",
+    responses={
+        status.HTTP_200_OK: {"description": "User deleted"},
+        status.HTTP_403_FORBIDDEN: {"description": "Superuser cannot delete own account"},
+    },
+)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
@@ -185,7 +226,16 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     return user
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get(
+    "/{user_id}",
+    response_model=UserPublic,
+    summary="Get user by ID",
+    description="Return user by ID. Non-superusers can only fetch themselves.",
+    responses={
+        status.HTTP_200_OK: {"description": "User returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
+    },
+)
 def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
@@ -207,6 +257,13 @@ def read_user_by_id(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
+    summary="Update user by ID",
+    description="Update a user by ID (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "User updated"},
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+        status.HTTP_409_CONFLICT: {"description": "Email already exists"},
+    },
 )
 def update_user(
     *,
@@ -235,6 +292,13 @@ def update_user(
 @router.delete(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
+    summary="Delete user by ID",
+    description="Delete a user by ID (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "User deleted"},
+        status.HTTP_403_FORBIDDEN: {"description": "Superuser cannot delete own account"},
+        status.HTTP_404_NOT_FOUND: {"description": "User not found"},
+    },
 )
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
@@ -247,8 +311,6 @@ def delete_user(
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user == current_user:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
-    statement = delete(Item).where(col(Item.owner_id) == user_id)
-    session.exec(statement)
     session.delete(user)
     session.commit()
     return Message(message=SUCCESS_USER_DELETED)

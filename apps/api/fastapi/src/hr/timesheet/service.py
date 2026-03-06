@@ -1,11 +1,29 @@
 import uuid
+from collections import defaultdict
 from datetime import datetime
+from decimal import Decimal
 
-from fastapi import HTTPException
 from sqlmodel import Session, col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.constants import (
+    ERROR_TIMESHEET_ALREADY_SUBMITTED,
+    ERROR_TIMESHEET_APPROVE_NOT_ALLOWED,
+    ERROR_TIMESHEET_NOT_SUBMITTED,
+    ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED,
+    ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED,
+    ERROR_TIMESHEET_READ_NOT_ALLOWED,
+    ERROR_TIMESHEET_SELF_SUBMIT_DISABLED,
+    ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN,
+    ERROR_TIMESHEET_SUBMIT_FOR_USER_NOT_ALLOWED,
+)
+from src.hr.dependencies import get_timesheet_or_404
+from src.hr.exceptions import (
+    HRPermissionDeniedError,
+    HRValidationError,
+)
+from src.hr.roster.models import RosterAssignment
 from src.hr.workflow.models import WorkflowTemplate, WorkflowType
 from src.hr.workflow.schemas import WorkflowInstanceCreate
 from src.hr.workflow.service import create_workflow_instance
@@ -18,7 +36,7 @@ from .models import (
     TimesheetStatus,
     TimesheetSubmission,
 )
-from .schemas import TimesheetCreate
+from .schemas import ShiftHoursSummary, TimesheetCreate, TimesheetSummaryByShift
 
 
 def _get_or_create_policy(*, session: Session, department_id: str) -> DepartmentPolicy:
@@ -42,9 +60,9 @@ def create_timesheet(
     is_proxy = target_user_id != current_user.id
 
     if not is_proxy and not policy.allow_employee_self_submit:
-        raise HTTPException(status_code=403, detail="Self submission is disabled")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
     if is_proxy and not policy.allow_supervisor_proxy_submit:
-        raise HTTPException(status_code=403, detail="Proxy submission is disabled")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
     if not is_proxy:
         require_permission(current_user=current_user, permission_key="timesheet.submit.self")
     if is_proxy:
@@ -55,7 +73,7 @@ def create_timesheet(
         target_user_id=target_user_id,
         permission_key="timesheet.submit.proxy",
     ):
-        raise HTTPException(status_code=403, detail="Not allowed to submit for this user")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SUBMIT_FOR_USER_NOT_ALLOWED)
 
     timesheet = Timesheet(
         user_id=target_user_id,
@@ -67,13 +85,28 @@ def create_timesheet(
     session.commit()
     session.refresh(timesheet)
 
+    roster_assignments = {
+        ra.assignment_date: ra
+        for ra in session.exec(
+            select(RosterAssignment).where(
+                col(RosterAssignment.user_id) == target_user_id,
+                col(RosterAssignment.assignment_date) >= payload.period_start,
+                col(RosterAssignment.assignment_date) <= payload.period_end,
+            )
+        ).all()
+    }
+
     entries: list[TimesheetEntry] = []
     for entry in payload.entries:
+        linked_ra = roster_assignments.get(entry.entry_date)
         db_entry = TimesheetEntry(
             timesheet_id=timesheet.id,
             entry_date=entry.entry_date,
+            shift_code=entry.shift_code or (linked_ra.shift_code if linked_ra else None),
+            roster_assignment_id=linked_ra.id if linked_ra else None,
             roster_hours=entry.roster_hours,
             actual_hours=entry.actual_hours,
+            overtime_hours=entry.overtime_hours,
             break_hours=entry.break_hours,
             comments=entry.comments,
         )
@@ -92,14 +125,12 @@ def submit_timesheet(
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
 ) -> Timesheet:
-    timesheet = session.get(Timesheet, timesheet_id)
-    if not timesheet:
-        raise HTTPException(status_code=404, detail="Timesheet not found")
+    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.DRAFT:
-        raise HTTPException(status_code=400, detail="Timesheet already submitted")
+        raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:
-        raise HTTPException(status_code=403, detail="Self submission only for own timesheet")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
     if submission_mode == SubmissionMode.SELF:
         require_permission(current_user=current_user, permission_key="timesheet.submit.self")
     if submission_mode == SubmissionMode.PROXY:
@@ -110,7 +141,7 @@ def submit_timesheet(
             target_user_id=timesheet.user_id,
             permission_key="timesheet.submit.proxy",
         ):
-            raise HTTPException(status_code=403, detail="Proxy submit not allowed")
+            raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED)
 
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
@@ -133,18 +164,16 @@ def approve_timesheet(
     *, session: Session, current_user: User, timesheet_id: uuid.UUID
 ) -> Timesheet:
     require_permission(current_user=current_user, permission_key="timesheet.approve")
-    timesheet = session.get(Timesheet, timesheet_id)
-    if not timesheet:
-        raise HTTPException(status_code=404, detail="Timesheet not found")
+    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.SUBMITTED:
-        raise HTTPException(status_code=400, detail="Timesheet is not submitted")
+        raise HRValidationError(ERROR_TIMESHEET_NOT_SUBMITTED)
     if not can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
         permission_key="timesheet.approve",
     ):
-        raise HTTPException(status_code=403, detail="Not allowed to approve this timesheet")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_APPROVE_NOT_ALLOWED)
 
     timesheet.status = TimesheetStatus.APPROVED
     timesheet.approved_by_user_id = current_user.id
@@ -182,22 +211,75 @@ def list_department_timesheets(
 def read_timesheet_details(
     *, session: Session, current_user: User, timesheet_id: uuid.UUID
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
-    timesheet = session.get(Timesheet, timesheet_id)
-    if not timesheet:
-        raise HTTPException(status_code=404, detail="Timesheet not found")
+    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if current_user.id != timesheet.user_id and not can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=timesheet.user_id,
         permission_key="timesheet.read.department",
     ):
-        raise HTTPException(status_code=403, detail="Not allowed to read this timesheet")
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
     entries = list(
         session.exec(
             select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
         ).all()
     )
     return timesheet, entries
+
+
+def get_timesheet_summary(
+    *, session: Session, current_user: User, timesheet_id: uuid.UUID
+) -> TimesheetSummaryByShift:
+    timesheet = get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
+    if current_user.id != timesheet.user_id and not can_act_on_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=timesheet.user_id,
+        permission_key="timesheet.read.department",
+    ):
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
+
+    entries = list(
+        session.exec(
+            select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
+        ).all()
+    )
+
+    by_shift: dict[str, list[TimesheetEntry]] = defaultdict(list)
+    for entry in entries:
+        key = entry.shift_code or "UNLINKED"
+        by_shift[key].append(entry)
+
+    shifts: list[ShiftHoursSummary] = []
+    grand_roster = Decimal("0.0")
+    grand_actual = Decimal("0.0")
+    grand_overtime = Decimal("0.0")
+    for code, group in sorted(by_shift.items()):
+        total_roster = sum((e.roster_hours for e in group), Decimal("0.0"))
+        total_actual = sum((e.actual_hours for e in group), Decimal("0.0"))
+        total_overtime = sum((e.overtime_hours for e in group), Decimal("0.0"))
+        total_break = sum((e.break_hours for e in group), Decimal("0.0"))
+        shifts.append(
+            ShiftHoursSummary(
+                shift_code=code,
+                total_roster_hours=total_roster,
+                total_actual_hours=total_actual,
+                total_overtime_hours=total_overtime,
+                total_break_hours=total_break,
+                entry_count=len(group),
+            )
+        )
+        grand_roster += total_roster
+        grand_actual += total_actual
+        grand_overtime += total_overtime
+
+    return TimesheetSummaryByShift(
+        timesheet_id=timesheet_id,
+        shifts=shifts,
+        grand_total_roster=grand_roster,
+        grand_total_actual=grand_actual,
+        grand_total_overtime=grand_overtime,
+    )
 
 
 def ensure_timesheet_workflow(

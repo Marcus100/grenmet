@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 
@@ -29,7 +29,16 @@ from .service import (
 router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
 
 
-@router.post("/templates", response_model=WorkflowTemplatePublic)
+@router.post(
+    "/templates",
+    response_model=WorkflowTemplatePublic,
+    summary="Create workflow template",
+    description="Create a new workflow template. Requires workflow.template.manage permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Template created"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
 def create_template(
     *, session: SessionDep, current_user: CurrentUser, template_in: WorkflowTemplateCreate
 ) -> Any:
@@ -38,7 +47,16 @@ def create_template(
     )
 
 
-@router.get("/templates", response_model=WorkflowTemplatesPublic)
+@router.get(
+    "/templates",
+    response_model=WorkflowTemplatesPublic,
+    summary="List workflow templates",
+    description="List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Templates returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
 def read_templates(
     session: SessionDep, current_user: CurrentUser, department_id: str | None = None
 ) -> Any:
@@ -54,7 +72,17 @@ def read_templates(
     )
 
 
-@router.post("/templates/{template_id}/steps", response_model=WorkflowStepTemplatePublic)
+@router.post(
+    "/templates/{template_id}/steps",
+    response_model=WorkflowStepTemplatePublic,
+    summary="Add step to workflow template",
+    description="Create a step template for a workflow template. Requires workflow.template.manage permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Step created"},
+        status.HTTP_404_NOT_FOUND: {"description": "Workflow template not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
 def create_template_step(
     *,
     session: SessionDep,
@@ -70,7 +98,17 @@ def create_template_step(
     )
 
 
-@router.post("/instances", response_model=WorkflowInstancePublic)
+@router.post(
+    "/instances",
+    response_model=WorkflowInstancePublic,
+    summary="Create workflow instance",
+    description="Create a new workflow instance from a template. Template must exist.",
+    responses={
+        status.HTTP_200_OK: {"description": "Instance created"},
+        status.HTTP_404_NOT_FOUND: {"description": "Workflow template not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
 def create_instance(
     *, session: SessionDep, current_user: CurrentUser, instance_in: WorkflowInstanceCreate
 ) -> Any:
@@ -79,7 +117,17 @@ def create_instance(
     )
 
 
-@router.get("/instances/{instance_id}", response_model=WorkflowInstanceDetails)
+@router.get(
+    "/instances/{instance_id}",
+    response_model=WorkflowInstanceDetails,
+    summary="Get workflow instance details",
+    description="Return a workflow instance and its step instances. Requires workflow.instance.view permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Instance and steps returned"},
+        status.HTTP_404_NOT_FOUND: {"description": "Workflow instance not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
 def read_instance(
     session: SessionDep, current_user: CurrentUser, instance_id: uuid.UUID
 ) -> Any:
@@ -97,7 +145,18 @@ def read_instance(
     )
 
 
-@router.post("/instances/{instance_id}/actions", response_model=WorkflowInstancePublic)
+@router.post(
+    "/instances/{instance_id}/actions",
+    response_model=WorkflowInstancePublic,
+    summary="Perform workflow action",
+    description="Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+    responses={
+        status.HTTP_200_OK: {"description": "Action applied"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Workflow cannot be submitted or is not pending"},
+        status.HTTP_404_NOT_FOUND: {"description": "Workflow instance or step not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to perform this workflow action"},
+    },
+)
 def take_action(
     *,
     session: SessionDep,

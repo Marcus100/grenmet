@@ -1,12 +1,17 @@
 import uuid
 from datetime import datetime
 
-from fastapi import HTTPException
 from sqlmodel import Session, col, delete, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user
 
+from . import constants as hr_constants
+from .exceptions import (
+    EmploymentNotFoundError,
+    HRPermissionDeniedError,
+    HRProfileNotFoundError,
+)
 from .models import (
     ApprovalAuthority,
     Department,
@@ -33,13 +38,6 @@ from .schemas import (
     RolePublic,
     RosterPreferencesPublic,
     UserProfilePublic,
-)
-
-ERROR_HR_PROFILE_NOT_FOUND = "HR profile not found for this user"
-ERROR_EMPLOYMENT_NOT_FOUND = "Employment record not found for this user"
-ERROR_ONLY_SUPERVISOR_OR_ADMIN = "Only supervisors or admins can update employment"
-ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT = (
-    "Supervisors can update only users in their department"
 )
 
 
@@ -447,16 +445,18 @@ def update_employment_for_user(
 ) -> UserProfilePublic:
     target_user = session.get(User, target_user_id)
     if not target_user:
-        raise HTTPException(status_code=404, detail=ERROR_HR_PROFILE_NOT_FOUND)
+        raise HRProfileNotFoundError()
 
     if not _can_manage_employment(
         session=session, current_user=current_user, target_user_id=target_user_id
     ):
-        raise HTTPException(status_code=403, detail=ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT)
+        raise HRPermissionDeniedError(
+            hr_constants.ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT
+        )
 
     employment = _get_employment_record(session=session, user_id=target_user_id)
     if not employment:
-        raise HTTPException(status_code=404, detail=ERROR_EMPLOYMENT_NOT_FOUND)
+        raise EmploymentNotFoundError()
 
     if employment_update:
         _apply_employment_update(employment, employment_update)

@@ -1,1 +1,0 @@
-"""Operational HR request domains."""

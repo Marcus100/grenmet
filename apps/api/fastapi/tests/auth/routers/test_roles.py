@@ -53,7 +53,7 @@ def test_get_role(client: TestClient, superuser_token_headers: dict[str, str]) -
         json=data,
     )
     role_id = create_response.json()["id"]
-    
+
     # Then get it
     response = client.get(
         f"{settings.API_V1_STR}/auth/roles/{role_id}",
@@ -62,3 +62,16 @@ def test_get_role(client: TestClient, superuser_token_headers: dict[str, str]) -
     assert response.status_code == 200
     content = response.json()
     assert content["name"] == unique_name
+
+
+def test_get_role_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test 404 detail shape for unknown role ID."""
+    missing_id = uuid.uuid4()
+    response = client.get(
+        f"{settings.API_V1_STR}/auth/roles/{missing_id}",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Role not found"

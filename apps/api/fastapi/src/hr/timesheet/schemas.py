@@ -17,8 +17,10 @@ class DepartmentPolicyPublic(BaseModel):
 
 class TimesheetEntryInput(BaseModel):
     entry_date: date
+    shift_code: str | None = None
     roster_hours: Decimal = Field(default=Decimal("0.0"))
     actual_hours: Decimal = Field(default=Decimal("0.0"))
+    overtime_hours: Decimal = Field(default=Decimal("0.0"))
     break_hours: Decimal = Field(default=Decimal("0.0"))
     comments: str | None = None
 
@@ -50,8 +52,11 @@ class TimesheetEntryPublic(BaseModel):
     id: uuid.UUID
     timesheet_id: uuid.UUID
     entry_date: date
+    shift_code: str | None = None
+    roster_assignment_id: uuid.UUID | None = None
     roster_hours: Decimal
     actual_hours: Decimal
+    overtime_hours: Decimal
     break_hours: Decimal
     comments: str | None = None
 
@@ -68,3 +73,23 @@ class TimesheetSubmitRequest(BaseModel):
 class TimesheetListPublic(BaseModel):
     data: list[TimesheetPublic]
     count: int
+
+
+# --- Timesheet Summary ---
+
+
+class ShiftHoursSummary(BaseModel):
+    shift_code: str
+    total_roster_hours: Decimal
+    total_actual_hours: Decimal
+    total_overtime_hours: Decimal
+    total_break_hours: Decimal
+    entry_count: int
+
+
+class TimesheetSummaryByShift(BaseModel):
+    timesheet_id: uuid.UUID
+    shifts: list[ShiftHoursSummary]
+    grand_total_roster: Decimal
+    grand_total_actual: Decimal
+    grand_total_overtime: Decimal

@@ -6,9 +6,10 @@ from src.auth.models import Permission, Role, RoleAssignmentScope, UserRoleAssig
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.hr.models import Department, EmploymentRecord
-from src.hr.operations.models import LeaveBalanceEvent, RequestStatus
-from src.hr.operations.schemas import LeaveRequestAction, LeaveRequestCreate
-from src.hr.operations.service import action_leave_request, create_leave_request
+from src.hr.leave.models import LeaveBalanceEvent
+from src.hr.leave.schemas import LeaveRequestAction, LeaveRequestCreate
+from src.hr.leave.service import action_leave_request, create_leave_request
+from src.hr.models import RequestStatus
 from tests.utils.utils import random_email, random_lower_string
 
 
