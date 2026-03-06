@@ -112,11 +112,11 @@ export type { EmploymentAdminUpdate } from "./models/EmploymentAdminUpdate.js";
 export type { EmploymentPublic } from "./models/EmploymentPublic.js";
 export type {
   EmploymentStatus,
-  EmploymentStatusEnumKey,
+  EmploymentStatusEmploymentStatusEnumKey,
 } from "./models/EmploymentStatus.js";
 export type {
   EmploymentType,
-  EmploymentTypeEnumKey,
+  EmploymentTypeEmploymentTypeEnumKey,
 } from "./models/EmploymentType.js";
 export type { EmploymentUpdate } from "./models/EmploymentUpdate.js";
 export type {
@@ -254,13 +254,16 @@ export type {
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "./models/ResetPasswordApiV1ResetPasswordPost.js";
 export type { RoleCreate } from "./models/RoleCreate.js";
-export type { RoleScope, RoleScopeEnumKey } from "./models/RoleScope.js";
+export type {
+  RoleScope,
+  RoleScopeRoleScopeEnumKey,
+} from "./models/RoleScope.js";
 export type { RolesPublic } from "./models/RolesPublic.js";
 export type { RosterPreferencesPublic } from "./models/RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./models/RosterPreferencesUpdate.js";
 export type {
   ShiftPattern,
-  ShiftPatternEnumKey,
+  ShiftPatternShiftPatternEnumKey,
 } from "./models/ShiftPattern.js";
 export type { SrcAuthSchemasRolePublic } from "./models/SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js";
@@ -328,7 +331,10 @@ export type { UserProfilePublic } from "./models/UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./models/UserProfileUpdateMe.js";
 export type { UserPublic } from "./models/UserPublic.js";
 export type { UserRegister } from "./models/UserRegister.js";
-export type { UserStatus, UserStatusEnumKey } from "./models/UserStatus.js";
+export type {
+  UserStatus,
+  UserStatusUserStatusEnumKey,
+} from "./models/UserStatus.js";
 export type { UserUpdate } from "./models/UserUpdate.js";
 export type { UserUpdateMe } from "./models/UserUpdateMe.js";
 export type { UsersPublic } from "./models/UsersPublic.js";
@@ -501,11 +507,11 @@ export { useUpdateUserApiV1AuthUsersUserIdPatch } from "./hooks/useUpdateUserApi
 export { updateUserMeApiV1AuthUsersMePatchMutationKey } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
 export { updateUserMeApiV1AuthUsersMePatchMutationOptions } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
 export { useUpdateUserMeApiV1AuthUsersMePatch } from "./hooks/useUpdateUserMeApiV1AuthUsersMePatch.js";
-export { employmentStatusEnum } from "./models/EmploymentStatus.js";
-export { employmentTypeEnum } from "./models/EmploymentType.js";
-export { roleScopeEnum } from "./models/RoleScope.js";
-export { shiftPatternEnum } from "./models/ShiftPattern.js";
-export { userStatusEnum } from "./models/UserStatus.js";
+export { employmentStatusEmploymentStatusEnum } from "./models/EmploymentStatus.js";
+export { employmentTypeEmploymentTypeEnum } from "./models/EmploymentType.js";
+export { roleScopeRoleScopeEnum } from "./models/RoleScope.js";
+export { shiftPatternShiftPatternEnum } from "./models/ShiftPattern.js";
+export { userStatusUserStatusEnum } from "./models/UserStatus.js";
 export { HTTPValidationErrorSchema } from "./zod/HTTPValidationErrorSchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";

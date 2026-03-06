@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-export const employmentStatusEnum = {
+export const employmentStatusEmploymentStatusEnum = {
   ACTIVE: "ACTIVE",
   INACTIVE: "INACTIVE",
   TERMINATED: "TERMINATED",
 } as const;
 
-export type EmploymentStatusEnumKey =
-  (typeof employmentStatusEnum)[keyof typeof employmentStatusEnum];
+export type EmploymentStatusEmploymentStatusEnumKey =
+  (typeof employmentStatusEmploymentStatusEnum)[keyof typeof employmentStatusEmploymentStatusEnum];
 
 /**
  * EmploymentStatus
  */
-export type EmploymentStatus = EmploymentStatusEnumKey;
+export type EmploymentStatus = EmploymentStatusEmploymentStatusEnumKey;

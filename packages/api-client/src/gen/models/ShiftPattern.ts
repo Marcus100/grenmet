@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-export const shiftPatternEnum = {
+export const shiftPatternShiftPatternEnum = {
   ROTATION: "ROTATION",
   FIXED: "FIXED",
   FLEX: "FLEX",
 } as const;
 
-export type ShiftPatternEnumKey =
-  (typeof shiftPatternEnum)[keyof typeof shiftPatternEnum];
+export type ShiftPatternShiftPatternEnumKey =
+  (typeof shiftPatternShiftPatternEnum)[keyof typeof shiftPatternShiftPatternEnum];
 
 /**
  * ShiftPattern
  */
-export type ShiftPattern = ShiftPatternEnumKey;
+export type ShiftPattern = ShiftPatternShiftPatternEnumKey;

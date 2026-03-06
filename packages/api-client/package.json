@@ -13,6 +13,8 @@
   },
   "scripts": {
     "generate": "kubb generate",
+    "generate:watch": "kubb generate --watch",
+    "generate:debug": "kubb generate --debug",
     "build": "tsc",
     "type-check": "tsc --noEmit"
   },
