@@ -1,3 +1,6 @@
+import logging
+import time
+from contextlib import asynccontextmanager
 from typing import Any, cast
 
 import sentry_sdk
@@ -6,7 +9,9 @@ from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
 from sqlalchemy.exc import IntegrityError
+from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
 
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
@@ -35,21 +40,36 @@ def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
 
+# Show docs only in selected envs (best practice: hide in production)
+SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    """Lifespan context manager for startup and shutdown (preferred over on_event)."""
+    # Startup
+    yield
+    # Shutdown (e.g. close pools, flush logs)
+
+
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
 # Configure app settings based on environment
-# Show API docs in all environments
-app_configs = {
+app_configs: dict[str, Any] = {
     "title": settings.PROJECT_NAME,
     "version": "1.0.0",
     "generate_unique_id_function": custom_generate_unique_id,
-    "openapi_url": f"{settings.API_V1_STR}/openapi.json",
-    "docs_url": "/swagger",  # Use custom path
-    "redoc_url": "/redoc",
 }
+if settings.ENVIRONMENT in SHOW_DOCS_ENVIRONMENTS:
+    app_configs["openapi_url"] = f"{settings.API_V1_STR}/openapi.json"
+    app_configs["docs_url"] = "/swagger"
+    app_configs["redoc_url"] = "/redoc"
+else:
+    app_configs["openapi_url"] = None
+    app_configs["docs_url"] = None
+    app_configs["redoc_url"] = None
 
-# Extract values with proper typing
 openapi_url: str | None = cast(str | None, app_configs.get("openapi_url"))
 docs_url: str | None = cast(str | None, app_configs.get("docs_url"))
 redoc_url: str | None = cast(str | None, app_configs.get("redoc_url"))
@@ -61,7 +81,25 @@ app = FastAPI(
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,
+    lifespan=lifespan,
 )
+
+# Request logging middleware (runs after CORS; logs method, path, status, duration)
+logger = logging.getLogger("src.request")
+
+
+async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_s = time.perf_counter() - start
+    logger.info(
+        "%s %s %s %.3fs",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_s,
+    )
+    return response
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:
@@ -71,7 +109,7 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
+app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers
 # app.include_router(shipments_router, prefix="/api/v1")
 # Auth-related routers (split for better organization)

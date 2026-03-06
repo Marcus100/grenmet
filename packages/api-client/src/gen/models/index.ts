@@ -67,11 +67,11 @@ export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type { EmploymentPublic } from "./EmploymentPublic.js";
 export type {
   EmploymentStatus,
-  EmploymentStatusEnumKey,
+  EmploymentStatusEmploymentStatusEnumKey,
 } from "./EmploymentStatus.js";
 export type {
   EmploymentType,
-  EmploymentTypeEnumKey,
+  EmploymentTypeEmploymentTypeEnumKey,
 } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
 export type {
@@ -209,11 +209,14 @@ export type {
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "./ResetPasswordApiV1ResetPasswordPost.js";
 export type { RoleCreate } from "./RoleCreate.js";
-export type { RoleScope, RoleScopeEnumKey } from "./RoleScope.js";
+export type { RoleScope, RoleScopeRoleScopeEnumKey } from "./RoleScope.js";
 export type { RolesPublic } from "./RolesPublic.js";
 export type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
-export type { ShiftPattern, ShiftPatternEnumKey } from "./ShiftPattern.js";
+export type {
+  ShiftPattern,
+  ShiftPatternShiftPatternEnumKey,
+} from "./ShiftPattern.js";
 export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type {
@@ -280,13 +283,13 @@ export type { UserProfilePublic } from "./UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 export type { UserPublic } from "./UserPublic.js";
 export type { UserRegister } from "./UserRegister.js";
-export type { UserStatus, UserStatusEnumKey } from "./UserStatus.js";
+export type { UserStatus, UserStatusUserStatusEnumKey } from "./UserStatus.js";
 export type { UserUpdate } from "./UserUpdate.js";
 export type { UserUpdateMe } from "./UserUpdateMe.js";
 export type { UsersPublic } from "./UsersPublic.js";
 export type { ValidationError } from "./ValidationError.js";
-export { employmentStatusEnum } from "./EmploymentStatus.js";
-export { employmentTypeEnum } from "./EmploymentType.js";
-export { roleScopeEnum } from "./RoleScope.js";
-export { shiftPatternEnum } from "./ShiftPattern.js";
-export { userStatusEnum } from "./UserStatus.js";
+export { employmentStatusEmploymentStatusEnum } from "./EmploymentStatus.js";
+export { employmentTypeEmploymentTypeEnum } from "./EmploymentType.js";
+export { roleScopeRoleScopeEnum } from "./RoleScope.js";
+export { shiftPatternShiftPatternEnum } from "./ShiftPattern.js";
+export { userStatusUserStatusEnum } from "./UserStatus.js";

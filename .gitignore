@@ -160,3 +160,10 @@ secrets/
 *.bak
 *.tmp
 *.temp
+
+# =======================
+# Kubb generated SDK policy
+# =======================
+# This repository commits generated SDK code from packages/api-client.
+!packages/api-client/src/gen/
+!packages/api-client/src/gen/**

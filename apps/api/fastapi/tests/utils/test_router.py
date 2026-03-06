@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+import httpx
 from fastapi.testclient import TestClient
 
 from src.config import settings
@@ -14,6 +15,13 @@ def test_health_check(client: TestClient) -> None:
     assert response.status_code == 200
     content = response.json()
     assert content is True  # Health check returns boolean
+
+
+async def test_health_check_async(async_client: httpx.AsyncClient) -> None:
+    """Async test for health check (pattern for future async integration tests)."""
+    response = await async_client.get(f"{settings.API_V1_STR}/utils/health-check/")
+    assert response.status_code == 200
+    assert response.json() is True
 
 
 @patch("src.utils.router.send_email")

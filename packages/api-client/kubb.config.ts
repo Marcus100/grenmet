@@ -14,12 +14,16 @@ export default defineConfig(({ watch }) => ({
   output: {
     path: './src/gen',
     clean: !watch,
+    barrelType: 'named',
     format: 'biome',
     extension: { '.ts': '.js' },
     defaultBanner: 'simple',
   },
   plugins: [
-    pluginOas(),
+    pluginOas({
+      validate: true,
+      collisionDetection: true,
+    }),
     pluginTs({
       output: {
         path: 'models',

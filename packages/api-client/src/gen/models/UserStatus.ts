@@ -3,15 +3,15 @@
  * Do not edit manually.
  */
 
-export const userStatusEnum = {
+export const userStatusUserStatusEnum = {
   ACTIVE: "ACTIVE",
   INACTIVE: "INACTIVE",
 } as const;
 
-export type UserStatusEnumKey =
-  (typeof userStatusEnum)[keyof typeof userStatusEnum];
+export type UserStatusUserStatusEnumKey =
+  (typeof userStatusUserStatusEnum)[keyof typeof userStatusUserStatusEnum];
 
 /**
  * UserStatus
  */
-export type UserStatus = UserStatusEnumKey;
+export type UserStatus = UserStatusUserStatusEnumKey;

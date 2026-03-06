@@ -1,0 +1,44 @@
+name: API Client Generation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  api-client:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate API client
+        run: pnpm generate:api-client
+
+      - name: Ensure generated client is committed
+        run: git diff --exit-code -- packages/api-client/src/gen
+
+      - name: Type-check API client package
+        run: pnpm --filter @grenmet/api-client run type-check
+
+      - name: Build API client package
+        run: pnpm --filter @grenmet/api-client run build
+
+      - name: Type-check admin consumer
+        run: pnpm --filter @grenmet/web-admin run type-check

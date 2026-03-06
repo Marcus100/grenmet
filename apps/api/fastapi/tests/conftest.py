@@ -1,5 +1,6 @@
-from collections.abc import Generator
+from collections.abc import AsyncGenerator, Generator
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import Session, delete
@@ -32,6 +33,16 @@ def client() -> Generator[TestClient, None, None]:
     """FastAPI test client for sync testing."""
     with TestClient(app) as c:
         yield c
+
+
+@pytest.fixture
+async def async_client() -> AsyncGenerator[httpx.AsyncClient, None]:
+    """Async HTTP client for integration tests (ASGI transport)."""
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        yield client
 
 
 @pytest.fixture(scope="module")

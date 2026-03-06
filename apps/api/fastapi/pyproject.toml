@@ -28,6 +28,7 @@ dependencies = [
 [tool.uv]
 dev-dependencies = [
     "pytest>=7.4.3",
+    "pytest-asyncio>=0.23.0",
     "mypy>=1.8.0",
     "ruff>=0.2.2",
     "pre-commit>=3.6.2",
@@ -87,6 +88,7 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 norecursedirs = ["scripts", ".git", ".tox", "dist", "build"]
+asyncio_mode = "auto"
 
 [tool.coverage.report]
 show_missing = true
