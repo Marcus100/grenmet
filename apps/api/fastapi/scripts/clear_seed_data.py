@@ -12,7 +12,6 @@ from sqlmodel import Session, select
 
 from src.auth.models import User
 from src.database import engine
-from src.items.models import Item
 
 logging.basicConfig(
     level=logging.INFO,
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    """Clear all seed data (test users and their items)."""
+    """Clear all seed data (test users)."""
     logger.info("=" * 60)
     logger.info("Clearing seed data...")
     logger.info("=" * 60)
@@ -38,23 +37,13 @@ def main():
                 logger.info("No seed data found to clear")
                 return
 
-            # Delete items for these users
-            user_ids = [user.id for user in test_users]
-            items = session.exec(select(Item).where(Item.owner_id.in_(user_ids))).all()
-
-            for item in items:
-                session.delete(item)
-
-            # Delete users
             for user in test_users:
                 session.delete(user)
 
             session.commit()
 
             logger.info("=" * 60)
-            logger.info(
-                f"Successfully cleared {len(test_users)} users and {len(items)} items"
-            )
+            logger.info(f"Successfully cleared {len(test_users)} users")
             logger.info("=" * 60)
 
     except Exception as e:

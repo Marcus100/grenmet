@@ -5,7 +5,7 @@ from pydantic import Field
 
 from src.models import BaseModel
 
-from .models import ImportStatus, RosterPeriodStatus, ShiftCategory
+from .models import ImportStatus, RosterPeriodStatus, RosterRevisionAction, ShiftCategory
 
 
 class ShiftCatalogPublic(BaseModel):
@@ -94,3 +94,47 @@ class RosterCsvImportResponse(BaseModel):
     total_rows: int
     valid_rows: int
     invalid_rows: int
+
+
+# --- Public Holidays ---
+
+
+class PublicHolidayCreate(BaseModel):
+    name: str
+    holiday_date: date
+    is_recurring: bool = False
+    country_code: str = "GD"
+
+
+class PublicHolidayPublic(BaseModel):
+    id: uuid.UUID
+    name: str
+    holiday_date: date
+    is_recurring: bool
+    country_code: str
+    created_by_user_id: uuid.UUID
+    created_at: datetime
+
+
+class PublicHolidaysPublic(BaseModel):
+    data: list[PublicHolidayPublic]
+    count: int
+
+
+# --- Roster Revisions ---
+
+
+class RosterRevisionPublic(BaseModel):
+    id: uuid.UUID
+    roster_period_id: uuid.UUID
+    revision_number: int
+    action: RosterRevisionAction
+    changed_by_user_id: uuid.UUID
+    summary: str | None = None
+    snapshot: dict
+    created_at: datetime
+
+
+class RosterRevisionsPublic(BaseModel):
+    data: list[RosterRevisionPublic]
+    count: int

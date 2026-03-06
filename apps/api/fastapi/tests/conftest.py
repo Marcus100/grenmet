@@ -8,7 +8,6 @@ from sqlmodel import Session, delete
 from src.auth.models import User
 from src.config import settings
 from src.database import engine, init_db
-from src.items.models import Item
 from src.main import app
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
@@ -21,8 +20,6 @@ def db() -> Generator[Session, None, None]:
         init_db(session)
         yield session
         # Clean up test data
-        statement = delete(Item)
-        session.execute(statement)
         statement = delete(User)
         session.execute(statement)
         session.commit()

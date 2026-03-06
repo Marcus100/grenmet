@@ -4,28 +4,24 @@ Seed database with test data for development.
 Custom Users:
     Edit the CUSTOM_USERS list at the top of this file to define your custom users.
     Only users defined in CUSTOM_USERS will be created (no automatic generic users).
-    Items are automatically created for all custom users.
 
 Usage:
-    python scripts/seed_data.py                    # Create all custom users, 3 items each
-    python scripts/seed_data.py --count 2          # Create first 2 custom users
-    python scripts/seed_data.py --reset            # Clear existing seed data first
-    python scripts/seed_data.py --items-per-user 5 # Create 5 items per user
+    python scripts/seed_data.py           # Create all custom users
+    python scripts/seed_data.py --count 2 # Create first 2 custom users
+    python scripts/seed_data.py --reset   # Clear existing seed data first
 """
 
 import argparse
 import logging
 import sys
 
-from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select, col
+from sqlmodel import Session, select
 
 from src.auth.models import User
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.database import engine
-from src.items.models import Item
 
 logging.basicConfig(
     level=logging.INFO,
@@ -189,12 +185,11 @@ CUSTOM_USERS = [
 ]
 
 
-def clear_seed_data(session: Session) -> tuple[int, int]:
-    """Clear existing seed data (test users and their items)."""
+def clear_seed_data(session: Session) -> int:
+    """Clear existing seed data (test users)."""
     logger.info("Clearing existing seed data...")
 
     # Find all test users
-    # Fetch all users and filter in Python to avoid linter issues with SQLModel FieldInfo
     all_users = session.exec(select(User)).all()
     test_users = [
         u
@@ -203,29 +198,15 @@ def clear_seed_data(session: Session) -> tuple[int, int]:
     ]
 
     user_count = len(test_users)
-    item_count = 0
-
     if test_users:
-        # Delete items for these users
-        # Use SQL filtering for better performance with large datasets
-        user_ids = [user.id for user in test_users]
-        conditions = [col(Item.owner_id) == uid for uid in user_ids]
-        items = session.exec(select(Item).where(or_(*conditions))).all()
-        item_count = len(items)
-
-        for item in items:
-            session.delete(item)
-
-        # Delete users
         for user in test_users:
             session.delete(user)
-
         session.commit()
-        logger.info("Cleared %d users and %d items", user_count, item_count)
+        logger.info("Cleared %d users", user_count)
     else:
         logger.info("No seed data found to clear")
 
-    return user_count, item_count
+    return user_count
 
 
 def _create_user_from_data(
@@ -305,55 +286,6 @@ def create_test_users(session: Session, count: int = 5) -> list[User]:
     return users
 
 
-def create_test_items(
-    session: Session, users: list[User], items_per_user: int = 3
-) -> tuple[int, int]:
-    """Create test items for users. Returns (created_count, skipped_count)."""
-    created_count = 0
-    skipped_count = 0
-
-    for user in users:
-        # Check how many items this user already has
-        existing_items = session.exec(
-            select(Item).where(col(Item.owner_id) == user.id)
-        ).all()
-        existing_count = len(existing_items)
-
-        # Only create items if user has fewer than requested
-        items_to_create = max(0, items_per_user - existing_count)
-
-        # Use bulk operations for better performance
-        items_to_add = [
-            Item(
-                title=f"Test Item {existing_count + i + 1} for {user.username}",
-                description=f"This is a test item description {existing_count + i + 1}",
-                content=(
-                    f"Detailed content for Test Item {existing_count + i + 1}. "
-                    f"This item belongs to {user.username} and contains comprehensive information "
-                    f"about the item. It includes various details, descriptions, and metadata that "
-                    f"would be typical for a real-world application item."
-                ),
-                owner_id=user.id,
-            )
-            for i in range(items_to_create)
-        ]
-
-        if items_to_add:
-            session.add_all(items_to_add)
-            created_count += len(items_to_add)
-            for item in items_to_add:
-                logger.debug("Created item: %s", item.title)
-
-        if items_to_create == 0:
-            skipped_count += items_per_user
-            logger.debug(
-                "User %s already has %d items, skipping", user.username, existing_count
-            )
-
-    session.commit()
-    return created_count, skipped_count
-
-
 def main():
     """Main seeding function with command-line arguments."""
     parser = argparse.ArgumentParser(
@@ -364,12 +296,6 @@ def main():
         type=int,
         default=None,
         help="Number of custom users to create from CUSTOM_USERS list (default: all custom users)",
-    )
-    parser.add_argument(
-        "--items-per-user",
-        type=int,
-        default=3,
-        help="Number of items per user (default: 3)",
     )
     parser.add_argument(
         "--reset",
@@ -392,8 +318,6 @@ def main():
     # Validate input arguments
     if args.count < 0:
         parser.error("--count must be non-negative")
-    if args.items_per_user < 0:
-        parser.error("--items-per-user must be non-negative")
     if args.count > len(CUSTOM_USERS):
         logger.warning(
             "Requested %d users but only %d custom users available. "
@@ -409,9 +333,7 @@ def main():
 
     logger.info("=" * 60)
     logger.info("Starting database seeding...")
-    logger.info(
-        "Configuration: %d custom users, %d items each", args.count, args.items_per_user
-    )
+    logger.info("Configuration: %d custom users", args.count)
     if args.reset:
         logger.info("Reset mode: Will clear existing seed data first")
     logger.info("=" * 60)
@@ -420,35 +342,22 @@ def main():
     try:
         # Clear existing data if requested
         if args.reset:
-            cleared_users, cleared_items = clear_seed_data(session)
-            logger.info("Cleared: %d users, %d items", cleared_users, cleared_items)
+            cleared_users = clear_seed_data(session)
+            logger.info("Cleared: %d users", cleared_users)
 
         # Create custom users
         logger.info("Creating custom users from CUSTOM_USERS list...")
         users = create_test_users(session, count=args.count)
 
         if not users:
-            logger.error(
-                "No users available to create items for. Please add users to CUSTOM_USERS list."
-            )
+            logger.error("No users created. Please add users to CUSTOM_USERS list.")
             session.rollback()
             sys.exit(1)
-
-        # Create test items (automated)
-        logger.info("Creating %d items per user (automated)...", args.items_per_user)
-        items_created, items_skipped = create_test_items(
-            session, users, items_per_user=args.items_per_user
-        )
 
         # Summary
         logger.info("=" * 60)
         logger.info("Database seeding completed!")
         logger.info("Users: %d total (all from CUSTOM_USERS)", len(users))
-        logger.info(
-            "Items: %d created, %d skipped (already existed)",
-            items_created,
-            items_skipped,
-        )
         logger.info("=" * 60)
         if users:
             first_user = users[0]

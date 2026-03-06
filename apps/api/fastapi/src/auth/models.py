@@ -1,13 +1,10 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
-
-if TYPE_CHECKING:
-    from src.items.models import Item
 
 
 class RoleAssignmentScope(str, Enum):
@@ -35,7 +32,6 @@ class User(UserBase, table=True):
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
     # Relationships
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     user_image: Optional["UserImage"] = Relationship(
         back_populates="user", cascade_delete=True
     )

@@ -1,5 +1,7 @@
 """Tests for permissions router."""
 
+import uuid
+
 from fastapi.testclient import TestClient
 
 from src.config import settings
@@ -54,7 +56,7 @@ def test_get_permission(client: TestClient, superuser_token_headers: dict[str, s
         json=data,
     )
     permission_id = create_response.json()["id"]
-    
+
     # Then get it
     response = client.get(
         f"{settings.API_V1_STR}/auth/permissions/{permission_id}",
@@ -63,3 +65,16 @@ def test_get_permission(client: TestClient, superuser_token_headers: dict[str, s
     assert response.status_code == 200
     content = response.json()
     assert content["action"] == "read"
+
+
+def test_get_permission_not_found(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    """Test 404 detail shape for unknown permission ID."""
+    missing_id = uuid.uuid4()
+    response = client.get(
+        f"{settings.API_V1_STR}/auth/permissions/{missing_id}",
+        headers=superuser_token_headers,
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Permission not found"

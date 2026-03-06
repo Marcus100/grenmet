@@ -3,21 +3,42 @@ import uuid
 from datetime import datetime
 from io import StringIO
 
-from fastapi import HTTPException
 from sqlmodel import Session, col, delete, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
+from src.hr.constants import (
+    ERROR_CSV_IMPORT_INVALID_ROWS,
+    ERROR_CSV_MISSING_COLUMNS,
+    ERROR_CSV_NO_HEADER,
+    ERROR_PUBLIC_HOLIDAY_DUPLICATE_DATE,
+    ERROR_ROSTER_PERIOD_ALREADY_CLOSED,
+    ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED,
+    ERROR_ROSTER_PERIOD_END_BEFORE_START,
+    ERROR_ROSTER_PERIOD_NOT_PUBLISHED,
+)
+from src.hr.dependencies import (
+    get_public_holiday_or_404,
+    get_roster_period_or_404,
+)
+from src.hr.exceptions import (
+    HRValidationError,
+)
 
 from .models import (
     ImportStatus,
+    PublicHoliday,
     RosterAssignment,
     RosterImportJob,
     RosterImportRow,
     RosterPeriod,
+    RosterPeriodStatus,
+    RosterRevision,
+    RosterRevisionAction,
     ShiftCatalog,
 )
 from .schemas import (
+    PublicHolidayCreate,
     RosterAssignmentBulkCreate,
     RosterAssignmentInput,
     RosterCsvRowValidation,
@@ -27,6 +48,164 @@ from .schemas import (
 )
 
 REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
+
+
+# ---------------------------------------------------------------------------
+# Public Holidays
+# ---------------------------------------------------------------------------
+
+
+def create_public_holiday(
+    *, session: Session, current_user: User, payload: PublicHolidayCreate
+) -> PublicHoliday:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    existing = session.exec(
+        select(PublicHoliday).where(col(PublicHoliday.holiday_date) == payload.holiday_date)
+    ).first()
+    if existing:
+        raise HRValidationError(ERROR_PUBLIC_HOLIDAY_DUPLICATE_DATE)
+    holiday = PublicHoliday(
+        name=payload.name,
+        holiday_date=payload.holiday_date,
+        is_recurring=payload.is_recurring,
+        country_code=payload.country_code,
+        created_by_user_id=current_user.id,
+    )
+    session.add(holiday)
+    session.commit()
+    session.refresh(holiday)
+    return holiday
+
+
+def list_public_holidays(
+    *, session: Session, current_user: User, year: int | None = None
+) -> list[PublicHoliday]:
+    require_permission(current_user=current_user, permission_key="roster.view")
+    statement = select(PublicHoliday).order_by(col(PublicHoliday.holiday_date))
+    if year is not None:
+        import sqlalchemy as sa_filter
+
+        statement = statement.where(
+            sa_filter.extract("year", PublicHoliday.holiday_date) == year
+        )
+    return list(session.exec(statement).all())
+
+
+def delete_public_holiday(
+    *, session: Session, current_user: User, holiday_id: uuid.UUID
+) -> None:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    holiday = get_public_holiday_or_404(session=session, holiday_id=holiday_id)
+    session.delete(holiday)
+    session.commit()
+
+
+# ---------------------------------------------------------------------------
+# Roster Revisions
+# ---------------------------------------------------------------------------
+
+
+def _create_revision(
+    *,
+    session: Session,
+    roster_period_id: uuid.UUID,
+    action: RosterRevisionAction,
+    changed_by_user_id: uuid.UUID,
+    summary: str | None = None,
+    snapshot: dict | None = None,
+) -> RosterRevision:
+    last_rev = session.exec(
+        select(RosterRevision)
+        .where(col(RosterRevision.roster_period_id) == roster_period_id)
+        .order_by(col(RosterRevision.revision_number).desc())
+    ).first()
+    next_number = (last_rev.revision_number + 1) if last_rev else 1
+    revision = RosterRevision(
+        roster_period_id=roster_period_id,
+        revision_number=next_number,
+        action=action,
+        changed_by_user_id=changed_by_user_id,
+        summary=summary,
+        snapshot=snapshot or {},
+    )
+    session.add(revision)
+    return revision
+
+
+def list_roster_revisions(
+    *, session: Session, current_user: User, period_id: uuid.UUID
+) -> list[RosterRevision]:
+    require_permission(current_user=current_user, permission_key="roster.view")
+    get_roster_period_or_404(session=session, period_id=period_id)
+    return list(
+        session.exec(
+            select(RosterRevision)
+            .where(col(RosterRevision.roster_period_id) == period_id)
+            .order_by(col(RosterRevision.revision_number))
+        ).all()
+    )
+
+
+def publish_roster_period(
+    *, session: Session, current_user: User, period_id: uuid.UUID
+) -> RosterPeriod:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    period = get_roster_period_or_404(session=session, period_id=period_id)
+    if period.status == RosterPeriodStatus.PUBLISHED:
+        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED)
+    if period.status == RosterPeriodStatus.CLOSED:
+        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
+    period.status = RosterPeriodStatus.PUBLISHED
+    period.updated_at = datetime.utcnow()
+    session.add(period)
+    assignment_count = len(
+        list(
+            session.exec(
+                select(RosterAssignment).where(
+                    col(RosterAssignment.roster_period_id) == period_id
+                )
+            ).all()
+        )
+    )
+    _create_revision(
+        session=session,
+        roster_period_id=period_id,
+        action=RosterRevisionAction.PUBLISHED,
+        changed_by_user_id=current_user.id,
+        summary=f"Published with {assignment_count} assignments",
+        snapshot={"assignment_count": assignment_count},
+    )
+    session.commit()
+    session.refresh(period)
+    return period
+
+
+def close_roster_period(
+    *, session: Session, current_user: User, period_id: uuid.UUID
+) -> RosterPeriod:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    period = get_roster_period_or_404(session=session, period_id=period_id)
+    if period.status == RosterPeriodStatus.CLOSED:
+        raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
+    if period.status != RosterPeriodStatus.PUBLISHED:
+        raise HRValidationError(ERROR_ROSTER_PERIOD_NOT_PUBLISHED)
+    period.status = RosterPeriodStatus.CLOSED
+    period.updated_at = datetime.utcnow()
+    session.add(period)
+    _create_revision(
+        session=session,
+        roster_period_id=period_id,
+        action=RosterRevisionAction.CLOSED,
+        changed_by_user_id=current_user.id,
+    )
+    session.commit()
+    session.refresh(period)
+    return period
+
+
+# ---------------------------------------------------------------------------
+# Shift Catalog
+# ---------------------------------------------------------------------------
 
 
 def read_shift_catalog(*, session: Session, current_user: User) -> list[ShiftCatalog]:
@@ -43,7 +222,7 @@ def create_roster_period(
 ) -> RosterPeriod:
     require_permission(current_user=current_user, permission_key="roster.manage")
     if period_in.period_end < period_in.period_start:
-        raise HTTPException(status_code=400, detail="period_end must be after period_start")
+        raise HRValidationError(ERROR_ROSTER_PERIOD_END_BEFORE_START)
     db_period = RosterPeriod.model_validate(
         period_in,
         update={
@@ -53,6 +232,14 @@ def create_roster_period(
     session.add(db_period)
     session.commit()
     session.refresh(db_period)
+    _create_revision(
+        session=session,
+        roster_period_id=db_period.id,
+        action=RosterRevisionAction.CREATED,
+        changed_by_user_id=current_user.id,
+        summary=f"Period {period_in.period_start} to {period_in.period_end}",
+    )
+    session.commit()
     return db_period
 
 
@@ -60,9 +247,7 @@ def bulk_upsert_roster_assignments(
     *, session: Session, current_user: User, payload: RosterAssignmentBulkCreate
 ) -> list[RosterAssignment]:
     require_permission(current_user=current_user, permission_key="roster.manage")
-    period = session.get(RosterPeriod, payload.roster_period_id)
-    if not period:
-        raise HTTPException(status_code=404, detail="Roster period not found")
+    get_roster_period_or_404(session=session, period_id=payload.roster_period_id)
     if not payload.assignments:
         return []
 
@@ -82,6 +267,17 @@ def bulk_upsert_roster_assignments(
                 remarks=assignment.remarks,
             )
         )
+    _create_revision(
+        session=session,
+        roster_period_id=payload.roster_period_id,
+        action=RosterRevisionAction.ASSIGNMENTS_UPDATED,
+        changed_by_user_id=current_user.id,
+        summary=f"Upserted {len(payload.assignments)} assignments",
+        snapshot={
+            "upserted_count": len(payload.assignments),
+            "user_ids": list({str(a.user_id) for a in payload.assignments}),
+        },
+    )
     session.commit()
     created_assignments = list(
         session.exec(
@@ -97,9 +293,7 @@ def read_roster_period_details(
     *, session: Session, current_user: User, period_id: uuid.UUID
 ) -> tuple[RosterPeriod, list[RosterAssignment]]:
     require_permission(current_user=current_user, permission_key="roster.view")
-    period = session.get(RosterPeriod, period_id)
-    if not period:
-        raise HTTPException(status_code=404, detail="Roster period not found")
+    period = get_roster_period_or_404(session=session, period_id=period_id)
     assignments = list(
         session.exec(
             select(RosterAssignment)
@@ -115,13 +309,12 @@ def _validate_csv_rows(
 ) -> tuple[list[RosterCsvRowValidation], list[RosterAssignmentInput]]:
     reader = csv.DictReader(StringIO(csv_text))
     if not reader.fieldnames:
-        raise HTTPException(status_code=400, detail="CSV has no header")
+        raise HRValidationError(ERROR_CSV_NO_HEADER)
     normalized_headers = {header.strip() for header in reader.fieldnames if header}
     missing_headers = REQUIRED_CSV_COLUMNS - normalized_headers
     if missing_headers:
-        raise HTTPException(
-            status_code=400,
-            detail=f"CSV missing columns: {', '.join(sorted(missing_headers))}",
+        raise HRValidationError(
+            ERROR_CSV_MISSING_COLUMNS.format(", ".join(sorted(missing_headers)))
         )
 
     validations: list[RosterCsvRowValidation] = []
@@ -203,7 +396,7 @@ def import_roster_csv(
         invalid_rows=validation_result.invalid_rows,
         error_summary=None
         if validation_result.invalid_rows == 0
-        else "CSV import has invalid rows",
+        else ERROR_CSV_IMPORT_INVALID_ROWS,
     )
     session.add(job)
     session.commit()

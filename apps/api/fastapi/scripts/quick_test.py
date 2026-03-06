@@ -71,7 +71,7 @@ def test_openapi_schema():
             for tag in sorted(tags):
                 print(f"   - {tag}")
 
-            expected_tags = {"login", "users", "roles", "permissions", "items", "utils"}
+            expected_tags = {"login", "users", "roles", "permissions", "utils"}
             if expected_tags.issubset(tags):
                 print_success("All expected router groups present!")
                 return True

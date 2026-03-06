@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 
@@ -15,12 +15,30 @@ from ..service import (
 router = APIRouter(prefix="/hr", tags=["hr"])
 
 
-@router.get("/profile/me", response_model=UserProfilePublic)
+@router.get(
+    "/profile/me",
+    response_model=UserProfilePublic,
+    summary="Get my HR profile",
+    description="Return the current user's HR profile (identity, employment, address, preferences).",
+    responses={
+        status.HTTP_200_OK: {"description": "HR profile returned"},
+        status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
+    },
+)
 def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
     return read_profile_for_user(session=session, current_user=current_user)
 
 
-@router.patch("/profile/me", response_model=UserProfilePublic)
+@router.patch(
+    "/profile/me",
+    response_model=UserProfilePublic,
+    summary="Update my HR profile",
+    description="Update the current user's HR profile (identity, address, preferences).",
+    responses={
+        status.HTTP_200_OK: {"description": "Profile updated"},
+        status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
+    },
+)
 def update_hr_profile_me(
     *,
     session: SessionDep,
@@ -35,7 +53,17 @@ def update_hr_profile_me(
     )
 
 
-@router.patch("/employment/{user_id}", response_model=UserProfilePublic)
+@router.patch(
+    "/employment/{user_id}",
+    response_model=UserProfilePublic,
+    summary="Update employment (admin)",
+    description="Update a user's employment record and approval authority. Supervisor or admin only.",
+    responses={
+        status.HTTP_200_OK: {"description": "Employment updated"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {"description": "User or employment record not found"},
+    },
+)
 def update_hr_employment(
     *,
     session: SessionDep,

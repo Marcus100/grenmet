@@ -71,9 +71,9 @@ def get_pagination_params(
     Dependency to extract pagination parameters from query string.
 
     Usage:
-        @router.get("/items")
-        def list_items(pagination: Annotated[PaginationParams, Depends(get_pagination_params)]):
-            items = get_items(skip=pagination.skip, limit=pagination.limit)
-            return PaginatedResponse(data=items, count=total, page=pagination.page, size=pagination.size)
+        @router.get("/resources")
+        def list_resources(pagination: Annotated[PaginationParams, Depends(get_pagination_params)]):
+            resources = fetch_list(skip=pagination.skip, limit=pagination.limit)
+            return PaginatedResponse(data=resources, count=total, page=pagination.page, size=pagination.size)
     """
     return PaginationParams(page=page, size=size)

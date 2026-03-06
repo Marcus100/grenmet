@@ -14,7 +14,6 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
-from src.items.models import Item  # noqa: F401
 from src.hr.models import (  # noqa: F401
     ApprovalAuthority,
     Department,
@@ -27,18 +26,17 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
-from src.hr.operations.models import (  # noqa: F401
-    AbsenteeReport,
-    LeaveBalanceEvent,
-    LeaveRequest,
-    ShiftSwapRequest,
-    StatusReport,
-)
+from src.hr.absentee.models import AbsenteeReport  # noqa: F401
+from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
+from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
+from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.roster.models import (  # noqa: F401
+    PublicHoliday,
     RosterAssignment,
     RosterImportJob,
     RosterImportRow,
     RosterPeriod,
+    RosterRevision,
     ShiftCatalog,
 )
 from src.hr.timesheet.models import (  # noqa: F401

@@ -3,7 +3,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import service
 from src.auth.dependencies import get_current_active_superuser
@@ -22,7 +22,13 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_model=UserRoleAssignmentsPublic)
+@router.get(
+    "/",
+    response_model=UserRoleAssignmentsPublic,
+    summary="List role assignments",
+    description="Return role assignments, optionally filtered by user_id (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Role assignments returned"}},
+)
 def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None) -> Any:
     assignments = service.get_user_role_assignments(session=session, user_id=user_id)
     return UserRoleAssignmentsPublic(
@@ -34,7 +40,16 @@ def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None)
     )
 
 
-@router.get("/{assignment_id}", response_model=UserRoleAssignmentPublic)
+@router.get(
+    "/{assignment_id}",
+    response_model=UserRoleAssignmentPublic,
+    summary="Get role assignment by ID",
+    description="Return a role assignment by ID (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "Role assignment returned"},
+        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+    },
+)
 def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
     assignment = service.get_user_role_assignment(
         session=session, assignment_id=assignment_id
@@ -44,7 +59,13 @@ def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
     return assignment
 
 
-@router.post("/", response_model=UserRoleAssignmentPublic)
+@router.post(
+    "/",
+    response_model=UserRoleAssignmentPublic,
+    summary="Create role assignment",
+    description="Create a user-role assignment (superuser only).",
+    responses={status.HTTP_200_OK: {"description": "Role assignment created"}},
+)
 def create_role_assignment(
     *, session: SessionDep, assignment_in: UserRoleAssignmentCreate
 ) -> Any:
@@ -54,7 +75,16 @@ def create_role_assignment(
     return assignment
 
 
-@router.patch("/{assignment_id}", response_model=UserRoleAssignmentPublic)
+@router.patch(
+    "/{assignment_id}",
+    response_model=UserRoleAssignmentPublic,
+    summary="Update role assignment",
+    description="Update a user-role assignment (superuser only).",
+    responses={
+        status.HTTP_200_OK: {"description": "Role assignment updated"},
+        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+    },
+)
 def update_role_assignment(
     *,
     session: SessionDep,
