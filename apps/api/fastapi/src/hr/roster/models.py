@@ -5,6 +5,8 @@ from enum import Enum
 import sqlalchemy as sa
 from sqlmodel import Field, SQLModel
 
+from src.utils.datetime import utc_now
+
 
 class ShiftCategory(str, Enum):
     WORK = "WORK"
@@ -39,8 +41,8 @@ class ShiftCatalog(SQLModel, table=True):
     needs_reason: bool = False
     needs_approval: bool = False
     is_active: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterPeriod(SQLModel, table=True):
@@ -53,8 +55,8 @@ class RosterPeriod(SQLModel, table=True):
     period_end: date
     status: RosterPeriodStatus = Field(default=RosterPeriodStatus.DRAFT)
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterAssignment(SQLModel, table=True):
@@ -74,8 +76,8 @@ class RosterAssignment(SQLModel, table=True):
     assignment_date: date = Field(index=True)
     shift_code: str = Field(foreign_key="hr.shift_catalog.code", max_length=10)
     remarks: str | None = Field(default=None, max_length=500)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class PublicHoliday(SQLModel, table=True):
@@ -88,7 +90,7 @@ class PublicHoliday(SQLModel, table=True):
     is_recurring: bool = Field(default=False)
     country_code: str = Field(default="GD", max_length=3)
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterRevisionAction(str, Enum):
@@ -109,7 +111,7 @@ class RosterRevision(SQLModel, table=True):
     changed_by_user_id: uuid.UUID = Field(foreign_key="user.id")
     summary: str | None = Field(default=None, max_length=500)
     snapshot: dict = Field(default_factory=dict, sa_column=sa.Column(sa.JSON))
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterImportJob(SQLModel, table=True):
@@ -126,8 +128,8 @@ class RosterImportJob(SQLModel, table=True):
     valid_rows: int = 0
     invalid_rows: int = 0
     error_summary: str | None = Field(default=None, max_length=2000)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class RosterImportRow(SQLModel, table=True):
@@ -142,4 +144,4 @@ class RosterImportRow(SQLModel, table=True):
         default_factory=list, sa_column=sa.Column(sa.JSON)
     )
     is_valid: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)

@@ -4,6 +4,7 @@ from datetime import date, datetime
 from sqlmodel import Field, SQLModel
 
 from src.hr.models import RequestStatus
+from src.utils.datetime import utc_now
 
 
 class AbsenteeReport(SQLModel, table=True):
@@ -28,5 +29,5 @@ class AbsenteeReport(SQLModel, table=True):
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
     workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
     submitted_by_user_id: uuid.UUID = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

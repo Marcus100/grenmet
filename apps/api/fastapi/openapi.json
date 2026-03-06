@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Grenmet API",
+    "title": "Grenmet",
     "version": "1.0.0"
   },
   "paths": {
@@ -215,8 +215,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Read Users",
-        "description": "Retrieve users.",
+        "summary": "List users",
+        "description": "Return users (superuser only).",
         "operationId": "read_users_api_v1_auth_users__get",
         "security": [
           {
@@ -247,7 +247,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Users returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -272,8 +272,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Create User",
-        "description": "Create new user.",
+        "summary": "Create user",
+        "description": "Create a user (superuser only).",
         "operationId": "create_user_api_v1_auth_users__post",
         "security": [
           {
@@ -292,7 +292,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User created",
             "content": {
               "application/json": {
                 "schema": {
@@ -300,6 +300,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "User with this email already exists"
           },
           "422": {
             "description": "Validation Error",
@@ -319,12 +322,12 @@
         "tags": [
           "users"
         ],
-        "summary": "Read User Me",
-        "description": "Get current user.",
+        "summary": "Get current user",
+        "description": "Return the currently authenticated user.",
         "operationId": "read_user_me_api_v1_auth_users_me_get",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Current user returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -344,12 +347,12 @@
         "tags": [
           "users"
         ],
-        "summary": "Delete User Me",
-        "description": "Delete own user.",
+        "summary": "Delete current user",
+        "description": "Delete currently authenticated user account.",
         "operationId": "delete_user_me_api_v1_auth_users_me_delete",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -357,6 +360,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Superuser cannot delete own account"
           }
         },
         "security": [
@@ -369,8 +375,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Update User Me",
-        "description": "Update own user.",
+        "summary": "Update current user",
+        "description": "Update profile fields for the currently authenticated user.",
         "operationId": "update_user_me_api_v1_auth_users_me_patch",
         "requestBody": {
           "content": {
@@ -384,7 +390,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -392,6 +398,9 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Email already exists"
           },
           "422": {
             "description": "Validation Error",
@@ -416,8 +425,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Update Password Me",
-        "description": "Update own password.",
+        "summary": "Change current user password",
+        "description": "Change password for the currently authenticated user.",
         "operationId": "update_password_me_api_v1_auth_users_me_password_patch",
         "requestBody": {
           "content": {
@@ -431,7 +440,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Password updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -439,6 +448,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Current password incorrect or new password unchanged"
           },
           "422": {
             "description": "Validation Error",
@@ -508,8 +520,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Read User By Id",
-        "description": "Get a specific user by id.",
+        "summary": "Get user by ID",
+        "description": "Return user by ID. Non-superusers can only fetch themselves.",
         "operationId": "read_user_by_id_api_v1_auth_users__user_id__get",
         "security": [
           {
@@ -530,7 +542,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -538,6 +550,9 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Insufficient privileges"
           },
           "422": {
             "description": "Validation Error",
@@ -555,8 +570,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Update User",
-        "description": "Update a user.",
+        "summary": "Update user by ID",
+        "description": "Update a user by ID (superuser only).",
         "operationId": "update_user_api_v1_auth_users__user_id__patch",
         "security": [
           {
@@ -587,7 +602,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -595,6 +610,12 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Email already exists"
           },
           "422": {
             "description": "Validation Error",
@@ -612,8 +633,8 @@
         "tags": [
           "users"
         ],
-        "summary": "Delete User",
-        "description": "Delete a user.",
+        "summary": "Delete user by ID",
+        "description": "Delete a user by ID (superuser only).",
         "operationId": "delete_user_api_v1_auth_users__user_id__delete",
         "security": [
           {
@@ -634,7 +655,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "User deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -642,6 +663,12 @@
                 }
               }
             }
+          },
+          "403": {
+            "description": "Superuser cannot delete own account"
+          },
+          "404": {
+            "description": "User not found"
           },
           "422": {
             "description": "Validation Error",
@@ -661,8 +688,8 @@
         "tags": [
           "roles"
         ],
-        "summary": "Read Roles",
-        "description": "Retrieve roles (superuser only).",
+        "summary": "List roles",
+        "description": "Return roles (superuser only).",
         "operationId": "read_roles_api_v1_auth_roles__get",
         "security": [
           {
@@ -693,7 +720,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Roles returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -718,8 +745,8 @@
         "tags": [
           "roles"
         ],
-        "summary": "Create Role",
-        "description": "Create new role (superuser only).",
+        "summary": "Create role",
+        "description": "Create a role (superuser only).",
         "operationId": "create_role_api_v1_auth_roles__post",
         "security": [
           {
@@ -738,11 +765,11 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Role created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                  "$ref": "#/components/schemas/RolePublic"
                 }
               }
             }
@@ -765,8 +792,8 @@
         "tags": [
           "roles"
         ],
-        "summary": "Read Role",
-        "description": "Get role by ID (superuser only).",
+        "summary": "Get role by ID",
+        "description": "Return a role by ID (superuser only).",
         "operationId": "read_role_api_v1_auth_roles__role_id__get",
         "security": [
           {
@@ -787,14 +814,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Role returned",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                  "$ref": "#/components/schemas/RolePublic"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Role not found"
           },
           "422": {
             "description": "Validation Error",
@@ -814,8 +844,8 @@
         "tags": [
           "permissions"
         ],
-        "summary": "Read Permissions",
-        "description": "Retrieve permissions (superuser only).",
+        "summary": "List permissions",
+        "description": "Return permissions (superuser only).",
         "operationId": "read_permissions_api_v1_auth_permissions__get",
         "security": [
           {
@@ -846,7 +876,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Permissions returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -871,8 +901,8 @@
         "tags": [
           "permissions"
         ],
-        "summary": "Create Permission",
-        "description": "Create new permission (superuser only).",
+        "summary": "Create permission",
+        "description": "Create a permission (superuser only).",
         "operationId": "create_permission_api_v1_auth_permissions__post",
         "security": [
           {
@@ -891,7 +921,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Permission created",
             "content": {
               "application/json": {
                 "schema": {
@@ -918,8 +948,8 @@
         "tags": [
           "permissions"
         ],
-        "summary": "Read Permission",
-        "description": "Get permission by ID (superuser only).",
+        "summary": "Get permission by ID",
+        "description": "Return a permission by ID (superuser only).",
         "operationId": "read_permission_api_v1_auth_permissions__permission_id__get",
         "security": [
           {
@@ -940,7 +970,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Permission returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -948,6 +978,222 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Permission not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/role-assignments/": {
+      "get": {
+        "tags": [
+          "role-assignments"
+        ],
+        "summary": "List role assignments",
+        "description": "Return role assignments, optionally filtered by user_id (superuser only).",
+        "operationId": "read_role_assignments_api_v1_auth_role_assignments__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignments returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRoleAssignmentsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "role-assignments"
+        ],
+        "summary": "Create role assignment",
+        "description": "Create a user-role assignment (superuser only).",
+        "operationId": "create_role_assignment_api_v1_auth_role_assignments__post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRoleAssignmentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assignment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRoleAssignmentPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/role-assignments/{assignment_id}": {
+      "get": {
+        "tags": [
+          "role-assignments"
+        ],
+        "summary": "Get role assignment by ID",
+        "description": "Return a role assignment by ID (superuser only).",
+        "operationId": "read_role_assignment_api_v1_auth_role_assignments__assignment_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Role assignment returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRoleAssignmentPublic"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role assignment not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "role-assignments"
+        ],
+        "summary": "Update role assignment",
+        "description": "Update a user-role assignment (superuser only).",
+        "operationId": "update_role_assignment_api_v1_auth_role_assignments__assignment_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserRoleAssignmentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role assignment updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRoleAssignmentPublic"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role assignment not found"
           },
           "422": {
             "description": "Validation Error",
@@ -967,11 +1213,12 @@
         "tags": [
           "hr"
         ],
-        "summary": "Read Hr Profile Me",
+        "summary": "Get my HR profile",
+        "description": "Return the current user's HR profile (identity, employment, address, preferences).",
         "operationId": "read_hr_profile_me_api_v1_hr_profile_me_get",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "HR profile returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -979,6 +1226,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "HR profile not found for this user"
           }
         },
         "security": [
@@ -991,7 +1241,8 @@
         "tags": [
           "hr"
         ],
-        "summary": "Update Hr Profile Me",
+        "summary": "Update my HR profile",
+        "description": "Update the current user's HR profile (identity, address, preferences).",
         "operationId": "update_hr_profile_me_api_v1_hr_profile_me_patch",
         "requestBody": {
           "content": {
@@ -1005,7 +1256,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Profile updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -1013,6 +1264,9 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "HR profile not found for this user"
           },
           "422": {
             "description": "Validation Error",
@@ -1037,7 +1291,8 @@
         "tags": [
           "hr"
         ],
-        "summary": "Update Hr Employment",
+        "summary": "Update employment (admin)",
+        "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
         "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
         "security": [
           {
@@ -1068,7 +1323,7 @@
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Employment updated",
             "content": {
               "application/json": {
                 "schema": {
@@ -1077,6 +1332,12 @@
               }
             }
           },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "User or employment record not found"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -1090,74 +1351,14 @@
         }
       }
     },
-    "/api/v1/items/": {
-      "get": {
-        "tags": [
-          "items"
-        ],
-        "summary": "Retrieve items",
-        "description": "Retrieve a list of items. Regular users see only their own items. Superusers see all items.",
-        "operationId": "read_items_api_v1_items__get",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "skip",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "integer",
-              "default": 100,
-              "title": "Limit"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of items retrieved successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ItemsPublic"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Not authenticated"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/api/v1/hr/workflows/templates": {
       "post": {
         "tags": [
-          "items"
+          "hr-workflows"
         ],
-        "summary": "Create a new item",
-        "description": "Create a new item owned by the current user. Requires authentication.",
-        "operationId": "create_item_api_v1_items__post",
+        "summary": "Create workflow template",
+        "description": "Create a new workflow template. Requires workflow.template.manage permission.",
+        "operationId": "create_template_api_v1_hr_workflows_templates_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1168,24 +1369,80 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ItemCreate"
+                "$ref": "#/components/schemas/WorkflowTemplateCreate"
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "Item created successfully",
+          "200": {
+            "description": "Template created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/WorkflowTemplatePublic"
                 }
               }
             }
           },
-          "401": {
-            "description": "Not authenticated"
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-workflows"
+        ],
+        "summary": "List workflow templates",
+        "description": "List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.",
+        "operationId": "read_templates_api_v1_hr_workflows_templates_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Templates returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowTemplatesPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
           },
           "422": {
             "description": "Validation Error",
@@ -1200,14 +1457,14 @@
         }
       }
     },
-    "/api/v1/items/{id}": {
-      "get": {
+    "/api/v1/hr/workflows/templates/{template_id}/steps": {
+      "post": {
         "tags": [
-          "items"
+          "hr-workflows"
         ],
-        "summary": "Read Item",
-        "description": "Get item by ID.",
-        "operationId": "read_item_api_v1_items__id__get",
+        "summary": "Add step to workflow template",
+        "description": "Create a step template for a workflow template. Requires workflow.template.manage permission.",
+        "operationId": "create_template_step_api_v1_hr_workflows_templates__template_id__steps_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1215,60 +1472,13 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "template_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Id"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Item"
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "items"
-        ],
-        "summary": "Update Item",
-        "description": "Update an item.",
-        "operationId": "update_item_api_v1_items__id__put",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "Id"
+              "title": "Template Id"
             }
           }
         ],
@@ -1277,21 +1487,27 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ItemUpdate"
+                "$ref": "#/components/schemas/WorkflowStepTemplateCreate"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Step created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Item"
+                  "$ref": "#/components/schemas/WorkflowStepTemplatePublic"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Workflow template not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
           },
           "422": {
             "description": "Validation Error",
@@ -1304,14 +1520,69 @@
             }
           }
         }
-      },
-      "delete": {
+      }
+    },
+    "/api/v1/hr/workflows/instances": {
+      "post": {
         "tags": [
-          "items"
+          "hr-workflows"
         ],
-        "summary": "Delete an item",
-        "description": "Delete an item by ID. Users can only delete their own items unless they are superusers.",
-        "operationId": "delete_item_api_v1_items__id__delete",
+        "summary": "Create workflow instance",
+        "description": "Create a new workflow instance from a template. Template must exist.",
+        "operationId": "create_instance_api_v1_hr_workflows_instances_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowInstanceCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Instance created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstancePublic"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow template not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/workflows/instances/{instance_id}": {
+      "get": {
+        "tags": [
+          "hr-workflows"
+        ],
+        "summary": "Get workflow instance details",
+        "description": "Return a workflow instance and its step instances. Requires workflow.instance.view permission.",
+        "operationId": "read_instance_api_v1_hr_workflows_instances__instance_id__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1319,35 +1590,100 @@
         ],
         "parameters": [
           {
-            "name": "id",
+            "name": "instance_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Id"
+              "title": "Instance Id"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Item deleted successfully",
+            "description": "Instance and steps returned",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Message"
+                  "$ref": "#/components/schemas/WorkflowInstanceDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workflow instance not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/workflows/instances/{instance_id}/actions": {
+      "post": {
+        "tags": [
+          "hr-workflows"
+        ],
+        "summary": "Perform workflow action",
+        "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
+        "operationId": "take_action_api_v1_hr_workflows_instances__instance_id__actions_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "instance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Instance Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Action applied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInstancePublic"
                 }
               }
             }
           },
           "400": {
-            "description": "Not enough permissions to delete this item"
-          },
-          "401": {
-            "description": "Not authenticated"
+            "description": "Workflow cannot be submitted or is not pending"
           },
           "404": {
-            "description": "Item not found"
+            "description": "Workflow instance or step not found"
+          },
+          "403": {
+            "description": "Not allowed to perform this workflow action"
           },
           "422": {
             "description": "Validation Error",
@@ -1362,14 +1698,157 @@
         }
       }
     },
-    "/api/v1/items/{item_id}/images": {
+    "/api/v1/hr/rosters/shifts": {
       "get": {
         "tags": [
-          "items"
+          "hr-rosters"
         ],
-        "summary": "Get Item Images",
-        "description": "Get all images for an item.",
-        "operationId": "get_item_images_api_v1_items__item_id__images_get",
+        "summary": "List shift catalog",
+        "description": "Return the active shift catalog for roster assignment.",
+        "operationId": "list_shift_catalog_api_v1_hr_rosters_shifts_get",
+        "responses": {
+          "200": {
+            "description": "Shift catalog returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftCatalogsPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/periods": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Create roster period",
+        "description": "Create a new roster period. Requires roster.manage permission.",
+        "operationId": "create_period_api_v1_hr_rosters_periods_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterPeriodCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterPeriodPublic"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Roster period created"
+          },
+          "400": {
+            "description": "Validation error (e.g. period_end before period_start)"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/assignments/bulk": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Bulk upsert roster assignments",
+        "description": "Create or replace roster assignments for a period. Requires roster.manage permission.",
+        "operationId": "bulk_assignments_api_v1_hr_rosters_assignments_bulk_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterAssignmentBulkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Assignments created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RosterAssignmentPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Bulk Assignments Api V1 Hr Rosters Assignments Bulk Post"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Roster period not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Get roster period details",
+        "description": "Return a roster period and its assignments. Requires roster.view permission.",
+        "operationId": "get_period_api_v1_hr_rosters_periods__period_id__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1377,26 +1856,362 @@
         ],
         "parameters": [
           {
-            "name": "item_id",
+            "name": "period_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Item Id"
+              "title": "Period Id"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Period and assignments returned",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemImagesPublic"
+                  "$ref": "#/components/schemas/RosterPeriodDetails"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Roster period not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/import-csv/validate": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Validate roster CSV",
+        "description": "Validate CSV content for roster import. Requires roster.import permission.",
+        "operationId": "validate_csv_api_v1_hr_rosters_import_csv_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterCsvValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Validation result returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterCsvValidationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid CSV (e.g. missing header or columns)"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/import-csv": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Import roster from CSV",
+        "description": "Create roster import job and optionally apply valid rows. Requires roster.import permission.",
+        "operationId": "import_csv_api_v1_hr_rosters_import_csv_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterCsvValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Import job created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterCsvImportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid CSV"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}/publish": {
+      "patch": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Publish roster period",
+        "description": "Transition a draft roster period to published. Requires roster.manage permission.",
+        "operationId": "publish_period_api_v1_hr_rosters_periods__period_id__publish_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roster period published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterPeriodPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Period already published or closed"
+          },
+          "404": {
+            "description": "Roster period not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}/close": {
+      "patch": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Close roster period",
+        "description": "Close a published roster period. Requires roster.manage permission.",
+        "operationId": "close_period_api_v1_hr_rosters_periods__period_id__close_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roster period closed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterPeriodPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Period not published or already closed"
+          },
+          "404": {
+            "description": "Roster period not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}/revisions": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "List roster period revisions",
+        "description": "Return the revision history for a roster period. Requires roster.view permission.",
+        "operationId": "get_period_revisions_api_v1_hr_rosters_periods__period_id__revisions_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Revisions returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRevisionsPublic"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Roster period not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/public-holidays": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Create public holiday",
+        "description": "Add a public holiday. Requires roster.manage permission.",
+        "operationId": "create_holiday_api_v1_hr_rosters_public_holidays_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublicHolidayCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Public holiday created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicHolidayPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Duplicate date"
+          },
+          "403": {
+            "description": "Insufficient permission"
           },
           "422": {
             "description": "Validation Error",
@@ -1410,13 +2225,13 @@
           }
         }
       },
-      "post": {
+      "get": {
         "tags": [
-          "items"
+          "hr-rosters"
         ],
-        "summary": "Create Item Image",
-        "description": "Upload an image for an item.",
-        "operationId": "create_item_image_api_v1_items__item_id__images_post",
+        "summary": "List public holidays",
+        "description": "Return public holidays, optionally filtered by year. Requires roster.view permission.",
+        "operationId": "list_holidays_api_v1_hr_rosters_public_holidays_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1424,13 +2239,169 @@
         ],
         "parameters": [
           {
-            "name": "item_id",
+            "name": "year",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Year"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Public holidays returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicHolidaysPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/public-holidays/{holiday_id}": {
+      "delete": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Delete public holiday",
+        "description": "Remove a public holiday. Requires roster.manage permission.",
+        "operationId": "remove_holiday_api_v1_hr_rosters_public_holidays__holiday_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "holiday_id",
             "in": "path",
             "required": true,
             "schema": {
               "type": "string",
               "format": "uuid",
-              "title": "Item Id"
+              "title": "Holiday Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Public holiday deleted"
+          },
+          "404": {
+            "description": "Public holiday not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/": {
+      "post": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Create timesheet",
+        "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
+        "operationId": "create_timesheet_endpoint_api_v1_hr_timesheets__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimesheetCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Timesheet and entries created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Self/proxy submission disabled or not allowed for user"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/timesheets/{timesheet_id}/submit": {
+      "patch": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Submit timesheet",
+        "description": "Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
+        "operationId": "submit_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__submit_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
             }
           }
         ],
@@ -1439,21 +2410,800 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ItemImageCreate"
+                "$ref": "#/components/schemas/TimesheetSubmitRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Timesheet submitted",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ItemImagePublic"
+                  "$ref": "#/components/schemas/TimesheetPublic"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Timesheet already submitted"
+          },
+          "403": {
+            "description": "Not allowed (self only for own; proxy not allowed)"
+          },
+          "404": {
+            "description": "Timesheet not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{timesheet_id}/approve": {
+      "patch": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Approve timesheet",
+        "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
+        "operationId": "approve_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__approve_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timesheet approved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Timesheet is not submitted"
+          },
+          "403": {
+            "description": "Not allowed to approve this timesheet"
+          },
+          "404": {
+            "description": "Timesheet not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/me": {
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "List my timesheets",
+        "description": "Return timesheets for the current user.",
+        "operationId": "read_my_timesheets_api_v1_hr_timesheets_me_get",
+        "responses": {
+          "200": {
+            "description": "Timesheets returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetListPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/timesheets/department": {
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "List department timesheets",
+        "description": "Return timesheets for a department. Requires timesheet.read.department permission.",
+        "operationId": "read_department_timesheets_api_v1_hr_timesheets_department_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timesheets returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetListPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{timesheet_id}/summary": {
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Get timesheet summary by shift",
+        "description": "Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
+        "operationId": "read_timesheet_summary_api_v1_hr_timesheets__timesheet_id__summary_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetSummaryByShift"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed to read this timesheet"
+          },
+          "404": {
+            "description": "Timesheet not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/timesheets/{timesheet_id}": {
+      "get": {
+        "tags": [
+          "hr-timesheets"
+        ],
+        "summary": "Get timesheet details",
+        "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
+        "operationId": "read_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "timesheet_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Timesheet Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Timesheet and entries returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimesheetDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed to read this timesheet"
+          },
+          "404": {
+            "description": "Timesheet not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/leave-requests": {
+      "post": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Create leave request",
+        "description": "Create a leave request for the current user. Requires leave.request.create.self permission.",
+        "operationId": "create_leave_request_endpoint_api_v1_hr_leave_requests_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/leave-requests/{leave_request_id}/action": {
+      "patch": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Action leave request",
+        "description": "Approve or update a leave request. Requires leave.request.action and scope over the user.",
+        "operationId": "action_leave_request_endpoint_api_v1_hr_leave_requests__leave_request_id__action_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "leave_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Leave Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed to action this leave request"
+          },
+          "404": {
+            "description": "Leave request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/leave-requests/me": {
+      "get": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "List my leave requests",
+        "description": "Return leave requests for the current user.",
+        "operationId": "read_my_leave_requests_api_v1_hr_leave_requests_me_get",
+        "responses": {
+          "200": {
+            "description": "Leave requests returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestListPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/absentee-reports": {
+      "post": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Create absentee report",
+        "description": "Create an absentee report. Requires absentee.report.create permission.",
+        "operationId": "create_absentee_endpoint_api_v1_hr_absentee_reports_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenteeReportCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Absentee report created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenteeReportPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "List absentee reports",
+        "description": "List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
+        "operationId": "read_absentee_reports_api_v1_hr_absentee_reports_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Absentee reports returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenteeReportListPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/shift-swaps": {
+      "post": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Create shift swap request",
+        "description": "Create a shift swap request. Requires shift_swap.request.create.self permission.",
+        "operationId": "create_shift_swap_endpoint_api_v1_hr_shift_swaps_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Shift swap request created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRequestPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/shift-swaps/{shift_swap_id}/action": {
+      "patch": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Action shift swap request",
+        "description": "Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
+        "operationId": "action_shift_swap_endpoint_api_v1_hr_shift_swaps__shift_swap_id__action_patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift swap request updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRequestPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not allowed to action this shift swap"
+          },
+          "404": {
+            "description": "Shift swap request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/status-reports": {
+      "post": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Create status report",
+        "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
+        "operationId": "create_status_report_endpoint_api_v1_hr_status_reports_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReportCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status report created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReportDetails"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "List status reports",
+        "description": "List status reports. Requires status.report.read permission. Optionally filter by department_id.",
+        "operationId": "read_status_reports_api_v1_hr_status_reports_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status reports returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReportListPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/status-reports/{report_id}": {
+      "get": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Get status report details",
+        "description": "Return a status report with its personnel entries. Requires status.report.read permission.",
+        "operationId": "read_status_report_endpoint_api_v1_hr_status_reports__report_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status report and entries returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReportDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Status report not found"
+          },
+          "403": {
+            "description": "Insufficient permission"
           },
           "422": {
             "description": "Validation Error",
@@ -1522,7 +3272,8 @@
         "tags": [
           "utils"
         ],
-        "summary": "Health Check",
+        "summary": "Liveness",
+        "description": "Simple liveness probe; returns 200 if the process is running.",
         "operationId": "health_check_api_v1_utils_health_check__get",
         "responses": {
           "200": {
@@ -1538,46 +3289,54 @@
           }
         }
       }
+    },
+    "/api/v1/utils/ready/": {
+      "get": {
+        "tags": [
+          "utils"
+        ],
+        "summary": "Readiness",
+        "description": "Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
+        "operationId": "ready_api_v1_utils_ready__get",
+        "responses": {
+          "200": {
+            "description": "Database reachable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Ready Api V1 Utils Ready  Get"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database unreachable"
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "AddressPublic": {
+      "AbsenteeReportCreate": {
         "properties": {
-          "line_1": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Line 1"
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
           },
-          "line_2": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Line 2"
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
           },
-          "city": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "City"
+          "report_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Report Date"
           },
-          "parish": {
+          "expected_shift_code": {
             "anyOf": [
               {
                 "type": "string"
@@ -1586,9 +3345,9 @@
                 "type": "null"
               }
             ],
-            "title": "Parish"
+            "title": "Expected Shift Code"
           },
-          "postal_code": {
+          "absence_start_time": {
             "anyOf": [
               {
                 "type": "string"
@@ -1597,9 +3356,9 @@
                 "type": "null"
               }
             ],
-            "title": "Postal Code"
+            "title": "Absence Start Time"
           },
-          "country": {
+          "absence_end_time": {
             "anyOf": [
               {
                 "type": "string"
@@ -1608,12 +3367,68 @@
                 "type": "null"
               }
             ],
-            "title": "Country"
+            "title": "Absence End Time"
+          },
+          "reason_code": {
+            "type": "string",
+            "title": "Reason Code"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "contact_attempted": {
+            "type": "boolean",
+            "title": "Contact Attempted",
+            "default": false
+          },
+          "contact_method": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact Method"
+          },
+          "replacement_arranged": {
+            "type": "boolean",
+            "title": "Replacement Arranged",
+            "default": false
+          },
+          "replacement_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replacement User Id"
           }
         },
         "type": "object",
-        "title": "AddressPublic"
+        "required": [
+          "user_id",
+          "department_id",
+          "report_date",
+          "reason_code"
+        ],
+        "title": "AbsenteeReportCreate"
       },
+      "AbsenteeReportListPublic": {},
+      "AbsenteeReportPublic": {},
       "AddressUpdate": {
         "properties": {
           "line_1": {
@@ -1691,32 +3506,6 @@
         },
         "type": "object",
         "title": "AddressUpdate"
-      },
-      "ApprovalAuthorityPublic": {
-        "properties": {
-          "can_approve_leave": {
-            "type": "boolean",
-            "title": "Can Approve Leave",
-            "default": false
-          },
-          "can_approve_shift_swap": {
-            "type": "boolean",
-            "title": "Can Approve Shift Swap",
-            "default": false
-          },
-          "can_approve_timesheets": {
-            "type": "boolean",
-            "title": "Can Approve Timesheets",
-            "default": false
-          },
-          "can_approve_absentee_reports": {
-            "type": "boolean",
-            "title": "Can Approve Absentee Reports",
-            "default": false
-          }
-        },
-        "type": "object",
-        "title": "ApprovalAuthorityPublic"
       },
       "ApprovalAuthorityUpdate": {
         "properties": {
@@ -1827,24 +3616,6 @@
         ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
       },
-      "DepartmentPublic": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "title": "Id"
-          },
-          "name": {
-            "type": "string",
-            "title": "Name"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "name"
-        ],
-        "title": "DepartmentPublic"
-      },
       "EmploymentAdminUpdate": {
         "properties": {
           "employment": {
@@ -1870,99 +3641,6 @@
         },
         "type": "object",
         "title": "EmploymentAdminUpdate"
-      },
-      "EmploymentPublic": {
-        "properties": {
-          "employee_number": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Employee Number"
-          },
-          "department": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/DepartmentPublic"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "position": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Position"
-          },
-          "employment_type": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmploymentType"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          },
-          "start_date": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Start Date"
-          },
-          "supervisor_id": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "uuid"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Supervisor Id"
-          },
-          "work_location": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Work Location"
-          },
-          "status": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/EmploymentStatus"
-              },
-              {
-                "type": "null"
-              }
-            ]
-          }
-        },
-        "type": "object",
-        "title": "EmploymentPublic"
       },
       "EmploymentStatus": {
         "type": "string",
@@ -2094,17 +3772,24 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
-      "Item": {
+      "LeaveRequestAction": {
         "properties": {
-          "title": {
-            "type": "string",
-            "title": "Title"
+          "status": {
+            "$ref": "#/components/schemas/RequestStatus"
           },
-          "content": {
-            "type": "string",
-            "title": "Content"
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
           },
-          "description": {
+          "head_of_dept_comments": {
             "anyOf": [
               {
                 "type": "string"
@@ -2113,52 +3798,74 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "owner_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Owner Id"
+            "title": "Head Of Dept Comments"
           }
         },
         "type": "object",
         "required": [
-          "title",
-          "content",
-          "id",
-          "created_at",
-          "updated_at",
-          "owner_id"
+          "status"
         ],
-        "title": "Item"
+        "title": "LeaveRequestAction"
       },
-      "ItemCreate": {
+      "LeaveRequestCreate": {
         "properties": {
-          "title": {
+          "department_id": {
             "type": "string",
-            "title": "Title"
+            "title": "Department Id"
           },
-          "content": {
+          "leave_type": {
+            "$ref": "#/components/schemas/LeaveType"
+          },
+          "start_date": {
             "type": "string",
-            "title": "Content",
-            "default": ""
+            "format": "date",
+            "title": "Start Date"
           },
-          "description": {
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "days_requested": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Days Requested",
+            "default": "0.0"
+          },
+          "days_with_pay": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Days With Pay",
+            "default": "0.0"
+          },
+          "days_without_pay": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Days Without Pay",
+            "default": "0.0"
+          },
+          "reason": {
             "anyOf": [
               {
                 "type": "string"
@@ -2167,18 +3874,9 @@
                 "type": "null"
               }
             ],
-            "title": "Description"
-          }
-        },
-        "type": "object",
-        "required": [
-          "title"
-        ],
-        "title": "ItemCreate"
-      },
-      "ItemImageCreate": {
-        "properties": {
-          "alt_text": {
+            "title": "Reason"
+          },
+          "contact_phone": {
             "anyOf": [
               {
                 "type": "string"
@@ -2187,22 +3885,9 @@
                 "type": "null"
               }
             ],
-            "title": "Alt Text"
+            "title": "Contact Phone"
           },
-          "object_key": {
-            "type": "string",
-            "title": "Object Key"
-          }
-        },
-        "type": "object",
-        "required": [
-          "object_key"
-        ],
-        "title": "ItemImageCreate"
-      },
-      "ItemImagePublic": {
-        "properties": {
-          "alt_text": {
+          "leave_address": {
             "anyOf": [
               {
                 "type": "string"
@@ -2211,157 +3896,48 @@
                 "type": "null"
               }
             ],
-            "title": "Alt Text"
+            "title": "Leave Address"
           },
-          "object_key": {
-            "type": "string",
-            "title": "Object Key"
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          },
-          "item_id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Item Id"
-          }
-        },
-        "type": "object",
-        "required": [
-          "object_key",
-          "id",
-          "created_at",
-          "updated_at",
-          "item_id"
-        ],
-        "title": "ItemImagePublic"
-      },
-      "ItemImagesPublic": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/ItemImagePublic"
-            },
-            "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data",
-          "count"
-        ],
-        "title": "ItemImagesPublic"
-      },
-      "ItemUpdate": {
-        "properties": {
-          "title": {
+          "acting_officer_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "format": "uuid"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Title"
-          },
-          "content": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Content"
-          },
-          "description": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Description"
-          }
-        },
-        "type": "object",
-        "title": "ItemUpdate"
-      },
-      "ItemsPublic": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/Item"
-            },
-            "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Acting Officer Id"
           }
         },
         "type": "object",
         "required": [
-          "data",
-          "count"
+          "department_id",
+          "leave_type",
+          "start_date",
+          "end_date"
         ],
-        "title": "ItemsPublic"
+        "title": "LeaveRequestCreate"
       },
-      "LeavePublic": {
-        "properties": {
-          "balances": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Balances"
-          },
-          "carry_over": {
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "type": "object",
-            "title": "Carry Over"
-          }
-        },
-        "type": "object",
-        "title": "LeavePublic"
-      },
-      "Message": {
-        "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message"
-          }
-        },
-        "type": "object",
-        "required": [
-          "message"
+      "LeaveRequestListPublic": {},
+      "LeaveRequestPublic": {},
+      "LeaveType": {
+        "type": "string",
+        "enum": [
+          "VACATION",
+          "SICK",
+          "CASUAL",
+          "MATERNITY",
+          "PATERNITY",
+          "STUDY",
+          "COMPASSIONATE",
+          "WITHOUT_PAY",
+          "OTHER"
         ],
-        "title": "Message"
+        "title": "LeaveType"
       },
+      "Message": {},
       "NewPassword": {
         "properties": {
           "token": {
@@ -2382,6 +3958,17 @@
       },
       "PermissionCreate": {
         "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
           "action": {
             "type": "string",
             "title": "Action"
@@ -2408,187 +3995,18 @@
         ],
         "title": "PermissionCreate"
       },
-      "PermissionPublic": {
-        "properties": {
-          "action": {
-            "type": "string",
-            "title": "Action"
-          },
-          "entity": {
-            "type": "string",
-            "title": "Entity"
-          },
-          "access": {
-            "type": "string",
-            "title": "Access"
-          },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
-          },
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "created_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Created At"
-          },
-          "updated_at": {
-            "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "action",
-          "entity",
-          "access",
-          "id",
-          "created_at",
-          "updated_at"
+      "PermissionPublic": {},
+      "PermissionsPublic": {},
+      "PersonnelStatus": {
+        "type": "string",
+        "enum": [
+          "PRESENT",
+          "ABSENT",
+          "LATE",
+          "ON_LEAVE",
+          "EXCUSED"
         ],
-        "title": "PermissionPublic"
-      },
-      "PermissionsPublic": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/PermissionPublic"
-            },
-            "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data",
-          "count"
-        ],
-        "title": "PermissionsPublic"
-      },
-      "ProfileAuditPublic": {
-        "properties": {
-          "created_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created At"
-          },
-          "created_by": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Created By"
-          },
-          "updated_at": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date-time"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Updated At"
-          }
-        },
-        "type": "object",
-        "title": "ProfileAuditPublic"
-      },
-      "ProfileDetailsPublic": {
-        "properties": {
-          "first_name": {
-            "type": "string",
-            "title": "First Name"
-          },
-          "middle_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Middle Name"
-          },
-          "last_name": {
-            "type": "string",
-            "title": "Last Name"
-          },
-          "display_name": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
-          },
-          "date_of_birth": {
-            "anyOf": [
-              {
-                "type": "string",
-                "format": "date"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Date Of Birth"
-          },
-          "nationality": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Nationality"
-          },
-          "gender": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Gender"
-          }
-        },
-        "type": "object",
-        "required": [
-          "first_name",
-          "last_name"
-        ],
-        "title": "ProfileDetailsPublic"
+        "title": "PersonnelStatus"
       },
       "ProfileDetailsUpdate": {
         "properties": {
@@ -2716,49 +4134,56 @@
         "type": "object",
         "title": "ProfileDetailsUpdate"
       },
-      "ProfileIdentityPublic": {
+      "PublicHolidayCreate": {
         "properties": {
-          "username": {
+          "name": {
             "type": "string",
-            "title": "Username"
+            "title": "Name"
           },
-          "email": {
+          "holiday_date": {
             "type": "string",
-            "title": "Email"
+            "format": "date",
+            "title": "Holiday Date"
           },
-          "phone": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Phone"
+          "is_recurring": {
+            "type": "boolean",
+            "title": "Is Recurring",
+            "default": false
           },
-          "avatar_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Avatar Url"
-          },
-          "status": {
-            "$ref": "#/components/schemas/UserStatus"
+          "country_code": {
+            "type": "string",
+            "title": "Country Code",
+            "default": "GD"
           }
         },
         "type": "object",
         "required": [
-          "username",
-          "email",
-          "status"
+          "name",
+          "holiday_date"
         ],
-        "title": "ProfileIdentityPublic"
+        "title": "PublicHolidayCreate"
+      },
+      "PublicHolidayPublic": {},
+      "PublicHolidaysPublic": {},
+      "RequestStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "SUBMITTED",
+          "APPROVED",
+          "REJECTED",
+          "CANCELLED"
+        ],
+        "title": "RequestStatus"
+      },
+      "RoleAssignmentScope": {
+        "type": "string",
+        "enum": [
+          "SELF",
+          "DEPARTMENT",
+          "ALL"
+        ],
+        "title": "RoleAssignmentScope"
       },
       "RoleCreate": {
         "properties": {
@@ -2778,65 +4203,130 @@
         ],
         "title": "RoleCreate"
       },
-      "RoleScope": {
-        "type": "string",
-        "enum": [
-          "SELF",
-          "DEPARTMENT",
-          "ALL"
-        ],
-        "title": "RoleScope"
-      },
-      "RolesPublic": {
+      "RolePublic": {},
+      "RolesPublic": {},
+      "RosterAssignmentBulkCreate": {
         "properties": {
-          "data": {
+          "roster_period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Period Id"
+          },
+          "assignments": {
             "items": {
-              "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+              "$ref": "#/components/schemas/RosterAssignmentInput"
             },
             "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
+            "title": "Assignments"
           }
         },
         "type": "object",
         "required": [
-          "data",
-          "count"
+          "roster_period_id"
         ],
-        "title": "RolesPublic"
+        "title": "RosterAssignmentBulkCreate"
       },
-      "RosterPreferencesPublic": {
+      "RosterAssignmentInput": {
         "properties": {
-          "default_shift_pattern": {
-            "$ref": "#/components/schemas/ShiftPattern",
-            "default": "ROTATION"
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
           },
-          "preferred_shifts": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Preferred Shifts"
+          "assignment_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Assignment Date"
           },
-          "restricted_shifts": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Restricted Shifts"
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
           },
-          "max_night_shifts_per_month": {
-            "type": "integer",
-            "title": "Max Night Shifts Per Month",
-            "default": 6
+          "remarks": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remarks"
           }
         },
         "type": "object",
-        "title": "RosterPreferencesPublic"
+        "required": [
+          "user_id",
+          "assignment_date",
+          "shift_code"
+        ],
+        "title": "RosterAssignmentInput"
       },
+      "RosterAssignmentPublic": {},
+      "RosterCsvImportResponse": {},
+      "RosterCsvValidationRequest": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name",
+            "default": "roster.csv"
+          },
+          "roster_period_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roster Period Id"
+          },
+          "csv_text": {
+            "type": "string",
+            "title": "Csv Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "csv_text"
+        ],
+        "title": "RosterCsvValidationRequest"
+      },
+      "RosterCsvValidationResponse": {},
+      "RosterPeriodCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "period_start",
+          "period_end"
+        ],
+        "title": "RosterPeriodCreate"
+      },
+      "RosterPeriodDetails": {},
+      "RosterPeriodPublic": {},
       "RosterPreferencesUpdate": {
         "properties": {
           "default_shift_pattern": {
@@ -2894,6 +4384,8 @@
         "type": "object",
         "title": "RosterPreferencesUpdate"
       },
+      "RosterRevisionsPublic": {},
+      "ShiftCatalogsPublic": {},
       "ShiftPattern": {
         "type": "string",
         "enum": [
@@ -2903,24 +4395,434 @@
         ],
         "title": "ShiftPattern"
       },
-      "Token": {
+      "ShiftSwapAction": {
         "properties": {
-          "access_token": {
-            "type": "string",
-            "title": "Access Token"
+          "status": {
+            "$ref": "#/components/schemas/RequestStatus"
           },
-          "token_type": {
-            "type": "string",
-            "title": "Token Type",
-            "default": "bearer"
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
           }
         },
         "type": "object",
         "required": [
-          "access_token"
+          "status"
         ],
-        "title": "Token"
+        "title": "ShiftSwapAction"
       },
+      "ShiftSwapRequestCreate": {
+        "properties": {
+          "counterpart_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Counterpart User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "swap_type": {
+            "$ref": "#/components/schemas/SwapType",
+            "default": "TEMPORARY"
+          },
+          "source_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Source Date"
+          },
+          "source_shift_code": {
+            "type": "string",
+            "title": "Source Shift Code"
+          },
+          "target_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Target Date"
+          },
+          "target_shift_code": {
+            "type": "string",
+            "title": "Target Shift Code"
+          },
+          "effective_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective Date"
+          },
+          "restoration_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restoration Date"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "counterpart_user_id",
+          "department_id",
+          "source_date",
+          "source_shift_code",
+          "target_date",
+          "target_shift_code"
+        ],
+        "title": "ShiftSwapRequestCreate"
+      },
+      "ShiftSwapRequestPublic": {},
+      "StatusReportCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "report_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Report Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "weather_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weather Summary"
+          },
+          "equipment_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment Summary"
+          },
+          "personnel_summary": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personnel Summary"
+          },
+          "runway_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Runway Status"
+          },
+          "navaids_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Navaids Status"
+          },
+          "communications_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Communications Status"
+          },
+          "general_remarks": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "General Remarks"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/StatusReportEntryInput"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "report_date",
+          "shift_code"
+        ],
+        "title": "StatusReportCreate"
+      },
+      "StatusReportDetails": {},
+      "StatusReportEntryInput": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "personnel_status": {
+            "$ref": "#/components/schemas/PersonnelStatus"
+          },
+          "arrival_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrival Time"
+          },
+          "departure_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departure Time"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "personnel_status"
+        ],
+        "title": "StatusReportEntryInput"
+      },
+      "StatusReportListPublic": {},
+      "SubmissionMode": {
+        "type": "string",
+        "enum": [
+          "SELF",
+          "PROXY"
+        ],
+        "title": "SubmissionMode"
+      },
+      "SwapType": {
+        "type": "string",
+        "enum": [
+          "TEMPORARY",
+          "PERMANENT"
+        ],
+        "title": "SwapType"
+      },
+      "TimesheetCreate": {
+        "properties": {
+          "user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/TimesheetEntryInput"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "period_start",
+          "period_end"
+        ],
+        "title": "TimesheetCreate"
+      },
+      "TimesheetDetails": {},
+      "TimesheetEntryInput": {
+        "properties": {
+          "entry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Entry Date"
+          },
+          "shift_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shift Code"
+          },
+          "roster_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Roster Hours",
+            "default": "0.0"
+          },
+          "actual_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Actual Hours",
+            "default": "0.0"
+          },
+          "overtime_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Overtime Hours",
+            "default": "0.0"
+          },
+          "break_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Break Hours",
+            "default": "0.0"
+          },
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "entry_date"
+        ],
+        "title": "TimesheetEntryInput"
+      },
+      "TimesheetListPublic": {},
+      "TimesheetPublic": {},
+      "TimesheetSubmitRequest": {
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/SubmissionMode",
+            "default": "SELF"
+          }
+        },
+        "type": "object",
+        "title": "TimesheetSubmitRequest"
+      },
+      "TimesheetSummaryByShift": {},
+      "Token": {},
       "UpdatePassword": {
         "properties": {
           "current_password": {
@@ -3001,66 +4903,7 @@
         ],
         "title": "UserCreate"
       },
-      "UserProfilePublic": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "identity": {
-            "$ref": "#/components/schemas/ProfileIdentityPublic"
-          },
-          "profile": {
-            "$ref": "#/components/schemas/ProfileDetailsPublic"
-          },
-          "address": {
-            "$ref": "#/components/schemas/AddressPublic"
-          },
-          "employment": {
-            "$ref": "#/components/schemas/EmploymentPublic"
-          },
-          "roles": {
-            "items": {
-              "$ref": "#/components/schemas/src__hr__schemas__RolePublic"
-            },
-            "type": "array",
-            "title": "Roles"
-          },
-          "permissions": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Permissions"
-          },
-          "roster_preferences": {
-            "$ref": "#/components/schemas/RosterPreferencesPublic"
-          },
-          "leave": {
-            "$ref": "#/components/schemas/LeavePublic"
-          },
-          "approval_authority": {
-            "$ref": "#/components/schemas/ApprovalAuthorityPublic"
-          },
-          "audit": {
-            "$ref": "#/components/schemas/ProfileAuditPublic"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "identity",
-          "profile",
-          "address",
-          "employment",
-          "roster_preferences",
-          "leave",
-          "approval_authority",
-          "audit"
-        ],
-        "title": "UserProfilePublic"
-      },
+      "UserProfilePublic": {},
       "UserProfileUpdateMe": {
         "properties": {
           "profile": {
@@ -3228,6 +5071,94 @@
         ],
         "title": "UserRegister"
       },
+      "UserRoleAssignmentCreate": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "role_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Role Id"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/RoleAssignmentScope",
+            "default": "SELF"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role_id"
+        ],
+        "title": "UserRoleAssignmentCreate"
+      },
+      "UserRoleAssignmentPublic": {},
+      "UserRoleAssignmentUpdate": {
+        "properties": {
+          "scope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RoleAssignmentScope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          }
+        },
+        "type": "object",
+        "title": "UserRoleAssignmentUpdate"
+      },
+      "UserRoleAssignmentsPublic": {},
       "UserStatus": {
         "type": "string",
         "enum": [
@@ -3407,27 +5338,7 @@
         "type": "object",
         "title": "UserUpdateMe"
       },
-      "UsersPublic": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/UserPublic"
-            },
-            "type": "array",
-            "title": "Data"
-          },
-          "count": {
-            "type": "integer",
-            "title": "Count"
-          }
-        },
-        "type": "object",
-        "required": [
-          "data",
-          "count"
-        ],
-        "title": "UsersPublic"
-      },
+      "UsersPublic": {},
       "ValidationError": {
         "properties": {
           "loc": {
@@ -3461,58 +5372,136 @@
         ],
         "title": "ValidationError"
       },
-      "src__auth__schemas__RolePublic": {
+      "WorkflowAction": {
+        "type": "string",
+        "enum": [
+          "SUBMIT",
+          "APPROVE",
+          "REJECT",
+          "RETURN",
+          "CANCEL"
+        ],
+        "title": "WorkflowAction"
+      },
+      "WorkflowActionRequest": {
         "properties": {
-          "name": {
-            "type": "string",
-            "title": "Name"
+          "action": {
+            "$ref": "#/components/schemas/WorkflowAction"
           },
-          "description": {
-            "type": "string",
-            "title": "Description",
-            "default": ""
-          },
-          "id": {
+          "comments": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "action"
+        ],
+        "title": "WorkflowActionRequest"
+      },
+      "WorkflowInstanceCreate": {
+        "properties": {
+          "workflow_template_id": {
             "type": "string",
             "format": "uuid",
-            "title": "Id"
+            "title": "Workflow Template Id"
           },
-          "created_at": {
+          "entity_type": {
             "type": "string",
-            "format": "date-time",
-            "title": "Created At"
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Entity Type"
           },
-          "updated_at": {
+          "entity_id": {
             "type": "string",
-            "format": "date-time",
-            "title": "Updated At"
+            "format": "uuid",
+            "title": "Entity Id"
           }
         },
         "type": "object",
         "required": [
-          "name",
-          "id",
-          "created_at",
-          "updated_at"
+          "workflow_template_id",
+          "entity_type",
+          "entity_id"
         ],
-        "title": "RolePublic"
+        "title": "WorkflowInstanceCreate"
       },
-      "src__hr__schemas__RolePublic": {
+      "WorkflowInstanceDetails": {},
+      "WorkflowInstancePublic": {},
+      "WorkflowStepTemplateCreate": {
         "properties": {
+          "step_order": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Step Order"
+          },
+          "required_role_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Required Role Id"
+          },
+          "required_scope": {
+            "$ref": "#/components/schemas/RoleAssignmentScope",
+            "default": "SELF"
+          },
+          "is_required": {
+            "type": "boolean",
+            "title": "Is Required",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "step_order",
+          "required_role_id"
+        ],
+        "title": "WorkflowStepTemplateCreate"
+      },
+      "WorkflowStepTemplatePublic": {},
+      "WorkflowTemplateCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "workflow_type": {
+            "$ref": "#/components/schemas/WorkflowType"
+          },
           "name": {
             "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
             "title": "Name"
-          },
-          "scope": {
-            "$ref": "#/components/schemas/RoleScope"
           }
         },
         "type": "object",
         "required": [
-          "name",
-          "scope"
+          "department_id",
+          "workflow_type",
+          "name"
         ],
-        "title": "RolePublic"
+        "title": "WorkflowTemplateCreate"
+      },
+      "WorkflowTemplatePublic": {},
+      "WorkflowTemplatesPublic": {},
+      "WorkflowType": {
+        "type": "string",
+        "enum": [
+          "LEAVE_REQUEST",
+          "SHIFT_SWAP",
+          "ABSENTEE_REPORT",
+          "STATUS_REPORT",
+          "TIMESHEET"
+        ],
+        "title": "WorkflowType"
       }
     },
     "securitySchemes": {

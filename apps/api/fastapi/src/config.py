@@ -1,4 +1,3 @@
-import secrets
 import warnings
 from typing import Annotated, Any, Literal
 
@@ -32,9 +31,6 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = secrets.token_urlsafe(32)
-    # 60 minutes * 24 hours * 8 days = 8 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     FRONTEND_HOST: str | None = None
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
@@ -72,42 +68,6 @@ class Settings(BaseSettings):
             path=self.POSTGRES_DB,
         )
 
-    SMTP_TLS: bool = True
-    SMTP_SSL: bool = False
-    SMTP_PORT: int = 587
-    SMTP_HOST: str | None = None
-    SMTP_USER: str | None = None
-    SMTP_PASSWORD: str | None = None
-    EMAILS_FROM_EMAIL: EmailStr | None = None
-    EMAILS_FROM_NAME: EmailStr | None = None
-    # Resend API configuration (preferred provider)
-    RESEND_API_KEY: str | None = None
-
-    @model_validator(mode="after")
-    def _set_default_emails_from(self) -> Self:
-        if not self.EMAILS_FROM_NAME:
-            self.EMAILS_FROM_NAME = self.PROJECT_NAME
-        return self
-
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
-
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def emails_enabled(self) -> bool:
-        # Enabled if a valid FROM email is configured and either:
-        # - RESEND_API_KEY is set (Resend provider), or
-        # - SMTP host is set (SMTP provider)
-        has_from = bool(self.EMAILS_FROM_EMAIL)
-        has_provider = bool(self.RESEND_API_KEY or self.SMTP_HOST)
-        return bool(has_from and has_provider)
-
-    # Alias for backward compatibility
-    @computed_field  # type: ignore[prop-decorator]
-    @property
-    def EMAILS_ENABLED(self) -> bool:
-        return self.emails_enabled
-
-    EMAIL_TEST_USER: EmailStr = "test@weather.gd"
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
@@ -162,14 +122,12 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         # Check for default values
-        self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
 
         # Validate secret strength for production
-        self._validate_secret_strength("SECRET_KEY", self.SECRET_KEY)
         self._validate_secret_strength("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._validate_secret_strength(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD

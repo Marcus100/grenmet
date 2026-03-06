@@ -67,6 +67,7 @@ This project follows **FastAPI Best Practices**:
 6. **Dependency Injection**: Type-annotated with `Annotated`, injectable settings
 7. **Type Safety**: Pydantic models everywhere
 8. **Async/Await**: Non-blocking I/O operations
+9. **Pagination**: List endpoints use `get_pagination_params` and `PaginatedResponse` (data, count, page, size, total_pages) where applied; extend to other list routes for consistency.
 
 ## 🛠️ Key Features
 
@@ -93,6 +94,10 @@ docker compose exec api python scripts/quick_test.py
 ```bash
 docker compose exec api uv run pytest --cov=src --cov-report=html
 ```
+
+### Integration tests (async client)
+
+For **new** integration tests, prefer the **async** HTTP client so tests run against the async app without blocking the event loop. Use the `async_client` fixture (e.g. `httpx.ASGITransport` with the app). Existing tests can keep using the sync `client` until touched. See [Testing guide](../../../docs/api/testing.md) for details.
 
 ## 🔧 Development Workflow
 

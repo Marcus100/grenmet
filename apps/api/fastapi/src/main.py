@@ -8,10 +8,15 @@ from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
+
+from src.rate_limit import limiter
 
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
@@ -44,6 +49,9 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 
 # Show docs only in selected envs (best practice: hide in production)
 SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
+
+# Sync SDKs: If you add a sync-only I/O library (e.g. sync HTTP/SMTP client), run its
+# calls in a threadpool via fastapi.concurrency.run_in_threadpool to avoid blocking the event loop.
 
 
 @asynccontextmanager
@@ -85,6 +93,8 @@ app = FastAPI(
     redoc_url=redoc_url,
     lifespan=lifespan,
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # Request logging middleware (runs after CORS; logs method, path, status, duration)
 logger = logging.getLogger("src.request")

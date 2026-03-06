@@ -1,4 +1,5 @@
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.models import Permission, Role
 from src.auth.schemas import UserCreate
@@ -20,9 +21,11 @@ from src.hr.workflow.service import (
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_workflow_transition_submit_to_approve(db: Session) -> None:
-    user = create_user(
-        session=db,
+async def test_workflow_transition_submit_to_approve(
+    db_async: AsyncSession,
+) -> None:
+    user = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"wf_{random_lower_string()}",
@@ -31,18 +34,20 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
             last_name="Owner",
         ),
     )
-    if not db.get(Department, "dept_workflow"):
-        db.add(Department(id="dept_workflow", name="Dept Workflow"))
-        db.commit()
-    role = db.exec(select(Role).where(Role.name == "SUPERVISOR")).first()
+    if not await db_async.get(Department, "dept_workflow"):
+        db_async.add(Department(id="dept_workflow", name="Dept Workflow"))
+        await db_async.commit()
+    result = await db_async.execute(select(Role).where(Role.name == "SUPERVISOR"))
+    role = result.scalars().first()
     if not role:
         role = Role(name="SUPERVISOR")
-        db.add(role)
-        db.commit()
-        db.refresh(role)
-    workflow_manage_permission = db.exec(
+        db_async.add(role)
+        await db_async.commit()
+        await db_async.refresh(role)
+    result = await db_async.execute(
         select(Permission).where(Permission.key == "workflow.template.manage")
-    ).first()
+    )
+    workflow_manage_permission = result.scalars().first()
     if not workflow_manage_permission:
         workflow_manage_permission = Permission(
             key="workflow.template.manage",
@@ -51,9 +56,10 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
             access="department",
             description="Manage workflow template",
         )
-    workflow_action_permission = db.exec(
+    result = await db_async.execute(
         select(Permission).where(Permission.key == "workflow.instance.action")
-    ).first()
+    )
+    workflow_action_permission = result.scalars().first()
     if not workflow_action_permission:
         workflow_action_permission = Permission(
             key="workflow.instance.action",
@@ -65,14 +71,14 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
     role.permissions.append(workflow_manage_permission)
     role.permissions.append(workflow_action_permission)
     user.roles.append(role)
-    db.add(role)
-    db.add(workflow_manage_permission)
-    db.add(workflow_action_permission)
-    db.add(user)
-    db.commit()
+    db_async.add(role)
+    db_async.add(workflow_manage_permission)
+    db_async.add(workflow_action_permission)
+    db_async.add(user)
+    await db_async.commit()
 
-    template = create_workflow_template(
-        session=db,
+    template = await create_workflow_template(
+        session=db_async,
         current_user=user,
         template_in=WorkflowTemplateCreate(
             department_id="dept_workflow",
@@ -80,14 +86,16 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
             name="Leave Flow",
         ),
     )
-    create_workflow_step_template(
-        session=db,
+    await create_workflow_step_template(
+        session=db_async,
         current_user=user,
         workflow_template_id=template.id,
-        step_in=WorkflowStepTemplateCreate(step_order=1, required_role_id=role.id),
+        step_in=WorkflowStepTemplateCreate(
+            step_order=1, required_role_id=role.id
+        ),
     )
-    instance = create_workflow_instance(
-        session=db,
+    instance = await create_workflow_instance(
+        session=db_async,
         current_user=user,
         instance_in=WorkflowInstanceCreate(
             workflow_template_id=template.id,
@@ -95,8 +103,8 @@ def test_workflow_transition_submit_to_approve(db: Session) -> None:
             entity_id=template.id,
         ),
     )
-    submitted = apply_workflow_action(
-        session=db,
+    submitted = await apply_workflow_action(
+        session=db_async,
         current_user=user,
         workflow_instance_id=instance.id,
         action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),

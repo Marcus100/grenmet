@@ -46,13 +46,15 @@ def test_role_model_creation(db: Session) -> None:
 def test_permission_model_creation(db: Session) -> None:
     """Test Permission model creation."""
     permission_in = PermissionCreate(
+        key="read:user:own",
         action="read",
         entity="user",
         access="own",
-        description="Read own user data"
+        description="Read own user data",
     )
     permission = Permission.model_validate(permission_in)
-    
+
+    assert permission.key == "read:user:own"
     assert permission.action == "read"
     assert permission.entity == "user"
     assert permission.access == "own"

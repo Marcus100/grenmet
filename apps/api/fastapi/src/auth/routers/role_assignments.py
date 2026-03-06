@@ -29,8 +29,10 @@ router = APIRouter(
     description="Return role assignments, optionally filtered by user_id (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Role assignments returned"}},
 )
-def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None) -> Any:
-    assignments = service.get_user_role_assignments(session=session, user_id=user_id)
+async def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None) -> Any:
+    assignments = await service.get_user_role_assignments(
+        session=session, user_id=user_id
+    )
     return UserRoleAssignmentsPublic(
         data=[
             UserRoleAssignmentPublic.model_validate(assignment, from_attributes=True)
@@ -50,8 +52,8 @@ def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None)
         status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
     },
 )
-def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
-    assignment = service.get_user_role_assignment(
+async def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
+    assignment = await service.get_user_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not assignment:
@@ -66,13 +68,12 @@ def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
     description="Create a user-role assignment (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Role assignment created"}},
 )
-def create_role_assignment(
+async def create_role_assignment(
     *, session: SessionDep, assignment_in: UserRoleAssignmentCreate
 ) -> Any:
-    assignment = service.create_user_role_assignment(
+    return await service.create_user_role_assignment(
         session=session, assignment_in=assignment_in
     )
-    return assignment
 
 
 @router.patch(
@@ -85,18 +86,18 @@ def create_role_assignment(
         status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
     },
 )
-def update_role_assignment(
+async def update_role_assignment(
     *,
     session: SessionDep,
     assignment_id: uuid.UUID,
     assignment_in: UserRoleAssignmentUpdate,
 ) -> Any:
-    db_assignment = service.get_user_role_assignment(
+    db_assignment = await service.get_user_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not db_assignment:
         raise HTTPException(status_code=404, detail="Role assignment not found")
-    return service.update_user_role_assignment(
+    return await service.update_user_role_assignment(
         session=session,
         db_assignment=db_assignment,
         assignment_in=assignment_in,

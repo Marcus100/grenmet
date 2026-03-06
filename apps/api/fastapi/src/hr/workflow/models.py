@@ -5,6 +5,7 @@ from enum import Enum
 from sqlmodel import Field, SQLModel
 
 from src.auth.models import RoleAssignmentScope
+from src.utils.datetime import utc_now
 
 
 class WorkflowType(str, Enum):
@@ -42,8 +43,8 @@ class WorkflowTemplate(SQLModel, table=True):
     name: str = Field(max_length=150)
     is_active: bool = True
     created_by: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class WorkflowStepTemplate(SQLModel, table=True):
@@ -56,8 +57,8 @@ class WorkflowStepTemplate(SQLModel, table=True):
     required_role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     is_required: bool = True
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class WorkflowInstance(SQLModel, table=True):
@@ -75,8 +76,8 @@ class WorkflowInstance(SQLModel, table=True):
     current_step_order: int = Field(default=0)
     submitted_at: datetime | None = None
     resolved_at: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class WorkflowStepInstance(SQLModel, table=True):
@@ -93,8 +94,8 @@ class WorkflowStepInstance(SQLModel, table=True):
     action: WorkflowAction | None = None
     comments: str | None = Field(default=None, max_length=1000)
     acted_at: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class ApprovalActionLog(SQLModel, table=True):
@@ -109,4 +110,4 @@ class ApprovalActionLog(SQLModel, table=True):
     action: WorkflowAction
     actor_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     comments: str | None = Field(default=None, max_length=1000)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)

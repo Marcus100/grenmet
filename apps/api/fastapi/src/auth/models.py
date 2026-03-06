@@ -6,6 +6,8 @@ from typing import Optional
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+from src.utils.datetime import utc_now
+
 
 class RoleAssignmentScope(str, Enum):
     SELF = "SELF"
@@ -26,10 +28,12 @@ class UserBase(SQLModel):
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
+    """Canonical source for identity and name; other modules (e.g. HR) extend by user_id."""
+
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     # Relationships
     user_image: Optional["UserImage"] = Relationship(
@@ -61,8 +65,8 @@ class UserImageBase(SQLModel):
 
 class UserImage(UserImageBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     user_id: uuid.UUID = Field(foreign_key="user.id", unique=True)
     user: "User" = Relationship(back_populates="user_image")
@@ -76,8 +80,8 @@ class RoleBase(SQLModel):
 
 class Role(RoleBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     users: list["User"] = Relationship(
         back_populates="roles", sa_relationship_kwargs={"secondary": "user_role"}
@@ -98,8 +102,8 @@ class PermissionBase(SQLModel):
 
 class Permission(PermissionBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     roles: list["Role"] = Relationship(
         back_populates="permissions",
@@ -119,8 +123,8 @@ class SessionBase(SQLModel):
 
 class Session(SessionBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
     user_id: uuid.UUID = Field(foreign_key="user.id")
     user: "User" = Relationship(back_populates="sessions")
@@ -149,7 +153,7 @@ class UserRoleAssignment(SQLModel, table=True):
     role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
     scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     department_id: str | None = Field(default=None, max_length=100)
-    effective_from: datetime = Field(default_factory=datetime.utcnow)
+    effective_from: datetime = Field(default_factory=utc_now)
     effective_to: datetime | None = None
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

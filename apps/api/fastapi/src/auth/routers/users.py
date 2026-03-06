@@ -14,8 +14,6 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import func, select
-
 from src.auth import service
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
@@ -34,7 +32,6 @@ from src.auth.schemas import (
     UserCreate,
     UserPublic,
     UserRegister,
-    UsersPublic,
     UserUpdate,
     UserUpdateMe,
 )
@@ -43,6 +40,7 @@ from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
 from src.models import Message
+from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -50,23 +48,26 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
 @router.get(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
-    response_model=UsersPublic,
+    response_model=PaginatedResponse[UserPublic],
     summary="List users",
-    description="Return users (superuser only).",
+    description="Return users (superuser only). Uses standard pagination (page, size, total_pages).",
     responses={status.HTTP_200_OK: {"description": "Users returned"}},
 )
-def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
+async def read_users(
+    session: SessionDep,
+    pagination: PaginationParams = Depends(get_pagination_params),
+) -> Any:
     """
     Retrieve users.
     """
-    count_statement = select(func.count()).select_from(User)
-    count = session.exec(count_statement).one()
-
-    statement = select(User).offset(skip).limit(limit)
-    users = session.exec(statement).all()
-
-    return UsersPublic(
-        data=[UserPublic.model_validate(user) for user in users], count=count
+    users, count = await service.get_users(
+        session=session, skip=pagination.skip, limit=pagination.limit
+    )
+    return PaginatedResponse(
+        data=[UserPublic.model_validate(user) for user in users],
+        count=count,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 
@@ -81,18 +82,17 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
         status.HTTP_400_BAD_REQUEST: {"description": "User with this email already exists"},
     },
 )
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+async def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     """
     Create new user.
     """
-    user = service.get_user_by_email(session=session, email=user_in.email)
+    user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail=ERROR_USER_EXISTS,
         )
-
-    user = service.create_user(session=session, user_create=user_in)
+    user = await service.create_user(session=session, user_create=user_in)
     if settings.EMAILS_ENABLED and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -112,7 +112,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     description="Return the currently authenticated user.",
     responses={status.HTTP_200_OK: {"description": "Current user returned"}},
 )
-def read_user_me(current_user: CurrentUser) -> Any:
+async def read_user_me(current_user: CurrentUser) -> Any:
     """
     Get current user.
     """
@@ -129,22 +129,27 @@ def read_user_me(current_user: CurrentUser) -> Any:
         status.HTTP_409_CONFLICT: {"description": "Email already exists"},
     },
 )
-def update_user_me(
+async def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
     """
     Update own user.
     """
     if user_in.email:
-        existing_user = service.get_user_by_email(session=session, email=user_in.email)
+        existing_user = await service.get_user_by_email(
+            session=session, email=user_in.email
+        )
         if existing_user and existing_user.id != current_user.id:
             raise HTTPException(status_code=409, detail=ERROR_USER_EXISTS)
+    user = await session.get(User, current_user.id)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     user_data = user_in.model_dump(exclude_unset=True)
-    current_user.sqlmodel_update(user_data)
-    session.add(current_user)
-    session.commit()
-    session.refresh(current_user)
-    return current_user
+    user.sqlmodel_update(user_data)
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
 
 
 @router.patch(
@@ -157,7 +162,7 @@ def update_user_me(
         status.HTTP_400_BAD_REQUEST: {"description": "Current password incorrect or new password unchanged"},
     },
 )
-def update_password_me(
+async def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
     """
@@ -168,9 +173,13 @@ def update_password_me(
     if body.current_password == body.new_password:
         raise HTTPException(status_code=400, detail=ERROR_PASSWORD_SAME)
     hashed_password = get_password_hash(body.new_password)
-    current_user.hashed_password = hashed_password
-    session.add(current_user)
-    session.commit()
+
+    user = await session.get(User, current_user.id)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    user.hashed_password = hashed_password
+    session.add(user)
+    await session.commit()
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 
@@ -184,14 +193,18 @@ def update_password_me(
         status.HTTP_403_FORBIDDEN: {"description": "Superuser cannot delete own account"},
     },
 )
-def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
+async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Delete own user.
     """
     if current_user.is_superuser:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
-    session.delete(current_user)
-    session.commit()
+
+    user = await session.get(User, current_user.id)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    session.delete(user)
+    await session.commit()
     return Message(message=SUCCESS_USER_DELETED)
 
 
@@ -211,19 +224,15 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         },
     },
 )
-def register_user(session: SessionDep, user_in: UserRegister) -> Any:
+async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
-    user = service.get_user_by_email(session=session, email=user_in.email)
+    user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
-        raise HTTPException(
-            status_code=400,
-            detail=ERROR_USER_EXISTS,
-        )
+        raise HTTPException(status_code=400, detail=ERROR_USER_EXISTS)
     user_create = UserCreate.model_validate(user_in)
-    user = service.create_user(session=session, user_create=user_create)
-    return user
+    return await service.create_user(session=session, user_create=user_create)
 
 
 @router.get(
@@ -236,14 +245,16 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
     },
 )
-def read_user_by_id(
+async def read_user_by_id(
     user_id: uuid.UUID, session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """
     Get a specific user by id.
     """
-    user = session.get(User, user_id)
-    if user == current_user:
+    user = await session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    if user.id == current_user.id:
         return user
     if not current_user.is_superuser:
         raise HTTPException(
@@ -265,7 +276,7 @@ def read_user_by_id(
         status.HTTP_409_CONFLICT: {"description": "Email already exists"},
     },
 )
-def update_user(
+async def update_user(
     *,
     session: SessionDep,
     user_id: uuid.UUID,
@@ -274,19 +285,22 @@ def update_user(
     """
     Update a user.
     """
-    db_user = session.get(User, user_id)
+
+    db_user = await session.get(User, user_id)
     if not db_user:
         raise HTTPException(
             status_code=404,
             detail="The user with this id does not exist in the system",
         )
     if user_in.email:
-        existing_user = service.get_user_by_email(session=session, email=user_in.email)
+        existing_user = await service.get_user_by_email(
+            session=session, email=user_in.email
+        )
         if existing_user and existing_user.id != user_id:
             raise HTTPException(status_code=409, detail=ERROR_USER_EXISTS)
-
-    db_user = service.update_user(session=session, db_user=db_user, user_in=user_in)
-    return db_user
+    return await service.update_user(
+        session=session, db_user=db_user, user_in=user_in
+    )
 
 
 @router.delete(
@@ -300,17 +314,18 @@ def update_user(
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )
-def delete_user(
+async def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
     """
     Delete a user.
     """
-    user = session.get(User, user_id)
+
+    user = await session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
-    if user == current_user:
+    if user.id == current_user.id:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
     session.delete(user)
-    session.commit()
+    await session.commit()
     return Message(message=SUCCESS_USER_DELETED)

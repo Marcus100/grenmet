@@ -1,4 +1,5 @@
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.models import Permission, Role
 from src.auth.schemas import UserCreate
@@ -10,9 +11,11 @@ from src.hr.roster.service import validate_roster_csv
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_roster_csv_validation_detects_invalid_shift(db: Session) -> None:
-    user = create_user(
-        session=db,
+async def test_roster_csv_validation_detects_invalid_shift(
+    db_async: AsyncSession,
+) -> None:
+    user = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"csv_{random_lower_string()}",
@@ -39,10 +42,13 @@ def test_roster_csv_validation_detects_invalid_shift(db: Session) -> None:
     )
     role.permissions.append(compatible_permission)
     user.roles.append(role)
-    if not db.get(Department, "dept_csv"):
-        db.add(Department(id="dept_csv", name="Dept CSV"))
-    if not db.exec(select(ShiftCatalog).where(ShiftCatalog.code == "M")).first():
-        db.add(
+    if not await db_async.get(Department, "dept_csv"):
+        db_async.add(Department(id="dept_csv", name="Dept CSV"))
+    result = await db_async.execute(
+        select(ShiftCatalog).where(ShiftCatalog.code == "M")
+    )
+    if not result.scalars().first():
+        db_async.add(
             ShiftCatalog(
                 code="M",
                 label="Morning",
@@ -51,14 +57,14 @@ def test_roster_csv_validation_detects_invalid_shift(db: Session) -> None:
                 end_time="14:00",
             )
         )
-    db.add(role)
-    db.add(permission)
-    db.add(compatible_permission)
-    db.add(user)
-    db.commit()
+    db_async.add(role)
+    db_async.add(permission)
+    db_async.add(compatible_permission)
+    db_async.add(user)
+    await db_async.commit()
 
-    response = validate_roster_csv(
-        session=db,
+    response = await validate_roster_csv(
+        session=db_async,
         current_user=user,
         payload=RosterCsvValidationRequest(
             department_id="dept_csv",

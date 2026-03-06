@@ -5,6 +5,8 @@ from enum import Enum
 
 from sqlmodel import Field, SQLModel
 
+from src.utils.datetime import utc_now
+
 from src.hr.models import RequestStatus  # noqa: F401
 
 
@@ -42,8 +44,8 @@ class LeaveRequest(SQLModel, table=True):
     head_of_dept_comments: str | None = Field(default=None, max_length=1000)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
     workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class LeaveBalanceEvent(SQLModel, table=True):
@@ -58,4 +60,4 @@ class LeaveBalanceEvent(SQLModel, table=True):
     reason: str = Field(max_length=200)
     related_leave_request_id: uuid.UUID | None = Field(default=None, foreign_key="hr.leave_request.id")
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)

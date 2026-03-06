@@ -1,4 +1,3 @@
-import uuid
 from typing import Any
 
 from fastapi import APIRouter, status
@@ -31,6 +30,7 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
 @router.post(
     "/",
     response_model=TimesheetDetails,
+    status_code=status.HTTP_201_CREATED,
     summary="Create timesheet",
     description="Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
     responses={
@@ -38,10 +38,10 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
         status.HTTP_403_FORBIDDEN: {"description": "Self/proxy submission disabled or not allowed for user"},
     },
 )
-def create_timesheet_endpoint(
+async def create_timesheet_endpoint(
     *, session: SessionDep, current_user: CurrentUser, payload: TimesheetCreate
 ) -> Any:
-    timesheet, entries = create_timesheet(
+    timesheet, entries = await create_timesheet(
         session=session, current_user=current_user, payload=payload
     )
     return TimesheetDetails(
@@ -62,18 +62,17 @@ def create_timesheet_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-def submit_timesheet_endpoint(
+async def submit_timesheet_endpoint(
     *,
     session: SessionDep,
     current_user: CurrentUser,
-    _timesheet: TimesheetDep,
-    timesheet_id: uuid.UUID,
+    timesheet: TimesheetDep,
     payload: TimesheetSubmitRequest,
 ) -> Any:
-    return submit_timesheet(
+    return await submit_timesheet(
         session=session,
         current_user=current_user,
-        timesheet_id=timesheet_id,
+        timesheet_id=timesheet.id,
         submission_mode=payload.mode,
     )
 
@@ -90,11 +89,11 @@ def submit_timesheet_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-def approve_timesheet_endpoint(
-    *, session: SessionDep, current_user: CurrentUser, timesheet_id: uuid.UUID
+async def approve_timesheet_endpoint(
+    *, session: SessionDep, current_user: CurrentUser, timesheet: TimesheetDep
 ) -> Any:
-    return approve_timesheet(
-        session=session, current_user=current_user, timesheet_id=timesheet_id
+    return await approve_timesheet(
+        session=session, current_user=current_user, timesheet_id=timesheet.id
     )
 
 
@@ -105,8 +104,10 @@ def approve_timesheet_endpoint(
     description="Return timesheets for the current user.",
     responses={status.HTTP_200_OK: {"description": "Timesheets returned"}},
 )
-def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = list_my_timesheets(session=session, current_user=current_user)
+async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
+    rows = await list_my_timesheets(
+        session=session, current_user=current_user
+    )
     return TimesheetListPublic(
         data=[TimesheetPublic.model_validate(item, from_attributes=True) for item in rows],
         count=len(rows),
@@ -123,10 +124,10 @@ def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-def read_department_timesheets(
+async def read_department_timesheets(
     session: SessionDep, current_user: CurrentUser, department_id: str
 ) -> Any:
-    rows = list_department_timesheets(
+    rows = await list_department_timesheets(
         session=session, current_user=current_user, department_id=department_id
     )
     return TimesheetListPublic(
@@ -146,14 +147,13 @@ def read_department_timesheets(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-def read_timesheet_summary(
+async def read_timesheet_summary(
     session: SessionDep,
     current_user: CurrentUser,
-    _timesheet: TimesheetDep,
-    timesheet_id: uuid.UUID,
+    timesheet: TimesheetDep,
 ) -> Any:
-    return get_timesheet_summary(
-        session=session, current_user=current_user, timesheet_id=timesheet_id
+    return await get_timesheet_summary(
+        session=session, current_user=current_user, timesheet_id=timesheet.id
     )
 
 
@@ -168,17 +168,16 @@ def read_timesheet_summary(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-def read_timesheet_endpoint(
+async def read_timesheet_endpoint(
     session: SessionDep,
     current_user: CurrentUser,
-    _timesheet: TimesheetDep,
-    timesheet_id: uuid.UUID,
+    timesheet: TimesheetDep,
 ) -> Any:
-    timesheet, entries = read_timesheet_details(
-        session=session, current_user=current_user, timesheet_id=timesheet_id
+    timesheet_data, entries = await read_timesheet_details(
+        session=session, current_user=current_user, timesheet_id=timesheet.id
     )
     return TimesheetDetails(
-        timesheet=TimesheetPublic.model_validate(timesheet, from_attributes=True),
+        timesheet=TimesheetPublic.model_validate(timesheet_data, from_attributes=True),
         entries=[
             TimesheetEntryPublic.model_validate(entry, from_attributes=True)
             for entry in entries

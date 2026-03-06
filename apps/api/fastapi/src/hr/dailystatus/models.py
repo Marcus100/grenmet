@@ -5,6 +5,7 @@ from enum import Enum
 from sqlmodel import Field, SQLModel
 
 from src.hr.models import RequestStatus
+from src.utils.datetime import utc_now
 
 
 class PersonnelStatus(str, Enum):
@@ -33,8 +34,8 @@ class StatusReport(SQLModel, table=True):
     general_remarks: str | None = Field(default=None, max_length=2000)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
     workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
 
 
 class StatusReportEntry(SQLModel, table=True):

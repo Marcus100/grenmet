@@ -4,6 +4,8 @@ from enum import Enum
 
 from sqlmodel import Field, SQLModel
 
+from src.utils.datetime import utc_now
+
 from src.hr.models import RequestStatus
 
 
@@ -32,5 +34,5 @@ class ShiftSwapRequest(SQLModel, table=True):
     counterpart_agreed_at: datetime | None = Field(default=None)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
     workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)

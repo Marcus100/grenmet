@@ -1,89 +1,100 @@
 from unittest.mock import patch
 
-from fastapi.testclient import TestClient
-from sqlmodel import Session
+import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config import settings
-from src.auth.utils import verify_password
-from src.auth.service import create_user
 from src.auth.schemas import UserCreate
+from src.auth.service import create_user
+from src.auth.utils import verify_password
+from src.config import settings
 from src.email import generate_password_reset_token
-from tests.utils.user import user_authentication_headers
+from tests.utils.user import user_authentication_headers_async
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_get_access_token(client: TestClient) -> None:
+async def test_get_access_token(async_client: httpx.AsyncClient) -> None:
     """Test successful login with correct credentials."""
     login_data = {
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
-    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    r = await async_client.post(
+        f"{settings.API_V1_STR}/login/access-token", data=login_data
+    )
     tokens = r.json()
     assert r.status_code == 200
     assert "access_token" in tokens
     assert tokens["access_token"]
 
 
-def test_get_access_token_incorrect_password(client: TestClient) -> None:
+async def test_get_access_token_incorrect_password(
+    async_client: httpx.AsyncClient,
+) -> None:
     """Test login failure with incorrect password."""
     login_data = {
         "username": settings.FIRST_SUPERUSER,
         "password": "incorrect",
     }
-    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    r = await async_client.post(
+        f"{settings.API_V1_STR}/login/access-token", data=login_data
+    )
     assert r.status_code == 400
 
 
-def test_use_access_token(
-    client: TestClient, superuser_token_headers: dict[str, str]
+async def test_use_access_token(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
 ) -> None:
     """Test token validation endpoint."""
-    r = client.post(
+    r = await async_client.post(
         f"{settings.API_V1_STR}/login/test-token",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
     )
     result = r.json()
     assert r.status_code == 200
     assert "email" in result
 
 
-def test_recovery_password(
-    client: TestClient, normal_user_token_headers: dict[str, str]
+async def test_recovery_password(
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
 ) -> None:
     """Test password recovery email sending."""
     with (
         patch("src.email.send_email", return_value=None),
         patch("smtplib.SMTP") as mock_smtp,
-        patch("src.config.settings.SMTP_HOST", "smtp.weather.gd"),
-        patch("src.config.settings.SMTP_USER", "admin@weather.gd"),
+        patch("src.email_config.email_settings.SMTP_HOST", "smtp.weather.gd"),
+        patch("src.email_config.email_settings.SMTP_USER", "admin@weather.gd"),
     ):
-        # Configure the mock SMTP server
         mock_server = mock_smtp.return_value
         mock_server.send_message.return_value = {}
 
         email = "test@weather.gd"
-        r = client.post(
+        r = await async_client.post(
             f"{settings.API_V1_STR}/password-recovery/{email}",
-            headers=normal_user_token_headers,
+            headers=normal_user_token_headers_async,
         )
         assert r.status_code == 200
         assert r.json() == {"message": "Password recovery email sent"}
 
 
-def test_recovery_password_user_not_exists(
-    client: TestClient, normal_user_token_headers: dict[str, str]
+async def test_recovery_password_user_not_exists(
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
 ) -> None:
     """Test password recovery for non-existent user."""
     email = "jVgQr@weather.gd"
-    r = client.post(
+    r = await async_client.post(
         f"{settings.API_V1_STR}/password-recovery/{email}",
-        headers=normal_user_token_headers,
+        headers=normal_user_token_headers_async,
     )
     assert r.status_code == 404
 
 
-def test_reset_password(client: TestClient, db: Session) -> None:
+async def test_reset_password(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
     """Test password reset with valid token."""
     email = random_email()
     password = random_lower_string()
@@ -98,12 +109,14 @@ def test_reset_password(client: TestClient, db: Session) -> None:
         is_active=True,
         is_superuser=False,
     )
-    user = create_user(session=db, user_create=user_create)
+    user = await create_user(session=db_async, user_create=user_create)
     token = generate_password_reset_token(email=email)
-    headers = user_authentication_headers(client=client, email=email, password=password)
+    headers = await user_authentication_headers_async(
+        client=async_client, email=email, password=password
+    )
     data = {"new_password": new_password, "token": token}
 
-    r = client.post(
+    r = await async_client.post(
         f"{settings.API_V1_STR}/reset-password/",
         headers=headers,
         json=data,
@@ -112,18 +125,19 @@ def test_reset_password(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     assert r.json() == {"message": "Password updated successfully"}
 
-    db.refresh(user)
+    await db_async.refresh(user)
     assert verify_password(new_password, user.hashed_password)
 
 
-def test_reset_password_invalid_token(
-    client: TestClient, superuser_token_headers: dict[str, str]
+async def test_reset_password_invalid_token(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
 ) -> None:
     """Test password reset with invalid token."""
     data = {"new_password": "changethis", "token": "invalid"}
-    r = client.post(
+    r = await async_client.post(
         f"{settings.API_V1_STR}/reset-password/",
-        headers=superuser_token_headers,
+        headers=superuser_token_headers_async,
         json=data,
     )
     response = r.json()

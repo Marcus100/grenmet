@@ -1,21 +1,23 @@
 from decimal import Decimal
 
-from sqlmodel import Session, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import select
 
 from src.auth.models import Permission, Role, RoleAssignmentScope, UserRoleAssignment
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
-from src.hr.models import Department, EmploymentRecord
 from src.hr.leave.models import LeaveBalanceEvent
 from src.hr.leave.schemas import LeaveRequestAction, LeaveRequestCreate
 from src.hr.leave.service import action_leave_request, create_leave_request
-from src.hr.models import RequestStatus
+from src.hr.models import Department, EmploymentRecord, RequestStatus
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_leave_approval_writes_balance_event(db: Session) -> None:
-    supervisor = create_user(
-        session=db,
+async def test_leave_approval_writes_balance_event(
+    db_async: AsyncSession,
+) -> None:
+    supervisor = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"ls_{random_lower_string()}",
@@ -24,8 +26,8 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             last_name="Supervisor",
         ),
     )
-    employee = create_user(
-        session=db,
+    employee = await create_user(
+        session=db_async,
         user_create=UserCreate(
             email=random_email(),
             username=f"le_{random_lower_string()}",
@@ -34,15 +36,17 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             last_name="Employee",
         ),
     )
-    role = db.exec(select(Role).where(Role.name == "SUPERVISOR")).first()
+    result = await db_async.execute(select(Role).where(Role.name == "SUPERVISOR"))
+    role = result.scalars().first()
     if not role:
         role = Role(name="SUPERVISOR")
-        db.add(role)
-        db.commit()
-        db.refresh(role)
-    leave_action_permission = db.exec(
+        db_async.add(role)
+        await db_async.commit()
+        await db_async.refresh(role)
+    result = await db_async.execute(
         select(Permission).where(Permission.key == "leave.request.action")
-    ).first()
+    )
+    leave_action_permission = result.scalars().first()
     if not leave_action_permission:
         leave_action_permission = Permission(
             key="leave.request.action",
@@ -62,9 +66,10 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
         access="self",
         description="Create own leave request",
     )
-    canonical_leave_create_permission = db.exec(
+    result = await db_async.execute(
         select(Permission).where(Permission.key == "leave.request.create.self")
-    ).first()
+    )
+    canonical_leave_create_permission = result.scalars().first()
     if not canonical_leave_create_permission:
         canonical_leave_create_permission = Permission(
             key="leave.request.create.self",
@@ -76,12 +81,12 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
     employee_role.permissions.append(leave_create_permission)
     employee_role.permissions.append(canonical_leave_create_permission)
     employee.roles.append(employee_role)
-    db.add(employee_role)
-    db.add(leave_create_permission)
-    db.add(canonical_leave_create_permission)
-    if not db.get(Department, "dept_leave"):
-        db.add(Department(id="dept_leave", name="Dept Leave"))
-    db.add(
+    db_async.add(employee_role)
+    db_async.add(leave_create_permission)
+    db_async.add(canonical_leave_create_permission)
+    if not await db_async.get(Department, "dept_leave"):
+        db_async.add(Department(id="dept_leave", name="Dept Leave"))
+    db_async.add(
         EmploymentRecord(
             user_id=supervisor.id,
             employee_number=f"SUP-{random_lower_string()}",
@@ -89,7 +94,7 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             position="Supervisor",
         )
     )
-    db.add(
+    db_async.add(
         EmploymentRecord(
             user_id=employee.id,
             employee_number=f"EMP-{random_lower_string()}",
@@ -97,7 +102,7 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             position="Forecaster",
         )
     )
-    db.add(
+    db_async.add(
         UserRoleAssignment(
             user_id=supervisor.id,
             role_id=role.id,
@@ -105,17 +110,17 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             department_id="dept_leave",
         )
     )
-    db.add(
+    db_async.add(
         UserRoleAssignment(
             user_id=employee.id,
             role_id=employee_role.id,
             scope=RoleAssignmentScope.SELF,
         )
     )
-    db.commit()
+    await db_async.commit()
 
-    leave_request = create_leave_request(
-        session=db,
+    leave_request = await create_leave_request(
+        session=db_async,
         current_user=employee,
         payload=LeaveRequestCreate(
             department_id="dept_leave",
@@ -125,16 +130,17 @@ def test_leave_approval_writes_balance_event(db: Session) -> None:
             days_requested=Decimal("2.0"),
         ),
     )
-    action_leave_request(
-        session=db,
+    await action_leave_request(
+        session=db_async,
         current_user=supervisor,
         leave_request_id=leave_request.id,
         payload=LeaveRequestAction(status=RequestStatus.APPROVED),
     )
-    events = list(
-        db.exec(
-            select(LeaveBalanceEvent).where(LeaveBalanceEvent.related_leave_request_id == leave_request.id)
-        ).all()
+    result = await db_async.execute(
+        select(LeaveBalanceEvent).where(
+            LeaveBalanceEvent.related_leave_request_id == leave_request.id
+        )
     )
+    events = list(result.scalars().all())
     assert len(events) == 1
     assert events[0].delta_days == Decimal("-2.0")

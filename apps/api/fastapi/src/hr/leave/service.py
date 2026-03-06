@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
 from decimal import Decimal
 
-from sqlmodel import Session, col, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -16,13 +16,14 @@ from src.hr.exceptions import (
 from src.hr.models import RequestStatus
 from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity
+from src.utils.datetime import utc_now
 
 from .models import LeaveBalanceEvent, LeaveRequest
 from .schemas import LeaveRequestAction, LeaveRequestCreate
 
 
-def create_leave_request(
-    *, session: Session, current_user: User, payload: LeaveRequestCreate
+async def create_leave_request(
+    *, session: AsyncSession, current_user: User, payload: LeaveRequestCreate
 ) -> LeaveRequest:
     require_permission(current_user=current_user, permission_key="leave.request.create.self")
     leave_request = LeaveRequest(
@@ -40,10 +41,10 @@ def create_leave_request(
         acting_officer_id=payload.acting_officer_id,
     )
     session.add(leave_request)
-    session.commit()
-    session.refresh(leave_request)
+    await session.commit()
+    await session.refresh(leave_request)
 
-    workflow_id = start_workflow_for_entity(
+    workflow_id = await start_workflow_for_entity(
         session=session,
         current_user=current_user,
         department_id=payload.department_id,
@@ -54,24 +55,24 @@ def create_leave_request(
     if workflow_id:
         leave_request.workflow_instance_id = workflow_id
         session.add(leave_request)
-        session.commit()
-        session.refresh(leave_request)
+        await session.commit()
+        await session.refresh(leave_request)
     return leave_request
 
 
-def action_leave_request(
+async def action_leave_request(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     leave_request_id: uuid.UUID,
     payload: LeaveRequestAction,
 ) -> LeaveRequest:
     require_permission(current_user=current_user, permission_key="leave.request.action")
-    leave_request = get_leave_request_or_404(
+    leave_request = await get_leave_request_or_404(
         session=session,
         leave_request_id=leave_request_id,
     )
-    if not can_act_on_user(
+    if not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=leave_request.user_id,
@@ -81,18 +82,19 @@ def action_leave_request(
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
         leave_request.head_of_dept_comments = payload.head_of_dept_comments
-    leave_request.updated_at = datetime.utcnow()
+    leave_request.updated_at = utc_now()
     session.add(leave_request)
     if payload.status == RequestStatus.APPROVED:
         leave_type_value = leave_request.leave_type.value
-        last_event = session.exec(
+        result = await session.execute(
             select(LeaveBalanceEvent)
             .where(
                 col(LeaveBalanceEvent.user_id) == leave_request.user_id,
                 col(LeaveBalanceEvent.leave_type) == leave_type_value,
             )
             .order_by(col(LeaveBalanceEvent.created_at).desc())
-        ).first()
+        )
+        last_event = result.scalars().first()
         current_balance = last_event.balance_after_days if last_event else Decimal("0.0")
         new_balance = current_balance - leave_request.days_requested
         session.add(
@@ -106,16 +108,17 @@ def action_leave_request(
                 created_by_user_id=current_user.id,
             )
         )
-    session.commit()
-    session.refresh(leave_request)
+    await session.commit()
+    await session.refresh(leave_request)
     return leave_request
 
 
-def list_leave_requests(*, session: Session, current_user: User) -> list[LeaveRequest]:
-    return list(
-        session.exec(
-            select(LeaveRequest)
-            .where(col(LeaveRequest.user_id) == current_user.id)
-            .order_by(col(LeaveRequest.created_at).desc())
-        ).all()
+async def list_leave_requests(
+    *, session: AsyncSession, current_user: User
+) -> list[LeaveRequest]:
+    result = await session.execute(
+        select(LeaveRequest)
+        .where(col(LeaveRequest.user_id) == current_user.id)
+        .order_by(col(LeaveRequest.created_at).desc())
     )
+    return list(result.scalars().all())

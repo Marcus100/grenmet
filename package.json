@@ -26,7 +26,8 @@
     "check:ci": "turbo run check:ci",
     "type-check": "turbo run type-check",
     "fix": "npx ultracite@latest fix",
-    "generate:api-client": "turbo run generate --filter=@grenmet/api-client"
+    "openapi:export": "cd apps/api/fastapi && uv run python scripts/export_openapi.py",
+    "generate:api-client": "pnpm run openapi:export && turbo run generate --filter=@grenmet/api-client"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",

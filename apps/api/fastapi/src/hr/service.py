@@ -1,10 +1,12 @@
 import uuid
-from datetime import datetime
 
-from sqlmodel import Session, col, delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+from sqlmodel import col, delete, select
 
-from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user
+from src.utils.datetime import utc_now
 
 from . import constants as hr_constants
 from .exceptions import (
@@ -23,6 +25,7 @@ from .models import (
     RosterRestrictedShift,
     UserAddress,
     UserProfile,
+    UserStatus,
 )
 from .schemas import (
     AddressPublic,
@@ -61,15 +64,14 @@ def _permissions_for_user(user: User) -> list[str]:
     return sorted(permissions)
 
 
-def _active_role_assignment_scope_by_role(
-    *, session: Session, user_id: uuid.UUID
+async def _active_role_assignment_scope_by_role(
+    *, session: AsyncSession, user_id: uuid.UUID
 ) -> dict[uuid.UUID, RoleAssignmentScope]:
-    now = datetime.utcnow()
-    assignments = list(
-        session.exec(
-            select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
-        ).all()
+    now = utc_now()
+    result = await session.execute(
+        select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
     )
+    assignments = list(result.scalars().all())
     precedence = {
         RoleAssignmentScope.SELF: 1,
         RoleAssignmentScope.DEPARTMENT: 2,
@@ -87,104 +89,112 @@ def _active_role_assignment_scope_by_role(
     return scope_by_role
 
 
-def _get_or_create_profile(session: Session, user: User) -> UserProfile:
-    profile = session.exec(
+async def _get_or_create_profile(session: AsyncSession, user: User) -> UserProfile:
+    result = await session.execute(
         select(UserProfile).where(UserProfile.user_id == user.id)
-    ).first()
+    )
+    profile = result.scalars().first()
     if profile:
         return profile
     profile = UserProfile(
         user_id=user.id,
-        first_name=user.first_name,
-        middle_name=user.middle_name,
-        last_name=user.last_name,
-        display_name=user.full_name,
+        phone=None,
+        avatar_url=None,
+        status=UserStatus.ACTIVE,
         created_by=str(user.id),
     )
     session.add(profile)
-    session.commit()
-    session.refresh(profile)
+    await session.commit()
+    await session.refresh(profile)
     return profile
 
 
-def _get_or_create_address(session: Session, user_id: uuid.UUID) -> UserAddress:
-    address = session.exec(
+async def _get_or_create_address(session: AsyncSession, user_id: uuid.UUID) -> UserAddress:
+    result = await session.execute(
         select(UserAddress).where(UserAddress.user_id == user_id)
-    ).first()
+    )
+    address = result.scalars().first()
     if address:
         return address
     address = UserAddress(user_id=user_id)
     session.add(address)
-    session.commit()
-    session.refresh(address)
+    await session.commit()
+    await session.refresh(address)
     return address
 
 
-def _get_or_create_roster_preference(
-    session: Session, user_id: uuid.UUID
+async def _get_or_create_roster_preference(
+    session: AsyncSession, user_id: uuid.UUID
 ) -> RosterPreference:
-    preference = session.exec(
+    result = await session.execute(
         select(RosterPreference).where(RosterPreference.user_id == user_id)
-    ).first()
+    )
+    preference = result.scalars().first()
     if preference:
         return preference
     preference = RosterPreference(user_id=user_id)
     session.add(preference)
-    session.commit()
-    session.refresh(preference)
+    await session.commit()
+    await session.refresh(preference)
     return preference
 
 
-def _get_or_create_approval_authority(
-    session: Session, user_id: uuid.UUID
+async def _get_or_create_approval_authority(
+    session: AsyncSession, user_id: uuid.UUID
 ) -> ApprovalAuthority:
-    authority = session.exec(
+    result = await session.execute(
         select(ApprovalAuthority).where(ApprovalAuthority.user_id == user_id)
-    ).first()
+    )
+    authority = result.scalars().first()
     if authority:
         return authority
     authority = ApprovalAuthority(user_id=user_id)
     session.add(authority)
-    session.commit()
-    session.refresh(authority)
+    await session.commit()
+    await session.refresh(authority)
     return authority
 
 
-def _get_employment_record(
-    session: Session, user_id: uuid.UUID
+async def _get_employment_record(
+    session: AsyncSession, user_id: uuid.UUID
 ) -> EmploymentRecord | None:
-    return session.exec(
+    result = await session.execute(
         select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
-    ).first()
+    )
+    return result.scalars().first()
 
 
-def _build_profile_response(
-    session: Session,
+async def _build_profile_response(
+    session: AsyncSession,
     user: User,
     profile: UserProfile,
     address: UserAddress,
     roster_preference: RosterPreference,
     approval_authority: ApprovalAuthority,
 ) -> UserProfilePublic:
-    employment_record = _get_employment_record(session=session, user_id=user.id)
+    employment_record = await _get_employment_record(session=session, user_id=user.id)
     department = (
-        session.get(Department, employment_record.department_id)
+        await session.get(Department, employment_record.department_id)
         if employment_record and employment_record.department_id
         else None
     )
-    preferred_shifts = session.exec(
+    pref_result = await session.execute(
         select(RosterPreferredShift).where(RosterPreferredShift.user_id == user.id)
-    ).all()
-    restricted_shifts = session.exec(
+    )
+    preferred_shifts = list(pref_result.scalars().all())
+    restr_result = await session.execute(
         select(RosterRestrictedShift).where(RosterRestrictedShift.user_id == user.id)
-    ).all()
-    leave_balances = session.exec(
+    )
+    restricted_shifts = list(restr_result.scalars().all())
+    leave_result = await session.execute(
         select(LeaveBalance).where(LeaveBalance.user_id == user.id)
-    ).all()
-    carry_over = session.exec(
+    )
+    leave_balances = list(leave_result.scalars().all())
+    carry_result = await session.execute(
         select(LeaveCarryOver).where(LeaveCarryOver.user_id == user.id)
-    ).all()
-    scope_by_role = _active_role_assignment_scope_by_role(
+    )
+    carry_over = list(carry_result.scalars().all())
+    scope_by_role = await _active_role_assignment_scope_by_role(
         session=session, user_id=user.id
     )
 
@@ -232,7 +242,7 @@ def _build_profile_response(
             first_name=user.first_name,
             middle_name=user.middle_name,
             last_name=user.last_name,
-            display_name=profile.display_name,
+            display_name=user.full_name,
             date_of_birth=profile.date_of_birth,
             nationality=profile.nationality,
             gender=profile.gender,
@@ -272,16 +282,16 @@ def _build_profile_response(
     )
 
 
-def read_profile_for_user(*, session: Session, current_user: User) -> UserProfilePublic:
-    profile = _get_or_create_profile(session=session, user=current_user)
-    address = _get_or_create_address(session=session, user_id=current_user.id)
-    roster_preference = _get_or_create_roster_preference(
+async def read_profile_for_user(*, session: AsyncSession, current_user: User) -> UserProfilePublic:
+    profile = await _get_or_create_profile(session=session, user=current_user)
+    address = await _get_or_create_address(session=session, user_id=current_user.id)
+    roster_preference = await _get_or_create_roster_preference(
         session=session, user_id=current_user.id
     )
-    approval_authority = _get_or_create_approval_authority(
+    approval_authority = await _get_or_create_approval_authority(
         session=session, user_id=current_user.id
     )
-    return _build_profile_response(
+    return await _build_profile_response(
         session=session,
         user=current_user,
         profile=profile,
@@ -291,52 +301,52 @@ def read_profile_for_user(*, session: Session, current_user: User) -> UserProfil
     )
 
 
-def update_profile_details(
+async def update_profile_details(
     *,
-    session: Session,
+    session: AsyncSession,
     user: User,
     profile_data: dict[str, object],
 ) -> UserProfile:
-    profile = _get_or_create_profile(session=session, user=user)
+    profile = await _get_or_create_profile(session=session, user=user)
     safe_profile_data = {
         key: value
         for key, value in profile_data.items()
-        if key not in {"first_name", "middle_name", "last_name"}
+        if key not in {"first_name", "middle_name", "last_name", "display_name"}
     }
     profile.sqlmodel_update(safe_profile_data)
-    profile.updated_at = datetime.utcnow()
+    profile.updated_at = utc_now()
     session.add(profile)
     return profile
 
 
-def update_address(
+async def update_address(
     *,
-    session: Session,
+    session: AsyncSession,
     user_id: uuid.UUID,
     address_data: dict[str, object],
 ) -> UserAddress:
-    address = _get_or_create_address(session=session, user_id=user_id)
+    address = await _get_or_create_address(session=session, user_id=user_id)
     address.sqlmodel_update(address_data)
-    address.updated_at = datetime.utcnow()
+    address.updated_at = utc_now()
     session.add(address)
     return address
 
 
-def update_roster_preferences(
+async def update_roster_preferences(
     *,
-    session: Session,
+    session: AsyncSession,
     user_id: uuid.UUID,
     roster_data: dict[str, object],
 ) -> RosterPreference:
-    roster_preference = _get_or_create_roster_preference(session=session, user_id=user_id)
+    roster_preference = await _get_or_create_roster_preference(session=session, user_id=user_id)
     preferred_shifts = roster_data.pop("preferred_shifts", None)
     restricted_shifts = roster_data.pop("restricted_shifts", None)
     roster_preference.sqlmodel_update(roster_data)
-    roster_preference.updated_at = datetime.utcnow()
+    roster_preference.updated_at = utc_now()
     session.add(roster_preference)
 
     if isinstance(preferred_shifts, list):
-        session.exec(
+        await session.execute(
             delete(RosterPreferredShift).where(
                 col(RosterPreferredShift.user_id) == user_id
             )
@@ -345,7 +355,7 @@ def update_roster_preferences(
             session.add(RosterPreferredShift(user_id=user_id, shift_code=shift_code))
 
     if isinstance(restricted_shifts, list):
-        session.exec(
+        await session.execute(
             delete(RosterRestrictedShift).where(
                 col(RosterRestrictedShift.user_id) == user_id
             )
@@ -356,19 +366,19 @@ def update_roster_preferences(
     return roster_preference
 
 
-def update_profile_for_current_user(
+async def update_profile_for_current_user(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     payload: dict[str, object],
 ) -> UserProfilePublic:
     profile_updates = payload.get("profile")
     if isinstance(profile_updates, dict):
-        update_profile_details(session=session, user=current_user, profile_data=profile_updates)
+        await update_profile_details(session=session, user=current_user, profile_data=profile_updates)
 
     address_updates = payload.get("address")
     if isinstance(address_updates, dict):
-        update_address(
+        await update_address(
             session=session,
             user_id=current_user.id,
             address_data=address_updates,
@@ -376,7 +386,7 @@ def update_profile_for_current_user(
 
     roster_updates = payload.get("roster_preferences")
     if isinstance(roster_updates, dict):
-        update_roster_preferences(
+        await update_roster_preferences(
             session=session,
             user_id=current_user.id,
             roster_data=roster_updates,
@@ -392,22 +402,16 @@ def update_profile_for_current_user(
         if auth_updates:
             current_user.sqlmodel_update(auth_updates)
             session.add(current_user)
-            profile = _get_or_create_profile(session=session, user=current_user)
-            profile.first_name = current_user.first_name
-            profile.middle_name = current_user.middle_name
-            profile.last_name = current_user.last_name
-            profile.updated_at = datetime.utcnow()
-            session.add(profile)
 
-    session.commit()
-    session.refresh(current_user)
-    return read_profile_for_user(session=session, current_user=current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return await read_profile_for_user(session=session, current_user=current_user)
 
 
-def _can_manage_employment(
-    *, session: Session, current_user: User, target_user_id: uuid.UUID
+async def _can_manage_employment(
+    *, session: AsyncSession, current_user: User, target_user_id: uuid.UUID
 ) -> bool:
-    return can_act_on_user(
+    return await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=target_user_id,
@@ -421,7 +425,7 @@ def _apply_employment_update(
     employment_data = updates.model_dump(exclude_unset=True)
     if employment_data:
         employment.sqlmodel_update(employment_data)
-        employment.updated_at = datetime.utcnow()
+        employment.updated_at = utc_now()
     return employment
 
 
@@ -431,30 +435,38 @@ def _apply_approval_update(
     approval_data = updates.model_dump(exclude_unset=True)
     if approval_data:
         authority.sqlmodel_update(approval_data)
-        authority.updated_at = datetime.utcnow()
+        authority.updated_at = utc_now()
     return authority
 
 
-def update_employment_for_user(
+async def update_employment_for_user(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     target_user_id: uuid.UUID,
     employment_update: EmploymentUpdate | None,
     approval_update: ApprovalAuthorityUpdate | None,
 ) -> UserProfilePublic:
-    target_user = session.get(User, target_user_id)
+    stmt = (
+        select(User)
+        .where(User.id == target_user_id)
+        .options(
+            selectinload(User.roles).selectinload(Role.permissions),
+        )
+    )
+    result = await session.execute(stmt)
+    target_user = result.scalars().unique().first()
     if not target_user:
         raise HRProfileNotFoundError()
 
-    if not _can_manage_employment(
+    if not await _can_manage_employment(
         session=session, current_user=current_user, target_user_id=target_user_id
     ):
         raise HRPermissionDeniedError(
             hr_constants.ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT
         )
 
-    employment = _get_employment_record(session=session, user_id=target_user_id)
+    employment = await _get_employment_record(session=session, user_id=target_user_id)
     if not employment:
         raise EmploymentNotFoundError()
 
@@ -463,12 +475,12 @@ def update_employment_for_user(
         session.add(employment)
 
     if approval_update:
-        authority = _get_or_create_approval_authority(
+        authority = await _get_or_create_approval_authority(
             session=session, user_id=target_user_id
         )
         _apply_approval_update(authority, approval_update)
         session.add(authority)
 
-    session.commit()
-    session.refresh(target_user)
-    return read_profile_for_user(session=session, current_user=target_user)
+    await session.commit()
+    await session.refresh(target_user)
+    return await read_profile_for_user(session=session, current_user=target_user)

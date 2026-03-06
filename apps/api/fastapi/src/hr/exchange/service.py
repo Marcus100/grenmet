@@ -1,10 +1,10 @@
 import uuid
-from datetime import datetime
 
-from sqlmodel import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
+from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED,
 )
@@ -19,8 +19,8 @@ from .models import ShiftSwapRequest
 from .schemas import ShiftSwapAction, ShiftSwapRequestCreate
 
 
-def create_shift_swap_request(
-    *, session: Session, current_user: User, payload: ShiftSwapRequestCreate
+async def create_shift_swap_request(
+    *, session: AsyncSession, current_user: User, payload: ShiftSwapRequestCreate
 ) -> ShiftSwapRequest:
     require_permission(
         current_user=current_user, permission_key="shift_swap.request.create.self"
@@ -39,9 +39,9 @@ def create_shift_swap_request(
         reason=payload.reason,
     )
     session.add(request)
-    session.commit()
-    session.refresh(request)
-    request.workflow_instance_id = start_workflow_for_entity(
+    await session.commit()
+    await session.refresh(request)
+    request.workflow_instance_id = await start_workflow_for_entity(
         session=session,
         current_user=current_user,
         department_id=payload.department_id,
@@ -50,24 +50,26 @@ def create_shift_swap_request(
         entity_id=request.id,
     )
     session.add(request)
-    session.commit()
-    session.refresh(request)
+    await session.commit()
+    await session.refresh(request)
     return request
 
 
-def action_shift_swap_request(
+async def action_shift_swap_request(
     *,
-    session: Session,
+    session: AsyncSession,
     current_user: User,
     shift_swap_id: uuid.UUID,
     payload: ShiftSwapAction,
 ) -> ShiftSwapRequest:
-    require_permission(current_user=current_user, permission_key="shift_swap.request.action")
-    request = get_shift_swap_request_or_404(
+    require_permission(
+        current_user=current_user, permission_key="shift_swap.request.action"
+    )
+    request = await get_shift_swap_request_or_404(
         session=session,
         shift_swap_id=shift_swap_id,
     )
-    if not can_act_on_user(
+    if not await can_act_on_user(
         session=session,
         current_user=current_user,
         target_user_id=request.requesting_user_id,
@@ -75,8 +77,8 @@ def action_shift_swap_request(
     ):
         raise HRPermissionDeniedError(ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED)
     request.status = payload.status
-    request.updated_at = datetime.utcnow()
+    request.updated_at = utc_now()
     session.add(request)
-    session.commit()
-    session.refresh(request)
+    await session.commit()
+    await session.refresh(request)
     return request
