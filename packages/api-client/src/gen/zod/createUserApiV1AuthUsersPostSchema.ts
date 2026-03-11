@@ -9,11 +9,16 @@ import { userPublicSchema } from "./userPublicSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description User created
  */
 export const createUserApiV1AuthUsersPost200Schema = z.lazy(
   () => userPublicSchema
 );
+
+/**
+ * @description User with this email already exists
+ */
+export const createUserApiV1AuthUsersPost400Schema = z.any();
 
 /**
  * @description Validation Error

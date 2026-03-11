@@ -15,7 +15,7 @@ export const readPermissionsApiV1AuthPermissionsGetQueryParamsSchema = z.object(
 );
 
 /**
- * @description Successful Response
+ * @description Permissions returned
  */
 export const readPermissionsApiV1AuthPermissionsGet200Schema = z.lazy(
   () => permissionsPublicSchema

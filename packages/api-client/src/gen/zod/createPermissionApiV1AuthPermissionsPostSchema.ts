@@ -9,7 +9,7 @@ import { permissionPublicSchema } from "./permissionPublicSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description Permission created
  */
 export const createPermissionApiV1AuthPermissionsPost200Schema = z.lazy(
   () => permissionPublicSchema

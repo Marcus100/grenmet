@@ -12,6 +12,7 @@ import type {
 import type {
   UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
   UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+  UpdateUserMeApiV1AuthUsersMePatch409,
   UpdateUserMeApiV1AuthUsersMePatch422,
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
 
@@ -21,8 +22,8 @@ function getUpdateUserMeApiV1AuthUsersMePatchUrl() {
 }
 
 /**
- * @description Update own user.
- * @summary Update User Me
+ * @description Update profile fields for the currently authenticated user.
+ * @summary Update current user
  * {@link /api/v1/auth/users/me}
  */
 export async function updateUserMeApiV1AuthUsersMePatch(
@@ -37,7 +38,10 @@ export async function updateUserMeApiV1AuthUsersMePatch(
 
   const res = await request<
     UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
-    ResponseErrorConfig<UpdateUserMeApiV1AuthUsersMePatch422>,
+    ResponseErrorConfig<
+      | UpdateUserMeApiV1AuthUsersMePatch409
+      | UpdateUserMeApiV1AuthUsersMePatch422
+    >,
     UpdateUserMeApiV1AuthUsersMePatchMutationRequest
   >({
     method: "PATCH",

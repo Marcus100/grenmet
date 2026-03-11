@@ -7,6 +7,7 @@
  * PermissionCreate
  */
 export type PermissionCreate = {
+  key?: string | null;
   /**
    * @type string
    */

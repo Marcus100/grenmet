@@ -6,15 +6,19 @@
 import type { UserProfilePublic } from "./UserProfilePublic.js";
 
 /**
- * UserProfilePublic
- * @description Successful Response
+ * @description HR profile returned
  */
 export type ReadHrProfileMeApiV1HrProfileMeGet200 = UserProfilePublic;
+
+/**
+ * @description HR profile not found for this user
+ */
+export type ReadHrProfileMeApiV1HrProfileMeGet404 = any;
 
 export type ReadHrProfileMeApiV1HrProfileMeGetQueryResponse =
   ReadHrProfileMeApiV1HrProfileMeGet200;
 
 export type ReadHrProfileMeApiV1HrProfileMeGetQuery = {
   Response: ReadHrProfileMeApiV1HrProfileMeGet200;
-  Errors: any;
+  Errors: ReadHrProfileMeApiV1HrProfileMeGet404;
 };

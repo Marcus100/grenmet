@@ -13,10 +13,16 @@ export const readPermissionApiV1AuthPermissionsPermissionIdGetPathParamsSchema =
   });
 
 /**
- * @description Successful Response
+ * @description Permission returned
  */
 export const readPermissionApiV1AuthPermissionsPermissionIdGet200Schema =
   z.lazy(() => permissionPublicSchema);
+
+/**
+ * @description Permission not found
+ */
+export const readPermissionApiV1AuthPermissionsPermissionIdGet404Schema =
+  z.any();
 
 /**
  * @description Validation Error

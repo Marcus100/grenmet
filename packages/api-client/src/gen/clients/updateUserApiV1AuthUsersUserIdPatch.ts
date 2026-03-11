@@ -13,6 +13,8 @@ import type {
   UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
   UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
   UpdateUserApiV1AuthUsersUserIdPatchPathParams,
+  UpdateUserApiV1AuthUsersUserIdPatch404,
+  UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
 
@@ -27,8 +29,8 @@ function getUpdateUserApiV1AuthUsersUserIdPatchUrl(
 }
 
 /**
- * @description Update a user.
- * @summary Update User
+ * @description Update a user by ID (superuser only).
+ * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export async function updateUserApiV1AuthUsersUserIdPatch(
@@ -44,7 +46,11 @@ export async function updateUserApiV1AuthUsersUserIdPatch(
 
   const res = await request<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch404
+      | UpdateUserApiV1AuthUsersUserIdPatch409
+      | UpdateUserApiV1AuthUsersUserIdPatch422
+    >,
     UpdateUserApiV1AuthUsersUserIdPatchMutationRequest
   >({
     method: "PATCH",

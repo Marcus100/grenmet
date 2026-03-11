@@ -20,8 +20,7 @@ export type ReadRolesApiV1AuthRolesGetQueryParams = {
 };
 
 /**
- * RolesPublic
- * @description Successful Response
+ * @description Roles returned
  */
 export type ReadRolesApiV1AuthRolesGet200 = RolesPublic;
 

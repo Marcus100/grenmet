@@ -49,8 +49,8 @@ export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create new role (superuser only).
- * @summary Create Role
+ * @description Create a role (superuser only).
+ * @summary Create role
  * {@link /api/v1/auth/roles/}
  */
 export function useCreateRoleApiV1AuthRolesPost<TContext>(

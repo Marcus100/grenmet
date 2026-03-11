@@ -12,6 +12,8 @@ import type {
 import type {
   DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
   DeleteUserApiV1AuthUsersUserIdDeletePathParams,
+  DeleteUserApiV1AuthUsersUserIdDelete403,
+  DeleteUserApiV1AuthUsersUserIdDelete404,
   DeleteUserApiV1AuthUsersUserIdDelete422,
 } from "../models/DeleteUserApiV1AuthUsersUserIdDelete.js";
 
@@ -26,8 +28,8 @@ function getDeleteUserApiV1AuthUsersUserIdDeleteUrl(
 }
 
 /**
- * @description Delete a user.
- * @summary Delete User
+ * @description Delete a user by ID (superuser only).
+ * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export async function deleteUserApiV1AuthUsersUserIdDelete(
@@ -38,7 +40,11 @@ export async function deleteUserApiV1AuthUsersUserIdDelete(
 
   const res = await request<
     DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+    ResponseErrorConfig<
+      | DeleteUserApiV1AuthUsersUserIdDelete403
+      | DeleteUserApiV1AuthUsersUserIdDelete404
+      | DeleteUserApiV1AuthUsersUserIdDelete422
+    >,
     unknown
   >({
     method: "DELETE",

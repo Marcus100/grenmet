@@ -14,10 +14,19 @@ export type DeleteUserApiV1AuthUsersUserIdDeletePathParams = {
 };
 
 /**
- * Message
- * @description Successful Response
+ * @description User deleted
  */
 export type DeleteUserApiV1AuthUsersUserIdDelete200 = Message;
+
+/**
+ * @description Superuser cannot delete own account
+ */
+export type DeleteUserApiV1AuthUsersUserIdDelete403 = any;
+
+/**
+ * @description User not found
+ */
+export type DeleteUserApiV1AuthUsersUserIdDelete404 = any;
 
 /**
  * HTTPValidationError
@@ -31,5 +40,8 @@ export type DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse =
 export type DeleteUserApiV1AuthUsersUserIdDeleteMutation = {
   Response: DeleteUserApiV1AuthUsersUserIdDelete200;
   PathParams: DeleteUserApiV1AuthUsersUserIdDeletePathParams;
-  Errors: DeleteUserApiV1AuthUsersUserIdDelete422;
+  Errors:
+    | DeleteUserApiV1AuthUsersUserIdDelete403
+    | DeleteUserApiV1AuthUsersUserIdDelete404
+    | DeleteUserApiV1AuthUsersUserIdDelete422;
 };

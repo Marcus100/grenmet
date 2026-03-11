@@ -3,17 +3,4 @@
  * Do not edit manually.
  */
 
-/**
- * Token
- */
-export type Token = {
-  /**
-   * @type string
-   */
-  access_token: string;
-  /**
-   * @default "bearer"
-   * @type string | undefined
-   */
-  token_type?: string;
-};
+export type Token = any;

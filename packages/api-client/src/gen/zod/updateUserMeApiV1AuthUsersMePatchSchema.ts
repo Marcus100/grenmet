@@ -9,11 +9,16 @@ import { userUpdateMeSchema } from "./userUpdateMeSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description User updated
  */
 export const updateUserMeApiV1AuthUsersMePatch200Schema = z.lazy(
   () => userPublicSchema
 );
+
+/**
+ * @description Email already exists
+ */
+export const updateUserMeApiV1AuthUsersMePatch409Schema = z.any();
 
 /**
  * @description Validation Error

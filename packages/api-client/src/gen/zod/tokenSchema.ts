@@ -5,7 +5,4 @@
 
 import { z } from "zod/v4";
 
-export const tokenSchema = z.object({
-  access_token: z.string(),
-  token_type: z.optional(z.string().default("bearer")),
-});
+export const tokenSchema = z.any();

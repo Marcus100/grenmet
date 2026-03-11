@@ -3,37 +3,4 @@
  * Do not edit manually.
  */
 
-/**
- * PermissionPublic
- */
-export type PermissionPublic = {
-  /**
-   * @type string
-   */
-  action: string;
-  /**
-   * @type string
-   */
-  entity: string;
-  /**
-   * @type string
-   */
-  access: string;
-  /**
-   * @default ""
-   * @type string | undefined
-   */
-  description?: string;
-  /**
-   * @type string, uuid
-   */
-  id: string;
-  /**
-   * @type string, date-time
-   */
-  created_at: string;
-  /**
-   * @type string, date-time
-   */
-  updated_at: string;
-};
+export type PermissionPublic = any;

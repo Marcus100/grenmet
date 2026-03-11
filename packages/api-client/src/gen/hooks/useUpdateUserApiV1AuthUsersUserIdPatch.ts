@@ -18,6 +18,8 @@ import type {
   UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
   UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
   UpdateUserApiV1AuthUsersUserIdPatchPathParams,
+  UpdateUserApiV1AuthUsersUserIdPatch404,
+  UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
@@ -40,7 +42,11 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
   const mutationKey = updateUserApiV1AuthUsersUserIdPatchMutationKey();
   return mutationOptions<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch404
+      | UpdateUserApiV1AuthUsersUserIdPatch409
+      | UpdateUserApiV1AuthUsersUserIdPatch422
+    >,
     {
       user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
       data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
@@ -55,15 +61,19 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
 }
 
 /**
- * @description Update a user.
- * @summary Update User
+ * @description Update a user by ID (superuser only).
+ * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
       UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-      ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+      ResponseErrorConfig<
+        | UpdateUserApiV1AuthUsersUserIdPatch404
+        | UpdateUserApiV1AuthUsersUserIdPatch409
+        | UpdateUserApiV1AuthUsersUserIdPatch422
+      >,
       {
         user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
         data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
@@ -85,7 +95,11 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
     config
   ) as UseMutationOptions<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch404
+      | UpdateUserApiV1AuthUsersUserIdPatch409
+      | UpdateUserApiV1AuthUsersUserIdPatch422
+    >,
     {
       user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
       data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
@@ -95,7 +109,11 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
 
   return useMutation<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch404
+      | UpdateUserApiV1AuthUsersUserIdPatch409
+      | UpdateUserApiV1AuthUsersUserIdPatch422
+    >,
     {
       user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
       data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
@@ -110,7 +128,11 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
     queryClient
   ) as UseMutationResult<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateUserApiV1AuthUsersUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch404
+      | UpdateUserApiV1AuthUsersUserIdPatch409
+      | UpdateUserApiV1AuthUsersUserIdPatch422
+    >,
     {
       user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
       data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;

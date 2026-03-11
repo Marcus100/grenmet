@@ -8,10 +8,14 @@ import type { Message } from "./Message.js";
 import type { UpdatePassword } from "./UpdatePassword.js";
 
 /**
- * Message
- * @description Successful Response
+ * @description Password updated
  */
 export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch200 = Message;
+
+/**
+ * @description Current password incorrect or new password unchanged
+ */
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch400 = any;
 
 /**
  * HTTPValidationError
@@ -32,5 +36,7 @@ export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse =
 export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutation = {
   Response: UpdatePasswordMeApiV1AuthUsersMePasswordPatch200;
   Request: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest;
-  Errors: UpdatePasswordMeApiV1AuthUsersMePasswordPatch422;
+  Errors:
+    | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
+    | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422;
 };

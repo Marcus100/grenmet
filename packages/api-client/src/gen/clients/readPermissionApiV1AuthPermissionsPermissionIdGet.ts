@@ -12,6 +12,7 @@ import type {
 import type {
   ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
   ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 
@@ -26,8 +27,8 @@ function getReadPermissionApiV1AuthPermissionsPermissionIdGetUrl(
 }
 
 /**
- * @description Get permission by ID (superuser only).
- * @summary Read Permission
+ * @description Return a permission by ID (superuser only).
+ * @summary Get permission by ID
  * {@link /api/v1/auth/permissions/:permission_id}
  */
 export async function readPermissionApiV1AuthPermissionsPermissionIdGet(
@@ -38,7 +39,10 @@ export async function readPermissionApiV1AuthPermissionsPermissionIdGet(
 
   const res = await request<
     ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-    ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>,
+    ResponseErrorConfig<
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+    >,
     unknown
   >({
     method: "GET",

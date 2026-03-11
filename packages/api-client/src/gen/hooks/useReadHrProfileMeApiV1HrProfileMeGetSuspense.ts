@@ -15,7 +15,10 @@ import type {
   UseSuspenseQueryOptions,
   UseSuspenseQueryResult,
 } from "@tanstack/react-query";
-import type { ReadHrProfileMeApiV1HrProfileMeGetQueryResponse } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
+import type {
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGet404,
+} from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { readHrProfileMeApiV1HrProfileMeGet } from "../clients/readHrProfileMeApiV1HrProfileMeGet.js";
 
@@ -32,7 +35,7 @@ export function readHrProfileMeApiV1HrProfileMeGetSuspenseQueryOptions(
   const queryKey = readHrProfileMeApiV1HrProfileMeGetSuspenseQueryKey();
   return queryOptions<
     ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
     ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
     typeof queryKey
   >({
@@ -47,7 +50,8 @@ export function readHrProfileMeApiV1HrProfileMeGetSuspenseQueryOptions(
 }
 
 /**
- * @summary Read Hr Profile Me
+ * @description Return the current user's HR profile (identity, employment, address, preferences).
+ * @summary Get my HR profile
  * {@link /api/v1/hr/profile/me}
  */
 export function useReadHrProfileMeApiV1HrProfileMeGetSuspense<
@@ -59,7 +63,7 @@ export function useReadHrProfileMeApiV1HrProfileMeGetSuspense<
     query?: Partial<
       UseSuspenseQueryOptions<
         ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
         TData,
         TQueryKey
       >
@@ -80,9 +84,10 @@ export function useReadHrProfileMeApiV1HrProfileMeGetSuspense<
       ...queryOptions,
     } as unknown as UseSuspenseQueryOptions,
     queryClient
-  ) as UseSuspenseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseSuspenseQueryResult<
+    TData,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

@@ -16,9 +16,19 @@ export type UpdateUserApiV1AuthUsersUserIdPatchPathParams = {
 
 /**
  * UserPublic
- * @description Successful Response
+ * @description User updated
  */
 export type UpdateUserApiV1AuthUsersUserIdPatch200 = UserPublic;
+
+/**
+ * @description User not found
+ */
+export type UpdateUserApiV1AuthUsersUserIdPatch404 = any;
+
+/**
+ * @description Email already exists
+ */
+export type UpdateUserApiV1AuthUsersUserIdPatch409 = any;
 
 /**
  * HTTPValidationError
@@ -38,5 +48,8 @@ export type UpdateUserApiV1AuthUsersUserIdPatchMutation = {
   Response: UpdateUserApiV1AuthUsersUserIdPatch200;
   Request: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
   PathParams: UpdateUserApiV1AuthUsersUserIdPatchPathParams;
-  Errors: UpdateUserApiV1AuthUsersUserIdPatch422;
+  Errors:
+    | UpdateUserApiV1AuthUsersUserIdPatch404
+    | UpdateUserApiV1AuthUsersUserIdPatch409
+    | UpdateUserApiV1AuthUsersUserIdPatch422;
 };

@@ -9,9 +9,14 @@ import type { UserUpdateMe } from "./UserUpdateMe.js";
 
 /**
  * UserPublic
- * @description Successful Response
+ * @description User updated
  */
 export type UpdateUserMeApiV1AuthUsersMePatch200 = UserPublic;
+
+/**
+ * @description Email already exists
+ */
+export type UpdateUserMeApiV1AuthUsersMePatch409 = any;
 
 /**
  * HTTPValidationError
@@ -30,5 +35,7 @@ export type UpdateUserMeApiV1AuthUsersMePatchMutationResponse =
 export type UpdateUserMeApiV1AuthUsersMePatchMutation = {
   Response: UpdateUserMeApiV1AuthUsersMePatch200;
   Request: UpdateUserMeApiV1AuthUsersMePatchMutationRequest;
-  Errors: UpdateUserMeApiV1AuthUsersMePatch422;
+  Errors:
+    | UpdateUserMeApiV1AuthUsersMePatch409
+    | UpdateUserMeApiV1AuthUsersMePatch422;
 };

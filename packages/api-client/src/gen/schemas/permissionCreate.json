@@ -1,5 +1,9 @@
 {
   "properties": {
+    "key": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Key"
+    },
     "action": { "type": "string", "title": "Action" },
     "entity": { "type": "string", "title": "Entity" },
     "access": { "type": "string", "title": "Access" },

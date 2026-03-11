@@ -9,11 +9,16 @@ import { updatePasswordSchema } from "./updatePasswordSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description Password updated
  */
 export const updatePasswordMeApiV1AuthUsersMePasswordPatch200Schema = z.lazy(
   () => messageSchema
 );
+
+/**
+ * @description Current password incorrect or new password unchanged
+ */
+export const updatePasswordMeApiV1AuthUsersMePasswordPatch400Schema = z.any();
 
 /**
  * @description Validation Error

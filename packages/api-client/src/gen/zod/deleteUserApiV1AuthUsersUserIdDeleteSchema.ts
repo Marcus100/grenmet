@@ -12,11 +12,21 @@ export const deleteUserApiV1AuthUsersUserIdDeletePathParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description User deleted
  */
 export const deleteUserApiV1AuthUsersUserIdDelete200Schema = z.lazy(
   () => messageSchema
 );
+
+/**
+ * @description Superuser cannot delete own account
+ */
+export const deleteUserApiV1AuthUsersUserIdDelete403Schema = z.any();
+
+/**
+ * @description User not found
+ */
+export const deleteUserApiV1AuthUsersUserIdDelete404Schema = z.any();
 
 /**
  * @description Validation Error

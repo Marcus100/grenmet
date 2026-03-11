@@ -12,6 +12,7 @@ import type {
 import type {
   ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
   ReadRoleApiV1AuthRolesRoleIdGetPathParams,
+  ReadRoleApiV1AuthRolesRoleIdGet404,
   ReadRoleApiV1AuthRolesRoleIdGet422,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
 
@@ -23,8 +24,8 @@ function getReadRoleApiV1AuthRolesRoleIdGetUrl(
 }
 
 /**
- * @description Get role by ID (superuser only).
- * @summary Read Role
+ * @description Return a role by ID (superuser only).
+ * @summary Get role by ID
  * {@link /api/v1/auth/roles/:role_id}
  */
 export async function readRoleApiV1AuthRolesRoleIdGet(
@@ -35,7 +36,9 @@ export async function readRoleApiV1AuthRolesRoleIdGet(
 
   const res = await request<
     ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-    ResponseErrorConfig<ReadRoleApiV1AuthRolesRoleIdGet422>,
+    ResponseErrorConfig<
+      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
+    >,
     unknown
   >({
     method: "GET",

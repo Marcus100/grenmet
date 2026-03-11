@@ -9,7 +9,10 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type { DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
+import type {
+  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+  DeleteUserMeApiV1AuthUsersMeDelete403,
+} from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 
 function getDeleteUserMeApiV1AuthUsersMeDeleteUrl() {
   const res = { method: "DELETE", url: `/api/v1/auth/users/me` as const };
@@ -17,8 +20,8 @@ function getDeleteUserMeApiV1AuthUsersMeDeleteUrl() {
 }
 
 /**
- * @description Delete own user.
- * @summary Delete User Me
+ * @description Delete currently authenticated user account.
+ * @summary Delete current user
  * {@link /api/v1/auth/users/me}
  */
 export async function deleteUserMeApiV1AuthUsersMeDelete(
@@ -28,7 +31,7 @@ export async function deleteUserMeApiV1AuthUsersMeDelete(
 
   const res = await request<
     DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
     unknown
   >({
     method: "DELETE",

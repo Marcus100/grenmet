@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-import { userPublicSchema } from "./userPublicSchema.js";
 import { z } from "zod/v4";
 
-export const usersPublicSchema = z.object({
-  get data() {
-    return z.array(userPublicSchema);
-  },
-  count: z.int(),
-});
+export const usersPublicSchema = z.any();

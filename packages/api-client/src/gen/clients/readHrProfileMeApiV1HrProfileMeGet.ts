@@ -9,7 +9,10 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type { ReadHrProfileMeApiV1HrProfileMeGetQueryResponse } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
+import type {
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGet404,
+} from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 
 function getReadHrProfileMeApiV1HrProfileMeGetUrl() {
   const res = { method: "GET", url: `/api/v1/hr/profile/me` as const };
@@ -17,7 +20,8 @@ function getReadHrProfileMeApiV1HrProfileMeGetUrl() {
 }
 
 /**
- * @summary Read Hr Profile Me
+ * @description Return the current user's HR profile (identity, employment, address, preferences).
+ * @summary Get my HR profile
  * {@link /api/v1/hr/profile/me}
  */
 export async function readHrProfileMeApiV1HrProfileMeGet(
@@ -27,7 +31,7 @@ export async function readHrProfileMeApiV1HrProfileMeGet(
 
   const res = await request<
     ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
     unknown
   >({
     method: "GET",

@@ -14,7 +14,6 @@ export type TestEmailApiV1UtilsTestEmailPostQueryParams = {
 };
 
 /**
- * Message
  * @description Successful Response
  */
 export type TestEmailApiV1UtilsTestEmailPost201 = Message;

@@ -7,11 +7,16 @@ import { messageSchema } from "./messageSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description User deleted
  */
 export const deleteUserMeApiV1AuthUsersMeDelete200Schema = z.lazy(
   () => messageSchema
 );
+
+/**
+ * @description Superuser cannot delete own account
+ */
+export const deleteUserMeApiV1AuthUsersMeDelete403Schema = z.any();
 
 export const deleteUserMeApiV1AuthUsersMeDeleteMutationResponseSchema = z.lazy(
   () => deleteUserMeApiV1AuthUsersMeDelete200Schema

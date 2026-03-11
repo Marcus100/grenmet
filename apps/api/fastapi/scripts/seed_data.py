@@ -20,7 +20,7 @@ from sqlmodel import Session, select
 
 from src.auth.models import User
 from src.auth.schemas import UserCreate
-from src.auth.service import create_user
+from src.auth.service import create_user_sync
 from src.database import engine
 
 logging.basicConfig(
@@ -279,7 +279,7 @@ def _create_user_from_data(
         logger.debug("User already exists: %s", user_in.email)
     else:
         try:
-            user = create_user(session=session, user_create=user_in)
+            user = create_user_sync(session=session, user_create=user_in)
             users.append(user)
             created_count += 1
             logger.info("Created user: %s", user.email)

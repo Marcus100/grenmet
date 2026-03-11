@@ -13,11 +13,21 @@ export const updateUserApiV1AuthUsersUserIdPatchPathParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description User updated
  */
 export const updateUserApiV1AuthUsersUserIdPatch200Schema = z.lazy(
   () => userPublicSchema
 );
+
+/**
+ * @description User not found
+ */
+export const updateUserApiV1AuthUsersUserIdPatch404Schema = z.any();
+
+/**
+ * @description Email already exists
+ */
+export const updateUserApiV1AuthUsersUserIdPatch409Schema = z.any();
 
 /**
  * @description Validation Error

@@ -18,6 +18,8 @@ import type {
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
@@ -40,7 +42,11 @@ export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
     updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey();
   return mutationOptions<
     UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+    >,
     {
       user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
       data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
@@ -59,14 +65,19 @@ export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
 }
 
 /**
- * @summary Update Hr Employment
+ * @description Update a user's employment record and approval authority. Supervisor or admin only.
+ * @summary Update employment (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */
 export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
       UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-      ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+      ResponseErrorConfig<
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+      >,
       {
         user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
         data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
@@ -89,7 +100,11 @@ export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
       config
     ) as UseMutationOptions<
       UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-      ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+      ResponseErrorConfig<
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+      >,
       {
         user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
         data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
@@ -99,7 +114,11 @@ export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
 
   return useMutation<
     UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+    >,
     {
       user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
       data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
@@ -114,7 +133,11 @@ export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
     queryClient
   ) as UseMutationResult<
     UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+    >,
     {
       user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
       data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;

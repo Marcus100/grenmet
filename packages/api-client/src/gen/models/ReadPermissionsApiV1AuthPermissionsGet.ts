@@ -20,8 +20,7 @@ export type ReadPermissionsApiV1AuthPermissionsGetQueryParams = {
 };
 
 /**
- * PermissionsPublic
- * @description Successful Response
+ * @description Permissions returned
  */
 export type ReadPermissionsApiV1AuthPermissionsGet200 = PermissionsPublic;
 

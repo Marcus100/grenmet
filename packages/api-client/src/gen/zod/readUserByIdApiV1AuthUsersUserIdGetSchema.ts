@@ -12,11 +12,16 @@ export const readUserByIdApiV1AuthUsersUserIdGetPathParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description User returned
  */
 export const readUserByIdApiV1AuthUsersUserIdGet200Schema = z.lazy(
   () => userPublicSchema
 );
+
+/**
+ * @description Insufficient privileges
+ */
+export const readUserByIdApiV1AuthUsersUserIdGet403Schema = z.any();
 
 /**
  * @description Validation Error

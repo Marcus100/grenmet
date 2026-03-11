@@ -4,7 +4,7 @@
  */
 
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
+import { rolePublicSchema } from "./rolePublicSchema.js";
 import { z } from "zod/v4";
 
 export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
@@ -12,11 +12,16 @@ export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description Role returned
  */
 export const readRoleApiV1AuthRolesRoleIdGet200Schema = z.lazy(
-  () => srcAuthSchemasRolePublicSchema
+  () => rolePublicSchema
 );
+
+/**
+ * @description Role not found
+ */
+export const readRoleApiV1AuthRolesRoleIdGet404Schema = z.any();
 
 /**
  * @description Validation Error

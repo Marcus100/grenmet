@@ -7,7 +7,7 @@ import type { UserPublic } from "./UserPublic.js";
 
 /**
  * UserPublic
- * @description Successful Response
+ * @description Current user returned
  */
 export type ReadUserMeApiV1AuthUsersMeGet200 = UserPublic;
 

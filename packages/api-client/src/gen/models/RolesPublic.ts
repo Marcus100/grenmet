@@ -3,18 +3,4 @@
  * Do not edit manually.
  */
 
-import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
-
-/**
- * RolesPublic
- */
-export type RolesPublic = {
-  /**
-   * @type array
-   */
-  data: SrcAuthSchemasRolePublic[];
-  /**
-   * @type integer
-   */
-  count: number;
-};
+export type RolesPublic = any;

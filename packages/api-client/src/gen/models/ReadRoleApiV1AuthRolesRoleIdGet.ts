@@ -4,7 +4,7 @@
  */
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
-import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
+import type { RolePublic } from "./RolePublic.js";
 
 export type ReadRoleApiV1AuthRolesRoleIdGetPathParams = {
   /**
@@ -14,10 +14,14 @@ export type ReadRoleApiV1AuthRolesRoleIdGetPathParams = {
 };
 
 /**
- * RolePublic
- * @description Successful Response
+ * @description Role returned
  */
-export type ReadRoleApiV1AuthRolesRoleIdGet200 = SrcAuthSchemasRolePublic;
+export type ReadRoleApiV1AuthRolesRoleIdGet200 = RolePublic;
+
+/**
+ * @description Role not found
+ */
+export type ReadRoleApiV1AuthRolesRoleIdGet404 = any;
 
 /**
  * HTTPValidationError
@@ -31,5 +35,7 @@ export type ReadRoleApiV1AuthRolesRoleIdGetQueryResponse =
 export type ReadRoleApiV1AuthRolesRoleIdGetQuery = {
   Response: ReadRoleApiV1AuthRolesRoleIdGet200;
   PathParams: ReadRoleApiV1AuthRolesRoleIdGetPathParams;
-  Errors: ReadRoleApiV1AuthRolesRoleIdGet422;
+  Errors:
+    | ReadRoleApiV1AuthRolesRoleIdGet404
+    | ReadRoleApiV1AuthRolesRoleIdGet422;
 };

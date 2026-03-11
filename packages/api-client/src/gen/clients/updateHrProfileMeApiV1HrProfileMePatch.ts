@@ -12,6 +12,7 @@ import type {
 import type {
   UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
   UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+  UpdateHrProfileMeApiV1HrProfileMePatch404,
   UpdateHrProfileMeApiV1HrProfileMePatch422,
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
 
@@ -21,7 +22,8 @@ function getUpdateHrProfileMeApiV1HrProfileMePatchUrl() {
 }
 
 /**
- * @summary Update Hr Profile Me
+ * @description Update the current user's HR profile (identity, address, preferences).
+ * @summary Update my HR profile
  * {@link /api/v1/hr/profile/me}
  */
 export async function updateHrProfileMeApiV1HrProfileMePatch(
@@ -36,7 +38,10 @@ export async function updateHrProfileMeApiV1HrProfileMePatch(
 
   const res = await request<
     UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
-    ResponseErrorConfig<UpdateHrProfileMeApiV1HrProfileMePatch422>,
+    ResponseErrorConfig<
+      | UpdateHrProfileMeApiV1HrProfileMePatch404
+      | UpdateHrProfileMeApiV1HrProfileMePatch422
+    >,
     UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest
   >({
     method: "PATCH",

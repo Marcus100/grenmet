@@ -13,6 +13,8 @@ import type {
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 
@@ -27,7 +29,8 @@ function getUpdateHrEmploymentApiV1HrEmploymentUserIdPatchUrl(
 }
 
 /**
- * @summary Update Hr Employment
+ * @description Update a user's employment record and approval authority. Supervisor or admin only.
+ * @summary Update employment (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */
 export async function updateHrEmploymentApiV1HrEmploymentUserIdPatch(
@@ -43,7 +46,11 @@ export async function updateHrEmploymentApiV1HrEmploymentUserIdPatch(
 
   const res = await request<
     UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422>,
+    ResponseErrorConfig<
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+    >,
     UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest
   >({
     method: "PATCH",
