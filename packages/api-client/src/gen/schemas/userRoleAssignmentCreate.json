@@ -1,0 +1,28 @@
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "role_id": { "type": "string", "format": "uuid", "title": "Role Id" },
+    "scope": {
+      "default": "SELF",
+      "type": "string",
+      "enum": ["SELF", "DEPARTMENT", "ALL"],
+      "title": "RoleAssignmentScope",
+      "x-readme-ref-name": "RoleAssignmentScope"
+    },
+    "department_id": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Department Id"
+    },
+    "effective_to": {
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "title": "Effective To"
+    }
+  },
+  "type": "object",
+  "required": ["user_id", "role_id"],
+  "title": "UserRoleAssignmentCreate",
+  "x-readme-ref-name": "UserRoleAssignmentCreate"
+}

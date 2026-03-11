@@ -21,8 +21,8 @@ function getReadUsersApiV1AuthUsersGetUrl() {
 }
 
 /**
- * @description Retrieve users.
- * @summary Read Users
+ * @description Return users (superuser only).
+ * @summary List users
  * {@link /api/v1/auth/users/}
  */
 export async function readUsersApiV1AuthUsersGet(

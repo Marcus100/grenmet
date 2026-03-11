@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-import { permissionPublicSchema } from "./permissionPublicSchema.js";
 import { z } from "zod/v4";
 
-export const permissionsPublicSchema = z.object({
-  get data() {
-    return z.array(permissionPublicSchema);
-  },
-  count: z.int(),
-});
+export const permissionsPublicSchema = z.any();

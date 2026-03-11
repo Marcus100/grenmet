@@ -18,6 +18,7 @@ import type {
 import type {
   ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
   ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import { queryOptions, useQuery } from "@tanstack/react-query";
@@ -44,7 +45,10 @@ export function readPermissionApiV1AuthPermissionsPermissionIdGetQueryOptions(
     readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey(permission_id);
   return queryOptions<
     ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-    ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>,
+    ResponseErrorConfig<
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+    >,
     ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
     typeof queryKey
   >({
@@ -63,8 +67,8 @@ export function readPermissionApiV1AuthPermissionsPermissionIdGetQueryOptions(
 }
 
 /**
- * @description Get permission by ID (superuser only).
- * @summary Read Permission
+ * @description Return a permission by ID (superuser only).
+ * @summary Get permission by ID
  * {@link /api/v1/auth/permissions/:permission_id}
  */
 export function useReadPermissionApiV1AuthPermissionsPermissionIdGet<
@@ -78,7 +82,10 @@ export function useReadPermissionApiV1AuthPermissionsPermissionIdGet<
     query?: Partial<
       QueryObserverOptions<
         ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-        ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>,
+        ResponseErrorConfig<
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -105,7 +112,10 @@ export function useReadPermissionApiV1AuthPermissionsPermissionIdGet<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>
+    ResponseErrorConfig<
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;

@@ -7,11 +7,16 @@ import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description HR profile returned
  */
 export const readHrProfileMeApiV1HrProfileMeGet200Schema = z.lazy(
   () => userProfilePublicSchema
 );
+
+/**
+ * @description HR profile not found for this user
+ */
+export const readHrProfileMeApiV1HrProfileMeGet404Schema = z.any();
 
 export const readHrProfileMeApiV1HrProfileMeGetQueryResponseSchema = z.lazy(
   () => readHrProfileMeApiV1HrProfileMeGet200Schema

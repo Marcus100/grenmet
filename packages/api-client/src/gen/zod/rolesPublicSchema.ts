@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 import { z } from "zod/v4";
 
-export const rolesPublicSchema = z.object({
-  get data() {
-    return z.array(srcAuthSchemasRolePublicSchema);
-  },
-  count: z.int(),
-});
+export const rolesPublicSchema = z.any();

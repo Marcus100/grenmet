@@ -13,7 +13,7 @@ export const readRolesApiV1AuthRolesGetQueryParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description Roles returned
  */
 export const readRolesApiV1AuthRolesGet200Schema = z.lazy(
   () => rolesPublicSchema

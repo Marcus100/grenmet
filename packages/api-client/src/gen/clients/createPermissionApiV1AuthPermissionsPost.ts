@@ -21,8 +21,8 @@ function getCreatePermissionApiV1AuthPermissionsPostUrl() {
 }
 
 /**
- * @description Create new permission (superuser only).
- * @summary Create Permission
+ * @description Create a permission (superuser only).
+ * @summary Create permission
  * {@link /api/v1/auth/permissions/}
  */
 export async function createPermissionApiV1AuthPermissionsPost(

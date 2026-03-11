@@ -6,15 +6,19 @@
 import type { Message } from "./Message.js";
 
 /**
- * Message
- * @description Successful Response
+ * @description User deleted
  */
 export type DeleteUserMeApiV1AuthUsersMeDelete200 = Message;
+
+/**
+ * @description Superuser cannot delete own account
+ */
+export type DeleteUserMeApiV1AuthUsersMeDelete403 = any;
 
 export type DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse =
   DeleteUserMeApiV1AuthUsersMeDelete200;
 
 export type DeleteUserMeApiV1AuthUsersMeDeleteMutation = {
   Response: DeleteUserMeApiV1AuthUsersMeDelete200;
-  Errors: any;
+  Errors: DeleteUserMeApiV1AuthUsersMeDelete403;
 };

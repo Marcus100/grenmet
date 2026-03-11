@@ -3,18 +3,4 @@
  * Do not edit manually.
  */
 
-import type { UserPublic } from "./UserPublic.js";
-
-/**
- * UsersPublic
- */
-export type UsersPublic = {
-  /**
-   * @type array
-   */
-  data: UserPublic[];
-  /**
-   * @type integer
-   */
-  count: number;
-};
+export type UsersPublic = any;

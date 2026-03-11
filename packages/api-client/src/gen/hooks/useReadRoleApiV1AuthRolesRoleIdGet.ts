@@ -18,6 +18,7 @@ import type {
 import type {
   ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
   ReadRoleApiV1AuthRolesRoleIdGetPathParams,
+  ReadRoleApiV1AuthRolesRoleIdGet404,
   ReadRoleApiV1AuthRolesRoleIdGet422,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
 import { queryOptions, useQuery } from "@tanstack/react-query";
@@ -41,7 +42,9 @@ export function readRoleApiV1AuthRolesRoleIdGetQueryOptions(
   const queryKey = readRoleApiV1AuthRolesRoleIdGetQueryKey(role_id);
   return queryOptions<
     ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-    ResponseErrorConfig<ReadRoleApiV1AuthRolesRoleIdGet422>,
+    ResponseErrorConfig<
+      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
+    >,
     ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
     typeof queryKey
   >({
@@ -57,8 +60,8 @@ export function readRoleApiV1AuthRolesRoleIdGetQueryOptions(
 }
 
 /**
- * @description Get role by ID (superuser only).
- * @summary Read Role
+ * @description Return a role by ID (superuser only).
+ * @summary Get role by ID
  * {@link /api/v1/auth/roles/:role_id}
  */
 export function useReadRoleApiV1AuthRolesRoleIdGet<
@@ -71,7 +74,10 @@ export function useReadRoleApiV1AuthRolesRoleIdGet<
     query?: Partial<
       QueryObserverOptions<
         ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-        ResponseErrorConfig<ReadRoleApiV1AuthRolesRoleIdGet422>,
+        ResponseErrorConfig<
+          | ReadRoleApiV1AuthRolesRoleIdGet404
+          | ReadRoleApiV1AuthRolesRoleIdGet422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -94,7 +100,9 @@ export function useReadRoleApiV1AuthRolesRoleIdGet<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadRoleApiV1AuthRolesRoleIdGet422>
+    ResponseErrorConfig<
+      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;

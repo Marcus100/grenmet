@@ -15,7 +15,10 @@ import type {
   QueryObserverOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
-import type { ReadHrProfileMeApiV1HrProfileMeGetQueryResponse } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
+import type {
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGet404,
+} from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readHrProfileMeApiV1HrProfileMeGet } from "../clients/readHrProfileMeApiV1HrProfileMeGet.js";
 
@@ -32,7 +35,7 @@ export function readHrProfileMeApiV1HrProfileMeGetQueryOptions(
   const queryKey = readHrProfileMeApiV1HrProfileMeGetQueryKey();
   return queryOptions<
     ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
     ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
     typeof queryKey
   >({
@@ -47,7 +50,8 @@ export function readHrProfileMeApiV1HrProfileMeGetQueryOptions(
 }
 
 /**
- * @summary Read Hr Profile Me
+ * @description Return the current user's HR profile (identity, employment, address, preferences).
+ * @summary Get my HR profile
  * {@link /api/v1/hr/profile/me}
  */
 export function useReadHrProfileMeApiV1HrProfileMeGet<
@@ -59,7 +63,7 @@ export function useReadHrProfileMeApiV1HrProfileMeGet<
     query?: Partial<
       QueryObserverOptions<
         ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
         TData,
         TQueryData,
         TQueryKey
@@ -80,9 +84,10 @@ export function useReadHrProfileMeApiV1HrProfileMeGet<
       ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

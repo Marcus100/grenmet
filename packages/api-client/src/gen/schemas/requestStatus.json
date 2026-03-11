@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+  "title": "RequestStatus",
+  "x-readme-ref-name": "RequestStatus"
+}

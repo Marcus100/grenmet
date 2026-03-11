@@ -14,7 +14,6 @@ export type RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams = {
 };
 
 /**
- * Message
  * @description Successful Response
  */
 export type RecoverPasswordApiV1PasswordRecoveryEmailPost200 = Message;

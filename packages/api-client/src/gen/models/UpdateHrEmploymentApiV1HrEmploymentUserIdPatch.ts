@@ -15,11 +15,20 @@ export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams = {
 };
 
 /**
- * UserProfilePublic
- * @description Successful Response
+ * @description Employment updated
  */
 export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200 =
   UserProfilePublic;
+
+/**
+ * @description Insufficient permission
+ */
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403 = any;
+
+/**
+ * @description User or employment record not found
+ */
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404 = any;
 
 /**
  * HTTPValidationError
@@ -41,5 +50,8 @@ export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutation = {
   Response: UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200;
   Request: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
   PathParams: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams;
-  Errors: UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422;
+  Errors:
+    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
+    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
+    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422;
 };

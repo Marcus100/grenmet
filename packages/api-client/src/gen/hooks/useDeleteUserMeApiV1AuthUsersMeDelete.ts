@@ -14,7 +14,10 @@ import type {
   UseMutationResult,
   QueryClient,
 } from "@tanstack/react-query";
-import type { DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
+import type {
+  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+  DeleteUserMeApiV1AuthUsersMeDelete403,
+} from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
 import { deleteUserMeApiV1AuthUsersMeDelete } from "../clients/deleteUserMeApiV1AuthUsersMeDelete.js";
 
@@ -31,7 +34,7 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
   const mutationKey = deleteUserMeApiV1AuthUsersMeDeleteMutationKey();
   return mutationOptions<
     DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
     void,
     TContext
   >({
@@ -43,15 +46,15 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
 }
 
 /**
- * @description Delete own user.
- * @summary Delete User Me
+ * @description Delete currently authenticated user account.
+ * @summary Delete current user
  * {@link /api/v1/auth/users/me}
  */
 export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
       DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-      ResponseErrorConfig<Error>,
+      ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
       void,
       TContext
     > & { client?: QueryClient };
@@ -68,14 +71,14 @@ export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
     config
   ) as UseMutationOptions<
     DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
     void,
     TContext
   >;
 
   return useMutation<
     DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
     void,
     TContext
   >(
@@ -87,7 +90,7 @@ export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
     queryClient
   ) as UseMutationResult<
     DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
     void,
     TContext
   >;

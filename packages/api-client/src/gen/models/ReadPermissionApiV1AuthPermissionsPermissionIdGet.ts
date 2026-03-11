@@ -14,11 +14,15 @@ export type ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams = {
 };
 
 /**
- * PermissionPublic
- * @description Successful Response
+ * @description Permission returned
  */
 export type ReadPermissionApiV1AuthPermissionsPermissionIdGet200 =
   PermissionPublic;
+
+/**
+ * @description Permission not found
+ */
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGet404 = any;
 
 /**
  * HTTPValidationError
@@ -33,5 +37,7 @@ export type ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse =
 export type ReadPermissionApiV1AuthPermissionsPermissionIdGetQuery = {
   Response: ReadPermissionApiV1AuthPermissionsPermissionIdGet200;
   PathParams: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams;
-  Errors: ReadPermissionApiV1AuthPermissionsPermissionIdGet422;
+  Errors:
+    | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+    | ReadPermissionApiV1AuthPermissionsPermissionIdGet422;
 };

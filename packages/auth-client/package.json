@@ -15,6 +15,9 @@
     "build": "tsc",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "@grenmet/api-client": "workspace:*"
+  },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
     "@types/node": "catalog:",

@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+      "title": "RequestStatus",
+      "x-readme-ref-name": "RequestStatus"
+    },
+    "comments": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Comments"
+    }
+  },
+  "type": "object",
+  "required": ["status"],
+  "title": "ShiftSwapAction",
+  "x-readme-ref-name": "ShiftSwapAction"
+}

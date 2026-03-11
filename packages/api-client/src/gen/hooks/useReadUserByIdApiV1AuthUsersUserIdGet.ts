@@ -18,6 +18,7 @@ import type {
 import type {
   ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
   ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
+  ReadUserByIdApiV1AuthUsersUserIdGet403,
   ReadUserByIdApiV1AuthUsersUserIdGet422,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
 import { queryOptions, useQuery } from "@tanstack/react-query";
@@ -41,7 +42,10 @@ export function readUserByIdApiV1AuthUsersUserIdGetQueryOptions(
   const queryKey = readUserByIdApiV1AuthUsersUserIdGetQueryKey(user_id);
   return queryOptions<
     ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-    ResponseErrorConfig<ReadUserByIdApiV1AuthUsersUserIdGet422>,
+    ResponseErrorConfig<
+      | ReadUserByIdApiV1AuthUsersUserIdGet403
+      | ReadUserByIdApiV1AuthUsersUserIdGet422
+    >,
     ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
     typeof queryKey
   >({
@@ -57,8 +61,8 @@ export function readUserByIdApiV1AuthUsersUserIdGetQueryOptions(
 }
 
 /**
- * @description Get a specific user by id.
- * @summary Read User By Id
+ * @description Return user by ID. Non-superusers can only fetch themselves.
+ * @summary Get user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export function useReadUserByIdApiV1AuthUsersUserIdGet<
@@ -71,7 +75,10 @@ export function useReadUserByIdApiV1AuthUsersUserIdGet<
     query?: Partial<
       QueryObserverOptions<
         ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-        ResponseErrorConfig<ReadUserByIdApiV1AuthUsersUserIdGet422>,
+        ResponseErrorConfig<
+          | ReadUserByIdApiV1AuthUsersUserIdGet403
+          | ReadUserByIdApiV1AuthUsersUserIdGet422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -95,7 +102,10 @@ export function useReadUserByIdApiV1AuthUsersUserIdGet<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadUserByIdApiV1AuthUsersUserIdGet422>
+    ResponseErrorConfig<
+      | ReadUserByIdApiV1AuthUsersUserIdGet403
+      | ReadUserByIdApiV1AuthUsersUserIdGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;

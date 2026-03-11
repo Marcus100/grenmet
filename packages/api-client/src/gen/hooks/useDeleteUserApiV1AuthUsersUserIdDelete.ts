@@ -17,6 +17,8 @@ import type {
 import type {
   DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
   DeleteUserApiV1AuthUsersUserIdDeletePathParams,
+  DeleteUserApiV1AuthUsersUserIdDelete403,
+  DeleteUserApiV1AuthUsersUserIdDelete404,
   DeleteUserApiV1AuthUsersUserIdDelete422,
 } from "../models/DeleteUserApiV1AuthUsersUserIdDelete.js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
@@ -35,7 +37,11 @@ export function deleteUserApiV1AuthUsersUserIdDeleteMutationOptions<
   const mutationKey = deleteUserApiV1AuthUsersUserIdDeleteMutationKey();
   return mutationOptions<
     DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+    ResponseErrorConfig<
+      | DeleteUserApiV1AuthUsersUserIdDelete403
+      | DeleteUserApiV1AuthUsersUserIdDelete404
+      | DeleteUserApiV1AuthUsersUserIdDelete422
+    >,
     { user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"] },
     TContext
   >({
@@ -47,15 +53,19 @@ export function deleteUserApiV1AuthUsersUserIdDeleteMutationOptions<
 }
 
 /**
- * @description Delete a user.
- * @summary Delete User
+ * @description Delete a user by ID (superuser only).
+ * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export function useDeleteUserApiV1AuthUsersUserIdDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
       DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-      ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+      ResponseErrorConfig<
+        | DeleteUserApiV1AuthUsersUserIdDelete403
+        | DeleteUserApiV1AuthUsersUserIdDelete404
+        | DeleteUserApiV1AuthUsersUserIdDelete422
+      >,
       { user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"] },
       TContext
     > & { client?: QueryClient };
@@ -72,14 +82,22 @@ export function useDeleteUserApiV1AuthUsersUserIdDelete<TContext>(
     config
   ) as UseMutationOptions<
     DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+    ResponseErrorConfig<
+      | DeleteUserApiV1AuthUsersUserIdDelete403
+      | DeleteUserApiV1AuthUsersUserIdDelete404
+      | DeleteUserApiV1AuthUsersUserIdDelete422
+    >,
     { user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"] },
     TContext
   >;
 
   return useMutation<
     DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+    ResponseErrorConfig<
+      | DeleteUserApiV1AuthUsersUserIdDelete403
+      | DeleteUserApiV1AuthUsersUserIdDelete404
+      | DeleteUserApiV1AuthUsersUserIdDelete422
+    >,
     { user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"] },
     TContext
   >(
@@ -91,7 +109,11 @@ export function useDeleteUserApiV1AuthUsersUserIdDelete<TContext>(
     queryClient
   ) as UseMutationResult<
     DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserApiV1AuthUsersUserIdDelete422>,
+    ResponseErrorConfig<
+      | DeleteUserApiV1AuthUsersUserIdDelete403
+      | DeleteUserApiV1AuthUsersUserIdDelete404
+      | DeleteUserApiV1AuthUsersUserIdDelete422
+    >,
     { user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"] },
     TContext
   >;

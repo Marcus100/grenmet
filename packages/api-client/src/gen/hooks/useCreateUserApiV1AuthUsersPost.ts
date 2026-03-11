@@ -17,6 +17,7 @@ import type {
 import type {
   CreateUserApiV1AuthUsersPostMutationRequest,
   CreateUserApiV1AuthUsersPostMutationResponse,
+  CreateUserApiV1AuthUsersPost400,
   CreateUserApiV1AuthUsersPost422,
 } from "../models/CreateUserApiV1AuthUsersPost.js";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
@@ -37,7 +38,9 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
   const mutationKey = createUserApiV1AuthUsersPostMutationKey();
   return mutationOptions<
     CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+    ResponseErrorConfig<
+      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+    >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
   >({
@@ -49,15 +52,17 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create new user.
- * @summary Create User
+ * @description Create a user (superuser only).
+ * @summary Create user
  * {@link /api/v1/auth/users/}
  */
 export function useCreateUserApiV1AuthUsersPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CreateUserApiV1AuthUsersPostMutationResponse,
-      ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+      ResponseErrorConfig<
+        CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      >,
       { data: CreateUserApiV1AuthUsersPostMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -75,14 +80,18 @@ export function useCreateUserApiV1AuthUsersPost<TContext>(
     config
   ) as UseMutationOptions<
     CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+    ResponseErrorConfig<
+      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+    >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
   >;
 
   return useMutation<
     CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+    ResponseErrorConfig<
+      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+    >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
   >(
@@ -94,7 +103,9 @@ export function useCreateUserApiV1AuthUsersPost<TContext>(
     queryClient
   ) as UseMutationResult<
     CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+    ResponseErrorConfig<
+      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+    >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
   >;

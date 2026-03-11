@@ -13,7 +13,7 @@ export const readUsersApiV1AuthUsersGetQueryParamsSchema = z.object({
 });
 
 /**
- * @description Successful Response
+ * @description Users returned
  */
 export const readUsersApiV1AuthUsersGet200Schema = z.lazy(
   () => usersPublicSchema

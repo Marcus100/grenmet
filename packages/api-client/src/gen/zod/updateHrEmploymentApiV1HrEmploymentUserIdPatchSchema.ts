@@ -14,11 +14,21 @@ export const updateHrEmploymentApiV1HrEmploymentUserIdPatchPathParamsSchema =
   });
 
 /**
- * @description Successful Response
+ * @description Employment updated
  */
 export const updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema = z.lazy(
   () => userProfilePublicSchema
 );
+
+/**
+ * @description Insufficient permission
+ */
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatch403Schema = z.any();
+
+/**
+ * @description User or employment record not found
+ */
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatch404Schema = z.any();
 
 /**
  * @description Validation Error

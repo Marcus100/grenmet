@@ -17,7 +17,8 @@ function getHealthCheckApiV1UtilsHealthCheckGetUrl() {
 }
 
 /**
- * @summary Health Check
+ * @description Simple liveness probe; returns 200 if the process is running.
+ * @summary Liveness
  * {@link /api/v1/utils/health-check/}
  */
 export async function healthCheckApiV1UtilsHealthCheckGet(

@@ -1,0 +1,49 @@
+{
+  "properties": {
+    "entry_date": { "type": "string", "format": "date", "title": "Entry Date" },
+    "shift_code": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Shift Code"
+    },
+    "roster_hours": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" }
+      ],
+      "title": "Roster Hours",
+      "default": "0.0"
+    },
+    "actual_hours": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" }
+      ],
+      "title": "Actual Hours",
+      "default": "0.0"
+    },
+    "overtime_hours": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" }
+      ],
+      "title": "Overtime Hours",
+      "default": "0.0"
+    },
+    "break_hours": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" }
+      ],
+      "title": "Break Hours",
+      "default": "0.0"
+    },
+    "comments": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Comments"
+    }
+  },
+  "type": "object",
+  "required": ["entry_date"],
+  "title": "TimesheetEntryInput",
+  "x-readme-ref-name": "TimesheetEntryInput"
+}

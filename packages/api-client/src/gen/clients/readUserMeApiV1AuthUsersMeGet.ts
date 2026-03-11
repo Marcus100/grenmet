@@ -17,8 +17,8 @@ function getReadUserMeApiV1AuthUsersMeGetUrl() {
 }
 
 /**
- * @description Get current user.
- * @summary Read User Me
+ * @description Return the currently authenticated user.
+ * @summary Get current user
  * {@link /api/v1/auth/users/me}
  */
 export async function readUserMeApiV1AuthUsersMeGet(

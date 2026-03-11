@@ -9,9 +9,14 @@ import type { UserPublic } from "./UserPublic.js";
 
 /**
  * UserPublic
- * @description Successful Response
+ * @description User created
  */
 export type CreateUserApiV1AuthUsersPost200 = UserPublic;
+
+/**
+ * @description User with this email already exists
+ */
+export type CreateUserApiV1AuthUsersPost400 = any;
 
 /**
  * HTTPValidationError
@@ -30,5 +35,5 @@ export type CreateUserApiV1AuthUsersPostMutationResponse =
 export type CreateUserApiV1AuthUsersPostMutation = {
   Response: CreateUserApiV1AuthUsersPost200;
   Request: CreateUserApiV1AuthUsersPostMutationRequest;
-  Errors: CreateUserApiV1AuthUsersPost422;
+  Errors: CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422;
 };

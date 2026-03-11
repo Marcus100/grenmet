@@ -1,0 +1,16 @@
+{
+  "type": "string",
+  "enum": [
+    "VACATION",
+    "SICK",
+    "CASUAL",
+    "MATERNITY",
+    "PATERNITY",
+    "STUDY",
+    "COMPASSIONATE",
+    "WITHOUT_PAY",
+    "OTHER"
+  ],
+  "title": "LeaveType",
+  "x-readme-ref-name": "LeaveType"
+}

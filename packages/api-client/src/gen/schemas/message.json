@@ -1,7 +1,1 @@
-{
-  "properties": { "message": { "type": "string", "title": "Message" } },
-  "type": "object",
-  "required": ["message"],
-  "title": "Message",
-  "x-readme-ref-name": "Message"
-}
+{ "x-readme-ref-name": "Message" }

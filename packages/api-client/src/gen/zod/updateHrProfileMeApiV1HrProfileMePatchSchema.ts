@@ -9,11 +9,16 @@ import { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description Profile updated
  */
 export const updateHrProfileMeApiV1HrProfileMePatch200Schema = z.lazy(
   () => userProfilePublicSchema
 );
+
+/**
+ * @description HR profile not found for this user
+ */
+export const updateHrProfileMeApiV1HrProfileMePatch404Schema = z.any();
 
 /**
  * @description Validation Error

@@ -47,7 +47,8 @@ export function healthCheckApiV1UtilsHealthCheckGetQueryOptions(
 }
 
 /**
- * @summary Health Check
+ * @description Simple liveness probe; returns 200 if the process is running.
+ * @summary Liveness
  * {@link /api/v1/utils/health-check/}
  */
 export function useHealthCheckApiV1UtilsHealthCheckGet<

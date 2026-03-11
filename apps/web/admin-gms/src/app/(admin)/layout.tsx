@@ -1,45 +1,18 @@
-"use client";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import AdminLayoutClient from "./AdminLayoutClient";
 
-import type React from "react";
-import { useSidebar } from "@/context/SidebarContext";
-import AppHeader from "@/layout/AppHeader";
-import AppSidebar from "@/layout/AppSidebar";
-import Backdrop from "@/layout/Backdrop";
-
-export default function AdminLayout({
+/** Protects admin routes: redirects to /signin when auth cookie is missing (works even if proxy does not run in dev). */
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-
-  // Dynamic class for main content margin based on sidebar state
-  const getMainContentMargin = () => {
-    if (isMobileOpen) {
-      return "ml-0";
-    }
-    if (isExpanded || isHovered) {
-      return "lg:ml-[290px]";
-    }
-    return "lg:ml-[90px]";
-  };
-
-  return (
-    <div className="min-h-screen xl:flex">
-      {/* Sidebar and Backdrop */}
-      <AppSidebar />
-      <Backdrop />
-      {/* Main Content Area */}
-      <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${getMainContentMargin()}`}
-      >
-        {/* Header */}
-        <AppHeader />
-        {/* Page Content */}
-        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
+  const cookieStore = await cookies();
+  const cookie = cookieStore.get(AUTH_COOKIE_NAME);
+  if (!cookie?.value) {
+    redirect("/signin");
+  }
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

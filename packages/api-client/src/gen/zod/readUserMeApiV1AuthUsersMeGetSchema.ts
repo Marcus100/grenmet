@@ -7,7 +7,7 @@ import { userPublicSchema } from "./userPublicSchema.js";
 import { z } from "zod/v4";
 
 /**
- * @description Successful Response
+ * @description Current user returned
  */
 export const readUserMeApiV1AuthUsersMeGet200Schema = z.lazy(
   () => userPublicSchema

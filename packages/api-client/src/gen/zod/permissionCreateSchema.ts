@@ -6,6 +6,7 @@
 import { z } from "zod/v4";
 
 export const permissionCreateSchema = z.object({
+  key: z.optional(z.union([z.string(), z.null()])),
   action: z.string(),
   entity: z.string(),
   access: z.string(),

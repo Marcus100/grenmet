@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": ["SUBMIT", "APPROVE", "REJECT", "RETURN", "CANCEL"],
+      "title": "WorkflowAction",
+      "x-readme-ref-name": "WorkflowAction"
+    },
+    "comments": {
+      "anyOf": [{ "type": "string", "maxLength": 1000 }, { "type": "null" }],
+      "title": "Comments"
+    }
+  },
+  "type": "object",
+  "required": ["action"],
+  "title": "WorkflowActionRequest",
+  "x-readme-ref-name": "WorkflowActionRequest"
+}

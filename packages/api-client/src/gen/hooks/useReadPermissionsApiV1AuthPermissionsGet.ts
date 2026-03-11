@@ -54,8 +54,8 @@ export function readPermissionsApiV1AuthPermissionsGetQueryOptions(
 }
 
 /**
- * @description Retrieve permissions (superuser only).
- * @summary Read Permissions
+ * @description Return permissions (superuser only).
+ * @summary List permissions
  * {@link /api/v1/auth/permissions/}
  */
 export function useReadPermissionsApiV1AuthPermissionsGet<

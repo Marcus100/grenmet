@@ -3,18 +3,4 @@
  * Do not edit manually.
  */
 
-import type { PermissionPublic } from "./PermissionPublic.js";
-
-/**
- * PermissionsPublic
- */
-export type PermissionsPublic = {
-  /**
-   * @type array
-   */
-  data: PermissionPublic[];
-  /**
-   * @type integer
-   */
-  count: number;
-};
+export type PermissionsPublic = any;

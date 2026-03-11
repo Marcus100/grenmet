@@ -15,9 +15,14 @@ export type ReadUserByIdApiV1AuthUsersUserIdGetPathParams = {
 
 /**
  * UserPublic
- * @description Successful Response
+ * @description User returned
  */
 export type ReadUserByIdApiV1AuthUsersUserIdGet200 = UserPublic;
+
+/**
+ * @description Insufficient privileges
+ */
+export type ReadUserByIdApiV1AuthUsersUserIdGet403 = any;
 
 /**
  * HTTPValidationError
@@ -31,5 +36,7 @@ export type ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse =
 export type ReadUserByIdApiV1AuthUsersUserIdGetQuery = {
   Response: ReadUserByIdApiV1AuthUsersUserIdGet200;
   PathParams: ReadUserByIdApiV1AuthUsersUserIdGetPathParams;
-  Errors: ReadUserByIdApiV1AuthUsersUserIdGet422;
+  Errors:
+    | ReadUserByIdApiV1AuthUsersUserIdGet403
+    | ReadUserByIdApiV1AuthUsersUserIdGet422;
 };

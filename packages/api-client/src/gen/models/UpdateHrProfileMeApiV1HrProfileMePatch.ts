@@ -8,10 +8,14 @@ import type { UserProfilePublic } from "./UserProfilePublic.js";
 import type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 
 /**
- * UserProfilePublic
- * @description Successful Response
+ * @description Profile updated
  */
 export type UpdateHrProfileMeApiV1HrProfileMePatch200 = UserProfilePublic;
+
+/**
+ * @description HR profile not found for this user
+ */
+export type UpdateHrProfileMeApiV1HrProfileMePatch404 = any;
 
 /**
  * HTTPValidationError
@@ -31,5 +35,7 @@ export type UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse =
 export type UpdateHrProfileMeApiV1HrProfileMePatchMutation = {
   Response: UpdateHrProfileMeApiV1HrProfileMePatch200;
   Request: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest;
-  Errors: UpdateHrProfileMeApiV1HrProfileMePatch422;
+  Errors:
+    | UpdateHrProfileMeApiV1HrProfileMePatch404
+    | UpdateHrProfileMeApiV1HrProfileMePatch422;
 };

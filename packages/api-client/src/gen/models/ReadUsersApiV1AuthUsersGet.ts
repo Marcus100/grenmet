@@ -20,8 +20,7 @@ export type ReadUsersApiV1AuthUsersGetQueryParams = {
 };
 
 /**
- * UsersPublic
- * @description Successful Response
+ * @description Users returned
  */
 export type ReadUsersApiV1AuthUsersGet200 = UsersPublic;
 

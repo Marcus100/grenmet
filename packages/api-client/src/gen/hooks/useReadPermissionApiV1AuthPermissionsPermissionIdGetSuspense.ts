@@ -18,6 +18,7 @@ import type {
 import type {
   ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
   ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
@@ -49,7 +50,10 @@ export function readPermissionApiV1AuthPermissionsPermissionIdGetSuspenseQueryOp
     );
   return queryOptions<
     ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-    ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>,
+    ResponseErrorConfig<
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+    >,
     ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
     typeof queryKey
   >({
@@ -68,8 +72,8 @@ export function readPermissionApiV1AuthPermissionsPermissionIdGetSuspenseQueryOp
 }
 
 /**
- * @description Get permission by ID (superuser only).
- * @summary Read Permission
+ * @description Return a permission by ID (superuser only).
+ * @summary Get permission by ID
  * {@link /api/v1/auth/permissions/:permission_id}
  */
 export function useReadPermissionApiV1AuthPermissionsPermissionIdGetSuspense<
@@ -82,7 +86,10 @@ export function useReadPermissionApiV1AuthPermissionsPermissionIdGetSuspense<
     query?: Partial<
       UseSuspenseQueryOptions<
         ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-        ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>,
+        ResponseErrorConfig<
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+        >,
         TData,
         TQueryKey
       >
@@ -110,7 +117,10 @@ export function useReadPermissionApiV1AuthPermissionsPermissionIdGetSuspense<
     queryClient
   ) as UseSuspenseQueryResult<
     TData,
-    ResponseErrorConfig<ReadPermissionApiV1AuthPermissionsPermissionIdGet422>
+    ResponseErrorConfig<
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;

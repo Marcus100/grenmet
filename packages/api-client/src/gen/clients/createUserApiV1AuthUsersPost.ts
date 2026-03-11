@@ -12,6 +12,7 @@ import type {
 import type {
   CreateUserApiV1AuthUsersPostMutationRequest,
   CreateUserApiV1AuthUsersPostMutationResponse,
+  CreateUserApiV1AuthUsersPost400,
   CreateUserApiV1AuthUsersPost422,
 } from "../models/CreateUserApiV1AuthUsersPost.js";
 
@@ -21,8 +22,8 @@ function getCreateUserApiV1AuthUsersPostUrl() {
 }
 
 /**
- * @description Create new user.
- * @summary Create User
+ * @description Create a user (superuser only).
+ * @summary Create user
  * {@link /api/v1/auth/users/}
  */
 export async function createUserApiV1AuthUsersPost(
@@ -37,7 +38,9 @@ export async function createUserApiV1AuthUsersPost(
 
   const res = await request<
     CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<CreateUserApiV1AuthUsersPost422>,
+    ResponseErrorConfig<
+      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+    >,
     CreateUserApiV1AuthUsersPostMutationRequest
   >({
     method: "POST",

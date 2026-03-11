@@ -30,6 +30,7 @@ class PaginatedResponse(BaseModel, Generic[T]):
         self, data: list[T], count: int, page: int = 1, size: int = 100, **kwargs: int
     ) -> None:
         total_pages = (count + size - 1) // size if count > 0 else 1
+        kwargs.pop("total_pages", None)
         super().__init__(
             data=data,
             count=count,

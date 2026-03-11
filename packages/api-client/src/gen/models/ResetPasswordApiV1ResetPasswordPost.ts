@@ -8,7 +8,6 @@ import type { Message } from "./Message.js";
 import type { NewPassword } from "./NewPassword.js";
 
 /**
- * Message
  * @description Successful Response
  */
 export type ResetPasswordApiV1ResetPasswordPost200 = Message;

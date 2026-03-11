@@ -39,6 +39,7 @@ from src.auth.utils import get_password_hash, verify_password
 from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
+from src.email_config import email_settings
 from src.models import Message
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
@@ -79,7 +80,9 @@ async def read_users(
     description="Create a user (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "User created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "User with this email already exists"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "User with this email already exists"
+        },
     },
 )
 async def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
@@ -93,7 +96,7 @@ async def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             detail=ERROR_USER_EXISTS,
         )
     user = await service.create_user(session=session, user_create=user_in)
-    if settings.EMAILS_ENABLED and user_in.email:
+    if email_settings.EMAILS_ENABLED and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
         )
@@ -159,7 +162,9 @@ async def update_user_me(
     description="Change password for the currently authenticated user.",
     responses={
         status.HTTP_200_OK: {"description": "Password updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Current password incorrect or new password unchanged"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Current password incorrect or new password unchanged"
+        },
     },
 )
 async def update_password_me(
@@ -190,7 +195,9 @@ async def update_password_me(
     description="Delete currently authenticated user account.",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
-        status.HTTP_403_FORBIDDEN: {"description": "Superuser cannot delete own account"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Superuser cannot delete own account"
+        },
     },
 )
 async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
@@ -298,9 +305,7 @@ async def update_user(
         )
         if existing_user and existing_user.id != user_id:
             raise HTTPException(status_code=409, detail=ERROR_USER_EXISTS)
-    return await service.update_user(
-        session=session, db_user=db_user, user_in=user_in
-    )
+    return await service.update_user(session=session, db_user=db_user, user_in=user_in)
 
 
 @router.delete(
@@ -310,7 +315,9 @@ async def update_user(
     description="Delete a user by ID (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
-        status.HTTP_403_FORBIDDEN: {"description": "Superuser cannot delete own account"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Superuser cannot delete own account"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )

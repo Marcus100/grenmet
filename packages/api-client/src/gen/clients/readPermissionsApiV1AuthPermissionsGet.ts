@@ -21,8 +21,8 @@ function getReadPermissionsApiV1AuthPermissionsGetUrl() {
 }
 
 /**
- * @description Retrieve permissions (superuser only).
- * @summary Read Permissions
+ * @description Return permissions (superuser only).
+ * @summary List permissions
  * {@link /api/v1/auth/permissions/}
  */
 export async function readPermissionsApiV1AuthPermissionsGet(

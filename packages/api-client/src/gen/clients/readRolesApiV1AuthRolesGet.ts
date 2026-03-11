@@ -21,8 +21,8 @@ function getReadRolesApiV1AuthRolesGetUrl() {
 }
 
 /**
- * @description Retrieve roles (superuser only).
- * @summary Read Roles
+ * @description Return roles (superuser only).
+ * @summary List roles
  * {@link /api/v1/auth/roles/}
  */
 export async function readRolesApiV1AuthRolesGet(

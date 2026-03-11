@@ -12,6 +12,7 @@ import type {
 import type {
   UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
   UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
   UpdatePasswordMeApiV1AuthUsersMePasswordPatch422,
 } from "../models/UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 
@@ -24,8 +25,8 @@ function getUpdatePasswordMeApiV1AuthUsersMePasswordPatchUrl() {
 }
 
 /**
- * @description Update own password.
- * @summary Update Password Me
+ * @description Change password for the currently authenticated user.
+ * @summary Change current user password
  * {@link /api/v1/auth/users/me/password}
  */
 export async function updatePasswordMeApiV1AuthUsersMePasswordPatch(
@@ -40,7 +41,10 @@ export async function updatePasswordMeApiV1AuthUsersMePasswordPatch(
 
   const res = await request<
     UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
-    ResponseErrorConfig<UpdatePasswordMeApiV1AuthUsersMePasswordPatch422>,
+    ResponseErrorConfig<
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+    >,
     UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest
   >({
     method: "PATCH",

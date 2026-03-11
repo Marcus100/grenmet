@@ -12,6 +12,7 @@ import type {
 import type {
   ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
   ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
+  ReadUserByIdApiV1AuthUsersUserIdGet403,
   ReadUserByIdApiV1AuthUsersUserIdGet422,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
 
@@ -23,8 +24,8 @@ function getReadUserByIdApiV1AuthUsersUserIdGetUrl(
 }
 
 /**
- * @description Get a specific user by id.
- * @summary Read User By Id
+ * @description Return user by ID. Non-superusers can only fetch themselves.
+ * @summary Get user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
 export async function readUserByIdApiV1AuthUsersUserIdGet(
@@ -35,7 +36,10 @@ export async function readUserByIdApiV1AuthUsersUserIdGet(
 
   const res = await request<
     ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-    ResponseErrorConfig<ReadUserByIdApiV1AuthUsersUserIdGet422>,
+    ResponseErrorConfig<
+      | ReadUserByIdApiV1AuthUsersUserIdGet403
+      | ReadUserByIdApiV1AuthUsersUserIdGet422
+    >,
     unknown
   >({
     method: "GET",

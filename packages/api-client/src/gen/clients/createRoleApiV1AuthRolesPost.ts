@@ -21,8 +21,8 @@ function getCreateRoleApiV1AuthRolesPostUrl() {
 }
 
 /**
- * @description Create new role (superuser only).
- * @summary Create Role
+ * @description Create a role (superuser only).
+ * @summary Create role
  * {@link /api/v1/auth/roles/}
  */
 export async function createRoleApiV1AuthRolesPost(
