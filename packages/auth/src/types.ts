@@ -36,6 +36,10 @@ export interface SessionAccessTokenResponse {
   user: SessionUserPublic;
 }
 
+export interface SessionLoginResponse extends SessionAccessTokenResponse {
+  session_token: string;
+}
+
 export class AuthApiError extends Error {
   status: number;
   detail: string;

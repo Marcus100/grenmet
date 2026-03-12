@@ -1,6 +1,5 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
-import { ArrowDownIcon, ArrowUpIcon, BoxIconLine, GroupIcon } from "@/icons";
+import { BoxIconLine, GroupIcon } from "@/icons";
 
 export const EcommerceMetrics = () => {
   return (
@@ -12,7 +11,7 @@ export const EcommerceMetrics = () => {
         </div>
 
         <div className="mt-5 flex items-end justify-between">
-<p>METAR GOES HERE</p>
+          <p>METAR GOES HERE</p>
         </div>
       </div>
       {/* <!-- Metric Item End --> */}
@@ -22,7 +21,7 @@ export const EcommerceMetrics = () => {
         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800">
           <BoxIconLine className="text-gray-800 dark:text-white/90" />
         </div>
-<p>TAF GOES HERE</p>
+        <p>TAF GOES HERE</p>
       </div>
       {/* <!-- Metric Item End --> */}
     </div>

@@ -2,16 +2,16 @@ import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import { SignInForm } from "@/components/SignInForm";
 import {
-  exchangeSessionForAccessToken,
-  isAuthApiError,
-  type SessionAccessTokenResponse,
-} from "@/lib/fastapi-session";
-import {
   getRequestedAppName,
   getSafeReturnTo,
   readQueryParam,
 } from "@/lib/return-to";
-import { readSessionCookie } from "@/lib/session-cookie";
+import {
+  exchangeSessionForAccessToken,
+  isAuthApiError,
+  readSessionCookie,
+  type SessionAccessTokenResponse,
+} from "@/lib/session";
 import {
   refreshSessionAction,
   signOutAction,

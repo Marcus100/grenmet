@@ -39,6 +39,29 @@ export async function readSessionCookie(
   return cookieStore.get(config.sessionCookieName)?.value ?? null;
 }
 
+export async function writeSessionCookie(
+  config: AuthConfig,
+  sessionToken: string,
+  sessionExpiresAt: string
+): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(
+    config.sessionCookieName,
+    sessionToken,
+    buildCookieOptions(config, new Date(sessionExpiresAt))
+  );
+}
+
+export async function clearSessionCookie(
+  config: AuthConfig
+): Promise<void> {
+  const cookieStore = await cookies();
+  cookieStore.set(config.sessionCookieName, "", {
+    ...buildCookieOptions(config, new Date(0)),
+    maxAge: 0,
+  });
+}
+
 async function getForwardHeaders(): Promise<Headers> {
   const incomingHeaders = await headers();
   const forwardedHeaders = new Headers({

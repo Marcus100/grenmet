@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { UserProfilePublic } from "@grenmet/api-client";
+import Image from "next/image";
 
 interface UserMetaCardProps {
   profile: UserProfilePublic;
@@ -13,10 +13,12 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
     `${profile.profile.first_name} ${profile.profile.last_name}`;
 
   const avatarUrl = profile.identity.avatar_url;
-  const avatarSrc =
-    avatarUrl?.startsWith("/") ? avatarUrl : "/images/user/owner.jpg";
+  const avatarSrc = avatarUrl?.startsWith("/")
+    ? avatarUrl
+    : "/images/user/owner.jpg";
   const position = profile.employment.position || "Meteorological Officer";
-  const department = profile.employment.department?.name || "Meteorological Service";
+  const department =
+    profile.employment.department?.name || "Meteorological Service";
   const location = profile.employment.work_location || "Grenada";
 
   return (
@@ -37,11 +39,17 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
               {fullName}
             </h4>
             <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-              <p className="text-gray-500 text-sm dark:text-gray-400">{position}</p>
+              <p className="text-gray-500 text-sm dark:text-gray-400">
+                {position}
+              </p>
               <div className="hidden h-3.5 w-px bg-gray-300 xl:block dark:bg-gray-700" />
-              <p className="text-gray-500 text-sm dark:text-gray-400">{department}</p>
+              <p className="text-gray-500 text-sm dark:text-gray-400">
+                {department}
+              </p>
               <div className="hidden h-3.5 w-px bg-gray-300 xl:block dark:bg-gray-700" />
-              <p className="text-gray-500 text-sm dark:text-gray-400">{location}</p>
+              <p className="text-gray-500 text-sm dark:text-gray-400">
+                {location}
+              </p>
             </div>
           </div>
         </div>

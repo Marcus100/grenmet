@@ -7,6 +7,7 @@ export {
 export type {
   AuthConfig,
   SessionAccessTokenResponse,
+  SessionLoginResponse,
   SessionPublic,
   SessionUserPublic,
 } from "./types";

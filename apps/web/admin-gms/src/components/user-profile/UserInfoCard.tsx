@@ -1,7 +1,10 @@
 "use client";
 
+import type {
+  UserProfilePublic,
+  UserProfileUpdateMe,
+} from "@grenmet/api-client";
 import { useState } from "react";
-import type { UserProfilePublic, UserProfileUpdateMe } from "@grenmet/api-client";
 import { Button } from "@/components/ui/button";
 import { useModal } from "../../hooks/useModal";
 import Input from "../form/input/InputField";
@@ -9,19 +12,29 @@ import Label from "../form/Label";
 import { Modal } from "../ui/modal";
 
 interface UserInfoCardProps {
-  profile: UserProfilePublic;
   isSaving: boolean;
   onSave: (payload: UserProfileUpdateMe) => Promise<void>;
+  profile: UserProfilePublic;
 }
 
-export default function UserInfoCard({ profile, isSaving, onSave }: UserInfoCardProps) {
+export default function UserInfoCard({
+  profile,
+  isSaving,
+  onSave,
+}: UserInfoCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
   const [firstName, setFirstName] = useState(profile.profile.first_name);
-  const [middleName, setMiddleName] = useState(profile.profile.middle_name || "");
+  const [middleName, setMiddleName] = useState(
+    profile.profile.middle_name || ""
+  );
   const [lastName, setLastName] = useState(profile.profile.last_name);
-  const [displayName, setDisplayName] = useState(profile.profile.display_name || "");
+  const [displayName, setDisplayName] = useState(
+    profile.profile.display_name || ""
+  );
   const [phone, setPhone] = useState(profile.identity.phone || "");
-  const [nationality, setNationality] = useState(profile.profile.nationality || "");
+  const [nationality, setNationality] = useState(
+    profile.profile.nationality || ""
+  );
   const [gender, setGender] = useState(profile.profile.gender || "");
 
   const handleOpen = () => {
@@ -246,7 +259,11 @@ export default function UserInfoCard({ profile, isSaving, onSave }: UserInfoCard
 
                   <div className="col-span-2 lg:col-span-1">
                     <Label>Email Address</Label>
-                    <Input defaultValue={profile.identity.email} disabled type="text" />
+                    <Input
+                      defaultValue={profile.identity.email}
+                      disabled
+                      type="text"
+                    />
                   </div>
 
                   <div className="col-span-2 lg:col-span-1">
@@ -292,7 +309,12 @@ export default function UserInfoCard({ profile, isSaving, onSave }: UserInfoCard
               </div>
             </div>
             <div className="mt-6 flex items-center gap-3 px-2 lg:justify-end">
-              <Button onClick={closeModal} size="sm" type="button" variant="outline">
+              <Button
+                onClick={closeModal}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
                 Close
               </Button>
               <Button

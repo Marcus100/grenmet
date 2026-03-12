@@ -1,7 +1,10 @@
 "use client";
 
+import type {
+  UserProfilePublic,
+  UserProfileUpdateMe,
+} from "@grenmet/api-client";
 import { useState } from "react";
-import type { UserProfilePublic, UserProfileUpdateMe } from "@grenmet/api-client";
 import { Button } from "@/components/ui/button";
 import { useModal } from "../../hooks/useModal";
 import Input from "../form/input/InputField";
@@ -9,9 +12,9 @@ import Label from "../form/Label";
 import { Modal } from "../ui/modal";
 
 interface UserAddressCardProps {
-  profile: UserProfilePublic;
   isSaving: boolean;
   onSave: (payload: UserProfileUpdateMe) => Promise<void>;
+  profile: UserProfilePublic;
 }
 
 export default function UserAddressCard({
@@ -24,7 +27,9 @@ export default function UserAddressCard({
   const [line2, setLine2] = useState(profile.address.line_2 || "");
   const [city, setCity] = useState(profile.address.city || "");
   const [parish, setParish] = useState(profile.address.parish || "");
-  const [postalCode, setPostalCode] = useState(profile.address.postal_code || "");
+  const [postalCode, setPostalCode] = useState(
+    profile.address.postal_code || ""
+  );
   const [country, setCountry] = useState(profile.address.country || "");
 
   const handleOpen = () => {
@@ -216,7 +221,12 @@ export default function UserAddressCard({
               </div>
             </div>
             <div className="mt-6 flex items-center gap-3 px-2 lg:justify-end">
-              <Button onClick={closeModal} size="sm" type="button" variant="outline">
+              <Button
+                onClick={closeModal}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
                 Close
               </Button>
               <Button

@@ -307,6 +307,9 @@ importers:
 
   apps/web/auth:
     dependencies:
+      '@grenmet/auth':
+        specifier: workspace:*
+        version: link:../../../packages/auth
       next:
         specifier: 'catalog:'
         version: 16.1.1(@babel/core@7.28.6)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)

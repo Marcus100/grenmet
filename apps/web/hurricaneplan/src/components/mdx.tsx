@@ -1,13 +1,13 @@
-import clsx from 'clsx'
-import Link from 'next/link'
+import clsx from "clsx";
+import Link from "next/link";
 
-import { Feedback } from '@/components/Feedback'
-import { Heading } from '@/components/Heading'
-import { Prose } from '@/components/Prose'
+import { Feedback } from "@/components/Feedback";
+import { Heading } from "@/components/Heading";
+import { Prose } from "@/components/Prose";
 
-export const a = Link
-export { Button } from '@/components/Button'
-export { CodeGroup, Code as code, Pre as pre } from '@/components/Code'
+export const a = Link;
+export { Button } from "@/components/Button";
+export { Code as code, CodeGroup, Pre as pre } from "@/components/Code";
 
 export function wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -17,38 +17,38 @@ export function wrapper({ children }: { children: React.ReactNode }) {
         <Feedback />
       </footer>
     </article>
-  )
+  );
 }
 
 export const h2 = function H2(
-  props: Omit<React.ComponentPropsWithoutRef<typeof Heading>, 'level'>,
+  props: Omit<React.ComponentPropsWithoutRef<typeof Heading>, "level">
 ) {
-  return <Heading level={2} {...props} />
-}
+  return <Heading level={2} {...props} />;
+};
 
-function InfoIcon(props: React.ComponentPropsWithoutRef<'svg'>) {
+function InfoIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden="true" {...props}>
+    <svg aria-hidden="true" viewBox="0 0 16 16" {...props}>
       <circle cx="8" cy="8" r="8" strokeWidth="0" />
       <path
+        d="M6.75 7.75h1.5v3.5"
         fill="none"
         strokeLinecap="round"
         strokeLinejoin="round"
         strokeWidth="1.5"
-        d="M6.75 7.75h1.5v3.5"
       />
-      <circle cx="8" cy="4" r=".5" fill="none" />
+      <circle cx="8" cy="4" fill="none" r=".5" />
     </svg>
-  )
+  );
 }
 
 export function Note({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 text-sm/6 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]">
+    <div className="my-6 flex gap-2.5 rounded-2xl border border-emerald-500/20 bg-emerald-50/50 p-4 text-emerald-900 text-sm/6 dark:border-emerald-500/30 dark:bg-emerald-500/5 dark:text-emerald-200 dark:[--tw-prose-links-hover:var(--color-emerald-300)] dark:[--tw-prose-links:var(--color-white)]">
       <InfoIcon className="mt-1 h-4 w-4 flex-none fill-emerald-500 stroke-white dark:fill-emerald-200/20 dark:stroke-emerald-200" />
       <div className="*:first:mt-0 *:last:mb-0">{children}</div>
     </div>
-  )
+  );
 }
 
 export function Row({ children }: { children: React.ReactNode }) {
@@ -56,39 +56,39 @@ export function Row({ children }: { children: React.ReactNode }) {
     <div className="grid grid-cols-1 items-start gap-x-16 gap-y-10 xl:max-w-none xl:grid-cols-2">
       {children}
     </div>
-  )
+  );
 }
 
 export function Col({
   children,
   sticky = false,
 }: {
-  children: React.ReactNode
-  sticky?: boolean
+  children: React.ReactNode;
+  sticky?: boolean;
 }) {
   return (
     <div
       className={clsx(
-        '*:first:mt-0 *:last:mb-0',
-        sticky && 'xl:sticky xl:top-24',
+        "*:first:mt-0 *:last:mb-0",
+        sticky && "xl:sticky xl:top-24"
       )}
     >
       {children}
     </div>
-  )
+  );
 }
 
 export function Properties({ children }: { children: React.ReactNode }) {
   return (
     <div className="my-6">
       <ul
-        role="list"
         className="m-0 max-w-[calc(var(--container-lg)-(--spacing(8)))] list-none divide-y divide-zinc-900/5 p-0 dark:divide-white/5"
+        role="list"
       >
         {children}
       </ul>
     </div>
-  )
+  );
 }
 
 export function Property({
@@ -96,9 +96,9 @@ export function Property({
   children,
   type,
 }: {
-  name: string
-  children: React.ReactNode
-  type?: string
+  name: string;
+  children: React.ReactNode;
+  type?: string;
 }) {
   return (
     <li className="m-0 px-0 py-4 first:pt-0 last:pb-0">
@@ -121,5 +121,5 @@ export function Property({
         </dd>
       </dl>
     </li>
-  )
+  );
 }
