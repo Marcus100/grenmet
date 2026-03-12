@@ -34,6 +34,6 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
     buildSharedSignInUrl({
       origin: getRequestOrigin(requestHeaders),
       returnTo: readQueryParam(params.returnTo),
-    }),
+    })
   );
 }

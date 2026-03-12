@@ -17,7 +17,7 @@ export function Lightbox({ image, onClose }: LightboxProps) {
         onClose();
       }
     },
-    [onClose],
+    [onClose]
   );
 
   useEffect(() => {

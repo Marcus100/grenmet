@@ -1,4 +1,4 @@
-import { useId } from 'react'
+import { useId } from "react";
 
 export function GridPattern({
   width,
@@ -7,23 +7,23 @@ export function GridPattern({
   y,
   squares,
   ...props
-}: React.ComponentPropsWithoutRef<'svg'> & {
-  width: number
-  height: number
-  x: string | number
-  y: string | number
-  squares: Array<[x: number, y: number]>
+}: React.ComponentPropsWithoutRef<"svg"> & {
+  width: number;
+  height: number;
+  x: string | number;
+  y: string | number;
+  squares: Array<[x: number, y: number]>;
 }) {
-  let patternId = useId()
+  const patternId = useId();
 
   return (
     <svg aria-hidden="true" {...props}>
       <defs>
         <pattern
-          id={patternId}
-          width={width}
           height={height}
+          id={patternId}
           patternUnits="userSpaceOnUse"
+          width={width}
           x={x}
           y={y}
         >
@@ -31,19 +31,19 @@ export function GridPattern({
         </pattern>
       </defs>
       <rect
-        width="100%"
+        fill={`url(#${patternId})`}
         height="100%"
         strokeWidth={0}
-        fill={`url(#${patternId})`}
+        width="100%"
       />
       {squares && (
-        <svg x={x} y={y} className="overflow-visible">
+        <svg className="overflow-visible" x={x} y={y}>
           {squares.map(([x, y]) => (
             <rect
-              strokeWidth="0"
-              key={`${x}-${y}`}
-              width={width + 1}
               height={height + 1}
+              key={`${x}-${y}`}
+              strokeWidth="0"
+              width={width + 1}
               x={x * width}
               y={y * height}
             />
@@ -51,5 +51,5 @@ export function GridPattern({
         </svg>
       )}
     </svg>
-  )
+  );
 }

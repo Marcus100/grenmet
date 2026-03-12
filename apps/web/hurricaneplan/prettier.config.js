@@ -2,6 +2,6 @@
 module.exports = {
   singleQuote: true,
   semi: false,
-  plugins: ['prettier-plugin-organize-imports', 'prettier-plugin-tailwindcss'],
-  tailwindStylesheet: './src/styles/tailwind.css',
-}
+  plugins: ["prettier-plugin-organize-imports", "prettier-plugin-tailwindcss"],
+  tailwindStylesheet: "./src/styles/tailwind.css",
+};

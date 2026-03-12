@@ -1,19 +1,17 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import {
+  clearSessionCookie,
   createSession,
   isAuthApiError,
   logoutAllSessions,
   logoutSession,
-  refreshSession,
-} from "@/lib/fastapi-session";
-import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
-import {
-  clearSessionCookie,
   readSessionCookie,
+  refreshSession,
   writeSessionCookie,
-} from "@/lib/session-cookie";
+} from "@/lib/session";
 import type { SignInState } from "./actions-types";
 
 function readString(formData: FormData, key: string): string {
@@ -23,14 +21,14 @@ function readString(formData: FormData, key: string): string {
 
 export async function signInAction(
   _previousState: SignInState,
-  formData: FormData
+  formData: FormData,
 ): Promise<SignInState> {
   const email = readString(formData, "email");
   const password = readString(formData, "password");
   const returnTo = getSafeReturnTo(readString(formData, "returnTo"));
   const appName = getRequestedAppName(
     readString(formData, "appName"),
-    returnTo
+    returnTo,
   );
 
   if (!(email && password)) {
@@ -48,7 +46,7 @@ export async function signInAction(
     });
     await writeSessionCookie(
       response.session_token,
-      response.session_expires_at
+      response.session_expires_at,
     );
   } catch (error) {
     return {
@@ -100,7 +98,7 @@ export async function refreshSessionAction(): Promise<never> {
     const response = await refreshSession(sessionToken);
     await writeSessionCookie(
       response.session_token,
-      response.session_expires_at
+      response.session_expires_at,
     );
   } catch {
     await clearSessionCookie();
@@ -114,7 +112,7 @@ export async function signOutAction(formData: FormData): Promise<never> {
 }
 
 export async function signOutEverywhereAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<never> {
   return await endSession({ allSessions: true, formData });
 }

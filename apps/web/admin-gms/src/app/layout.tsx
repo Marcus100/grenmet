@@ -2,8 +2,8 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { ApiProvider } from "@/components/providers/ApiProvider";
 import { ThemeProvider } from "next-themes";
+import { ApiProvider } from "@/components/providers/ApiProvider";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { QueryProvider } from "@/providers/QueryProvider";
 

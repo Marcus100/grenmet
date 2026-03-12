@@ -4,9 +4,6 @@ import type { ApexOptions } from "apexcharts";
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { MoreDotIcon } from "@/icons";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 
 // Dynamically import the ReactApexChart component
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -76,10 +73,8 @@ export default function MonthlyTarget() {
   return (
     <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
       <div className="rounded-2xl bg-white px-5 pt-5 pb-11 shadow-default sm:px-6 sm:pt-6 dark:bg-gray-900">
-
-<p>PUBLIC FORECAST GOES HERE</p>
+        <p>PUBLIC FORECAST GOES HERE</p>
       </div>
-
     </div>
   );
 }

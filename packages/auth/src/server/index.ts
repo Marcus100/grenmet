@@ -1,7 +1,9 @@
 export {
   authApiFetch,
+  clearSessionCookie,
   clearSessionCookieOnResponse,
   readSessionCookie,
+  writeSessionCookie,
 } from "./auth-api-fetch";
 export {
   buildSharedSignInUrl,
@@ -9,7 +11,9 @@ export {
   getSafeLocalReturnTo,
 } from "./auth-redirect";
 export {
+  createSession,
   exchangeSessionForAccessToken,
   logoutAllSessions,
   logoutSession,
+  refreshSession,
 } from "./session";

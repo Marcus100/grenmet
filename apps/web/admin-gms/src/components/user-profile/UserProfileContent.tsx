@@ -2,9 +2,9 @@
 
 import {
   readHrProfileMeApiV1HrProfileMeGetQueryKey,
+  type UserProfileUpdateMe,
   useReadHrProfileMeApiV1HrProfileMeGet,
   useUpdateHrProfileMeApiV1HrProfileMePatch,
-  type UserProfileUpdateMe,
 } from "@grenmet/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
