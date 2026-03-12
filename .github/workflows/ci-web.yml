@@ -1,0 +1,93 @@
+name: CI — Web Apps
+
+on:
+  push:
+    branches: [main, staging, dev]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "biome.jsonc"
+      - "turbo.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/ci-web.yml"
+  pull_request:
+    branches: [main, staging, dev]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - "biome.jsonc"
+      - "turbo.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/ci-web.yml"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job 1: Biome lint/format check (fast, runs on all web code)
+  biome:
+    name: Biome Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run Biome CI
+        run: pnpm check:ci
+
+  # Job 2: TypeScript type-check (all web apps in parallel via Turbo)
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Type-check all web apps
+        run: pnpm type-check
+
+  # Job 3: Build all web apps (validates no build errors)
+  build:
+    name: Build Web Apps
+    needs: [biome, type-check]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build all web apps
+        run: pnpm build

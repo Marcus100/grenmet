@@ -12,7 +12,7 @@ interface SignInFormProps {
 export function SignInForm({ appName, returnTo }: SignInFormProps) {
   const [state, formAction, pending] = useActionState(
     signInAction,
-    initialSignInState,
+    initialSignInState
   );
 
   return (

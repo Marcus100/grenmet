@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --port 3000",
     "build": "next build",
-    "start": "next start",
+    "start": "next start --port 3000",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
@@ -20,7 +20,7 @@
     "react-dom": "catalog:"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.4",
+    "@grenmet/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",

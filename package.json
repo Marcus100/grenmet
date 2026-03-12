@@ -21,6 +21,7 @@
     "dev:web:wxproducts": "turbo run dev --filter=@grenmet/web-wxproducts",
     "dev:web:hurricaneplan": "turbo run dev --filter=@grenmet/web-hurricaneplan",
     "dev:web:auth": "turbo run dev --filter=@grenmet/web-auth",
+    "dev:web:spicewx": "turbo run dev --filter=@grenmet/web-spicewx",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
     "lint": "turbo run lint",
     "check": "turbo run check",

@@ -256,7 +256,7 @@ export default async function Home({ searchParams }: PageProps) {
   const returnTo = getSafeReturnTo(readQueryParam(params.returnTo));
   const requestedApp = getRequestedAppName(
     readQueryParam(params.app),
-    returnTo,
+    returnTo
   );
   const { pageError, sessionData } = await loadSessionState();
 
