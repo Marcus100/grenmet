@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session, delete
 
+from src.auth.models import Session as AuthSession
 from src.auth.models import User
-from src.config import settings
 from src.database import async_session_factory, engine, init_db, init_db_async
 from src.email_config import email_settings
 from src.main import app
@@ -27,6 +27,7 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
+        session.execute(delete(AuthSession))
         statement = delete(User)
         session.execute(statement)
         session.commit()
@@ -38,6 +39,7 @@ async def db_async() -> AsyncGenerator[AsyncSession, None]:
     async with async_session_factory() as session:
         await init_db_async(session)
         yield session
+        await session.execute(delete(AuthSession))
         await session.execute(delete(User))
         await session.commit()
 
@@ -76,8 +78,10 @@ def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]
 @pytest.fixture
 async def superuser_token_headers_async(
     async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
 ) -> dict[str, str]:
     """Get superuser authentication headers (async)."""
+    _ = db_async
     return await get_superuser_token_headers_async(async_client)
 
 

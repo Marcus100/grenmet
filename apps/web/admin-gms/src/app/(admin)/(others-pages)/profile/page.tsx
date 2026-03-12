@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import UserProfileContent from "@/components/user-profile/UserProfileContent";
 
 export const metadata: Metadata = {
-  title: "Next.js Profile | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Profile page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+  title: "Profile | Grenmet Admin",
+  description: "User profile page for Grenmet Admin",
 };
 
 export default function Profile() {

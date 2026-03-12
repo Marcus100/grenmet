@@ -1,9 +1,16 @@
+import sys
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 from sqlmodel import Session, SQLModel, create_engine, select
 
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
 from src.config import settings
+from src.hr.absentee.models import AbsenteeReport  # noqa: F401
+from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
+from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
+from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.models import (  # noqa: F401
     ApprovalAuthority,
     Department,
@@ -16,10 +23,6 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
-from src.hr.absentee.models import AbsenteeReport  # noqa: F401
-from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
-from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.roster.models import (  # noqa: F401
     PublicHoliday,
     RosterAssignment,
@@ -63,9 +66,16 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 _async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
     "postgresql+psycopg", "postgresql+asyncpg", 1
 )
+_async_engine_kwargs = {"echo": False}
+
+# pytest creates fresh event loops across tests; disabling async pooling there avoids
+# cross-loop asyncpg connection reuse while preserving pooled behavior in the app.
+if "pytest" in sys.modules:
+    _async_engine_kwargs["poolclass"] = NullPool
+
 async_engine = create_async_engine(
     _async_url,
-    echo=False,
+    **_async_engine_kwargs,
 )
 async_session_factory = async_sessionmaker(
     bind=async_engine,

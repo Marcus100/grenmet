@@ -1,0 +1,27 @@
+{
+  "name": "@grenmet/auth",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./server": {
+      "import": "./src/server/index.ts",
+      "types": "./src/server/index.ts"
+    }
+  },
+  "peerDependencies": {
+    "next": "*",
+    "react": "*"
+  },
+  "devDependencies": {
+    "@grenmet/tsconfig": "workspace:*",
+    "next": "catalog:",
+    "react": "catalog:",
+    "@types/react": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -65,7 +65,7 @@
     "tailwind-merge": "^2.6.0",
     "zod": "^4.3.5",
     "@grenmet/api-client": "workspace:*",
-    "@grenmet/auth-client": "workspace:*"
+    "@grenmet/auth": "workspace:*"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.2.0",

@@ -20,6 +20,10 @@ class AuthConfig(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    SESSION_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+    SESSION_EXPIRE_DAYS: int = 30
+    SESSION_COOKIE_NAME: str = "grenmet_session"
+    SESSION_COOKIE_DOMAIN: str | None = None
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:

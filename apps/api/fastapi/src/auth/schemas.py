@@ -143,12 +143,22 @@ class PermissionsPublic(BaseModel):
 
 # Session schemas
 class SessionBase(BaseModel):
+    expires_at: datetime
+    client_type: str
+    app_name: str | None = None
+    last_used_at: datetime
+    revoked_at: datetime | None = None
+
+
+class SessionCreate(BaseModel):
+    user_id: uuid.UUID
     session_token: str
     expires_at: datetime
-
-
-class SessionCreate(SessionBase):
-    user_id: uuid.UUID
+    client_type: str = Field(default="web", min_length=1, max_length=50)
+    app_name: str | None = Field(default=None, max_length=100)
+    user_agent: str | None = Field(default=None, max_length=500)
+    ip_address: str | None = Field(default=None, max_length=64)
+    last_used_at: datetime | None = None
 
 
 class SessionPublic(SessionBase):
@@ -156,6 +166,34 @@ class SessionPublic(SessionBase):
     created_at: datetime
     updated_at: datetime
     user_id: uuid.UUID
+
+
+class SessionLoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=40)
+    client_type: str = Field(default="web", min_length=1, max_length=50)
+    app_name: str | None = Field(default=None, max_length=100)
+
+
+class SessionTokenRequest(BaseModel):
+    session_token: str = Field(min_length=32, max_length=500)
+
+
+class SessionAuthenticationBase(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    access_token_expires_at: datetime
+    session_expires_at: datetime
+    session: SessionPublic
+    user: UserPublic
+
+
+class SessionLoginResponse(SessionAuthenticationBase):
+    session_token: str
+
+
+class SessionAccessTokenResponse(SessionAuthenticationBase):
+    pass
 
 
 class NewPassword(BaseModel):
