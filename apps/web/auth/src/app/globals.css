@@ -29,6 +29,8 @@ html {
 
 body {
   min-height: 100vh;
+  font-family: var(--font-space-grotesk), sans-serif;
+  color: var(--foreground);
   background: var(--background);
   background-image:
     radial-gradient(
@@ -42,8 +44,6 @@ body {
       transparent 20%
     ),
     linear-gradient(180deg, #f8f1e6 0%, #eee2cf 55%, #e8dac4 100%);
-  color: var(--foreground);
-  font-family: var(--font-space-grotesk), sans-serif;
 }
 
 ::selection {
