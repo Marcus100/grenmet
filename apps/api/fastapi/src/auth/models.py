@@ -117,8 +117,15 @@ class Permission(PermissionBase, table=True):
 
 # Session model for user sessions
 class SessionBase(SQLModel):
+    # Stores the SHA-256 hash of the opaque session secret; raw tokens are never persisted.
     session_token: str = Field(unique=True, max_length=500)
     expires_at: datetime
+    client_type: str = Field(default="web", max_length=50)
+    app_name: str | None = Field(default=None, max_length=100)
+    user_agent: str | None = Field(default=None, max_length=500)
+    ip_address: str | None = Field(default=None, max_length=64)
+    last_used_at: datetime = Field(default_factory=utc_now)
+    revoked_at: datetime | None = None
 
 
 class Session(SessionBase, table=True):

@@ -1,5 +1,7 @@
 "use client";
 
+import type { SessionUserPublic } from "@grenmet/auth";
+import { SessionUserProvider } from "@grenmet/auth";
 import type React from "react";
 import { useSidebar } from "@/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
@@ -8,8 +10,10 @@ import Backdrop from "@/layout/Backdrop";
 
 export default function AdminLayoutClient({
   children,
+  user,
 }: {
   children: React.ReactNode;
+  user: SessionUserPublic;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
@@ -24,17 +28,19 @@ export default function AdminLayoutClient({
   };
 
   return (
-    <div className="min-h-screen xl:flex">
-      <AppSidebar />
-      <Backdrop />
-      <div
-        className={`flex-1 transition-all duration-300 ease-in-out ${getMainContentMargin()}`}
-      >
-        <AppHeader />
-        <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
-          {children}
+    <SessionUserProvider user={user}>
+      <div className="min-h-screen xl:flex">
+        <AppSidebar />
+        <Backdrop />
+        <div
+          className={`flex-1 transition-all duration-300 ease-in-out ${getMainContentMargin()}`}
+        >
+          <AppHeader />
+          <div className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+            {children}
+          </div>
         </div>
       </div>
-    </div>
+    </SessionUserProvider>
   );
 }

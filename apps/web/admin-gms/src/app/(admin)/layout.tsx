@@ -1,18 +1,29 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { AUTH_COOKIE_NAME } from "@/lib/auth";
+import {
+  exchangeSessionForAccessToken,
+  readSessionCookie,
+} from "@/lib/server-session";
 import AdminLayoutClient from "./AdminLayoutClient";
 
-/** Protects admin routes: redirects to /signin when auth cookie is missing (works even if proxy does not run in dev). */
+/** Protects admin routes even when proxy does not run in development. */
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const cookieStore = await cookies();
-  const cookie = cookieStore.get(AUTH_COOKIE_NAME);
-  if (!cookie?.value) {
+  const sessionToken = await readSessionCookie();
+
+  if (!sessionToken) {
     redirect("/signin");
   }
-  return <AdminLayoutClient>{children}</AdminLayoutClient>;
+
+  let user;
+  try {
+    const response = await exchangeSessionForAccessToken(sessionToken);
+    user = response.user;
+  } catch {
+    redirect("/signin");
+  }
+
+  return <AdminLayoutClient user={user}>{children}</AdminLayoutClient>;
 }

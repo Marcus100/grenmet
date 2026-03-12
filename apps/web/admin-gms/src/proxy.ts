@@ -1,41 +1,34 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { getSessionCookieName } from "@/lib/auth-config";
 
-/** Must match AUTH_COOKIE_NAME in src/lib/auth.ts (proxy runs on Edge, cannot import that module). */
-const AUTH_COOKIE_NAME = "grenmet_authenticated";
-
-const PUBLIC_PATHS = ["/signin", "/signup"];
+const PUBLIC_PATHS = [
+  "/signin",
+  "/signup",
+  "/api",
+  "/auth/logout",
+  "/auth/logout-all",
+];
 
 function isPublicPath(pathname: string): boolean {
-  return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+  return PUBLIC_PATHS.some(
+    (p) => pathname === p || pathname.startsWith(`${p}/`)
+  );
 }
 
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  // Normalize: "" or "/" both mean root
+  const { pathname, search } = request.nextUrl;
   const path = pathname === "" ? "/" : pathname;
-  const cookie = request.cookies.get(AUTH_COOKIE_NAME);
-  const hasCookie = Boolean(cookie?.value);
-
-  // Debug: remove after verifying redirect behavior (logs in terminal when dev server runs)
-  const debug = {
-    path,
-    hasCookie,
-    isPublic: isPublicPath(path),
-  };
-  console.log("[proxy]", JSON.stringify(debug));
+  const sessionToken = request.cookies.get(getSessionCookieName())?.value;
 
   if (isPublicPath(path)) {
-    if (hasCookie) {
-      console.log("[proxy] -> redirect to /");
-      return NextResponse.redirect(new URL("/", request.url));
-    }
     return NextResponse.next();
   }
 
-  if (!hasCookie) {
-    console.log("[proxy] -> redirect to /signin");
-    return NextResponse.redirect(new URL("/signin", request.url));
+  if (!sessionToken) {
+    const signInUrl = new URL("/signin", request.url);
+    signInUrl.searchParams.set("returnTo", `${path}${search}`);
+    return NextResponse.redirect(signInUrl);
   }
 
   return NextResponse.next();
@@ -43,8 +36,5 @@ export function proxy(request: NextRequest) {
 
 /** Only run proxy on app routes; exclude static assets so JS/CSS chunks are not redirected to /signin. */
 export const config = {
-  matcher: [
-    "/",
-    "/((?!_next/static|_next/image|favicon\\.ico|images/).*)",
-  ],
+  matcher: ["/", "/((?!_next/static|_next/image|favicon\\.ico|images/).*)"],
 };

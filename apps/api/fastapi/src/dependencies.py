@@ -32,14 +32,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
+from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
     ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_INVALID_CREDENTIALS,
-    ERROR_USER_NOT_FOUND,
 )
-from src.auth.config import auth_settings
-from src.auth.models import Role, User
+from src.auth.models import Role, User, UserImage
 from src.auth.utils import ALGORITHM
 from src.config import Settings, get_settings
 from src.database import async_session_factory
@@ -50,6 +49,14 @@ from src.models import TokenPayload
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{auth_settings.API_V1_STR}/login/access-token"
 )
+
+
+def _unauthorized(detail: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detail,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
@@ -84,35 +91,27 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
     except (InvalidTokenError, ValidationError):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ERROR_INVALID_CREDENTIALS,
-        )
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not token_data.sub:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ERROR_INVALID_CREDENTIALS,
-        )
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     try:
         user_id = uuid.UUID(token_data.sub)
     except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ERROR_INVALID_CREDENTIALS,
-        )
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     stmt = (
         select(User)
         .where(User.id == user_id)
         .options(
             selectinload(User.roles).selectinload(Role.permissions),
+            selectinload(User.user_image),
         )
     )
     result = await session.execute(stmt)
     user = result.scalars().unique().first()
     if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not user.is_active:
-        raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+        raise _unauthorized(ERROR_INACTIVE_USER)
     return user
 
 
@@ -130,5 +129,3 @@ async def get_current_active_superuser(current_user: CurrentUser) -> User:
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
     return current_user
-
-
