@@ -1,7 +1,7 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
-import { getAuthConfig } from "@/src/lib/auth-config";
+import { getAuthConfig } from "./auth-config";
 import {
   readSessionCookie as _readSessionCookie,
   clearSessionCookieOnResponse as _clearSessionCookieOnResponse,

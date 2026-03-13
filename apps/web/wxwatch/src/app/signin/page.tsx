@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import {
   buildSharedSignInUrl,
   getRequestOrigin,
-} from "@/src/lib/auth-redirect";
+} from "../../../lib/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Redirecting To Sign In",
@@ -34,6 +34,6 @@ export default async function SignIn({ searchParams }: SignInPageProps) {
     buildSharedSignInUrl({
       origin: getRequestOrigin(requestHeaders),
       returnTo: readQueryParam(params.returnTo),
-    })
+    }),
   );
 }

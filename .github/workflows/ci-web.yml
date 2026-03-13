@@ -33,16 +33,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
 
       - name: Run Biome CI
         run: pnpm check:ci
@@ -55,16 +47,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
 
       - name: Type-check all web apps
         run: pnpm type-check
@@ -78,16 +62,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
 
       - name: Build all web apps
         run: pnpm build

@@ -1,4 +1,4 @@
-import { WeatherImage } from '@/src/db/schema';
+import { WeatherImage } from '@/db/schema';
 
 export type ImagesByName = {
   name: string;

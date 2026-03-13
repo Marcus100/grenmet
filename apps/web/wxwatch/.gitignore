@@ -19,7 +19,7 @@
 
 /data
 !/db
-!/src/lib
+!/lib
 /public/wxwatch
 
 

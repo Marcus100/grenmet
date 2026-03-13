@@ -3,7 +3,6 @@ name: Deploy to Staging
 on:
   workflow_run:
     workflows:
-      - "CI"
       - "Build and Push Docker Images"
     types:
       - completed
@@ -12,79 +11,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  verify_checks:
-    name: Verify checks for staging commit
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+  deploy:
+    # Gate: only run when build-images succeeded, or on manual dispatch
     if: |
       github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.name == 'Build and Push Docker Images')
-    permissions:
-      checks: read
-      contents: read
-    steps:
-      - name: Verify required checks succeeded
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            // Handle both workflow_run and workflow_dispatch triggers
-            const sha = context.payload.workflow_run?.head_sha || context.sha;
-
-            // Define gating policy
-            const REQUIRED = ['ci success', 'test-docker-compose'];
-            const EXCLUDED = ['verify checks for staging commit', 'deploy'];
-
-            async function fetchFilteredRuns() {
-              const resp = await github.rest.checks.listForRef({ owner, repo, ref: sha, per_page: 100 });
-              const all = resp.data.check_runs || [];
-              const lc = (s) => (s || '').toLowerCase();
-
-              // Debug: Log all check runs
-              core.info(`All check runs found: ${all.map(r => `${r.name} (${r.status}/${r.conclusion})`).join(', ')}`);
-
-              const filtered = all
-                .filter(r => !EXCLUDED.includes(lc(r.name)))
-                .filter(r => REQUIRED.length === 0 || REQUIRED.includes(lc(r.name)));
-
-              // Debug: Log filtered results
-              core.info(`Filtered check runs: ${filtered.map(r => `${r.name} (${r.status}/${r.conclusion})`).join(', ')}`);
-
-              return filtered;
-            }
-
-            const maxAttempts = 90; // up to ~45 minutes
-            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-              const runs = await fetchFilteredRuns();
-              core.info(`Found ${runs.length} check runs on ${sha}`);
-              if (runs.length === 0) {
-                core.setFailed('No required check runs found on the commit; refusing to deploy.');
-                return;
-              }
-              const inProgress = runs.filter(r => r.status !== 'completed');
-              if (inProgress.length === 0) {
-                const bad = runs.filter(r => !['success', 'skipped'].includes((r.conclusion || '').toLowerCase()));
-                if (bad.length) {
-                  core.startGroup('Failing checks');
-                  for (const r of bad) core.error(`${r.name}: status=${r.status} conclusion=${r.conclusion}`);
-                  core.endGroup();
-                  core.setFailed('Some required checks failed. Blocked deploy.');
-                  return;
-                }
-                core.notice('All required checks succeeded (or were skipped). Proceeding to deploy.');
-                return;
-              }
-              core.info(`Waiting for ${inProgress.length} checks to complete (attempt ${attempt}/${maxAttempts})...`);
-              await new Promise(res => setTimeout(res, 20000));
-            }
-            core.setFailed('Timeout waiting for checks to complete (30 minutes).');
-
-  deploy:
-    needs: verify_checks
+      github.event.workflow_run.conclusion == 'success'
     # Do not deploy in the main repository, only in user projects
-    if: github.repository_owner != 'fastapi'
     runs-on:
       - self-hosted
       - staging
@@ -93,8 +25,6 @@ jobs:
       name: staging
     permissions:
       contents: read
-    env:
-      ENV_FILE: /home/github/.config/barrels-api/staging.env # stable path outside workspace
     defaults:
       run:
         working-directory: apps/api/fastapi
@@ -104,162 +34,48 @@ jobs:
         with:
           clean: false # preserve any pre-existing workspace files if present
 
-      - name: Ensure external env exists (one-time provision)
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "$(dirname "$ENV_FILE")"
-          if [ ! -f "$ENV_FILE" ]; then
-            echo "Provisioning $ENV_FILE from .env.local.example"
-            if [ ! -f .env.example ]; then
-              echo "ERROR ERROR: .env.example is missing in apps/api/fastapi/"
-              echo "📁 Available .env files:"
-              ls -la .env* 2>/dev/null || echo "No .env files found"
-              exit 1
-            fi
-            echo "SUCCESS Found .env.example, copying to $ENV_FILE"
-            cp .env.example "$ENV_FILE"
-            chmod 600 "$ENV_FILE"
-            # Normalize potential CRLF endings from template
-            sed -i 's/\r$//' "$ENV_FILE"
-
-            # Enforce staging values by stripping existing keys and appending desired ones
-            tmp_file="$(mktemp)"
-            grep -v -E '^(ENVIRONMENT|DOMAIN|STACK_NAME|POSTGRES_DB|PROJECT_NAME|REGISTRY|IMAGE_NAME|TAG)=' "$ENV_FILE" > "$tmp_file" || true
-            printf '%s\n' \
-              'ENVIRONMENT=staging' \
-              'DOMAIN=barrels.gd' \
-              'STACK_NAME=barrels-api-staging' \
-              'POSTGRES_DB=app_staging' \
-              'PROJECT_NAME=barrels-api-staging' \
-              'REGISTRY=ghcr.io' \
-              'IMAGE_NAME=barrelsgd/barrels-api' \
-              'TAG=staging' \
-              >> "$tmp_file"
-            mv "$tmp_file" "$ENV_FILE"
-
-            # Generate strong secrets on first provision (always replace example values)
-            gen_secret() { head -c 48 /dev/urandom | base64 | tr -d '\n' | cut -c1-64; }
-            # Determine project name for volume detection
-            proj=$(grep '^PROJECT_NAME=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '\r' || true)
-            if [ -z "$proj" ]; then proj=barrels-api-staging; fi
-            vol_name="${proj}_app-db-data"
-            has_db_vol=0
-            if docker volume ls -q | grep -q "^${vol_name}$"; then has_db_vol=1; fi
-
-            for v in SECRET_KEY FIRST_SUPERUSER_PASSWORD; do
-              grep -v -E "^${v}=" "$ENV_FILE" > "$ENV_FILE.tmp" || true && mv "$ENV_FILE.tmp" "$ENV_FILE"
-              echo "${v}=$(gen_secret)" >> "$ENV_FILE"
-            done
-            # Only set POSTGRES_PASSWORD if DB volume does not yet exist
-            if [ "$has_db_vol" -eq 0 ]; then
-              grep -v -E "^POSTGRES_PASSWORD=" "$ENV_FILE" > "$ENV_FILE.tmp" || true && mv "$ENV_FILE.tmp" "$ENV_FILE"
-              echo "POSTGRES_PASSWORD=$(gen_secret)" >> "$ENV_FILE"
-            else
-              echo "Detected existing DB volume ($vol_name); preserving existing POSTGRES_PASSWORD in $ENV_FILE"
-            fi
-
-            # SENTRY_DSN must be empty or valid; clear '1' if present
-            awk 'BEGIN{FS=OFS="="} $1=="SENTRY_DSN" && $2=="1"{$2=""} {print}' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
-          else
-            echo "Existing env found at $ENV_FILE; not modifying."
-          fi
-
-      - name: Harden existing env secrets (idempotent)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ -f "$ENV_FILE" ]; then
-            gen_secret() { head -c 48 /dev/urandom | base64 | tr -d '\n' | cut -c1-64; }
-            changed=0
-            # Do not mutate POSTGRES_PASSWORD here to avoid auth mismatch with existing DB volume
-            for v in SECRET_KEY FIRST_SUPERUSER_PASSWORD; do
-              if grep -Eq "^${v}=(\"?changethis\"?)$" "$ENV_FILE"; then
-                echo "Hardening insecure default for $v"
-                awk -v k="$v" -v val="$(gen_secret)" 'BEGIN{FS=OFS="="} $1==k{$2=val} {print}' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
-                changed=1
-              fi
-            done
-            if grep -q '^SENTRY_DSN=1$' "$ENV_FILE"; then
-              awk 'BEGIN{FS=OFS="="} $1=="SENTRY_DSN"{$2=""} {print}' "$ENV_FILE" > "$ENV_FILE.tmp" && mv "$ENV_FILE.tmp" "$ENV_FILE"
-              changed=1
-            fi
-            if [ "$changed" -eq 1 ]; then chmod 600 "$ENV_FILE"; fi
-          fi
-
-      - name: Ensure container image defaults
-        shell: bash
+      - name: Setup environment
         env:
-          ENV_FILE: ${{ env.ENV_FILE }}
-          DEFAULT_REGISTRY: ghcr.io
-          DEFAULT_IMAGE_NAME: ${{ github.repository }}
-          DEFAULT_TAG: staging
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          ensure_var() {
-            local key="$1"
-            local value="$2"
-            if grep -q "^${key}=" "$ENV_FILE"; then
-              local current
-              current=$(grep "^${key}=" "$ENV_FILE" | head -n1 | cut -d'=' -f2- | tr -d '\r')
-              if [ -z "$current" ]; then
-                tmp=$(mktemp)
-                sed "s/^${key}=.*/${key}=${value}/" "$ENV_FILE" > "$tmp"
-                mv "$tmp" "$ENV_FILE"
-              fi
-            else
-              printf '%s=%s\n' "$key" "$value" >> "$ENV_FILE"
-            fi
-          }
+          cat > .env <<EOF
+          ENVIRONMENT=staging
+          DOMAIN=staging.api.weather.gd
+          STACK_NAME=barrels-api-staging
+          PROJECT_NAME=barrels-api-staging
+          POSTGRES_DB=app_staging
+          POSTGRES_SERVER=db
+          POSTGRES_PORT=5432
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          SECRET_KEY=${SECRET_KEY}
+          FIRST_SUPERUSER=${FIRST_SUPERUSER}
+          FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+          REGISTRY=ghcr.io
+          IMAGE_NAME=grenmet/barrels-api
+          TAG=staging
+          SENTRY_DSN=
+          EOF
 
-          ensure_var REGISTRY "$DEFAULT_REGISTRY"
-          ensure_var IMAGE_NAME "$(echo "$DEFAULT_IMAGE_NAME" | tr '[:upper:]' '[:lower:]')"
-          ensure_var TAG "$DEFAULT_TAG"
+          # Strip leading whitespace from heredoc
+          sed -i 's/^[[:space:]]*//' .env
 
-      - name: Validate environment (read-only)
-        run: |
-          # Require pre-provisioned env file outside the workspace; do not create or modify it here
-          if [ ! -f "$ENV_FILE" ]; then
-            echo "ERROR: env file missing at $ENV_FILE. Create it once on the VM and re-run."; exit 1;
-          fi
-
-          # Read-only validations
-          grep -q '^ENVIRONMENT=staging$' "$ENV_FILE" || { echo 'ERROR: ENVIRONMENT must be staging'; exit 1; }
-          grep -q '^DOMAIN=staging.api.barrels.gd$' "$ENV_FILE" || { echo 'ERROR: DOMAIN must be staging.api.barrels.gd'; exit 1; }
-          grep -q '^STACK_NAME=barrels-api-staging$' "$ENV_FILE" || { echo 'ERROR: STACK_NAME must be barrels-api-staging'; exit 1; }
-          grep -q '^POSTGRES_DB=app_staging$' "$ENV_FILE" || { echo 'ERROR: POSTGRES_DB must be app_staging'; exit 1; }
-
-          # Security checks — fail if insecure defaults exist; do not auto-fix
-          for v in SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD; do
-            if ! grep -q "^${v}=" "$ENV_FILE"; then echo "ERROR: ${v} missing in $ENV_FILE"; exit 1; fi
-            if grep -q "^${v}=changethis$" "$ENV_FILE"; then echo "ERROR: ${v} uses insecure default value"; exit 1; fi
-          done
-
-          # SENTRY_DSN must be empty or valid; explicitly block '1'
-          if grep -q '^SENTRY_DSN=1$' "$ENV_FILE"; then echo 'ERROR: SENTRY_DSN must be empty or a valid DSN URL'; exit 1; fi
-
-          # Expose PROJECT_NAME to subsequent steps (read-only) with a safe fallback
-          proj=$(grep '^PROJECT_NAME=' "$ENV_FILE" | cut -d'=' -f2- | tr -d '\r' || true)
-          if [ -z "$proj" ]; then proj=barrels-api-staging; fi
-          echo "PROJECT_NAME=$proj" >> $GITHUB_ENV
-
-          # Require container image reference variables
-          for v in REGISTRY IMAGE_NAME TAG; do
-            if ! grep -q "^${v}=" "$ENV_FILE"; then echo "ERROR: ${v} missing in $ENV_FILE"; exit 1; fi
-            if grep -Eq "^${v}=[[:space:]]*$" "$ENV_FILE"; then echo "ERROR: ${v} must not be empty in $ENV_FILE"; exit 1; fi
-          done
-          if ! grep -Eq '^IMAGE_NAME=[[:alnum:]_.-]+/[[:alnum:]_.-]+$' "$ENV_FILE"; then
-            echo 'ERROR: IMAGE_NAME must be a fully qualified repo name like namespace/image'; exit 1;
-          fi
+          echo "PROJECT_NAME=barrels-api-staging" >> "$GITHUB_ENV"
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env
 
       - name: Validate compose configuration
         run: |
           set -euo pipefail
-          docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml config >/dev/null
+          docker compose --env-file .env -f docker-compose.staging.yml config >/dev/null
 
       - name: Authenticate with GHCR
         env:
-          GHCR_USERNAME: barrelsgd
+          GHCR_USERNAME: grenmet
           GHCR_TOKEN: ${{ secrets.GHCR_PAT }}
         run: |
           set -euo pipefail
@@ -274,38 +90,33 @@ jobs:
         run: |
           set -euo pipefail
           echo "Stopping any existing services for project ${{ env.PROJECT_NAME }}..."
-          docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" down --remove-orphans || true
+          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" down --remove-orphans || true
           echo "Existing services stopped (if any)."
-
-      - name: Link external env into workspace for Compose
-        run: |
-          # docker-compose services reference env_file: .env. Link external env for runtime.
-          ln -sf "$ENV_FILE" .env
 
       - name: Pull images from registry
         run: |
           set -euxo pipefail
           echo "Pulling images from GitHub Container Registry..."
-          docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" pull
+          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" pull
           echo "Images pulled successfully"
 
       - name: Deploy with Docker Compose
         run: |
           echo "🚀 Deploying to staging..."
           echo "INFO Deployment configuration:"
-          echo "  - Environment: $ENV_FILE"
+          echo "  - Environment: .env (from GitHub Secrets)"
           echo "  - Project: ${{ env.PROJECT_NAME }}"
-          echo "  - Domain: staging.api.barrels.gd"
+          echo "  - Domain: staging.api.weather.gd"
 
           # Deploy with error handling
-          if docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" up -d; then
+          if docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" up -d; then
             echo "SUCCESS Services started successfully"
           else
             echo "ERROR Failed to start services"
             echo "=== Service Status ==="
-            docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
+            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
             echo "=== Service Logs ==="
-            docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=50 || true
+            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=50 || true
             exit 1
           fi
 
@@ -313,14 +124,14 @@ jobs:
           sleep 30
 
           echo "Checking Checking deployment status..."
-          docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps
+          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps
 
           echo "🏥 Performing health check..."
           # Wait for API to be ready with better error reporting
           HEALTH_CHECK_PASSED=false
           for i in {1..10}; do
             echo "Health check attempt $i/10..."
-            if curl -f -s "https://staging.api.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
+            if curl -f -s "https://staging.api.weather.gd/api/v1/utils/health-check/" > /dev/null; then
               echo "SUCCESS Staging API health check passed"
               HEALTH_CHECK_PASSED=true
               break
@@ -329,9 +140,9 @@ jobs:
               if [ $i -eq 5 ]; then
                 echo "=== Mid-deployment debugging ==="
                 echo "=== API Logs (last 30 lines) ==="
-                docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=30 api || true
+                docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=30 api || true
                 echo "=== Service Status ==="
-                docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
+                docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
               fi
               echo "⏳ Waiting 10 seconds before next attempt..."
               sleep 10
@@ -342,9 +153,9 @@ jobs:
             echo "ERROR Health check failed after 10 attempts"
             echo "=== Final debugging information ==="
             echo "=== All Service Logs ==="
-            docker compose --env-file "$ENV_FILE" -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=100 || true
+            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=100 || true
             echo "=== Network connectivity test ==="
-            curl -v "https://staging.api.barrels.gd/api/v1/utils/health-check/" || true
+            curl -v "https://staging.api.weather.gd/api/v1/utils/health-check/" || true
             exit 1
           fi
 
@@ -369,7 +180,7 @@ jobs:
           docker compose -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 api || true
           echo ""
           echo "=== Environment File (sanitized) ==="
-          sed -n '1,200p' "$ENV_FILE" | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' || true
+          sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env || true
           echo ""
           echo "=== Network Status ==="
           docker network ls || true

@@ -334,7 +334,7 @@ export const aerodromeObservationReportSchema = z.union([
  * ============================================================ */
 
 export const IWXXM_METAR_SPECI_JSON_SCHEMA = {
-  $id: "https://barrels.gd/schemas/iwxxm/metar-speci/v1.json",
+  $id: "https://weather.gd/schemas/iwxxm/metar-speci/v1.json",
   $schema: "https://json-schema.org/draft/2020-12/schema",
   title: "IWXXM METAR/SPECI (Flattened JSON) - v1",
   type: "object",

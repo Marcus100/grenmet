@@ -1,0 +1,143 @@
+# Labeler configuration for automatic PR labeling
+# Based on file paths and changes
+
+# Backend/API changes
+backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/api/fastapi/src/**/*
+          - apps/api/fastapi/alembic/**/*
+          - apps/api/fastapi/pyproject.toml
+          - apps/api/fastapi/Dockerfile*
+          - apps/api/fastapi/docker-compose*.yml
+          - apps/api/fastapi/scripts/**/*.py
+          - apps/api/fastapi/scripts/**/*.sh
+
+# Frontend changes
+frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/**/*
+          - packages/ui/**/*
+
+# Documentation changes
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - README.md
+          - "*.md"
+          - docs/**/*
+          - .github/**/*.md
+
+# Configuration changes
+configuration:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .env*
+          - .github/workflows/**/*
+          - .github/**/*.yml
+          - .github/**/*.yaml
+          - apps/api/fastapi/docker-compose*.yml
+          - apps/api/fastapi/Dockerfile*
+
+# Database changes
+database:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/api/fastapi/alembic/**/*
+          - apps/api/fastapi/src/models.py
+          - apps/api/fastapi/src/database.py
+
+# Testing changes
+testing:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/api/fastapi/tests/**/*
+          - apps/api/fastapi/conftest.py
+          - apps/web/**/*.test.*
+          - apps/web/**/*.spec.*
+          - .github/workflows/**/test*.yml
+
+# Security changes
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/api/fastapi/src/auth/**/*
+          - apps/api/fastapi/src/security.py
+          - .github/workflows/**/security*.yml
+
+# Dependencies
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/api/fastapi/pyproject.toml
+          - apps/api/fastapi/uv.lock
+          - package.json
+          - pnpm-lock.yaml
+          - pnpm-workspace.yaml
+          - apps/web/*/package.json
+          - apps/api/honoapi/package.json
+          - packages/*/package.json
+
+# CI/CD changes
+ci-cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/workflows/**/*
+          - .github/**/*.yml
+          - .github/**/*.yaml
+
+# Mobile changes
+mobile:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/mobile/**/*
+
+# Infrastructure changes
+infrastructure:
+  - changed-files:
+      - any-glob-to-any-file:
+          - infra/**/*
+          - docker-compose.yml
+
+# Per-project web app labels
+web/admin-gms:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/admin-gms/**/*
+
+web/auth:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/auth/**/*
+
+web/hurricaneplan:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/hurricaneplan/**/*
+
+web/spicewx:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/spicewx/**/*
+
+web/templates-draft:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/templates-draft/**/*
+
+web/wxproducts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/wxproducts/**/*
+
+web/wxwatch:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/wxwatch/**/*
+
+# Shared packages
+packages:
+  - changed-files:
+      - any-glob-to-any-file:
+          - packages/**/*

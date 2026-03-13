@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useCallback, useEffect } from "react";
-import type { WeatherImage } from "@/src/db/schema";
-import { getImageUrl } from "@/src/lib/utils";
+import type { WeatherImage } from "@/db/schema";
+import { getImageUrl } from "../../lib/utils";
 
 interface LightboxProps {
   image: WeatherImage | null;
@@ -17,7 +17,7 @@ export function Lightbox({ image, onClose }: LightboxProps) {
         onClose();
       }
     },
-    [onClose]
+    [onClose],
   );
 
   useEffect(() => {

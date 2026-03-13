@@ -2,13 +2,21 @@ name: API Client Generation
 
 on:
   pull_request:
+    branches: [main, staging, dev]
   push:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   api-client:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout

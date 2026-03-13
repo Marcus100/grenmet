@@ -1,10 +1,20 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalEnv": ["NODE_ENV", "NEXT_PUBLIC_*"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["NODE_ENV"]
+      "env": [
+        "AUTH_APP_URL",
+        "AUTH_API_URL",
+        "AUTH_API_V1_STR",
+        "SESSION_COOKIE_NAME",
+        "SESSION_COOKIE_DOMAIN",
+        "DB_URL",
+        "DATABASE_URL",
+        "RESEND_API_KEY"
+      ]
     },
     "dev": {
       "cache": false,

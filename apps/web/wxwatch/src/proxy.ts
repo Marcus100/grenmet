@@ -1,8 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionCookieName } from "@/src/lib/auth-config";
+import { getSessionCookieName } from "../lib/auth-config";
 
-const PUBLIC_PATHS = ["/signin", "/api", "/auth/logout", "/auth/logout-all"];
+const PUBLIC_PATHS = [
+  "/signin",
+  "/api",
+  "/auth/logout",
+  "/auth/logout-all",
+  "/wxwatch",
+];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(
