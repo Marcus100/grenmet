@@ -3,13 +3,13 @@ name: Database Backup
 on:
   schedule:
     # Run daily at 2 AM UTC
-    - cron: '0 2 * * *'
+    - cron: "0 2 * * *"
   workflow_dispatch:
     inputs:
       backup_type:
-        description: 'Type of backup to perform'
+        description: "Type of backup to perform"
         required: true
-        default: 'full'
+        default: "full"
         type: choice
         options:
           - full
@@ -30,7 +30,7 @@ jobs:
     defaults:
       run:
         working-directory: apps/api/fastapi
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,10 +39,10 @@ jobs:
         run: |
           set -euo pipefail
           echo "🗄️ Setting up backup environment..."
-          
+
           # Create backup directory
           mkdir -p "$BACKUP_DIR"
-          
+
           # Load production environment
           PROD_ENV="/home/github/.config/eugine-api/production.env"
           if [ -f "$PROD_ENV" ]; then
@@ -52,19 +52,19 @@ jobs:
             echo "ERROR: Production environment file not found at $PROD_ENV"
             exit 1
           fi
-          
+
           # Source environment variables
           set -a
           source .env
           set +a
-          
+
           echo "✅ Backup environment setup complete"
 
       - name: Verify database connectivity
         run: |
           set -euo pipefail
           echo "🔍 Verifying database connectivity..."
-          
+
           # Test database connection
           if docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; then
             echo "✅ Database is ready for backup"
@@ -77,12 +77,12 @@ jobs:
         run: |
           set -euo pipefail
           echo "💾 Creating database backup..."
-          
+
           # Generate backup filename with timestamp
           BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
           BACKUP_FILENAME="barrels_api_backup_${BACKUP_TIMESTAMP}.sql.gz"
           BACKUP_PATH="$BACKUP_DIR/$BACKUP_FILENAME"
-          
+
           # Create backup
           echo "Creating backup: $BACKUP_FILENAME"
           docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_dump \
@@ -93,14 +93,16 @@ jobs:
             --format=custom \
             --compress=9 \
             --file="/tmp/backup.dump"
-          
+
           # Copy backup from container to host
           docker compose -f docker-compose.prod.yml -p "barrels-api" cp "barrels-api-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          
+
           # Verify backup file
           if [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ]; then
             BACKUP_SIZE=$(du -h "$BACKUP_PATH" | cut -f1)
             echo "✅ Backup created successfully: $BACKUP_FILENAME ($BACKUP_SIZE)"
+            echo "BACKUP_FILENAME=$BACKUP_FILENAME" >> "$GITHUB_ENV"
+            echo "BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
           else
             echo "❌ Backup creation failed"
             exit 1
@@ -110,13 +112,13 @@ jobs:
         run: |
           set -euo pipefail
           echo "🔍 Testing backup integrity..."
-          
+
           # Test backup by restoring to a temporary database
           TEMP_DB_NAME="test_restore_$(date +%s)"
-          
+
           # Create temporary database
           docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB_NAME"
-          
+
           # Restore backup to temporary database
           docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_restore \
             -U "$POSTGRES_USER" \
@@ -126,16 +128,16 @@ jobs:
             --clean \
             --if-exists \
             "/tmp/backup.dump"
-          
+
           # Verify restore
           TABLE_COUNT=$(docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db psql \
             -U "$POSTGRES_USER" \
             -d "$TEMP_DB_NAME" \
             -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' ')
-          
+
           # Clean up temporary database
           docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB_NAME"
-          
+
           if [ "$TABLE_COUNT" -gt 0 ]; then
             echo "✅ Backup integrity test passed ($TABLE_COUNT tables restored)"
           else
@@ -147,21 +149,21 @@ jobs:
         run: |
           set -euo pipefail
           echo "🧹 Cleaning up old backups..."
-          
+
           # Remove backups older than retention period
           find "$BACKUP_DIR" -name "barrels_api_backup_*.sql.gz" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          
+
           # List remaining backups
           echo "📋 Remaining backups:"
           ls -lah "$BACKUP_DIR"/barrels_api_backup_*.sql.gz 2>/dev/null || echo "No backups found"
-          
+
           echo "✅ Old backup cleanup completed"
 
       - name: Upload backup to Azure Blob Storage (if configured)
         run: |
           set -euo pipefail
           echo "☁️ Uploading backup to Azure Blob Storage..."
-          
+
           # Check if Azure CLI is available and configured
           if command -v az >/dev/null 2>&1; then
             # Check if storage account is configured

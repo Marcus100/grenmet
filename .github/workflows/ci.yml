@@ -66,16 +66,7 @@ jobs:
         run: uv run ruff format src scripts --check
 
       - name: Run mypy (Type Checker)
-        run: |
-          echo "Checking Running type checker..."
-          if uv run mypy src; then
-            echo "SUCCESS: Type checking passed"
-          else
-            echo "WARNING Type checking found issues (non-blocking for now)"
-            echo "INFO Type issues summary:"
-            uv run mypy src --show-error-codes || true
-          fi
-        continue-on-error: true # Don't fail on type errors initially
+        run: uv run mypy src
 
   # Job 2: Security Checks
   security:
@@ -91,7 +82,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
         with:
           scan-type: "fs"
           scan-ref: "apps/api/fastapi"
@@ -116,13 +107,13 @@ jobs:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: changethis
       POSTGRES_DB: app
-      FIRST_SUPERUSER: admin@barrels.gd
+      FIRST_SUPERUSER: admin@weather.gd
       FIRST_SUPERUSER_PASSWORD: changethis
-      SECRET_KEY: changethis
+      SECRET_KEY: test-secret-key-min-32-characters-long
       ENVIRONMENT: local
       PROJECT_NAME: FastAPI Backend (Test)
-      EMAILS_FROM_EMAIL: test@barrels.gd
-      SMTP_HOST: smtp.barrels.gd
+      EMAILS_FROM_EMAIL: test@weather.gd
+      SMTP_HOST: smtp.weather.gd
     defaults:
       run:
         working-directory: apps/api/fastapi
@@ -160,64 +151,14 @@ jobs:
         run: uv sync
 
       - name: Run migrations
-        env:
-          POSTGRES_SERVER: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: changethis
-          SECRET_KEY: test-secret-key-min-32-characters-long
-          FIRST_SUPERUSER: admin@barrels.gd
-          FIRST_SUPERUSER_PASSWORD: changethis
         run: uv run alembic upgrade head
 
       - name: Run tests with coverage
-        env:
-          POSTGRES_SERVER: localhost
-          POSTGRES_PORT: 5432
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: changethis
-          SECRET_KEY: test-secret-key-min-32-characters-long
-          FIRST_SUPERUSER: admin@barrels.gd
-          FIRST_SUPERUSER_PASSWORD: changethis
         run: |
-          echo "🧪 Running test suite with coverage..."
-          echo "INFO Test environment:"
-          echo "  - Database: $POSTGRES_SERVER:$POSTGRES_PORT/$POSTGRES_DB"
-          echo "  - User: $POSTGRES_USER"
-          echo "  - Superuser: $FIRST_SUPERUSER"
-
-          # Run tests with detailed output
-          if uv run coverage run --source=src -m pytest -v --tb=short; then
-            echo "SUCCESS All tests passed"
-          else
-            echo "ERROR Some tests failed"
-            echo "INFO Test failure summary:"
-            uv run pytest --tb=short -v --maxfail=5 || true
-            echo "INFO Failed test details:"
-            uv run pytest --tb=long --maxfail=3 || true
-            exit 1
-          fi
-
-          echo "REPORT Generating coverage report..."
+          uv run coverage run --source=src -m pytest -v --tb=short
           uv run coverage report --show-missing
           uv run coverage xml
           uv run coverage html
-
-          # Show coverage summary
-          echo "📈 Coverage Summary:"
-          COVERAGE_LINE=$(uv run coverage report --show-missing | tail -n 1)
-          echo "$COVERAGE_LINE"
-
-          # Extract coverage percentage for potential threshold checking
-          COVERAGE_PCT=$(echo "$COVERAGE_LINE" | grep -o '[0-9]\+%' | head -1 | sed 's/%//')
-          if [ -n "$COVERAGE_PCT" ]; then
-            echo "REPORT Coverage percentage: $COVERAGE_PCT%"
-            if [ "$COVERAGE_PCT" -lt 80 ]; then
-              echo "WARNING Warning: Coverage is below 80%"
-            fi
-          fi
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@v4
@@ -267,7 +208,7 @@ jobs:
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@18f2510ee396bbf400402947b394f2dd8c87dbb0 # v0.29.0
         with:
           image-ref: "test-image:latest"
           format: "sarif"
@@ -311,13 +252,13 @@ jobs:
       POSTGRES_USER: app
       POSTGRES_PASSWORD: changethis
       POSTGRES_DB: app
-      FIRST_SUPERUSER: admin@barrels.gd
+      FIRST_SUPERUSER: admin@weather.gd
       FIRST_SUPERUSER_PASSWORD: changethis
-      SECRET_KEY: changethis
+      SECRET_KEY: test-secret-key-min-32-characters-long
       ENVIRONMENT: local
       PROJECT_NAME: FastAPI Backend (Test)
-      EMAILS_FROM_EMAIL: test@barrels.gd
-      SMTP_HOST: smtp.barrels.gd
+      EMAILS_FROM_EMAIL: test@weather.gd
+      SMTP_HOST: smtp.weather.gd
     defaults:
       run:
         working-directory: apps/api/fastapi
@@ -360,7 +301,7 @@ jobs:
           POSTGRES_USER: app
           POSTGRES_PASSWORD: changethis
           SECRET_KEY: test-secret-key-min-32-characters-long
-          FIRST_SUPERUSER: admin@barrels.gd
+          FIRST_SUPERUSER: admin@weather.gd
           FIRST_SUPERUSER_PASSWORD: changethis
         run: |
           uv run python -c "

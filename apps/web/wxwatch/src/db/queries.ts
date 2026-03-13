@@ -1,7 +1,7 @@
 import "server-only";
 
 import { and, asc, gte, isNotNull, lt } from "drizzle-orm";
-import { getSynopticHour, roundToSynopticTime } from "@/src/lib/utils";
+import { getSynopticHour, roundToSynopticTime } from "../../lib/utils";
 import { db } from "../index";
 import { type WeatherImage, weatherImages } from "./schema";
 

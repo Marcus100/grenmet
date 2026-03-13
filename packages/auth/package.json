@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "scripts": {
+    "type-check": "tsc --noEmit",
+    "lint": "biome lint .",
+    "check": "biome check --write .",
+    "check:ci": "biome ci ."
+  },
   "exports": {
     ".": {
       "import": "./src/index.ts",

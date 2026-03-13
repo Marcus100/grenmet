@@ -1,4 +1,4 @@
-import { getAuthConfig } from "@/src/lib/auth-config";
+import { getAuthConfig } from "./auth-config";
 import {
   getSafeLocalReturnTo,
   getRequestOrigin,

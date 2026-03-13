@@ -1,12 +1,30 @@
-Part of the Grenmet monorepo. From the repo root, run the Hono API with: **`pnpm dev:honoapi`**. Use pnpm from root for consistency with the monorepo.
+# Hono API (`@grenmet/api-hono`)
 
-From this directory:
+Simple Hono service in the Grenmet monorepo.
 
-```
-npm install
-npm run dev
+## Run (recommended)
+
+From repo root:
+
+```bash
+pnpm install
+pnpm dev:honoapi
 ```
 
+The service listens on `http://localhost:3000`.
+
+## Run from app directory
+
+```bash
+cd apps/api/honoapi
+pnpm dev
 ```
-open http://localhost:3000
+
+## Other scripts
+
+```bash
+pnpm build
+pnpm start
+pnpm type-check
+pnpm check:ci
 ```

@@ -19,11 +19,11 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
-import type { ElementsBlock } from "../src/app/schema/elements";
-import type { METARReport, SPECIReport } from "../src/app/schema/metarSpeci";
-import type { ProductMetadata } from "../src/app/schema/product-metadata";
-import type { Suite } from "../src/app/schema/suite-types";
-import type { TAFReport } from "../src/app/schema/taf";
+import type { ElementsBlock } from "../app/schema/elements";
+import type { METARReport, SPECIReport } from "../app/schema/metarSpeci";
+import type { ProductMetadata } from "../app/schema/product-metadata";
+import type { Suite } from "../app/schema/suite-types";
+import type { TAFReport } from "../app/schema/taf";
 
 export const productSuites = pgTable(
   "product_suites",

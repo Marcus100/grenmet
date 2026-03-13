@@ -113,13 +113,15 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     )
     return response
 
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.all_cors_origins,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type"],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers

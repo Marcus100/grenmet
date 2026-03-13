@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import type { WeatherImage } from "@/src/db/schema";
-import { getImageUrl } from "@/src/lib/utils";
+import type { WeatherImage } from "@/db/schema";
+import { getImageUrl } from "../../lib/utils";
 
 interface ImageRowProps {
   onImageClick: (image: WeatherImage) => void;

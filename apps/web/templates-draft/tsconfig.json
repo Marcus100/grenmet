@@ -1,7 +1,7 @@
 {
   "extends": "@grenmet/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
-    "paths": { "@/*": ["./*"] }
+    "paths": { "@/*": ["./src/*"] }
   },
   "include": [
     "next-env.d.ts",

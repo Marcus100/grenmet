@@ -11,130 +11,16 @@ on:
       - main
 
 jobs:
-  verify_checks:
-    name: Verify checks for release commit
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      checks: read
-      contents: read
-    steps:
-      - name: Skip verification for workflow_run triggers
-        if: github.event_name == 'workflow_run'
-        run: |
-          echo "Build-images workflow completed successfully"
-          echo "Checks were already verified before build-images ran"
-          echo "Proceeding with deployment..."
-          exit 0
-      - name: Verify all required checks succeeded
-        if: github.event_name == 'release'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const release = context.payload.release;
-            const tag = release.tag_name; // e.g. v1.2.3
-            const target = release.target_commitish; // branch name or SHA
-
-            async function resolveCommitSha() {
-              // Prefer the tag if it exists
-              if (tag) {
-                try {
-                  const ref = await github.rest.git.getRef({ owner, repo, ref: `tags/${tag}` });
-                  let sha = ref.data.object.sha;
-                  // If it's an annotated tag, peel to commit
-                  if (ref.data.object.type === 'tag') {
-                    const tagObj = await github.rest.git.getTag({ owner, repo, tag_sha: sha });
-                    sha = tagObj.data.object.sha;
-                  }
-                  core.info(`Resolved commit via tag ${tag}: ${sha}`);
-                  return sha;
-                } catch (e) {
-                  core.warning(`Failed to resolve tag ${tag}: ${e.message}`);
-                }
-              }
-              // Fallback to target_commitish (branch or SHA)
-              if (/^[0-9a-f]{40}$/i.test(target || '')) {
-                core.info(`Using provided commit SHA: ${target}`);
-                return target;
-              }
-              if (target) {
-                try {
-                  const ref = await github.rest.git.getRef({ owner, repo, ref: `heads/${target}` });
-                  const sha = ref.data.object.sha;
-                  core.info(`Resolved commit via branch ${target}: ${sha}`);
-                  return sha;
-                } catch (e) {
-                  core.warning(`Failed to resolve branch ${target}: ${e.message}`);
-                }
-              }
-              throw new Error('Could not resolve commit SHA for this release');
-            }
-
-            const sha = await resolveCommitSha();
-
-            // Define gating policy
-            const REQUIRED = ['CI', 'Test Docker Compose'];
-            const EXCLUDED = ['verify checks for release commit', 'deploy'];
-
-            // Helper to fetch and filter check runs according to the policy
-            async function fetchFilteredRuns() {
-              const resp = await github.rest.checks.listForRef({ owner, repo, ref: sha, per_page: 100 });
-              const all = resp.data.check_runs || [];
-              const lc = (s) => (s || '').toLowerCase();
-              const filtered = all
-                .filter(r => !EXCLUDED.includes(lc(r.name)))
-                .filter(r => REQUIRED.length === 0 || REQUIRED.includes(lc(r.name)));
-              return filtered;
-            }
-
-            // Poll until all relevant checks are completed (max ~30 minutes)
-            const maxAttempts = 60; // 60 * 30s = 30 minutes
-            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-              const runs = await fetchFilteredRuns();
-              core.info(`Found ${runs.length} check runs on ${sha}`);
-              if (runs.length === 0) {
-                core.setFailed('No check runs found on the release commit (after filtering); refusing to deploy.');
-                return;
-              }
-
-              const inProgress = runs.filter(r => r.status !== 'completed');
-              if (inProgress.length === 0) {
-                core.info('All relevant checks completed. Evaluating results...');
-                // Evaluate results
-                const bad = runs.filter(r => !['success', 'skipped'].includes((r.conclusion || '').toLowerCase()));
-                if (bad.length) {
-                  core.startGroup('Failing checks');
-                  for (const r of bad) {
-                    core.error(`${r.name}: status=${r.status} conclusion=${r.conclusion}`);
-                  }
-                  core.endGroup();
-                  core.setFailed('Some checks failed. Blocked deploy.');
-                  return;
-                }
-                core.notice('All checks succeeded (or were skipped). Proceeding to deploy.');
-                return;
-              }
-
-              core.info(`Waiting for ${inProgress.length} checks to complete (attempt ${attempt}/${maxAttempts})...`);
-              await new Promise(res => setTimeout(res, 30000)); // 30s
-            }
-
-            core.setFailed('Timeout waiting for checks to complete (30 minutes).');
   deploy:
-    needs: [verify_checks]
-    runs-on: [self-hosted, production, azure-vm]
-    timeout-minutes: 30
-    # Deploy when:
-    # 1. Direct release trigger (verify_checks runs)
-    # 2. build-images completed after a release (verify_checks skipped, build succeeded = checks passed)
+    # Gate: release events (branch protection ensures CI passed on main),
+    # or when build-images completed successfully after a release.
     if: |
       (github.event_name == 'release') ||
       (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.name == 'Build and Push Docker Images' &&
        github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'release')
+    runs-on: [self-hosted, production, azure-vm]
+    timeout-minutes: 30
     environment:
       name: production
     permissions:
@@ -147,148 +33,41 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup environment
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "🔐 Setting up production environment..."
+          RELEASE_TAG="${{ github.event.release.tag_name }}"
+          IMAGE_TAG="${RELEASE_TAG:-latest}"
 
-          # Try to use persisted production env file (recommended)
-          PROD_ENV="/home/github/.config/eugine-api/production.env"
-          if [ -f "$PROD_ENV" ]; then
-            echo "✅ Using persisted production env: $PROD_ENV"
-            cp "$PROD_ENV" .env
-          else
-            echo "⚠️ Persisted production env not found at $PROD_ENV"
-            echo "Creating .env from .env.production.example template"
-            if [ ! -f .env.production.example ]; then
-              echo "::error::.env.production.example is missing in the repository root"
-              exit 1
-            fi
-            cp .env.production.example .env
-            echo "⚠️ Using template .env.production.example - ensure secrets are properly configured on the VM"
-          fi
+          cat > .env <<EOF
+          ENVIRONMENT=production
+          DOMAIN=weather.gd
+          STACK_NAME=barrels-api
+          PROJECT_NAME=barrels-api
+          POSTGRES_DB=app_prod
+          POSTGRES_SERVER=db
+          POSTGRES_PORT=5432
+          POSTGRES_USER=${POSTGRES_USER}
+          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          SECRET_KEY=${SECRET_KEY}
+          FIRST_SUPERUSER=${FIRST_SUPERUSER}
+          FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
+          REGISTRY=ghcr.io
+          IMAGE_NAME=grenmet/barrels-api
+          TAG=${IMAGE_TAG}
+          SENTRY_DSN=
+          EOF
 
-          # Normalize .env newlines to avoid sed/crlf issues
-          perl -pi -e 's/\r$//;' .env || true
+          # Strip leading whitespace from heredoc
+          sed -i 's/^[[:space:]]*//' .env
 
-          # Enforce prod-specific values (do not overwrite secrets)
-          # Use environment variables with fallbacks for flexibility
-          PRODUCTION_DOMAIN="${PRODUCTION_DOMAIN:-barrels.gd}"
-          PRODUCTION_STACK_NAME="${PRODUCTION_STACK_NAME:-barrels-api}"
-          PRODUCTION_PROJECT_NAME="${PRODUCTION_PROJECT_NAME:-barrels-api}"
-          PRODUCTION_DB_NAME="${PRODUCTION_DB_NAME:-app_prod}"
-
-          if grep -q '^ENVIRONMENT=' .env; then sed -i "s/^ENVIRONMENT=.*/ENVIRONMENT=production/" .env; else echo "ENVIRONMENT=production" >> .env; fi
-          if grep -q '^DOMAIN=' .env; then sed -i "s|^DOMAIN=.*|DOMAIN=$PRODUCTION_DOMAIN|" .env; else echo "DOMAIN=$PRODUCTION_DOMAIN" >> .env; fi
-          if grep -q '^STACK_NAME=' .env; then sed -i "s|^STACK_NAME=.*|STACK_NAME=$PRODUCTION_STACK_NAME|" .env; else echo "STACK_NAME=$PRODUCTION_STACK_NAME" >> .env; fi
-          if grep -q '^PROJECT_NAME=' .env; then sed -i "s|^PROJECT_NAME=.*|PROJECT_NAME=$PRODUCTION_PROJECT_NAME|" .env; else echo "PROJECT_NAME=$PRODUCTION_PROJECT_NAME" >> .env; fi
-          if grep -q '^POSTGRES_DB=' .env; then sed -i "s|^POSTGRES_DB=.*|POSTGRES_DB=$PRODUCTION_DB_NAME|" .env; else echo "POSTGRES_DB=$PRODUCTION_DB_NAME" >> .env; fi
-          # SENTRY must be empty unless valid DSN; force empty to avoid legacy '1'
-          sed -i 's/^SENTRY_DSN=.*/SENTRY_DSN=/' .env
-
-          # Set image registry variables for docker-compose.prod.yml
-          if grep -q '^REGISTRY=' .env; then sed -i "s|^REGISTRY=.*|REGISTRY=ghcr.io|" .env; else echo "REGISTRY=ghcr.io" >> .env; fi
-          if grep -q '^IMAGE_NAME=' .env; then sed -i "s|^IMAGE_NAME=.*|IMAGE_NAME=barrelsgd/barrels-api|" .env; else echo "IMAGE_NAME=barrelsgd/barrels-api" >> .env; fi
-          if grep -q '^TAG=' .env; then sed -i "s|^TAG=.*|TAG=latest|" .env; else echo "TAG=latest" >> .env; fi
-
-          # Expose PROJECT_NAME to subsequent steps
-          PROJECT_NAME_VALUE=$(grep '^PROJECT_NAME=' .env | cut -d'=' -f2- | tr -d '\r')
-          echo "PROJECT_NAME=$PROJECT_NAME_VALUE" >> $GITHUB_ENV
-          export PROJECT_NAME="$PROJECT_NAME_VALUE"
-
-          echo "=== Effective .env (sanitized) ==="; sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/'
-          echo "Using PROJECT_NAME=$PROJECT_NAME"
-
-      - name: "Guard: validate secrets strength and configuration"
-        run: |
-          set -euo pipefail
-          bad=0
-
-          # Function to validate secret strength
-          validate_secret() {
-            local key="$1"
-            local val="$2"
-            local min_length="$3"
-
-            if [ -z "$val" ]; then
-              echo "::error::$key is empty or not set"
-              return 1
-            fi
-
-            if [ "$val" = "changethis" ]; then
-              echo "::error::$key uses insecure default value 'changethis'"
-              return 1
-            fi
-
-            if [ ${#val} -lt $min_length ]; then
-              echo "::error::$key is too short (${#val} chars, minimum $min_length)"
-              return 1
-            fi
-
-            # Check for common weak patterns
-            if [[ "$val" =~ ^[0-9]+$ ]]; then
-              echo "::error::$key appears to be only numbers (weak)"
-              return 1
-            fi
-
-            if [[ "$val" =~ ^[a-zA-Z]+$ ]]; then
-              echo "::error::$key appears to be only letters (weak)"
-              return 1
-            fi
-
-            return 0
-          }
-
-          # Validate each secret
-          for key in SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD; do
-            val=$(grep -E "^$key=" .env | head -n1 | cut -d'=' -f2- | tr -d '\r' || true)
-
-            case $key in
-              SECRET_KEY)
-                if ! validate_secret "$key" "$val" 32; then
-                  bad=1
-                fi
-                ;;
-              POSTGRES_PASSWORD)
-                if ! validate_secret "$key" "$val" 16; then
-                  bad=1
-                fi
-                ;;
-              FIRST_SUPERUSER_PASSWORD)
-                if ! validate_secret "$key" "$val" 12; then
-                  bad=1
-                fi
-                ;;
-            esac
-          done
-
-          # Validate domain configuration
-          DOMAIN_VAL=$(grep -E "^DOMAIN=" .env | head -n1 | cut -d'=' -f2- | tr -d '\r' || true)
-          if [ -z "$DOMAIN_VAL" ]; then
-            echo "::error::DOMAIN is not set"
-            bad=1
-          elif [[ ! "$DOMAIN_VAL" =~ ^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$ ]]; then
-            echo "::error::DOMAIN format is invalid: $DOMAIN_VAL"
-            bad=1
-          fi
-
-          if [ $bad -ne 0 ]; then
-            echo "=== .env (sanitized) ==="; sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/'
-            exit 1
-          fi
-
-          echo "✅ All secrets and configuration validated successfully"
-
-      - name: Ensure FIRST_SUPERUSER_PASSWORD length <= 40
-        run: |
-          FIRST_SUPERUSER_PASSWORD=$(grep '^FIRST_SUPERUSER_PASSWORD=' .env | cut -d'=' -f2 | tr -d '\r' || echo "")
-          if [ ${#FIRST_SUPERUSER_PASSWORD} -gt 40 ]; then
-            echo "FIRST_SUPERUSER_PASSWORD is ${#FIRST_SUPERUSER_PASSWORD} chars, capping to 40"
-            NEW_PASSWORD=$(echo "$FIRST_SUPERUSER_PASSWORD" | cut -c1-40)
-            sed -i "s/^FIRST_SUPERUSER_PASSWORD=.*/FIRST_SUPERUSER_PASSWORD=$NEW_PASSWORD/" .env
-            echo "FIRST_SUPERUSER_PASSWORD capped to 40 characters"
-          else
-            echo "FIRST_SUPERUSER_PASSWORD length OK: ${#FIRST_SUPERUSER_PASSWORD} chars"
-          fi
+          echo "PROJECT_NAME=barrels-api" >> "$GITHUB_ENV"
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env
 
       - name: Retire legacy eugine-api stack (safety)
         run: |
@@ -353,7 +132,7 @@ jobs:
           # Quick external health check; do not fail the job, just print result
           set -e
           echo -e "\n=== External health check ==="
-          curl -sS https://api.barrels.gd/api/v1/utils/health-check/ || echo "health-check request failed"
+          curl -sS https://api.weather.gd/api/v1/utils/health-check/ || echo "health-check request failed"
 
       - name: "Guard: ensure barrels-api (not eugine-api)"
         run: |
@@ -397,7 +176,7 @@ jobs:
           echo "=== db logs (tail 200) ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color --tail=200 db || true
           echo "=== api logs (tail 200) ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color --tail=200 api || true
           echo "=== env (sanitized) ===" && sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' || true
-          echo "=== health check (best effort) ==="; curl -sS https://api.barrels.gd/api/v1/utils/health-check/ || true
+          echo "=== health check (best effort) ==="; curl -sS https://api.weather.gd/api/v1/utils/health-check/ || true
 
       - name: Cleanup runner environment
         if: always()

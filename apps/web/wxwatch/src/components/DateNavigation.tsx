@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { addDays, formatDateForUrl } from "@/src/lib/utils";
+import { addDays, formatDateForUrl } from "../../lib/utils";
 
 interface DateNavigationProps {
   currentDate: Date;

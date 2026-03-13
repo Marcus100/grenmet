@@ -268,7 +268,7 @@ export const tafReportSchema = z.object({
  * ============================================================ */
 
 export const IWXXM_TAF_JSON_SCHEMA = {
-  $id: "https://barrels.gd/schemas/iwxxm/taf/v1.json",
+  $id: "https://weather.gd/schemas/iwxxm/taf/v1.json",
   $schema: "https://json-schema.org/draft/2020-12/schema",
   title: "IWXXM TAF (Flattened JSON) - v1",
   type: "object",

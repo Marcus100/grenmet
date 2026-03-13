@@ -1,9 +1,9 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { notFound } from "next/navigation";
-import { DateNavigation } from "@/src/components/DateNavigation";
-import { Gallery } from "@/src/components/Gallery";
-import { getImagesByDateAndSynoptic } from "@/src/db/queries";
-import { parseDateFromUrl } from "@/src/lib/utils";
+import { DateNavigation } from "@/components/DateNavigation";
+import { Gallery } from "@/components/Gallery";
+import { getImagesByDateAndSynoptic } from "@/db/queries";
+import { parseDateFromUrl } from "../../../../../lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -1,0 +1,42 @@
+version: 2
+updates:
+  # GitHub Actions
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: ⬆
+
+  # Python uv (API)
+  - package-ecosystem: uv
+    directory: /apps/api/fastapi
+    schedule:
+      interval: daily
+    commit-message:
+      prefix: ⬆
+
+  # Docker (API)
+  - package-ecosystem: docker
+    directory: /apps/api/fastapi
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ⬆
+
+  # Docker Compose (API)
+  - package-ecosystem: docker-compose
+    directory: /apps/api/fastapi
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ⬆
+
+  # pnpm (monorepo root — covers all workspace packages: apps/web/*, apps/api/honoapi, packages/*)
+  # Dependabot uses the "npm" ecosystem for pnpm; it detects pnpm-lock.yaml automatically.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ⬆
