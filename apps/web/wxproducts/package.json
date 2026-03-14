@@ -9,20 +9,21 @@
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
-    "check": "biome check --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "tsc --noEmit",
     "db:generate": "dotenv -e .env -- drizzle-kit generate",
     "db:migrate": "dotenv -e .env -- drizzle-kit migrate"
   },
   "dependencies": {
-    "drizzle-orm": "^0.45.1",
+    "drizzle-orm": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "pg": "^8.17.1",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zod": "^4.3.5"
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
@@ -33,7 +34,7 @@
     "@types/react-dom": "catalog:",
     "babel-plugin-react-compiler": "^1.0.0",
     "dotenv-cli": "^11.0.0",
-    "drizzle-kit": "^0.31.8",
+    "drizzle-kit": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }

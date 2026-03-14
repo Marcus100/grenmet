@@ -30,8 +30,8 @@ export default function MorningForecast({
   weather = "Generally fair.",
   generalWarning = "None",
   maxTemperature = "31.0°C",
-  wind = "East-northeast to east-southeast\n12 - 22 mph",
-  seas = "Moderate to slightly rough\nWaves 6 - 8 ft\nNortheasterly to easterly swell",
+  wind = "East-northeast to east-southeast @ 12 - 22 mph",
+  seas = "Moderate to slightly rough Waves 6 - 8 ft Northeasterly to easterly swell",
   marineWarning,
   tideLow = "10:00 AM",
   tideHigh = "4:00 PM",
@@ -55,7 +55,7 @@ export default function MorningForecast({
         </h1>
       </div>
 
-      <div className="mt-8 space-y-3 text-sm text-zinc-700">
+      <div className="mt-8 space-y-1 text-sm text-zinc-700">
         <h2 className="font-semibold text-base text-zinc-900 tracking-tight">
           Public Weather Forecast for {location}
         </h2>
@@ -123,15 +123,6 @@ export default function MorningForecast({
             <span className="font-semibold text-zinc-900">{marineWarning}</span>
           </div>
         )}
-      </div>
-
-      <div className="my-6 border-zinc-300 border-t" />
-
-      <h3 className="mb-4 font-semibold text-sm text-zinc-900 uppercase tracking-[0.08em]">
-        Sun and Tide Information
-      </h3>
-
-      <div className="space-y-3 rounded-lg bg-zinc-50 p-5 ring-1 ring-zinc-200">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="text-sm">
             <span className="font-semibold text-zinc-900">Low Tide:</span>{" "}

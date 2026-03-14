@@ -8,6 +8,9 @@ inputs:
   pnpm-version:
     description: pnpm version to use
     default: "10"
+  strict-peer-dependencies:
+    description: Fail if peer dependency conflicts are detected
+    default: "false"
 
 runs:
   using: composite
@@ -21,5 +24,5 @@ runs:
         node-version: ${{ inputs.node-version }}
         cache: pnpm
 
-    - run: pnpm install --frozen-lockfile
+    - run: pnpm install --frozen-lockfile ${{ inputs.strict-peer-dependencies == 'true' && '--strict-peer-dependencies' || '' }}
       shell: bash

@@ -43,12 +43,6 @@ function DayForecastCard({ day }: { day: DayForecast }) {
             <span className="text-zinc-700">{day.weather}</span>
           </div>
         </div>
-        <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
-          <div className="text-sm">
-            <span className="font-semibold text-zinc-900">Warning:</span>{" "}
-            <span className="text-zinc-700">{day.warning}</span>
-          </div>
-        </div>
         {(day.maxTemp || day.minTemp) && (
           <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
@@ -71,16 +65,7 @@ function DayForecastCard({ day }: { day: DayForecast }) {
             <span className="text-zinc-700">{day.seas}</span>
           </div>
         </div>
-        {day.marineWarning && (
-          <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
-            <div className="text-sm">
-              <span className="font-semibold text-zinc-900">Warning:</span>{" "}
-              <span className="font-bold text-zinc-900">
-                {day.marineWarning}
-              </span>
-            </div>
-          </div>
-        )}
+
         {(day.tideLow || day.tideHigh) && (
           <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
             <div className="text-sm">
@@ -205,30 +190,24 @@ export default function EveningForecast({
               <div className="font-semibold text-sm text-zinc-900">
                 {currentDate} - {currentDay.date}
               </div>
-              {currentDay.minTemp && (
-                <div className="shrink-0">
-                  <div className="rounded bg-white px-4 py-3 ring-1 ring-zinc-200">
-                    <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
-                      Tonight&apos;s Minimum Temperature
-                    </div>
-                    <div className="mt-1 font-bold text-xl text-zinc-900">
-                      {currentDay.minTemp}
-                    </div>
+            </div>
+            {currentDay.minTemp && (
+              <div className="shrink-0">
+                <div className="rounded bg-white px-4 py-3 ring-1 ring-zinc-200">
+                  <div className="font-semibold text-xs text-zinc-700 uppercase tracking-wide">
+                    Tonight&apos;s Minimum Temperature
+                  </div>
+                  <div className="mt-1 font-bold text-xl text-zinc-900">
+                    {currentDay.minTemp}
                   </div>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Weather:</span>{" "}
                   <span className="text-zinc-700">{currentDay.weather}</span>
-                </div>
-              </div>
-              <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
-                <div className="text-sm">
-                  <span className="font-semibold text-zinc-900">Warning:</span>{" "}
-                  <span className="text-zinc-700">{currentDay.warning}</span>
                 </div>
               </div>
               <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
@@ -243,18 +222,6 @@ export default function EveningForecast({
                   <span className="text-zinc-700">{currentDay.seas}</span>
                 </div>
               </div>
-              {currentDay.marineWarning && (
-                <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
-                  <div className="text-sm">
-                    <span className="font-semibold text-zinc-900">
-                      Warning:
-                    </span>{" "}
-                    <span className="font-bold text-zinc-900">
-                      {currentDay.marineWarning}
-                    </span>
-                  </div>
-                </div>
-              )}
               <div className="rounded bg-white px-4 py-2.5 ring-1 ring-zinc-200 ring-inset">
                 <div className="text-sm">
                   <span className="font-semibold text-zinc-900">Tides:</span>{" "}

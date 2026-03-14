@@ -191,7 +191,7 @@ function NavigationGroup({
             <ActivePageMarker group={group} pathname={pathname} />
           )}
         </AnimatePresence>
-        <ul className="border-transparent border-l" role="list">
+        <ul className="border-transparent border-l">
           {group.links.map((link) => (
             <motion.li className="relative" key={link.href} layout="position">
               <NavLink active={link.href === pathname} href={link.href}>
@@ -209,7 +209,6 @@ function NavigationGroup({
                       transition: { duration: 0.15 },
                     }}
                     initial={{ opacity: 0 }}
-                    role="list"
                   >
                     {sections.map((section) => (
                       <li key={section.id}>
@@ -233,27 +232,84 @@ function NavigationGroup({
   );
 }
 
-export const navigation: Array<NavGroup> = [
+export const navigation: NavGroup[] = [
   {
-    title: "Guides",
+    title: "Core",
     links: [
       { title: "Introduction", href: "/" },
-      { title: "Quickstart", href: "/quickstart" },
-      { title: "SDKs", href: "/sdks" },
-      { title: "Authentication", href: "/authentication" },
-      { title: "Pagination", href: "/pagination" },
-      { title: "Errors", href: "/errors" },
-      { title: "Webhooks", href: "/webhooks" },
+      { title: "Objectives", href: "/objectives" },
+      { title: "Representation", href: "/representation" },
+      { title: "Forecast for season", href: "/forecast-for-season" },
+      {
+        title: "Useful terms and definitions",
+        href: "/useful-terms-definitions",
+      },
+      {
+        title: "Special operating procedures of Met Department",
+        href: "/special-operating-procedures/met-department",
+      },
     ],
   },
   {
-    title: "Resources",
+    title: "Pre-season actions",
     links: [
-      { title: "Contacts", href: "/contacts" },
-      { title: "Conversations", href: "/conversations" },
-      { title: "Messages", href: "/messages" },
-      { title: "Groups", href: "/groups" },
-      { title: "Attachments", href: "/attachments" },
+      { title: "General", href: "/pre-season/general" },
+      { title: "Met Department", href: "/pre-season/met-department" },
+      { title: "Air Traffic", href: "/pre-season/air-traffic" },
+      { title: "Maintenance", href: "/pre-season/maintenance" },
+      { title: "Administration", href: "/pre-season/administration" },
+      { title: "Security", href: "/pre-season/security" },
+      { title: "CFR", href: "/pre-season/cfr" },
+    ],
+  },
+  {
+    title: "Warning issued actions",
+    links: [
+      {
+        title: "Met Department",
+        href: "/warning-issued/met-department",
+      },
+      { title: "Air Traffic", href: "/warning-issued/air-traffic" },
+      { title: "ECCAA", href: "/warning-issued/eccaa" },
+      { title: "Operation", href: "/warning-issued/operation" },
+      { title: "Maintenance", href: "/warning-issued/maintenance" },
+      {
+        title: "Administration",
+        href: "/warning-issued/administration",
+      },
+      { title: "Security", href: "/warning-issued/security" },
+      { title: "CFR", href: "/warning-issued/cfr" },
+      { title: "Carriacou", href: "/warning-issued/carriacou" },
+      {
+        title: "Airport Tenants",
+        href: "/warning-issued/airport-tenants",
+      },
+    ],
+  },
+  {
+    title: "During and after",
+    links: [
+      {
+        title: "Actions during the hurricane or storm",
+        href: "/during-hurricane-storm",
+      },
+      {
+        title: "Actions after the hurricane or storm",
+        href: "/after-hurricane-storm",
+      },
+    ],
+  },
+  {
+    title: "Appendices",
+    links: [
+      {
+        title: "Appendix A: Emergency Personnel",
+        href: "/appendix/emergency-personnel",
+      },
+      {
+        title: "Appendix B: MBIA Vehicles",
+        href: "/appendix/mbia-vehicles",
+      },
     ],
   },
 ];
@@ -261,10 +317,12 @@ export const navigation: Array<NavGroup> = [
 export function Navigation(props: React.ComponentPropsWithoutRef<"nav">) {
   return (
     <nav {...props}>
-      <ul role="list">
-        <TopLevelNavItem href="/">API</TopLevelNavItem>
-        <TopLevelNavItem href="#">Documentation</TopLevelNavItem>
-        <TopLevelNavItem href="#">Support</TopLevelNavItem>
+      <ul>
+        <TopLevelNavItem href="/">Introduction</TopLevelNavItem>
+        <TopLevelNavItem href="/pre-season/general">Pre-season</TopLevelNavItem>
+        <TopLevelNavItem href="/warning-issued/met-department">
+          Warning issued
+        </TopLevelNavItem>
         {navigation.map((group, groupIndex) => (
           <NavigationGroup
             className={groupIndex === 0 ? "md:mt-0" : ""}
@@ -273,8 +331,12 @@ export function Navigation(props: React.ComponentPropsWithoutRef<"nav">) {
           />
         ))}
         <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
-          <Button className="w-full" href="#" variant="filled">
-            Sign in
+          <Button
+            className="w-full"
+            href="/appendix/emergency-personnel"
+            variant="filled"
+          >
+            Emergency contacts
           </Button>
         </li>
       </ul>
