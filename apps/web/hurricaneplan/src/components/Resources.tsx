@@ -26,12 +26,12 @@ interface Resource {
   >;
 }
 
-const resources: Array<Resource> = [
+const resources: Resource[] = [
   {
-    href: "/contacts",
-    name: "Contacts",
+    href: "/pre-season/general",
+    name: "Pre-season actions",
     description:
-      "Learn about the contact model and how to create, retrieve, update, delete, and list contacts.",
+      "Review the department actions to complete before the hurricane season starts.",
     icon: UserIcon,
     pattern: {
       y: 16,
@@ -42,10 +42,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: "/conversations",
-    name: "Conversations",
+    href: "/warning-issued/met-department",
+    name: "Warning issued actions",
     description:
-      "Learn about the conversation model and how to create, retrieve, update, delete, and list conversations.",
+      "Follow role-based procedures activated when a hurricane or storm warning is issued.",
     icon: ChatBubbleIcon,
     pattern: {
       y: -6,
@@ -56,10 +56,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: "/messages",
-    name: "Messages",
+    href: "/during-hurricane-storm",
+    name: "During and after storm",
     description:
-      "Learn about the message model and how to create, retrieve, update, delete, and list messages.",
+      "Access the actions that apply during active conditions and post-event recovery.",
     icon: EnvelopeIcon,
     pattern: {
       y: 32,
@@ -70,10 +70,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: "/groups",
-    name: "Groups",
+    href: "/appendix/emergency-personnel",
+    name: "Appendices",
     description:
-      "Learn about the group model and how to create, retrieve, update, delete, and list groups.",
+      "Open reference lists for emergency personnel and MBIA vehicles.",
     icon: UsersIcon,
     pattern: {
       y: 22,
@@ -133,24 +133,13 @@ function ResourcePattern({
 }
 
 function Resource({ resource }: { resource: Resource }) {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  function onMouseMove({
-    currentTarget,
-    clientX,
-    clientY,
-  }: React.MouseEvent<HTMLDivElement>) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
-  }
+  const mouseX = useMotionValue(144);
+  const mouseY = useMotionValue(96);
 
   return (
     <div
       className="group relative flex rounded-2xl bg-zinc-50 transition-shadow hover:shadow-md hover:shadow-zinc-900/5 dark:bg-white/2.5 dark:hover:shadow-black/5"
       key={resource.href}
-      onMouseMove={onMouseMove}
     >
       <ResourcePattern {...resource.pattern} mouseX={mouseX} mouseY={mouseY} />
       <div className="absolute inset-0 rounded-2xl ring-1 ring-zinc-900/7.5 ring-inset group-hover:ring-zinc-900/10 dark:ring-white/10 dark:group-hover:ring-white/20" />
@@ -173,8 +162,8 @@ function Resource({ resource }: { resource: Resource }) {
 export function Resources() {
   return (
     <div className="my-16 xl:max-w-none">
-      <Heading id="resources" level={2}>
-        Resources
+      <Heading id="operational-phases" level={2}>
+        Operational phases
       </Heading>
       <div className="not-prose mt-4 grid grid-cols-1 gap-8 border-zinc-900/5 border-t pt-10 sm:grid-cols-2 xl:grid-cols-4 dark:border-white/5">
         {resources.map((resource) => (

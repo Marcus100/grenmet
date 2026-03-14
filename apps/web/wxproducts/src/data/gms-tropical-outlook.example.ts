@@ -3,7 +3,7 @@
  * Import from @/data/gms-tropical-outlook.example.
  */
 
-import type { TropicalOutlookProduct } from "@/app/schema/outlook";
+import type { TropicalOutlookProduct } from "@/db/schema/outlook";
 
 export const gmsTropicalOutlookExample: TropicalOutlookProduct = {
   product_metadata: {

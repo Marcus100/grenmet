@@ -3,7 +3,7 @@
  * Import from @/data/gms-evening-forecast.example.
  */
 
-import type { EveningForecastProduct } from "@/app/schema/evening";
+import type { EveningForecastProduct } from "@/db/schema/evening";
 
 const sharedElements = {
   weather: { text: "Partly cloudy with a few showers." },

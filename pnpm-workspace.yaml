@@ -8,6 +8,11 @@ packages:
   # Shared packages
   - "packages/*"
 
+# Suppress install-script warnings for packages blocked by onlyBuiltDependencies
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
+
 catalog:
   # Core
   react: "^19.2.0"
@@ -31,3 +36,13 @@ catalog:
   "@types/node": "^22"
   "@types/react": "^19.2.1"
   "@types/react-dom": "^19.2.1"
+
+  # Database (Drizzle) — used in wxwatch and wxproducts
+  drizzle-orm: "^0.45.1"
+  drizzle-kit: "^0.31.8"
+
+  # Validation — used across multiple web apps
+  zod: "^4.3.5"
+
+  # MDX — keep in sync with next catalog version
+  "@next/mdx": "16.1.6"

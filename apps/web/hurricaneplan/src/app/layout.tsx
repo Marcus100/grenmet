@@ -7,10 +7,12 @@ import type { Section } from "@/components/SectionProvider";
 
 import "@/styles/tailwind.css";
 
+const PAGE_PATH_REGEX = /(^|\/)page\.mdx$/;
+
 export const metadata: Metadata = {
   title: {
-    template: "%s - Protocol API Reference",
-    default: "Protocol API Reference",
+    template: "%s - Hurricane Plan",
+    default: "Hurricane Plan",
   },
 };
 
@@ -22,10 +24,10 @@ export default async function RootLayout({
   const pages = await glob("**/*.mdx", { cwd: "src/app" });
   const allSectionsEntries = (await Promise.all(
     pages.map(async (filename) => [
-      "/" + filename.replace(/(^|\/)page\.mdx$/, ""),
+      `/${filename.replace(PAGE_PATH_REGEX, "")}`,
       (await import(`./${filename}`)).sections,
     ])
-  )) as Array<[string, Array<Section>]>;
+  )) as [string, Section[]][];
   const allSections = Object.fromEntries(allSectionsEntries);
 
   return (

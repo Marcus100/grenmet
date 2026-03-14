@@ -3,7 +3,7 @@
  * Import from @/data/gms-marine-bulletin.example.
  */
 
-import type { MarineBulletinProduct } from "@/app/schema/marine";
+import type { MarineBulletinProduct } from "@/db/schema/marine";
 
 export const gmsMarineBulletinExample: MarineBulletinProduct = {
   product_metadata: {

@@ -3,7 +3,7 @@
  * Import from @/data/gms-midday-weather-report.example.
  */
 
-import type { MiddayWeatherReportProduct } from "@/app/schema/midday";
+import type { MiddayWeatherReportProduct } from "@/db/schema/midday";
 
 export const gmsMiddayWeatherReportExample: MiddayWeatherReportProduct = {
   product_metadata: {

@@ -53,10 +53,23 @@ jobs:
       - name: Type-check all web apps
         run: pnpm type-check
 
-  # Job 3: Build all web apps (validates no build errors)
+  # Job 3: Peer dependency audit (strict mode — catches version mismatches)
+  peer-check:
+    name: Peer Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js with pnpm (strict peers)
+        uses: ./.github/actions/setup-node
+        with:
+          strict-peer-dependencies: "true"
+
+  # Job 4: Build all web apps (validates no build errors)
   build:
     name: Build Web Apps
-    needs: [biome, type-check]
+    needs: [biome, type-check, peer-check]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
