@@ -328,7 +328,7 @@ export default function MorningForecast({
       <footer className="mt-10 border-zinc-300 border-t pt-6">
         <div className="grid gap-6 sm:grid-cols-2">
           <div className="space-y-1 text-sm">
-            <p className="font-semibold text-zinc-900">Issued By</p>
+            <p className="font-semibold text-zinc-900">Issued By:</p>
             <p className="font-semibold text-zinc-900">{forecasterName}</p>
             <p className="text-zinc-700">{forecasterTitle}</p>
           </div>
