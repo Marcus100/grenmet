@@ -19,7 +19,7 @@ export function useSessionUser(): SessionUserPublic {
   const user = useContext(SessionUserContext);
   if (!user) {
     throw new Error(
-      "useSessionUser must be used within a <SessionUserProvider>",
+      "useSessionUser must be used within a <SessionUserProvider>"
     );
   }
   return user;
