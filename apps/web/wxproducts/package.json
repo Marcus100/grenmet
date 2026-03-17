@@ -24,7 +24,8 @@
     "pg": "^8.17.1",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",

@@ -39,10 +39,11 @@ catalog:
 
   # Database (Drizzle) — used in wxwatch and wxproducts
   drizzle-orm: "^0.45.1"
-  drizzle-kit: "^0.31.8"
+  drizzle-kit: "^0.31.10"
 
   # Validation — used across multiple web apps
   zod: "^4.3.5"
+  "@t3-oss/env-nextjs": "^0.13.10"
 
   # MDX — keep in sync with next catalog version
   "@next/mdx": "16.1.6"
