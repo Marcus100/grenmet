@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:next-forge.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(for app:*)",
+      "Bash(do echo:*)",
+      "Bash(__NEW_LINE_2287eedffd4638a3__ grep:*)",
+      "Bash(__NEW_LINE_2287eedffd4638a3__ done:*)",
+      "Bash(__NEW_LINE_55946fe380ea74ab__ echo:*)",
+      "Bash(__NEW_LINE_55946fe380ea74ab__ ls:*)",
+      "Bash(__NEW_LINE_55946fe380ea74ab__ find:*)",
+      "Bash(__NEW_LINE_55946fe380ea74ab__ done:*)",
+      "Bash(do)",
+      "Bash(echo \"=== $app ===\")",
+      "Bash(__NEW_LINE_00bf5f6e51dc63ac__ grep:*)",
+      "Bash(__NEW_LINE_00bf5f6e51dc63ac__ done:*)",
+      "Bash(while read:*)",
+      "Bash(do grep:*)",
+      "Bash(done)",
+      "Bash(find /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/admin-gms/src -type f -name *.ts -o -name *.tsx)",
+      "Bash(grep \"port\" /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/*/package.json)",
+      "Bash(xargs wc:*)",
+      "Bash(ls -lh /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/*/src/app/)"
+    ]
+  }
+}
