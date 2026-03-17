@@ -63,7 +63,7 @@ export default function RootLayout({
         <div className="min-h-full">
           <Disclosure
             as="nav"
-            className="border-b border-gray-200 bg-white dark:border-white/10 dark:bg-gray-900"
+            className="border-gray-200 border-b bg-white dark:border-white/10 dark:bg-gray-900"
           >
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               <div className="flex h-16 justify-between">
@@ -71,27 +71,27 @@ export default function RootLayout({
                   <div className="flex shrink-0 items-center">
                     <img
                       alt="Your Company"
-                      src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
                       className="h-8 w-auto dark:hidden"
+                      src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
                     />
                     <img
                       alt="Your Company"
+                      className="not-dark:hidden h-8 w-auto"
                       src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
-                      className="h-8 w-auto not-dark:hidden"
                     />
                   </div>
                   <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
                     {navigation.map((item) => (
                       <a
-                        key={item.name}
-                        href={item.href}
                         aria-current={item.current ? "page" : undefined}
                         className={classNames(
                           item.current
                             ? "border-indigo-600 text-gray-900 dark:border-indigo-500 dark:text-white"
                             : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:border-white/20 dark:hover:text-gray-200",
-                          "inline-flex items-center border-b-2 px-1 pt-1 text-sm font-medium",
+                          "inline-flex items-center border-b-2 px-1 pt-1 font-medium text-sm"
                         )}
+                        href={item.href}
+                        key={item.name}
                       >
                         {item.name}
                       </a>
@@ -100,8 +100,8 @@ export default function RootLayout({
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:items-center">
                   <button
+                    className="relative rounded-full p-1 text-gray-400 hover:text-gray-500 focus:outline-2 focus:outline-indigo-600 focus:outline-offset-2 dark:text-gray-400 dark:focus:outline-indigo-500 dark:hover:text-white"
                     type="button"
-                    className="relative rounded-full p-1 text-gray-400 hover:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600 dark:text-gray-400 dark:hover:text-white dark:focus:outline-indigo-500"
                   >
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">View notifications</span>
@@ -110,25 +110,25 @@ export default function RootLayout({
 
                   {/* Profile dropdown */}
                   <Menu as="div" className="relative ml-3">
-                    <MenuButton className="relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:focus-visible:outline-indigo-500">
+                    <MenuButton className="relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2 dark:focus-visible:outline-indigo-500">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Open user menu</span>
                       <img
                         alt=""
+                        className="size-8 rounded-full outline outline-black/5 -outline-offset-1 dark:outline-white/10"
                         src={user.imageUrl}
-                        className="size-8 rounded-full outline -outline-offset-1 outline-black/5 dark:outline-white/10"
                       />
                     </MenuButton>
 
                     <MenuItems
+                      className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-200 data-leave:duration-75 data-enter:ease-out data-leave:ease-in dark:bg-gray-800 dark:shadow-none dark:outline-white/10 dark:-outline-offset-1"
                       transition
-                      className="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg outline outline-black/5 transition data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-200 data-enter:ease-out data-leave:duration-75 data-leave:ease-in dark:bg-gray-800 dark:shadow-none dark:-outline-offset-1 dark:outline-white/10"
                     >
                       {userNavigation.map((item) => (
                         <MenuItem key={item.name}>
                           <a
+                            className="block px-4 py-2 text-gray-700 text-sm data-focus:bg-gray-100 data-focus:outline-hidden dark:text-gray-300 dark:data-focus:bg-white/5"
                             href={item.href}
-                            className="block px-4 py-2 text-sm text-gray-700 data-focus:bg-gray-100 data-focus:outline-hidden dark:text-gray-300 dark:data-focus:bg-white/5"
                           >
                             {item.name}
                           </a>
@@ -139,7 +139,7 @@ export default function RootLayout({
                 </div>
                 <div className="-mr-2 flex items-center sm:hidden">
                   {/* Mobile menu button */}
-                  <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600 dark:bg-gray-900 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white dark:focus:outline-indigo-500">
+                  <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md bg-white p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-2 focus:outline-indigo-600 focus:outline-offset-2 dark:bg-gray-900 dark:text-gray-400 dark:focus:outline-indigo-500 dark:hover:bg-white/5 dark:hover:text-white">
                     <span className="absolute -inset-0.5" />
                     <span className="sr-only">Open main menu</span>
                     <Bars3Icon
@@ -159,41 +159,41 @@ export default function RootLayout({
               <div className="space-y-1 pt-2 pb-3">
                 {navigation.map((item) => (
                   <DisclosureButton
-                    key={item.name}
-                    as="a"
-                    href={item.href}
                     aria-current={item.current ? "page" : undefined}
+                    as="a"
                     className={classNames(
                       item.current
                         ? "border-indigo-600 bg-indigo-50 text-indigo-700 dark:border-indigo-500 dark:bg-indigo-600/10 dark:text-indigo-300"
                         : "border-transparent text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 dark:text-gray-400 dark:hover:border-gray-500 dark:hover:bg-white/5 dark:hover:text-gray-200",
-                      "block border-l-4 py-2 pr-4 pl-3 text-base font-medium",
+                      "block border-l-4 py-2 pr-4 pl-3 font-medium text-base"
                     )}
+                    href={item.href}
+                    key={item.name}
                   >
                     {item.name}
                   </DisclosureButton>
                 ))}
               </div>
-              <div className="border-t border-gray-200 pt-4 pb-3 dark:border-gray-700">
+              <div className="border-gray-200 border-t pt-4 pb-3 dark:border-gray-700">
                 <div className="flex items-center px-4">
                   <div className="shrink-0">
                     <img
                       alt=""
+                      className="size-10 rounded-full outline outline-black/5 -outline-offset-1 dark:outline-white/10"
                       src={user.imageUrl}
-                      className="size-10 rounded-full outline -outline-offset-1 outline-black/5 dark:outline-white/10"
                     />
                   </div>
                   <div className="ml-3">
-                    <div className="text-base font-medium text-gray-800 dark:text-white">
+                    <div className="font-medium text-base text-gray-800 dark:text-white">
                       {user.name}
                     </div>
-                    <div className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    <div className="font-medium text-gray-500 text-sm dark:text-gray-400">
                       {user.email}
                     </div>
                   </div>
                   <button
+                    className="relative ml-auto shrink-0 rounded-full p-1 text-gray-400 hover:text-gray-500 focus:outline-2 focus:outline-indigo-600 focus:outline-offset-2 dark:text-gray-400 dark:focus:outline-indigo-500 dark:hover:text-white"
                     type="button"
-                    className="relative ml-auto shrink-0 rounded-full p-1 text-gray-400 hover:text-gray-500 focus:outline-2 focus:outline-offset-2 focus:outline-indigo-600 dark:text-gray-400 dark:hover:text-white dark:focus:outline-indigo-500"
                   >
                     <span className="absolute -inset-1.5" />
                     <span className="sr-only">View notifications</span>
@@ -203,10 +203,10 @@ export default function RootLayout({
                 <div className="mt-3 space-y-1">
                   {userNavigation.map((item) => (
                     <DisclosureButton
-                      key={item.name}
                       as="a"
+                      className="block px-4 py-2 font-medium text-base text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
                       href={item.href}
-                      className="block px-4 py-2 text-base font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                      key={item.name}
                     >
                       {item.name}
                     </DisclosureButton>
@@ -219,7 +219,7 @@ export default function RootLayout({
           <div className="py-10">
             <header>
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+                <h1 className="font-bold text-3xl text-gray-900 tracking-tight dark:text-white">
                   Dashboard
                 </h1>
               </div>

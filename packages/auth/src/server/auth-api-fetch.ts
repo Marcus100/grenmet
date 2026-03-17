@@ -52,9 +52,7 @@ export async function writeSessionCookie(
   );
 }
 
-export async function clearSessionCookie(
-  config: AuthConfig
-): Promise<void> {
+export async function clearSessionCookie(config: AuthConfig): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(config.sessionCookieName, "", {
     ...buildCookieOptions(config, new Date(0)),

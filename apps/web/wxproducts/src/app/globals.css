@@ -39,10 +39,10 @@ body {
   html,
   body {
     margin: 0;
-    background: #ffffff !important;
     color: #171717 !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    background: #ffffff !important;
   }
 
   .pdf-sheet {

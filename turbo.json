@@ -20,24 +20,40 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
+    "start": {
+      "dependsOn": ["^build"],
+      "persistent": true
+    },
+    "lint": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+    },
     "lint:fix": {
       "cache": false
     },
-    "check": {},
+    "format": {
+      "cache": false
+    },
+    "check": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+    },
     "check:fix": {
       "cache": false
     },
-    "check:ci": {},
+    "check:ci": {
+      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+    },
     "type-check": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "inputs": ["**/*.{ts,tsx}", "**/tsconfig*.json"]
     },
     "generate": {
-      "cache": false
+      "cache": false,
+      "outputs": ["src/**"]
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "inputs": ["src/**", "tests/**", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"]
     }
   }
 }

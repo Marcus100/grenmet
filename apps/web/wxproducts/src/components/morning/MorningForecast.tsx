@@ -1,11 +1,14 @@
 interface ImpactItem {
+  affectedAreas?: string[];
+
+  assessment?: string;
   hazard: string;
 
   hazardHeadline?: string;
-  affectedAreas?: string[];
 
-  validFrom?: string;
-  validUntil?: string;
+  impactLevel: "Minor" | "Moderate" | "Severe" | "Extreme" | string;
+
+  impactText: string[];
 
   likelihoodLevel:
     | "Very Low"
@@ -15,84 +18,80 @@ interface ImpactItem {
     | "Very High"
     | string;
 
-  impactLevel: "Minor" | "Moderate" | "Severe" | "Extreme" | string;
-
-  assessment?: string;
-
-  whatToExpect?: string[];
-
-  impactText: string[];
-
   responseLevel: "Be Aware" | "Be Prepared" | "Take Action" | string;
 
   responseText: string[];
-}
-
-interface MorningForecastProps {
-  organization?: string;
-  office?: string;
-
-  productTitle?: string;
-  productSubtitle?: string;
-  productId?: string;
-  documentNumber?: string;
-
-  dateIssued?: string;
-  timeIssued?: string;
 
   validFrom?: string;
   validUntil?: string;
-  validity?: string;
-
-  nextUpdate?: string;
-
-  location?: string;
-
-  headline?: string;
-
-  synopsis?: string;
-
-  furtherDetails?: string;
-
-  weather?: string;
-  weatherDetails?: string;
-
-  maxTemperature?: string;
-  minTemperature?: string;
-
-  wind?: string;
-
-  seas?: string;
-  waveHeights?: string;
-  swell?: string;
-
-  marineAdvisory?: string;
-
-  tideLow?: string;
-  tideHigh?: string;
-
-  sunrise?: string;
-  sunset?: string;
 
   whatToExpect?: string[];
+}
 
-  impacts?: ImpactItem[];
+interface MorningForecastProps {
+  dateIssued?: string;
+  documentNumber?: string;
 
-  recommendedActions?: string[];
-
-  updateStatement?: string;
+  footerNote?: string;
 
   forecasterName?: string;
   forecasterTitle?: string;
 
-  footerNote?: string;
+  furtherDetails?: string;
+
+  headline?: string;
+
+  impacts?: ImpactItem[];
+
+  location?: string;
+
+  marineAdvisory?: string;
+
+  maxTemperature?: string;
+  minTemperature?: string;
+
+  nextUpdate?: string;
+  office?: string;
+  organization?: string;
+  productId?: string;
+  productSubtitle?: string;
+
+  productTitle?: string;
+
+  recommendedActions?: string[];
+
+  seas?: string;
+
+  sunrise?: string;
+  sunset?: string;
+  swell?: string;
+
+  synopsis?: string;
+  tideHigh?: string;
+
+  tideLow?: string;
+  timeIssued?: string;
+
+  updateStatement?: string;
+
+  validFrom?: string;
+  validity?: string;
+  validUntil?: string;
+  waveHeights?: string;
+
+  weather?: string;
+  weatherDetails?: string;
+
+  whatToExpect?: string[];
+
+  wind?: string;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3">
       <div className="h-px flex-1 bg-zinc-300" />
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-900">
+      <h2 className="font-semibold text-[11px] text-zinc-900 uppercase tracking-[0.22em]">
         {children}
       </h2>
       <div className="h-px flex-1 bg-zinc-300" />
@@ -111,7 +110,7 @@ function LabelValue({
 
   return (
     <div>
-      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+      <p className="font-semibold text-[11px] text-zinc-500 uppercase tracking-[0.16em]">
         {label}
       </p>
       <p className="mt-1 text-sm text-zinc-900">{value}</p>
@@ -139,7 +138,7 @@ function Badge({ value }: { value: string }) {
 
   return (
     <span
-      className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
+      className={`rounded-full px-3 py-1 font-semibold text-[10px] uppercase tracking-[0.14em] ${
         styles[value] ?? "bg-zinc-700 text-white"
       }`}
     >
@@ -230,18 +229,18 @@ export default function MorningForecast({
   footerNote = "This forecast is issued by the Grenada Meteorological Service and is valid for the State of Grenada and surrounding coastal waters.",
 }: MorningForecastProps) {
   return (
-    <article className=" bg-white p-8 shadow-sm ring-1 ring-zinc-200">
+    <article className="bg-white p-8 shadow-sm ring-1 ring-zinc-200">
       {/* HEADER */}
 
       <header className="border-b pb-6">
         <div className="text-center">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.24em]">
+          <p className="font-semibold text-[12px] uppercase tracking-[0.24em]">
             {organization}
           </p>
 
           <p className="text-sm text-zinc-600">{office}</p>
 
-          <h1 className="mt-4 text-3xl font-bold uppercase">{productTitle}</h1>
+          <h1 className="mt-4 font-bold text-3xl uppercase">{productTitle}</h1>
 
           <p className="text-zinc-700">
             {productSubtitle} for {location}
@@ -333,7 +332,7 @@ export default function MorningForecast({
           <SectionTitle>Impact-Based Information</SectionTitle>
 
           {impacts.map((item, i) => (
-            <div key={i} className="border p-5">
+            <div className="border p-5" key={i}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-semibold">{item.hazard}</h3>
 
@@ -377,13 +376,13 @@ export default function MorningForecast({
       <footer className="mt-10 border-t pt-6">
         <div className="grid sm:grid-cols-2">
           <div>
-            <p className="text-xs uppercase text-zinc-500">Issued By</p>
+            <p className="text-xs text-zinc-500 uppercase">Issued By</p>
             <p className="font-semibold">{forecasterName}</p>
             <p>{forecasterTitle}</p>
           </div>
 
           <div className="text-right">
-            <p className="text-xs uppercase text-zinc-500">Next Update</p>
+            <p className="text-xs text-zinc-500 uppercase">Next Update</p>
             <p>{nextUpdate}</p>
           </div>
         </div>

@@ -95,7 +95,9 @@ export const Header = forwardRef<
           <ThemeToggle />
         </div>
         <div className="hidden min-[416px]:contents">
-          <Button href="/appendix/emergency-personnel">Emergency contacts</Button>
+          <Button href="/appendix/emergency-personnel">
+            Emergency contacts
+          </Button>
         </div>
       </div>
     </motion.div>
