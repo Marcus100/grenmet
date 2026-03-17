@@ -138,7 +138,7 @@ interface WeatherDashboardProps {
   title?: string;
 }
 
-export default function WeatherDashboard({
+export default function Hourly({
   title = "Showers in the Vicinity",
 }: WeatherDashboardProps) {
   return (

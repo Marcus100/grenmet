@@ -1,3 +1,16 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  AlertCircle,
+  Anchor,
+  ArrowDown,
+  ArrowUp,
+  Sunrise,
+  Sunset,
+  Thermometer,
+  Waves,
+  Wind,
+} from "lucide-react";
+
 interface ImpactItem {
   affectedAreas?: string[];
 
@@ -118,6 +131,33 @@ function LabelValue({
   );
 }
 
+function MetricItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  value?: string;
+}) {
+  if (!value) return null;
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
+        <Icon className="h-5 w-5 text-zinc-700" strokeWidth={1.75} />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="font-bold text-base text-zinc-900 tracking-tight">
+          {value}
+        </span>
+        <span className="font-medium text-xs text-zinc-600 uppercase tracking-wide">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function Badge({ value }: { value: string }) {
   const styles: Record<string, string> = {
     "Very Low": "bg-zinc-200 text-zinc-900",
@@ -232,30 +272,26 @@ export default function MorningForecast({
     <article className="bg-white p-8 shadow-sm ring-1 ring-zinc-200">
       {/* HEADER */}
 
-      <header className="border-b pb-6">
-        <div className="text-center">
-          <p className="font-semibold text-[12px] uppercase tracking-[0.24em]">
-            {organization}
+      <header className="-m-8 mb-6 flex items-center justify-between bg-zinc-900 px-8 py-4">
+        <p className="font-semibold text-sm text-white uppercase tracking-[0.18em]">
+          {organization}
+        </p>
+        <div className="text-right">
+          <p className="text-xs text-zinc-400 uppercase tracking-widest">
+            {productId}
           </p>
-
-          <p className="text-sm text-zinc-600">{office}</p>
-
-          <h1 className="mt-4 font-bold text-3xl uppercase">{productTitle}</h1>
-
-          <p className="text-zinc-700">
-            {productSubtitle} for {location}
-          </p>
+          <p className="text-sm text-white">{productTitle}</p>
         </div>
+      </header>
 
+      <div>
+        {" "}
         <div className="mt-5 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
-          <LabelValue label="Product ID" value={productId} />
-          <LabelValue label="Document No." value={documentNumber} />
-          <LabelValue label="Time Issued" value={timeIssued} />
           <LabelValue label="Date Issued" value={dateIssued} />
           <LabelValue label="Valid From" value={validFrom} />
           <LabelValue label="Valid Until" value={validUntil} />
         </div>
-      </header>
+      </div>
 
       {/* HEADLINE */}
 
@@ -266,7 +302,7 @@ export default function MorningForecast({
 
       {/* WHAT TO EXPECT */}
 
-      {whatToExpect && (
+      {/* {whatToExpect && (
         <section className="mt-8 space-y-3">
           <SectionTitle>What to Expect</SectionTitle>
 
@@ -276,7 +312,7 @@ export default function MorningForecast({
             ))}
           </ul>
         </section>
-      )}
+      )} */}
 
       {/* SYNOPSIS */}
 
@@ -287,41 +323,44 @@ export default function MorningForecast({
 
       {/* FURTHER DETAILS */}
 
-      {furtherDetails && (
+      {/* {furtherDetails && (
         <section className="mt-8 space-y-3">
           <SectionTitle>Further Details</SectionTitle>
           <p className="text-sm">{furtherDetails}</p>
         </section>
-      )}
+      )} */}
 
       {/* PUBLIC FORECAST */}
 
       <section className="mt-8 space-y-4">
         <SectionTitle>Public Forecast</SectionTitle>
 
-        <div className="grid gap-4 border p-5 sm:grid-cols-2">
-          <LabelValue label="Weather" value={weather} />
-          <LabelValue label="Details" value={weatherDetails} />
-          <LabelValue label="Maximum Temperature" value={maxTemperature} />
-          <LabelValue label="Minimum Temperature" value={minTemperature} />
-          <LabelValue label="Wind" value={wind} />
-          <LabelValue label="Sunrise" value={sunrise} />
-          <LabelValue label="Sunset" value={sunset} />
-        </div>
-      </section>
-
-      {/* MARINE */}
-
-      <section className="mt-8 space-y-4">
-        <SectionTitle>Marine Forecast</SectionTitle>
-
-        <div className="grid gap-4 bg-zinc-50 p-5 sm:grid-cols-2">
-          <LabelValue label="Sea State" value={seas} />
-          <LabelValue label="Wave Heights" value={waveHeights} />
-          <LabelValue label="Swell" value={swell} />
-          <LabelValue label="Marine Advisory" value={marineAdvisory} />
-          <LabelValue label="Low Tide" value={tideLow} />
-          <LabelValue label="High Tide" value={tideHigh} />
+        <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-xl p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
+          {/* <MetricItem icon={Cloud} label="Weather" value={weather} />
+          <MetricItem icon={Info} label="Details" value={weatherDetails} /> */}
+          <MetricItem
+            icon={Thermometer}
+            label="Maximum Temperature"
+            value={maxTemperature}
+          />
+          <MetricItem
+            icon={Thermometer}
+            label="Minimum Temperature"
+            value={minTemperature}
+          />
+          <MetricItem icon={Wind} label="Wind" value={wind} />
+          <MetricItem icon={Sunrise} label="Sunrise" value={sunrise} />
+          <MetricItem icon={Sunset} label="Sunset" value={sunset} />
+          <MetricItem icon={Anchor} label="Sea State" value={seas} />
+          <MetricItem icon={Waves} label="Wave Heights" value={waveHeights} />
+          <MetricItem icon={Wind} label="Swell" value={swell} />
+          <MetricItem
+            icon={AlertCircle}
+            label="Marine Advisory"
+            value={marineAdvisory}
+          />
+          <MetricItem icon={ArrowDown} label="Low Tide" value={tideLow} />
+          <MetricItem icon={ArrowUp} label="High Tide" value={tideHigh} />
         </div>
       </section>
 
