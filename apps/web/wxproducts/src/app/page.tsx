@@ -10,7 +10,7 @@ export default function Home() {
       <div className="mx-auto max-w-lg">
         <WeatherDashboard />
       </div>
-      <div className="print:page-break-after-always mx-auto box-border border">
+      <div className="print:page-break-after-always mx-auto box-border w-[210mm] min-w-[210mm] max-w-[210mm] border">
         <MorningForecast />
       </div>
 
