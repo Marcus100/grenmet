@@ -24,3 +24,36 @@ body {
   color: var(--foreground);
   background: var(--background);
 }
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+
+  html,
+  body {
+    margin: 0;
+    background: #ffffff !important;
+    color: #171717 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .pdf-sheet {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 auto;
+    background: #ffffff;
+    break-after: page;
+  }
+
+  .pdf-sheet:last-child {
+    break-after: auto;
+  }
+}

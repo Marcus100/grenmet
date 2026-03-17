@@ -14,7 +14,8 @@
     "check:ci": "biome ci .",
     "type-check": "tsc --noEmit",
     "db:generate": "dotenv -e .env -- drizzle-kit generate",
-    "db:migrate": "dotenv -e .env -- drizzle-kit migrate"
+    "db:migrate": "dotenv -e .env -- drizzle-kit migrate",
+    "pdf:morning": "node scripts/export-pdf.mjs /pdf/morning artifacts/pdf/morning.pdf"
   },
   "dependencies": {
     "drizzle-orm": "catalog:",
@@ -35,6 +36,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "catalog:",
+    "playwright": "^1.58.2",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }

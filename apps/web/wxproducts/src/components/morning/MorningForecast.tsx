@@ -1,84 +1,137 @@
 interface ImpactItem {
   hazard: string;
+
+  hazardHeadline?: string;
+  affectedAreas?: string[];
+
+  validFrom?: string;
+  validUntil?: string;
+
+  likelihoodLevel:
+    | "Very Low"
+    | "Low"
+    | "Medium"
+    | "High"
+    | "Very High"
+    | string;
+
   impactLevel: "Minor" | "Moderate" | "Severe" | "Extreme" | string;
+
+  assessment?: string;
+
+  whatToExpect?: string[];
+
   impactText: string[];
+
   responseLevel: "Be Aware" | "Be Prepared" | "Take Action" | string;
+
   responseText: string[];
 }
 
 interface MorningForecastProps {
-  dateIssued?: string;
+  organization?: string;
+  office?: string;
+
+  productTitle?: string;
+  productSubtitle?: string;
+  productId?: string;
   documentNumber?: string;
-  footerNote?: string;
+
+  dateIssued?: string;
+  timeIssued?: string;
+
+  validFrom?: string;
+  validUntil?: string;
+  validity?: string;
+
+  nextUpdate?: string;
+
+  location?: string;
+
+  headline?: string;
+
+  synopsis?: string;
+
+  furtherDetails?: string;
+
+  weather?: string;
+  weatherDetails?: string;
+
+  maxTemperature?: string;
+  minTemperature?: string;
+
+  wind?: string;
+
+  seas?: string;
+  waveHeights?: string;
+  swell?: string;
+
+  marineAdvisory?: string;
+
+  tideLow?: string;
+  tideHigh?: string;
+
+  sunrise?: string;
+  sunset?: string;
+
+  whatToExpect?: string[];
+
+  impacts?: ImpactItem[];
+
+  recommendedActions?: string[];
+
+  updateStatement?: string;
 
   forecasterName?: string;
   forecasterTitle?: string;
 
-  impacts?: ImpactItem[];
-  location?: string;
-  marineAdvisory?: string;
-  maxTemperature?: string;
-  minTemperature?: string;
-  nextUpdate?: string;
-  office?: string;
-  organization?: string;
-  productId?: string;
-  productSubtitle?: string;
-  productTitle?: string;
-
-  seas?: string;
-  sunrise?: string;
-  sunset?: string;
-  swell?: string;
-
-  synopsis?: string;
-  tideHigh?: string;
-
-  tideLow?: string;
-  timeIssued?: string;
-  validFrom?: string;
-  validity?: string;
-  validUntil?: string;
-  waveHeights?: string;
-
-  weather?: string;
-  weatherDetails?: string;
-  wind?: string;
+  footerNote?: string;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="border-zinc-300 border-b pb-2 font-semibold text-[11px] text-zinc-900 uppercase tracking-[0.18em]">
-      {children}
-    </h2>
+    <div className="flex items-center gap-3">
+      <div className="h-px flex-1 bg-zinc-300" />
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-zinc-900">
+        {children}
+      </h2>
+      <div className="h-px flex-1 bg-zinc-300" />
+    </div>
   );
 }
 
 function LabelValue({
   label,
   value,
-  className = "",
 }: {
   label: string;
   value?: React.ReactNode;
-  className?: string;
 }) {
   if (!value) return null;
 
   return (
-    <div className={className}>
-      <span className="font-semibold text-zinc-900">{label}:</span>{" "}
-      <span className="text-zinc-700">{value}</span>
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-zinc-500">
+        {label}
+      </p>
+      <p className="mt-1 text-sm text-zinc-900">{value}</p>
     </div>
   );
 }
 
-function SeverityBadge({ value }: { value: string }) {
+function Badge({ value }: { value: string }) {
   const styles: Record<string, string> = {
+    "Very Low": "bg-zinc-200 text-zinc-900",
+    Low: "bg-zinc-700 text-white",
+    Medium: "bg-yellow-500 text-zinc-950",
+    High: "bg-orange-600 text-white",
+    "Very High": "bg-red-700 text-white",
+
     Minor: "bg-zinc-700 text-white",
     Moderate: "bg-amber-600 text-white",
     Severe: "bg-red-600 text-white",
     Extreme: "bg-purple-700 text-white",
+
     "Be Aware": "bg-zinc-800 text-white",
     "Be Prepared": "bg-amber-600 text-white",
     "Take Action": "bg-red-700 text-white",
@@ -86,7 +139,7 @@ function SeverityBadge({ value }: { value: string }) {
 
   return (
     <span
-      className={`inline-flex rounded-full px-2.5 py-1 font-semibold text-[10px] uppercase tracking-wide ${
+      className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${
         styles[value] ?? "bg-zinc-700 text-white"
       }`}
     >
@@ -98,250 +151,248 @@ function SeverityBadge({ value }: { value: string }) {
 export default function MorningForecast({
   organization = "GRENADA METEOROLOGICAL SERVICE",
   office = "Maurice Bishop International Airport, St. George's, Grenada",
-  location = "the State of Grenada",
-  productTitle = "Morning Weather Report",
+
+  productTitle = "Morning Public Forecast",
   productSubtitle = "Public Weather Forecast",
   productId = "GMS-PWF-MORNING",
   documentNumber = "001",
 
   dateIssued = "Sunday 21 December 2025",
   timeIssued = "06:00 AM AST",
+
   validity = "Today and Tonight",
   validFrom = "06:00 AM AST Sunday 21 December 2025",
   validUntil = "06:00 AM AST Monday 22 December 2025",
 
-  synopsis = "A weak Atlantic high-pressure ridge remains the dominant feature across the eastern Caribbean, maintaining generally fair weather conditions over Grenada. Moderate easterly trades continue to produce choppy marine conditions across regional waters.",
+  location = "the State of Grenada",
 
-  weather = "Generally fair.",
-  weatherDetails = "Brief isolated showers are possible during the period.",
-  maxTemperature = "31.0°C",
-  minTemperature,
-  wind = "East-northeast to east-southeast at 12 to 22 mph.",
+  headline = "Generally fair conditions are expected across Grenada today. Moderate trade winds will maintain choppy marine conditions across coastal waters.",
 
-  seas = "Moderate to slightly rough.",
-  waveHeights = "6 to 8 ft.",
-  swell = "Northeasterly to easterly swell.",
-  marineAdvisory = "Small craft operators should exercise caution in open waters.",
+  synopsis = "A weak Atlantic high-pressure ridge remains the dominant feature across the eastern Caribbean.",
+
+  furtherDetails = "Moderate easterly trade winds of 12 to 22 mph will continue across the island chain. These winds will maintain moderate to slightly rough seas across open waters.",
+
+  weather = "Generally fair",
+  weatherDetails = "Brief isolated showers possible",
+
+  maxTemperature = "31°C",
+  minTemperature = "24°C",
+
+  wind = "East-northeast to east-southeast 12–22 mph",
+
+  seas = "Moderate to slightly rough",
+  waveHeights = "6–8 ft",
+  swell = "Northeasterly swell",
 
   tideLow = "10:00 AM",
   tideHigh = "4:00 PM",
+
   sunrise = "5:48 AM",
   sunset = "6:23 PM",
+
+  marineAdvisory = "Small craft operators should exercise caution in open waters.",
+
+  whatToExpect = [
+    "Choppy seas may affect small craft operations.",
+    "Some marine and coastal recreational activities may experience minor disruption.",
+  ],
 
   impacts = [
     {
       hazard: "Marine Conditions",
+      likelihoodLevel: "Medium",
       impactLevel: "Minor",
+      assessment: "Medium likelihood of minor marine impacts",
       impactText: [
-        "Choppy seas may affect fishermen, small sailboats, and other vulnerable small craft.",
-        "Some marine-related activities may experience minor disruption.",
+        "Choppy seas may affect fishermen and small vessels.",
+        "Open-water marine activities may become uncomfortable.",
       ],
       responseLevel: "Be Aware",
       responseText: [
-        "Operators of small vessels should remain aware of sea conditions, especially near high tide and in exposed waters.",
+        "Operators of small vessels should monitor sea conditions.",
       ],
     },
   ],
 
+  recommendedActions = [
+    "Small craft operators should exercise caution in open waters.",
+    "Beachgoers should remain alert to changing sea conditions.",
+    "Monitor updates from the Grenada Meteorological Service.",
+  ],
+
+  updateStatement = "Forecast conditions may change. Continue to monitor official updates.",
+
   forecasterName = "Trisha Miller",
   forecasterTitle = "Forecaster",
+
   nextUpdate = "6:00 PM AST",
-  footerNote = "This forecast is issued by the Grenada Meteorological Service and is valid for the State of Grenada and its coastal waters.",
+
+  footerNote = "This forecast is issued by the Grenada Meteorological Service and is valid for the State of Grenada and surrounding coastal waters.",
 }: MorningForecastProps) {
   return (
-    <article className="mx-auto w-full max-w-4xl rounded-2xl bg-white p-8 text-zinc-900 shadow-sm ring-1 ring-zinc-200 print:max-w-none print:rounded-none print:shadow-none print:ring-0">
-      {/* Header */}
-      <header className="border-zinc-300 border-b pb-2 text-center">
-        <p className="font-semibold text-[12px] text-zinc-800 uppercase tracking-[0.22em]">
-          {organization}
-        </p>
-        <p className="mt-1 text-sm text-zinc-600">{office}</p>
+    <article className=" bg-white p-8 shadow-sm ring-1 ring-zinc-200">
+      {/* HEADER */}
 
-        <h1 className="mt-4 font-bold text-3xl text-zinc-950 uppercase tracking-tight">
-          {productTitle}
-        </h1>
-        <p className="mt-2 font-medium text-base text-zinc-700">
-          {productSubtitle} for {location}
-        </p>
+      <header className="border-b pb-6">
+        <div className="text-center">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.24em]">
+            {organization}
+          </p>
 
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-zinc-600">
-          <span>
-            <span className="font-semibold text-zinc-900">Product ID:</span>{" "}
-            {productId}
-          </span>
+          <p className="text-sm text-zinc-600">{office}</p>
+
+          <h1 className="mt-4 text-3xl font-bold uppercase">{productTitle}</h1>
+
+          <p className="text-zinc-700">
+            {productSubtitle} for {location}
+          </p>
+        </div>
+
+        <div className="mt-5 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
+          <LabelValue label="Product ID" value={productId} />
+          <LabelValue label="Document No." value={documentNumber} />
+          <LabelValue label="Time Issued" value={timeIssued} />
+          <LabelValue label="Date Issued" value={dateIssued} />
+          <LabelValue label="Valid From" value={validFrom} />
+          <LabelValue label="Valid Until" value={validUntil} />
         </div>
       </header>
 
-      {/* Metadata */}
-      <section className="mt-6 grid gap-3 rounded-xl bg-zinc-50 p-5 ring-1 ring-zinc-200 sm:grid-cols-2">
-        <LabelValue
-          className="text-sm"
-          label="Date Issued"
-          value={dateIssued}
-        />
-        <LabelValue
-          className="text-sm"
-          label="Time Issued"
-          value={timeIssued}
-        />
-        <LabelValue className="text-sm" label="Validity" value={validity} />
-        <LabelValue className="text-sm" label="Valid From" value={validFrom} />
+      {/* HEADLINE */}
+
+      <section className="mt-6 rounded-xl bg-zinc-900 p-4 text-white">
+        <p className="text-xs uppercase tracking-widest">Forecast Headline</p>
+        <p className="mt-2 text-base">{headline}</p>
       </section>
 
-      {/* Synopsis */}
-      <section className="mt-8 space-y-3">
-        <SectionTitle>Synopsis</SectionTitle>
-        <p className="text-sm text-zinc-700 leading-7">{synopsis}</p>
-      </section>
+      {/* WHAT TO EXPECT */}
 
-      {/* Public Forecast */}
-      <section className="mt-4 space-y-2">
-        <SectionTitle>Public Forecast</SectionTitle>
+      {whatToExpect && (
+        <section className="mt-8 space-y-3">
+          <SectionTitle>What to Expect</SectionTitle>
 
-        <div className="rounded-xl bg-white">
-          <div className="space-y-3 rounded-xl border border-zinc-200 p-5">
-            <LabelValue className="text-sm" label="Weather" value={weather} />
-            <LabelValue
-              className="text-sm"
-              label="Details"
-              value={weatherDetails}
-            />
-            <LabelValue
-              className="text-sm"
-              label="Maximum Temperature"
-              value={maxTemperature}
-            />
-            <LabelValue
-              className="text-sm"
-              label="Minimum Temperature"
-              value={minTemperature}
-            />
-            <LabelValue className="text-sm" label="Wind" value={wind} />
-            <div className="flex space-x-4">
-              <LabelValue className="text-sm" label="Sunrise" value={sunrise} />
-              <LabelValue className="text-sm" label="Sunset" value={sunset} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Marine Forecast */}
-      <section className="mt-8 space-y-4">
-        <SectionTitle>Marine Forecast</SectionTitle>
-
-        <div className="rounded-xl bg-zinc-50 p-5 ring-1 ring-zinc-200">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <LabelValue className="text-sm" label="Sea State" value={seas} />
-            <LabelValue
-              className="text-sm"
-              label="Wave Heights"
-              value={waveHeights}
-            />
-            <LabelValue
-              className="text-sm sm:col-span-2"
-              label="Swell Direction"
-              value={swell}
-            />
-            <div className="flex space-x-4">
-              <LabelValue
-                className="text-sm"
-                label="Low Tide"
-                value={tideLow}
-              />
-              <LabelValue
-                className="text-sm"
-                label="High Tide"
-                value={tideHigh}
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Impact-Based Information */}
-      {impacts.length > 0 && (
-        <section className="mt-8 space-y-4">
-          <SectionTitle>Impact-Based Information</SectionTitle>
-
-          <div className="space-y-4">
-            {impacts.map((item, index) => (
-              <div
-                className="rounded-xl border border-zinc-200 p-5"
-                key={`${item.hazard}-${index}`}
-              >
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <h3 className="font-semibold text-base text-zinc-950">
-                    {item.hazard}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[11px] text-zinc-500 uppercase tracking-[0.18em]">
-                      Likelihood
-                    </span>
-                    <SeverityBadge value={item.impactLevel} />
-                    <span className="text-[11px] text-zinc-500 uppercase tracking-[0.18em]">
-                      Impact
-                    </span>
-                    <SeverityBadge value={item.impactLevel} />
-                    <span className="ml-2 text-[11px] text-zinc-500 uppercase tracking-[0.18em]">
-                      Response
-                    </span>
-                    <SeverityBadge value={item.responseLevel} />
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
-                    <h4 className="mb-3 font-semibold text-xs text-zinc-900 uppercase tracking-[0.14em]">
-                      Expected Impact
-                    </h4>
-                    <ul className="space-y-2 text-sm text-zinc-700 leading-6">
-                      {item.impactText.map((point, i) => (
-                        <li className="flex gap-2" key={i}>
-                          <span className="mt-[2px] text-zinc-500">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div className="rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
-                    <h4 className="mb-3 font-semibold text-xs text-zinc-900 uppercase tracking-[0.14em]">
-                      Recommended Response
-                    </h4>
-                    <ul className="space-y-2 text-sm text-zinc-700 leading-6">
-                      {item.responseText.map((point, i) => (
-                        <li className="flex gap-2" key={i}>
-                          <span className="mt-[2px] text-zinc-500">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </div>
+          <ul className="space-y-2 text-sm">
+            {whatToExpect.map((item, i) => (
+              <li key={i}>• {item}</li>
             ))}
-          </div>
+          </ul>
         </section>
       )}
 
-      {/* Footer */}
-      <footer className="mt-10 border-zinc-300 border-t pt-6">
-        <div className="grid gap-6 sm:grid-cols-2">
-          <div className="space-y-1 text-sm">
-            <p className="font-semibold text-zinc-900">Issued By:</p>
-            <p className="font-semibold text-zinc-900">{forecasterName}</p>
-            <p className="text-zinc-700">{forecasterTitle}</p>
+      {/* SYNOPSIS */}
+
+      <section className="mt-8 space-y-3">
+        <SectionTitle>Synopsis</SectionTitle>
+        <p className="text-sm">{synopsis}</p>
+      </section>
+
+      {/* FURTHER DETAILS */}
+
+      {furtherDetails && (
+        <section className="mt-8 space-y-3">
+          <SectionTitle>Further Details</SectionTitle>
+          <p className="text-sm">{furtherDetails}</p>
+        </section>
+      )}
+
+      {/* PUBLIC FORECAST */}
+
+      <section className="mt-8 space-y-4">
+        <SectionTitle>Public Forecast</SectionTitle>
+
+        <div className="grid gap-4 border p-5 sm:grid-cols-2">
+          <LabelValue label="Weather" value={weather} />
+          <LabelValue label="Details" value={weatherDetails} />
+          <LabelValue label="Maximum Temperature" value={maxTemperature} />
+          <LabelValue label="Minimum Temperature" value={minTemperature} />
+          <LabelValue label="Wind" value={wind} />
+          <LabelValue label="Sunrise" value={sunrise} />
+          <LabelValue label="Sunset" value={sunset} />
+        </div>
+      </section>
+
+      {/* MARINE */}
+
+      <section className="mt-8 space-y-4">
+        <SectionTitle>Marine Forecast</SectionTitle>
+
+        <div className="grid gap-4 bg-zinc-50 p-5 sm:grid-cols-2">
+          <LabelValue label="Sea State" value={seas} />
+          <LabelValue label="Wave Heights" value={waveHeights} />
+          <LabelValue label="Swell" value={swell} />
+          <LabelValue label="Marine Advisory" value={marineAdvisory} />
+          <LabelValue label="Low Tide" value={tideLow} />
+          <LabelValue label="High Tide" value={tideHigh} />
+        </div>
+      </section>
+
+      {/* IMPACTS */}
+
+      {impacts && (
+        <section className="mt-8 space-y-4">
+          <SectionTitle>Impact-Based Information</SectionTitle>
+
+          {impacts.map((item, i) => (
+            <div key={i} className="border p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="font-semibold">{item.hazard}</h3>
+
+                <div className="flex gap-2">
+                  <Badge value={item.likelihoodLevel} />
+                  <Badge value={item.impactLevel} />
+                  <Badge value={item.responseLevel} />
+                </div>
+              </div>
+
+              {item.assessment && (
+                <p className="mt-2 text-sm italic">{item.assessment}</p>
+              )}
+
+              <ul className="mt-3 space-y-1 text-sm">
+                {item.impactText.map((p, j) => (
+                  <li key={j}>• {p}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {/* ACTION */}
+
+      {recommendedActions && (
+        <section className="mt-8 space-y-4">
+          <SectionTitle>Recommended Action</SectionTitle>
+
+          <ul className="space-y-2 text-sm">
+            {recommendedActions.map((a, i) => (
+              <li key={i}>• {a}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* FOOTER */}
+
+      <footer className="mt-10 border-t pt-6">
+        <div className="grid sm:grid-cols-2">
+          <div>
+            <p className="text-xs uppercase text-zinc-500">Issued By</p>
+            <p className="font-semibold">{forecasterName}</p>
+            <p>{forecasterTitle}</p>
           </div>
 
-          <div className="space-y-1 text-sm sm:text-right">
-            <p>
-              <span className="font-semibold text-zinc-900">Next Update:</span>{" "}
-              <span className="text-zinc-700">{nextUpdate}</span>
-            </p>
+          <div className="text-right">
+            <p className="text-xs uppercase text-zinc-500">Next Update</p>
+            <p>{nextUpdate}</p>
           </div>
         </div>
 
-        <p className="mt-6 text-xs text-zinc-500 leading-6">{footerNote}</p>
+        {updateStatement && (
+          <p className="mt-6 text-xs text-zinc-600">{updateStatement}</p>
+        )}
+
+        <p className="mt-4 text-xs text-zinc-500">{footerNote}</p>
       </footer>
     </article>
   );
