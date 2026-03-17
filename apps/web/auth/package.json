@@ -18,7 +18,9 @@
     "@grenmet/auth": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "zod": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",

@@ -38,7 +38,7 @@
     "@radix-ui/react-tooltip": "^1.2.8",
     "@react-jvectormap/core": "^1.0.4",
     "@react-jvectormap/world": "^1.1.2",
-    "@t3-oss/env-nextjs": "^0.13.10",
+    "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "^8.21.3",

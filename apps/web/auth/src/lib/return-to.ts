@@ -4,12 +4,12 @@ function firstValue(value: string | string[] | undefined): string | null {
   return null;
 }
 
+import { env } from "./env";
+
 function getAllowedReturnHosts(): Set<string> {
-  const rawValue = process.env.AUTH_ALLOWED_RETURN_HOSTS ?? "";
   return new Set(
-    rawValue
-      .split(",")
-      .map((value) => value.trim())
+    env.AUTH_ALLOWED_RETURN_HOSTS.split(",")
+      .map((value: string) => value.trim())
       .filter(Boolean),
   );
 }

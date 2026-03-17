@@ -17,7 +17,6 @@
     "status": "docker compose -f infra/docker/docker-compose.yml --profile tools ps && docker compose -p grenmet-api -f apps/api/fastapi/docker-compose.yml ps",
     "dev:web": "turbo run dev --filter=@grenmet/web-*",
     "dev:web:wxwatch": "turbo run dev --filter=@grenmet/web-wxwatch",
-    "dev:web:templates-draft": "turbo run dev --filter=@grenmet/web-templates-draft",
     "dev:web:admin": "turbo run dev --filter=@grenmet/web-admin",
     "dev:web:wxproducts": "turbo run dev --filter=@grenmet/web-wxproducts",
     "dev:web:hurricane": "turbo run dev --filter=@grenmet/web-hurricaneplan",
@@ -39,6 +38,10 @@
     "ultracite": "^7.2.3"
   },
   "pnpm": {
+    "allowedDeprecatedVersions": {
+      "@esbuild-kit/core-utils": "3.3.2",
+      "@esbuild-kit/esm-loader": "2.6.5"
+    },
     "peerDependencyRules": {
       "allowedVersions": {
         "@react-jvectormap/core>react": "^19",
