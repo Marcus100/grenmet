@@ -21,7 +21,7 @@ interface MiddayReportProps {
   year?: string;
 }
 
-export default function MiddayReport({
+export default function MiddayFcst({
   organization = "Meteorological Services, MBIA",
   documentNumber = "F 750 - 03",
   year = "2020",
