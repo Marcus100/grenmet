@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  AlertCircle,
   Anchor,
   ArrowDown,
   ArrowUp,
@@ -102,7 +101,7 @@ interface MorningForecastProps {
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center">
       <div className="h-px flex-1 bg-zinc-300" />
       <h2 className="font-semibold text-[11px] text-zinc-900 uppercase tracking-[0.22em]">
         {children}
@@ -143,7 +142,7 @@ function MetricItem({
   if (!value) return null;
   return (
     <div className="flex items-center gap-4">
-      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
         <Icon className="h-5 w-5 text-zinc-700" strokeWidth={1.75} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -154,6 +153,43 @@ function MetricItem({
           {label}
         </span>
       </div>
+    </div>
+  );
+}
+
+function ImpactAlert({ item }: { item: ImpactItem }) {
+  const borderColor: Record<string, string> = {
+    "Be Aware": "border-zinc-400",
+    "Be Prepared": "border-amber-500",
+    "Take Action": "border-red-600",
+  };
+  const bgColor: Record<string, string> = {
+    "Be Aware": "bg-zinc-50",
+    "Be Prepared": "bg-amber-50",
+    "Take Action": "bg-red-50",
+  };
+
+  const border = borderColor[item.responseLevel] ?? "border-zinc-400";
+  const bg = bgColor[item.responseLevel] ?? "bg-zinc-50";
+
+  return (
+    <div className={`border-l-4 p-4 ${border} ${bg}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-semibold text-sm">{item.hazard}</h3>
+        <div className="flex gap-2">
+          <Badge value={item.likelihoodLevel} />
+          <Badge value={item.impactLevel} />
+          <Badge value={item.responseLevel} />
+        </div>
+      </div>
+      {item.assessment && (
+        <p className="mt-2 text-sm text-zinc-600 italic">{item.assessment}</p>
+      )}
+      <ul className="mt-2 space-y-1 text-sm">
+        {item.impactText.map((p, j) => (
+          <li key={j}>• {p}</li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -217,10 +253,10 @@ export default function MorningForecast({
   maxTemperature = "31°C",
   minTemperature = "24°C",
 
-  wind = "East-northeast to east-southeast 12–22 mph",
+  wind = "ENE'ly to ESE'ly @ 12-22 mph",
 
   seas = "Moderate to slightly rough",
-  waveHeights = "6–8 ft",
+  waveHeights = "6-8 ft",
   swell = "Northeasterly swell",
 
   tideLow = "10:00 AM",
@@ -284,18 +320,15 @@ export default function MorningForecast({
         </div>
       </header>
 
-      <div>
-        {" "}
-        <div className="mt-5 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
-          <LabelValue label="Date Issued" value={dateIssued} />
-          <LabelValue label="Valid From" value={validFrom} />
-          <LabelValue label="Valid Until" value={validUntil} />
-        </div>
+      <div className="mt-3 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
+        <LabelValue label="Date Issued" value={dateIssued} />
+        <LabelValue label="Valid From" value={validFrom} />
+        <LabelValue label="Valid Until" value={validUntil} />
       </div>
 
       {/* HEADLINE */}
 
-      <section className="mt-6 rounded-xl bg-zinc-900 p-4 text-white">
+      <section className="mt-3 rounded-xl bg-zinc-900 p-4 text-white">
         <p className="text-xs uppercase tracking-widest">Forecast Headline</p>
         <p className="mt-2 text-base">{headline}</p>
       </section>
@@ -316,7 +349,7 @@ export default function MorningForecast({
 
       {/* SYNOPSIS */}
 
-      <section className="mt-8 space-y-3">
+      <section className="mt-4 space-y-3">
         <SectionTitle>Synopsis</SectionTitle>
         <p className="text-sm">{synopsis}</p>
       </section>
@@ -332,10 +365,10 @@ export default function MorningForecast({
 
       {/* PUBLIC FORECAST */}
 
-      <section className="mt-8 space-y-4">
+      <section className="mt-4 space-y-4">
         <SectionTitle>Public Forecast</SectionTitle>
 
-        <div className="grid grid-cols-1 gap-x-10 gap-y-6 rounded-xl p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-3 rounded-xl p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
           {/* <MetricItem icon={Cloud} label="Weather" value={weather} />
           <MetricItem icon={Info} label="Details" value={weatherDetails} /> */}
           <MetricItem
@@ -349,88 +382,88 @@ export default function MorningForecast({
             value={minTemperature}
           />
           <MetricItem icon={Wind} label="Wind" value={wind} />
-          <MetricItem icon={Sunrise} label="Sunrise" value={sunrise} />
-          <MetricItem icon={Sunset} label="Sunset" value={sunset} />
           <MetricItem icon={Anchor} label="Sea State" value={seas} />
+
           <MetricItem icon={Waves} label="Wave Heights" value={waveHeights} />
           <MetricItem icon={Wind} label="Swell" value={swell} />
-          <MetricItem
+          <MetricItem icon={Sunrise} label="Sunrise" value={sunrise} />
+          <MetricItem icon={Sunset} label="Sunset" value={sunset} />
+
+          <MetricItem icon={ArrowDown} label="Low Tide" value={tideLow} />
+          <MetricItem icon={ArrowUp} label="High Tide" value={tideHigh} />
+          {/* <MetricItem
             icon={AlertCircle}
             label="Marine Advisory"
             value={marineAdvisory}
-          />
-          <MetricItem icon={ArrowDown} label="Low Tide" value={tideLow} />
-          <MetricItem icon={ArrowUp} label="High Tide" value={tideHigh} />
+          /> */}
         </div>
       </section>
 
-      {/* IMPACTS */}
-
-      {impacts && (
-        <section className="mt-8 space-y-4">
-          <SectionTitle>Impact-Based Information</SectionTitle>
-
-          {impacts.map((item, i) => (
-            <div className="border p-5" key={i}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="font-semibold">{item.hazard}</h3>
-
-                <div className="flex gap-2">
-                  <Badge value={item.likelihoodLevel} />
-                  <Badge value={item.impactLevel} />
-                  <Badge value={item.responseLevel} />
+      {/* IMPACTS + ACTION */}
+      {(impacts || recommendedActions) && (
+        <section className="mt-4 space-y-4">
+          <SectionTitle>Alerts</SectionTitle>
+          <div className="grid gap-8 sm:grid-cols-2">
+            {impacts && (
+              <section className="">
+                <div className="border-orange-500 border-l-4 bg-orange-50 px-4 py-2">
+                  <h2 className="font-semibold text-[11px] text-orange-800 uppercase tracking-[0.22em]">
+                    Impact
+                  </h2>
                 </div>
-              </div>
 
-              {item.assessment && (
-                <p className="mt-2 text-sm italic">{item.assessment}</p>
-              )}
-
-              <ul className="mt-3 space-y-1 text-sm">
-                {item.impactText.map((p, j) => (
-                  <li key={j}>• {p}</li>
+                {impacts.map((item, i) => (
+                  <ImpactAlert item={item} key={i} />
                 ))}
-              </ul>
-            </div>
-          ))}
-        </section>
-      )}
+              </section>
+            )}
 
-      {/* ACTION */}
+            {recommendedActions && (
+              <section className="">
+                <div className="border-blue-500 border-l-4 bg-blue-50 px-4 py-2">
+                  <h2 className="font-semibold text-[11px] text-blue-800 uppercase tracking-[0.22em]">
+                    Response
+                  </h2>
+                </div>
 
-      {recommendedActions && (
-        <section className="mt-8 space-y-4">
-          <SectionTitle>Recommended Action</SectionTitle>
-
-          <ul className="space-y-2 text-sm">
-            {recommendedActions.map((a, i) => (
-              <li key={i}>• {a}</li>
-            ))}
-          </ul>
+                <ul className="space-y-2 text-sm">
+                  {recommendedActions.map((a, i) => (
+                    <li key={i}>• {a}</li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </div>
         </section>
       )}
 
       {/* FOOTER */}
 
-      <footer className="mt-10 border-t pt-6">
+      <footer className="mt-2 border-t pt-2">
         <div className="grid sm:grid-cols-2">
-          <div>
-            <p className="text-xs text-zinc-500 uppercase">Issued By</p>
-            <p className="font-semibold">{forecasterName}</p>
-            <p>{forecasterTitle}</p>
+          <div className="flex flex-col gap-0.5">
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">
+              Issued By
+            </p>
+            <p className="font-semibold text-sm text-zinc-900">
+              {forecasterName}
+            </p>
+            <p className="text-sm text-zinc-600">{forecasterTitle}</p>
           </div>
 
-          <div className="text-right">
-            <p className="text-xs text-zinc-500 uppercase">Next Update</p>
-            <p>{nextUpdate}</p>
+          <div className="flex flex-col gap-0.5 text-right">
+            <p className="text-xs text-zinc-500 uppercase tracking-widest">
+              Next Update
+            </p>
+            <p className="text-sm text-zinc-900">{nextUpdate}</p>
           </div>
         </div>
 
         {updateStatement && (
-          <p className="mt-6 text-xs text-zinc-600">{updateStatement}</p>
+          <p className="text-xs text-zinc-600">{updateStatement}</p>
         )}
 
-        <p className="mt-4 text-xs text-zinc-500">{footerNote}</p>
+        <p className="text-xs text-zinc-400">{footerNote}</p>
       </footer>
     </article>
   );

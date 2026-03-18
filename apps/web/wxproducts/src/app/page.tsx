@@ -10,7 +10,7 @@ export default function Home() {
       <div className="mx-auto max-w-lg">
         <Hourly />
       </div>
-      <div className="print:page-break-after-always mx-auto box-border w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
+      <div className="print:page-break-after-always mx-auto box-border h-[297mm] max-h-[297mm] min-h-[297mm] w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
         <MorningFcst />
       </div>
 
