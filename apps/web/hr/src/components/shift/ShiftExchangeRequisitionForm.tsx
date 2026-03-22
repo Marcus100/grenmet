@@ -38,10 +38,10 @@ function InlineRule({
 
 function CheckboxLabel({ label }: { label: string }) {
   return (
-    <label className="inline-flex items-center gap-1.5 text-[15px] text-zinc-900">
+    <span className="inline-flex items-center gap-1.5 text-[15px] text-zinc-900">
       <span>{label}</span>
       <span className="h-4 w-4 border border-zinc-700" />
-    </label>
+    </span>
   );
 }
 

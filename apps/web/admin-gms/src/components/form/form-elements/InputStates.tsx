@@ -5,14 +5,15 @@ import ComponentCard from "../../common/ComponentCard";
 import Input from "../input/InputField";
 import Label from "../Label";
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 export default function InputStates() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(false);
 
   // Simulate a validation check
   const validateEmail = (value: string) => {
-    const isValidEmail =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value);
+    const isValidEmail = EMAIL_REGEX.test(value);
     setError(!isValidEmail);
     return isValidEmail;
   };

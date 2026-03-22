@@ -1,9 +1,9 @@
-import {
-  AuthApiError,
-  isAuthApiError,
-  type SessionAccessTokenResponse,
-  type SessionLoginResponse,
+export type {
+  SessionAccessTokenResponse,
+  SessionLoginResponse,
 } from "@grenmet/auth";
+export { AuthApiError, isAuthApiError } from "@grenmet/auth";
+
 import {
   clearSessionCookie as _clearSessionCookie,
   createSession as _createSession,
@@ -16,14 +16,11 @@ import {
 } from "@grenmet/auth/server";
 import { getAuthConfig } from "./auth-config";
 
-export type { SessionAccessTokenResponse, SessionLoginResponse };
-export { AuthApiError, isAuthApiError };
-
 // ---------------------------------------------------------------------------
 // Config-bound wrappers — keep the auth-app call-sites free of boilerplate.
 // ---------------------------------------------------------------------------
 
-export async function createSession(input: {
+export function createSession(input: {
   email: string;
   password: string;
   appName?: string | null;
@@ -32,23 +29,23 @@ export async function createSession(input: {
   return _createSession(getAuthConfig(), input);
 }
 
-export async function exchangeSessionForAccessToken(
-  sessionToken: string,
+export function exchangeSessionForAccessToken(
+  sessionToken: string
 ): Promise<SessionAccessTokenResponse> {
   return _exchangeSessionForAccessToken(getAuthConfig(), sessionToken);
 }
 
-export async function refreshSession(
-  sessionToken: string,
+export function refreshSession(
+  sessionToken: string
 ): Promise<SessionLoginResponse> {
   return _refreshSession(getAuthConfig(), sessionToken);
 }
 
-export async function logoutSession(sessionToken: string): Promise<void> {
+export function logoutSession(sessionToken: string): Promise<void> {
   return _logoutSession(getAuthConfig(), sessionToken);
 }
 
-export async function logoutAllSessions(sessionToken: string): Promise<void> {
+export function logoutAllSessions(sessionToken: string): Promise<void> {
   return _logoutAllSessions(getAuthConfig(), sessionToken);
 }
 
@@ -56,17 +53,17 @@ export async function logoutAllSessions(sessionToken: string): Promise<void> {
 // Cookie helpers
 // ---------------------------------------------------------------------------
 
-export async function readSessionCookie(): Promise<string | null> {
+export function readSessionCookie(): Promise<string | null> {
   return _readSessionCookie(getAuthConfig());
 }
 
-export async function writeSessionCookie(
+export function writeSessionCookie(
   sessionToken: string,
-  sessionExpiresAt: string,
+  sessionExpiresAt: string
 ): Promise<void> {
   return _writeSessionCookie(getAuthConfig(), sessionToken, sessionExpiresAt);
 }
 
-export async function clearSessionCookie(): Promise<void> {
+export function clearSessionCookie(): Promise<void> {
   return _clearSessionCookie(getAuthConfig());
 }

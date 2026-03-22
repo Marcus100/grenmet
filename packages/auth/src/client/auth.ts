@@ -14,7 +14,7 @@ async function revokeSession(path: string): Promise<void> {
 export function signOut(signInPath = "/signin"): void {
   if (typeof window === "undefined") return;
 
-  void revokeSession("/auth/logout").finally(() => {
+  revokeSession("/auth/logout").finally(() => {
     window.location.replace(signInPath);
   });
 }
@@ -22,7 +22,7 @@ export function signOut(signInPath = "/signin"): void {
 export function signOutEverywhere(signInPath = "/signin"): void {
   if (typeof window === "undefined") return;
 
-  void revokeSession("/auth/logout-all").finally(() => {
+  revokeSession("/auth/logout-all").finally(() => {
     window.location.replace(signInPath);
   });
 }

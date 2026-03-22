@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@grenmet/auth": "workspace:*",
+    "@grenmet/ui": "workspace:*",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

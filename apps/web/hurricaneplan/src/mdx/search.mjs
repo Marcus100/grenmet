@@ -1,16 +1,17 @@
+import { readFileSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { slugifyWithCounter } from "@sindresorhus/slugify";
 import glob from "fast-glob";
-import * as fs from "fs";
-import { toString } from "mdast-util-to-string";
-import * as path from "path";
+import { toString as mdastToString } from "mdast-util-to-string";
 import { remark } from "remark";
 import remarkMdx from "remark-mdx";
 import { createLoader } from "simple-functional-loader";
 import { filter } from "unist-util-filter";
 import { SKIP, visit } from "unist-util-visit";
-import * as url from "url";
 
-const __filename = url.fileURLToPath(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
+const PAGE_MDX_REGEX = /(^|\/)page\.mdx$/;
 const processor = remark().use(remarkMdx).use(extractSections);
 const slugify = slugifyWithCounter();
 
@@ -31,7 +32,7 @@ function extractSections() {
 
     visit(tree, (node) => {
       if (node.type === "heading" || node.type === "paragraph") {
-        const content = toString(excludeObjectExpressions(node));
+        const content = mdastToString(excludeObjectExpressions(node));
         if (node.type === "heading" && node.depth <= 2) {
           const hash = node.depth === 1 ? null : slugify(content);
           sections.push([content, hash, []]);
@@ -54,13 +55,13 @@ export default function Search(nextConfig = {}) {
         test: __filename,
         use: [
           createLoader(function () {
-            const appDir = path.resolve("./src/app");
+            const appDir = resolve("./src/app");
             this.addContextDependency(appDir);
 
             const files = glob.sync("**/*.mdx", { cwd: appDir });
             const data = files.map((file) => {
-              const url = "/" + file.replace(/(^|\/)page\.mdx$/, "");
-              const mdx = fs.readFileSync(path.join(appDir, file), "utf8");
+              const url = `/${file.replace(PAGE_MDX_REGEX, "")}`;
+              const mdx = readFileSync(join(appDir, file), "utf8");
 
               let sections = [];
 

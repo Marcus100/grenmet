@@ -1,16 +1,9 @@
-"use client";
-
-import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { cn } from "@grenmet/ui/lib/utils";
 import type * as React from "react";
 
-import { cn } from "@/lib/utils";
-
-function Avatar({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
+function Avatar({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <AvatarPrimitive.Root
+    <span
       className={cn(
         "relative flex size-8 shrink-0 overflow-hidden rounded-full",
         className
@@ -23,10 +16,14 @@ function Avatar({
 
 function AvatarImage({
   className,
+  alt = "",
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+}: React.ComponentProps<"img">) {
   return (
-    <AvatarPrimitive.Image
+    // biome-ignore lint/performance/noImgElement: packages/ui has no Next.js dependency; consumers can wrap with next/image
+    // biome-ignore lint/correctness/useImageSize: width/height are passed through props by consumers
+    <img
+      alt={alt}
       className={cn("aspect-square size-full", className)}
       data-slot="avatar-image"
       {...props}
@@ -34,12 +31,9 @@ function AvatarImage({
   );
 }
 
-function AvatarFallback({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+function AvatarFallback({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <AvatarPrimitive.Fallback
+    <span
       className={cn(
         "flex size-full items-center justify-center rounded-full bg-muted",
         className

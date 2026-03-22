@@ -1,5 +1,16 @@
 "use client";
 
+import { Badge } from "@grenmet/ui/components/ui/badge";
+import { Button } from "@grenmet/ui/components/ui/button";
+import { Input } from "@grenmet/ui/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@grenmet/ui/components/ui/table";
 import {
   type ColumnFiltersState,
   createColumnHelper,
@@ -15,18 +26,6 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { ArrowUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Image from "next/image";
 import { useRef, useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 interface Order {
   budget: string;
@@ -176,13 +175,13 @@ const columns = [
       const team = row.original.team;
       return (
         <div className="flex -space-x-2">
-          {team.images.map((teamImage, index) => (
+          {team.images.map((teamImage) => (
             <div
               className="h-6 w-6 overflow-hidden rounded-full border-2 border-white dark:border-gray-900"
-              key={index}
+              key={teamImage}
             >
               <Image
-                alt={`Team member ${index + 1}`}
+                alt="Team member"
                 className="w-full"
                 height={24}
                 src={teamImage}
@@ -208,19 +207,11 @@ const columns = [
     ),
     cell: ({ getValue }) => {
       const status = getValue();
-      return (
-        <Badge
-          variant={
-            status === "Active"
-              ? "light-success"
-              : status === "Pending"
-                ? "light-warning"
-                : "light-error"
-          }
-        >
-          {status}
-        </Badge>
-      );
+      let variant: "light-success" | "light-warning" | "light-error" =
+        "light-error";
+      if (status === "Active") variant = "light-success";
+      else if (status === "Pending") variant = "light-warning";
+      return <Badge variant={variant}>{status}</Badge>;
     },
   }),
   columnHelper.accessor("budget", {
@@ -300,9 +291,7 @@ export default function BasicTableOne({
   // Calculate padding for virtual scrolling
   const paddingTop = virtualRows.length > 0 ? (virtualRows[0]?.start ?? 0) : 0;
   const paddingBottom =
-    virtualRows.length > 0
-      ? totalSize - (virtualRows[virtualRows.length - 1]?.end ?? 0)
-      : 0;
+    virtualRows.length > 0 ? totalSize - (virtualRows.at(-1)?.end ?? 0) : 0;
 
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">

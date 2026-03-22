@@ -1,5 +1,16 @@
 "use client";
 
+import { Badge } from "@grenmet/ui/components/ui/badge";
+import { Button } from "@grenmet/ui/components/ui/button";
+import { Input } from "@grenmet/ui/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@grenmet/ui/components/ui/table";
 import {
   type ColumnFiltersState,
   createColumnHelper,
@@ -13,18 +24,6 @@ import {
 import { ArrowUpDown, Filter, Search, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
 // Define the TypeScript interface for the table rows
 interface Product {
@@ -170,19 +169,11 @@ const columns = [
     ),
     cell: ({ getValue }) => {
       const status = getValue();
-      return (
-        <Badge
-          variant={
-            status === "Delivered"
-              ? "light-success"
-              : status === "Pending"
-                ? "light-warning"
-                : "light-error"
-          }
-        >
-          {status}
-        </Badge>
-      );
+      let variant: "light-success" | "light-warning" | "light-error" =
+        "light-error";
+      if (status === "Delivered") variant = "light-success";
+      else if (status === "Pending") variant = "light-warning";
+      return <Badge variant={variant}>{status}</Badge>;
     },
   }),
 ];

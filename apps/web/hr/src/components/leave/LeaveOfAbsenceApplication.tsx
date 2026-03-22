@@ -33,10 +33,10 @@ function InlineField({
 
 function CheckLabel({ text }: { text: string }) {
   return (
-    <label className="flex items-center gap-1.5 text-[19px] text-zinc-900">
+    <span className="flex items-center gap-1.5 text-[19px] text-zinc-900">
       <span>{text}</span>
       <span className="h-5 w-5 border border-zinc-700" />
-    </label>
+    </span>
   );
 }
 

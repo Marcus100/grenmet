@@ -7,14 +7,14 @@ import Label from "./Label";
 import Hook = flatpickr.Options.Hook;
 import DateOption = flatpickr.Options.DateOption;
 
-type PropsType = {
+interface PropsType {
+  defaultDate?: DateOption;
   id: string;
+  label?: string;
   mode?: "single" | "multiple" | "range" | "time";
   onChange?: Hook | Hook[];
-  defaultDate?: DateOption;
-  label?: string;
   placeholder?: string;
-};
+}
 
 export default function DatePicker({
   id,

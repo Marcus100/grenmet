@@ -29,12 +29,12 @@ interface SectionState {
     ref: React.RefObject<HTMLHeadingElement | null>;
     offsetRem: number;
   }) => void;
-  sections: Array<Section>;
-  setVisibleSections: (visibleSections: Array<string>) => void;
-  visibleSections: Array<string>;
+  sections: Section[];
+  setVisibleSections: (visibleSections: string[]) => void;
+  visibleSections: string[];
 }
 
-function createSectionStore(sections: Array<Section>) {
+function createSectionStore(sections: Section[]) {
   return createStore<SectionState>()((set) => ({
     sections,
     visibleSections: [],
@@ -70,9 +70,10 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>) {
   const sections = useStore(sectionStore, (s) => s.sections);
 
   useEffect(() => {
+    // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: scroll visibility calculation with section ranges
     function checkVisibleSections() {
       const { innerHeight, scrollY } = window;
-      const newVisibleSections = [];
+      const newVisibleSections: string[] = [];
 
       for (
         let sectionIndex = 0;
@@ -132,7 +133,7 @@ export function SectionProvider({
   sections,
   children,
 }: {
-  sections: Array<Section>;
+  sections: Section[];
   children: React.ReactNode;
 }) {
   const [sectionStore] = useState(() => createSectionStore(sections));
@@ -152,5 +153,10 @@ export function SectionProvider({
 
 export function useSectionStore<T>(selector: (state: SectionState) => T) {
   const store = useContext(SectionStoreContext);
-  return useStore(store!, selector);
+  if (!store) {
+    throw new Error(
+      "useSectionStore must be used within SectionStoreContext.Provider"
+    );
+  }
+  return useStore(store, selector);
 }

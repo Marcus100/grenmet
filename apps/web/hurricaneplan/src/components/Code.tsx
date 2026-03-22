@@ -270,7 +270,7 @@ function usePreventLayoutShift() {
 }
 
 const usePreferredLanguageStore = create<{
-  preferredLanguages: Array<string>;
+  preferredLanguages: string[];
   addPreferredLanguage: (language: string) => void;
 }>()((set) => ({
   preferredLanguages: [],
@@ -285,7 +285,7 @@ const usePreferredLanguageStore = create<{
     })),
 }));
 
-function useTabGroupProps(availableLanguages: Array<string>) {
+function useTabGroupProps(availableLanguages: string[]) {
   const { preferredLanguages, addPreferredLanguage } =
     usePreferredLanguageStore();
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -370,6 +370,7 @@ export function Code({
         "`Code` children must be a string when nested inside a `CodeGroup`."
       );
     }
+    // biome-ignore lint/security/noDangerouslySetInnerHtml: pre-processed HTML from Shiki code highlighting
     return <code {...props} dangerouslySetInnerHTML={{ __html: children }} />;
   }
 

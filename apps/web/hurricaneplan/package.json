@@ -17,6 +17,7 @@
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
     "@algolia/autocomplete-core": "^1.19.2",
+    "@grenmet/ui": "workspace:*",
     "@headlessui/react": "^2.2.6",
     "@mdx-js/loader": "^3.1.0",
     "@mdx-js/react": "^3.1.0",

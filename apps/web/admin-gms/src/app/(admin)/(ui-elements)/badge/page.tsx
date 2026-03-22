@@ -1,7 +1,7 @@
+import { Badge } from "@grenmet/ui/components/ui/badge";
 import { Plus } from "lucide-react";
 import type { Metadata } from "next";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { Badge } from "@/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "Next.js Badge | TailAdmin - Next.js Dashboard Template",

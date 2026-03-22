@@ -1,11 +1,8 @@
-import { getAuthConfig } from "./auth-config";
-import {
-  getSafeLocalReturnTo,
-  getRequestOrigin,
-  buildSharedSignInUrl as _buildSharedSignInUrl,
-} from "@grenmet/auth/server";
+import { buildSharedSignInUrl as _buildSharedSignInUrl } from "@grenmet/auth/server";
 
-export { getSafeLocalReturnTo, getRequestOrigin };
+export { getRequestOrigin, getSafeLocalReturnTo } from "@grenmet/auth/server";
+
+import { getAuthConfig } from "./auth-config";
 
 export function buildSharedSignInUrl(input: {
   origin: string;

@@ -57,6 +57,7 @@ export default function DefaultInputs() {
             <button
               className="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer"
               onClick={() => setShowPassword(!showPassword)}
+              type="button"
             >
               {showPassword ? (
                 <EyeIcon className="fill-gray-500 dark:fill-gray-400" />
@@ -103,6 +104,7 @@ export default function DefaultInputs() {
             />
             <span className="absolute top-1/2 left-0 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-gray-200 border-r dark:border-gray-800">
               <svg
+                aria-hidden="true"
                 fill="none"
                 height="20"
                 viewBox="0 0 20 20"

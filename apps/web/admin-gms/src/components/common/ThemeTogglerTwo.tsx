@@ -7,8 +7,10 @@ export default function ThemeTogglerTwo() {
     <button
       className="inline-flex size-14 items-center justify-center rounded-full bg-brand-500 text-white transition-colors hover:bg-brand-600"
       onClick={toggleTheme}
+      type="button"
     >
       <svg
+        aria-hidden="true"
         className="hidden dark:block"
         fill="none"
         height="20"
@@ -24,6 +26,7 @@ export default function ThemeTogglerTwo() {
         />
       </svg>
       <svg
+        aria-hidden="true"
         className="dark:hidden"
         fill="none"
         height="20"

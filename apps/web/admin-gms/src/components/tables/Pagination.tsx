@@ -1,8 +1,8 @@
-type PaginationProps = {
+interface PaginationProps {
   currentPage: number;
-  totalPages: number;
   onPageChange: (page: number) => void;
-};
+  totalPages: number;
+}
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
@@ -20,6 +20,7 @@ const Pagination: React.FC<PaginationProps> = ({
         className="mr-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 text-sm shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
+        type="button"
       >
         Previous
       </button>
@@ -34,6 +35,7 @@ const Pagination: React.FC<PaginationProps> = ({
             } flex h-10 w-10 items-center justify-center rounded-lg font-medium text-sm hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
             key={page}
             onClick={() => onPageChange(page)}
+            type="button"
           >
             {page}
           </button>
@@ -44,6 +46,7 @@ const Pagination: React.FC<PaginationProps> = ({
         className="ml-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 text-sm shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
+        type="button"
       >
         Next
       </button>

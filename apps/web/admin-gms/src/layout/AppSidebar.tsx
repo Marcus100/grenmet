@@ -124,6 +124,28 @@ const othersItems: NavItem[] = [
   },
 ];
 
+function findActiveSubmenu(
+  isActive: (path: string) => boolean
+): { type: "admin" | "weather"; index: number } | null {
+  const menuGroups: Array<{ type: "admin" | "weather"; items: NavItem[] }> = [
+    { type: "admin", items: navItems },
+    { type: "weather", items: othersItems },
+  ];
+  for (const { type, items } of menuGroups) {
+    for (let index = 0; index < items.length; index++) {
+      const nav = items[index];
+      if (nav.subItems) {
+        for (const subItem of nav.subItems) {
+          if (isActive(subItem.path)) {
+            return { type, index };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
@@ -133,6 +155,7 @@ const AppSidebar: React.FC = () => {
     menuType: "admin" | "weather"
   ) => (
     <ul className="flex flex-col gap-1">
+      {/* biome-ignore lint/complexity/noExcessiveCognitiveComplexity: sidebar menu renderer with sub-items, badges, and active states */}
       {navItems.map((nav, index) => (
         <li key={nav.name}>
           {nav.subItems ? (
@@ -269,29 +292,9 @@ const AppSidebar: React.FC = () => {
 
   useEffect(() => {
     // Check if the current path matches any submenu item
-    let submenuMatched = false;
-    ["admin", "weather"].forEach((menuType) => {
-      const items = menuType === "admin" ? navItems : othersItems;
-      items.forEach((nav, index) => {
-        if (nav.subItems) {
-          nav.subItems.forEach((subItem) => {
-            if (isActive(subItem.path)) {
-              setOpenSubmenu({
-                type: menuType as "admin" | "weather",
-                index,
-              });
-              submenuMatched = true;
-            }
-          });
-        }
-      });
-    });
-
-    // If no submenu item matches, close the open submenu
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-    }
-  }, [pathname, isActive]);
+    const matched = findActiveSubmenu(isActive);
+    setOpenSubmenu(matched);
+  }, [isActive]);
 
   useEffect(() => {
     // Set the height of the submenu items when the submenu is opened
@@ -323,13 +326,10 @@ const AppSidebar: React.FC = () => {
   };
 
   return (
+    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: mouse hover events for collapsible sidebar
     <aside
       className={`fixed top-0 left-0 z-50 mt-16 flex h-screen flex-col border-gray-200 border-r bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out lg:mt-0 dark:border-gray-800 dark:bg-gray-900 ${
-        isExpanded || isMobileOpen
-          ? "w-[290px]"
-          : isHovered
-            ? "w-[290px]"
-            : "w-[90px]"
+        isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"
       }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}

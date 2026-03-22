@@ -1,11 +1,8 @@
-import { getAuthConfig } from "@/lib/auth-config";
-import {
-  getSafeLocalReturnTo,
-  getRequestOrigin,
-  buildSharedSignInUrl as _buildSharedSignInUrl,
-} from "@grenmet/auth/server";
+import { buildSharedSignInUrl as _buildSharedSignInUrl } from "@grenmet/auth/server";
 
-export { getSafeLocalReturnTo, getRequestOrigin };
+export { getRequestOrigin, getSafeLocalReturnTo } from "@grenmet/auth/server";
+
+import { getAuthConfig } from "@/lib/auth-config";
 
 function firstValue(value: string | string[] | undefined): string | null {
   if (typeof value === "string") return value;
@@ -14,7 +11,7 @@ function firstValue(value: string | string[] | undefined): string | null {
 }
 
 export function readQueryParam(
-  value: string | string[] | undefined,
+  value: string | string[] | undefined
 ): string | null {
   const first = firstValue(value);
   return first ? first.trim() : null;

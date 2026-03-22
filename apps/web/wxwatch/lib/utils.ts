@@ -25,7 +25,7 @@ export function roundToSynopticTime(date: Date): Date {
 export function getSynopticHour(date: Date): string {
   const hour = date.getUTCHours();
   const synopticHour = Math.floor(hour / 3) * 3;
-  return synopticHour.toString().padStart(2, '0');
+  return synopticHour.toString().padStart(2, "0");
 }
 
 /**
@@ -33,8 +33,8 @@ export function getSynopticHour(date: Date): string {
  */
 export function formatDateForUrl(date: Date): string {
   const year = date.getUTCFullYear();
-  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-  const day = date.getUTCDate().toString().padStart(2, '0');
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
+  const day = date.getUTCDate().toString().padStart(2, "0");
   return `/${year}/${month}/${day}`;
 }
 
@@ -47,14 +47,14 @@ export function parseDateFromUrl(
   month: string,
   day: string
 ): Date | null {
-  const yearNum = parseInt(year, 10);
-  const monthNum = parseInt(month, 10);
-  const dayNum = parseInt(day, 10);
+  const yearNum = Number.parseInt(year, 10);
+  const monthNum = Number.parseInt(month, 10);
+  const dayNum = Number.parseInt(day, 10);
 
   if (
-    isNaN(yearNum) ||
-    isNaN(monthNum) ||
-    isNaN(dayNum) ||
+    Number.isNaN(yearNum) ||
+    Number.isNaN(monthNum) ||
+    Number.isNaN(dayNum) ||
     monthNum < 1 ||
     monthNum > 12 ||
     dayNum < 1 ||
@@ -81,7 +81,9 @@ export function parseDateFromUrl(
  */
 export function getTodayUTC(): Date {
   const now = new Date();
-  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  );
 }
 
 /**

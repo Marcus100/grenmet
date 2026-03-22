@@ -60,9 +60,9 @@ export default function MarineBulletin({
   sunrise = "6:23",
   sunset = "5:47",
   forecasterName = "Fimber Frank",
-  email = "meteorology@gaa.gd",
-  telephones = "(473) 444-4142/4101",
-  fax = "(473) 444-1574",
+  email: _email = "meteorology@gaa.gd",
+  telephones: _telephones = "(473) 444-4142/4101",
+  fax: _fax = "(473) 444-1574",
 }: MarineBulletinProps) {
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
@@ -185,8 +185,8 @@ export default function MarineBulletin({
             </span>
           </div>
           <ul className="space-y-1.5 text-sm text-zinc-700">
-            {impactItems?.map((item, index) => (
-              <li key={index}>{item}</li>
+            {impactItems?.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </div>
@@ -200,8 +200,8 @@ export default function MarineBulletin({
             </span>
           </div>
           <ul className="space-y-1.5 text-sm text-zinc-700">
-            {responseItems?.map((item, index) => (
-              <li key={index}>{item}</li>
+            {responseItems?.map((item) => (
+              <li key={item}>{item}</li>
             ))}
           </ul>
         </div>

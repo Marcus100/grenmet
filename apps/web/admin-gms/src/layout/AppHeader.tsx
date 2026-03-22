@@ -49,9 +49,11 @@ const AppHeader: React.FC = () => {
             aria-label="Toggle Sidebar"
             className="z-99999 h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 lg:flex lg:h-11 lg:w-11 lg:border dark:border-gray-800 dark:text-gray-400"
             onClick={handleToggle}
+            type="button"
           >
             {isMobileOpen ? (
               <svg
+                aria-hidden="true"
                 fill="none"
                 height="24"
                 viewBox="0 0 24 24"
@@ -67,6 +69,7 @@ const AppHeader: React.FC = () => {
               </svg>
             ) : (
               <svg
+                aria-hidden="true"
                 fill="none"
                 height="12"
                 viewBox="0 0 16 12"
@@ -104,8 +107,10 @@ const AppHeader: React.FC = () => {
           <button
             className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 lg:hidden dark:text-gray-400 dark:hover:bg-gray-800"
             onClick={toggleApplicationMenu}
+            type="button"
           >
             <svg
+              aria-hidden="true"
               fill="none"
               height="24"
               viewBox="0 0 24 24"
@@ -126,6 +131,7 @@ const AppHeader: React.FC = () => {
               <div className="relative">
                 <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
                   <svg
+                    aria-hidden="true"
                     className="fill-gray-500 dark:fill-gray-400"
                     fill="none"
                     height="20"
@@ -148,7 +154,10 @@ const AppHeader: React.FC = () => {
                   type="text"
                 />
 
-                <button className="absolute top-1/2 right-2.5 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-gray-500 text-xs -tracking-[0.2px] dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400">
+                <button
+                  className="absolute top-1/2 right-2.5 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-gray-500 text-xs -tracking-[0.2px] dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+                  type="button"
+                >
                   <span> ⌘ </span>
                   <span> K </span>
                 </button>

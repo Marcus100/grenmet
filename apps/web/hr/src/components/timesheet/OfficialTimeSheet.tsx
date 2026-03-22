@@ -21,6 +21,7 @@ function BlankRows({ count }: { count: number }) {
   return (
     <>
       {Array.from({ length: count }).map((_, idx) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static blank rows, no state/reordering
         <tr key={idx}>
           {columns.map((col) => (
             <td className="h-6 border border-zinc-900" key={`${idx}-${col}`} />

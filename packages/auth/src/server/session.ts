@@ -5,7 +5,7 @@ import type {
 } from "../types";
 import { authApiFetch } from "./auth-api-fetch";
 
-export async function exchangeSessionForAccessToken(
+export function exchangeSessionForAccessToken(
   config: AuthConfig,
   sessionToken: string
 ): Promise<SessionAccessTokenResponse> {
@@ -39,7 +39,7 @@ export async function logoutAllSessions(
   });
 }
 
-export async function createSession(
+export function createSession(
   config: AuthConfig,
   input: {
     email: string;
@@ -59,7 +59,7 @@ export async function createSession(
   });
 }
 
-export async function refreshSession(
+export function refreshSession(
   config: AuthConfig,
   sessionToken: string
 ): Promise<SessionLoginResponse> {

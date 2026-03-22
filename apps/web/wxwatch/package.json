@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@grenmet/auth": "workspace:*",
+    "@grenmet/ui": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.10",
     "dotenv": "^17.2.3",
     "drizzle-orm": "catalog:",

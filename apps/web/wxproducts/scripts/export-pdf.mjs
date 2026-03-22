@@ -43,7 +43,7 @@ try {
     },
   });
 
-  console.log("PDF generated at " + absoluteOutput);
+  console.log(`PDF generated at ${absoluteOutput}`);
 } finally {
   await browser.close();
 }

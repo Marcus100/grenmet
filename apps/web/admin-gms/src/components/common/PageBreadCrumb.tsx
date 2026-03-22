@@ -23,6 +23,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle }) => {
             >
               Home
               <svg
+                aria-hidden="true"
                 className="stroke-current"
                 fill="none"
                 height="16"

@@ -23,6 +23,7 @@ export default function UserDropdown() {
       <button
         className="dropdown-toggle flex items-center text-gray-700 dark:text-gray-400"
         onClick={toggleDropdown}
+        type="button"
       >
         <span className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-200 font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
           {(user.full_name ?? user.email).charAt(0).toUpperCase()}
@@ -33,6 +34,7 @@ export default function UserDropdown() {
         </span>
 
         <svg
+          aria-hidden="true"
           className={`stroke-gray-500 transition-transform duration-200 dark:stroke-gray-400 ${
             isOpen ? "rotate-180" : ""
           }`}
@@ -75,6 +77,7 @@ export default function UserDropdown() {
               tag="a"
             >
               <svg
+                aria-hidden="true"
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
                 fill="none"
                 height="24"
@@ -100,6 +103,7 @@ export default function UserDropdown() {
               tag="a"
             >
               <svg
+                aria-hidden="true"
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
                 fill="none"
                 height="24"
@@ -125,6 +129,7 @@ export default function UserDropdown() {
               tag="a"
             >
               <svg
+                aria-hidden="true"
                 className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
                 fill="none"
                 height="24"
@@ -152,6 +157,7 @@ export default function UserDropdown() {
           type="button"
         >
           <svg
+            aria-hidden="true"
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
             fill="none"
             height="24"
@@ -177,6 +183,7 @@ export default function UserDropdown() {
           type="button"
         >
           <svg
+            aria-hidden="true"
             className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
             fill="none"
             height="24"

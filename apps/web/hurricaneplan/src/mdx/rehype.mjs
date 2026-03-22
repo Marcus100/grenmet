@@ -1,6 +1,6 @@
 import { slugifyWithCounter } from "@sindresorhus/slugify";
-import * as acorn from "acorn";
-import { toString } from "mdast-util-to-string";
+import { parse as acornParse } from "acorn";
+import { toString as mdastToString } from "mdast-util-to-string";
 import { mdxAnnotations } from "mdx-annotations";
 import shiki from "shiki";
 import { visit } from "unist-util-visit";
@@ -10,7 +10,8 @@ function rehypeParseCodeBlocks() {
     visit(tree, "element", (node, _nodeIndex, parentNode) => {
       if (node.tagName === "code") {
         parentNode.properties.language = node.properties.className
-          ? node.properties?.className[0]?.replace(/^language-/, "")
+          ? // biome-ignore lint/performance/useTopLevelRegex: used only once inside plugin factory
+            node.properties?.className[0]?.replace(/^language-/, "")
           : "txt";
       }
     });
@@ -55,7 +56,7 @@ function rehypeSlugify() {
     const slugify = slugifyWithCounter();
     visit(tree, "element", (node) => {
       if (node.tagName === "h2" && !node.properties.id) {
-        node.properties.id = slugify(toString(node));
+        node.properties.id = slugify(mdastToString(node));
       }
     });
   };
@@ -81,7 +82,7 @@ function rehypeAddMDXExports(getExports) {
         type: "mdxjsEsm",
         value: exportStr,
         data: {
-          estree: acorn.parse(exportStr, {
+          estree: acornParse(exportStr, {
             sourceType: "module",
             ecmaVersion: "latest",
           }),
@@ -97,7 +98,7 @@ function getSections(node) {
   for (const child of node.children ?? []) {
     if (child.type === "element" && child.tagName === "h2") {
       sections.push(`{
-        title: ${JSON.stringify(toString(child))},
+        title: ${JSON.stringify(mdastToString(child))},
         id: ${JSON.stringify(child.properties.id)},
         ...${child.properties.annotation}
       }`);

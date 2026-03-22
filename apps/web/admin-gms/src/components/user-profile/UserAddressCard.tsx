@@ -4,8 +4,8 @@ import type {
   UserProfilePublic,
   UserProfileUpdateMe,
 } from "@grenmet/api-client";
+import { Button } from "@grenmet/ui/components/ui/button";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useModal } from "../../hooks/useModal";
 import Input from "../form/input/InputField";
 import Label from "../form/Label";

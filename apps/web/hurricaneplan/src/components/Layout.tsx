@@ -15,7 +15,7 @@ export function Layout({
   allSections,
 }: {
   children: React.ReactNode;
-  allSections: Record<string, Array<Section>>;
+  allSections: Record<string, Section[]>;
 }) {
   const pathname = usePathname();
 

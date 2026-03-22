@@ -10,14 +10,14 @@ export type ImagesByName = {
   images: WeatherImage[]; // sorted by fetched_at ASC (oldest first)
 }[];
 
+const TIMESTAMP_PREFIX_REGEX = /^\d+_(.+)$/;
+
 /**
  * Extract the base image name by removing the source timestamp prefix.
  * e.g., "20253391656_GOES19-GLM-taw-EXTENT3-7200x4320.jpg" -> "GOES19-GLM-taw-EXTENT3-7200x4320.jpg"
  */
 function getBaseName(name: string): string {
-  // Pattern: digits followed by underscore at the start
-  // e.g., "20253391656_filename.jpg" -> "filename.jpg"
-  const match = name.match(/^\d+_(.+)$/);
+  const match = name.match(TIMESTAMP_PREFIX_REGEX);
   return match ? match[1] : name;
 }
 
@@ -42,7 +42,7 @@ export async function getImagesGroupedByName(): Promise<ImagesByName> {
     if (!nameMap.has(baseName)) {
       nameMap.set(baseName, []);
     }
-    nameMap.get(baseName)!.push(img);
+    nameMap.get(baseName)?.push(img);
   }
 
   // Convert to array and sort by name alphabetically
@@ -66,7 +66,7 @@ export type ImagesBySynoptic = {
 }[];
 
 /**
- * Synoptic hours in display order: 12z, 15z, 18z, 21z, 00z, 03z, 06z, 09z
+ * Synoptic hours in display order
  */
 const SYNOPTIC_HOURS = [
   "00",
@@ -80,14 +80,90 @@ const SYNOPTIC_HOURS = [
 ] as const;
 type SynopticHour = (typeof SYNOPTIC_HOURS)[number];
 
+function findClosestToTarget(
+  images: WeatherImage[],
+  targetTime: Date
+): WeatherImage {
+  let closest = images[0];
+  let minDiff = Math.abs(
+    new Date(closest.observationTime ?? 0).getTime() - targetTime.getTime()
+  );
+  for (let i = 1; i < images.length; i++) {
+    const diff = Math.abs(
+      new Date(images[i].observationTime ?? 0).getTime() - targetTime.getTime()
+    );
+    if (diff < minDiff) {
+      minDiff = diff;
+      closest = images[i];
+    }
+  }
+  return closest;
+}
+
+function selectMostRecent(images: WeatherImage[]): WeatherImage {
+  return images.reduce((latest, current) => {
+    const latestTime = new Date(latest.fetchedAt || 0).getTime();
+    const currentTime = new Date(current.fetchedAt || 0).getTime();
+    return currentTime > latestTime ? current : latest;
+  });
+}
+
+function selectImageForHour(
+  imagesAtHour: WeatherImage[],
+  hour: SynopticHour,
+  startOfDay: Date,
+  isGoes19: boolean
+): WeatherImage | null {
+  if (imagesAtHour.length === 0) return null;
+  if (imagesAtHour.length === 1) return imagesAtHour[0];
+
+  if (isGoes19) {
+    const synopticHourNum = Number.parseInt(hour, 10);
+    const targetTime = new Date(
+      Date.UTC(
+        startOfDay.getUTCFullYear(),
+        startOfDay.getUTCMonth(),
+        startOfDay.getUTCDate(),
+        synopticHourNum,
+        0,
+        0,
+        0
+      )
+    );
+    return findClosestToTarget(imagesAtHour, targetTime);
+  }
+
+  return selectMostRecent(imagesAtHour);
+}
+
+function buildSynopticImages(
+  synopticMap: Map<SynopticHour, WeatherImage[]>,
+  startOfDay: Date,
+  isGoes19: boolean
+): ImagesBySynoptic[0]["synopticImages"] {
+  const result: ImagesBySynoptic[0]["synopticImages"] = {
+    "12": null,
+    "15": null,
+    "18": null,
+    "21": null,
+    "00": null,
+    "03": null,
+    "06": null,
+    "09": null,
+  };
+  for (const hour of SYNOPTIC_HOURS) {
+    result[hour] = selectImageForHour(
+      synopticMap.get(hour) ?? [],
+      hour,
+      startOfDay,
+      isGoes19
+    );
+  }
+  return result;
+}
+
 /**
  * Fetch images for a specific date, grouped by name and organized by synoptic times.
- * Each image's observation_time is rounded to the nearest synoptic time.
- *
- * For GOES19 images: Only the image with observation_time closest to each synoptic hour
- * is displayed (grouped by base name without timestamp prefix).
- *
- * For other images: Only one image per synoptic hour is displayed (most recent by fetched_at).
  *
  * @param date - Date in UTC (time portion ignored, uses date only)
  * @returns Array of image groups, each with 8 synoptic time slots
@@ -95,31 +171,13 @@ type SynopticHour = (typeof SYNOPTIC_HOURS)[number];
 export async function getImagesByDateAndSynoptic(
   date: Date
 ): Promise<ImagesBySynoptic> {
-  // Get start and end of day in UTC
   const startOfDay = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      0,
-      0,
-      0,
-      0
-    )
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
   );
   const endOfDay = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate() + 1,
-      0,
-      0,
-      0,
-      0
-    )
+    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate() + 1)
   );
 
-  // Query images for this date (where observation_time falls within the day)
   const images = await db
     .select()
     .from(weatherImages)
@@ -132,12 +190,6 @@ export async function getImagesByDateAndSynoptic(
     )
     .orderBy(asc(weatherImages.observationTime));
 
-  // Process images: round to synoptic time and group
-  // We need to handle multiple images at same synoptic time for same name
-  // by creating separate rows
-
-  // First, group by (name, rounded synoptic time)
-  // This allows us to create separate rows when needed
   const imageGroups = new Map<string, Map<SynopticHour, WeatherImage[]>>();
 
   for (const img of images) {
@@ -149,134 +201,32 @@ export async function getImagesByDateAndSynoptic(
 
     if (!SYNOPTIC_HOURS.includes(synopticHour)) continue;
 
-    // For GOES19 images, use base name (without timestamp prefix) for grouping
-    // For other images, use full name
     const name = img.spiderName === "goes19" ? getBaseName(img.name) : img.name;
 
     if (!imageGroups.has(name)) {
       imageGroups.set(name, new Map());
     }
-
-    const synopticMap = imageGroups.get(name)!;
+    const synopticMap = imageGroups.get(name);
+    if (!synopticMap) continue;
     if (!synopticMap.has(synopticHour)) {
       synopticMap.set(synopticHour, []);
     }
-
-    synopticMap.get(synopticHour)!.push(img);
+    synopticMap.get(synopticHour)?.push(img);
   }
 
-  // Now create rows: for each name, create rows based on combinations
-  // For GOES19 images, select closest to synoptic hour; for others, create separate rows
   const result: ImagesBySynoptic = [];
 
   for (const [name, synopticMap] of imageGroups.entries()) {
-    // Check if this is a GOES19 image group (by checking first image's spiderName)
     const firstImage = Array.from(synopticMap.values())
       .flat()
       .find((img) => img !== null);
     const isGoes19 = firstImage?.spiderName === "goes19";
 
-    if (isGoes19) {
-      // For GOES19, select the image closest to each synoptic hour
-      const synopticImages: ImagesBySynoptic[0]["synopticImages"] = {
-        "12": null,
-        "15": null,
-        "18": null,
-        "21": null,
-        "00": null,
-        "03": null,
-        "06": null,
-        "09": null,
-      };
-
-      // Fill in images for each synoptic hour
-      for (const hour of SYNOPTIC_HOURS) {
-        const imagesAtHour = synopticMap.get(hour) || [];
-
-        if (imagesAtHour.length === 0) {
-          synopticImages[hour] = null;
-        } else if (imagesAtHour.length === 1) {
-          synopticImages[hour] = imagesAtHour[0];
-        } else {
-          // Select the image with observation_time closest to synoptic hour
-          const synopticHourNum = Number.parseInt(hour);
-          const targetTime = new Date(
-            Date.UTC(
-              startOfDay.getUTCFullYear(),
-              startOfDay.getUTCMonth(),
-              startOfDay.getUTCDate(),
-              synopticHourNum,
-              0,
-              0,
-              0
-            )
-          );
-
-          // Find image with observation_time closest to target synoptic hour
-          let closestImage = imagesAtHour[0];
-          let minDiff = Math.abs(
-            new Date(closestImage.observationTime!).getTime() -
-              targetTime.getTime()
-          );
-
-          for (let i = 1; i < imagesAtHour.length; i++) {
-            const img = imagesAtHour[i];
-            const diff = Math.abs(
-              new Date(img.observationTime!).getTime() - targetTime.getTime()
-            );
-            if (diff < minDiff) {
-              minDiff = diff;
-              closestImage = img;
-            }
-          }
-
-          synopticImages[hour] = closestImage;
-        }
-      }
-
-      result.push({
-        name,
-        synopticImages,
-      });
-    } else {
-      // For non-GOES19 images, select one image per synoptic hour (most recent by fetched_at)
-      const synopticImages: ImagesBySynoptic[0]["synopticImages"] = {
-        "12": null,
-        "15": null,
-        "18": null,
-        "21": null,
-        "00": null,
-        "03": null,
-        "06": null,
-        "09": null,
-      };
-
-      // Fill in images for each synoptic hour
-      for (const hour of SYNOPTIC_HOURS) {
-        const imagesAtHour = synopticMap.get(hour) || [];
-
-        if (imagesAtHour.length === 0) {
-          synopticImages[hour] = null;
-        } else if (imagesAtHour.length === 1) {
-          synopticImages[hour] = imagesAtHour[0];
-        } else {
-          // Select the most recent image (by fetched_at) for this synoptic hour
-          const mostRecent = imagesAtHour.reduce((latest, current) => {
-            const latestTime = new Date(latest.fetchedAt || 0).getTime();
-            const currentTime = new Date(current.fetchedAt || 0).getTime();
-            return currentTime > latestTime ? current : latest;
-          });
-          synopticImages[hour] = mostRecent;
-        }
-      }
-
-      result.push({
-        name,
-        synopticImages,
-      });
-    }
+    result.push({
+      name,
+      synopticImages: buildSynopticImages(synopticMap, startOfDay, isGoes19),
+    });
   }
 
-  // Sort rows by name alphabetically
   return result.sort((a, b) => a.name.localeCompare(b.name));
 }

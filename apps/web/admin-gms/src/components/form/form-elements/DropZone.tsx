@@ -39,6 +39,7 @@ const DropzoneComponent: React.FC = () => {
             <div className="mb-[22px] flex justify-center">
               <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-400">
                 <svg
+                  aria-hidden="true"
                   className="fill-current"
                   height="28"
                   viewBox="0 0 29 28"

@@ -18,6 +18,7 @@ const ChartTab: React.FC = () => {
           "optionOne"
         )}`}
         onClick={() => setSelected("optionOne")}
+        type="button"
       >
         Monthly
       </button>
@@ -27,6 +28,7 @@ const ChartTab: React.FC = () => {
           "optionTwo"
         )}`}
         onClick={() => setSelected("optionTwo")}
+        type="button"
       >
         Quarterly
       </button>
@@ -36,6 +38,7 @@ const ChartTab: React.FC = () => {
           "optionThree"
         )}`}
         onClick={() => setSelected("optionThree")}
+        type="button"
       >
         Annually
       </button>
