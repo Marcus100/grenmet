@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import {
   exchangeSessionForAccessToken,
   readSessionCookie,
+  type SessionUserPublic,
 } from "@/lib/server-session";
 import AdminLayoutClient from "./AdminLayoutClient";
 
@@ -17,7 +18,7 @@ export default async function AdminLayout({
     redirect("/signin");
   }
 
-  let user;
+  let user: SessionUserPublic | undefined;
   try {
     const response = await exchangeSessionForAccessToken(sessionToken);
     user = response.user;

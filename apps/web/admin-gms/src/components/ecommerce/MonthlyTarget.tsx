@@ -6,13 +6,13 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 
 // Dynamically import the ReactApexChart component
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+const _ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
 export default function MonthlyTarget() {
-  const series = [75.55];
-  const options: ApexOptions = {
+  const _series = [75.55];
+  const _options: ApexOptions = {
     colors: ["#465FFF"],
     chart: {
       fontFamily: "Outfit, sans-serif",
@@ -44,7 +44,7 @@ export default function MonthlyTarget() {
             offsetY: -40,
             color: "#1D2939",
             formatter(val) {
-              return val + "%";
+              return `${val}%`;
             },
           },
         },
@@ -62,11 +62,11 @@ export default function MonthlyTarget() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  function toggleDropdown() {
+  function _toggleDropdown() {
     setIsOpen(!isOpen);
   }
 
-  function closeDropdown() {
+  function _closeDropdown() {
     setIsOpen(false);
   }
 

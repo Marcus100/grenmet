@@ -1,5 +1,7 @@
 "use client";
 
+const APPLE_DEVICE_REGEX = /(Mac|iPhone|iPod|iPad)/i;
+
 import {
   type AutocompleteApi,
   type AutocompleteCollection,
@@ -202,7 +204,7 @@ function SearchResult({
           id={`${id}-hierarchy`}
         >
           {hierarchy.map((item, itemIndex, items) => (
-            <Fragment key={itemIndex}>
+            <Fragment key={item}>
               <HighlightQuery query={query} text={item} />
               <span
                 className={
@@ -313,7 +315,7 @@ function SearchDialog({
   open,
   setOpen,
   className,
-  onNavigate = () => {},
+  onNavigate = () => undefined,
 }: {
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -329,12 +331,12 @@ function SearchDialog({
       setOpen(false);
     },
   });
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const _pathname = usePathname();
+  const _searchParams = useSearchParams();
 
   useEffect(() => {
     setOpen(false);
-  }, [pathname, searchParams, setOpen]);
+  }, [setOpen]);
 
   useEffect(() => {
     if (open) {
@@ -421,16 +423,13 @@ function useSearchProps() {
     },
     dialogProps: {
       open,
-      setOpen: useCallback(
-        (open: boolean) => {
-          const { width = 0, height = 0 } =
-            buttonRef.current?.getBoundingClientRect() ?? {};
-          if (!open || (width !== 0 && height !== 0)) {
-            setOpen(open);
-          }
-        },
-        [setOpen]
-      ),
+      setOpen: useCallback((open: boolean) => {
+        const { width = 0, height = 0 } =
+          buttonRef.current?.getBoundingClientRect() ?? {};
+        if (!open || (width !== 0 && height !== 0)) {
+          setOpen(open);
+        }
+      }, []),
     },
   };
 }
@@ -440,9 +439,7 @@ export function Search() {
   const { buttonProps, dialogProps } = useSearchProps();
 
   useEffect(() => {
-    setModifierKey(
-      /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform) ? "⌘" : "Ctrl "
-    );
+    setModifierKey(APPLE_DEVICE_REGEX.test(navigator.platform) ? "⌘" : "Ctrl ");
   }, []);
 
   return (

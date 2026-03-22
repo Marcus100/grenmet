@@ -22,7 +22,12 @@
       "Bash(find /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/admin-gms/src -type f -name *.ts -o -name *.tsx)",
       "Bash(grep \"port\" /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/*/package.json)",
       "Bash(xargs wc:*)",
-      "Bash(ls -lh /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/*/src/app/)"
+      "Bash(ls -lh /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/*/src/app/)",
+      "Bash(pnpm dlx:*)",
+      "Bash(turbo run:*)",
+      "Bash(pnpm turbo:*)",
+      "Bash(pnpm biome:*)",
+      "Bash(pnpm check:*)"
     ]
   }
 }

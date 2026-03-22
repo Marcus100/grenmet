@@ -2,18 +2,18 @@
 import type React from "react";
 import { createContext, useContext, useEffect, useState } from "react";
 
-type SidebarContextType = {
-  isExpanded: boolean;
-  isMobileOpen: boolean;
-  isHovered: boolean;
+interface SidebarContextType {
   activeItem: string | null;
+  isExpanded: boolean;
+  isHovered: boolean;
+  isMobileOpen: boolean;
   openSubmenu: string | null;
-  toggleSidebar: () => void;
-  toggleMobileSidebar: () => void;
-  setIsHovered: (isHovered: boolean) => void;
   setActiveItem: (item: string | null) => void;
+  setIsHovered: (isHovered: boolean) => void;
+  toggleMobileSidebar: () => void;
+  toggleSidebar: () => void;
   toggleSubmenu: (item: string) => void;
-};
+}
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 

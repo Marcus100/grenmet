@@ -37,6 +37,7 @@ function WritingLines({ rows = 4 }: { rows?: number }) {
   return (
     <div className="space-y-0">
       {Array.from({ length: rows }).map((_, idx) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: static blank lines, no state/reordering
         <div className="h-8 border-zinc-800 border-b" key={idx} />
       ))}
     </div>
@@ -91,13 +92,13 @@ export default function AbsenteeReport({
         <h2 className="mb-4 font-bold text-xl text-zinc-900">CHECK REASON:</h2>
         <div className="grid grid-cols-2 gap-x-8 gap-y-3">
           {reasonOptions.map((reason) => (
-            <label
+            <span
               className="flex items-center gap-2 text-xl text-zinc-900"
               key={reason}
             >
               <span className="h-5 w-5 border border-zinc-700" />
               <span>{reason}</span>
-            </label>
+            </span>
           ))}
         </div>
       </section>

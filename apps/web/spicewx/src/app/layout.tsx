@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Image from "next/image";
 import "./globals.css";
 
 import {
@@ -46,7 +47,7 @@ const userNavigation = [
   { name: "Sign out", href: "#" },
 ];
 
-function classNames(...classes) {
+function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
@@ -69,15 +70,21 @@ export default function RootLayout({
               <div className="flex h-16 justify-between">
                 <div className="flex">
                   <div className="flex shrink-0 items-center">
-                    <img
+                    <Image
                       alt="Your Company"
                       className="h-8 w-auto dark:hidden"
+                      height={32}
                       src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600"
+                      unoptimized
+                      width={32}
                     />
-                    <img
+                    <Image
                       alt="Your Company"
                       className="not-dark:hidden h-8 w-auto"
+                      height={32}
                       src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500"
+                      unoptimized
+                      width={32}
                     />
                   </div>
                   <div className="hidden sm:-my-px sm:ml-6 sm:flex sm:space-x-8">
@@ -113,10 +120,13 @@ export default function RootLayout({
                     <MenuButton className="relative flex max-w-xs items-center rounded-full focus-visible:outline-2 focus-visible:outline-indigo-600 focus-visible:outline-offset-2 dark:focus-visible:outline-indigo-500">
                       <span className="absolute -inset-1.5" />
                       <span className="sr-only">Open user menu</span>
-                      <img
+                      <Image
                         alt=""
                         className="size-8 rounded-full outline outline-black/5 -outline-offset-1 dark:outline-white/10"
+                        height={32}
                         src={user.imageUrl}
+                        unoptimized
+                        width={32}
                       />
                     </MenuButton>
 
@@ -177,10 +187,13 @@ export default function RootLayout({
               <div className="border-gray-200 border-t pt-4 pb-3 dark:border-gray-700">
                 <div className="flex items-center px-4">
                   <div className="shrink-0">
-                    <img
+                    <Image
                       alt=""
                       className="size-10 rounded-full outline outline-black/5 -outline-offset-1 dark:outline-white/10"
+                      height={40}
                       src={user.imageUrl}
+                      unoptimized
+                      width={40}
                     />
                   </div>
                   <div className="ml-3">

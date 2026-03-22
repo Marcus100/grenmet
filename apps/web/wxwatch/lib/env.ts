@@ -4,16 +4,8 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     DB_URL: z.string().min(1),
-    AUTH_APP_URL: z
-      .string()
-      .url()
-      .optional()
-      .default("http://localhost:3000"),
-    AUTH_API_URL: z
-      .string()
-      .url()
-      .optional()
-      .default("http://localhost:8000"),
+    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
+    AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
     SESSION_COOKIE_DOMAIN: z.string().optional(),

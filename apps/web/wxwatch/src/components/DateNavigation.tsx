@@ -11,7 +11,7 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
   const router = useRouter();
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value + "T00:00:00Z");
+    const selectedDate = new Date(`${e.target.value}T00:00:00Z`);
     const url = formatDateForUrl(selectedDate);
     router.push(url);
   };
@@ -38,8 +38,10 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
         aria-label="Previous day"
         className="rounded-md bg-gray-100 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
         onClick={goToPreviousDay}
+        type="button"
       >
         <svg
+          aria-hidden="true"
           className="h-5 w-5"
           fill="none"
           stroke="currentColor"
@@ -70,8 +72,10 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
         aria-label="Next day"
         className="rounded-md bg-gray-100 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
         onClick={goToNextDay}
+        type="button"
       >
         <svg
+          aria-hidden="true"
           className="h-5 w-5"
           fill="none"
           stroke="currentColor"

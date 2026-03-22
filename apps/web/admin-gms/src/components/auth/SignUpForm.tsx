@@ -32,8 +32,12 @@ export default function SignUpForm() {
           </div>
           <div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
-              <button className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+              <button
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                type="button"
+              >
                 <svg
+                  aria-hidden="true"
                   fill="none"
                   height="20"
                   viewBox="0 0 20 20"
@@ -59,8 +63,12 @@ export default function SignUpForm() {
                 </svg>
                 Sign up with Google
               </button>
-              <button className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+              <button
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                type="button"
+              >
                 <svg
+                  aria-hidden="true"
                   className="fill-current"
                   fill="none"
                   height="20"
@@ -133,16 +141,17 @@ export default function SignUpForm() {
                       placeholder="Enter your password"
                       type={showPassword ? "text" : "password"}
                     />
-                    <span
+                    <button
                       className="absolute top-1/2 right-4 z-30 -translate-y-1/2 cursor-pointer"
                       onClick={() => setShowPassword(!showPassword)}
+                      type="button"
                     >
                       {showPassword ? (
                         <EyeIcon className="fill-gray-500 dark:fill-gray-400" />
                       ) : (
                         <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400" />
                       )}
-                    </span>
+                    </button>
                   </div>
                 </div>
                 {/* <!-- Checkbox --> */}
@@ -165,7 +174,10 @@ export default function SignUpForm() {
                 </div>
                 {/* <!-- Button --> */}
                 <div>
-                  <button className="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs transition hover:bg-brand-600">
+                  <button
+                    className="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs transition hover:bg-brand-600"
+                    type="submit"
+                  >
                     Sign Up
                   </button>
                 </div>

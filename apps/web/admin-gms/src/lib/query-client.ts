@@ -1,8 +1,4 @@
-import {
-  QueryCache,
-  QueryClient,
-  MutationCache,
-} from "@tanstack/react-query";
+import { MutationCache, QueryCache, QueryClient } from "@tanstack/react-query";
 import { signOut } from "@/lib/auth";
 
 function getErrorDetail(error: unknown): string | null {
@@ -15,14 +11,16 @@ function getErrorDetail(error: unknown): string | null {
   };
 
   const responseData = candidate.response?.data;
-  const detail =
-    typeof candidate.detail === "string"
-      ? candidate.detail
-      : typeof responseData === "object" &&
-          responseData !== null &&
-          typeof (responseData as { detail?: unknown }).detail === "string"
-        ? ((responseData as { detail?: string }).detail ?? null)
-        : null;
+  let detail: string | null = null;
+  if (typeof candidate.detail === "string") {
+    detail = candidate.detail;
+  } else if (
+    typeof responseData === "object" &&
+    responseData !== null &&
+    typeof (responseData as { detail?: unknown }).detail === "string"
+  ) {
+    detail = (responseData as { detail?: string }).detail ?? null;
+  }
 
   if (detail) return detail;
 

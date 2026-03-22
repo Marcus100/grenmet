@@ -1,11 +1,11 @@
-import { type SearchOptions } from "flexsearch";
+import type { SearchOptions } from "flexsearch";
 
 declare module "@/mdx/search.mjs" {
-  export type Result = {
-    url: string;
-    title: string;
+  export interface Result {
     pageTitle?: string;
-  };
+    title: string;
+    url: string;
+  }
 
-  export function search(query: string, options?: SearchOptions): Array<Result>;
+  export function search(query: string, options?: SearchOptions): Result[];
 }

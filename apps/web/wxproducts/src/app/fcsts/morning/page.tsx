@@ -34,11 +34,15 @@ export default function MorningForecastPage() {
       <div className="flex flex-row gap-x-2">
         <form className="w-full space-y-4 rounded-xl border border-zinc-200 bg-white p-5">
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="organization"
+            >
               Organization
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="organization"
               onChange={(event) =>
                 updateField("organization", event.target.value)
               }
@@ -47,55 +51,75 @@ export default function MorningForecastPage() {
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="office"
+            >
               Office
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="office"
               onChange={(event) => updateField("office", event.target.value)}
               value={form.office}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="headline"
+            >
               Headline
             </label>
             <textarea
               className="min-h-24 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="headline"
               onChange={(event) => updateField("headline", event.target.value)}
               value={form.headline}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="synopsis"
+            >
               Synopsis
             </label>
             <textarea
               className="min-h-32 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="synopsis"
               onChange={(event) => updateField("synopsis", event.target.value)}
               value={form.synopsis}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="weather"
+            >
               Weather
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="weather"
               onChange={(event) => updateField("weather", event.target.value)}
               value={form.weather}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="weatherDetails"
+            >
               Weather Details
             </label>
             <textarea
               className="min-h-24 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="weatherDetails"
               onChange={(event) =>
                 updateField("weatherDetails", event.target.value)
               }
@@ -104,11 +128,15 @@ export default function MorningForecastPage() {
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="maxTemperature"
+            >
               Max Temperature
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="maxTemperature"
               onChange={(event) =>
                 updateField("maxTemperature", event.target.value)
               }
@@ -117,11 +145,15 @@ export default function MorningForecastPage() {
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="minTemperature"
+            >
               Min Temperature
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="minTemperature"
               onChange={(event) =>
                 updateField("minTemperature", event.target.value)
               }
@@ -130,33 +162,45 @@ export default function MorningForecastPage() {
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="wind"
+            >
               Wind
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="wind"
               onChange={(event) => updateField("wind", event.target.value)}
               value={form.wind}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="seas"
+            >
               Seas
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="seas"
               onChange={(event) => updateField("seas", event.target.value)}
               value={form.seas}
             />
           </div>
 
           <div>
-            <label className="mb-1 block font-medium text-sm text-zinc-900">
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="marineAdvisory"
+            >
               Marine Advisory
             </label>
             <textarea
               className="min-h-24 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="marineAdvisory"
               onChange={(event) =>
                 updateField("marineAdvisory", event.target.value)
               }

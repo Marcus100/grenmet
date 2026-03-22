@@ -39,17 +39,24 @@ export function Lightbox({ image, onClose }: LightboxProps) {
     : "Unknown";
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <button
+        aria-label="Close lightbox"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+        type="button"
+      />
+
       {/* Close button */}
       <button
         aria-label="Close lightbox"
         className="absolute top-4 right-4 z-10 rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
         onClick={onClose}
+        type="button"
       >
         <svg
+          aria-hidden="true"
           className="h-8 w-8 text-white"
           fill="none"
           stroke="currentColor"
@@ -66,8 +73,9 @@ export function Lightbox({ image, onClose }: LightboxProps) {
 
       {/* Content container */}
       <div
+        aria-modal="true"
         className="relative flex max-h-[90vh] max-w-[90vw] flex-col"
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
       >
         {/* Image */}
         <div className="relative flex flex-1 items-center justify-center">

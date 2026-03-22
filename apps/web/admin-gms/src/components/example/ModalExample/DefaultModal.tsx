@@ -1,5 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { Button } from "@grenmet/ui/components/ui/button";
 import { useModal } from "@/hooks/useModal";
 import ComponentCard from "../../common/ComponentCard";
 import { Modal } from "../../ui/modal";

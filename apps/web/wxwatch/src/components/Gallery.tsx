@@ -17,6 +17,7 @@ export function Gallery({ imagesBySynoptic }: GalleryProps) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center text-gray-500">
         <svg
+          aria-hidden="true"
           className="mb-4 h-16 w-16"
           fill="none"
           stroke="currentColor"

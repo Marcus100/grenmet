@@ -142,7 +142,7 @@ function MetricItem({
   if (!value) return null;
   return (
     <div className="flex items-center gap-4">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
+      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-zinc-100 ring-1 ring-zinc-200 ring-inset">
         <Icon className="h-5 w-5 text-zinc-700" strokeWidth={1.75} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -186,8 +186,8 @@ function ImpactAlert({ item }: { item: ImpactItem }) {
         <p className="mt-2 text-sm text-zinc-600 italic">{item.assessment}</p>
       )}
       <ul className="mt-2 space-y-1 text-sm">
-        {item.impactText.map((p, j) => (
-          <li key={j}>• {p}</li>
+        {item.impactText.map((p) => (
+          <li key={p}>• {p}</li>
         ))}
       </ul>
     </div>
@@ -225,30 +225,32 @@ function Badge({ value }: { value: string }) {
 
 export default function MorningForecast({
   organization = "GRENADA METEOROLOGICAL SERVICE",
-  office = "Maurice Bishop International Airport, St. George's, Grenada",
+  office:
+    _office = "Maurice Bishop International Airport, St. George's, Grenada",
 
   productTitle = "Morning Public Forecast",
-  productSubtitle = "Public Weather Forecast",
+  productSubtitle: _productSubtitle = "Public Weather Forecast",
   productId = "GMS-PWF-MORNING",
-  documentNumber = "001",
+  documentNumber: _documentNumber = "001",
 
   dateIssued = "Sunday 21 December 2025",
-  timeIssued = "06:00 AM AST",
+  timeIssued: _timeIssued = "06:00 AM AST",
 
-  validity = "Today and Tonight",
+  validity: _validity = "Today and Tonight",
   validFrom = "06:00 AM AST Sunday 21 December 2025",
   validUntil = "06:00 AM AST Monday 22 December 2025",
 
-  location = "the State of Grenada",
+  location: _location = "the State of Grenada",
 
   headline = "Generally fair conditions are expected across Grenada today. Moderate trade winds will maintain choppy marine conditions across coastal waters.",
 
   synopsis = "A weak Atlantic high-pressure ridge remains the dominant feature across the eastern Caribbean.",
 
-  furtherDetails = "Moderate easterly trade winds of 12 to 22 mph will continue across the island chain. These winds will maintain moderate to slightly rough seas across open waters.",
+  furtherDetails:
+    _furtherDetails = "Moderate easterly trade winds of 12 to 22 mph will continue across the island chain. These winds will maintain moderate to slightly rough seas across open waters.",
 
-  weather = "Generally fair",
-  weatherDetails = "Brief isolated showers possible",
+  weather: _weather = "Generally fair",
+  weatherDetails: _weatherDetails = "Brief isolated showers possible",
 
   maxTemperature = "31°C",
   minTemperature = "24°C",
@@ -265,9 +267,10 @@ export default function MorningForecast({
   sunrise = "5:48 AM",
   sunset = "6:23 PM",
 
-  marineAdvisory = "Small craft operators should exercise caution in open waters.",
+  marineAdvisory:
+    _marineAdvisory = "Small craft operators should exercise caution in open waters.",
 
-  whatToExpect = [
+  whatToExpect: _whatToExpect = [
     "Choppy seas may affect small craft operations.",
     "Some marine and coastal recreational activities may experience minor disruption.",
   ],
@@ -298,7 +301,6 @@ export default function MorningForecast({
   updateStatement = "Forecast conditions may change. Continue to monitor official updates.",
 
   forecasterName = "Trisha Miller",
-  forecasterTitle = "Forecaster",
 
   nextUpdate = "6:00 PM AST",
 
@@ -316,7 +318,7 @@ export default function MorningForecast({
           <p className="text-xs text-zinc-400 uppercase tracking-widest">
             {productId}
           </p>
-          <p className="text-sm text-white">{productTitle}</p>
+          <p className="text-lg text-white">{productTitle}</p>
         </div>
       </header>
 
@@ -412,8 +414,8 @@ export default function MorningForecast({
                   </h2>
                 </div>
 
-                {impacts.map((item, i) => (
-                  <ImpactAlert item={item} key={i} />
+                {impacts.map((item) => (
+                  <ImpactAlert item={item} key={item.hazard} />
                 ))}
               </section>
             )}
@@ -427,8 +429,8 @@ export default function MorningForecast({
                 </div>
 
                 <ul className="space-y-2 text-sm">
-                  {recommendedActions.map((a, i) => (
-                    <li key={i}>• {a}</li>
+                  {recommendedActions.map((a) => (
+                    <li key={a}>• {a}</li>
                   ))}
                 </ul>
               </section>
@@ -440,27 +442,24 @@ export default function MorningForecast({
       {/* FOOTER */}
 
       <footer className="mt-2 border-t pt-2">
-        <div className="grid sm:grid-cols-2">
-          <div className="flex flex-col gap-0.5">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest">
-              Issued By
-            </p>
-            <p className="font-semibold text-sm text-zinc-900">
+        <div className="flex items-baseline justify-between">
+          <p className="text-xs text-zinc-500 uppercase tracking-widest">
+            Issued By{" "}
+            <span className="font-semibold text-sm text-zinc-900 normal-case tracking-normal">
               {forecasterName}
-            </p>
-            <p className="text-sm text-zinc-600">{forecasterTitle}</p>
-          </div>
+            </span>
+          </p>
 
-          <div className="flex flex-col gap-0.5 text-right">
-            <p className="text-xs text-zinc-500 uppercase tracking-widest">
-              Next Update
-            </p>
-            <p className="text-sm text-zinc-900">{nextUpdate}</p>
-          </div>
+          <p className="text-xs text-zinc-500 uppercase tracking-widest">
+            Next Update{" "}
+            <span className="font-normal text-sm text-zinc-900 normal-case tracking-normal">
+              {nextUpdate}
+            </span>
+          </p>
         </div>
 
         {updateStatement && (
-          <p className="text-xs text-zinc-600">{updateStatement}</p>
+          <p className="mt-2 text-xs text-zinc-600">{updateStatement}</p>
         )}
 
         <p className="text-xs text-zinc-400">{footerNote}</p>

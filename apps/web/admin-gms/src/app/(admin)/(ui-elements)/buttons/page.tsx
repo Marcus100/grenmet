@@ -1,7 +1,7 @@
+import { Button } from "@grenmet/ui/components/ui/button";
 import type { Metadata } from "next";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { Button } from "@/components/ui/button";
 import { BoxIcon } from "@/icons";
 
 export const metadata: Metadata = {

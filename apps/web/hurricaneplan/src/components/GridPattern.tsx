@@ -12,7 +12,7 @@ export function GridPattern({
   height: number;
   x: string | number;
   y: string | number;
-  squares: Array<[x: number, y: number]>;
+  squares: [x: number, y: number][];
 }) {
   const patternId = useId();
 
@@ -37,7 +37,7 @@ export function GridPattern({
         width="100%"
       />
       {squares && (
-        <svg className="overflow-visible" x={x} y={y}>
+        <svg aria-hidden="true" className="overflow-visible" x={x} y={y}>
           {squares.map(([x, y]) => (
             <rect
               height={height + 1}

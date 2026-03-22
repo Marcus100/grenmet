@@ -39,7 +39,7 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
   }
 
   return (
-    <button className={combinedClasses} onClick={handleClick}>
+    <button className={combinedClasses} onClick={handleClick} type="button">
       {children}
     </button>
   );

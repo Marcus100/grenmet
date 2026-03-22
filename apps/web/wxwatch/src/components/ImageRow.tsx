@@ -77,20 +77,21 @@ function SynopticImageSlot({
   const imageUrl = getImageUrl(image.storagePath);
 
   const observationTime = image.observationTime
-    ? new Date(image.observationTime).toLocaleString("en-US", {
+    ? `${new Date(image.observationTime).toLocaleString("en-US", {
         month: "short",
         day: "numeric",
         hour: "numeric",
         minute: "2-digit",
         timeZone: "UTC",
         hour12: false,
-      }) + " UTC"
+      })} UTC`
     : "Unknown";
 
   return (
     <button
       className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100 transition-all duration-200 hover:ring-2 hover:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       onClick={() => onImageClick(image)}
+      type="button"
     >
       <Image
         alt={image.name || `Weather image at ${hour}z`}

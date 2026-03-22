@@ -28,8 +28,6 @@ export default async function DatePage({ params }: PageProps) {
 
   const images = await getImagesByDateAndSynoptic(date);
 
-  const dateStr = date.toISOString().split("T")[0]; // YYYY-MM-DD format
-
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -61,6 +59,7 @@ export default async function DatePage({ params }: PageProps) {
         {images.length === 0 ? (
           <div className="flex min-h-[400px] flex-col items-center justify-center text-gray-500">
             <svg
+              aria-hidden="true"
               className="mb-4 h-16 w-16"
               fill="none"
               stroke="currentColor"

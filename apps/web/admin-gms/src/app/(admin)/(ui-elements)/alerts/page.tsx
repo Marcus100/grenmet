@@ -1,9 +1,13 @@
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@grenmet/ui/components/ui/alert";
 import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import ComponentCard from "@/components/common/ComponentCard";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export const metadata: Metadata = {
   title: "Next.js Alerts | TailAdmin - Next.js Dashboard Template",

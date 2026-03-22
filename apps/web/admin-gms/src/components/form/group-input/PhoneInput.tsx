@@ -23,10 +23,10 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
   const [selectedCountry, setSelectedCountry] = useState<string>("US");
   const [phoneNumber, setPhoneNumber] = useState<string>("+1");
 
-  const countryCodes: Record<string, string> = countries.reduce(
-    (acc, { code, label }) => ({ ...acc, [code]: label }),
-    {}
-  );
+  const countryCodes: Record<string, string> = {};
+  for (const { code, label } of countries) {
+    countryCodes[code] = label;
+  }
 
   const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newCountry = e.target.value;
@@ -67,6 +67,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center bg-none text-gray-700 dark:text-gray-400">
             <svg
+              aria-hidden="true"
               className="stroke-current"
               fill="none"
               height="20"
@@ -117,6 +118,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-700 dark:text-gray-400">
             <svg
+              aria-hidden="true"
               className="stroke-current"
               fill="none"
               height="20"

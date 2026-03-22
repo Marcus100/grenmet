@@ -14,24 +14,28 @@ export default function ModalBasedAlerts() {
         <button
           className="rounded-lg bg-success-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs hover:bg-success-600"
           onClick={successModal.openModal}
+          type="button"
         >
           Success Alert
         </button>
         <button
           className="rounded-lg bg-blue-light-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs hover:bg-blue-light-600"
           onClick={infoModal.openModal}
+          type="button"
         >
           Info Alert
         </button>
         <button
           className="rounded-lg bg-warning-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs hover:bg-warning-600"
           onClick={warningModal.openModal}
+          type="button"
         >
           Warning Alert
         </button>
         <button
           className="rounded-lg bg-error-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs hover:bg-error-600"
           onClick={errorModal.openModal}
+          type="button"
         >
           Danger Alert
         </button>
@@ -45,6 +49,7 @@ export default function ModalBasedAlerts() {
         <div className="text-center">
           <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
+              aria-hidden="true"
               className="fill-success-50 dark:fill-success-500/15"
               fill="none"
               height="90"
@@ -61,6 +66,7 @@ export default function ModalBasedAlerts() {
 
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
+                aria-hidden="true"
                 className="fill-success-600 dark:fill-success-500"
                 fill="none"
                 height="38"
@@ -104,6 +110,7 @@ export default function ModalBasedAlerts() {
         <div className="text-center">
           <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
+              aria-hidden="true"
               className="fill-blue-light-50 dark:fill-blue-light-500/15"
               fill="none"
               height="90"
@@ -120,6 +127,7 @@ export default function ModalBasedAlerts() {
 
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
+                aria-hidden="true"
                 className="fill-blue-light-500 dark:fill-blue-light-500"
                 fill="none"
                 height="38"
@@ -164,6 +172,7 @@ export default function ModalBasedAlerts() {
         <div className="text-center">
           <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
+              aria-hidden="true"
               className="fill-warning-50 dark:fill-warning-500/15"
               fill="none"
               height="90"
@@ -180,6 +189,7 @@ export default function ModalBasedAlerts() {
 
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
+                aria-hidden="true"
                 className="fill-warning-600 dark:fill-orange-400"
                 fill="none"
                 height="38"
@@ -224,6 +234,7 @@ export default function ModalBasedAlerts() {
         <div className="text-center">
           <div className="relative z-1 mb-7 flex items-center justify-center">
             <svg
+              aria-hidden="true"
               className="fill-error-50 dark:fill-error-500/15"
               fill="none"
               height="90"
@@ -240,6 +251,7 @@ export default function ModalBasedAlerts() {
 
             <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
               <svg
+                aria-hidden="true"
                 className="fill-error-600 dark:fill-error-500"
                 fill="none"
                 height="38"

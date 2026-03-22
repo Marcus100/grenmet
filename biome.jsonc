@@ -10,7 +10,6 @@
       "style": {
         "useFilenamingConvention": "off",
         "useBlockStatements": "off",
-        "useConsistentTypeDefinitions": "warn",
         "useTemplate": "warn",
         "noNestedTernary": "warn"
       },

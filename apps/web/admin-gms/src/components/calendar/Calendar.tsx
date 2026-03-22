@@ -164,7 +164,10 @@ const Calendar: React.FC = () => {
           <div className="mt-8">
             <div>
               <div>
-                <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400">
+                <label
+                  className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
+                  htmlFor="event-title"
+                >
                   Event Title
                 </label>
                 <input
@@ -177,9 +180,9 @@ const Calendar: React.FC = () => {
               </div>
             </div>
             <div className="mt-6">
-              <label className="mb-4 block font-medium text-gray-700 text-sm dark:text-gray-400">
+              <span className="mb-4 block font-medium text-gray-700 text-sm dark:text-gray-400">
                 Event Color
-              </label>
+              </span>
               <div className="flex flex-wrap items-center gap-4 sm:gap-5">
                 {Object.entries(calendarsEvents).map(([key, value]) => (
                   <div className="n-chk" key={key}>
@@ -217,7 +220,10 @@ const Calendar: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400">
+              <label
+                className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
+                htmlFor="event-start-date"
+              >
                 Enter Start Date
               </label>
               <div className="relative">
@@ -232,7 +238,10 @@ const Calendar: React.FC = () => {
             </div>
 
             <div className="mt-6">
-              <label className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400">
+              <label
+                className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
+                htmlFor="event-end-date"
+              >
                 Enter End Date
               </label>
               <div className="relative">

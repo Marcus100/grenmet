@@ -18,6 +18,7 @@
     "pdf:morning": "node scripts/export-pdf.mjs /pdf/morning artifacts/pdf/morning.pdf"
   },
   "dependencies": {
+    "@grenmet/ui": "workspace:*",
     "drizzle-orm": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",

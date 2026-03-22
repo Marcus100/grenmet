@@ -10,19 +10,19 @@ function getAllowedReturnHosts(): Set<string> {
   return new Set(
     env.AUTH_ALLOWED_RETURN_HOSTS.split(",")
       .map((value: string) => value.trim())
-      .filter(Boolean),
+      .filter(Boolean)
   );
 }
 
 export function readQueryParam(
-  value: string | string[] | undefined,
+  value: string | string[] | undefined
 ): string | null {
   const first = firstValue(value);
   return first ? first.trim() : null;
 }
 
 export function getSafeReturnTo(
-  returnTo: string | null | undefined,
+  returnTo: string | null | undefined
 ): string | null {
   if (!returnTo) return null;
 
@@ -45,7 +45,7 @@ export function getSafeReturnTo(
 
 export function getRequestedAppName(
   requestedApp: string | null | undefined,
-  returnTo: string | null | undefined,
+  returnTo: string | null | undefined
 ): string | null {
   const explicitName = requestedApp?.trim();
   if (explicitName) return explicitName;

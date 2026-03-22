@@ -58,11 +58,17 @@ export const Modal: React.FC<ModalProps> = ({
   return (
     <div className="modal fixed inset-0 z-99999 flex items-center justify-center overflow-y-auto">
       {!isFullscreen && (
+        // biome-ignore lint/a11y/useKeyWithClickEvents: modal backdrop click-to-close is supplementary; Escape key handler covers keyboard dismissal
+        // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a presentational overlay, not an interactive control
+        // biome-ignore lint/a11y/noNoninteractiveElementInteractions: backdrop click-to-close is a progressive enhancement
         <div
           className="fixed inset-0 h-full w-full bg-gray-400/50 backdrop-blur-[32px]"
           onClick={onClose}
         />
       )}
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: stopPropagation on modal content is not a user interaction */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: this div is a layout wrapper, not an interactive element */}
+      {/* biome-ignore lint/a11y/noNoninteractiveElementInteractions: stopPropagation prevents backdrop dismissal, not a user-facing interaction */}
       <div
         className={`${contentClasses}  ${className}`}
         onClick={(e) => e.stopPropagation()}
@@ -72,8 +78,10 @@ export const Modal: React.FC<ModalProps> = ({
           <button
             className="absolute top-3 right-3 z-999 flex h-9.5 w-9.5 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 sm:top-6 sm:right-6 sm:h-11 sm:w-11 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
             onClick={onClose}
+            type="button"
           >
             <svg
+              aria-hidden="true"
               fill="none"
               height="24"
               viewBox="0 0 24 24"

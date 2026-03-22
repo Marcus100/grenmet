@@ -4,10 +4,10 @@ import { useTheme as useNextTheme } from "next-themes";
 
 type Theme = "light" | "dark";
 
-type ThemeContextType = {
+interface ThemeContextType {
   theme: Theme;
   toggleTheme: () => void;
-};
+}
 
 /**
  * Custom hook that wraps next-themes for backwards compatibility.
