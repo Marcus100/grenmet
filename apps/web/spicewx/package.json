@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@grenmet/ui": "workspace:*",
-    "@headlessui/react": "^2.2.9",
+    "@headlessui/react": "catalog:",
     "@heroicons/react": "^2.2.0",
     "next": "catalog:",
     "react": "catalog:",
@@ -28,7 +28,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "babel-plugin-react-compiler": "1.0.0",
+    "babel-plugin-react-compiler": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }

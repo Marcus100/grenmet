@@ -1,7 +1,8 @@
-export type {
+import type {
   SessionAccessTokenResponse,
   SessionLoginResponse,
 } from "@grenmet/auth";
+export type { SessionAccessTokenResponse, SessionLoginResponse };
 export { AuthApiError, isAuthApiError } from "@grenmet/auth";
 
 import {

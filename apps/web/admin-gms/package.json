@@ -12,7 +12,10 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
@@ -40,7 +43,7 @@
     "flatpickr": "^4.6.13",
     "lucide-react": "catalog:",
     "next": "catalog:",
-    "next-themes": "^0.4.6",
+    "next-themes": "catalog:",
     "react": "catalog:",
     "react-apexcharts": "^1.8.0",
     "react-dom": "catalog:",

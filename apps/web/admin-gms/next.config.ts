@@ -4,6 +4,7 @@ const SVG_REGEX = /\.svg$/;
 
 const nextConfig: NextConfig = {
   /* config options here */
+  reactCompiler: true,
   webpack(config) {
     config.module.rules.push({
       test: SVG_REGEX,
