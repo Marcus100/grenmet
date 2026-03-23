@@ -50,5 +50,19 @@ catalog:
   zod: "^4.3.5"
   "@t3-oss/env-nextjs": "^0.13.10"
 
+  # React Compiler — used in auth, hr, spicewx, wxproducts
+  babel-plugin-react-compiler: "^1.0.0"
+
+  # Themes
+  next-themes: "^0.4.6"
+
+  # Headless UI
+  "@headlessui/react": "^2.2.9"
+
+  # Database (pg) — used in wxwatch and wxproducts
+  pg: "^8.17.1"
+  "@types/pg": "^8.16.0"
+  dotenv-cli: "^11.0.0"
+
   # MDX — keep in sync with next catalog version
-  "@next/mdx": "16.1.6"
+  "@next/mdx": "16.1.1"
