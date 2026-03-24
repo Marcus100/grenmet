@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "SpiceWx — Grenada Meteorological Service",
+  title: "Grenada Meteorological Service",
   description:
     "Official weather forecasts, alerts, and bulletins for Grenada, Carriacou & Petite Martinique.",
 };
