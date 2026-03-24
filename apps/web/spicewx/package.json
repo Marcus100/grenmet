@@ -15,12 +15,18 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@base-ui-components/react": "catalog:",
     "@grenmet/ui": "workspace:*",
     "@headlessui/react": "catalog:",
     "@heroicons/react": "^2.2.0",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
-    "react-dom": "catalog:"
+    "react-dom": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tw-animate-css": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",

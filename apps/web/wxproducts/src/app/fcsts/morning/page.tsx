@@ -16,7 +16,12 @@ export default function MorningForecastPage() {
     weatherDetails: "Brief isolated showers are possible during the period.",
     maxTemperature: "31.0°C",
     minTemperature: "24.0°C",
-    wind: "East-northeast to east-southeast at 12 to 22 mph.",
+    windDirectionMin: "ENE",
+    windDirectionMax: "ESE",
+    windSpeedMin: "12",
+    windSpeedMax: "22",
+    windSpeedUnit: "mph",
+    windSpeedGusting: "",
     seas: "Moderate to slightly rough.",
     marineAdvisory:
       "Small craft operators should exercise caution in open waters.",
@@ -164,15 +169,87 @@ export default function MorningForecastPage() {
           <div>
             <label
               className="mb-1 block font-medium text-sm text-zinc-900"
-              htmlFor="wind"
+              htmlFor="windDirectionMin"
             >
-              Wind
+              Wind Direction Min
             </label>
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
-              id="wind"
-              onChange={(event) => updateField("wind", event.target.value)}
-              value={form.wind}
+              id="windDirectionMin"
+              onChange={(event) =>
+                updateField("windDirectionMin", event.target.value)
+              }
+              value={form.windDirectionMin}
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="windDirectionMax"
+            >
+              Wind Direction Max
+            </label>
+            <input
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="windDirectionMax"
+              onChange={(event) =>
+                updateField("windDirectionMax", event.target.value)
+              }
+              value={form.windDirectionMax}
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="windSpeedMin"
+            >
+              Wind Speed Min
+            </label>
+            <input
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="windSpeedMin"
+              type="number"
+              onChange={(event) =>
+                updateField("windSpeedMin", event.target.value)
+              }
+              value={form.windSpeedMin}
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="windSpeedMax"
+            >
+              Wind Speed Max
+            </label>
+            <input
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="windSpeedMax"
+              type="number"
+              onChange={(event) =>
+                updateField("windSpeedMax", event.target.value)
+              }
+              value={form.windSpeedMax}
+            />
+          </div>
+
+          <div>
+            <label
+              className="mb-1 block font-medium text-sm text-zinc-900"
+              htmlFor="windSpeedGusting"
+            >
+              Wind Speed Gusting
+            </label>
+            <input
+              className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
+              id="windSpeedGusting"
+              onChange={(event) =>
+                updateField("windSpeedGusting", event.target.value)
+              }
+              value={form.windSpeedGusting}
             />
           </div>
 
@@ -210,7 +287,11 @@ export default function MorningForecastPage() {
         </form>
 
         <div className="mx-auto max-w-4xl">
-          <MorningForecast {...form} />
+          <MorningForecast
+            {...form}
+            windSpeedMin={Number(form.windSpeedMin)}
+            windSpeedMax={Number(form.windSpeedMax)}
+          />
         </div>
       </div>
     </main>

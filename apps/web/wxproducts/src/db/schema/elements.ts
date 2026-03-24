@@ -4,16 +4,13 @@
 
 import type { ISODateString, LocalTimeString } from "@/db/schema/primitives";
 
-export interface ForecastSpeedRange {
-  max: number;
-  min: number;
-  unit: "mph" | "kt";
-}
-
 export interface ElementWind {
-  direction_text: string;
-  gusts_text?: string | null;
-  speed_range: ForecastSpeedRange;
+  direction_min: string;
+  direction_max: string;
+  speed_min: number;
+  speed_max: number;
+  speed_unit: "mph" | "kt";
+  speed_gusting?: string | null;
 }
 
 export interface ElementSeas {
@@ -73,18 +70,15 @@ import {
   localTimeStringSchema,
 } from "@/db/schema/zod-primitives";
 
-export const forecastSpeedRangeSchema = z.object({
-  min: z.number(),
-  max: z.number(),
-  unit: z.enum(["mph", "kt"]),
-});
-
 export const elementWeatherSchema = z.object({ text: z.string() });
 
 export const elementWindSchema = z.object({
-  direction_text: z.string(),
-  speed_range: forecastSpeedRangeSchema,
-  gusts_text: z.string().nullable().optional(),
+  direction_min: z.string(),
+  direction_max: z.string(),
+  speed_min: z.number(),
+  speed_max: z.number(),
+  speed_unit: z.enum(["mph", "kt"]),
+  speed_gusting: z.string().nullable().optional(),
 });
 
 export const elementSeasSchema = z.object({
