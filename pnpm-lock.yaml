@@ -556,9 +556,6 @@ importers:
       tailwind-merge:
         specifier: 'catalog:'
         version: 2.6.1
-      tw-animate-css:
-        specifier: 'catalog:'
-        version: 1.4.0
     devDependencies:
       '@grenmet/tsconfig':
         specifier: workspace:*
