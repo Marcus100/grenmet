@@ -43,9 +43,12 @@ export const gmsMorningForecastExample: MorningForecastProduct = {
         text: "Generally fair, windy and hazy, becoming partly cloudy at times with a few light showers.",
       },
       wind: {
-        direction_text: "E'ly to SE'ly",
-        speed_range: { min: 15, max: 25, unit: "mph" },
-        gusts_text: "gusting higher at times",
+        direction_min: "E",
+        direction_max: "SE",
+        speed_min: 15,
+        speed_max: 25,
+        speed_unit: "mph",
+        speed_gusting: "gusting higher at times",
       },
       seas: {
         text: "Moderate with waves 5–7 feet in open waters.",

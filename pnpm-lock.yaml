@@ -523,6 +523,9 @@ importers:
 
   apps/web/spicewx:
     dependencies:
+      '@base-ui-components/react':
+        specifier: 'catalog:'
+        version: 1.0.0-rc.0(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@grenmet/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
@@ -532,6 +535,15 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.3)
+      class-variance-authority:
+        specifier: 'catalog:'
+        version: 0.7.1
+      clsx:
+        specifier: 'catalog:'
+        version: 2.1.1
+      lucide-react:
+        specifier: 'catalog:'
+        version: 0.562.0(react@19.2.3)
       next:
         specifier: 'catalog:'
         version: 16.1.1(@babel/core@7.28.6)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -541,6 +553,12 @@ importers:
       react-dom:
         specifier: 'catalog:'
         version: 19.2.3(react@19.2.3)
+      tailwind-merge:
+        specifier: 'catalog:'
+        version: 2.6.1
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
     devDependencies:
       '@grenmet/tsconfig':
         specifier: workspace:*

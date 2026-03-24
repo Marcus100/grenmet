@@ -96,7 +96,12 @@ interface MorningForecastProps {
 
   whatToExpect?: string[];
 
-  wind?: string;
+  windDirectionMin?: string;
+  windDirectionMax?: string;
+  windSpeedMin?: number;
+  windSpeedMax?: number;
+  windSpeedUnit?: string;
+  windSpeedGusting?: string;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -255,7 +260,12 @@ export default function MorningForecast({
   maxTemperature = "31°C",
   minTemperature = "24°C",
 
-  wind = "ENE'ly to ESE'ly @ 12-22 mph",
+  windDirectionMin = "ENE",
+  windDirectionMax = "ESE",
+  windSpeedMin = 12,
+  windSpeedMax = 22,
+  windSpeedUnit = "mph",
+  windSpeedGusting,
 
   seas = "Moderate to slightly rough",
   waveHeights = "6-8 ft",
@@ -383,7 +393,15 @@ export default function MorningForecast({
             label="Minimum Temperature"
             value={minTemperature}
           />
-          <MetricItem icon={Wind} label="Wind" value={wind} />
+          <MetricItem
+            icon={Wind}
+            label="Wind"
+            value={
+              windDirectionMin && windDirectionMax && windSpeedMin != null && windSpeedMax != null
+                ? `${windDirectionMin}'ly to ${windDirectionMax}'ly @ ${windSpeedMin}–${windSpeedMax} ${windSpeedUnit ?? "mph"}${windSpeedGusting ? `, ${windSpeedGusting}` : ""}`
+                : undefined
+            }
+          />
           <MetricItem icon={Anchor} label="Sea State" value={seas} />
 
           <MetricItem icon={Waves} label="Wave Heights" value={waveHeights} />

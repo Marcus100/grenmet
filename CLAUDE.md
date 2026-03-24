@@ -6,13 +6,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from the root.
 
-- `apps/web/*` — Next.js 16 apps (React 19, TypeScript strict)
-- `apps/api/honoapi` — Hono Node.js API
-- `apps/api/fastapi` — FastAPI backend (Docker only)
+- `apps/web/*` — Next.js 16.1.1 apps (React 19, TypeScript strict)
+- `apps/api/honoapi` — Hono Node.js API (`@grenmet/api-hono`) — currently a stub
+- `apps/api/fastapi` — FastAPI backend (Docker only, Python — not in pnpm workspace)
 - `packages/api-client` — Kubb-generated TypeScript client from FastAPI OpenAPI
 - `packages/auth` — Shared auth (`@grenmet/auth`)
+- `packages/ui` — Shared UI component library (`@grenmet/ui`) — shadcn-style primitives built on Base UI
 - `packages/tsconfig` — Base tsconfig
-- `packages/ui` — Placeholder
+
+### App directory → package name → port
+
+| Directory | Package name | Port |
+|---|---|---|
+| `apps/web/admin-gms` | `@grenmet/web-admin` | 3001 |
+| `apps/web/auth` | `@grenmet/web-auth` | 3000 |
+| `apps/web/wxwatch` | `@grenmet/web-wxwatch` | 3002 |
+| `apps/web/hurricaneplan` | `@grenmet/web-hurricaneplan` | 3003 |
+| `apps/web/spicewx` | `@grenmet/web-spicewx` | 3004 |
+| `apps/web/wxproducts` | `@grenmet/web-wxproducts` | 3005 |
+| `apps/web/hr` | `@grenmet/web-hr` | 3006 |
+| `apps/api/honoapi` | `@grenmet/api-hono` | — |
 
 ## Commands
 
@@ -39,6 +52,8 @@ pnpm dev:web:hr          # hr on :3006
 pnpm dev:honoapi         # Hono API
 ```
 
+> Note: FastAPI and Postgres run in Docker via `pnpm start`. Web apps that call FastAPI need the Docker services running.
+
 ### Quality
 
 ```bash
@@ -49,30 +64,34 @@ pnpm type-check      # TypeScript type checking across all packages
 pnpm lint            # Lint only
 ```
 
-Run against a single package with Turbo filter:
+Run against a single package with Turbo filter (use the package name from the table above):
 
 ```bash
 turbo run check --filter=@grenmet/web-admin
 turbo run type-check --filter=@grenmet/web-wxproducts
 ```
 
+**After making edits:** always run `pnpm fix` (auto-fix lint/format) then `pnpm type-check` (or the filtered variant) before finishing. Do not leave type errors or lint violations.
+
 ### Build & Generate
 
 ```bash
 pnpm build                    # Build all packages
 pnpm generate:api-client      # Regenerate TypeScript client from FastAPI OpenAPI schema
-pnpm clean                    # git clean -xdf node_modules
+pnpm clean                    # git clean -xdf node_modules (destructive — removes all untracked files)
 ```
 
 ### Testing
 
 ```bash
-# Run tests for a specific app (e.g. admin-gms uses Vitest)
+# Run tests for a specific app (admin-gms has Vitest + Playwright)
 turbo run test --filter=@grenmet/web-admin
 
 # Run a single test file (from within the app directory)
 pnpm vitest run src/path/to/test.test.ts
 ```
+
+Only `admin-gms` currently has tests (Vitest unit + Playwright e2e). No other web apps have test suites.
 
 ### Database (wxwatch / wxproducts only)
 
@@ -95,10 +114,27 @@ pnpm status   # Show all container statuses
 
 `packages/auth` provides both client and server exports:
 
-- `@grenmet/auth` — `SessionUserProvider`, `useSessionUser`, `signOut` (client components)
-- `@grenmet/auth/server` — server-side helpers
+- `@grenmet/auth` — `SessionUserProvider`, `useSessionUser`, `signOut()`, `signOutEverywhere()` (client)
+- `@grenmet/auth/server` — `authApiFetch()`, cookie helpers (`readSessionCookie`, `writeSessionCookie`, `clearSessionCookie`), session helpers (`createSession`, `exchangeSessionForAccessToken`, `refreshSession`, `logoutSession`), redirect helpers (`buildSharedSignInUrl`, `getSafeLocalReturnTo`)
 
-The `web-auth` app (`:3000`) handles sign-in/sign-up; other apps delegate to it via redirects. Session cookies are shared across apps.
+The `web-auth` app (`:3000`) is the only app that handles sign-in/sign-up. All other apps delegate to it via redirects. Session cookies are shared across apps.
+
+**Apps that delegate auth** (redirect to `web-auth` for login): `hr`, `hurricaneplan`, `spicewx`, `wxwatch`
+**Apps that integrate auth deeply** (use `@grenmet/auth/server` directly): `admin-gms`, `wxwatch`
+
+### Shared UI (`@grenmet/ui`)
+
+All web apps import from `@grenmet/ui`. Import pattern:
+
+```ts
+import { Button } from "@grenmet/ui/components/ui/button"
+```
+
+Available components: accordion, alert, avatar, badge, button, card, checkbox, dialog, dropdown-menu, input, label, popover, radio-group, select, separator, sheet, skeleton, switch, table, tabs, textarea, tooltip.
+
+Utility: `import { cn } from "@grenmet/ui/lib/utils"` (tailwind-merge + clsx)
+
+Built on `@base-ui-components/react`, `class-variance-authority`, `lucide-react`, `tailwind-merge`.
 
 ### API client generation
 
@@ -110,32 +146,81 @@ The `web-auth` app (`:3000`) handles sign-in/sign-up; other apps delegate to it 
 
 The client exposes TypeScript types, React Query hooks, a Fetch client, and Zod schemas.
 
+### FastAPI backend
+
+Covers two domains:
+
+- **Auth** (`/api/v1/auth/`, `/api/v1/login/`) — users, roles, permissions, sessions, password recovery
+- **HR** (`/api/v1/hr/`) — timesheets, rosters, shifts, leave requests, shift swaps, employment profiles, workflows
+
+The `web-hr` and `web-admin` apps consume HR endpoints via `@grenmet/api-client`. FastAPI uses PostgreSQL via SQLModel/asyncpg + Alembic migrations.
+
+### Hono API
+
+Currently a stub (`GET /` → "Hello Hono!"). Not used by any web app yet.
+
+### Database schemas
+
+**wxwatch** (`src/db/schema.ts`) — single table `weatherImages` for storing scraped weather image metadata (paths, checksums, timestamps, JSONB raw metadata, etc.)
+
+**wxproducts** (`src/db/schema/`) — modular domain schema:
+- Forecast products: `morning`, `midday`, `evening` (GMS daily forecasts)
+- Aviation: `metarSpeci`, `taf`
+- Surface obs: `synop`
+- Other products: `marine`, `cap`, `bufr`, `ibf`
+- Supporting types: `primitives`, `zod-primitives`, `iwxxm-primitives`, `elements`, `weather`, `product-metadata`, `suite-types`
+- All exported from `src/db/schema/index.ts`
+
 ### Linting & formatting
 
-Biome via [Ultracite](https://ultracite.dev) presets (`ultracite/biome/core`, `/react`, `/next`). Key rules:
-
-- `unknown` over `any`
-- React 19: pass `ref` as prop, not `forwardRef`
-- Use Server Components for async data fetching
-
-After edits, run `pnpm fix` or `pnpm check:fix` to auto-fix.
+Biome via [Ultracite](https://ultracite.dev) presets (`ultracite/biome/core`, `/react`, `/next`). Run `pnpm fix` or `pnpm check:fix` to auto-fix.
 
 ### Special app notes
 
-- **hurricaneplan**: Uses `--webpack` (not turbopack). Has MDX, Shiki syntax highlighting.
-- **wxproducts**: Has Playwright PDF export (`pnpm pdf:morning`).
-- **wxwatch / wxproducts**: Each has its own Drizzle ORM + Postgres connection (separate from FastAPI DB).
-- **admin-gms**: Heaviest app — FullCalendar, ApexCharts, TanStack Form/Query/Table, Radix UI, Vitest + Playwright.
-- **All web apps**: React Compiler enabled in `next.config.ts` (or `next.config.mjs` for hurricaneplan).
+- **hurricaneplan**: Uses `--webpack` (not turbopack) for both dev and build. Has MDX with custom remark/rehype pipeline, Shiki syntax highlighting, Algolia autocomplete, Zustand, framer-motion. Config: `next.config.mjs` (not `.ts`).
+- **wxproducts**: Has Playwright PDF export (`pnpm pdf:morning`). Has its own Drizzle ORM + Postgres DB.
+- **wxwatch**: Has its own Drizzle ORM + Postgres DB (separate from FastAPI's DB and wxproducts' DB).
+- **admin-gms**: Heaviest app — FullCalendar, ApexCharts, TanStack Form/Query/Table/Virtual, react-dropzone, sonner, react-error-boundary. Has Vitest unit tests and Playwright e2e tests.
+- **All web apps**: React Compiler enabled via `babel-plugin-react-compiler` in `next.config.ts` (or `next.config.mjs` for hurricaneplan).
 
 ### Environment variables
 
-Each app has a `.env.example`. Key patterns:
+Each app has a `.env.example`. Access env vars via the typed `env.ts` file in each app using `@t3-oss/env-nextjs` — never access `process.env` directly.
 
-- `NEXT_PUBLIC_*` vars are exposed to the browser (listed in `turbo.json` globalEnv)
-- Auth vars: `AUTH_API_URL`, `AUTH_API_V1_STR`, `SESSION_COOKIE_NAME`
-- FastAPI vars: `POSTGRES_*`, `SECRET_KEY`, `RESEND_API_KEY`, `FIRST_SUPERUSER`
+**Auth-delegating apps** (`auth`, `hr`, `hurricaneplan`, `spicewx`):
+```
+AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, AUTH_ALLOWED_RETURN_HOSTS
+```
+
+**wxwatch** (auth + own DB):
+```
+AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, SESSION_COOKIE_DOMAIN, DB_URL
+```
+
+**wxproducts** (own DB only):
+```
+DATABASE_URL
+```
+
+**admin-gms** (auth + FastAPI):
+```
+AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, NEXT_PUBLIC_API_URL, RESEND_API_KEY
+```
+
+**FastAPI** (Docker, via infra .env): `POSTGRES_*`, `SECRET_KEY`, `FIRST_SUPERUSER`, `RESEND_API_KEY`, `SENTRY_DSN`
 
 ### Dependency versions (pnpm catalog)
 
 Canonical versions are pinned in `pnpm-workspace.yaml` under `catalog:`. Use `catalog:` references in `package.json` rather than hardcoding versions for shared deps (React, Next.js, TypeScript, Tailwind, TanStack, Drizzle, Zod, etc.).
+
+## Code conventions
+
+- **No `any`** — use `unknown` and narrow. Biome enforces this.
+- **No `forwardRef`** — React 19: pass `ref` as a prop directly.
+- **Server Components by default** — only add `"use client"` when you need interactivity or browser hooks.
+- **Async data fetching in Server Components** — do not use React Query for data that can be fetched server-side.
+- **`catalog:` for shared deps** — never hardcode versions for deps that exist in the catalog.
+- **Path aliases** — use `@/` (maps to `src/`) rather than relative `../../` for cross-directory imports.
+- **Env vars via `@t3-oss/env-nextjs`** — use the typed `env` object from the app's `env.ts`, not `process.env`.
+- **`@grenmet/ui` for UI primitives** — prefer shared components over reimplementing. Import as `@grenmet/ui/components/ui/<name>`.
+- **Generated files are committed** — `packages/api-client/src/gen/` is checked in. Never edit manually; always regenerate via `pnpm generate:api-client`.

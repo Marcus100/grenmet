@@ -27,7 +27,11 @@
       "Bash(turbo run:*)",
       "Bash(pnpm turbo:*)",
       "Bash(pnpm biome:*)",
-      "Bash(pnpm check:*)"
+      "Bash(pnpm check:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm check:fix --filter=@grenmet/web-spicewx)",
+      "Bash(grep -v \"^$\")"
     ]
   }
 }
