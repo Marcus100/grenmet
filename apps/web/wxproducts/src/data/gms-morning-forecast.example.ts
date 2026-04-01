@@ -35,12 +35,12 @@ export const gmsMorningForecastExample: MorningForecastProduct = {
     cap_bundle_id: null,
     related_product_ids: ["GMS-MARINE-2026-02-23T05:00-04:00"],
   },
-  payload: {
+  forecast: {
     headline:
       "Generally fair, windy and hazy; partly cloudy at times with a few light showers.",
     elements: {
       weather: {
-        text: "Generally fair, windy and hazy, becoming partly cloudy at times with a few light showers.",
+        text: "Generally fair, windy and hazy, becoming partly cloudy at times with a few light showers mainly during the afternoon.",
       },
       wind: {
         direction_min: "E",
@@ -48,14 +48,15 @@ export const gmsMorningForecastExample: MorningForecastProduct = {
         speed_min: 15,
         speed_max: 25,
         speed_unit: "mph",
-        speed_gusting: "gusting higher at times",
+        speed_gusting: "gusting to 30 mph at times",
       },
       seas: {
-        text: "Moderate with waves 5–7 feet in open waters.",
+        text: "Moderate with waves 5–7 feet in northeasterly swells in open waters.",
         wave_max: { value: 7, unit: "ft", context: "open_waters" },
       },
       visibility: {
-        text: "Good overall; may be reduced at times by haze.",
+        text: "Good (greater than 5 nautical miles); may be reduced at times by haze and dust.",
+        min: { value: 5, unit: "nm" },
       },
       temperature: {
         max_c: 30.5,
@@ -64,17 +65,22 @@ export const gmsMorningForecastExample: MorningForecastProduct = {
       tides: {
         events: [
           { type: "high", time_local: "07:00" },
-          { type: "low", time_local: "14:00" },
+          { type: "low", time_local: "13:30" },
+          { type: "high", time_local: "19:45" },
+          { type: "low", time_local: "01:15" },
         ],
       },
       sun_moon: {
         sunrise_local: "06:25",
         sunset_local: "18:15",
+        moon_phase_last: { phase: "New Moon", date: "2026-02-17" },
+        moon_phase_next: { phase: "First Quarter", date: "2026-02-24" },
       },
     },
     product_notes: {
       advisories_text: [
-        "Small craft operators should consult the Marine Bulletin.",
+        "Small craft operators should consult the Marine Bulletin before departure.",
+        "Haze and dust may affect visibility; motorists and mariners should exercise caution.",
       ],
     },
   },

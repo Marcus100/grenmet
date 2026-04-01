@@ -31,32 +31,32 @@ const leftColumnMetrics: WeatherMetric[] = [
   },
   {
     label: "Feels Like",
-    value: "28°",
+    value: "-",
     icon: Thermometer,
   },
   {
     label: "Dew Point",
-    value: "23°",
+    value: "-",
     icon: Droplet,
   },
   {
     label: "UV Index",
-    value: "0",
+    value: "-",
     icon: Sun,
   },
   {
     label: "Cloud Cover",
-    value: "59%",
+    value: "-",
     icon: Cloud,
   },
   {
     label: "Sunrise",
-    value: "6:22 am",
+    value: "-",
     icon: Sunrise,
   },
   {
     label: "Air Quality",
-    value: "Good",
+    value: "-",
     icon: Flower2,
     showInfo: true,
   },
@@ -65,37 +65,37 @@ const leftColumnMetrics: WeatherMetric[] = [
 const rightColumnMetrics: WeatherMetric[] = [
   {
     label: "Rain",
-    value: "0.0 mm",
+    value: "-",
     icon: CloudRain,
   },
   {
     label: "Pressure",
-    value: "1013.21 mb",
+    value: "-",
     icon: Gauge,
   },
   {
     label: "Humidity",
-    value: "84%",
+    value: "-",
     icon: Droplet,
   },
   {
     label: "Visibility",
-    value: "9.66 km",
+    value: "-",
     icon: Eye,
   },
   {
     label: "Wind",
-    value: "E 8 kph",
+    value: "-",
     icon: Wind,
   },
   {
     label: "Sunset",
-    value: "5:48 pm",
+    value: "-",
     icon: Sunset,
   },
   {
     label: "AQI",
-    value: "26",
+    value: "-",
     icon: AirVent,
   },
 ];
@@ -139,7 +139,7 @@ interface WeatherDashboardProps {
 }
 
 export default function Hourly({
-  title = "Showers in the Vicinity",
+  title = "Current Conditions",
 }: WeatherDashboardProps) {
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">

@@ -14,13 +14,31 @@ export const isoDateTimeStringSchema = z.string().regex(isoDateTimeRegex);
 export const isoDateStringSchema = z.string().regex(isoDateRegex);
 export const localTimeStringSchema = z.string().regex(localTimeRegex);
 
+export const compassDirectionSchema = z.enum([
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+  "Variable",
+  "Calm",
+]);
+
 export const productTypeSchema = z.enum([
   "marine_bulletin",
   "morning_forecast",
   "midday_weather_report",
   "evening_forecast",
   "tropical_weather_outlook",
-  "metar",
-  "speci",
-  "taf",
 ]);

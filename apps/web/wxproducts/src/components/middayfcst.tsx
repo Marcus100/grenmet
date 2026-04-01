@@ -21,30 +21,39 @@ interface MiddayReportProps {
   year?: string;
 }
 
+import { gmsMiddayWeatherReportExample } from "@/data/gms-midday-weather-report.example";
+import type { MiddayForecastProduct } from "@/db/schema";
+import { adaptMiddayForecast } from "@/lib/adapters";
+
 export default function MiddayFcst({
-  organization = "Meteorological Services, MBIA",
-  documentNumber = "F 750 - 03",
-  year = "2020",
-  date = "Saturday, December 20, 2025",
-  location = "the state of Grenada",
-  airportName = "Maurice Bishop International Airport",
-  airTemperature = "30.0°C",
-  validity = "This afternoon & tonight (12:00 pm until 6:00 am)",
-  weather = "Partly cloudy and breezy with light to moderate isolated showers.",
-  generalWarning = "None",
-  wind = "NE'ly to E'ly @ 14 - 24 mph",
-  seas = "Moderate to slightly rough with waves 6 to 8 ft in NE'ly to E'ly swells.",
-  marineWarning = "Marine advisory remains in effect!",
-  tideHigh = "3:15 pm",
-  tideLow = "11:00 pm",
-  sunset = "5:47",
-  sunrise = "6:23",
-  wordOfTheDay = "MIXED CLOUD",
-  wordOfTheDayDefinition = "A cloud containing both water drops and ice crystals.",
-  forecasterName = "Vondi Cyrus",
-}: MiddayReportProps) {
-  const hasGeneralWarning = generalWarning && generalWarning !== "None";
-  const hasMarineWarning = marineWarning && marineWarning.length > 0;
+  product = gmsMiddayWeatherReportExample,
+}: {
+  product?: MiddayForecastProduct;
+}) {
+  const {
+    organization,
+    documentNumber,
+    year,
+    date,
+    location,
+    airportName,
+    airTemperature,
+    validity,
+    weather,
+    wind,
+    seas,
+    tideHigh,
+    tideLow,
+    sunset,
+    sunrise,
+    wordOfTheDay,
+    wordOfTheDayDefinition,
+    forecasterName,
+  } = adaptMiddayForecast(product);
+  const hasGeneralWarning = false;
+  const hasMarineWarning = false;
+  const generalWarning = "None";
+  const marineWarning = "Marine advisory may remain in effect.";
 
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">

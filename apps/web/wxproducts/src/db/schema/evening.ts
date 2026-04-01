@@ -1,5 +1,5 @@
 /**
- * Evening forecast payload type (multi-day periods) and Zod schema.
+ * Evening forecast type (multi-day periods) and Zod schema.
  * For a full product example, import gmsEveningForecastExample from @/data/gms-evening-forecast.example.
  */
 
@@ -14,7 +14,7 @@ import {
   isoDateTimeStringSchema,
 } from "@/db/schema/zod-primitives";
 
-export interface EveningPayload {
+export interface EveningForecast {
   headline: string;
   periods: {
     night: {
@@ -44,10 +44,7 @@ export interface EveningPayload {
   };
 }
 
-/** Alias for naming consistency with EveningForecastProduct and example usage. */
-export type EveningForecastPayload = EveningPayload;
-
-export type EveningForecastProduct = Product<EveningPayload>;
+export type EveningForecastProduct = Product<EveningForecast>;
 
 const periodElementSchema = z.object({
   label: z.string(),
@@ -62,8 +59,8 @@ const periodElementSchema = z.object({
   elements: elementsBlockSchema,
 });
 
-export const eveningPayloadSchema = z.object({
-  headline: z.string(),
+export const eveningForecastSchema = z.object({
+  headline: z.string().min(1).max(300),
   periods: z.object({
     night: periodElementSchema,
     day_1: periodElementSchema,
@@ -72,4 +69,30 @@ export const eveningPayloadSchema = z.object({
   }),
 });
 
-export const eveningProductSchema = productSchema(eveningPayloadSchema);
+export const eveningProductSchema = productSchema(eveningForecastSchema);
+
+// ─── Drizzle ORM table ────────────────────────────────────────────────────────
+
+import { pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { timestamps } from "@/db/schema/db-helpers";
+import { products } from "@/db/schema/product-metadata";
+
+export const eveningProducts = pgTable(
+  "evening_products",
+  (t) => ({
+    id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
+    productRef: t
+      .integer()
+      .notNull()
+      .references(() => products.id),
+    headline: t.text().notNull(),
+    periods: t.jsonb().$type<EveningForecast["periods"]>().notNull(),
+    ...timestamps,
+  }),
+  (table) => [
+    uniqueIndex("evening_products_product_ref_idx").on(table.productRef),
+  ]
+);
+
+export type EveningProductRow = typeof eveningProducts.$inferSelect;
+export type EveningProductRowInsert = typeof eveningProducts.$inferInsert;

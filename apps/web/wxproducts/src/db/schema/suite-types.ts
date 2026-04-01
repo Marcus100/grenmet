@@ -1,30 +1,34 @@
 /**
- * GMS Daily Product Suite type: metadata, catalog, cross_cutting (IBF/CAP), and products.
+ * GMS Daily Product Suite — metadata, catalog, and authored forecast products.
+ *
+ * IBF assessments and CAP alerts are no longer embedded here; they live in
+ * dedicated DB tables (ibf_assessments, cap_alerts, cap_bundles) and are
+ * linked via FK to products.product_id.
  */
 
-import type { CAPBundle } from "@/db/schema/cap";
-import type { EveningPayload } from "@/db/schema/evening";
-import type {
-  IBFAssessment,
-  ImpactSeverity,
-  LikelihoodLevel,
-  ResponseLevel,
-  Sector,
-} from "@/db/schema/ibf";
-import type { MarinePayload } from "@/db/schema/marine";
-import type { MiddayPayload } from "@/db/schema/midday";
-import type { MorningPayload } from "@/db/schema/morning";
-import type { TropicalOutlookPayload } from "@/db/schema/outlook";
+import { z } from "zod";
+import type { EveningForecast } from "@/db/schema/evening";
+import { eveningForecastSchema } from "@/db/schema/evening";
+import type { MarineForecast } from "@/db/schema/marine";
+import { marineForecastSchema } from "@/db/schema/marine";
+import type { MiddayForecast } from "@/db/schema/midday";
+import { middayForecastSchema } from "@/db/schema/midday";
+import type { MorningForecast } from "@/db/schema/morning";
+import { morningForecastSchema } from "@/db/schema/morning";
+import type { TropicalOutlookForecast } from "@/db/schema/outlook";
+import { tropicalOutlookForecastSchema } from "@/db/schema/outlook";
 import type { ProductType } from "@/db/schema/primitives";
 import type { Product } from "@/db/schema/product-metadata";
+import { productSchema } from "@/db/schema/product-metadata";
+import { productTypeSchema } from "@/db/schema/zod-primitives";
 
 export interface Suite {
   catalog: {
     product_types_supported: Array<{
-      product_type: ProductType;
-      payload_schema: string;
-      ibf_schema: string;
       cap_schema: string;
+      ibf_schema: string;
+      payload_schema: string;
+      product_type: ProductType;
     }>;
     shared_elements_standard: {
       elements_block: string[];
@@ -32,95 +36,59 @@ export interface Suite {
     };
   };
 
-  cross_cutting: {
-    ibf: {
-      ibf_framework: {
-        name: string;
-        version: string;
-        required_components_for_all_products: string[];
-        scales: {
-          likelihood_levels: LikelihoodLevel[];
-          impact_severity_levels: ImpactSeverity[];
-          response_levels: ResponseLevel[];
-        };
-        sectors: Sector[];
-      };
-      assessments: IBFAssessment[];
-    };
-
-    cap: {
-      cap_generation_policy: {
-        generate_for: Array<"warning" | "watch" | "advisory">;
-        do_not_generate_for: string[];
-        relationship_to_ibf: string;
-      };
-      alert_bundles: CAPBundle[];
-    };
-  };
-
   products: Array<
-    | Product<MarinePayload>
-    | Product<MorningPayload>
-    | Product<MiddayPayload>
-    | Product<EveningPayload>
-    | Product<TropicalOutlookPayload>
+    | Product<EveningForecast>
+    | Product<MarineForecast>
+    | Product<MiddayForecast>
+    | Product<MorningForecast>
+    | Product<TropicalOutlookForecast>
   >;
+
   suite_metadata: {
-    suite_id: string;
-    suite_type: "daily_product_suite";
-    schema_family: string;
-    schema_version: string;
-    issuing_agency: {
-      name: string;
-      department: string;
-      country: string;
-      iso3: string;
-      timezone: string;
-      contacts: {
-        email: string;
-        telephone: string;
-        telephone_alt?: string | null;
-        fax?: string | null;
-        website?: string | null;
-      };
+    best_practice_flags: {
+      cap_generated_for_warnings_advisories_only: boolean;
+      ibf_required_for_all_products: boolean;
+      icao_alignment_intent: boolean;
+      wmo_alignment_intent: boolean;
     };
-    suite_issue_datetime_local: string;
-    suite_issue_datetime_utc: string;
     geography: {
       area_name: string;
       granularity: "national_only" | "zones" | "geojson";
     };
+    issuing_agency: {
+      contacts: {
+        email: string;
+        fax?: string | null;
+        telephone: string;
+        telephone_alt?: string | null;
+        website?: string | null;
+      };
+      country: string;
+      department: string;
+      iso3: string;
+      name: string;
+      timezone: string;
+    };
+    schema_family: string;
+    schema_version: string;
+    suite_id: string;
+    suite_issue_datetime_local: string;
+    suite_issue_datetime_utc: string;
+    suite_type: "daily_product_suite";
     update_policy: {
       next_update_time_local: string;
       next_update_time_utc: string;
       notes?: string | null;
     };
-    best_practice_flags: {
-      wmo_alignment_intent: boolean;
-      icao_alignment_intent: boolean;
-      ibf_required_for_all_products: boolean;
-      cap_generated_for_warnings_advisories_only: boolean;
-    };
   };
 }
 
-import { z } from "zod";
-import { capBundleSchema } from "@/db/schema/cap";
-import { eveningPayloadSchema } from "@/db/schema/evening";
-import { ibfAssessmentSchema } from "@/db/schema/ibf";
-import { marinePayloadSchema } from "@/db/schema/marine";
-import { middayPayloadSchema } from "@/db/schema/midday";
-import { morningPayloadSchema } from "@/db/schema/morning";
-import { tropicalOutlookPayloadSchema } from "@/db/schema/outlook";
-import { productSchema } from "@/db/schema/product-metadata";
-import { productTypeSchema } from "@/db/schema/zod-primitives";
-
 const productUnionSchema = z.union([
-  productSchema(marinePayloadSchema),
-  productSchema(morningPayloadSchema),
-  productSchema(middayPayloadSchema),
-  productSchema(eveningPayloadSchema),
-  productSchema(tropicalOutlookPayloadSchema),
+  productSchema(marineForecastSchema),
+  productSchema(morningForecastSchema),
+  productSchema(middayForecastSchema),
+  productSchema(eveningForecastSchema),
+  productSchema(tropicalOutlookForecastSchema),
 ]);
 
 export const suiteSchema = z.object({
@@ -173,30 +141,6 @@ export const suiteSchema = z.object({
     shared_elements_standard: z.object({
       elements_block: z.array(z.string()),
       units: z.record(z.string(), z.union([z.array(z.string()), z.string()])),
-    }),
-  }),
-  cross_cutting: z.object({
-    ibf: z.object({
-      ibf_framework: z.object({
-        name: z.string(),
-        version: z.string(),
-        required_components_for_all_products: z.array(z.string()),
-        scales: z.object({
-          likelihood_levels: z.array(z.string()),
-          impact_severity_levels: z.array(z.string()),
-          response_levels: z.array(z.string()),
-        }),
-        sectors: z.array(z.string()),
-      }),
-      assessments: z.array(ibfAssessmentSchema),
-    }),
-    cap: z.object({
-      cap_generation_policy: z.object({
-        generate_for: z.array(z.enum(["warning", "watch", "advisory"])),
-        do_not_generate_for: z.array(z.string()),
-        relationship_to_ibf: z.string(),
-      }),
-      alert_bundles: z.array(capBundleSchema),
     }),
   }),
   products: z.array(productUnionSchema),

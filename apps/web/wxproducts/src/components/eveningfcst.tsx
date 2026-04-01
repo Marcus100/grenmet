@@ -95,13 +95,18 @@ interface EveningForecastProps {
   year?: string;
 }
 
+import { gmsEveningForecastExample } from "@/data/gms-evening-forecast.example";
+import type { EveningForecastProduct } from "@/db/schema";
+import { adaptEveningForecast } from "@/lib/adapters";
+
 export default function EveningForecast({
-  organization = "Meteorological Services, MBIA",
-  documentNumber = "F 750-04",
-  year = "2020",
-  location = "the state of Grenada",
-  currentDate = "Saturday, December 20, 2025",
-  validity = "6:00 pm until 6:00 am & the following three (3) days",
+  product = gmsEveningForecastExample,
+  organization,
+  documentNumber,
+  year,
+  location,
+  currentDate,
+  validity,
   currentDay = {
     date: "6:00 pm until 6:00 am",
     weather:
@@ -154,29 +159,37 @@ export default function EveningForecast({
       marineWarning: "Marine advisory remains in effect!",
     },
   ],
-  forecasterName = "Nicole Jones",
-}: EveningForecastProps) {
+  forecasterName,
+}: EveningForecastProps & { product?: EveningForecastProduct }) {
+  const adapted = adaptEveningForecast(product);
+  const finalOrganization = organization ?? adapted.organization;
+  const finalDocumentNumber = documentNumber ?? adapted.documentNumber;
+  const finalYear = year ?? adapted.year;
+  const finalLocation = location ?? adapted.location;
+  const finalCurrentDate = currentDate ?? adapted.currentDate;
+  const finalValidity = validity ?? adapted.validity;
+  const finalForecasterName = forecasterName ?? adapted.forecasterName;
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
           <div className="font-medium text-sm text-zinc-700">
-            {organization}
+            {finalOrganization}
           </div>
           <div className="flex gap-4 text-right font-medium text-xs text-zinc-600">
-            <span>{year}</span>
-            <span>{documentNumber}</span>
+            <span>{finalYear}</span>
+            <span>{finalDocumentNumber}</span>
           </div>
         </div>
         <h1 className="mb-2 font-semibold text-xl text-zinc-900 tracking-tight">
-          Public weather forecast for {location}
+          Public weather forecast for {finalLocation}
         </h1>
         <div className="mb-1 font-medium text-sm text-zinc-600">
-          Date: {currentDate}
+          Date: {finalCurrentDate}
         </div>
         <div className="font-medium text-sm text-zinc-600">
-          Validity: {validity}
+          Validity: {finalValidity}
         </div>
       </div>
 
@@ -188,7 +201,7 @@ export default function EveningForecast({
           <div className="min-w-0 flex-1 rounded-lg bg-zinc-50 p-4 ring-1 ring-zinc-200">
             <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="font-semibold text-sm text-zinc-900">
-                {currentDate} - {currentDay.date}
+                {finalCurrentDate} - {currentDay.date}
               </div>
             </div>
             {currentDay.minTemp && (
@@ -252,7 +265,7 @@ export default function EveningForecast({
       <div className="text-sm">
         <div className="font-semibold text-zinc-900">Forecaster</div>
         <div className="font-medium text-xs text-zinc-600">
-          {forecasterName}
+          {finalForecasterName}
         </div>
       </div>
     </div>

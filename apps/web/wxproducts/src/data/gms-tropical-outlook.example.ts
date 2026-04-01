@@ -35,7 +35,7 @@ export const gmsTropicalOutlookExample: TropicalOutlookProduct = {
     cap_bundle_id: null,
     related_product_ids: [],
   },
-  payload: {
+  forecast: {
     outlook_type: "tropical_weather_outlook",
     area_of_special_interest: {
       description: "Eastern Caribbean and tropical Atlantic",

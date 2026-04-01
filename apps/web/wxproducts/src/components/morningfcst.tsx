@@ -95,13 +95,13 @@ interface MorningForecastProps {
   weatherDetails?: string;
 
   whatToExpect?: string[];
+  windDirectionMax?: string;
 
   windDirectionMin?: string;
-  windDirectionMax?: string;
-  windSpeedMin?: number;
-  windSpeedMax?: number;
-  windSpeedUnit?: string;
   windSpeedGusting?: string;
+  windSpeedMax?: number;
+  windSpeedMin?: number;
+  windSpeedUnit?: string;
 }
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
@@ -397,7 +397,10 @@ export default function MorningForecast({
             icon={Wind}
             label="Wind"
             value={
-              windDirectionMin && windDirectionMax && windSpeedMin != null && windSpeedMax != null
+              windDirectionMin &&
+              windDirectionMax &&
+              windSpeedMin != null &&
+              windSpeedMax != null
                 ? `${windDirectionMin}'ly to ${windDirectionMax}'ly @ ${windSpeedMin}–${windSpeedMax} ${windSpeedUnit ?? "mph"}${windSpeedGusting ? `, ${windSpeedGusting}` : ""}`
                 : undefined
             }
