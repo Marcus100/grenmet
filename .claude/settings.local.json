@@ -31,7 +31,11 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm type-check:*)",
       "Bash(pnpm check:fix --filter=@grenmet/web-spicewx)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "Bash(ls -d /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/wxproducts/src/*/)",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(pnpm fix:*)",
+      "Bash(pnpm check:fix)"
     ]
   }
 }
