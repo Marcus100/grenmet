@@ -31,7 +31,7 @@
     "@kubb/plugin-client": "^4.29.1",
     "@kubb/plugin-oas": "^4.29.1",
     "@kubb/plugin-react-query": "^4.29.1",
-    "@kubb/plugin-ts": "^4.29.1",
+    "@kubb/plugin-ts": "^4.37.1",
     "@kubb/plugin-zod": "^4.29.1",
     "@kubb/react-fabric": "0.13.1",
     "@types/node": "catalog:",
