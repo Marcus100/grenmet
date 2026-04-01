@@ -34,7 +34,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.4",
-    "turbo": "^2.8.17",
+    "turbo": "^2.9.3",
     "ultracite": "^7.2.3"
   },
   "pnpm": {
