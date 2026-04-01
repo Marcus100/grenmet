@@ -1,5 +1,5 @@
 /**
- * Tropical weather outlook payload type and Zod schema.
+ * Tropical weather outlook forecast type and Zod schema.
  * geojson is typed as unknown for flexibility; use a GeoJSON type if you need stricter validation.
  * For a full product example, import gmsTropicalOutlookExample from @/data/gms-tropical-outlook.example.
  */
@@ -10,7 +10,7 @@ import type { Product } from "@/db/schema/product-metadata";
 import { productSchema } from "@/db/schema/product-metadata";
 import { isoDateTimeStringSchema } from "@/db/schema/zod-primitives";
 
-export interface TropicalOutlookPayload {
+export interface TropicalOutlookForecast {
   area_of_special_interest: { description: string; geojson: unknown };
   next_update_time_local: ISODateTimeString | null;
   outlook_type: "tropical_weather_outlook";
@@ -42,10 +42,9 @@ export interface TropicalOutlookPayload {
   }>;
 }
 
-/** Alias for naming consistency with TropicalOutlookProduct and example usage. */
-export type TropicalOutlookProduct = Product<TropicalOutlookPayload>;
+export type TropicalOutlookProduct = Product<TropicalOutlookForecast>;
 
-export const tropicalOutlookPayloadSchema = z.object({
+export const tropicalOutlookForecastSchema = z.object({
   outlook_type: z.literal("tropical_weather_outlook"),
   area_of_special_interest: z.object({
     description: z.string(),
@@ -92,5 +91,39 @@ export const tropicalOutlookPayloadSchema = z.object({
 });
 
 export const tropicalOutlookProductSchema = productSchema(
-  tropicalOutlookPayloadSchema
+  tropicalOutlookForecastSchema
 );
+
+// ─── Drizzle ORM table ────────────────────────────────────────────────────────
+
+import { pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { timestamps } from "@/db/schema/db-helpers";
+import { products } from "@/db/schema/product-metadata";
+
+export const tropicalOutlookProducts = pgTable(
+  "tropical_outlook_products",
+  (t) => ({
+    id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
+    productRef: t
+      .integer()
+      .notNull()
+      .references(() => products.id),
+    areaDescription: t.text().notNull(),
+    areaGeojson: t.jsonb(),
+    sources: t.jsonb().$type<TropicalOutlookForecast["sources"]>().notNull(),
+    systems: t.jsonb().$type<TropicalOutlookForecast["systems"]>().notNull(),
+    nextUpdateTimeLocal: t.text(),
+    publicMessagePlainLanguage: t.text().notNull(),
+    ...timestamps,
+  }),
+  (table) => [
+    uniqueIndex("tropical_outlook_products_product_ref_idx").on(
+      table.productRef
+    ),
+  ]
+);
+
+export type TropicalOutlookProductRow =
+  typeof tropicalOutlookProducts.$inferSelect;
+export type TropicalOutlookProductRowInsert =
+  typeof tropicalOutlookProducts.$inferInsert;

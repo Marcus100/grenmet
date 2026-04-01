@@ -7,6 +7,6 @@ import * as schema from "./schema";
 const connectionString = env.DATABASE_URL;
 
 const pool = new Pool({ connectionString });
-const db = drizzle(pool, { schema });
+const db = drizzle(pool, { schema, casing: "snake_case" });
 
 export { db };

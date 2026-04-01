@@ -1,4 +1,4 @@
-import MorningForecast from "@/components/morning/MorningForecast";
+import MorningForecast from "@/components/morningfcst";
 
 export default function PrintMorningPage() {
   return (

@@ -1,5 +1,5 @@
 /**
- * Marine bulletin payload type and Zod schema.
+ * Marine forecast type and Zod schema.
  * For a full product example, import gmsMarineBulletinExample from @/data/gms-marine-bulletin.example.
  */
 
@@ -9,21 +9,18 @@ import { elementsBlockSchema } from "@/db/schema/elements";
 import type { Product } from "@/db/schema/product-metadata";
 import { productSchema } from "@/db/schema/product-metadata";
 
-export interface MarinePayload {
+export interface MarineForecast {
   coastal_wave_notes?: { west?: string; east?: string } | null;
-  color_code: "GREEN" | "YELLOW" | "ORANGE" | "RED" | string;
+  color_code: "GREEN" | "YELLOW" | "ORANGE" | "RED";
   elements: ElementsBlock;
   response_summary_text?: string | null;
   synopsis: { summary: string };
 }
 
-/** Alias for naming consistency with MarineBulletinProduct and example usage. */
-export type MarineBulletinPayload = MarinePayload;
+export type MarineBulletinProduct = Product<MarineForecast>;
 
-export type MarineBulletinProduct = Product<MarinePayload>;
-
-export const marinePayloadSchema = z.object({
-  color_code: z.string(),
+export const marineForecastSchema = z.object({
+  color_code: z.enum(["GREEN", "YELLOW", "ORANGE", "RED"]),
   synopsis: z.object({ summary: z.string() }),
   elements: elementsBlockSchema,
   coastal_wave_notes: z
@@ -33,4 +30,42 @@ export const marinePayloadSchema = z.object({
   response_summary_text: z.string().nullable().optional(),
 });
 
-export const marineProductSchema = productSchema(marinePayloadSchema);
+export const marineProductSchema = productSchema(marineForecastSchema);
+
+// ─── Drizzle ORM table ────────────────────────────────────────────────────────
+
+import { index, pgEnum, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { timestamps } from "@/db/schema/db-helpers";
+import { products } from "@/db/schema/product-metadata";
+
+export const colorCodeEnum = pgEnum("color_code", [
+  "GREEN",
+  "ORANGE",
+  "RED",
+  "YELLOW",
+]);
+
+export const marineProducts = pgTable(
+  "marine_products",
+  (t) => ({
+    id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
+    productRef: t
+      .integer()
+      .notNull()
+      .references(() => products.id),
+    colorCode: colorCodeEnum().notNull(),
+    synopsisSummary: t.text().notNull(),
+    elements: t.jsonb().$type<ElementsBlock>().notNull(),
+    coastalWaveNotesWest: t.text(),
+    coastalWaveNotesEast: t.text(),
+    responseSummaryText: t.text(),
+    ...timestamps,
+  }),
+  (table) => [
+    uniqueIndex("marine_products_product_ref_idx").on(table.productRef),
+    index("marine_products_color_code_idx").on(table.colorCode),
+  ]
+);
+
+export type MarineProductRow = typeof marineProducts.$inferSelect;
+export type MarineProductRowInsert = typeof marineProducts.$inferInsert;

@@ -210,10 +210,10 @@ export default function MorningForecastPage() {
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
               id="windSpeedMin"
-              type="number"
               onChange={(event) =>
                 updateField("windSpeedMin", event.target.value)
               }
+              type="number"
               value={form.windSpeedMin}
             />
           </div>
@@ -228,10 +228,10 @@ export default function MorningForecastPage() {
             <input
               className="w-full rounded-md border border-zinc-300 px-3 py-2 text-sm"
               id="windSpeedMax"
-              type="number"
               onChange={(event) =>
                 updateField("windSpeedMax", event.target.value)
               }
+              type="number"
               value={form.windSpeedMax}
             />
           </div>
@@ -289,8 +289,8 @@ export default function MorningForecastPage() {
         <div className="mx-auto max-w-4xl">
           <MorningForecast
             {...form}
-            windSpeedMin={Number(form.windSpeedMin)}
             windSpeedMax={Number(form.windSpeedMax)}
+            windSpeedMin={Number(form.windSpeedMin)}
           />
         </div>
       </div>

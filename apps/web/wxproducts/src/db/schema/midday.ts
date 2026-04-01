@@ -1,50 +1,107 @@
 /**
- * Midday weather report payload type and Zod schema.
+ * Midday forecast type and Zod schema.
  * For a full product example, import gmsMiddayWeatherReportExample from @/data/gms-midday-weather-report.example.
  */
 
 import { z } from "zod";
 import type { ElementsBlock } from "@/db/schema/elements";
 import { elementsBlockSchema } from "@/db/schema/elements";
-import type { ISODateTimeString } from "@/db/schema/primitives";
+import type {
+  CompassDirection,
+  ISODateTimeString,
+} from "@/db/schema/primitives";
 import type { Product } from "@/db/schema/product-metadata";
 import { productSchema } from "@/db/schema/product-metadata";
-import { isoDateTimeStringSchema } from "@/db/schema/zod-primitives";
+import {
+  compassDirectionSchema,
+  isoDateTimeStringSchema,
+} from "@/db/schema/zod-primitives";
 
-export interface MiddayPayload {
+export interface MiddayStationObservation {
+  /** Observed air temperature in °C. */
+  air_temperature_c: number;
+  /** Dewpoint temperature in °C. */
+  dewpoint_c?: number | null;
+  /** Observation time in local time (ISO 8601 with offset). */
+  observation_time_local: ISODateTimeString;
+  /** Altimeter setting (QNH) in hPa. */
+  qnh_hpa?: number | null;
+  /** Station name, e.g. "Maurice Bishop International Airport". */
+  station_name: string;
+  /** Reported wind direction as a compass point. */
+  wind_direction?: CompassDirection | null;
+  /** Reported wind speed in mph. */
+  wind_speed_mph?: number | null;
+}
+
+export interface MiddayForecast {
   education?: {
     word_of_the_day?: { term: string; definition: string };
   } | null;
   elements: ElementsBlock;
   headline: string;
-  station_observation: {
-    station_name: string;
-    observation_time_local: ISODateTimeString;
-    air_temperature_c: number;
-  };
+  station_observation: MiddayStationObservation;
 }
 
-/** Alias for naming consistency with MiddayWeatherReportProduct and example usage. */
-export type MiddayWeatherReportPayload = MiddayPayload;
+export type MiddayForecastProduct = Product<MiddayForecast>;
 
-export type MiddayWeatherReportProduct = Product<MiddayPayload>;
+export const middayStationObservationSchema = z.object({
+  air_temperature_c: z.number().min(-10).max(50),
+  dewpoint_c: z.number().min(-10).max(50).nullable().optional(),
+  observation_time_local: isoDateTimeStringSchema,
+  qnh_hpa: z.number().min(900).max(1080).nullable().optional(),
+  station_name: z.string().min(1).max(100),
+  wind_direction: compassDirectionSchema.nullable().optional(),
+  wind_speed_mph: z.number().min(0).max(200).nullable().optional(),
+});
 
-export const middayPayloadSchema = z.object({
-  station_observation: z.object({
-    station_name: z.string(),
-    observation_time_local: isoDateTimeStringSchema,
-    air_temperature_c: z.number(),
-  }),
-  headline: z.string(),
+export const middayForecastSchema = z.object({
+  station_observation: middayStationObservationSchema,
+  headline: z.string().min(1).max(300),
   elements: elementsBlockSchema,
   education: z
     .object({
       word_of_the_day: z
-        .object({ term: z.string(), definition: z.string() })
+        .object({
+          term: z.string().min(1).max(100),
+          definition: z.string().min(1).max(500),
+        })
         .optional(),
     })
     .nullable()
     .optional(),
 });
 
-export const middayProductSchema = productSchema(middayPayloadSchema);
+export const middayProductSchema = productSchema(middayForecastSchema);
+
+// ─── Drizzle ORM table ────────────────────────────────────────────────────────
+
+import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { timestamps } from "@/db/schema/db-helpers";
+import { products } from "@/db/schema/product-metadata";
+
+export const middayProducts = pgTable(
+  "midday_products",
+  (t) => ({
+    id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
+    productRef: t
+      .integer()
+      .notNull()
+      .references(() => products.id),
+    stationName: t.text().notNull(),
+    observationTimeLocal: t.text().notNull(),
+    airTemperatureC: t.numeric({ precision: 5, scale: 2 }).notNull(),
+    headline: t.text().notNull(),
+    elements: t.jsonb().$type<ElementsBlock>().notNull(),
+    educationWordTerm: t.text(),
+    educationWordDefinition: t.text(),
+    ...timestamps,
+  }),
+  (table) => [
+    uniqueIndex("midday_products_product_ref_idx").on(table.productRef),
+    index("midday_products_station_name_idx").on(table.stationName),
+  ]
+);
+
+export type MiddayProductRow = typeof middayProducts.$inferSelect;
+export type MiddayProductRowInsert = typeof middayProducts.$inferInsert;

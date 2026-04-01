@@ -35,14 +35,17 @@ export const gmsMarineBulletinExample: MarineBulletinProduct = {
     cap_bundle_id: null,
     related_product_ids: ["GMS-MORNING-2026-02-23T05:00-04:00"],
   },
-  payload: {
+  forecast: {
     color_code: "GREEN",
     synopsis: { summary: "Moderate seas; winds E'ly 15–25 mph." },
     elements: {
       weather: { text: "Generally fair." },
       wind: {
-        direction_text: "E'ly to SE'ly",
-        speed_range: { min: 15, max: 25, unit: "mph" },
+        direction_min: "E",
+        direction_max: "SE",
+        speed_min: 15,
+        speed_max: 25,
+        speed_unit: "mph" as const,
       },
       seas: {
         text: "Moderate with waves 5–7 feet in open waters.",

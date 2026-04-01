@@ -142,3 +142,36 @@ export const ibfAssessmentSchema = z.object({
     end_local: isoDateTimeStringSchema,
   }),
 });
+
+// ─── Drizzle ORM table ────────────────────────────────────────────────────────
+
+import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { timestamps } from "@/db/schema/db-helpers";
+import { products } from "@/db/schema/product-metadata";
+
+/**
+ * IBF assessment — must exist before a CAP alert can be created.
+ * systemId is only set when applies_to type = "tropical_system".
+ */
+export const ibfAssessments = pgTable(
+  "ibf_assessments",
+  (t) => ({
+    id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
+    ibfAssessmentId: t.text().notNull(),
+    productId: t
+      .text()
+      .notNull()
+      .references(() => products.productId),
+    systemId: t.text(),
+    body: t.jsonb().$type<IBFAssessment>().notNull(),
+    issuedAtUtc: t.timestamp({ withTimezone: true }).notNull(),
+    ...timestamps,
+  }),
+  (table) => [
+    uniqueIndex("ibf_assessments_assessment_id_idx").on(table.ibfAssessmentId),
+    index("ibf_assessments_product_id_idx").on(table.productId),
+  ]
+);
+
+export type IbfAssessmentRow = typeof ibfAssessments.$inferSelect;
+export type IbfAssessmentRowInsert = typeof ibfAssessments.$inferInsert;

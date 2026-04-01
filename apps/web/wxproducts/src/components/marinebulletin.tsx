@@ -29,41 +29,59 @@ interface MarineBulletinProps {
   wind?: string;
 }
 
+import { gmsMarineBulletinExample } from "@/data/gms-marine-bulletin.example";
+import type { MarineBulletinProduct } from "@/db/schema";
+import { adaptMarineBulletin } from "@/lib/adapters";
+
 export default function MarineBulletin({
-  date = "Sun, Dec 21, 2025",
-  time = "05:00 AM",
-  organization = "STATE OF GRENADA METEOROLOGICAL DEPARTMENT, GAA",
-  validity = "VALID 24 HRS",
-  warningLevel = "YELLOW",
-  synopsis = "Moderate to occasionally fresh winds and a relatively dry atmosphere will dominate.",
-  weather = "Mostly fair with a low chance of a few light brief morning showers",
-  seaState = "Moderate to slightly rough with waves 6 to 8 ft. in NE'ly to E'ly swell.",
-  visibility = "Good [Greater than 5 nautical miles]",
-  wind = "ENE'ly to ESE'ly @ 13 to 23 knots",
-  tideHigh1 = "5:00 a.m.",
-  tideLow = "10:00 a.m.",
-  tideHigh2 = "4:45 p.m.",
-  likelihood = "High",
-  impact = "Minor",
-  impactItems = [
-    "- Choppy seas, impacting fishermen, small sailboats and other small craft (marine advisory)",
-    "- Possible disruption to some marine-related activities",
-  ],
-  response = "Be Aware",
-  responseItems = [
-    "- Be aware of vulnerable small watercrafts especially during high tide",
-  ],
-  lastMoonPhase = "New Moon (19th Dec)",
-  nextMoonPhase = "First Quarter (27th Dec)",
-  moonrise = "7:40 am",
-  moonset = "7:15 pm",
-  sunrise = "6:23",
-  sunset = "5:47",
-  forecasterName = "Fimber Frank",
-  email: _email = "meteorology@gaa.gd",
-  telephones: _telephones = "(473) 444-4142/4101",
-  fax: _fax = "(473) 444-1574",
-}: MarineBulletinProps) {
+  product = gmsMarineBulletinExample,
+}: {
+  product?: MarineBulletinProduct;
+}) {
+  const {
+    date,
+    time,
+    organization,
+    validity,
+    warningLevel,
+    synopsis,
+    weather,
+    seaState,
+    visibility,
+    wind,
+    tideHigh1,
+    tideLow,
+    tideHigh2,
+    sunrise,
+    sunset,
+    forecasterName,
+    email,
+    telephones,
+    fax,
+  } = adaptMarineBulletin(product);
+  const lastMoonPhase = "Waxing Gibbous";
+  const nextMoonPhase =
+    "Full Moon on " +
+    (new Date().getMonth() + 1) +
+    "/" +
+    (new Date().getDate() + 3) +
+    "/" +
+    new Date().getFullYear();
+  const moonrise = "08:45 PM";
+  const moonset = "08:15 AM";
+  const likelihood = "Medium";
+  const impact = "Minor";
+  const impactItems = [
+    "Occasional rough seas",
+    "Reduced visibility in showers",
+    "Gusty winds near squalls",
+  ];
+  const response = "Be Aware";
+  const responseItems = [
+    "Heed all warnings and advisories",
+    "Secure loose objects",
+    "Proceed with caution",
+  ];
   return (
     <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
       {/* Header Section */}
