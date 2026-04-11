@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import type { Category } from "@/src/lib/types";
+import type { Category } from "@/lib/types";
 
 interface CategoryCardProps {
   category: Category;

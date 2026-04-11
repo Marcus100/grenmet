@@ -25,6 +25,7 @@ pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from th
 | `apps/web/spicewx` | `@grenmet/web-spicewx` | 3004 |
 | `apps/web/wxproducts` | `@grenmet/web-wxproducts` | 3005 |
 | `apps/web/hr` | `@grenmet/web-hr` | 3006 |
+| `apps/web/salesbus` | `@grenmet/web-salesbus` | 3007 |
 | `apps/api/honoapi` | `@grenmet/api-hono` | — |
 
 ## Commands
@@ -49,6 +50,7 @@ pnpm dev:web:wxproducts  # wxproducts on :3005
 pnpm dev:web:hurricane   # hurricaneplan on :3003
 pnpm dev:web:spicewx     # spicewx on :3004
 pnpm dev:web:hr          # hr on :3006
+pnpm dev:web:salesbus    # salesbus on :3007
 pnpm dev:honoapi         # Hono API
 ```
 

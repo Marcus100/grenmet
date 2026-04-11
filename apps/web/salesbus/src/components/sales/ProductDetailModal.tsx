@@ -8,9 +8,9 @@ import {
   QuantitySelector,
   SegmentedControl,
 } from "@/components/ui";
-import { useCart } from "@/src/lib/cart-store";
-import type { CaseType, Product } from "@/src/lib/types";
-import { formatPrice, getCasePrice } from "@/src/lib/types";
+import { useCart } from "@/lib/cart-store";
+import type { CaseType, Product } from "@/lib/types";
+import { formatPrice, getCasePrice } from "@/lib/types";
 
 interface ProductDetailModalProps {
   isOpen: boolean;

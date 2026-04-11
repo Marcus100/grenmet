@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import type { CartItem as CartItemType } from "@/src/lib/types";
-import { formatCaseType, formatPrice } from "@/src/lib/types";
+import type { CartItem as CartItemType } from "@/lib/types";
+import { formatCaseType, formatPrice } from "@/lib/types";
 
 interface CartItemProps {
   item: CartItemType;

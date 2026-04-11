@@ -1,7 +1,7 @@
 "use client";
 
-import type { Transaction } from "@/src/lib/types";
-import { formatCaseType, formatPrice } from "@/src/lib/types";
+import type { Transaction } from "@/lib/types";
+import { formatCaseType, formatPrice } from "@/lib/types";
 
 interface TransactionListProps {
   showTotal?: boolean;

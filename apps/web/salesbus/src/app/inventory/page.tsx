@@ -1,7 +1,7 @@
 "use client";
 
 import { CategoryCard } from "@/components/inventory";
-import { categories } from "@/src/lib/mock-data";
+import { categories } from "@/lib/mock-data";
 
 export default function InventoryPage() {
   return (

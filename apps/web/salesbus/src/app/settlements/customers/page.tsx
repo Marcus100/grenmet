@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { CustomerCard } from "@/components/settlements";
 import { Button, SearchBar } from "@/components/ui";
-import { getAllCustomerBalances } from "@/src/lib/mock-data";
+import { getAllCustomerBalances } from "@/lib/mock-data";
 
 export default function CustomersPage() {
   const [searchQuery, setSearchQuery] = useState("");
