@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { formatDate } from "@/src/lib/types";
+import { formatDate } from "@/lib/types";
 
 interface DateNavigatorProps {
   date: string;

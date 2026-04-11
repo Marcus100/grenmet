@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { InventoryProductCard } from "@/components/inventory";
 import { Button, SearchBar } from "@/components/ui";
-import { categories, getProductsByCategory } from "@/src/lib/mock-data";
+import { categories, getProductsByCategory } from "@/lib/mock-data";
 
 export default function CategoryDetailPage() {
   const params = useParams();

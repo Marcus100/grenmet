@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import type { CustomerBalance } from "@/src/lib/types";
-import { formatPrice } from "@/src/lib/types";
+import type { CustomerBalance } from "@/lib/types";
+import { formatPrice } from "@/lib/types";
 
 interface CustomerCardProps {
   customer: CustomerBalance;

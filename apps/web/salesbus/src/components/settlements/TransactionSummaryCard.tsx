@@ -2,7 +2,7 @@
 
 import { Calendar } from "lucide-react";
 import Link from "next/link";
-import { formatPrice } from "@/src/lib/types";
+import { formatPrice } from "@/lib/types";
 
 interface TransactionSummaryCardProps {
   amount: number;

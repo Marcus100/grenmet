@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { Button } from "@/components/ui";
-import type { Product } from "@/src/lib/types";
-import { formatPrice } from "@/src/lib/types";
+import type { Product } from "@/lib/types";
+import { formatPrice } from "@/lib/types";
 
 interface ProductCardProps {
   onAdd: (product: Product) => void;

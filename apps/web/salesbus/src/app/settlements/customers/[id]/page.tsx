@@ -9,8 +9,8 @@ import {
   getCustomerBalance,
   getCustomerById,
   getTransactionsByCustomer,
-} from "@/src/lib/mock-data";
-import { formatPrice } from "@/src/lib/types";
+} from "@/lib/mock-data";
+import { formatPrice } from "@/lib/types";
 
 export default function CustomerDetailPage() {
   const params = useParams();

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import type { Product } from "@/src/lib/types";
+import type { Product } from "@/lib/types";
 
 interface InventoryProductCardProps {
   onClick?: (product: Product) => void;

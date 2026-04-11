@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { CartItemCard } from "@/components/sales/CartItem";
 import { Button, SegmentedControl } from "@/components/ui";
-import { useIsTabletLandscape } from "@/src/hooks";
-import { useCart } from "@/src/lib/cart-store";
-import { formatPrice } from "@/src/lib/types";
+import { useIsTabletLandscape } from "@/hooks";
+import { useCart } from "@/lib/cart-store";
+import { formatPrice } from "@/lib/types";
 
 const paymentOptions = [
   { value: "cash", label: "CASH" },

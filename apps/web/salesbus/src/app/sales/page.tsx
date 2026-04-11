@@ -4,8 +4,8 @@ import { useState } from "react";
 import { ProductCard } from "@/components/sales";
 import { ProductDetailModal } from "@/components/sales/ProductDetailModal";
 import { SearchBar } from "@/components/ui";
-import { products } from "@/src/lib/mock-data";
-import type { Product } from "@/src/lib/types";
+import { products } from "@/lib/mock-data";
+import type { Product } from "@/lib/types";
 
 export default function SalesPage() {
   const [searchQuery, setSearchQuery] = useState("");

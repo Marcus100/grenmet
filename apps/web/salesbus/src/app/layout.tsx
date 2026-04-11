@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers";
-import { CartProvider } from "@/src/lib/cart-store";
+import { CartProvider } from "@/lib/cart-store";
 
 const inter = Inter({
   variable: "--font-inter",

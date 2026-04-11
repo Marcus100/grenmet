@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useIsTabletLandscape } from "@/src/hooks";
+import { useIsTabletLandscape } from "@/hooks";
 import { BottomNav } from "./BottomNav";
 import { Header } from "./Header";
 import { SideNav } from "./SideNav";

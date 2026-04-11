@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import { AppShell } from "@/components/layout";
-import { useCart } from "@/src/lib/cart-store";
+import { useCart } from "@/lib/cart-store";
 
 export default function SettlementsLayout({
   children,

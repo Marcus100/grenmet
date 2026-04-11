@@ -1,7 +1,7 @@
 "use client";
 
 import { TransactionSummaryCard } from "@/components/settlements";
-import { getTransactionSummary } from "@/src/lib/mock-data";
+import { getTransactionSummary } from "@/lib/mock-data";
 
 export default function SettlementsPage() {
   const summary = getTransactionSummary();
