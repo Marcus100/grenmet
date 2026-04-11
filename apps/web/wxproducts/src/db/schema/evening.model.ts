@@ -3,8 +3,8 @@
  */
 
 import { pgTable, uniqueIndex } from "drizzle-orm/pg-core";
-import type { EveningForecast } from "@/db/schema/evening.schema";
 import { timestamps } from "@/db/schema/db-helpers";
+import type { EveningForecast } from "@/db/schema/evening.schema";
 import { products } from "@/db/schema/product-metadata.model";
 
 export const eveningProducts = pgTable(

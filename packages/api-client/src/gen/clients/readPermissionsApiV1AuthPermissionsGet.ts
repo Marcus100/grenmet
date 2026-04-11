@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadPermissionsApiV1AuthPermissionsGetQueryResponse,
-  ReadPermissionsApiV1AuthPermissionsGetQueryParams,
   ReadPermissionsApiV1AuthPermissionsGet422,
+  ReadPermissionsApiV1AuthPermissionsGetQueryParams,
+  ReadPermissionsApiV1AuthPermissionsGetQueryResponse,
 } from "../models/ReadPermissionsApiV1AuthPermissionsGet.js";
 
 function getReadPermissionsApiV1AuthPermissionsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/permissions/` as const };
+  const res = { method: "GET", url: "/api/v1/auth/permissions/" as const };
   return res;
 }
 

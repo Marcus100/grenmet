@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { registerUserApiV1AuthUsersSignupPost } from "../clients/registerUserApiV1AuthUsersSignupPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
   RegisterUserApiV1AuthUsersSignupPost400,
   RegisterUserApiV1AuthUsersSignupPost422,
+  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
+  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
 } from "../models/RegisterUserApiV1AuthUsersSignupPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { registerUserApiV1AuthUsersSignupPost } from "../clients/registerUserApiV1AuthUsersSignupPost.js";
 
 export const registerUserApiV1AuthUsersSignupPostMutationKey = () =>
   [{ url: "/api/v1/auth/users/signup" }] as const;

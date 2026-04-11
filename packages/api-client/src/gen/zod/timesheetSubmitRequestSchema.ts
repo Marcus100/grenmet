@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { submissionModeSchema } from "./submissionModeSchema.js";
 import { z } from "zod/v4";
+import { submissionModeSchema } from "./submissionModeSchema.js";
 
 export const timesheetSubmitRequestSchema = z.object({
   get mode() {

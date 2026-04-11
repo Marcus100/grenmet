@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readStatusReportEndpointApiV1HrStatusReportsReportIdGet } from "../clients/readStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryResponse,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet403,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet404,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet422,
+  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams,
+  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryResponse,
 } from "../models/ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readStatusReportEndpointApiV1HrStatusReportsReportIdGet } from "../clients/readStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
 
 export const readStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryKey = (
   report_id: ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams["report_id"]
@@ -31,7 +30,7 @@ export const readStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryKey = (
   [
     {
       url: "/api/v1/hr/status-reports/:report_id",
-      params: { report_id: report_id },
+      params: { report_id },
     },
   ] as const;
 

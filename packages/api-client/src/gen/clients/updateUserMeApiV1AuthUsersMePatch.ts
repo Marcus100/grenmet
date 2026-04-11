@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
   UpdateUserMeApiV1AuthUsersMePatch409,
   UpdateUserMeApiV1AuthUsersMePatch422,
+  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
+  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
 
 function getUpdateUserMeApiV1AuthUsersMePatchUrl() {
-  const res = { method: "PATCH", url: `/api/v1/auth/users/me` as const };
+  const res = { method: "PATCH", url: "/api/v1/auth/users/me" as const };
   return res;
 }
 

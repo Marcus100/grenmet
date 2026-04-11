@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
 import { z } from "zod/v4";
+import { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
 
 export const statusReportCreateSchema = z.object({
   department_id: z.string(),

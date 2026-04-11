@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch } from "../clients/actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch403,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch404,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch422,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
 } from "../models/ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch } from "../clients/actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 
 export const actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey =
   () => [{ url: "/api/v1/hr/shift-swaps/:shift_swap_id/action" }] as const;

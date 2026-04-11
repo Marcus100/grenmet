@@ -53,7 +53,12 @@
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"],
-      "inputs": ["src/**", "tests/**", "**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"]
+      "inputs": [
+        "src/**",
+        "tests/**",
+        "**/*.test.{ts,tsx}",
+        "**/*.spec.{ts,tsx}"
+      ]
     }
   }
 }

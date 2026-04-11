@@ -6,9 +6,9 @@
 
 import { z } from "zod";
 import type { ISODateTimeString } from "@/db/schema/primitives";
+import { isoDateTimeStringSchema } from "@/db/schema/primitives.schema";
 import type { Product } from "@/db/schema/product-metadata.schema";
 import { productSchema } from "@/db/schema/product-metadata.schema";
-import { isoDateTimeStringSchema } from "@/db/schema/primitives.schema";
 
 export interface TropicalOutlookForecast {
   area_of_special_interest: { description: string; geojson: unknown };

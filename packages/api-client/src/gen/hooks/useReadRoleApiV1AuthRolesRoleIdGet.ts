@@ -3,33 +3,29 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readRoleApiV1AuthRolesRoleIdGet } from "../clients/readRoleApiV1AuthRolesRoleIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
   ReadRoleApiV1AuthRolesRoleIdGet404,
   ReadRoleApiV1AuthRolesRoleIdGet422,
+  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
+  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readRoleApiV1AuthRolesRoleIdGet } from "../clients/readRoleApiV1AuthRolesRoleIdGet.js";
 
 export const readRoleApiV1AuthRolesRoleIdGetQueryKey = (
   role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"]
-) =>
-  [
-    { url: "/api/v1/auth/roles/:role_id", params: { role_id: role_id } },
-  ] as const;
+) => [{ url: "/api/v1/auth/roles/:role_id", params: { role_id } }] as const;
 
 export type ReadRoleApiV1AuthRolesRoleIdGetQueryKey = ReturnType<
   typeof readRoleApiV1AuthRolesRoleIdGetQueryKey

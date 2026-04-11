@@ -10,12 +10,12 @@ import type {
   CompassDirection,
   ISODateTimeString,
 } from "@/db/schema/primitives";
-import type { Product } from "@/db/schema/product-metadata.schema";
-import { productSchema } from "@/db/schema/product-metadata.schema";
 import {
   compassDirectionSchema,
   isoDateTimeStringSchema,
 } from "@/db/schema/primitives.schema";
+import type { Product } from "@/db/schema/product-metadata.schema";
+import { productSchema } from "@/db/schema/product-metadata.schema";
 
 export interface MiddayStationObservation {
   /** Observed air temperature in °C. */

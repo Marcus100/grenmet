@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { workflowActionSchema } from "./workflowActionSchema.js";
 import { z } from "zod/v4";
+import { workflowActionSchema } from "./workflowActionSchema.js";
 
 export const workflowActionRequestSchema = z.object({
   get action() {

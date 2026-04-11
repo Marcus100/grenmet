@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
 } from "../models/ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 
 function getReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetUrl(

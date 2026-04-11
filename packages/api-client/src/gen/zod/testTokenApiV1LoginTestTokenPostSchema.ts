@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { userPublicSchema } from "./userPublicSchema.js";
 import { z } from "zod/v4";
+import { userPublicSchema } from "./userPublicSchema.js";
 
 /**
  * @description Successful Response

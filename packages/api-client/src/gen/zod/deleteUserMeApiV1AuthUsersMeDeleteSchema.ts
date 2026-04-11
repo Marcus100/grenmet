@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { messageSchema } from "./messageSchema.js";
 import { z } from "zod/v4";
+import { messageSchema } from "./messageSchema.js";
 
 /**
  * @description User deleted

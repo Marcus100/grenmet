@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "../clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "../clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 
 export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey = () =>
   [{ url: "/api/v1/auth/role-assignments/" }] as const;

@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-  ReadHrProfileMeApiV1HrProfileMeGet404,
-} from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readHrProfileMeApiV1HrProfileMeGet } from "../clients/readHrProfileMeApiV1HrProfileMeGet.js";
+import type {
+  ReadHrProfileMeApiV1HrProfileMeGet404,
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+} from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 
 export const readHrProfileMeApiV1HrProfileMeGetQueryKey = () =>
   [{ url: "/api/v1/hr/profile/me" }] as const;

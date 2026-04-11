@@ -3,8 +3,8 @@
  */
 
 import { pgTable, uniqueIndex } from "drizzle-orm/pg-core";
-import type { ElementsBlock } from "@/db/schema/elements.schema";
 import { timestamps } from "@/db/schema/db-helpers";
+import type { ElementsBlock } from "@/db/schema/elements.schema";
 import { products } from "@/db/schema/product-metadata.model";
 
 export const morningProducts = pgTable(

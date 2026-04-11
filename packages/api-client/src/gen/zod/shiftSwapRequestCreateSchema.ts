@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { swapTypeSchema } from "./swapTypeSchema.js";
 import { z } from "zod/v4";
+import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestCreateSchema = z.object({
   counterpart_user_id: z.uuid(),

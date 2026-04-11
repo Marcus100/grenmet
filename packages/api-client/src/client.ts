@@ -46,14 +46,17 @@ function buildBody(
 ): string | FormData | undefined {
   if (data === undefined || data === null) return undefined;
   if (data instanceof FormData) return data;
-  if (contentType?.includes("application/x-www-form-urlencoded")) {
-    if (typeof data === "object" && data !== null && !Array.isArray(data)) {
-      const params = new URLSearchParams();
-      for (const [k, v] of Object.entries(data)) {
-        if (v !== undefined && v !== null) params.append(k, String(v));
-      }
-      return params.toString();
+  if (
+    contentType?.includes("application/x-www-form-urlencoded") &&
+    typeof data === "object" &&
+    data !== null &&
+    !Array.isArray(data)
+  ) {
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(data)) {
+      if (v !== undefined && v !== null) params.append(k, String(v));
     }
+    return params.toString();
   }
   return JSON.stringify(data);
 }

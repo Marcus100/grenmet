@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 import { z } from "zod/v4";
+import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 
 /**
  * @description HR profile returned

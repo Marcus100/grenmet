@@ -3,21 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { healthCheckApiV1UtilsHealthCheckGet } from "../clients/healthCheckApiV1UtilsHealthCheckGet.js";
+import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
 
 export const healthCheckApiV1UtilsHealthCheckGetSuspenseQueryKey = () =>
   [{ url: "/api/v1/utils/health-check/" }] as const;

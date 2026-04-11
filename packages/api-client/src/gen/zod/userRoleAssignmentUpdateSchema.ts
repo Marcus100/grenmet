@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 import { z } from "zod/v4";
+import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const userRoleAssignmentUpdateSchema = z.object({
   get scope() {

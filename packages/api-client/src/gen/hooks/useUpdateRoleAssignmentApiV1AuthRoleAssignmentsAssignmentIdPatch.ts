@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "../clients/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
 } from "../models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "../clients/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 
 export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationKey =
   () => [{ url: "/api/v1/auth/role-assignments/:assignment_id" }] as const;

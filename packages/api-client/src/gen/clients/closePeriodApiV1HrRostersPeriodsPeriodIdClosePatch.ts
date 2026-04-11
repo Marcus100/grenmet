@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400,
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403,
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404,
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
 } from "../models/ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 
 function getClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchUrl(

@@ -7,12 +7,12 @@ import { z } from "zod";
 import type { ElementsBlock } from "@/db/schema/elements.schema";
 import { elementsBlockSchema } from "@/db/schema/elements.schema";
 import type { ISODateString, ISODateTimeString } from "@/db/schema/primitives";
-import type { Product } from "@/db/schema/product-metadata.schema";
-import { productSchema } from "@/db/schema/product-metadata.schema";
 import {
   isoDateStringSchema,
   isoDateTimeStringSchema,
 } from "@/db/schema/primitives.schema";
+import type { Product } from "@/db/schema/product-metadata.schema";
+import { productSchema } from "@/db/schema/product-metadata.schema";
 
 export interface EveningForecast {
   headline: string;

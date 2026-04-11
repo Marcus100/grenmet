@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch400,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch403,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch404,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch422,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
 } from "../models/SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 
 function getSubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchUrl(

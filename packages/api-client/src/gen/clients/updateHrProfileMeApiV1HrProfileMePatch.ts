@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
   UpdateHrProfileMeApiV1HrProfileMePatch404,
   UpdateHrProfileMeApiV1HrProfileMePatch422,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
 
 function getUpdateHrProfileMeApiV1HrProfileMePatchUrl() {
-  const res = { method: "PATCH", url: `/api/v1/hr/profile/me` as const };
+  const res = { method: "PATCH", url: "/api/v1/hr/profile/me" as const };
   return res;
 }
 

@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "../clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
   UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
   UpdatePasswordMeApiV1AuthUsersMePasswordPatch422,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
 } from "../models/UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "../clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 
 export const updatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/me/password" }] as const;

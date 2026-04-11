@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
   ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
 } from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 
 function getReadRoleAssignmentsApiV1AuthRoleAssignmentsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/role-assignments/` as const };
+  const res = { method: "GET", url: "/api/v1/auth/role-assignments/" as const };
   return res;
 }
 

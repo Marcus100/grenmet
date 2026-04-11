@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rolesPublicSchema } from "./rolesPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readRolesApiV1AuthRolesGetQueryParamsSchema = z.object({
   skip: z.coerce.number().int().default(0),

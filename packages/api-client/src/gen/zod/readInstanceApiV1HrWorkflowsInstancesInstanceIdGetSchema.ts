@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowInstanceDetailsSchema } from "./workflowInstanceDetailsSchema.js";
-import { z } from "zod/v4";
 
 export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParamsSchema =
   z.object({

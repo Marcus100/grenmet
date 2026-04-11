@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Shift swap request created

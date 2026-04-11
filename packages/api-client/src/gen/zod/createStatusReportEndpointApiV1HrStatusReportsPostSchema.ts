@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 import { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Status report created
