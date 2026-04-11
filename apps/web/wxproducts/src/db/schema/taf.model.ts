@@ -3,8 +3,8 @@
  */
 
 import { index, pgTable } from "drizzle-orm/pg-core";
-import type { TAFReport } from "@/db/schema/taf.schema";
 import { timestamps } from "@/db/schema/db-helpers";
+import type { TAFReport } from "@/db/schema/taf.schema";
 
 /** Terminal Aerodrome Forecasts. Encoded as IWXXM. */
 export const tafForecasts = pgTable(

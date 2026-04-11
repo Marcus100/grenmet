@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createRoleApiV1AuthRolesPost } from "../clients/createRoleApiV1AuthRolesPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  CreateRoleApiV1AuthRolesPost422,
   CreateRoleApiV1AuthRolesPostMutationRequest,
   CreateRoleApiV1AuthRolesPostMutationResponse,
-  CreateRoleApiV1AuthRolesPost422,
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createRoleApiV1AuthRolesPost } from "../clients/createRoleApiV1AuthRolesPost.js";
 
 export const createRoleApiV1AuthRolesPostMutationKey = () =>
   [{ url: "/api/v1/auth/roles/" }] as const;

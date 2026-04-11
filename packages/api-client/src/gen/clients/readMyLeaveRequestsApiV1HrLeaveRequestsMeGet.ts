@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 
 function getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/leave-requests/me` as const };
+  const res = { method: "GET", url: "/api/v1/hr/leave-requests/me" as const };
   return res;
 }
 

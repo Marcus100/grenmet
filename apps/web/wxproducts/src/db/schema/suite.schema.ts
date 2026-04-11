@@ -18,9 +18,9 @@ import { morningForecastSchema } from "@/db/schema/morning.schema";
 import type { TropicalOutlookForecast } from "@/db/schema/outlook.schema";
 import { tropicalOutlookForecastSchema } from "@/db/schema/outlook.schema";
 import type { ProductType } from "@/db/schema/primitives";
+import { productTypeSchema } from "@/db/schema/primitives.schema";
 import type { Product } from "@/db/schema/product-metadata.schema";
 import { productSchema } from "@/db/schema/product-metadata.schema";
-import { productTypeSchema } from "@/db/schema/primitives.schema";
 
 export interface Suite {
   catalog: {

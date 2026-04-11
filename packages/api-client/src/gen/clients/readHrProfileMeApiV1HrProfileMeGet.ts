@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
   ReadHrProfileMeApiV1HrProfileMeGet404,
+  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
 } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 
 function getReadHrProfileMeApiV1HrProfileMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/profile/me` as const };
+  const res = { method: "GET", url: "/api/v1/hr/profile/me" as const };
   return res;
 }
 

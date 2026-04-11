@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 import { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Assignments created or updated

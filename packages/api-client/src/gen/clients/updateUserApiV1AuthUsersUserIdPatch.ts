@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
   UpdateUserApiV1AuthUsersUserIdPatch404,
   UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
+  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
+  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
 
 function getUpdateUserApiV1AuthUsersUserIdPatchUrl(

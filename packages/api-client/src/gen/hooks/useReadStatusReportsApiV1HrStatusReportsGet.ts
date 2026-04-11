@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readStatusReportsApiV1HrStatusReportsGet } from "../clients/readStatusReportsApiV1HrStatusReportsGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
   ReadStatusReportsApiV1HrStatusReportsGet403,
   ReadStatusReportsApiV1HrStatusReportsGet422,
+  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
+  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
 } from "../models/ReadStatusReportsApiV1HrStatusReportsGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readStatusReportsApiV1HrStatusReportsGet } from "../clients/readStatusReportsApiV1HrStatusReportsGet.js";
 
 export const readStatusReportsApiV1HrStatusReportsGetQueryKey = (
   params: ReadStatusReportsApiV1HrStatusReportsGetQueryParams = {}

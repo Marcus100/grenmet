@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 import { timesheetSubmitRequestSchema } from "./timesheetSubmitRequestSchema.js";
-import { z } from "zod/v4";
 
 export const submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParamsSchema =
   z.object({

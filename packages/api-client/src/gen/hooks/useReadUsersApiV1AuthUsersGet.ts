@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadUsersApiV1AuthUsersGetQueryResponse,
-  ReadUsersApiV1AuthUsersGetQueryParams,
-  ReadUsersApiV1AuthUsersGet422,
-} from "../models/ReadUsersApiV1AuthUsersGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readUsersApiV1AuthUsersGet } from "../clients/readUsersApiV1AuthUsersGet.js";
+import type {
+  ReadUsersApiV1AuthUsersGet422,
+  ReadUsersApiV1AuthUsersGetQueryParams,
+  ReadUsersApiV1AuthUsersGetQueryResponse,
+} from "../models/ReadUsersApiV1AuthUsersGet.js";
 
 export const readUsersApiV1AuthUsersGetQueryKey = (
   params: ReadUsersApiV1AuthUsersGetQueryParams = {}

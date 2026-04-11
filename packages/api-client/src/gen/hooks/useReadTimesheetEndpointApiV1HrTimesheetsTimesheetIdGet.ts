@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet } from "../clients/readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryResponse,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet403,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet404,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet422,
+  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams,
+  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryResponse,
 } from "../models/ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet } from "../clients/readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
 
 export const readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryKey = (
   timesheet_id: ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams["timesheet_id"]
@@ -31,7 +30,7 @@ export const readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryKey = (
   [
     {
       url: "/api/v1/hr/timesheets/:timesheet_id",
-      params: { timesheet_id: timesheet_id },
+      params: { timesheet_id },
     },
   ] as const;
 

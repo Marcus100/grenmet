@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updateUserMeApiV1AuthUsersMePatch } from "../clients/updateUserMeApiV1AuthUsersMePatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
   UpdateUserMeApiV1AuthUsersMePatch409,
   UpdateUserMeApiV1AuthUsersMePatch422,
+  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
+  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updateUserMeApiV1AuthUsersMePatch } from "../clients/updateUserMeApiV1AuthUsersMePatch.js";
 
 export const updateUserMeApiV1AuthUsersMePatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;

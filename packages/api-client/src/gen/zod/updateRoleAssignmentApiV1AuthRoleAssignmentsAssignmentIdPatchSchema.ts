@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 import { userRoleAssignmentUpdateSchema } from "./userRoleAssignmentUpdateSchema.js";
-import { z } from "zod/v4";
 
 export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParamsSchema =
   z.object({

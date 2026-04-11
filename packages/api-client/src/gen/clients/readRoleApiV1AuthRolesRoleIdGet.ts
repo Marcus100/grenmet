@@ -3,17 +3,17 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
   ReadRoleApiV1AuthRolesRoleIdGet404,
   ReadRoleApiV1AuthRolesRoleIdGet422,
+  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
+  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
 
 function getReadRoleApiV1AuthRolesRoleIdGetUrl(

@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParamsSchema =
   z.object({

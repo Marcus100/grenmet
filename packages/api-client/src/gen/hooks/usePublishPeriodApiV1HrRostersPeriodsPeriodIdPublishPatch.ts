@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "../clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
 } from "../models/PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "../clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 
 export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey =
   () => [{ url: "/api/v1/hr/rosters/periods/:period_id/publish" }] as const;

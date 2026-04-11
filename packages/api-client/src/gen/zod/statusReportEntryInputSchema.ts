@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { personnelStatusSchema } from "./personnelStatusSchema.js";
 import { z } from "zod/v4";
+import { personnelStatusSchema } from "./personnelStatusSchema.js";
 
 export const statusReportEntryInputSchema = z.object({
   user_id: z.uuid(),

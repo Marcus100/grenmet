@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { addressUpdateSchema } from "./addressUpdateSchema.js";
 import { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 import { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.js";
-import { z } from "zod/v4";
 
 export const userProfileUpdateMeSchema = z.object({
   get profile() {

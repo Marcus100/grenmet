@@ -4,8 +4,11 @@
 
 import { index, pgEnum, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
 import { timestamps } from "@/db/schema/db-helpers";
+import type {
+  ProductLinks,
+  ProductMetadata,
+} from "@/db/schema/product-metadata.schema";
 import type { Suite } from "@/db/schema/suite.schema";
-import type { ProductLinks, ProductMetadata } from "@/db/schema/product-metadata.schema";
 
 /** Authored forecast product types. Aviation obs / SYNOP have standalone tables. */
 export const productTypeEnum = pgEnum("product_type", [

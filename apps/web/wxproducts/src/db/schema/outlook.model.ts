@@ -3,8 +3,8 @@
  */
 
 import { pgTable, uniqueIndex } from "drizzle-orm/pg-core";
-import type { TropicalOutlookForecast } from "@/db/schema/outlook.schema";
 import { timestamps } from "@/db/schema/db-helpers";
+import type { TropicalOutlookForecast } from "@/db/schema/outlook.schema";
 import { products } from "@/db/schema/product-metadata.model";
 
 export const tropicalOutlookProducts = pgTable(

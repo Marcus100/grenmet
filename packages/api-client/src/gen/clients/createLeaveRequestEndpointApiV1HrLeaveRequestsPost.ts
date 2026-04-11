@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse,
   CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost403,
   CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost422,
+  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest,
+  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse,
 } from "../models/CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
 
 function getCreateLeaveRequestEndpointApiV1HrLeaveRequestsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/leave-requests` as const };
+  const res = { method: "POST", url: "/api/v1/hr/leave-requests" as const };
   return res;
 }
 

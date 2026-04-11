@@ -3,8 +3,8 @@
  */
 
 import { index, pgEnum, pgTable } from "drizzle-orm/pg-core";
-import type { AerodromeObservationReport } from "@/db/schema/metar-speci.schema";
 import { timestamps } from "@/db/schema/db-helpers";
+import type { AerodromeObservationReport } from "@/db/schema/metar-speci.schema";
 
 export const aviationReportTypeEnum = pgEnum("aviation_report_type", [
   "METAR",

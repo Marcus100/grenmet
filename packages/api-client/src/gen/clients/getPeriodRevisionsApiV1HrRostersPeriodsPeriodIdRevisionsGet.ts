@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams,
   GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403,
   GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404,
   GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
 } from "../models/GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 
 function getGetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetUrl(

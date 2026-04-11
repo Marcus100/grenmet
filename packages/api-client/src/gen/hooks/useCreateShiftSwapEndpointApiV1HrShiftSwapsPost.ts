@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createShiftSwapEndpointApiV1HrShiftSwapsPost } from "../clients/createShiftSwapEndpointApiV1HrShiftSwapsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse,
   CreateShiftSwapEndpointApiV1HrShiftSwapsPost403,
   CreateShiftSwapEndpointApiV1HrShiftSwapsPost422,
+  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest,
+  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse,
 } from "../models/CreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createShiftSwapEndpointApiV1HrShiftSwapsPost } from "../clients/createShiftSwapEndpointApiV1HrShiftSwapsPost.js";
 
 export const createShiftSwapEndpointApiV1HrShiftSwapsPostMutationKey = () =>
   [{ url: "/api/v1/hr/shift-swaps" }] as const;

@@ -3,28 +3,27 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch } from "../clients/submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch400,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch403,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch404,
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch422,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
 } from "../models/SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch } from "../clients/submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 
 export const submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey =
   () => [{ url: "/api/v1/hr/timesheets/:timesheet_id/submit" }] as const;

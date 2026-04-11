@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
 import { employmentUpdateSchema } from "./employmentUpdateSchema.js";
-import { z } from "zod/v4";
 
 export const employmentAdminUpdateSchema = z.object({
   get employment() {

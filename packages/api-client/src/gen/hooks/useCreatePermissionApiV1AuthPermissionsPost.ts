@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createPermissionApiV1AuthPermissionsPost } from "../clients/createPermissionApiV1AuthPermissionsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  CreatePermissionApiV1AuthPermissionsPost422,
   CreatePermissionApiV1AuthPermissionsPostMutationRequest,
   CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-  CreatePermissionApiV1AuthPermissionsPost422,
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createPermissionApiV1AuthPermissionsPost } from "../clients/createPermissionApiV1AuthPermissionsPost.js";
 
 export const createPermissionApiV1AuthPermissionsPostMutationKey = () =>
   [{ url: "/api/v1/auth/permissions/" }] as const;

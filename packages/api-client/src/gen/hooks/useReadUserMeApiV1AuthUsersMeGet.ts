@@ -3,21 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readUserMeApiV1AuthUsersMeGet } from "../clients/readUserMeApiV1AuthUsersMeGet.js";
+import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
 
 export const readUserMeApiV1AuthUsersMeGetQueryKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;

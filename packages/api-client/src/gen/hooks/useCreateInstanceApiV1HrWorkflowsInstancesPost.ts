@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createInstanceApiV1HrWorkflowsInstancesPost } from "../clients/createInstanceApiV1HrWorkflowsInstancesPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
   CreateInstanceApiV1HrWorkflowsInstancesPost403,
   CreateInstanceApiV1HrWorkflowsInstancesPost404,
   CreateInstanceApiV1HrWorkflowsInstancesPost422,
+  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
+  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
 } from "../models/CreateInstanceApiV1HrWorkflowsInstancesPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createInstanceApiV1HrWorkflowsInstancesPost } from "../clients/createInstanceApiV1HrWorkflowsInstancesPost.js";
 
 export const createInstanceApiV1HrWorkflowsInstancesPostMutationKey = () =>
   [{ url: "/api/v1/hr/workflows/instances" }] as const;

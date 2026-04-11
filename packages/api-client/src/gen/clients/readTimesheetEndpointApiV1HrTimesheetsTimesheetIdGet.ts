@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryResponse,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet403,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet404,
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet422,
+  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams,
+  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryResponse,
 } from "../models/ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
 
 function getReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetUrl(

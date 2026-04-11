@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "../clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "../clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 
 export const updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey = () =>
   [{ url: "/api/v1/hr/employment/:user_id" }] as const;

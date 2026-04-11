@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { deleteUserApiV1AuthUsersUserIdDelete } from "../clients/deleteUserApiV1AuthUsersUserIdDelete.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
   DeleteUserApiV1AuthUsersUserIdDelete403,
   DeleteUserApiV1AuthUsersUserIdDelete404,
   DeleteUserApiV1AuthUsersUserIdDelete422,
+  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
+  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
 } from "../models/DeleteUserApiV1AuthUsersUserIdDelete.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { deleteUserApiV1AuthUsersUserIdDelete } from "../clients/deleteUserApiV1AuthUsersUserIdDelete.js";
 
 export const deleteUserApiV1AuthUsersUserIdDeleteMutationKey = () =>
   [{ url: "/api/v1/auth/users/:user_id" }] as const;

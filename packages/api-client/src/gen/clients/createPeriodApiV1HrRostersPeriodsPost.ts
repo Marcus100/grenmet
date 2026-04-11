@@ -3,22 +3,22 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
   CreatePeriodApiV1HrRostersPeriodsPost400,
   CreatePeriodApiV1HrRostersPeriodsPost403,
   CreatePeriodApiV1HrRostersPeriodsPost422,
+  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
+  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
 } from "../models/CreatePeriodApiV1HrRostersPeriodsPost.js";
 
 function getCreatePeriodApiV1HrRostersPeriodsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/rosters/periods` as const };
+  const res = { method: "POST", url: "/api/v1/hr/rosters/periods" as const };
   return res;
 }
 

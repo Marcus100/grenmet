@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
   DeleteUserApiV1AuthUsersUserIdDelete403,
   DeleteUserApiV1AuthUsersUserIdDelete404,
   DeleteUserApiV1AuthUsersUserIdDelete422,
+  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
+  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
 } from "../models/DeleteUserApiV1AuthUsersUserIdDelete.js";
 
 function getDeleteUserApiV1AuthUsersUserIdDeleteUrl(

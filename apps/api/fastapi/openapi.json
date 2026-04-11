@@ -7,9 +7,7 @@
   "paths": {
     "/api/v1/login/access-token": {
       "post": {
-        "tags": [
-          "login"
-        ],
+        "tags": ["login"],
         "summary": "Login with OAuth2",
         "description": "OAuth2 compatible token login. Returns an access token for future requests.",
         "operationId": "login_access_token_api_v1_login_access_token_post",
@@ -52,9 +50,7 @@
     },
     "/api/v1/login/test-token": {
       "post": {
-        "tags": [
-          "login"
-        ],
+        "tags": ["login"],
         "summary": "Test Token",
         "description": "Test access token.",
         "operationId": "test_token_api_v1_login_test_token_post",
@@ -79,9 +75,7 @@
     },
     "/api/v1/password-recovery/{email}": {
       "post": {
-        "tags": [
-          "login"
-        ],
+        "tags": ["login"],
         "summary": "Recover Password",
         "description": "Password Recovery.",
         "operationId": "recover_password_api_v1_password_recovery__email__post",
@@ -122,9 +116,7 @@
     },
     "/api/v1/reset-password/": {
       "post": {
-        "tags": [
-          "login"
-        ],
+        "tags": ["login"],
         "summary": "Reset Password",
         "description": "Reset password.",
         "operationId": "reset_password_api_v1_reset_password__post",
@@ -164,9 +156,7 @@
     },
     "/api/v1/password-recovery-html-content/{email}": {
       "post": {
-        "tags": [
-          "login"
-        ],
+        "tags": ["login"],
         "summary": "Recover Password Html Content",
         "description": "HTML Content for Password Recovery.",
         "operationId": "recover_password_html_content_api_v1_password_recovery_html_content__email__post",
@@ -212,9 +202,7 @@
     },
     "/api/v1/auth/users/": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "List users",
         "description": "Return users (superuser only).",
         "operationId": "read_users_api_v1_auth_users__get",
@@ -269,9 +257,7 @@
         }
       },
       "post": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Create user",
         "description": "Create a user (superuser only).",
         "operationId": "create_user_api_v1_auth_users__post",
@@ -319,9 +305,7 @@
     },
     "/api/v1/auth/users/me": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get current user",
         "description": "Return the currently authenticated user.",
         "operationId": "read_user_me_api_v1_auth_users_me_get",
@@ -344,9 +328,7 @@
         ]
       },
       "delete": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Delete current user",
         "description": "Delete currently authenticated user account.",
         "operationId": "delete_user_me_api_v1_auth_users_me_delete",
@@ -372,9 +354,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update current user",
         "description": "Update profile fields for the currently authenticated user.",
         "operationId": "update_user_me_api_v1_auth_users_me_patch",
@@ -422,9 +402,7 @@
     },
     "/api/v1/auth/users/me/password": {
       "patch": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Change current user password",
         "description": "Change password for the currently authenticated user.",
         "operationId": "update_password_me_api_v1_auth_users_me_password_patch",
@@ -472,9 +450,7 @@
     },
     "/api/v1/auth/users/signup": {
       "post": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Register new user",
         "description": "Create a new user account without authentication. Public endpoint for user registration.",
         "operationId": "register_user_api_v1_auth_users_signup_post",
@@ -517,9 +493,7 @@
     },
     "/api/v1/auth/users/{user_id}": {
       "get": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get user by ID",
         "description": "Return user by ID. Non-superusers can only fetch themselves.",
         "operationId": "read_user_by_id_api_v1_auth_users__user_id__get",
@@ -567,9 +541,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update user by ID",
         "description": "Update a user by ID (superuser only).",
         "operationId": "update_user_api_v1_auth_users__user_id__patch",
@@ -630,9 +602,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Delete user by ID",
         "description": "Delete a user by ID (superuser only).",
         "operationId": "delete_user_api_v1_auth_users__user_id__delete",
@@ -685,9 +655,7 @@
     },
     "/api/v1/auth/roles/": {
       "get": {
-        "tags": [
-          "roles"
-        ],
+        "tags": ["roles"],
         "summary": "List roles",
         "description": "Return roles (superuser only).",
         "operationId": "read_roles_api_v1_auth_roles__get",
@@ -742,9 +710,7 @@
         }
       },
       "post": {
-        "tags": [
-          "roles"
-        ],
+        "tags": ["roles"],
         "summary": "Create role",
         "description": "Create a role (superuser only).",
         "operationId": "create_role_api_v1_auth_roles__post",
@@ -789,9 +755,7 @@
     },
     "/api/v1/auth/roles/{role_id}": {
       "get": {
-        "tags": [
-          "roles"
-        ],
+        "tags": ["roles"],
         "summary": "Get role by ID",
         "description": "Return a role by ID (superuser only).",
         "operationId": "read_role_api_v1_auth_roles__role_id__get",
@@ -841,9 +805,7 @@
     },
     "/api/v1/auth/permissions/": {
       "get": {
-        "tags": [
-          "permissions"
-        ],
+        "tags": ["permissions"],
         "summary": "List permissions",
         "description": "Return permissions (superuser only).",
         "operationId": "read_permissions_api_v1_auth_permissions__get",
@@ -898,9 +860,7 @@
         }
       },
       "post": {
-        "tags": [
-          "permissions"
-        ],
+        "tags": ["permissions"],
         "summary": "Create permission",
         "description": "Create a permission (superuser only).",
         "operationId": "create_permission_api_v1_auth_permissions__post",
@@ -945,9 +905,7 @@
     },
     "/api/v1/auth/permissions/{permission_id}": {
       "get": {
-        "tags": [
-          "permissions"
-        ],
+        "tags": ["permissions"],
         "summary": "Get permission by ID",
         "description": "Return a permission by ID (superuser only).",
         "operationId": "read_permission_api_v1_auth_permissions__permission_id__get",
@@ -997,9 +955,7 @@
     },
     "/api/v1/auth/role-assignments/": {
       "get": {
-        "tags": [
-          "role-assignments"
-        ],
+        "tags": ["role-assignments"],
         "summary": "List role assignments",
         "description": "Return role assignments, optionally filtered by user_id (superuser only).",
         "operationId": "read_role_assignments_api_v1_auth_role_assignments__get",
@@ -1051,9 +1007,7 @@
         }
       },
       "post": {
-        "tags": [
-          "role-assignments"
-        ],
+        "tags": ["role-assignments"],
         "summary": "Create role assignment",
         "description": "Create a user-role assignment (superuser only).",
         "operationId": "create_role_assignment_api_v1_auth_role_assignments__post",
@@ -1098,9 +1052,7 @@
     },
     "/api/v1/auth/role-assignments/{assignment_id}": {
       "get": {
-        "tags": [
-          "role-assignments"
-        ],
+        "tags": ["role-assignments"],
         "summary": "Get role assignment by ID",
         "description": "Return a role assignment by ID (superuser only).",
         "operationId": "read_role_assignment_api_v1_auth_role_assignments__assignment_id__get",
@@ -1148,9 +1100,7 @@
         }
       },
       "patch": {
-        "tags": [
-          "role-assignments"
-        ],
+        "tags": ["role-assignments"],
         "summary": "Update role assignment",
         "description": "Update a user-role assignment (superuser only).",
         "operationId": "update_role_assignment_api_v1_auth_role_assignments__assignment_id__patch",
@@ -1210,9 +1160,7 @@
     },
     "/api/v1/hr/profile/me": {
       "get": {
-        "tags": [
-          "hr"
-        ],
+        "tags": ["hr"],
         "summary": "Get my HR profile",
         "description": "Return the current user's HR profile (identity, employment, address, preferences).",
         "operationId": "read_hr_profile_me_api_v1_hr_profile_me_get",
@@ -1238,9 +1186,7 @@
         ]
       },
       "patch": {
-        "tags": [
-          "hr"
-        ],
+        "tags": ["hr"],
         "summary": "Update my HR profile",
         "description": "Update the current user's HR profile (identity, address, preferences).",
         "operationId": "update_hr_profile_me_api_v1_hr_profile_me_patch",
@@ -1288,9 +1234,7 @@
     },
     "/api/v1/hr/employment/{user_id}": {
       "patch": {
-        "tags": [
-          "hr"
-        ],
+        "tags": ["hr"],
         "summary": "Update employment (admin)",
         "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
         "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
@@ -1353,9 +1297,7 @@
     },
     "/api/v1/hr/workflows/templates": {
       "post": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "Create workflow template",
         "description": "Create a new workflow template. Requires workflow.template.manage permission.",
         "operationId": "create_template_api_v1_hr_workflows_templates_post",
@@ -1401,9 +1343,7 @@
         }
       },
       "get": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "List workflow templates",
         "description": "List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.",
         "operationId": "read_templates_api_v1_hr_workflows_templates_get",
@@ -1459,9 +1399,7 @@
     },
     "/api/v1/hr/workflows/templates/{template_id}/steps": {
       "post": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "Add step to workflow template",
         "description": "Create a step template for a workflow template. Requires workflow.template.manage permission.",
         "operationId": "create_template_step_api_v1_hr_workflows_templates__template_id__steps_post",
@@ -1524,9 +1462,7 @@
     },
     "/api/v1/hr/workflows/instances": {
       "post": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "Create workflow instance",
         "description": "Create a new workflow instance from a template. Template must exist.",
         "operationId": "create_instance_api_v1_hr_workflows_instances_post",
@@ -1577,9 +1513,7 @@
     },
     "/api/v1/hr/workflows/instances/{instance_id}": {
       "get": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "Get workflow instance details",
         "description": "Return a workflow instance and its step instances. Requires workflow.instance.view permission.",
         "operationId": "read_instance_api_v1_hr_workflows_instances__instance_id__get",
@@ -1632,9 +1566,7 @@
     },
     "/api/v1/hr/workflows/instances/{instance_id}/actions": {
       "post": {
-        "tags": [
-          "hr-workflows"
-        ],
+        "tags": ["hr-workflows"],
         "summary": "Perform workflow action",
         "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
         "operationId": "take_action_api_v1_hr_workflows_instances__instance_id__actions_post",
@@ -1700,9 +1632,7 @@
     },
     "/api/v1/hr/rosters/shifts": {
       "get": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "List shift catalog",
         "description": "Return the active shift catalog for roster assignment.",
         "operationId": "list_shift_catalog_api_v1_hr_rosters_shifts_get",
@@ -1730,9 +1660,7 @@
     },
     "/api/v1/hr/rosters/periods": {
       "post": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Create roster period",
         "description": "Create a new roster period. Requires roster.manage permission.",
         "operationId": "create_period_api_v1_hr_rosters_periods_post",
@@ -1786,9 +1714,7 @@
     },
     "/api/v1/hr/rosters/assignments/bulk": {
       "post": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Bulk upsert roster assignments",
         "description": "Create or replace roster assignments for a period. Requires roster.manage permission.",
         "operationId": "bulk_assignments_api_v1_hr_rosters_assignments_bulk_post",
@@ -1843,9 +1769,7 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}": {
       "get": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Get roster period details",
         "description": "Return a roster period and its assignments. Requires roster.view permission.",
         "operationId": "get_period_api_v1_hr_rosters_periods__period_id__get",
@@ -1898,9 +1822,7 @@
     },
     "/api/v1/hr/rosters/import-csv/validate": {
       "post": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Validate roster CSV",
         "description": "Validate CSV content for roster import. Requires roster.import permission.",
         "operationId": "validate_csv_api_v1_hr_rosters_import_csv_validate_post",
@@ -1951,9 +1873,7 @@
     },
     "/api/v1/hr/rosters/import-csv": {
       "post": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Import roster from CSV",
         "description": "Create roster import job and optionally apply valid rows. Requires roster.import permission.",
         "operationId": "import_csv_api_v1_hr_rosters_import_csv_post",
@@ -2004,9 +1924,7 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/publish": {
       "patch": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Publish roster period",
         "description": "Transition a draft roster period to published. Requires roster.manage permission.",
         "operationId": "publish_period_api_v1_hr_rosters_periods__period_id__publish_patch",
@@ -2062,9 +1980,7 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/close": {
       "patch": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Close roster period",
         "description": "Close a published roster period. Requires roster.manage permission.",
         "operationId": "close_period_api_v1_hr_rosters_periods__period_id__close_patch",
@@ -2120,9 +2036,7 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/revisions": {
       "get": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "List roster period revisions",
         "description": "Return the revision history for a roster period. Requires roster.view permission.",
         "operationId": "get_period_revisions_api_v1_hr_rosters_periods__period_id__revisions_get",
@@ -2175,9 +2089,7 @@
     },
     "/api/v1/hr/rosters/public-holidays": {
       "post": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Create public holiday",
         "description": "Add a public holiday. Requires roster.manage permission.",
         "operationId": "create_holiday_api_v1_hr_rosters_public_holidays_post",
@@ -2226,9 +2138,7 @@
         }
       },
       "get": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "List public holidays",
         "description": "Return public holidays, optionally filtered by year. Requires roster.view permission.",
         "operationId": "list_holidays_api_v1_hr_rosters_public_holidays_get",
@@ -2284,9 +2194,7 @@
     },
     "/api/v1/hr/rosters/public-holidays/{holiday_id}": {
       "delete": {
-        "tags": [
-          "hr-rosters"
-        ],
+        "tags": ["hr-rosters"],
         "summary": "Delete public holiday",
         "description": "Remove a public holiday. Requires roster.manage permission.",
         "operationId": "remove_holiday_api_v1_hr_rosters_public_holidays__holiday_id__delete",
@@ -2332,9 +2240,7 @@
     },
     "/api/v1/hr/timesheets/": {
       "post": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "Create timesheet",
         "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
         "operationId": "create_timesheet_endpoint_api_v1_hr_timesheets__post",
@@ -2382,9 +2288,7 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/submit": {
       "patch": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "Submit timesheet",
         "description": "Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
         "operationId": "submit_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__submit_patch",
@@ -2450,9 +2354,7 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/approve": {
       "patch": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "Approve timesheet",
         "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
         "operationId": "approve_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__approve_patch",
@@ -2508,9 +2410,7 @@
     },
     "/api/v1/hr/timesheets/me": {
       "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "List my timesheets",
         "description": "Return timesheets for the current user.",
         "operationId": "read_my_timesheets_api_v1_hr_timesheets_me_get",
@@ -2535,9 +2435,7 @@
     },
     "/api/v1/hr/timesheets/department": {
       "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "List department timesheets",
         "description": "Return timesheets for a department. Requires timesheet.read.department permission.",
         "operationId": "read_department_timesheets_api_v1_hr_timesheets_department_get",
@@ -2586,9 +2484,7 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/summary": {
       "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "Get timesheet summary by shift",
         "description": "Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
         "operationId": "read_timesheet_summary_api_v1_hr_timesheets__timesheet_id__summary_get",
@@ -2641,9 +2537,7 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}": {
       "get": {
-        "tags": [
-          "hr-timesheets"
-        ],
+        "tags": ["hr-timesheets"],
         "summary": "Get timesheet details",
         "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
         "operationId": "read_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__get",
@@ -2696,9 +2590,7 @@
     },
     "/api/v1/hr/leave-requests": {
       "post": {
-        "tags": [
-          "hr-leave"
-        ],
+        "tags": ["hr-leave"],
         "summary": "Create leave request",
         "description": "Create a leave request for the current user. Requires leave.request.create.self permission.",
         "operationId": "create_leave_request_endpoint_api_v1_hr_leave_requests_post",
@@ -2746,9 +2638,7 @@
     },
     "/api/v1/hr/leave-requests/{leave_request_id}/action": {
       "patch": {
-        "tags": [
-          "hr-leave"
-        ],
+        "tags": ["hr-leave"],
         "summary": "Action leave request",
         "description": "Approve or update a leave request. Requires leave.request.action and scope over the user.",
         "operationId": "action_leave_request_endpoint_api_v1_hr_leave_requests__leave_request_id__action_patch",
@@ -2811,9 +2701,7 @@
     },
     "/api/v1/hr/leave-requests/me": {
       "get": {
-        "tags": [
-          "hr-leave"
-        ],
+        "tags": ["hr-leave"],
         "summary": "List my leave requests",
         "description": "Return leave requests for the current user.",
         "operationId": "read_my_leave_requests_api_v1_hr_leave_requests_me_get",
@@ -2838,9 +2726,7 @@
     },
     "/api/v1/hr/absentee-reports": {
       "post": {
-        "tags": [
-          "hr-absentee"
-        ],
+        "tags": ["hr-absentee"],
         "summary": "Create absentee report",
         "description": "Create an absentee report. Requires absentee.report.create permission.",
         "operationId": "create_absentee_endpoint_api_v1_hr_absentee_reports_post",
@@ -2886,9 +2772,7 @@
         }
       },
       "get": {
-        "tags": [
-          "hr-absentee"
-        ],
+        "tags": ["hr-absentee"],
         "summary": "List absentee reports",
         "description": "List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
         "operationId": "read_absentee_reports_api_v1_hr_absentee_reports_get",
@@ -2944,9 +2828,7 @@
     },
     "/api/v1/hr/shift-swaps": {
       "post": {
-        "tags": [
-          "hr-exchange"
-        ],
+        "tags": ["hr-exchange"],
         "summary": "Create shift swap request",
         "description": "Create a shift swap request. Requires shift_swap.request.create.self permission.",
         "operationId": "create_shift_swap_endpoint_api_v1_hr_shift_swaps_post",
@@ -2994,9 +2876,7 @@
     },
     "/api/v1/hr/shift-swaps/{shift_swap_id}/action": {
       "patch": {
-        "tags": [
-          "hr-exchange"
-        ],
+        "tags": ["hr-exchange"],
         "summary": "Action shift swap request",
         "description": "Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
         "operationId": "action_shift_swap_endpoint_api_v1_hr_shift_swaps__shift_swap_id__action_patch",
@@ -3059,9 +2939,7 @@
     },
     "/api/v1/hr/status-reports": {
       "post": {
-        "tags": [
-          "hr-dailystatus"
-        ],
+        "tags": ["hr-dailystatus"],
         "summary": "Create status report",
         "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
         "operationId": "create_status_report_endpoint_api_v1_hr_status_reports_post",
@@ -3107,9 +2985,7 @@
         }
       },
       "get": {
-        "tags": [
-          "hr-dailystatus"
-        ],
+        "tags": ["hr-dailystatus"],
         "summary": "List status reports",
         "description": "List status reports. Requires status.report.read permission. Optionally filter by department_id.",
         "operationId": "read_status_reports_api_v1_hr_status_reports_get",
@@ -3165,9 +3041,7 @@
     },
     "/api/v1/hr/status-reports/{report_id}": {
       "get": {
-        "tags": [
-          "hr-dailystatus"
-        ],
+        "tags": ["hr-dailystatus"],
         "summary": "Get status report details",
         "description": "Return a status report with its personnel entries. Requires status.report.read permission.",
         "operationId": "read_status_report_endpoint_api_v1_hr_status_reports__report_id__get",
@@ -3220,9 +3094,7 @@
     },
     "/api/v1/utils/test-email/": {
       "post": {
-        "tags": [
-          "utils"
-        ],
+        "tags": ["utils"],
         "summary": "Test Email",
         "description": "Test emails.",
         "operationId": "test_email_api_v1_utils_test_email__post",
@@ -3269,9 +3141,7 @@
     },
     "/api/v1/utils/health-check/": {
       "get": {
-        "tags": [
-          "utils"
-        ],
+        "tags": ["utils"],
         "summary": "Liveness",
         "description": "Simple liveness probe; returns 200 if the process is running.",
         "operationId": "health_check_api_v1_utils_health_check__get",
@@ -3292,9 +3162,7 @@
     },
     "/api/v1/utils/ready/": {
       "get": {
-        "tags": [
-          "utils"
-        ],
+        "tags": ["utils"],
         "summary": "Readiness",
         "description": "Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
         "operationId": "ready_api_v1_utils_ready__get",
@@ -3419,12 +3287,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id",
-          "department_id",
-          "report_date",
-          "reason_code"
-        ],
+        "required": ["user_id", "department_id", "report_date", "reason_code"],
         "title": "AbsenteeReportCreate"
       },
       "AbsenteeReportListPublic": {},
@@ -3610,10 +3473,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "username",
-          "password"
-        ],
+        "required": ["username", "password"],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
       },
       "EmploymentAdminUpdate": {
@@ -3644,21 +3504,12 @@
       },
       "EmploymentStatus": {
         "type": "string",
-        "enum": [
-          "ACTIVE",
-          "INACTIVE",
-          "TERMINATED"
-        ],
+        "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
         "title": "EmploymentStatus"
       },
       "EmploymentType": {
         "type": "string",
-        "enum": [
-          "FULL_TIME",
-          "PART_TIME",
-          "CONTRACT",
-          "TEMPORARY"
-        ],
+        "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
         "title": "EmploymentType"
       },
       "EmploymentUpdate": {
@@ -3802,9 +3653,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "title": "LeaveRequestAction"
       },
       "LeaveRequestCreate": {
@@ -3912,12 +3761,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "leave_type",
-          "start_date",
-          "end_date"
-        ],
+        "required": ["department_id", "leave_type", "start_date", "end_date"],
         "title": "LeaveRequestCreate"
       },
       "LeaveRequestListPublic": {},
@@ -3950,10 +3794,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "token",
-          "new_password"
-        ],
+        "required": ["token", "new_password"],
         "title": "NewPassword"
       },
       "PermissionCreate": {
@@ -3988,24 +3829,14 @@
           }
         },
         "type": "object",
-        "required": [
-          "action",
-          "entity",
-          "access"
-        ],
+        "required": ["action", "entity", "access"],
         "title": "PermissionCreate"
       },
       "PermissionPublic": {},
       "PermissionsPublic": {},
       "PersonnelStatus": {
         "type": "string",
-        "enum": [
-          "PRESENT",
-          "ABSENT",
-          "LATE",
-          "ON_LEAVE",
-          "EXCUSED"
-        ],
+        "enum": ["PRESENT", "ABSENT", "LATE", "ON_LEAVE", "EXCUSED"],
         "title": "PersonnelStatus"
       },
       "ProfileDetailsUpdate": {
@@ -4157,32 +3988,19 @@
           }
         },
         "type": "object",
-        "required": [
-          "name",
-          "holiday_date"
-        ],
+        "required": ["name", "holiday_date"],
         "title": "PublicHolidayCreate"
       },
       "PublicHolidayPublic": {},
       "PublicHolidaysPublic": {},
       "RequestStatus": {
         "type": "string",
-        "enum": [
-          "DRAFT",
-          "SUBMITTED",
-          "APPROVED",
-          "REJECTED",
-          "CANCELLED"
-        ],
+        "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
         "title": "RequestStatus"
       },
       "RoleAssignmentScope": {
         "type": "string",
-        "enum": [
-          "SELF",
-          "DEPARTMENT",
-          "ALL"
-        ],
+        "enum": ["SELF", "DEPARTMENT", "ALL"],
         "title": "RoleAssignmentScope"
       },
       "RoleCreate": {
@@ -4198,9 +4016,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "title": "RoleCreate"
       },
       "RolePublic": {},
@@ -4221,9 +4037,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "roster_period_id"
-        ],
+        "required": ["roster_period_id"],
         "title": "RosterAssignmentBulkCreate"
       },
       "RosterAssignmentInput": {
@@ -4255,11 +4069,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id",
-          "assignment_date",
-          "shift_code"
-        ],
+        "required": ["user_id", "assignment_date", "shift_code"],
         "title": "RosterAssignmentInput"
       },
       "RosterAssignmentPublic": {},
@@ -4293,10 +4103,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "csv_text"
-        ],
+        "required": ["department_id", "csv_text"],
         "title": "RosterCsvValidationRequest"
       },
       "RosterCsvValidationResponse": {},
@@ -4318,11 +4125,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "period_start",
-          "period_end"
-        ],
+        "required": ["department_id", "period_start", "period_end"],
         "title": "RosterPeriodCreate"
       },
       "RosterPeriodDetails": {},
@@ -4388,11 +4191,7 @@
       "ShiftCatalogsPublic": {},
       "ShiftPattern": {
         "type": "string",
-        "enum": [
-          "ROTATION",
-          "FIXED",
-          "FLEX"
-        ],
+        "enum": ["ROTATION", "FIXED", "FLEX"],
         "title": "ShiftPattern"
       },
       "ShiftSwapAction": {
@@ -4413,9 +4212,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "title": "ShiftSwapAction"
       },
       "ShiftSwapRequestCreate": {
@@ -4600,11 +4397,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "report_date",
-          "shift_code"
-        ],
+        "required": ["department_id", "report_date", "shift_code"],
         "title": "StatusReportCreate"
       },
       "StatusReportDetails": {},
@@ -4653,27 +4446,18 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id",
-          "personnel_status"
-        ],
+        "required": ["user_id", "personnel_status"],
         "title": "StatusReportEntryInput"
       },
       "StatusReportListPublic": {},
       "SubmissionMode": {
         "type": "string",
-        "enum": [
-          "SELF",
-          "PROXY"
-        ],
+        "enum": ["SELF", "PROXY"],
         "title": "SubmissionMode"
       },
       "SwapType": {
         "type": "string",
-        "enum": [
-          "TEMPORARY",
-          "PERMANENT"
-        ],
+        "enum": ["TEMPORARY", "PERMANENT"],
         "title": "SwapType"
       },
       "TimesheetCreate": {
@@ -4713,11 +4497,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "period_start",
-          "period_end"
-        ],
+        "required": ["department_id", "period_start", "period_end"],
         "title": "TimesheetCreate"
       },
       "TimesheetDetails": {},
@@ -4804,9 +4584,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "entry_date"
-        ],
+        "required": ["entry_date"],
         "title": "TimesheetEntryInput"
       },
       "TimesheetListPublic": {},
@@ -4835,10 +4613,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "current_password",
-          "new_password"
-        ],
+        "required": ["current_password", "new_password"],
         "title": "UpdatePassword"
       },
       "UserCreate": {
@@ -5112,10 +4887,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "user_id",
-          "role_id"
-        ],
+        "required": ["user_id", "role_id"],
         "title": "UserRoleAssignmentCreate"
       },
       "UserRoleAssignmentPublic": {},
@@ -5161,10 +4933,7 @@
       "UserRoleAssignmentsPublic": {},
       "UserStatus": {
         "type": "string",
-        "enum": [
-          "ACTIVE",
-          "INACTIVE"
-        ],
+        "enum": ["ACTIVE", "INACTIVE"],
         "title": "UserStatus"
       },
       "UserUpdate": {
@@ -5365,22 +5134,12 @@
           }
         },
         "type": "object",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
+        "required": ["loc", "msg", "type"],
         "title": "ValidationError"
       },
       "WorkflowAction": {
         "type": "string",
-        "enum": [
-          "SUBMIT",
-          "APPROVE",
-          "REJECT",
-          "RETURN",
-          "CANCEL"
-        ],
+        "enum": ["SUBMIT", "APPROVE", "REJECT", "RETURN", "CANCEL"],
         "title": "WorkflowAction"
       },
       "WorkflowActionRequest": {
@@ -5402,9 +5161,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "action"
-        ],
+        "required": ["action"],
         "title": "WorkflowActionRequest"
       },
       "WorkflowInstanceCreate": {
@@ -5427,11 +5184,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "workflow_template_id",
-          "entity_type",
-          "entity_id"
-        ],
+        "required": ["workflow_template_id", "entity_type", "entity_id"],
         "title": "WorkflowInstanceCreate"
       },
       "WorkflowInstanceDetails": {},
@@ -5459,10 +5212,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "step_order",
-          "required_role_id"
-        ],
+        "required": ["step_order", "required_role_id"],
         "title": "WorkflowStepTemplateCreate"
       },
       "WorkflowStepTemplatePublic": {},
@@ -5483,11 +5233,7 @@
           }
         },
         "type": "object",
-        "required": [
-          "department_id",
-          "workflow_type",
-          "name"
-        ],
+        "required": ["department_id", "workflow_type", "name"],
         "title": "WorkflowTemplateCreate"
       },
       "WorkflowTemplatePublic": {},
