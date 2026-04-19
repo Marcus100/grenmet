@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 
 interface NavItem {
   href: string;
-  label: string;
   icon: React.ComponentType<{ className?: string }>;
+  label: string;
 }
 
 const navItems: NavItem[] = [

@@ -5,6 +5,10 @@ export type {
 
 export { AuthApiError, isAuthApiError } from "@grenmet/auth";
 
+import type {
+  SessionAccessTokenResponse,
+  SessionLoginResponse,
+} from "@grenmet/auth";
 import {
   clearSessionCookie as _clearSessionCookie,
   createSession as _createSession,

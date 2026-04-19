@@ -1,20 +1,20 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { createContext, useContext, useState, useCallback } from "react";
-import type { CartItem, Product, CaseType, PaymentType } from "./types";
+import { createContext, useCallback, useContext, useState } from "react";
+import type { CartItem, CaseType, PaymentType, Product } from "./types";
 import { getCasePrice } from "./types";
 
 interface CartContextType {
+  addItem: (product: Product, quantity: number, caseType: CaseType) => void;
+  clearCart: () => void;
   items: CartItem[];
   paymentType: PaymentType;
-  addItem: (product: Product, quantity: number, caseType: CaseType) => void;
   removeItem: (itemId: string) => void;
-  updateItemQuantity: (itemId: string, quantity: number) => void;
-  clearCart: () => void;
   setPaymentType: (type: PaymentType) => void;
   totalItems: number;
   totalPrice: number;
+  updateItemQuantity: (itemId: string, quantity: number) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -23,19 +23,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [paymentType, setPaymentType] = useState<PaymentType>("cash");
 
-  const addItem = useCallback((product: Product, quantity: number, caseType: CaseType) => {
-    const price = getCasePrice(product, caseType) * quantity;
-    const newItem: CartItem = {
-      id: `${product.id}-${caseType}-${Date.now()}`,
-      productId: product.id,
-      product,
-      quantity,
-      caseType,
-      price,
-    };
+  const addItem = useCallback(
+    (product: Product, quantity: number, caseType: CaseType) => {
+      const price = getCasePrice(product, caseType) * quantity;
+      const newItem: CartItem = {
+        id: `${product.id}-${caseType}-${Date.now()}`,
+        productId: product.id,
+        product,
+        quantity,
+        caseType,
+        price,
+      };
 
-    setItems((prev) => [...prev, newItem]);
-  }, []);
+      setItems((prev) => [...prev, newItem]);
+    },
+    []
+  );
 
   const removeItem = useCallback((itemId: string) => {
     setItems((prev) => prev.filter((item) => item.id !== itemId));
@@ -86,4 +89,3 @@ export function useCart() {
   }
   return context;
 }
-

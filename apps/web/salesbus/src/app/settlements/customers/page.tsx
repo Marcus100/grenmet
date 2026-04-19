@@ -11,7 +11,7 @@ export default function CustomersPage() {
   const customerBalances = getAllCustomerBalances();
 
   const filteredCustomers = customerBalances.filter((customer) =>
-    customer.customerName.toLowerCase().includes(searchQuery.toLowerCase()),
+    customer.customerName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

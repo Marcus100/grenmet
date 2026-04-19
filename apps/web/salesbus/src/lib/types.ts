@@ -3,28 +3,28 @@ export type CaseType = "full" | "3/4" | "1/2" | "1/4";
 export type PaymentType = "cash" | "credit";
 
 export interface Product {
-  id: string;
-  name: string;
-  image: string;
-  halfCasePrice: number;
-  fullCasePrice: number;
   category: string;
+  fullCasePrice: number;
+  halfCasePrice: number;
+  id: string;
+  image: string;
+  name: string;
 }
 
 export interface Category {
-  id: string;
-  name: string;
-  image: string;
   description: string;
+  id: string;
+  image: string;
+  name: string;
 }
 
 export interface CartItem {
-  id: string;
-  productId: string;
-  product: Product;
-  quantity: number;
   caseType: CaseType;
+  id: string;
   price: number;
+  product: Product;
+  productId: string;
+  quantity: number;
 }
 
 export interface Customer {
@@ -33,37 +33,37 @@ export interface Customer {
 }
 
 export interface TransactionItem {
-  productId: string;
-  productName: string;
-  productImage: string;
-  quantity: number;
   caseType: CaseType;
   price: number;
+  productId: string;
+  productImage: string;
+  productName: string;
+  quantity: number;
 }
 
 export interface Transaction {
-  id: string;
   customerId: string;
   customerName: string;
   date: string;
+  id: string;
   items: TransactionItem[];
   paymentType: PaymentType;
   total: number;
 }
 
 export interface CustomerBalance {
+  currentBalance: number;
   customerId: string;
   customerName: string;
   totalOwed: number;
   totalPaid: number;
-  currentBalance: number;
 }
 
 export interface Payment {
-  id: string;
-  customerId: string;
   amount: number;
+  customerId: string;
   date: string;
+  id: string;
 }
 
 export function getCasePrice(product: Product, caseType: CaseType): number {
@@ -107,10 +107,10 @@ export function formatDate(dateString: string): string {
     day: "numeric",
     year: "numeric",
   };
-  
+
   const day = date.getDate();
   const suffix = getOrdinalSuffix(day);
-  
+
   const formatted = date.toLocaleDateString("en-US", options);
   return formatted.replace(/\d+/, `${day}${suffix}`);
 }
@@ -128,4 +128,3 @@ function getOrdinalSuffix(day: number): string {
       return "th";
   }
 }
-

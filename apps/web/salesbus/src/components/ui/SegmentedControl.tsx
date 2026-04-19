@@ -1,14 +1,14 @@
 "use client";
 
 interface SegmentOption {
-  value: string;
   label: string;
+  value: string;
 }
 
 interface SegmentedControlProps {
+  onChange: (value: string) => void;
   options: SegmentOption[];
   value: string;
-  onChange: (value: string) => void;
   variant?: "default" | "pill";
 }
 
