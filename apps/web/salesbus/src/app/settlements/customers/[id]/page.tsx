@@ -23,7 +23,7 @@ export default function CustomerDetailPage() {
 
   // Filter transactions by date
   const filteredTransactions = transactions.filter(
-    (t) => t.date === currentDate,
+    (t) => t.date === currentDate
   );
 
   const handlePreviousDate = () => {

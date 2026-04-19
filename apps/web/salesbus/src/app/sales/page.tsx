@@ -12,7 +12,7 @@ export default function SalesPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddProduct = (product: Product) => {

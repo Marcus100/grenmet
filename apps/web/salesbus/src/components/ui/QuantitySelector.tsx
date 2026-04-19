@@ -3,10 +3,10 @@
 import { Minus, Plus } from "lucide-react";
 
 interface QuantitySelectorProps {
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
   max?: number;
+  min?: number;
+  onChange: (value: number) => void;
+  value: number;
 }
 
 export function QuantitySelector({

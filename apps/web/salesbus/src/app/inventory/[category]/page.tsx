@@ -16,7 +16,7 @@ export default function CategoryDetailPage() {
   const products = getProductsByCategory(categoryId);
 
   const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()),
+    product.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Group products by category for the section header

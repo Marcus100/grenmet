@@ -6,10 +6,10 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "outline";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  fullWidth?: boolean;
   children: ReactNode;
+  fullWidth?: boolean;
+  size?: ButtonSize;
+  variant?: ButtonVariant;
 }
 
 const variantStyles: Record<ButtonVariant, string> = {

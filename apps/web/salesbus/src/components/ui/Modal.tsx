@@ -5,9 +5,9 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect } from "react";
 
 interface ModalProps {
+  children: ReactNode;
   isOpen: boolean;
   onClose: () => void;
-  children: ReactNode;
   title?: string;
 }
 

@@ -4,8 +4,8 @@ import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
 
 interface HeaderProps {
-  userName?: string;
   cartItemCount?: number;
+  userName?: string;
 }
 
 function getInitials(name: string): string {

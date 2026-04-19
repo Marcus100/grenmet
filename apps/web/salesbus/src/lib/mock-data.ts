@@ -1,4 +1,11 @@
-import type { Product, Category, Customer, Transaction, Payment, CustomerBalance } from "./types";
+import type {
+  Category,
+  Customer,
+  CustomerBalance,
+  Payment,
+  Product,
+  Transaction,
+} from "./types";
 
 export const categories: Category[] = [
   {
@@ -254,4 +261,3 @@ export function getTransactionSummary(date?: string) {
     date: date ?? new Date().toISOString().split("T")[0],
   };
 }
-
