@@ -49,9 +49,8 @@ export function createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config),
   });
 }
 

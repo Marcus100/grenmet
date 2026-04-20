@@ -43,12 +43,11 @@ export function recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailP
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) => {
-      return recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
+    mutationFn: async ({ email }) =>
+      recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
         email,
         config
-      );
-    },
+      ),
   });
 }
 

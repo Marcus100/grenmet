@@ -38,9 +38,7 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return deleteUserMeApiV1AuthUsersMeDelete(config);
-    },
+    mutationFn: async () => deleteUserMeApiV1AuthUsersMeDelete(config),
   });
 }
 

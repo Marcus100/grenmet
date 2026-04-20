@@ -62,4 +62,4 @@ function TabsContent({
   );
 }
 
-export { TabsRoot as Tabs, TabsList, TabsTrigger, TabsContent };
+export { TabsContent, TabsList, TabsRoot as Tabs, TabsTrigger };

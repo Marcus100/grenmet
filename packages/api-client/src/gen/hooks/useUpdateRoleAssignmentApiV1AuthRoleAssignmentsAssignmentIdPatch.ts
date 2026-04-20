@@ -53,13 +53,12 @@ export function updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMut
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ assignment_id, data }) => {
-      return updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
+    mutationFn: async ({ assignment_id, data }) =>
+      updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
         assignment_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

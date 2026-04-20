@@ -71,20 +71,18 @@ function useAutocomplete({ onNavigate }: { onNavigate: () => void }) {
         navigate,
       },
       getSources({ query }) {
-        return import("@/mdx/search.mjs").then(({ search }) => {
-          return [
-            {
-              sourceId: "documentation",
-              getItems() {
-                return search(query, { limit: 5 });
-              },
-              getItemUrl({ item }) {
-                return item.url;
-              },
-              onSelect: navigate,
+        return import("@/mdx/search.mjs").then(({ search }) => [
+          {
+            sourceId: "documentation",
+            getItems() {
+              return search(query, { limit: 5 });
             },
-          ];
-        });
+            getItemUrl({ item }) {
+              return item.url;
+            },
+            onSelect: navigate,
+          },
+        ]);
       },
     })
   );

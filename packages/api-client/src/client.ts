@@ -44,7 +44,7 @@ function buildBody(
   data: unknown,
   contentType?: string
 ): string | FormData | undefined {
-  if (data === undefined || data === null) return undefined;
+  if (data === undefined || data === null) return;
   if (data instanceof FormData) return data;
   if (
     contentType?.includes("application/x-www-form-urlencoded") &&

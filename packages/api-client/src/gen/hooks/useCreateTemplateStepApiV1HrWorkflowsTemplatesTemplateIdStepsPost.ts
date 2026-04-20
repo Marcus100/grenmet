@@ -55,13 +55,12 @@ export function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ template_id, data }) => {
-      return createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
+    mutationFn: async ({ template_id, data }) =>
+      createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
         template_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

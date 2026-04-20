@@ -116,10 +116,12 @@ async function handleProxy(request: NextRequest): Promise<NextResponse> {
   return response;
 }
 
-export { handleProxy as DELETE };
-export { handleProxy as GET };
-export { handleProxy as HEAD };
-export { handleProxy as OPTIONS };
-export { handleProxy as PATCH };
-export { handleProxy as POST };
-export { handleProxy as PUT };
+export {
+  handleProxy as DELETE,
+  handleProxy as GET,
+  handleProxy as HEAD,
+  handleProxy as OPTIONS,
+  handleProxy as PATCH,
+  handleProxy as POST,
+  handleProxy as PUT,
+};

@@ -49,9 +49,8 @@ export function validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return validateCsvApiV1HrRostersImportCsvValidatePost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      validateCsvApiV1HrRostersImportCsvValidatePost(data, config),
   });
 }
 

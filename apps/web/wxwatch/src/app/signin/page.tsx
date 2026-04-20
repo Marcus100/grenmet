@@ -1,10 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import {
-  buildSharedSignInUrl,
-  getRequestOrigin,
-} from "../../../lib/auth-redirect";
+import { buildSharedSignInUrl, getRequestOrigin } from "@/lib/auth-redirect";
 
 export const metadata: Metadata = {
   title: "Redirecting To Sign In",

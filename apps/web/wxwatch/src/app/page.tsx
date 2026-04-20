@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { formatDateForUrl, getTodayUTC } from "../../lib/utils";
+import { formatDateForUrl, getTodayUTC } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

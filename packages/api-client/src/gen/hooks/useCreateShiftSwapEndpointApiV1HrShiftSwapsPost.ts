@@ -46,9 +46,8 @@ export function createShiftSwapEndpointApiV1HrShiftSwapsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createShiftSwapEndpointApiV1HrShiftSwapsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createShiftSwapEndpointApiV1HrShiftSwapsPost(data, config),
   });
 }
 

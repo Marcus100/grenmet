@@ -47,9 +47,8 @@ export function registerUserApiV1AuthUsersSignupPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return registerUserApiV1AuthUsersSignupPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      registerUserApiV1AuthUsersSignupPost(data, config),
   });
 }
 

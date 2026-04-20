@@ -43,9 +43,8 @@ export function createPermissionApiV1AuthPermissionsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPermissionApiV1AuthPermissionsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createPermissionApiV1AuthPermissionsPost(data, config),
   });
 }
 

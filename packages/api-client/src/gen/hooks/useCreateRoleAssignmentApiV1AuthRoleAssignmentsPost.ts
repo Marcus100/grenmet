@@ -45,9 +45,8 @@ export function createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createRoleAssignmentApiV1AuthRoleAssignmentsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createRoleAssignmentApiV1AuthRoleAssignmentsPost(data, config),
   });
 }
 

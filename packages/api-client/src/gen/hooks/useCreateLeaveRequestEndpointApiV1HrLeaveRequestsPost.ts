@@ -49,9 +49,8 @@ export function createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config),
   });
 }
 

@@ -57,13 +57,12 @@ export function submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id, data }) => {
-      return submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch(
+    mutationFn: async ({ timesheet_id, data }) =>
+      submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch(
         timesheet_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

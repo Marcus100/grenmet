@@ -53,13 +53,8 @@ export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateHrEmploymentApiV1HrEmploymentUserIdPatch(
-        user_id,
-        data,
-        config
-      );
-    },
+    mutationFn: async ({ user_id, data }) =>
+      updateHrEmploymentApiV1HrEmploymentUserIdPatch(user_id, data, config),
   });
 }
 

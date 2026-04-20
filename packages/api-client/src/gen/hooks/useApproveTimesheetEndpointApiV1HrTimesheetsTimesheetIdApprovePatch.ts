@@ -51,12 +51,11 @@ export function approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id }) => {
-      return approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
+    mutationFn: async ({ timesheet_id }) =>
+      approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
         timesheet_id,
         config
-      );
-    },
+      ),
   });
 }
 

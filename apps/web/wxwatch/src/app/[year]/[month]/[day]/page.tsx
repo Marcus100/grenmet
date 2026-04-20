@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { DateNavigation } from "@/components/DateNavigation";
 import { Gallery } from "@/components/Gallery";
 import { getImagesByDateAndSynoptic } from "@/db/queries";
-import { parseDateFromUrl } from "../../../../../lib/utils";
+import { parseDateFromUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

@@ -47,9 +47,8 @@ export function updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updatePasswordMeApiV1AuthUsersMePasswordPatch(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      updatePasswordMeApiV1AuthUsersMePasswordPatch(data, config),
   });
 }
 

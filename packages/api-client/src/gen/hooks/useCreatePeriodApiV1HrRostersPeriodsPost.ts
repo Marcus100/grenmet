@@ -49,9 +49,8 @@ export function createPeriodApiV1HrRostersPeriodsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPeriodApiV1HrRostersPeriodsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createPeriodApiV1HrRostersPeriodsPost(data, config),
   });
 }
 

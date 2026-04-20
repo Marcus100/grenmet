@@ -43,9 +43,8 @@ export function resetPasswordApiV1ResetPasswordPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return resetPasswordApiV1ResetPasswordPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      resetPasswordApiV1ResetPasswordPost(data, config),
   });
 }
 

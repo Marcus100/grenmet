@@ -47,9 +47,8 @@ export function updateHrProfileMeApiV1HrProfileMePatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateHrProfileMeApiV1HrProfileMePatch(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      updateHrProfileMeApiV1HrProfileMePatch(data, config),
   });
 }
 
