@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useCallback, useEffect } from "react";
 import type { WeatherImage } from "@/db/schema";
-import { getImageUrl } from "../../lib/utils";
+import { getImageUrl } from "@/lib/utils";
 
 interface LightboxProps {
   image: WeatherImage | null;

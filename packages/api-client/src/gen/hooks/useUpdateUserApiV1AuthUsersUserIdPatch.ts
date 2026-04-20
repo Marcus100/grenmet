@@ -53,9 +53,8 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateUserApiV1AuthUsersUserIdPatch(user_id, data, config);
-    },
+    mutationFn: async ({ user_id, data }) =>
+      updateUserApiV1AuthUsersUserIdPatch(user_id, data, config),
   });
 }
 

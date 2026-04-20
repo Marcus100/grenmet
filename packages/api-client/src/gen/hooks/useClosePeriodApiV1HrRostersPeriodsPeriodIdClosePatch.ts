@@ -51,12 +51,8 @@ export function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) => {
-      return closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(
-        period_id,
-        config
-      );
-    },
+    mutationFn: async ({ period_id }) =>
+      closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(period_id, config),
   });
 }
 

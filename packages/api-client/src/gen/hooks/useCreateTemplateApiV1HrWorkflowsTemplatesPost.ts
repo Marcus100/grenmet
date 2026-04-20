@@ -47,9 +47,8 @@ export function createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTemplateApiV1HrWorkflowsTemplatesPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createTemplateApiV1HrWorkflowsTemplatesPost(data, config),
   });
 }
 

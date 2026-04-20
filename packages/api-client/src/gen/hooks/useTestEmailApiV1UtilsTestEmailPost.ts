@@ -39,9 +39,8 @@ export function testEmailApiV1UtilsTestEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ params }) => {
-      return testEmailApiV1UtilsTestEmailPost(params, config);
-    },
+    mutationFn: async ({ params }) =>
+      testEmailApiV1UtilsTestEmailPost(params, config),
   });
 }
 

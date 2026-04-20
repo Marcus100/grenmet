@@ -55,13 +55,12 @@ export function actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id, data }) => {
-      return actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch(
+    mutationFn: async ({ shift_swap_id, data }) =>
+      actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch(
         shift_swap_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

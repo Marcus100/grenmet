@@ -49,9 +49,8 @@ export function createInstanceApiV1HrWorkflowsInstancesPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createInstanceApiV1HrWorkflowsInstancesPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createInstanceApiV1HrWorkflowsInstancesPost(data, config),
   });
 }
 

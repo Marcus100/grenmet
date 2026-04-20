@@ -39,9 +39,8 @@ export function recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) => {
-      return recoverPasswordApiV1PasswordRecoveryEmailPost(email, config);
-    },
+    mutationFn: async ({ email }) =>
+      recoverPasswordApiV1PasswordRecoveryEmailPost(email, config),
   });
 }
 

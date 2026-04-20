@@ -49,9 +49,8 @@ export function createStatusReportEndpointApiV1HrStatusReportsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createStatusReportEndpointApiV1HrStatusReportsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createStatusReportEndpointApiV1HrStatusReportsPost(data, config),
   });
 }
 

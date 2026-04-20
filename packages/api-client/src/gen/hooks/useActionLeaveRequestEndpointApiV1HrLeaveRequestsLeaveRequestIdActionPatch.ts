@@ -56,13 +56,12 @@ export function actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActi
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id, data }) => {
-      return actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
+    mutationFn: async ({ leave_request_id, data }) =>
+      actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
         leave_request_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

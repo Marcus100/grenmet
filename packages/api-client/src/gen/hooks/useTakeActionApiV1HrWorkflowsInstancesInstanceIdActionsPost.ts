@@ -58,13 +58,12 @@ export function takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutation
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ instance_id, data }) => {
-      return takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
+    mutationFn: async ({ instance_id, data }) =>
+      takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
         instance_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 

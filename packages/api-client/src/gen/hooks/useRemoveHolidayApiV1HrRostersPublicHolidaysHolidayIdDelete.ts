@@ -49,12 +49,11 @@ export function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutation
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ holiday_id }) => {
-      return removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
+    mutationFn: async ({ holiday_id }) =>
+      removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
         holiday_id,
         config
-      );
-    },
+      ),
   });
 }
 

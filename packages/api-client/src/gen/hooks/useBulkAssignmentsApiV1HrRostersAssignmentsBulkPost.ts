@@ -51,9 +51,8 @@ export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config),
   });
 }
 

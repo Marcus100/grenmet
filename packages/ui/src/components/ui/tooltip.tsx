@@ -53,8 +53,8 @@ function TooltipContent({
 }
 
 export {
-  TooltipRoot as Tooltip,
-  TooltipTrigger,
   TooltipContent,
   TooltipProvider,
+  TooltipRoot as Tooltip,
+  TooltipTrigger,
 };

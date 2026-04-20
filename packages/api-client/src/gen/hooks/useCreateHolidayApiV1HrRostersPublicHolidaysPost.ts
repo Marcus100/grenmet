@@ -49,9 +49,8 @@ export function createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createHolidayApiV1HrRostersPublicHolidaysPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createHolidayApiV1HrRostersPublicHolidaysPost(data, config),
   });
 }
 

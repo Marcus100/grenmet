@@ -41,9 +41,7 @@ export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createRoleApiV1AuthRolesPost(data, config);
-    },
+    mutationFn: async ({ data }) => createRoleApiV1AuthRolesPost(data, config),
   });
 }
 

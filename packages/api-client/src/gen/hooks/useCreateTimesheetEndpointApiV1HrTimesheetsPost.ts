@@ -46,9 +46,8 @@ export function createTimesheetEndpointApiV1HrTimesheetsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTimesheetEndpointApiV1HrTimesheetsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createTimesheetEndpointApiV1HrTimesheetsPost(data, config),
   });
 }
 

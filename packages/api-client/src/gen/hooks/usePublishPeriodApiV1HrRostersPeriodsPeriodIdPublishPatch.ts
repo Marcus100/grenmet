@@ -51,12 +51,8 @@ export function publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationOp
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) => {
-      return publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(
-        period_id,
-        config
-      );
-    },
+    mutationFn: async ({ period_id }) =>
+      publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(period_id, config),
   });
 }
 

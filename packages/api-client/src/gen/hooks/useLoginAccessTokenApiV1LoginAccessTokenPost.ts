@@ -47,9 +47,8 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return loginAccessTokenApiV1LoginAccessTokenPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      loginAccessTokenApiV1LoginAccessTokenPost(data, config),
   });
 }
 

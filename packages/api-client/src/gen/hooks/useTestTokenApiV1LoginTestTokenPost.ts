@@ -35,9 +35,7 @@ export function testTokenApiV1LoginTestTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return testTokenApiV1LoginTestTokenPost(config);
-    },
+    mutationFn: async () => testTokenApiV1LoginTestTokenPost(config),
   });
 }
 

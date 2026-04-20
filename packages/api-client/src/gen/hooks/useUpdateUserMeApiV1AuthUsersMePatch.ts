@@ -47,9 +47,8 @@ export function updateUserMeApiV1AuthUsersMePatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateUserMeApiV1AuthUsersMePatch(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      updateUserMeApiV1AuthUsersMePatch(data, config),
   });
 }
 

@@ -44,9 +44,7 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createUserApiV1AuthUsersPost(data, config);
-    },
+    mutationFn: async ({ data }) => createUserApiV1AuthUsersPost(data, config),
   });
 }
 
