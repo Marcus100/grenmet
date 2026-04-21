@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
-import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 import { z } from "zod/v4";
+import { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
+import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 
 export const updateHrEmploymentApiV1HrEmploymentUserIdPatchPathParamsSchema =
   z.object({

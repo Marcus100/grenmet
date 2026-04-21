@@ -3,17 +3,17 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
   ReadUserByIdApiV1AuthUsersUserIdGet403,
   ReadUserByIdApiV1AuthUsersUserIdGet422,
+  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
+  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
 
 function getReadUserByIdApiV1AuthUsersUserIdGetUrl(

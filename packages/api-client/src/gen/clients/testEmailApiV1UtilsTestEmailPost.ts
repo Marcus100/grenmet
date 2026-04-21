@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  TestEmailApiV1UtilsTestEmailPost422,
   TestEmailApiV1UtilsTestEmailPostMutationResponse,
   TestEmailApiV1UtilsTestEmailPostQueryParams,
-  TestEmailApiV1UtilsTestEmailPost422,
 } from "../models/TestEmailApiV1UtilsTestEmailPost.js";
 
 function getTestEmailApiV1UtilsTestEmailPostUrl() {
-  const res = { method: "POST", url: `/api/v1/utils/test-email/` as const };
+  const res = { method: "POST", url: "/api/v1/utils/test-email/" as const };
   return res;
 }
 

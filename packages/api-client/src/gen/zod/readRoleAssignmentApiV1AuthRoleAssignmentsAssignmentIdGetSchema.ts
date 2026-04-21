@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParamsSchema =
   z.object({

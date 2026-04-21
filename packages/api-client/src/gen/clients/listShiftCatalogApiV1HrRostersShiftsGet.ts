@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
 function getListShiftCatalogApiV1HrRostersShiftsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/rosters/shifts` as const };
+  const res = { method: "GET", url: "/api/v1/hr/rosters/shifts" as const };
   return res;
 }
 

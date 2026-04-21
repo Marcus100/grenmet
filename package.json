@@ -23,6 +23,7 @@
     "dev:web:auth": "turbo run dev --filter=@grenmet/web-auth",
     "dev:web:spicewx": "turbo run dev --filter=@grenmet/web-spicewx",
     "dev:web:hr": "turbo run dev --filter=@grenmet/web-hr",
+    "dev:web:salesbus": "turbo run dev --filter=@grenmet/web-salesbus",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
     "lint": "turbo run lint",
     "check": "turbo run check",
@@ -33,9 +34,9 @@
     "generate:api-client": "turbo run generate --filter=@grenmet/api-client"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.4",
-    "turbo": "^2.8.17",
-    "ultracite": "^7.2.3"
+    "@biomejs/biome": "^2.4.12",
+    "turbo": "^2.9.6",
+    "ultracite": "^7.6.0"
   },
   "pnpm": {
     "allowedDeprecatedVersions": {

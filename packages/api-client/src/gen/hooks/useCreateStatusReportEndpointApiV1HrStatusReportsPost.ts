@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createStatusReportEndpointApiV1HrStatusReportsPost } from "../clients/createStatusReportEndpointApiV1HrStatusReportsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse,
   CreateStatusReportEndpointApiV1HrStatusReportsPost403,
   CreateStatusReportEndpointApiV1HrStatusReportsPost422,
+  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest,
+  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse,
 } from "../models/CreateStatusReportEndpointApiV1HrStatusReportsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createStatusReportEndpointApiV1HrStatusReportsPost } from "../clients/createStatusReportEndpointApiV1HrStatusReportsPost.js";
 
 export const createStatusReportEndpointApiV1HrStatusReportsPostMutationKey =
   () => [{ url: "/api/v1/hr/status-reports" }] as const;
@@ -50,9 +49,8 @@ export function createStatusReportEndpointApiV1HrStatusReportsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createStatusReportEndpointApiV1HrStatusReportsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createStatusReportEndpointApiV1HrStatusReportsPost(data, config),
   });
 }
 

@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createTimesheetEndpointApiV1HrTimesheetsPost } from "../clients/createTimesheetEndpointApiV1HrTimesheetsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse,
   CreateTimesheetEndpointApiV1HrTimesheetsPost403,
   CreateTimesheetEndpointApiV1HrTimesheetsPost422,
+  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest,
+  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse,
 } from "../models/CreateTimesheetEndpointApiV1HrTimesheetsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createTimesheetEndpointApiV1HrTimesheetsPost } from "../clients/createTimesheetEndpointApiV1HrTimesheetsPost.js";
 
 export const createTimesheetEndpointApiV1HrTimesheetsPostMutationKey = () =>
   [{ url: "/api/v1/hr/timesheets/" }] as const;
@@ -47,9 +46,8 @@ export function createTimesheetEndpointApiV1HrTimesheetsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTimesheetEndpointApiV1HrTimesheetsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createTimesheetEndpointApiV1HrTimesheetsPost(data, config),
   });
 }
 

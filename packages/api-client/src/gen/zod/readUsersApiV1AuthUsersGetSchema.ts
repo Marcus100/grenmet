@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { usersPublicSchema } from "./usersPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readUsersApiV1AuthUsersGetQueryParamsSchema = z.object({
   skip: z.coerce.number().int().default(0),

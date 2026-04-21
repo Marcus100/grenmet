@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { ImagesBySynoptic } from "@/src/db/queries";
-import type { WeatherImage } from "@/src/db/schema";
+import type { ImagesBySynoptic } from "@/db/queries";
+import type { WeatherImage } from "@/db/schema";
 import { ImageRow } from "./ImageRow";
 import { Lightbox } from "./Lightbox";
 

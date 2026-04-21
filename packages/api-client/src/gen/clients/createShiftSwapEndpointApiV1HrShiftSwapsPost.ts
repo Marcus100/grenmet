@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse,
   CreateShiftSwapEndpointApiV1HrShiftSwapsPost403,
   CreateShiftSwapEndpointApiV1HrShiftSwapsPost422,
+  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest,
+  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse,
 } from "../models/CreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
 
 function getCreateShiftSwapEndpointApiV1HrShiftSwapsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/shift-swaps` as const };
+  const res = { method: "POST", url: "/api/v1/hr/shift-swaps" as const };
   return res;
 }
 

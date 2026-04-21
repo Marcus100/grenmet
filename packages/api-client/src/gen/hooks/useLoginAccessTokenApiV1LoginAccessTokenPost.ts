@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { loginAccessTokenApiV1LoginAccessTokenPost } from "../clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
+  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
+  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { loginAccessTokenApiV1LoginAccessTokenPost } from "../clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
 
 export const loginAccessTokenApiV1LoginAccessTokenPostMutationKey = () =>
   [{ url: "/api/v1/login/access-token" }] as const;
@@ -48,9 +47,8 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return loginAccessTokenApiV1LoginAccessTokenPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      loginAccessTokenApiV1LoginAccessTokenPost(data, config),
   });
 }
 

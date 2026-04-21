@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 import { z } from "zod/v4";
+import { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 
 export const timesheetCreateSchema = z.object({
   user_id: z.optional(z.union([z.uuid(), z.null()])),

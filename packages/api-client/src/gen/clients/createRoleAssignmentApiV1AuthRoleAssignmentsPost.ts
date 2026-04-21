@@ -3,22 +3,22 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 
 function getCreateRoleAssignmentApiV1AuthRoleAssignmentsPostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/auth/role-assignments/` as const,
+    url: "/api/v1/auth/role-assignments/" as const,
   };
   return res;
 }

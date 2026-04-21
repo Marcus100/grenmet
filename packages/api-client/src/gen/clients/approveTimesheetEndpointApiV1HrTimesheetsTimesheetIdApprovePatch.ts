@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch400,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch403,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch404,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch422,
+  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
 } from "../models/ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 
 function getApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchUrl(

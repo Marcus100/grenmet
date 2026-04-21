@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createHolidayApiV1HrRostersPublicHolidaysPost } from "../clients/createHolidayApiV1HrRostersPublicHolidaysPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
   CreateHolidayApiV1HrRostersPublicHolidaysPost400,
   CreateHolidayApiV1HrRostersPublicHolidaysPost403,
   CreateHolidayApiV1HrRostersPublicHolidaysPost422,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
 } from "../models/CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createHolidayApiV1HrRostersPublicHolidaysPost } from "../clients/createHolidayApiV1HrRostersPublicHolidaysPost.js";
 
 export const createHolidayApiV1HrRostersPublicHolidaysPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/public-holidays" }] as const;
@@ -50,9 +49,8 @@ export function createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createHolidayApiV1HrRostersPublicHolidaysPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createHolidayApiV1HrRostersPublicHolidaysPost(data, config),
   });
 }
 

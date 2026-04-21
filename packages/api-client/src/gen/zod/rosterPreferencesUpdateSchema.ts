@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { shiftPatternSchema } from "./shiftPatternSchema.js";
 import { z } from "zod/v4";
+import { shiftPatternSchema } from "./shiftPatternSchema.js";
 
 export const rosterPreferencesUpdateSchema = z.object({
   get default_shift_pattern() {

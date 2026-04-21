@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
-import { z } from "zod/v4";
 
 export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryParamsSchema = z
   .object({

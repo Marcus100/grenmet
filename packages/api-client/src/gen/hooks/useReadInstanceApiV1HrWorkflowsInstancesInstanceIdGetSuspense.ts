@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
 } from "../models/ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 
 export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspenseQueryKey =
   (
@@ -32,7 +31,7 @@ export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspenseQueryKey 
     [
       {
         url: "/api/v1/hr/workflows/instances/:instance_id",
-        params: { instance_id: instance_id },
+        params: { instance_id },
       },
     ] as const;
 

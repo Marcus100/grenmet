@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
 } from "../models/PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 
 function getPublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchUrl(

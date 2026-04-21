@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updateHrProfileMeApiV1HrProfileMePatch } from "../clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
   UpdateHrProfileMeApiV1HrProfileMePatch404,
   UpdateHrProfileMeApiV1HrProfileMePatch422,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
+  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updateHrProfileMeApiV1HrProfileMePatch } from "../clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 
 export const updateHrProfileMeApiV1HrProfileMePatchMutationKey = () =>
   [{ url: "/api/v1/hr/profile/me" }] as const;
@@ -48,9 +47,8 @@ export function updateHrProfileMeApiV1HrProfileMePatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateHrProfileMeApiV1HrProfileMePatch(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      updateHrProfileMeApiV1HrProfileMePatch(data, config),
   });
 }
 

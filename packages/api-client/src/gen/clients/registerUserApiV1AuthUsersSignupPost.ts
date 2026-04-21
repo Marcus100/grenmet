@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
   RegisterUserApiV1AuthUsersSignupPost400,
   RegisterUserApiV1AuthUsersSignupPost422,
+  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
+  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
 } from "../models/RegisterUserApiV1AuthUsersSignupPost.js";
 
 function getRegisterUserApiV1AuthUsersSignupPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/users/signup` as const };
+  const res = { method: "POST", url: "/api/v1/auth/users/signup" as const };
   return res;
 }
 

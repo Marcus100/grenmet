@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  CreateRoleApiV1AuthRolesPost422,
   CreateRoleApiV1AuthRolesPostMutationRequest,
   CreateRoleApiV1AuthRolesPostMutationResponse,
-  CreateRoleApiV1AuthRolesPost422,
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
 
 function getCreateRoleApiV1AuthRolesPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/roles/` as const };
+  const res = { method: "POST", url: "/api/v1/auth/roles/" as const };
   return res;
 }
 

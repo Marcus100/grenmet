@@ -73,8 +73,8 @@ function AccordionPanel({
 }
 
 export {
-  AccordionRoot as Accordion,
   AccordionItem,
-  AccordionTrigger,
   AccordionPanel as AccordionContent,
+  AccordionRoot as Accordion,
+  AccordionTrigger,
 };

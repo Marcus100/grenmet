@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { recoverPasswordApiV1PasswordRecoveryEmailPost } from "../clients/recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  RecoverPasswordApiV1PasswordRecoveryEmailPost422,
   RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
   RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams,
-  RecoverPasswordApiV1PasswordRecoveryEmailPost422,
 } from "../models/RecoverPasswordApiV1PasswordRecoveryEmailPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { recoverPasswordApiV1PasswordRecoveryEmailPost } from "../clients/recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 
 export const recoverPasswordApiV1PasswordRecoveryEmailPostMutationKey = () =>
   [{ url: "/api/v1/password-recovery/:email" }] as const;
@@ -40,9 +39,8 @@ export function recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) => {
-      return recoverPasswordApiV1PasswordRecoveryEmailPost(email, config);
-    },
+    mutationFn: async ({ email }) =>
+      recoverPasswordApiV1PasswordRecoveryEmailPost(email, config),
   });
 }
 

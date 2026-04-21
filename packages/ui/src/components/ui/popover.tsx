@@ -45,4 +45,4 @@ function PopoverContent({
   );
 }
 
-export { PopoverRoot as Popover, PopoverTrigger, PopoverContent, PopoverClose };
+export { PopoverClose, PopoverContent, PopoverRoot as Popover, PopoverTrigger };
