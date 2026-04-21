@@ -44,4 +44,4 @@ function AvatarFallback({ className, ...props }: React.ComponentProps<"span">) {
   );
 }
 
-export { Avatar, AvatarImage, AvatarFallback };
+export { Avatar, AvatarFallback, AvatarImage };

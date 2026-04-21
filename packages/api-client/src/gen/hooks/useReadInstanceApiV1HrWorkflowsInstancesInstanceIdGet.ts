@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
 } from "../models/ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 
 export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey = (
   instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"]
@@ -31,7 +30,7 @@ export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey = (
   [
     {
       url: "/api/v1/hr/workflows/instances/:instance_id",
-      params: { instance_id: instance_id },
+      params: { instance_id },
     },
   ] as const;
 

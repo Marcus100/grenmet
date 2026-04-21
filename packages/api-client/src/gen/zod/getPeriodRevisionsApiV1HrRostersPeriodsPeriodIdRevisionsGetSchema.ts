@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
-import { z } from "zod/v4";
 
 export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParamsSchema =
   z.object({

@@ -3,21 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readMyLeaveRequestsApiV1HrLeaveRequestsMeGet } from "../clients/readMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
+import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 
 export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey = () =>
   [{ url: "/api/v1/hr/leave-requests/me" }] as const;

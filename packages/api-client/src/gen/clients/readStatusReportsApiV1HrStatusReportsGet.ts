@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
   ReadStatusReportsApiV1HrStatusReportsGet403,
   ReadStatusReportsApiV1HrStatusReportsGet422,
+  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
+  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
 } from "../models/ReadStatusReportsApiV1HrStatusReportsGet.js";
 
 function getReadStatusReportsApiV1HrStatusReportsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/status-reports` as const };
+  const res = { method: "GET", url: "/api/v1/hr/status-reports" as const };
   return res;
 }
 

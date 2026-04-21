@@ -125,14 +125,14 @@ function DialogDescription({
 }
 
 export {
-  DialogRoot as Dialog,
+  DialogBackdrop as DialogOverlay,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogBackdrop as DialogOverlay,
   DialogPortal,
+  DialogRoot as Dialog,
   DialogTitle,
   DialogTrigger,
 };

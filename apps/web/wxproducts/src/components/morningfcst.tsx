@@ -9,6 +9,7 @@ import {
   Waves,
   Wind,
 } from "lucide-react";
+import Image from "next/image";
 
 interface ImpactItem {
   affectedAreas?: string[];
@@ -321,14 +322,18 @@ export default function MorningForecast({
       {/* HEADER */}
 
       <header className="-m-8 mb-6 flex items-center justify-between bg-zinc-900 px-8 py-4">
-        <p className="font-semibold text-sm text-white uppercase tracking-[0.18em]">
-          {organization}
-        </p>
+        <Image
+          alt={organization}
+          className="object-contain"
+          height={120}
+          src="/gmslogo.png"
+          width={200}
+        />
         <div className="text-right">
+          <p className="text-lg text-white">{productTitle}</p>
           <p className="text-xs text-zinc-400 uppercase tracking-widest">
             {productId}
           </p>
-          <p className="text-lg text-white">{productTitle}</p>
         </div>
       </header>
 

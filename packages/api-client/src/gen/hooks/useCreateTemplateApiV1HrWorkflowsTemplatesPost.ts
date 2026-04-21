@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createTemplateApiV1HrWorkflowsTemplatesPost } from "../clients/createTemplateApiV1HrWorkflowsTemplatesPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
   CreateTemplateApiV1HrWorkflowsTemplatesPost403,
   CreateTemplateApiV1HrWorkflowsTemplatesPost422,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
 } from "../models/CreateTemplateApiV1HrWorkflowsTemplatesPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createTemplateApiV1HrWorkflowsTemplatesPost } from "../clients/createTemplateApiV1HrWorkflowsTemplatesPost.js";
 
 export const createTemplateApiV1HrWorkflowsTemplatesPostMutationKey = () =>
   [{ url: "/api/v1/hr/workflows/templates" }] as const;
@@ -48,9 +47,8 @@ export function createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTemplateApiV1HrWorkflowsTemplatesPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createTemplateApiV1HrWorkflowsTemplatesPost(data, config),
   });
 }
 

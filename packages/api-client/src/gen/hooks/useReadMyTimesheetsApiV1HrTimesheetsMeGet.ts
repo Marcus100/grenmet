@@ -3,21 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readMyTimesheetsApiV1HrTimesheetsMeGet } from "../clients/readMyTimesheetsApiV1HrTimesheetsMeGet.js";
+import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 
 export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey = () =>
   [{ url: "/api/v1/hr/timesheets/me" }] as const;

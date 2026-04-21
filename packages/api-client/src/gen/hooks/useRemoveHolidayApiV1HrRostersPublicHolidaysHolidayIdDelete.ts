@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "../clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
 } from "../models/RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "../clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 
 export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationKey =
   () => [{ url: "/api/v1/hr/rosters/public-holidays/:holiday_id" }] as const;
@@ -50,12 +49,11 @@ export function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutation
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ holiday_id }) => {
-      return removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
+    mutationFn: async ({ holiday_id }) =>
+      removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
         holiday_id,
         config
-      );
-    },
+      ),
   });
 }
 

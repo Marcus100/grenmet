@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryResponse,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet403,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet404,
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet422,
+  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams,
+  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryResponse,
 } from "../models/ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
 
 function getReadStatusReportEndpointApiV1HrStatusReportsReportIdGetUrl(

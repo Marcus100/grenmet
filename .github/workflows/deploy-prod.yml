@@ -19,7 +19,7 @@ jobs:
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion == 'success' &&
        github.event.workflow_run.event == 'release')
-    runs-on: [self-hosted, production, azure-vm]
+    runs-on: [self-hosted, production]
     timeout-minutes: 30
     environment:
       name: production
@@ -39,6 +39,9 @@ jobs:
           FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
           FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          EMAIL: ${{ secrets.EMAIL }}
+          USERNAME: ${{ secrets.USERNAME }}
+          HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
         run: |
           set -euo pipefail
           RELEASE_TAG="${{ github.event.release.tag_name }}"
@@ -46,9 +49,9 @@ jobs:
 
           cat > .env <<EOF
           ENVIRONMENT=production
-          DOMAIN=weather.gd
-          STACK_NAME=barrels-api
-          PROJECT_NAME=barrels-api
+          DOMAIN=api.weather.gd
+          STACK_NAME=grenmet-api
+          PROJECT_NAME=grenmet-api
           POSTGRES_DB=app_prod
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
@@ -58,71 +61,64 @@ jobs:
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
           REGISTRY=ghcr.io
-          IMAGE_NAME=grenmet/barrels-api
+          IMAGE_NAME=grenmet/grenmet-api
           TAG=${IMAGE_TAG}
+          EMAIL=${EMAIL}
+          USERNAME=${USERNAME}
+          HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=
           EOF
 
           # Strip leading whitespace from heredoc
           sed -i 's/^[[:space:]]*//' .env
 
-          echo "PROJECT_NAME=barrels-api" >> "$GITHUB_ENV"
-          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env
-
-      - name: Retire legacy eugine-api stack (safety)
-        run: |
-          # Try normal compose down
-          docker compose -f docker-compose.yml -p eugine-api down || true
-          # Force remove any lingering containers (e.g., old frontend started elsewhere)
-          docker ps -aq --format '{{.Names}}' | grep -E '^eugine-api-' | xargs -r docker rm -f || true
-          # Remove legacy default network if it still exists
-          docker network rm eugine-api_default 2>/dev/null || true
+          echo "PROJECT_NAME=grenmet-api" >> "$GITHUB_ENV"
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env
 
       - name: Pull images from registry
         run: |
           set -euxo pipefail
           echo "Pulling images from GitHub Container Registry..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "barrels-api" pull
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" pull
           echo "Images pulled successfully"
 
       - name: Deploy with Docker Compose
         run: |
           set -euxo pipefail
-          echo "Using: docker compose --env-file .env -f docker-compose.prod.yml -p 'barrels-api' up -d ..."
           echo "Starting database..."
-          docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" up -d db
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" up -d db
           echo "Waiting for database to be ready..."
           for i in {1..20}; do
-            status=$(docker inspect --format='{{json .State.Health.Status}}' "barrels-api-db-1" 2>/dev/null || echo null)
+            status=$(docker inspect --format='{{json .State.Health.Status}}' "grenmet-api-db-1" 2>/dev/null || echo null)
             if echo "$status" | grep -q healthy; then echo "Database is ready"; break; fi
             echo "Waiting for database to be ready... ($i/20)"; sleep 3
             if [ $i -eq 20 ]; then
               echo "::error::Database did not become ready in time";
-              docker compose -p "barrels-api" logs db || true
+              docker compose -p "grenmet-api" logs db || true
               exit 1
             fi
           done
 
           echo "Starting all services..."
           set +e
-          docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" up -d --remove-orphans
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" up -d --remove-orphans
           up_status=$?
-          echo "=== Service status ==="; docker compose -p "barrels-api" ps || true
+          echo "=== Service status ==="; docker compose -p "grenmet-api" ps || true
 
           echo -e "\n=== Prestart logs (tail 120) ==="
-          docker compose --env-file .env -p "barrels-api" logs prestart --tail=120 2>&1 || true
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs prestart --tail=120 2>&1 || true
 
           echo -e "\n=== API logs (tail 120) ==="
-          docker compose --env-file .env -p "barrels-api" logs api --tail=120 2>&1 || true
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs api --tail=120 2>&1 || true
 
           echo -e "\n=== DB logs (tail 60) ==="
-          docker compose --env-file .env -p "barrels-api" logs db --tail=60 2>&1 || true
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs db --tail=60 2>&1 || true
 
           echo -e "\n=== Proxy logs (tail 60) ==="
-          docker compose --env-file .env -p "barrels-api" logs proxy --tail=60 2>&1 || true
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs proxy --tail=60 2>&1 || true
 
           echo -e "\n=== Effective .env (sanitized) ==="
-          sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' || true
+          sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' || true
 
           if [ $up_status -ne 0 ]; then
             echo "::error::docker compose up failed with status $up_status";
@@ -134,58 +130,26 @@ jobs:
           echo -e "\n=== External health check ==="
           curl -sS https://api.weather.gd/api/v1/utils/health-check/ || echo "health-check request failed"
 
-      - name: "Guard: ensure barrels-api (not eugine-api)"
-        run: |
-          set -euxo pipefail
-          echo "Checking for unintended eugine-api containers..."
-          if docker ps --format '{{.Names}}' | grep -qE '^eugine-api-'; then
-            echo "::error::Detected eugine-api containers running; attempting cleanup..."
-            echo "=== compose ps (eugine-api) ==="; docker compose -p eugine-api ps || true
-            echo "Force removing legacy containers..."
-            docker ps -aq --format '{{.Names}}' | grep -E '^eugine-api-' | xargs -r docker rm -f || true
-            echo "Bringing down legacy compose project..."
-            docker compose -f docker-compose.prod.yml -p eugine-api down || true
-            echo "Removing legacy network if exists..."
-            docker network rm eugine-api_default 2>/dev/null || true
-            echo "Re-checking..."
-            if docker ps --format '{{.Names}}' | grep -qE '^eugine-api-'; then
-              echo "::error::Legacy eugine-api containers still present after cleanup."
-              docker ps -a | grep -E '^eugine-api-' || true
-              exit 1
-            else
-              echo "Cleanup successful; continuing."
-            fi
-          else
-            echo "OK: No eugine-api containers running."
-          fi
-
       - name: Show logs on failure
         if: failure()
         run: |
           echo "=== docker ps ===" && docker ps -a || true
-          echo "=== compose ps (barrels-api) ===" && docker compose -p "barrels-api" ps || true
-          PRESTART_ID=$(docker compose -p "barrels-api" ps -q prestart || true)
-          API_ID=$(docker compose -p "barrels-api" ps -q api || true)
-          DB_ID=$(docker compose -p "barrels-api" ps -q db || true)
-          echo "Prestart container: ${PRESTART_ID:-none}"; echo "API container: ${API_ID:-none}"; echo "DB container: ${DB_ID:-none}"
-          if [ -n "$PRESTART_ID" ]; then
-            echo "=== prestart inspect ==="; docker inspect "$PRESTART_ID" --format 'ExitCode={{.State.ExitCode}} StartedAt={{.State.StartedAt}} FinishedAt={{.State.FinishedAt}} Error={{.State.Error}}' || true
-          fi
-          echo "=== prestart logs (tail 400) ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color --tail=400 prestart || true
-          echo "=== prestart suspected errors ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color prestart | egrep -i "(pydantic|validation|sentry|dsn|password|FIRST_SUPERUSER|alembic|traceback|exception)" || true
-          echo "=== db logs (tail 200) ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color --tail=200 db || true
-          echo "=== api logs (tail 200) ===" && docker compose --env-file .env -f docker-compose.prod.yml -p "barrels-api" logs --no-color --tail=200 api || true
-          echo "=== env (sanitized) ===" && sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' || true
+          echo "=== compose ps (grenmet-api) ===" && docker compose -p "grenmet-api" ps || true
+          echo "=== prestart logs (tail 400) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=400 prestart || true
+          echo "=== prestart suspected errors ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color prestart | grep -iE "(pydantic|validation|sentry|dsn|password|FIRST_SUPERUSER|alembic|traceback|exception)" || true
+          echo "=== db logs (tail 200) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=200 db || true
+          echo "=== api logs (tail 200) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=200 api || true
+          echo "=== env (sanitized) ===" && sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' || true
           echo "=== health check (best effort) ==="; curl -sS https://api.weather.gd/api/v1/utils/health-check/ || true
 
       - name: Cleanup runner environment
         if: always()
         run: |
-          echo "🧹 Cleaning up runner environment..."
-          # Clean up Docker resources
-          docker system prune -af --volumes || true
+          echo "Cleaning up runner environment..."
+          # Prune unused images/containers/networks but NOT volumes (protects pgdata)
+          docker system prune -af || true
           # Remove any temporary files
           rm -rf /tmp/* || true
-          # Clear any sensitive environment variables
-          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD || true
-          echo "✅ Runner cleanup completed"
+          # Clear sensitive environment variables
+          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD HASHED_PASSWORD || true
+          echo "Runner cleanup completed"

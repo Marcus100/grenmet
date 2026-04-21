@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { permissionCreateSchema } from "./permissionCreateSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Permission created

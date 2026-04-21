@@ -16,7 +16,6 @@ jobs:
     if: |
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
-    # Do not deploy in the main repository, only in user projects
     runs-on:
       - self-hosted
       - staging
@@ -41,13 +40,16 @@ jobs:
           FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
           FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          EMAIL: ${{ secrets.EMAIL }}
+          USERNAME: ${{ secrets.USERNAME }}
+          HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
         run: |
           set -euo pipefail
           cat > .env <<EOF
           ENVIRONMENT=staging
           DOMAIN=staging.api.weather.gd
-          STACK_NAME=barrels-api-staging
-          PROJECT_NAME=barrels-api-staging
+          STACK_NAME=grenmet-api-staging
+          PROJECT_NAME=grenmet-api-staging
           POSTGRES_DB=app_staging
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
@@ -57,21 +59,24 @@ jobs:
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
           REGISTRY=ghcr.io
-          IMAGE_NAME=grenmet/barrels-api
+          IMAGE_NAME=grenmet/grenmet-api
           TAG=staging
+          EMAIL=${EMAIL}
+          USERNAME=${USERNAME}
+          HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=
           EOF
 
           # Strip leading whitespace from heredoc
           sed -i 's/^[[:space:]]*//' .env
 
-          echo "PROJECT_NAME=barrels-api-staging" >> "$GITHUB_ENV"
-          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env
+          echo "PROJECT_NAME=grenmet-api-staging" >> "$GITHUB_ENV"
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env
 
       - name: Validate compose configuration
         run: |
           set -euo pipefail
-          docker compose --env-file .env -f docker-compose.staging.yml config >/dev/null
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml config >/dev/null
 
       - name: Authenticate with GHCR
         env:
@@ -90,71 +95,63 @@ jobs:
         run: |
           set -euo pipefail
           echo "Stopping any existing services for project ${{ env.PROJECT_NAME }}..."
-          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" down --remove-orphans || true
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" down --remove-orphans || true
           echo "Existing services stopped (if any)."
 
       - name: Pull images from registry
         run: |
           set -euxo pipefail
           echo "Pulling images from GitHub Container Registry..."
-          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" pull
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" pull
           echo "Images pulled successfully"
 
       - name: Deploy with Docker Compose
         run: |
-          echo "🚀 Deploying to staging..."
-          echo "INFO Deployment configuration:"
+          echo "Deploying to staging..."
           echo "  - Environment: .env (from GitHub Secrets)"
           echo "  - Project: ${{ env.PROJECT_NAME }}"
           echo "  - Domain: staging.api.weather.gd"
 
-          # Deploy with error handling
-          if docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" up -d; then
-            echo "SUCCESS Services started successfully"
+          if docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" up -d; then
+            echo "Services started successfully"
           else
             echo "ERROR Failed to start services"
             echo "=== Service Status ==="
-            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
+            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
             echo "=== Service Logs ==="
-            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=50 || true
+            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=50 || true
             exit 1
           fi
 
-          echo "⏳ Waiting for services to be ready..."
+          echo "Waiting for services to be ready..."
           sleep 30
 
-          echo "Checking Checking deployment status..."
-          docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps
+          echo "Checking deployment status..."
+          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps
 
-          echo "🏥 Performing health check..."
-          # Wait for API to be ready with better error reporting
+          echo "Performing health check..."
           HEALTH_CHECK_PASSED=false
           for i in {1..10}; do
             echo "Health check attempt $i/10..."
             if curl -f -s "https://staging.api.weather.gd/api/v1/utils/health-check/" > /dev/null; then
-              echo "SUCCESS Staging API health check passed"
+              echo "Staging API health check passed"
               HEALTH_CHECK_PASSED=true
               break
             else
-              echo "ERROR Health check failed (attempt $i/10)"
+              echo "Health check failed (attempt $i/10)"
               if [ $i -eq 5 ]; then
                 echo "=== Mid-deployment debugging ==="
-                echo "=== API Logs (last 30 lines) ==="
-                docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=30 api || true
-                echo "=== Service Status ==="
-                docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
+                docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=30 api || true
+                docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
               fi
-              echo "⏳ Waiting 10 seconds before next attempt..."
+              echo "Waiting 10 seconds before next attempt..."
               sleep 10
             fi
           done
 
           if [ "$HEALTH_CHECK_PASSED" = false ]; then
             echo "ERROR Health check failed after 10 attempts"
-            echo "=== Final debugging information ==="
-            echo "=== All Service Logs ==="
-            docker compose --env-file .env -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=100 || true
-            echo "=== Network connectivity test ==="
+            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=100 || true
             curl -v "https://staging.api.weather.gd/api/v1/utils/health-check/" || true
             exit 1
           fi
@@ -162,40 +159,32 @@ jobs:
       - name: Show logs on failure
         if: failure()
         run: |
-          echo "🚨 STAGING DEPLOYMENT FAILED - DEBUGGING INFO"
-          echo "=============================================="
+          echo "STAGING DEPLOYMENT FAILED - DEBUGGING INFO"
           echo "=== Docker Container Status ==="
           docker ps -a || true
-          echo ""
           echo "=== Docker Compose Status ==="
-          docker compose -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
-          echo ""
+          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
           echo "=== Prestart Logs (last 200 lines) ==="
-          docker compose -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 prestart || true
-          echo ""
+          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 prestart || true
           echo "=== Database Logs (last 200 lines) ==="
-          docker compose -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 db || true
-          echo ""
+          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 db || true
           echo "=== API Logs (last 200 lines) ==="
-          docker compose -f docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 api || true
-          echo ""
+          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 api || true
           echo "=== Environment File (sanitized) ==="
-          sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD)=.*/\1=****/' .env || true
-          echo ""
+          sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env || true
           echo "=== Network Status ==="
           docker network ls || true
-          echo ""
           echo "=== Volume Status ==="
           docker volume ls | grep "${{ env.PROJECT_NAME }}" || true
 
       - name: Cleanup runner environment
         if: always()
         run: |
-          echo "🧹 Cleaning up staging runner environment..."
-          # Clean up Docker resources
-          docker system prune -af --volumes || true
+          echo "Cleaning up staging runner environment..."
+          # Prune unused images/containers/networks but NOT volumes (protects pgdata-staging)
+          docker system prune -af || true
           # Remove any temporary files
           rm -rf /tmp/* || true
-          # Clear any sensitive environment variables
-          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD || true
-          echo "✅ Staging runner cleanup completed"
+          # Clear sensitive environment variables
+          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD HASHED_PASSWORD || true
+          echo "Staging runner cleanup completed"

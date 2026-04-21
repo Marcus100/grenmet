@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse,
   CreateTimesheetEndpointApiV1HrTimesheetsPost403,
   CreateTimesheetEndpointApiV1HrTimesheetsPost422,
+  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest,
+  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse,
 } from "../models/CreateTimesheetEndpointApiV1HrTimesheetsPost.js";
 
 function getCreateTimesheetEndpointApiV1HrTimesheetsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/timesheets/` as const };
+  const res = { method: "POST", url: "/api/v1/hr/timesheets/" as const };
   return res;
 }
 

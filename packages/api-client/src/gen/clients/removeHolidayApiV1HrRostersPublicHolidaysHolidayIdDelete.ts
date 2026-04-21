@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404,
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
 } from "../models/RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 
 function getRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteUrl(

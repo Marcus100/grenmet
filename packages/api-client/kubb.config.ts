@@ -1,23 +1,23 @@
-import { defineConfig } from '@kubb/core'
-import { pluginOas } from '@kubb/plugin-oas'
-import { pluginTs } from '@kubb/plugin-ts'
-import { pluginClient } from '@kubb/plugin-client'
-import { pluginReactQuery } from '@kubb/plugin-react-query'
-import { pluginZod } from '@kubb/plugin-zod'
+import { defineConfig } from "@kubb/core";
+import { pluginClient } from "@kubb/plugin-client";
+import { pluginOas } from "@kubb/plugin-oas";
+import { pluginReactQuery } from "@kubb/plugin-react-query";
+import { pluginTs } from "@kubb/plugin-ts";
+import { pluginZod } from "@kubb/plugin-zod";
 
 export default defineConfig(({ watch }) => ({
-  name: 'api-client',
-  root: '.',
+  name: "api-client",
+  root: ".",
   input: {
-    path: '../../apps/api/fastapi/openapi.json',
+    path: "../../apps/api/fastapi/openapi.json",
   },
   output: {
-    path: './src/gen',
+    path: "./src/gen",
     clean: !watch,
-    barrelType: 'named',
-    format: 'biome',
-    extension: { '.ts': '.js' },
-    defaultBanner: 'simple',
+    barrelType: "named",
+    format: "biome",
+    extension: { ".ts": ".js" },
+    defaultBanner: "simple",
   },
   plugins: [
     pluginOas({
@@ -26,28 +26,28 @@ export default defineConfig(({ watch }) => ({
     }),
     pluginTs({
       output: {
-        path: 'models',
+        path: "models",
       },
     }),
     pluginClient({
       output: {
-        path: 'clients',
+        path: "clients",
       },
-      client: 'fetch',
-      importPath: '../../client.js',
+      client: "fetch",
+      importPath: "../../client.js",
     }),
     pluginReactQuery({
       output: {
-        path: 'hooks',
+        path: "hooks",
       },
       client: {
-        importPath: '../../client.js',
+        importPath: "../../client.js",
       },
     }),
     pluginZod({
       output: {
-        path: 'zod',
+        path: "zod",
       },
     }),
   ],
-}))
+}));

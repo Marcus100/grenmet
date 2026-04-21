@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 import { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Timesheet and entries created

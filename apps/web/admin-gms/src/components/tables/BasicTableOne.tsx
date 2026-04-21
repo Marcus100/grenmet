@@ -99,8 +99,8 @@ const teamImages = [
 ];
 
 // Generate large dataset for virtualization demo
-const generateLargeDataset = (count: number): Order[] => {
-  return Array.from({ length: count }, (_, i) => ({
+const generateLargeDataset = (count: number): Order[] =>
+  Array.from({ length: count }, (_, i) => ({
     id: i + 1,
     user: baseUsers[i % baseUsers.length],
     projectName: projects[i % projects.length],
@@ -108,7 +108,6 @@ const generateLargeDataset = (count: number): Order[] => {
     status: statuses[i % statuses.length],
     budget: `${(Math.random() * 50 + 1).toFixed(1)}K`,
   }));
-};
 
 // Generate 100 rows for virtualization demo
 const tableData: Order[] = generateLargeDataset(100);

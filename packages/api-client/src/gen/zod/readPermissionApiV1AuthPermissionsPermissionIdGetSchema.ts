@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readPermissionApiV1AuthPermissionsPermissionIdGetPathParamsSchema =
   z.object({

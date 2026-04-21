@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { requestStatusSchema } from "./requestStatusSchema.js";
 import { z } from "zod/v4";
+import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const shiftSwapActionSchema = z.object({
   get status() {

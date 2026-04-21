@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 
 export const readPermissionApiV1AuthPermissionsPermissionIdGetSuspenseQueryKey =
   (
@@ -31,7 +30,7 @@ export const readPermissionApiV1AuthPermissionsPermissionIdGetSuspenseQueryKey =
     [
       {
         url: "/api/v1/auth/permissions/:permission_id",
-        params: { permission_id: permission_id },
+        params: { permission_id },
       },
     ] as const;
 

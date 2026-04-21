@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { updatePasswordSchema } from "./updatePasswordSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Password updated

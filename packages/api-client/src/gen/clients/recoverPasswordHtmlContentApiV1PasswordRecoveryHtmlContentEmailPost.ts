@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
 } from "../models/RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 
 function getRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostUrl(

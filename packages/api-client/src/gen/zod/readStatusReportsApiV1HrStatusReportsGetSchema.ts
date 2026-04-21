@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportListPublicSchema } from "./statusReportListPublicSchema.js";
-import { z } from "zod/v4";
 
 export const readStatusReportsApiV1HrStatusReportsGetQueryParamsSchema = z
   .object({

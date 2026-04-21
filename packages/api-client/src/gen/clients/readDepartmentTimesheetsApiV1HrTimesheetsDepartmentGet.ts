@@ -3,23 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
 } from "../models/ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 
 function getReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetUrl() {
   const res = {
     method: "GET",
-    url: `/api/v1/hr/timesheets/department` as const,
+    url: "/api/v1/hr/timesheets/department" as const,
   };
   return res;
 }

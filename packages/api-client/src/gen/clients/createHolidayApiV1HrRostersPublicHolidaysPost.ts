@@ -3,24 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
   CreateHolidayApiV1HrRostersPublicHolidaysPost400,
   CreateHolidayApiV1HrRostersPublicHolidaysPost403,
   CreateHolidayApiV1HrRostersPublicHolidaysPost422,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
 } from "../models/CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
 
 function getCreateHolidayApiV1HrRostersPublicHolidaysPostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/hr/rosters/public-holidays` as const,
+    url: "/api/v1/hr/rosters/public-holidays" as const,
   };
   return res;
 }

@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
+  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
+  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
 
 function getLoginAccessTokenApiV1LoginAccessTokenPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/access-token` as const };
+  const res = { method: "POST", url: "/api/v1/login/access-token" as const };
   return res;
 }
 

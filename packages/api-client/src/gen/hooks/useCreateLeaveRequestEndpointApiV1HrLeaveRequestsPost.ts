@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createLeaveRequestEndpointApiV1HrLeaveRequestsPost } from "../clients/createLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse,
   CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost403,
   CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost422,
+  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest,
+  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse,
 } from "../models/CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createLeaveRequestEndpointApiV1HrLeaveRequestsPost } from "../clients/createLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
 
 export const createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationKey =
   () => [{ url: "/api/v1/hr/leave-requests" }] as const;
@@ -50,9 +49,8 @@ export function createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config),
   });
 }
 

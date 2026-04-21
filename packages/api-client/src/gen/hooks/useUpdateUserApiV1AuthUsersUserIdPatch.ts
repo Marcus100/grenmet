@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { updateUserApiV1AuthUsersUserIdPatch } from "../clients/updateUserApiV1AuthUsersUserIdPatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
   UpdateUserApiV1AuthUsersUserIdPatch404,
   UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
+  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
+  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { updateUserApiV1AuthUsersUserIdPatch } from "../clients/updateUserApiV1AuthUsersUserIdPatch.js";
 
 export const updateUserApiV1AuthUsersUserIdPatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/:user_id" }] as const;
@@ -54,9 +53,8 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateUserApiV1AuthUsersUserIdPatch(user_id, data, config);
-    },
+    mutationFn: async ({ user_id, data }) =>
+      updateUserApiV1AuthUsersUserIdPatch(user_id, data, config),
   });
 }
 

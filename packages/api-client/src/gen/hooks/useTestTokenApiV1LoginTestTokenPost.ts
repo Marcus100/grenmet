@@ -3,20 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
 import { testTokenApiV1LoginTestTokenPost } from "../clients/testTokenApiV1LoginTestTokenPost.js";
+import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
 
 export const testTokenApiV1LoginTestTokenPostMutationKey = () =>
   [{ url: "/api/v1/login/test-token" }] as const;
@@ -36,9 +35,7 @@ export function testTokenApiV1LoginTestTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return testTokenApiV1LoginTestTokenPost(config);
-    },
+    mutationFn: async () => testTokenApiV1LoginTestTokenPost(config),
   });
 }
 

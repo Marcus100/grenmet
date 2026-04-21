@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Public holiday created

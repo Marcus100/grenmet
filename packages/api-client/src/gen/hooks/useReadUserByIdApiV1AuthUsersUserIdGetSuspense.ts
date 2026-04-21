@@ -3,33 +3,29 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readUserByIdApiV1AuthUsersUserIdGet } from "../clients/readUserByIdApiV1AuthUsersUserIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
   ReadUserByIdApiV1AuthUsersUserIdGet403,
   ReadUserByIdApiV1AuthUsersUserIdGet422,
+  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
+  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { readUserByIdApiV1AuthUsersUserIdGet } from "../clients/readUserByIdApiV1AuthUsersUserIdGet.js";
 
 export const readUserByIdApiV1AuthUsersUserIdGetSuspenseQueryKey = (
   user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"]
-) =>
-  [
-    { url: "/api/v1/auth/users/:user_id", params: { user_id: user_id } },
-  ] as const;
+) => [{ url: "/api/v1/auth/users/:user_id", params: { user_id } }] as const;
 
 export type ReadUserByIdApiV1AuthUsersUserIdGetSuspenseQueryKey = ReturnType<
   typeof readUserByIdApiV1AuthUsersUserIdGetSuspenseQueryKey

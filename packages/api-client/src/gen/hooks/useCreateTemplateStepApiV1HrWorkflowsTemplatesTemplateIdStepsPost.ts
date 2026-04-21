@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "../clients/createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
   CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403,
   CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404,
   CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
 } from "../models/CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "../clients/createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 
 export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationKey =
   () => [{ url: "/api/v1/hr/workflows/templates/:template_id/steps" }] as const;
@@ -56,13 +55,12 @@ export function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ template_id, data }) => {
-      return createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
+    mutationFn: async ({ template_id, data }) =>
+      createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
         template_id,
         data,
         config
-      );
-    },
+      ),
   });
 }
 
