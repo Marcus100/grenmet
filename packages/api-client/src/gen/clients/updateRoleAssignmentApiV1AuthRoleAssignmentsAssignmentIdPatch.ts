@@ -3,18 +3,18 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
 } from "../models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 
 function getUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchUrl(

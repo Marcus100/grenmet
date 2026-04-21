@@ -42,4 +42,4 @@ function RadioGroupItem({
   );
 }
 
-export { RadioGroupRoot as RadioGroup, RadioGroupItem };
+export { RadioGroupItem, RadioGroupRoot as RadioGroup };

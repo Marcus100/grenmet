@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  ResetPasswordApiV1ResetPasswordPost422,
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
-  ResetPasswordApiV1ResetPasswordPost422,
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
 
 function getResetPasswordApiV1ResetPasswordPostUrl() {
-  const res = { method: "POST", url: `/api/v1/reset-password/` as const };
+  const res = { method: "POST", url: "/api/v1/reset-password/" as const };
   return res;
 }
 

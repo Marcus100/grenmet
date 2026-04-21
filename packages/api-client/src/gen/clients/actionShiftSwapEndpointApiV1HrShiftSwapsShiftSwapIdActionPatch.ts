@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch403,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch404,
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch422,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
 } from "../models/ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 
 function getActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchUrl(

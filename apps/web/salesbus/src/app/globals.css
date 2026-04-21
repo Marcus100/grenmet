@@ -1,0 +1,293 @@
+@import "tailwindcss";
+
+:root {
+  /* Primary Colors */
+  --color-primary: #4a7fc1;
+  --color-primary-dark: #3a6ba8;
+  --color-primary-light: #5b9bd5;
+
+  /* Background Colors */
+  --color-background: #e8edf2;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #ffffff;
+
+  /* Text Colors */
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6b7280;
+  --color-text-muted: #9ca3af;
+
+  /* Semantic Colors */
+  --color-success: #22c55e;
+  --color-error: #dc2626;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg:
+    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  /* Spacing - responsive */
+  --spacing-page: 1rem;
+
+  /* Border Radius */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* Safe areas for PWA */
+  --safe-area-inset-top: env(safe-area-inset-top, 0px);
+  --safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-inset-left: env(safe-area-inset-left, 0px);
+  --safe-area-inset-right: env(safe-area-inset-right, 0px);
+}
+
+/* Tablet breakpoint adjustments */
+@media (min-width: 640px) {
+  :root {
+    --spacing-page: 1.25rem;
+  }
+}
+
+/* Dark theme ready - uncomment when needed */
+/*
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #5B9BD5;
+    --color-primary-dark: #4A7FC1;
+    --color-primary-light: #7AB8E8;
+    
+    --color-background: #0F1419;
+    --color-surface: #1A1F26;
+    --color-surface-elevated: #242A33;
+    
+    --color-text-primary: #F3F4F6;
+    --color-text-secondary: #9CA3AF;
+    --color-text-muted: #6B7280;
+    
+    --color-success: #34D399;
+    --color-error: #F87171;
+  }
+}
+*/
+
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-success: var(--color-success);
+  --color-error: var(--color-error);
+  --font-sans: var(--font-inter);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  min-height: 100dvh;
+  /* Prevent overscroll bounce on iOS */
+  overscroll-behavior: none;
+  /* Smooth scrolling */
+  scroll-behavior: smooth;
+  /* Better font rendering */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography scale - responsive */
+.text-heading-1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 2rem;
+}
+
+.text-heading-2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.75rem;
+}
+
+.text-heading-3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.text-body {
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+/* Tablet typography scale */
+@media (min-width: 640px) {
+  .text-heading-1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+
+  .text-heading-2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .text-heading-3 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Utility classes for common patterns */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-elevated {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+/* Safe area padding for PWA */
+.safe-area-top {
+  padding-top: var(--safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: var(--safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: var(--safe-area-inset-right);
+}
+
+/* Touch manipulation - better for touch devices */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Landscape-specific styles */
+@media (orientation: landscape) and (min-width: 640px) {
+  .landscape\:hidden {
+    display: none;
+  }
+
+  .landscape\:flex {
+    display: flex;
+  }
+
+  .landscape\:grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landscape\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .landscape\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .landscape\:gap-6 {
+    gap: 1.5rem;
+  }
+}
+
+/* Portrait-specific styles */
+@media (orientation: portrait) {
+  .portrait\:hidden {
+    display: none;
+  }
+
+  .portrait\:flex {
+    display: flex;
+  }
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Focus visible styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+}

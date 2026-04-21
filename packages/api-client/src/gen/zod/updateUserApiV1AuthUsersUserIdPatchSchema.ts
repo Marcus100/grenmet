@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 import { userUpdateSchema } from "./userUpdateSchema.js";
-import { z } from "zod/v4";
 
 export const updateUserApiV1AuthUsersUserIdPatchPathParamsSchema = z.object({
   user_id: z.uuid(),

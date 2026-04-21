@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
 
 function getReadTemplatesApiV1HrWorkflowsTemplatesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/workflows/templates` as const };
+  const res = { method: "GET", url: "/api/v1/hr/workflows/templates" as const };
   return res;
 }
 

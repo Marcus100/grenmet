@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet } from "../clients/readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams,
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404,
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
 } from "../models/ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet } from "../clients/readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 
 export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey =
   (
@@ -32,7 +31,7 @@ export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey 
     [
       {
         url: "/api/v1/hr/timesheets/:timesheet_id/summary",
-        params: { timesheet_id: timesheet_id },
+        params: { timesheet_id },
       },
     ] as const;
 

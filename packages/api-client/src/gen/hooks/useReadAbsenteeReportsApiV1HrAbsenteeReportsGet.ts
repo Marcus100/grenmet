@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "../clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403,
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
 } from "../models/ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "../clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 
 export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey = (
   params: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams = {}

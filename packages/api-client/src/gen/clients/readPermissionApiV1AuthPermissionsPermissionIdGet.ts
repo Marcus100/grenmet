@@ -3,17 +3,17 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 
 function getReadPermissionApiV1AuthPermissionsPermissionIdGetUrl(

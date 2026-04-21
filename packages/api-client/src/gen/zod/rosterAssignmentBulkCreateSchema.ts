@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 import { z } from "zod/v4";
+import { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 
 export const rosterAssignmentBulkCreateSchema = z.object({
   roster_period_id: z.uuid(),

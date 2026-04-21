@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { userStatusSchema } from "./userStatusSchema.js";
 import { z } from "zod/v4";
+import { userStatusSchema } from "./userStatusSchema.js";
 
 export const profileDetailsUpdateSchema = z.object({
   first_name: z.optional(z.union([z.string(), z.null()])),

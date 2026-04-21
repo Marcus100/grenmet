@@ -241,13 +241,14 @@ function usePreventLayoutShift() {
   const positionRef = useRef<HTMLElement>(null);
   const rafRef = useRef<number | undefined>(undefined);
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (typeof rafRef.current !== "undefined") {
         window.cancelAnimationFrame(rafRef.current);
       }
-    };
-  }, []);
+    },
+    []
+  );
 
   return {
     positionRef,

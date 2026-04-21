@@ -3,21 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { healthCheckApiV1UtilsHealthCheckGet } from "../clients/healthCheckApiV1UtilsHealthCheckGet.js";
+import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
 
 export const healthCheckApiV1UtilsHealthCheckGetQueryKey = () =>
   [{ url: "/api/v1/utils/health-check/" }] as const;

@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
   DeleteUserMeApiV1AuthUsersMeDelete403,
+  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
 } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 
 function getDeleteUserMeApiV1AuthUsersMeDeleteUrl() {
-  const res = { method: "DELETE", url: `/api/v1/auth/users/me` as const };
+  const res = { method: "DELETE", url: "/api/v1/auth/users/me" as const };
   return res;
 }
 

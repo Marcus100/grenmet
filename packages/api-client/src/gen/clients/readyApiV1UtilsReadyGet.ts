@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ReadyApiV1UtilsReadyGetQueryResponse,
   ReadyApiV1UtilsReadyGet503,
+  ReadyApiV1UtilsReadyGetQueryResponse,
 } from "../models/ReadyApiV1UtilsReadyGet.js";
 
 function getReadyApiV1UtilsReadyGetUrl() {
-  const res = { method: "GET", url: `/api/v1/utils/ready/` as const };
+  const res = { method: "GET", url: "/api/v1/utils/ready/" as const };
   return res;
 }
 

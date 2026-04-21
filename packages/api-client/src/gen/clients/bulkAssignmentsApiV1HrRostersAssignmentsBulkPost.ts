@@ -3,24 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
 } from "../models/BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 
 function getBulkAssignmentsApiV1HrRostersAssignmentsBulkPostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/hr/rosters/assignments/bulk` as const,
+    url: "/api/v1/hr/rosters/assignments/bulk" as const,
   };
   return res;
 }

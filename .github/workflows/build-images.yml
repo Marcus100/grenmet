@@ -89,7 +89,8 @@ jobs:
 
       - name: Image digest and tags summary
         run: |
-          echo "✅ Image built and pushed successfully"
+          echo "✅ grenmet-api image built and pushed successfully"
+          echo "Registry: ghcr.io/${{ github.repository }}"
           echo "Primary tag: ${{ steps.tags.outputs.primary_tag }}"
           if [ -n "${{ steps.tags.outputs.version_tag }}" ]; then
             echo "Version tag: ${{ steps.tags.outputs.version_tag }}"

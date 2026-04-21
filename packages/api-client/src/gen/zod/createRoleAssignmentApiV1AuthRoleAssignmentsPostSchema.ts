@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentCreateSchema } from "./userRoleAssignmentCreateSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Role assignment created

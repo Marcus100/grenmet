@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { workflowTypeSchema } from "./workflowTypeSchema.js";
 import { z } from "zod/v4";
+import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
 export const workflowTemplateCreateSchema = z.object({
   department_id: z.string(),

@@ -23,7 +23,7 @@ function mergeProps(slotProps: AnyProps, childProps: AnyProps): AnyProps {
         (slotVal as (...a: unknown[]) => void)(...args);
       };
     } else {
-      merged[key] = childVal !== undefined ? childVal : slotVal;
+      merged[key] = childVal === undefined ? slotVal : childVal;
     }
   }
 

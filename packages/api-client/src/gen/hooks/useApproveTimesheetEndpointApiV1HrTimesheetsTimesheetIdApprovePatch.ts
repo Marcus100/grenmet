@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch } from "../clients/approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch400,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch403,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch404,
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch422,
+  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
 } from "../models/ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch } from "../clients/approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 
 export const approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey =
   () => [{ url: "/api/v1/hr/timesheets/:timesheet_id/approve" }] as const;
@@ -52,12 +51,11 @@ export function approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id }) => {
-      return approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
+    mutationFn: async ({ timesheet_id }) =>
+      approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
         timesheet_id,
         config
-      );
-    },
+      ),
   });
 }
 

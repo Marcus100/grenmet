@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 
 export const readTemplatesApiV1HrWorkflowsTemplatesGetSuspenseQueryKey = (
   params: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams = {}

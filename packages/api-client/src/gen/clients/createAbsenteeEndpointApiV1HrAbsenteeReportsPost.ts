@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse,
   CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost403,
   CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost422,
+  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest,
+  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse,
 } from "../models/CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
 
 function getCreateAbsenteeEndpointApiV1HrAbsenteeReportsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/absentee-reports` as const };
+  const res = { method: "POST", url: "/api/v1/hr/absentee-reports" as const };
   return res;
 }
 

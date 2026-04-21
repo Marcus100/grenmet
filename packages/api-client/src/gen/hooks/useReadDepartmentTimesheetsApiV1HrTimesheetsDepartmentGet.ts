@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "../clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
 } from "../models/ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "../clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 
 export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey = (
   params: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams

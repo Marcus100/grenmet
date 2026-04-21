@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet } from "../clients/readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams,
   ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404,
   ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
 } from "../models/ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet } from "../clients/readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 
 export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey =
   (
@@ -31,7 +30,7 @@ export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey =
     [
       {
         url: "/api/v1/auth/role-assignments/:assignment_id",
-        params: { assignment_id: assignment_id },
+        params: { assignment_id },
       },
     ] as const;
 

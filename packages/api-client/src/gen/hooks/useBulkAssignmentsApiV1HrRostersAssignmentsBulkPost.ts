@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "../clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
 } from "../models/BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "../clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 
 export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/assignments/bulk" }] as const;
@@ -52,9 +51,8 @@ export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config),
   });
 }
 

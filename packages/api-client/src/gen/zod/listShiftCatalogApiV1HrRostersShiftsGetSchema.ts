@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
 import { z } from "zod/v4";
+import { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
 
 /**
  * @description Shift catalog returned

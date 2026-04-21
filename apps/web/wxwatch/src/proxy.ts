@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionCookieName } from "../lib/auth-config";
+import { getSessionCookieName } from "@/lib/auth-config";
 
 const PUBLIC_PATHS = [
   "/signin",

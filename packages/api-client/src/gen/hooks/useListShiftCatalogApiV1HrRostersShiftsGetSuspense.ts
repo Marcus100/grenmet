@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-  ListShiftCatalogApiV1HrRostersShiftsGet403,
-} from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { listShiftCatalogApiV1HrRostersShiftsGet } from "../clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
+import type {
+  ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+} from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
 export const listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey = () =>
   [{ url: "/api/v1/hr/rosters/shifts" }] as const;
