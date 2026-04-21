@@ -48,7 +48,7 @@ catalog:
 
   # Validation — used across multiple web apps
   zod: "^4.3.5"
-  "@t3-oss/env-nextjs": "^0.13.10"
+  "@t3-oss/env-nextjs": "^0.13.11"
 
   # React Compiler — used in auth, hr, spicewx, wxproducts
   babel-plugin-react-compiler: "^1.0.0"
