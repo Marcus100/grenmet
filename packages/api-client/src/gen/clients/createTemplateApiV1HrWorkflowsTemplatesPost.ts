@@ -3,23 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
   CreateTemplateApiV1HrWorkflowsTemplatesPost403,
   CreateTemplateApiV1HrWorkflowsTemplatesPost422,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
 } from "../models/CreateTemplateApiV1HrWorkflowsTemplatesPost.js";
 
 function getCreateTemplateApiV1HrWorkflowsTemplatesPostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/hr/workflows/templates` as const,
+    url: "/api/v1/hr/workflows/templates" as const,
   };
   return res;
 }

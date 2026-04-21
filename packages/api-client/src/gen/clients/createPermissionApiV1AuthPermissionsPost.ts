@@ -3,20 +3,20 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
+  CreatePermissionApiV1AuthPermissionsPost422,
   CreatePermissionApiV1AuthPermissionsPostMutationRequest,
   CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-  CreatePermissionApiV1AuthPermissionsPost422,
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
 
 function getCreatePermissionApiV1AuthPermissionsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/permissions/` as const };
+  const res = { method: "POST", url: "/api/v1/auth/permissions/" as const };
   return res;
 }
 

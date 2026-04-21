@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
   ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 
 export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey = (
   params: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams = {}

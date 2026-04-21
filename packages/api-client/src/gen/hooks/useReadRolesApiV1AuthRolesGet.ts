@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadRolesApiV1AuthRolesGetQueryResponse,
-  ReadRolesApiV1AuthRolesGetQueryParams,
-  ReadRolesApiV1AuthRolesGet422,
-} from "../models/ReadRolesApiV1AuthRolesGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readRolesApiV1AuthRolesGet } from "../clients/readRolesApiV1AuthRolesGet.js";
+import type {
+  ReadRolesApiV1AuthRolesGet422,
+  ReadRolesApiV1AuthRolesGetQueryParams,
+  ReadRolesApiV1AuthRolesGetQueryResponse,
+} from "../models/ReadRolesApiV1AuthRolesGet.js";
 
 export const readRolesApiV1AuthRolesGetQueryKey = (
   params: ReadRolesApiV1AuthRolesGetQueryParams = {}

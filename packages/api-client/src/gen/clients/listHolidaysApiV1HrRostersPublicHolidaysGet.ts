@@ -3,23 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
   ListHolidaysApiV1HrRostersPublicHolidaysGet403,
   ListHolidaysApiV1HrRostersPublicHolidaysGet422,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
 } from "../models/ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
 
 function getListHolidaysApiV1HrRostersPublicHolidaysGetUrl() {
   const res = {
     method: "GET",
-    url: `/api/v1/hr/rosters/public-holidays` as const,
+    url: "/api/v1/hr/rosters/public-holidays" as const,
   };
   return res;
 }

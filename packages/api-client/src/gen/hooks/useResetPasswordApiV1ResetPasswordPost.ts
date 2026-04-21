@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { resetPasswordApiV1ResetPasswordPost } from "../clients/resetPasswordApiV1ResetPasswordPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  ResetPasswordApiV1ResetPasswordPost422,
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
-  ResetPasswordApiV1ResetPasswordPost422,
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { resetPasswordApiV1ResetPasswordPost } from "../clients/resetPasswordApiV1ResetPasswordPost.js";
 
 export const resetPasswordApiV1ResetPasswordPostMutationKey = () =>
   [{ url: "/api/v1/reset-password/" }] as const;
@@ -44,9 +43,8 @@ export function resetPasswordApiV1ResetPasswordPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return resetPasswordApiV1ResetPasswordPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      resetPasswordApiV1ResetPasswordPost(data, config),
   });
 }
 

@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { testEmailApiV1UtilsTestEmailPost } from "../clients/testEmailApiV1UtilsTestEmailPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
+  TestEmailApiV1UtilsTestEmailPost422,
   TestEmailApiV1UtilsTestEmailPostMutationResponse,
   TestEmailApiV1UtilsTestEmailPostQueryParams,
-  TestEmailApiV1UtilsTestEmailPost422,
 } from "../models/TestEmailApiV1UtilsTestEmailPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { testEmailApiV1UtilsTestEmailPost } from "../clients/testEmailApiV1UtilsTestEmailPost.js";
 
 export const testEmailApiV1UtilsTestEmailPostMutationKey = () =>
   [{ url: "/api/v1/utils/test-email/" }] as const;
@@ -40,9 +39,8 @@ export function testEmailApiV1UtilsTestEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ params }) => {
-      return testEmailApiV1UtilsTestEmailPost(params, config);
-    },
+    mutationFn: async ({ params }) =>
+      testEmailApiV1UtilsTestEmailPost(params, config),
   });
 }
 

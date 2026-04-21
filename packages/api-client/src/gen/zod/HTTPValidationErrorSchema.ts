@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { validationErrorSchema } from "./validationErrorSchema.js";
 import { z } from "zod/v4";
+import { validationErrorSchema } from "./validationErrorSchema.js";
 
 export const HTTPValidationErrorSchema = z.object({
   get detail() {

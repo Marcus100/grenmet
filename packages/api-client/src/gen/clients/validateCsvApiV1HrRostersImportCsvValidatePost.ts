@@ -3,24 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
   ValidateCsvApiV1HrRostersImportCsvValidatePost400,
   ValidateCsvApiV1HrRostersImportCsvValidatePost403,
   ValidateCsvApiV1HrRostersImportCsvValidatePost422,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
 } from "../models/ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
 
 function getValidateCsvApiV1HrRostersImportCsvValidatePostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/hr/rosters/import-csv/validate` as const,
+    url: "/api/v1/hr/rosters/import-csv/validate" as const,
   };
   return res;
 }

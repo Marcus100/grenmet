@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
+import { z } from "zod/v4";
 import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
-import { z } from "zod/v4";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
 /**
  * @description Absentee report created

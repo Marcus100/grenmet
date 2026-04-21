@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 
 function getUpdateHrEmploymentApiV1HrEmploymentUserIdPatchUrl(

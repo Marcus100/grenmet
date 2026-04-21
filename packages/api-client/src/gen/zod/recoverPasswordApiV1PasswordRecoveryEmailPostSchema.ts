@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
-import { z } from "zod/v4";
 
 export const recoverPasswordApiV1PasswordRecoveryEmailPostPathParamsSchema =
   z.object({

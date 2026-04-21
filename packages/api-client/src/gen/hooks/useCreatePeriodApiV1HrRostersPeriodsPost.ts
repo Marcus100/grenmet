@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createPeriodApiV1HrRostersPeriodsPost } from "../clients/createPeriodApiV1HrRostersPeriodsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
   CreatePeriodApiV1HrRostersPeriodsPost400,
   CreatePeriodApiV1HrRostersPeriodsPost403,
   CreatePeriodApiV1HrRostersPeriodsPost422,
+  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
+  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
 } from "../models/CreatePeriodApiV1HrRostersPeriodsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createPeriodApiV1HrRostersPeriodsPost } from "../clients/createPeriodApiV1HrRostersPeriodsPost.js";
 
 export const createPeriodApiV1HrRostersPeriodsPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/periods" }] as const;
@@ -50,9 +49,8 @@ export function createPeriodApiV1HrRostersPeriodsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPeriodApiV1HrRostersPeriodsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createPeriodApiV1HrRostersPeriodsPost(data, config),
   });
 }
 

@@ -3,24 +3,23 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadyApiV1UtilsReadyGetQueryResponse,
-  ReadyApiV1UtilsReadyGet503,
-} from "../models/ReadyApiV1UtilsReadyGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { readyApiV1UtilsReadyGet } from "../clients/readyApiV1UtilsReadyGet.js";
+import type {
+  ReadyApiV1UtilsReadyGet503,
+  ReadyApiV1UtilsReadyGetQueryResponse,
+} from "../models/ReadyApiV1UtilsReadyGet.js";
 
 export const readyApiV1UtilsReadyGetSuspenseQueryKey = () =>
   [{ url: "/api/v1/utils/ready/" }] as const;

@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userCreateSchema } from "./userCreateSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description User created

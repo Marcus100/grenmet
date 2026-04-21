@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { z } from "zod/v4";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
 export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema =
   z.object({

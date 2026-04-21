@@ -3,21 +3,21 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse,
   CreateStatusReportEndpointApiV1HrStatusReportsPost403,
   CreateStatusReportEndpointApiV1HrStatusReportsPost422,
+  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest,
+  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse,
 } from "../models/CreateStatusReportEndpointApiV1HrStatusReportsPost.js";
 
 function getCreateStatusReportEndpointApiV1HrStatusReportsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/status-reports` as const };
+  const res = { method: "POST", url: "/api/v1/hr/status-reports" as const };
   return res;
 }
 

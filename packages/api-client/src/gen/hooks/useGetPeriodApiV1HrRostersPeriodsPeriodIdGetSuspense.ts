@@ -3,27 +3,26 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "../clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet404,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet422,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
 } from "../models/GetPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "../clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 
 export const getPeriodApiV1HrRostersPeriodsPeriodIdGetSuspenseQueryKey = (
   period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"]
@@ -31,7 +30,7 @@ export const getPeriodApiV1HrRostersPeriodsPeriodIdGetSuspenseQueryKey = (
   [
     {
       url: "/api/v1/hr/rosters/periods/:period_id",
-      params: { period_id: period_id },
+      params: { period_id },
     },
   ] as const;
 

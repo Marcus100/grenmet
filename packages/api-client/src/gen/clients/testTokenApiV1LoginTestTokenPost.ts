@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
 
 function getTestTokenApiV1LoginTestTokenPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/test-token` as const };
+  const res = { method: "POST", url: "/api/v1/login/test-token" as const };
   return res;
 }
 

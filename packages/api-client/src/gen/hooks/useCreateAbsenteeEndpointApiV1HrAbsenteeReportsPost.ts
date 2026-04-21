@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { createAbsenteeEndpointApiV1HrAbsenteeReportsPost } from "../clients/createAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
 import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse,
   CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost403,
   CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost422,
+  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest,
+  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse,
 } from "../models/CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
-import { createAbsenteeEndpointApiV1HrAbsenteeReportsPost } from "../clients/createAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
 
 export const createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationKey = () =>
   [{ url: "/api/v1/hr/absentee-reports" }] as const;
@@ -50,9 +49,8 @@ export function createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config);
-    },
+    mutationFn: async ({ data }) =>
+      createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config),
   });
 }
 

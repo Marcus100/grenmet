@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestCreateSchema } from "./leaveRequestCreateSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
-import { z } from "zod/v4";
 
 /**
  * @description Leave request created

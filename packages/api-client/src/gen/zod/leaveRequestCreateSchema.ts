@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import { leaveTypeSchema } from "./leaveTypeSchema.js";
 import { z } from "zod/v4";
+import { leaveTypeSchema } from "./leaveTypeSchema.js";
 
 export const leaveRequestCreateSchema = z.object({
   department_id: z.string(),

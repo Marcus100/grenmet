@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
-import { z } from "zod/v4";
 
 export const employmentUpdateSchema = z.object({
   employee_number: z.optional(z.union([z.string(), z.null()])),

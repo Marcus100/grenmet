@@ -3,23 +3,22 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  UseMutationOptions,
+  UseMutationResult,
+} from "@tanstack/react-query";
+import { mutationOptions, useMutation } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  UseMutationOptions,
-  UseMutationResult,
-  QueryClient,
-} from "@tanstack/react-query";
-import type {
-  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-  DeleteUserMeApiV1AuthUsersMeDelete403,
-} from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
-import { mutationOptions, useMutation } from "@tanstack/react-query";
 import { deleteUserMeApiV1AuthUsersMeDelete } from "../clients/deleteUserMeApiV1AuthUsersMeDelete.js";
+import type {
+  DeleteUserMeApiV1AuthUsersMeDelete403,
+  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+} from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 
 export const deleteUserMeApiV1AuthUsersMeDeleteMutationKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;
@@ -39,9 +38,7 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return deleteUserMeApiV1AuthUsersMeDelete(config);
-    },
+    mutationFn: async () => deleteUserMeApiV1AuthUsersMeDelete(config),
   });
 }
 

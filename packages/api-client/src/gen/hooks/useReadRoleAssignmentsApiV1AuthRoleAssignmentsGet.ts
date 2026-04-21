@@ -3,25 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
-import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
-} from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
 import { readRoleAssignmentsApiV1AuthRoleAssignmentsGet } from "../clients/readRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
+import type {
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+} from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 
 export const readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = (
   params: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams = {}

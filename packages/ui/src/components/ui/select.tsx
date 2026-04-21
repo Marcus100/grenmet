@@ -130,11 +130,11 @@ function SelectSeparator({
 }
 
 export {
-  SelectRoot as Select,
   SelectContent,
   SelectGroup,
   SelectItem,
   SelectLabel,
+  SelectRoot as Select,
   SelectSeparator,
   SelectTrigger,
   SelectValue,

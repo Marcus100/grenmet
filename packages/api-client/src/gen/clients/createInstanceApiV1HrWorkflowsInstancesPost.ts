@@ -3,24 +3,24 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import type {
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
   CreateInstanceApiV1HrWorkflowsInstancesPost403,
   CreateInstanceApiV1HrWorkflowsInstancesPost404,
   CreateInstanceApiV1HrWorkflowsInstancesPost422,
+  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
+  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
 } from "../models/CreateInstanceApiV1HrWorkflowsInstancesPost.js";
 
 function getCreateInstanceApiV1HrWorkflowsInstancesPostUrl() {
   const res = {
     method: "POST",
-    url: `/api/v1/hr/workflows/instances` as const,
+    url: "/api/v1/hr/workflows/instances" as const,
   };
   return res;
 }

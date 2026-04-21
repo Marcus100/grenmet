@@ -174,7 +174,7 @@ export default function EveningForecast({
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
-          <div className="font-medium text-sm text-zinc-700">
+          <div className="``fon``t-medium text-sm text-zinc-700">
             {finalOrganization}
           </div>
           <div className="flex gap-4 text-right font-medium text-xs text-zinc-600">

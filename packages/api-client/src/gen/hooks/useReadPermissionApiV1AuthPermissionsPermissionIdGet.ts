@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  QueryObserverOptions,
+  UseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  QueryObserverOptions,
-  UseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
-import { queryOptions, useQuery } from "@tanstack/react-query";
-import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 
 export const readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey = (
   permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"]
@@ -30,7 +29,7 @@ export const readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey = (
   [
     {
       url: "/api/v1/auth/permissions/:permission_id",
-      params: { permission_id: permission_id },
+      params: { permission_id },
     },
   ] as const;
 

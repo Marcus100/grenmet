@@ -3,9 +3,9 @@
  * Do not edit manually.
  */
 
+import { z } from "zod/v4";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rolePublicSchema } from "./rolePublicSchema.js";
-import { z } from "zod/v4";
 
 export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
   role_id: z.uuid(),

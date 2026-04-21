@@ -3,26 +3,25 @@
  * Do not edit manually.
  */
 
-import fetch from "../../client.js";
+import type {
+  QueryClient,
+  QueryKey,
+  UseSuspenseQueryOptions,
+  UseSuspenseQueryResult,
+} from "@tanstack/react-query";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import type {
   Client,
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import { listHolidaysApiV1HrRostersPublicHolidaysGet } from "../clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
 import type {
-  QueryKey,
-  QueryClient,
-  UseSuspenseQueryOptions,
-  UseSuspenseQueryResult,
-} from "@tanstack/react-query";
-import type {
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
   ListHolidaysApiV1HrRostersPublicHolidaysGet403,
   ListHolidaysApiV1HrRostersPublicHolidaysGet422,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
 } from "../models/ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
-import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
-import { listHolidaysApiV1HrRostersPublicHolidaysGet } from "../clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
 
 export const listHolidaysApiV1HrRostersPublicHolidaysGetSuspenseQueryKey = (
   params: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams = {}
