@@ -26,7 +26,7 @@
   "devDependencies": {
     "@tanstack/react-query": "catalog:",
     "@grenmet/tsconfig": "workspace:*",
-    "@kubb/cli": "^4.29.1",
+    "@kubb/cli": "^4.37.4",
     "@kubb/core": "^4.29.1",
     "@kubb/plugin-client": "^4.29.1",
     "@kubb/plugin-oas": "^4.29.1",
