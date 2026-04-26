@@ -22,6 +22,7 @@ export function TransactionList({
           key={transaction.id}
         >
           {transaction.items.map((item, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: items have no stable id
             <div
               className="flex items-center justify-between py-2 sm:py-3"
               key={`${transaction.id}-${index}`}
