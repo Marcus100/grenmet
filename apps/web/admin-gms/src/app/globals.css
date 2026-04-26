@@ -466,8 +466,11 @@ span.flatpickr-weekday,
   box-shadow: -10px 0 0 #465fff;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: third-party flatpickr CSS */
 .flatpickr-months .flatpickr-prev-month svg,
-.flatpickr-months .flatpickr-next-month svg,
+/* biome-ignore lint/style/noDescendingSpecificity: third-party flatpickr CSS */
+  .flatpickr-months .flatpickr-next-month
+  svg,
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
   @apply hover:!fill-none;
@@ -644,12 +647,17 @@ span.flatpickr-weekday,
   @apply bg-white opacity-50 dark:bg-gray-900;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: third-party swiper CSS */
 .stocks-slider-outer .swiper-button-next svg,
-.stocks-slider-outer .swiper-button-prev svg {
+/* biome-ignore lint/style/noDescendingSpecificity: third-party swiper CSS */
+  .stocks-slider-outer .swiper-button-prev
+  svg {
   @apply !h-auto !w-auto;
 }
 
+/* biome-ignore lint/style/noDescendingSpecificity: third-party swiper CSS */
 .swiper-button-prev svg,
+/* biome-ignore lint/style/noDescendingSpecificity: third-party swiper CSS */
 .swiper-button-next svg {
   @apply !h-auto !w-auto;
 }

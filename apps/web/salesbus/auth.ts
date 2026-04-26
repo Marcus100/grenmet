@@ -12,10 +12,11 @@ const COOKIE_OPTS = {
   path: "/",
 };
 
-type LoginOptions = {
+interface LoginOptions {
   remember?: boolean;
-};
+}
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: complex retry + error-parsing logic
 export async function loginWithPassword(
   email: string,
   password: string,
