@@ -1,23 +1,35 @@
-# GrenMet API — Production Stack
+# GrenMet — Production Stack
 # Used by: .github/workflows/deploy-prod.yml
-# working-directory: apps/api/fastapi → reference as ../../infra/docker/docker-compose.prod.yml
 #
 # Required secrets (set in GitHub Environment "production"):
 #   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+#   WXWATCH_DB_NAME, WXWATCH_DB_USER, WXWATCH_DB_PASSWORD
+#   WXPRODUCTS_DB_NAME, WXPRODUCTS_DB_USER, WXPRODUCTS_DB_PASSWORD
 #   SECRET_KEY, FIRST_SUPERUSER, FIRST_SUPERUSER_PASSWORD
 #   REGISTRY, IMAGE_NAME, TAG, DOMAIN, ENVIRONMENT
 #   EMAIL, USERNAME, HASHED_PASSWORD, SENTRY_DSN
+#   SESSION_COOKIE_NAME, RESEND_API_KEY
+#   WXWATCH_DB_URL, WXPRODUCTS_DB_URL
+#   GHCR_OWNER, WEB_TAG
 
 services:
+  # ── Database ────────────────────────────────────────────────────────────────
   db:
     image: postgres:17
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      WXWATCH_DB_NAME: ${WXWATCH_DB_NAME:-wxwatch}
+      WXWATCH_DB_USER: ${WXWATCH_DB_USER:-wxwatch}
+      WXWATCH_DB_PASSWORD: ${WXWATCH_DB_PASSWORD}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
+      WXPRODUCTS_DB_USER: ${WXPRODUCTS_DB_USER:-wxproducts}
+      WXPRODUCTS_DB_PASSWORD: ${WXPRODUCTS_DB_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -25,8 +37,9 @@ services:
       start_period: 30s
       timeout: 10s
     networks:
-      - grenmet-api
+      - grenmet
 
+  # ── FastAPI ─────────────────────────────────────────────────────────────────
   prestart:
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: "no"
@@ -45,7 +58,7 @@ services:
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
     networks:
-      - grenmet-api
+      - grenmet
 
   api:
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
@@ -72,8 +85,150 @@ services:
       - "traefik.http.routers.grenmet-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api.loadbalancer.server.port=8000"
     networks:
-      - grenmet-api
+      - grenmet
 
+  # ── Web Apps ─────────────────────────────────────────────────────────────────
+  web-auth:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-auth.rule=Host(`auth.weather.gd`)"
+      - "traefik.http.routers.web-auth.entrypoints=websecure"
+      - "traefik.http.routers.web-auth.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-auth.loadbalancer.server.port=3000"
+    networks:
+      - grenmet
+
+  web-admin:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_APP_URL: https://auth.weather.gd
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      NEXT_PUBLIC_API_URL: https://api.weather.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-admin.rule=Host(`admin.weather.gd`)"
+      - "traefik.http.routers.web-admin.entrypoints=websecure"
+      - "traefik.http.routers.web-admin.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-admin.loadbalancer.server.port=3001"
+    networks:
+      - grenmet
+
+  web-wxwatch:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_APP_URL: https://auth.weather.gd
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      DB_URL: ${WXWATCH_DB_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-wxwatch.rule=Host(`wxwatch.weather.gd`)"
+      - "traefik.http.routers.web-wxwatch.entrypoints=websecure"
+      - "traefik.http.routers.web-wxwatch.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-wxwatch.loadbalancer.server.port=3002"
+    networks:
+      - grenmet
+
+  web-hurricaneplan:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-hurricaneplan.rule=Host(`hurricane.weather.gd`)"
+      - "traefik.http.routers.web-hurricaneplan.entrypoints=websecure"
+      - "traefik.http.routers.web-hurricaneplan.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-hurricaneplan.loadbalancer.server.port=3003"
+    networks:
+      - grenmet
+
+  web-spicewx:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-spicewx.rule=Host(`spice.weather.gd`)"
+      - "traefik.http.routers.web-spicewx.entrypoints=websecure"
+      - "traefik.http.routers.web-spicewx.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-spicewx.loadbalancer.server.port=3004"
+    networks:
+      - grenmet
+
+  web-wxproducts:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-wxproducts.rule=Host(`wxproducts.weather.gd`)"
+      - "traefik.http.routers.web-wxproducts.entrypoints=websecure"
+      - "traefik.http.routers.web-wxproducts.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-wxproducts.loadbalancer.server.port=3005"
+    networks:
+      - grenmet
+
+  web-hr:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .weather.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-hr.rule=Host(`hr.weather.gd`)"
+      - "traefik.http.routers.web-hr.entrypoints=websecure"
+      - "traefik.http.routers.web-hr.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-hr.loadbalancer.server.port=3006"
+    networks:
+      - grenmet
+
+  web-salesbus:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-latest}
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.weather.gd
+      NEXT_PUBLIC_ENVIRONMENT: production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-salesbus.rule=Host(`sales.weather.gd`)"
+      - "traefik.http.routers.web-salesbus.entrypoints=websecure"
+      - "traefik.http.routers.web-salesbus.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-salesbus.loadbalancer.server.port=3007"
+    networks:
+      - grenmet
+
+  # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
     image: traefik:v3.0
     restart: always
@@ -108,10 +263,10 @@ services:
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
     networks:
-      - grenmet-api
+      - grenmet
 
 networks:
-  grenmet-api:
+  grenmet:
     driver: bridge
 
 volumes:
