@@ -57,6 +57,7 @@ services:
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
     networks:
       - grenmet
 
@@ -78,9 +79,15 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       DOMAIN: ${DOMAIN}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      PROJECT_NAME: ${PROJECT_NAME}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grenmet-api.rule=Host(`api.weather.gd`)"
+      - "traefik.http.routers.grenmet-api.rule=Host(`api.barrels.gd`)"
       - "traefik.http.routers.grenmet-api.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api.loadbalancer.server.port=8000"
@@ -92,14 +99,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-auth.rule=Host(`auth.weather.gd`)"
+      - "traefik.http.routers.web-auth.rule=Host(`auth.barrels.gd`)"
       - "traefik.http.routers.web-auth.entrypoints=websecure"
       - "traefik.http.routers.web-auth.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-auth.loadbalancer.server.port=3000"
@@ -110,16 +117,16 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_APP_URL: https://auth.weather.gd
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_APP_URL: https://auth.barrels.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
       RESEND_API_KEY: ${RESEND_API_KEY}
-      NEXT_PUBLIC_API_URL: https://api.weather.gd
+      NEXT_PUBLIC_API_URL: https://api.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-admin.rule=Host(`admin.weather.gd`)"
+      - "traefik.http.routers.web-admin.rule=Host(`admin.barrels.gd`)"
       - "traefik.http.routers.web-admin.entrypoints=websecure"
       - "traefik.http.routers.web-admin.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin.loadbalancer.server.port=3001"
@@ -130,15 +137,15 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_APP_URL: https://auth.weather.gd
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_APP_URL: https://auth.barrels.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
       DB_URL: ${WXWATCH_DB_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-wxwatch.rule=Host(`wxwatch.weather.gd`)"
+      - "traefik.http.routers.web-wxwatch.rule=Host(`wxwatch.barrels.gd`)"
       - "traefik.http.routers.web-wxwatch.entrypoints=websecure"
       - "traefik.http.routers.web-wxwatch.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-wxwatch.loadbalancer.server.port=3002"
@@ -149,14 +156,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hurricaneplan.rule=Host(`hurricane.weather.gd`)"
+      - "traefik.http.routers.web-hurricaneplan.rule=Host(`hurricane.barrels.gd`)"
       - "traefik.http.routers.web-hurricaneplan.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hurricaneplan.loadbalancer.server.port=3003"
@@ -167,14 +174,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-spicewx.rule=Host(`spice.weather.gd`)"
+      - "traefik.http.routers.web-spicewx.rule=Host(`spice.barrels.gd`)"
       - "traefik.http.routers.web-spicewx.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx.loadbalancer.server.port=3004"
@@ -188,7 +195,7 @@ services:
       DATABASE_URL: ${WXPRODUCTS_DB_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-wxproducts.rule=Host(`wxproducts.weather.gd`)"
+      - "traefik.http.routers.web-wxproducts.rule=Host(`wxproducts.barrels.gd`)"
       - "traefik.http.routers.web-wxproducts.entrypoints=websecure"
       - "traefik.http.routers.web-wxproducts.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-wxproducts.loadbalancer.server.port=3005"
@@ -199,14 +206,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-latest}
     restart: always
     environment:
-      AUTH_API_URL: https://api.weather.gd
+      AUTH_API_URL: https://api.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .weather.gd
+      SESSION_COOKIE_DOMAIN: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hr.rule=Host(`hr.weather.gd`)"
+      - "traefik.http.routers.web-hr.rule=Host(`hr.barrels.gd`)"
       - "traefik.http.routers.web-hr.entrypoints=websecure"
       - "traefik.http.routers.web-hr.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hr.loadbalancer.server.port=3006"
@@ -217,11 +224,11 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-latest}
     restart: always
     environment:
-      NEXT_PUBLIC_API_URL: https://api.weather.gd
+      NEXT_PUBLIC_API_URL: https://api.barrels.gd
       NEXT_PUBLIC_ENVIRONMENT: production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-salesbus.rule=Host(`sales.weather.gd`)"
+      - "traefik.http.routers.web-salesbus.rule=Host(`sales.barrels.gd`)"
       - "traefik.http.routers.web-salesbus.entrypoints=websecure"
       - "traefik.http.routers.web-salesbus.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-salesbus.loadbalancer.server.port=3007"
@@ -251,7 +258,7 @@ services:
       - --api
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.weather.gd`)"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.barrels.gd`)"
       - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard.tls.certresolver=letsencrypt"
       - "traefik.http.routers.traefik-dashboard.service=api@internal"

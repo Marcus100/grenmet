@@ -57,6 +57,7 @@ services:
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
     networks:
       - grenmet-staging
 
@@ -78,9 +79,15 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       DOMAIN: ${DOMAIN}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      PROJECT_NAME: ${PROJECT_NAME}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grenmet-api-staging.rule=Host(`api.staging.weather.gd`)"
+      - "traefik.http.routers.grenmet-api-staging.rule=Host(`api.staging.barrels.gd`)"
       - "traefik.http.routers.grenmet-api-staging.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api-staging.loadbalancer.server.port=8000"
@@ -92,14 +99,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-auth-staging.rule=Host(`auth.staging.weather.gd`)"
+      - "traefik.http.routers.web-auth-staging.rule=Host(`auth.staging.barrels.gd`)"
       - "traefik.http.routers.web-auth-staging.entrypoints=websecure"
       - "traefik.http.routers.web-auth-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-auth-staging.loadbalancer.server.port=3000"
@@ -110,16 +117,16 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_APP_URL: https://auth.staging.weather.gd
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_APP_URL: https://auth.staging.barrels.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
       RESEND_API_KEY: ${RESEND_API_KEY}
-      NEXT_PUBLIC_API_URL: https://api.staging.weather.gd
+      NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-admin-staging.rule=Host(`admin.staging.weather.gd`)"
+      - "traefik.http.routers.web-admin-staging.rule=Host(`admin.staging.barrels.gd`)"
       - "traefik.http.routers.web-admin-staging.entrypoints=websecure"
       - "traefik.http.routers.web-admin-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin-staging.loadbalancer.server.port=3001"
@@ -130,15 +137,15 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_APP_URL: https://auth.staging.weather.gd
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_APP_URL: https://auth.staging.barrels.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
       DB_URL: ${WXWATCH_DB_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-wxwatch-staging.rule=Host(`wxwatch.staging.weather.gd`)"
+      - "traefik.http.routers.web-wxwatch-staging.rule=Host(`wxwatch.staging.barrels.gd`)"
       - "traefik.http.routers.web-wxwatch-staging.entrypoints=websecure"
       - "traefik.http.routers.web-wxwatch-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-wxwatch-staging.loadbalancer.server.port=3002"
@@ -149,14 +156,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hurricaneplan-staging.rule=Host(`hurricane.staging.weather.gd`)"
+      - "traefik.http.routers.web-hurricaneplan-staging.rule=Host(`hurricane.staging.barrels.gd`)"
       - "traefik.http.routers.web-hurricaneplan-staging.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3003"
@@ -167,14 +174,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-spicewx-staging.rule=Host(`spice.staging.weather.gd`)"
+      - "traefik.http.routers.web-spicewx-staging.rule=Host(`spice.staging.barrels.gd`)"
       - "traefik.http.routers.web-spicewx-staging.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3004"
@@ -188,7 +195,7 @@ services:
       DATABASE_URL: ${WXPRODUCTS_DB_URL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-wxproducts-staging.rule=Host(`wxproducts.staging.weather.gd`)"
+      - "traefik.http.routers.web-wxproducts-staging.rule=Host(`wxproducts.staging.barrels.gd`)"
       - "traefik.http.routers.web-wxproducts-staging.entrypoints=websecure"
       - "traefik.http.routers.web-wxproducts-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-wxproducts-staging.loadbalancer.server.port=3005"
@@ -199,14 +206,14 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-staging}
     restart: always
     environment:
-      AUTH_API_URL: https://api.staging.weather.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.weather.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .staging.weather.gd
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hr-staging.rule=Host(`hr.staging.weather.gd`)"
+      - "traefik.http.routers.web-hr-staging.rule=Host(`hr.staging.barrels.gd`)"
       - "traefik.http.routers.web-hr-staging.entrypoints=websecure"
       - "traefik.http.routers.web-hr-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hr-staging.loadbalancer.server.port=3006"
@@ -217,11 +224,11 @@ services:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-staging}
     restart: always
     environment:
-      NEXT_PUBLIC_API_URL: https://api.staging.weather.gd
+      NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
       NEXT_PUBLIC_ENVIRONMENT: staging
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-salesbus-staging.rule=Host(`sales.staging.weather.gd`)"
+      - "traefik.http.routers.web-salesbus-staging.rule=Host(`sales.staging.barrels.gd`)"
       - "traefik.http.routers.web-salesbus-staging.entrypoints=websecure"
       - "traefik.http.routers.web-salesbus-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-salesbus-staging.loadbalancer.server.port=3007"
@@ -251,7 +258,7 @@ services:
       - --api
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard-staging.rule=Host(`traefik.staging.weather.gd`)"
+      - "traefik.http.routers.traefik-dashboard-staging.rule=Host(`traefik.staging.barrels.gd`)"
       - "traefik.http.routers.traefik-dashboard-staging.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard-staging.tls.certresolver=letsencrypt"
       - "traefik.http.routers.traefik-dashboard-staging.service=api@internal"
