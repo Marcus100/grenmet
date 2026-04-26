@@ -235,6 +235,25 @@ services:
     networks:
       - grenmet-staging
 
+  # ── Database UI ──────────────────────────────────────────────────────────────
+  adminer:
+    image: adminer:latest
+    restart: always
+    environment:
+      ADMINER_DESIGN: pepa-linha-dark
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer-staging.rule=Host(`adminer.staging.barrels.gd`)"
+      - "traefik.http.routers.adminer-staging.entrypoints=websecure"
+      - "traefik.http.routers.adminer-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.adminer-staging.loadbalancer.server.port=8080"
+      - "traefik.http.routers.adminer-staging.middlewares=adminer-auth-staging"
+      - "traefik.http.middlewares.adminer-auth-staging.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
+    depends_on:
+      - db
+    networks:
+      - grenmet-staging
+
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
     image: traefik:v3.0

@@ -4,7 +4,9 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
-  outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  }),
   images: {
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",

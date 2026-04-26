@@ -6,7 +6,9 @@ const SVG_REGEX = /\.svg$/;
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
-  outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  }),
   webpack(config) {
     config.module.rules.push({
       test: SVG_REGEX,

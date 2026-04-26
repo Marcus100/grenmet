@@ -18,11 +18,13 @@ const withMDX = nextMDX({
 const nextConfig = {
   reactCompiler: true,
   output: "standalone",
-  outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+    outputFileTracingIncludes: {
+      "/**/*": ["./src/app/**/*.mdx"],
+    },
+  }),
   pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
-  outputFileTracingIncludes: {
-    "/**/*": ["./src/app/**/*.mdx"],
-  },
 };
 
 export default withSearch(withMDX(nextConfig));
