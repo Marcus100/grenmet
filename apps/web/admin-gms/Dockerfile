@@ -23,7 +23,7 @@ COPY apps/web/salesbus/package.json apps/web/salesbus/
 RUN pnpm install --frozen-lockfile
 
 # NEXT_PUBLIC_* vars are baked into the client bundle at build time
-ARG NEXT_PUBLIC_API_URL="https://api.weather.gd"
+ARG NEXT_PUBLIC_API_URL="https://api.barrels.gd"
 ARG NEXT_PUBLIC_ENVIRONMENT=""
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
