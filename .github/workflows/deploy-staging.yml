@@ -47,7 +47,7 @@ jobs:
           set -euo pipefail
           cat > .env <<EOF
           ENVIRONMENT=staging
-          DOMAIN=api.staging.weather.gd
+          DOMAIN=api.staging.barrels.gd
           POSTGRES_DB=app_staging
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
@@ -75,6 +75,10 @@ jobs:
           USERNAME=${USERNAME}
           HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=${SENTRY_DSN:-}
+          PROJECT_NAME=Grenmet API
+          BACKEND_CORS_ORIGINS=https://auth.staging.barrels.gd,https://admin.staging.barrels.gd,https://wxwatch.staging.barrels.gd,https://wxproducts.staging.barrels.gd,https://hurricane.staging.barrels.gd,https://spice.staging.barrels.gd,https://hr.staging.barrels.gd,https://sales.staging.barrels.gd
+          SESSION_COOKIE_DOMAIN=.staging.barrels.gd
+          EMAILS_FROM_EMAIL=noreply@barrels.gd
           EOF
 
           sed -i 's/^[[:space:]]*//' .env
@@ -84,14 +88,7 @@ jobs:
         run: docker compose --env-file .env -f docker-compose.staging.yml config >/dev/null
 
       - name: Authenticate with GHCR
-        env:
-          GHCR_TOKEN: ${{ secrets.GHCR_PAT }}
-        run: |
-          set -euo pipefail
-          if [ -z "${GHCR_TOKEN:-}" ]; then
-            echo "ERROR: GHCR_PAT secret is not configured" >&2; exit 1
-          fi
-          echo "$GHCR_TOKEN" | docker login ghcr.io -u "${{ github.repository_owner }}" --password-stdin
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Stop existing staging stack
         run: |
@@ -120,7 +117,7 @@ jobs:
           echo "=== API health check ==="
           PASSED=false
           for i in {1..10}; do
-            if curl -f -s "https://api.staging.weather.gd/api/v1/utils/health-check/" > /dev/null; then
+            if curl -f -s "https://api.staging.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
               echo "Staging API health check passed"; PASSED=true; break
             fi
             echo "Attempt $i/10..."; sleep 10
@@ -128,7 +125,7 @@ jobs:
           [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
           echo "=== Auth app health check ==="
-          curl -sSo /dev/null -w "%{http_code}" https://auth.staging.weather.gd/ || echo "Auth staging health check failed"
+          curl -sSo /dev/null -w "%{http_code}" https://auth.staging.barrels.gd/ || echo "Auth staging health check failed"
 
       - name: Show logs on failure
         if: failure()
@@ -140,5 +137,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker system prune -af || true
+          docker image prune -f || true
           rm -f .env

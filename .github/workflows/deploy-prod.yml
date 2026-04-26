@@ -51,7 +51,7 @@ jobs:
 
           cat > .env <<EOF
           ENVIRONMENT=production
-          DOMAIN=api.weather.gd
+          DOMAIN=api.barrels.gd
           POSTGRES_DB=app_prod
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
@@ -79,6 +79,10 @@ jobs:
           USERNAME=${USERNAME}
           HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=${SENTRY_DSN:-}
+          PROJECT_NAME=Grenmet API
+          BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://wxwatch.barrels.gd,https://wxproducts.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd,https://hr.barrels.gd,https://sales.barrels.gd
+          SESSION_COOKIE_DOMAIN=.barrels.gd
+          EMAILS_FROM_EMAIL=noreply@barrels.gd
           EOF
 
           sed -i 's/^[[:space:]]*//' .env
@@ -120,9 +124,9 @@ jobs:
         run: |
           sleep 20
           echo "=== API health check ==="
-          curl -sS https://api.weather.gd/api/v1/utils/health-check/ || echo "API health check failed"
+          curl -sS https://api.barrels.gd/api/v1/utils/health-check/ || echo "API health check failed"
           echo "=== Auth app health check ==="
-          curl -sSo /dev/null -w "%{http_code}" https://auth.weather.gd/ || echo "Auth health check failed"
+          curl -sSo /dev/null -w "%{http_code}" https://auth.barrels.gd/ || echo "Auth health check failed"
 
       - name: Show logs on failure
         if: failure()
@@ -135,5 +139,5 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker system prune -af || true
+          docker image prune -f || true
           rm -f .env
