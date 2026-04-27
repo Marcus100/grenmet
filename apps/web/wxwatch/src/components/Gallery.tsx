@@ -39,10 +39,9 @@ export function Gallery({ imagesBySynoptic }: GalleryProps) {
   return (
     <>
       <div className="space-y-4">
-        {imagesBySynoptic.map((group, index) => (
-          // biome-ignore lint/suspicious/noArrayIndexKey: groups have no stable id
+        {imagesBySynoptic.map((group) => (
           <ImageRow
-            key={`${group.name}-${index}`}
+            key={group.name}
             onImageClick={setSelectedImage}
             synopticImages={group.synopticImages}
             title={group.name}
