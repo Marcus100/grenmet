@@ -1,11 +1,21 @@
 "use client";
 
-import type { Transaction } from "@/lib/types";
+import type { CaseType, Transaction } from "@/lib/types";
 import { formatCaseType, formatPrice } from "@/lib/types";
 
 interface TransactionListProps {
   showTotal?: boolean;
   transactions: Transaction[];
+}
+
+export interface TransactionItem {
+  caseType: CaseType;
+  id: string;
+  price: number;
+  productId: string;
+  productImage: string;
+  productName: string;
+  quantity: number;
 }
 
 export function TransactionList({
@@ -21,11 +31,10 @@ export function TransactionList({
           className="border-gray-200 border-b py-4 last:border-b-0 sm:py-5"
           key={transaction.id}
         >
-          {transaction.items.map((item, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: items have no stable id
+          {transaction.items.map((item) => (
             <div
               className="flex items-center justify-between py-2 sm:py-3"
-              key={`${transaction.id}-${index}`}
+              key={item.id}
             >
               <div className="mr-4 min-w-0 flex-1">
                 <h4 className="truncate font-bold text-[var(--color-text-primary)] text-base tracking-wide sm:text-lg">

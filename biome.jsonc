@@ -20,8 +20,36 @@
         "noSvgWithoutTitle": "warn"
       },
       "complexity": {
-        "noExcessiveCognitiveComplexity": "warn"
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 20 }
+        }
+      },
+      "suspicious": {
+        "noConsole": "warn"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/scripts/**", "*.mjs", "*.cjs"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/api-client/src/gen/**"],
+      "formatter": {
+        "enabled": false
+      },
+      "linter": {
+        "enabled": false
+      },
+      "assist": {
+        "enabled": false
+      }
+    }
+  ]
 }
