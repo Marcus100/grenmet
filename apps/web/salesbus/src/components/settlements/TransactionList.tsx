@@ -1,21 +1,11 @@
 "use client";
 
-import type { CaseType, Transaction } from "@/lib/types";
+import type { Transaction } from "@/lib/types";
 import { formatCaseType, formatPrice } from "@/lib/types";
 
 interface TransactionListProps {
   showTotal?: boolean;
   transactions: Transaction[];
-}
-
-export interface TransactionItem {
-  caseType: CaseType;
-  id: string;
-  price: number;
-  productId: string;
-  productImage: string;
-  productName: string;
-  quantity: number;
 }
 
 export function TransactionList({
