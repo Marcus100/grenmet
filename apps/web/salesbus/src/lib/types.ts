@@ -34,6 +34,7 @@ export interface Customer {
 
 export interface TransactionItem {
   caseType: CaseType;
+  id: string;
   price: number;
   productId: string;
   productImage: string;
