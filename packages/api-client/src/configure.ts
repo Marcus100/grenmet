@@ -1,7 +1,7 @@
-export type ApiClientConfig = {
+export interface ApiClientConfig {
   baseURL?: string;
   getHeaders?: () => Record<string, string>;
-};
+}
 
 let config: ApiClientConfig = {};
 

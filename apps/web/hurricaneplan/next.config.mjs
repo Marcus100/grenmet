@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import nextMDX from "@next/mdx";
 
 import { recmaPlugins } from "./src/mdx/recma.mjs";
@@ -16,10 +17,14 @@ const withMDX = nextMDX({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,
+  output: "standalone",
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+    outputFileTracingIncludes: {
+      "/**/*": ["./src/app/**/*.mdx"],
+    },
+  }),
   pageExtensions: ["js", "jsx", "ts", "tsx", "mdx"],
-  outputFileTracingIncludes: {
-    "/**/*": ["./src/app/**/*.mdx"],
-  },
 };
 
 export default withSearch(withMDX(nextConfig));

@@ -34,6 +34,7 @@ export interface Customer {
 
 export interface TransactionItem {
   caseType: CaseType;
+  id: string;
   price: number;
   productId: string;
   productImage: string;
@@ -96,6 +97,8 @@ export function formatCaseType(caseType: CaseType): string {
   }
 }
 
+const DATE_ORDINAL_REGEX = /\d+/;
+
 export function formatPrice(amount: number): string {
   return `$${amount.toFixed(2)}`;
 }
@@ -112,7 +115,7 @@ export function formatDate(dateString: string): string {
   const suffix = getOrdinalSuffix(day);
 
   const formatted = date.toLocaleDateString("en-US", options);
-  return formatted.replace(/\d+/, `${day}${suffix}`);
+  return formatted.replace(DATE_ORDINAL_REGEX, `${day}${suffix}`);
 }
 
 function getOrdinalSuffix(day: number): string {

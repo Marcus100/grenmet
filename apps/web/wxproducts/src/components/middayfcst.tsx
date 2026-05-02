@@ -1,26 +1,3 @@
-interface MiddayReportProps {
-  airportName?: string;
-  airTemperature?: string;
-  date?: string;
-  documentNumber?: string;
-  forecasterName?: string;
-  generalWarning?: string;
-  location?: string;
-  marineWarning?: string;
-  organization?: string;
-  seas?: string;
-  sunrise?: string;
-  sunset?: string;
-  tideHigh?: string;
-  tideLow?: string;
-  validity?: string;
-  weather?: string;
-  wind?: string;
-  wordOfTheDay?: string;
-  wordOfTheDayDefinition?: string;
-  year?: string;
-}
-
 import { gmsMiddayWeatherReportExample } from "@/data/gms-midday-weather-report.example";
 import type { MiddayForecastProduct } from "@/db/schema";
 import { adaptMiddayForecast } from "@/lib/adapters";

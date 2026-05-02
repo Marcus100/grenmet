@@ -2,23 +2,14 @@ name: Database Backup
 
 on:
   schedule:
-    # Run daily at 2 AM UTC
+    # Daily at 2 AM UTC
     - cron: "0 2 * * *"
   workflow_dispatch:
-    inputs:
-      backup_type:
-        description: "Type of backup to perform"
-        required: true
-        default: "full"
-        type: choice
-        options:
-          - full
-          - incremental
 
 jobs:
   backup:
     name: Database Backup
-    runs-on: [self-hosted, production, azure-vm]
+    runs-on: [self-hosted, production]
     timeout-minutes: 30
     environment:
       name: production
@@ -27,182 +18,153 @@ jobs:
     env:
       BACKUP_RETENTION_DAYS: 30
       BACKUP_DIR: /home/github/backups
-    defaults:
-      run:
-        working-directory: apps/api/fastapi
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup backup environment
-        run: |
-          set -euo pipefail
-          echo "🗄️ Setting up backup environment..."
-
-          # Create backup directory
-          mkdir -p "$BACKUP_DIR"
-
-          # Load production environment
-          PROD_ENV="/home/github/.config/eugine-api/production.env"
-          if [ -f "$PROD_ENV" ]; then
-            echo "Loading production environment..."
-            cp "$PROD_ENV" .env
-          else
-            echo "ERROR: Production environment file not found at $PROD_ENV"
-            exit 1
-          fi
-
-          # Source environment variables
-          set -a
-          source .env
-          set +a
-
-          echo "✅ Backup environment setup complete"
-
       - name: Verify database connectivity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "🔍 Verifying database connectivity..."
-
-          # Test database connection
-          if docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"; then
-            echo "✅ Database is ready for backup"
+          if docker compose -p "grenmet" exec -T db pg_isready -U "$POSTGRES_USER" -d app_prod; then
+            echo "Database ready"
           else
-            echo "❌ Database is not ready"
-            exit 1
+            echo "Database not ready" && exit 1
           fi
 
-      - name: Create database backup
+      # ── app_prod ────────────────────────────────────────────────────────────────
+
+      - name: Backup app_prod
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "💾 Creating database backup..."
+          mkdir -p "$BACKUP_DIR"
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="app_prod_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
 
-          # Generate backup filename with timestamp
-          BACKUP_TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          BACKUP_FILENAME="barrels_api_backup_${BACKUP_TIMESTAMP}.sql.gz"
-          BACKUP_PATH="$BACKUP_DIR/$BACKUP_FILENAME"
+          docker compose -p "grenmet" exec -T db pg_dump \
+            -U "$POSTGRES_USER" -d app_prod \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
 
-          # Create backup
-          echo "Creating backup: $BACKUP_FILENAME"
-          docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_dump \
-            -U "$POSTGRES_USER" \
-            -d "$POSTGRES_DB" \
-            --verbose \
-            --no-password \
-            --format=custom \
-            --compress=9 \
-            --file="/tmp/backup.dump"
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
 
-          # Copy backup from container to host
-          docker compose -f docker-compose.prod.yml -p "barrels-api" cp "barrels-api-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "app_prod: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "APP_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
 
-          # Verify backup file
-          if [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ]; then
-            BACKUP_SIZE=$(du -h "$BACKUP_PATH" | cut -f1)
-            echo "✅ Backup created successfully: $BACKUP_FILENAME ($BACKUP_SIZE)"
-            echo "BACKUP_FILENAME=$BACKUP_FILENAME" >> "$GITHUB_ENV"
-            echo "BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-          else
-            echo "❌ Backup creation failed"
-            exit 1
-          fi
-
-      - name: Test backup integrity
+      - name: Verify app_prod backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "🔍 Testing backup integrity..."
+          TEMP_DB="verify_$(date +%s)"
+          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$APP_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker compose -p "grenmet" exec -T db pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "app_prod integrity OK ($TABLE_COUNT tables)"
 
-          # Test backup by restoring to a temporary database
-          TEMP_DB_NAME="test_restore_$(date +%s)"
+      # ── wxwatch ─────────────────────────────────────────────────────────────────
 
-          # Create temporary database
-          docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB_NAME"
-
-          # Restore backup to temporary database
-          docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db pg_restore \
-            -U "$POSTGRES_USER" \
-            -d "$TEMP_DB_NAME" \
-            --verbose \
-            --no-password \
-            --clean \
-            --if-exists \
-            "/tmp/backup.dump"
-
-          # Verify restore
-          TABLE_COUNT=$(docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db psql \
-            -U "$POSTGRES_USER" \
-            -d "$TEMP_DB_NAME" \
-            -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' ')
-
-          # Clean up temporary database
-          docker compose -f docker-compose.prod.yml -p "barrels-api" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB_NAME"
-
-          if [ "$TABLE_COUNT" -gt 0 ]; then
-            echo "✅ Backup integrity test passed ($TABLE_COUNT tables restored)"
-          else
-            echo "❌ Backup integrity test failed"
-            exit 1
-          fi
-
-      - name: Clean up old backups
+      - name: Backup wxwatch
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "🧹 Cleaning up old backups..."
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="wxwatch_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
 
-          # Remove backups older than retention period
-          find "$BACKUP_DIR" -name "barrels_api_backup_*.sql.gz" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          docker compose -p "grenmet" exec -T db pg_dump \
+            -U "$POSTGRES_USER" -d wxwatch \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
 
-          # List remaining backups
-          echo "📋 Remaining backups:"
-          ls -lah "$BACKUP_DIR"/barrels_api_backup_*.sql.gz 2>/dev/null || echo "No backups found"
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
 
-          echo "✅ Old backup cleanup completed"
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "wxwatch: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "WXWATCH_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
 
-      - name: Upload backup to Azure Blob Storage (if configured)
+      - name: Verify wxwatch backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "☁️ Uploading backup to Azure Blob Storage..."
+          TEMP_DB="verify_$(date +%s)"
+          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$WXWATCH_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker compose -p "grenmet" exec -T db pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "wxwatch integrity OK ($TABLE_COUNT tables)"
 
-          # Check if Azure CLI is available and configured
-          if command -v az >/dev/null 2>&1; then
-            # Check if storage account is configured
-            if [ -n "${AZURE_STORAGE_ACCOUNT:-}" ] && [ -n "${AZURE_STORAGE_CONTAINER:-}" ]; then
-              echo "Uploading to Azure Storage Account: $AZURE_STORAGE_ACCOUNT"
-              az storage blob upload \
-                --account-name "$AZURE_STORAGE_ACCOUNT" \
-                --container-name "$AZURE_STORAGE_CONTAINER" \
-                --file "$BACKUP_PATH" \
-                --name "$BACKUP_FILENAME" \
-                --overwrite
-              echo "✅ Backup uploaded to Azure Blob Storage"
-            else
-              echo "⚠️ Azure Storage not configured, skipping upload"
-            fi
-          else
-            echo "⚠️ Azure CLI not available, skipping upload"
-          fi
+      # ── wxproducts ───────────────────────────────────────────────────────────────
 
-      - name: Backup summary
+      - name: Backup wxproducts
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           set -euo pipefail
-          echo "📊 Backup Summary"
-          echo "=================="
-          echo "Backup file: $BACKUP_FILENAME"
-          echo "Backup size: $(du -h "$BACKUP_PATH" | cut -f1)"
-          echo "Backup location: $BACKUP_PATH"
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="wxproducts_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
+
+          docker compose -p "grenmet" exec -T db pg_dump \
+            -U "$POSTGRES_USER" -d wxproducts \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
+
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "wxproducts: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "WXPRODUCTS_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify wxproducts backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TEMP_DB="verify_$(date +%s)"
+          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$WXPRODUCTS_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker compose -p "grenmet" exec -T db pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "wxproducts integrity OK ($TABLE_COUNT tables)"
+
+      # ── Retention & summary ──────────────────────────────────────────────────────
+
+      - name: Remove old backups
+        run: |
+          find "$BACKUP_DIR" -name "app_prod_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          find "$BACKUP_DIR" -name "wxwatch_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          find "$BACKUP_DIR" -name "wxproducts_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          echo "Remaining backups:"
+          ls -lah "$BACKUP_DIR"/*.dump 2>/dev/null || echo "(none)"
+
+      - name: Summary
+        run: |
+          echo "app_prod:   $(du -h "$APP_BACKUP_PATH" | cut -f1)"
+          echo "wxwatch:    $(du -h "$WXWATCH_BACKUP_PATH" | cut -f1)"
+          echo "wxproducts: $(du -h "$WXPRODUCTS_BACKUP_PATH" | cut -f1)"
           echo "Retention: $BACKUP_RETENTION_DAYS days"
-          echo "Timestamp: $(date)"
-          echo "✅ Database backup completed successfully"
-
-      - name: Cleanup runner environment
-        if: always()
-        run: |
-          echo "🧹 Cleaning up backup runner environment..."
-          # Clean up Docker resources
-          docker system prune -af --volumes || true
-          # Remove any temporary files
-          rm -rf /tmp/* || true
-          # Clear any sensitive environment variables
-          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD || true
-          echo "✅ Backup runner cleanup completed"
