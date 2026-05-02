@@ -1,8 +1,8 @@
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pg from "pg";
-import { fileURLToPath } from "node:url";
-import { dirname, join } from "node:path";
 
 const { Pool } = pg;
 
@@ -18,7 +18,7 @@ const db = drizzle(pool);
 const migrationsFolder = join(
   dirname(fileURLToPath(import.meta.url)),
   "..",
-  "drizzle",
+  "drizzle"
 );
 
 console.log("Running wxwatch migrations from", migrationsFolder);
