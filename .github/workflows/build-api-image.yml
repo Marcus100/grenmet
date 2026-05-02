@@ -36,15 +36,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           fetch-depth: 0 # Needed for semver tag extraction
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -66,14 +66,21 @@ jobs:
             echo "version_tag=" >> $GITHUB_OUTPUT
             echo "Building $TAG tag (manual trigger)"
           else
-            # workflow_run on master branch -> staging
-            echo "primary_tag=staging" >> $GITHUB_OUTPUT
-            echo "version_tag=" >> $GITHUB_OUTPUT
-            echo "Building staging tag for master branch"
+            # workflow_run — branch determines staging vs production
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ "$BRANCH" == "staging" ]; then
+              echo "primary_tag=staging" >> $GITHUB_OUTPUT
+              echo "version_tag=" >> $GITHUB_OUTPUT
+              echo "Building staging tag"
+            else
+              echo "primary_tag=latest" >> $GITHUB_OUTPUT
+              echo "version_tag=" >> $GITHUB_OUTPUT
+              echo "Building latest tag for main branch"
+            fi
           fi
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
         with:
           context: apps/api/fastapi
           file: apps/api/fastapi/Dockerfile.prod

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    DB_URL: z.string().min(1),
+    DATABASE_URL: z.string().min(1),
     AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
@@ -11,7 +11,7 @@ export const env = createEnv({
     SESSION_COOKIE_DOMAIN: z.string().optional(),
   },
   runtimeEnv: {
-    DB_URL: process.env.DB_URL,
+    DATABASE_URL: process.env.DATABASE_URL,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,

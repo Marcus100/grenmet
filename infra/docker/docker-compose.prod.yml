@@ -19,7 +19,7 @@ services:
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./postgres/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh:ro
+      - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -94,6 +94,31 @@ services:
     networks:
       - grenmet
 
+  # ── Drizzle migrations ───────────────────────────────────────────────────────
+  wxwatch-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
+    restart: "no"
+    command: ["node", "apps/web/wxwatch/scripts/migrate.mjs"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: ${WXWATCH_DB_URL}
+    networks:
+      - grenmet
+
+  wxproducts-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-latest}
+    restart: "no"
+    command: ["node", "apps/web/wxproducts/scripts/migrate.mjs"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+    networks:
+      - grenmet
+
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-latest}
@@ -136,6 +161,9 @@ services:
   web-wxwatch:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
     restart: always
+    depends_on:
+      wxwatch-migrate:
+        condition: service_completed_successfully
     environment:
       AUTH_APP_URL: https://auth.barrels.gd
       AUTH_API_URL: https://api.barrels.gd
@@ -191,6 +219,9 @@ services:
   web-wxproducts:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-latest}
     restart: always
+    depends_on:
+      wxproducts-migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: ${WXPRODUCTS_DB_URL}
     labels:
@@ -256,7 +287,7 @@ services:
 
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
-    image: traefik:v3.0
+    image: traefik:v3
     restart: always
     ports:
       - "80:80"
@@ -283,7 +314,7 @@ services:
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
       - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-      - "traefik.http.routers.http-catchall.rule=hostregexp(`.+`)"
+      - "traefik.http.routers.http-catchall.rule=HostRegexp(`.+`)"
       - "traefik.http.routers.http-catchall.entrypoints=web"
       - "traefik.http.routers.http-catchall.middlewares=https-redirect"
       - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"

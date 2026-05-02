@@ -4,7 +4,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: daily
+      interval: weekly
     commit-message:
       prefix: ⬆
 
@@ -27,6 +27,14 @@ updates:
   # Docker Compose (API)
   - package-ecosystem: docker-compose
     directory: /apps/api/fastapi
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ⬆
+
+  # Docker Compose (infra — postgres, traefik, adminer)
+  - package-ecosystem: docker-compose
+    directory: /infra/docker
     schedule:
       interval: weekly
     commit-message:
