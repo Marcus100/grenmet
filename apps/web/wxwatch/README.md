@@ -25,7 +25,7 @@ pnpm dev
 
 See `.env.example` for required values, including:
 
-- `DB_URL`
+- `DATABASE_URL`
 - `AUTH_APP_URL`
 - `AUTH_API_URL`
 - `AUTH_API_V1_STR`

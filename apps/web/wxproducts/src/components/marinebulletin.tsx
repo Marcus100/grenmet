@@ -1,34 +1,3 @@
-interface MarineBulletinProps {
-  date?: string;
-  email?: string;
-  fax?: string;
-  forecasterName?: string;
-  impact?: string;
-  impactItems?: string[];
-  lastMoonPhase?: string;
-  likelihood?: string;
-  moonrise?: string;
-  moonset?: string;
-  nextMoonPhase?: string;
-  organization?: string;
-  response?: string;
-  responseItems?: string[];
-  seaState?: string;
-  sunrise?: string;
-  sunset?: string;
-  synopsis?: string;
-  telephones?: string;
-  tideHigh1?: string;
-  tideHigh2?: string;
-  tideLow?: string;
-  time?: string;
-  validity?: string;
-  visibility?: string;
-  warningLevel?: string;
-  weather?: string;
-  wind?: string;
-}
-
 import { gmsMarineBulletinExample } from "@/data/gms-marine-bulletin.example";
 import type { MarineBulletinProduct } from "@/db/schema";
 import { adaptMarineBulletin } from "@/lib/adapters";
@@ -55,9 +24,6 @@ export default function MarineBulletin({
     sunrise,
     sunset,
     forecasterName,
-    email,
-    telephones,
-    fax,
   } = adaptMarineBulletin(product);
   const lastMoonPhase = "Waxing Gibbous";
   const nextMoonPhase =

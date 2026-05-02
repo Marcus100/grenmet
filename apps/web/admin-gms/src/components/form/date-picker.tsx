@@ -4,8 +4,8 @@ import "flatpickr/dist/flatpickr.css";
 import { CalenderIcon } from "../../icons";
 import Label from "./Label";
 
-import Hook = flatpickr.Options.Hook;
-import DateOption = flatpickr.Options.DateOption;
+type Hook = flatpickr.Options.Hook;
+type DateOption = flatpickr.Options.DateOption;
 
 interface PropsType {
   defaultDate?: DateOption;

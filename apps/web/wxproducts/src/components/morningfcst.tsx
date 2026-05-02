@@ -431,6 +431,7 @@ export default function MorningForecast({
       {(impacts || recommendedActions) && (
         <section className="mt-4 space-y-4">
           <SectionTitle>Alerts</SectionTitle>
+
           <div className="grid gap-8 sm:grid-cols-2">
             {impacts && (
               <section className="">
