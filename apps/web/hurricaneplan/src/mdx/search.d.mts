@@ -1,7 +1,7 @@
 export interface Result {
-  url: string;
-  title: string;
   pageTitle?: string;
+  title: string;
+  url: string;
   [key: string]: unknown;
 }
 
