@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs once on first Postgres volume init (skipped on restarts).
-# Creates additional databases for wxwatch and wxproducts.
+# Creates databases for the app (FastAPI), wxwatch, and wxproducts.
 set -euo pipefail
 
 create_db() {
@@ -17,14 +17,22 @@ create_db() {
     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db') \gexec
     GRANT ALL PRIVILEGES ON DATABASE "$db" TO "$user";
 SQL
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$db" <<-SQL
+    GRANT ALL ON SCHEMA public TO "$user";
+SQL
 }
 
-if [[ -n "${WXWATCH_DB_NAME:-}" && -n "${WXWATCH_DB_USER:-}" && -n "${WXWATCH_DB_PASSWORD:-}" ]]; then
+if [[ -n "${APP_DB_USER:-}" && -n "${APP_DB_PASSWORD:-}" && -n "${APP_DB_NAME:-}" ]]; then
+  echo "Creating app database..."
+  create_db "$APP_DB_USER" "$APP_DB_PASSWORD" "$APP_DB_NAME"
+fi
+
+if [[ -n "${WXWATCH_DB_USER:-}" && -n "${WXWATCH_DB_PASSWORD:-}" && -n "${WXWATCH_DB_NAME:-}" ]]; then
   echo "Creating wxwatch database..."
   create_db "$WXWATCH_DB_USER" "$WXWATCH_DB_PASSWORD" "$WXWATCH_DB_NAME"
 fi
 
-if [[ -n "${WXPRODUCTS_DB_NAME:-}" && -n "${WXPRODUCTS_DB_USER:-}" && -n "${WXPRODUCTS_DB_PASSWORD:-}" ]]; then
+if [[ -n "${WXPRODUCTS_DB_USER:-}" && -n "${WXPRODUCTS_DB_PASSWORD:-}" && -n "${WXPRODUCTS_DB_NAME:-}" ]]; then
   echo "Creating wxproducts database..."
   create_db "$WXPRODUCTS_DB_USER" "$WXPRODUCTS_DB_PASSWORD" "$WXPRODUCTS_DB_NAME"
 fi

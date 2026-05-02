@@ -1,7 +1,7 @@
 FROM node:22-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable pnpm
+RUN apk upgrade --no-cache && corepack enable pnpm
 
 FROM base AS builder
 WORKDIR /app
@@ -43,6 +43,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/.next/static ./apps/web/wxwatch/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/public ./apps/web/wxwatch/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/drizzle ./apps/web/wxwatch/drizzle
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/scripts ./apps/web/wxwatch/scripts
 
 USER nextjs
 EXPOSE 3002
