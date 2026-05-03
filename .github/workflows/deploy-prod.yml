@@ -102,9 +102,9 @@ jobs:
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
           REGISTRY=ghcr.io
-          IMAGE_NAME=${{ github.repository }}
+          IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           TAG=${API_TAG}
-          GHCR_OWNER=${{ github.repository_owner }}
+          GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
           WEB_TAG=latest
           SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME}
           RESEND_API_KEY=${RESEND_API_KEY}
