@@ -44,13 +44,7 @@
     },
     {
       "includes": ["packages/api-client/src/gen/**"],
-      "formatter": {
-        "enabled": false
-      },
       "linter": {
-        "enabled": false
-      },
-      "assist": {
         "enabled": false
       }
     }

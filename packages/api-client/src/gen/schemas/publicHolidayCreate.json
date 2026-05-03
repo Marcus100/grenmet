@@ -1,1 +1,24 @@
-{"properties":{"name":{"type":"string","title":"Name"},"holiday_date":{"type":"string","format":"date","title":"Holiday Date"},"is_recurring":{"type":"boolean","title":"Is Recurring","default":false},"country_code":{"type":"string","title":"Country Code","default":"GD"}},"type":"object","required":["name","holiday_date"],"title":"PublicHolidayCreate","x-readme-ref-name":"PublicHolidayCreate"}
+{
+  "properties": {
+    "name": { "type": "string", "title": "Name" },
+    "holiday_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Holiday Date"
+    },
+    "is_recurring": {
+      "type": "boolean",
+      "title": "Is Recurring",
+      "default": false
+    },
+    "country_code": {
+      "type": "string",
+      "title": "Country Code",
+      "default": "GD"
+    }
+  },
+  "type": "object",
+  "required": ["name", "holiday_date"],
+  "title": "PublicHolidayCreate",
+  "x-readme-ref-name": "PublicHolidayCreate"
+}

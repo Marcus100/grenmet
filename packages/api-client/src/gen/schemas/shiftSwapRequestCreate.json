@@ -1,1 +1,52 @@
-{"properties":{"counterpart_user_id":{"type":"string","format":"uuid","title":"Counterpart User Id"},"department_id":{"type":"string","title":"Department Id"},"swap_type":{"default":"TEMPORARY","type":"string","enum":["TEMPORARY","PERMANENT"],"title":"SwapType","x-readme-ref-name":"SwapType"},"source_date":{"type":"string","format":"date","title":"Source Date"},"source_shift_code":{"type":"string","title":"Source Shift Code"},"target_date":{"type":"string","format":"date","title":"Target Date"},"target_shift_code":{"type":"string","title":"Target Shift Code"},"effective_date":{"anyOf":[{"type":"string","format":"date"},{"type":"null"}],"title":"Effective Date"},"restoration_date":{"anyOf":[{"type":"string","format":"date"},{"type":"null"}],"title":"Restoration Date"},"reason":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Reason"}},"type":"object","required":["counterpart_user_id","department_id","source_date","source_shift_code","target_date","target_shift_code"],"title":"ShiftSwapRequestCreate","x-readme-ref-name":"ShiftSwapRequestCreate"}
+{
+  "properties": {
+    "counterpart_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Counterpart User Id"
+    },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "swap_type": {
+      "default": "TEMPORARY",
+      "type": "string",
+      "enum": ["TEMPORARY", "PERMANENT"],
+      "title": "SwapType",
+      "x-readme-ref-name": "SwapType"
+    },
+    "source_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Source Date"
+    },
+    "source_shift_code": { "type": "string", "title": "Source Shift Code" },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Target Date"
+    },
+    "target_shift_code": { "type": "string", "title": "Target Shift Code" },
+    "effective_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Effective Date"
+    },
+    "restoration_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Restoration Date"
+    },
+    "reason": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Reason"
+    }
+  },
+  "type": "object",
+  "required": [
+    "counterpart_user_id",
+    "department_id",
+    "source_date",
+    "source_shift_code",
+    "target_date",
+    "target_shift_code"
+  ],
+  "title": "ShiftSwapRequestCreate",
+  "x-readme-ref-name": "ShiftSwapRequestCreate"
+}

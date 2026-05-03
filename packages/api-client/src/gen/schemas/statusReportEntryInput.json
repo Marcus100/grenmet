@@ -1,1 +1,27 @@
-{"properties":{"user_id":{"type":"string","format":"uuid","title":"User Id"},"personnel_status":{"type":"string","enum":["PRESENT","ABSENT","LATE","ON_LEAVE","EXCUSED"],"title":"PersonnelStatus","x-readme-ref-name":"PersonnelStatus"},"arrival_time":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Arrival Time"},"departure_time":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Departure Time"},"notes":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Notes"}},"type":"object","required":["user_id","personnel_status"],"title":"StatusReportEntryInput","x-readme-ref-name":"StatusReportEntryInput"}
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "personnel_status": {
+      "type": "string",
+      "enum": ["PRESENT", "ABSENT", "LATE", "ON_LEAVE", "EXCUSED"],
+      "title": "PersonnelStatus",
+      "x-readme-ref-name": "PersonnelStatus"
+    },
+    "arrival_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Arrival Time"
+    },
+    "departure_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Departure Time"
+    },
+    "notes": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Notes"
+    }
+  },
+  "type": "object",
+  "required": ["user_id", "personnel_status"],
+  "title": "StatusReportEntryInput",
+  "x-readme-ref-name": "StatusReportEntryInput"
+}

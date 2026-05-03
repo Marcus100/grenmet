@@ -1,1 +1,6 @@
-{"type":"string","enum":["PRESENT","ABSENT","LATE","ON_LEAVE","EXCUSED"],"title":"PersonnelStatus","x-readme-ref-name":"PersonnelStatus"}
+{
+  "type": "string",
+  "enum": ["PRESENT", "ABSENT", "LATE", "ON_LEAVE", "EXCUSED"],
+  "title": "PersonnelStatus",
+  "x-readme-ref-name": "PersonnelStatus"
+}

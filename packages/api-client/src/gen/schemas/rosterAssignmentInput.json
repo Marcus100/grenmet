@@ -1,1 +1,19 @@
-{"properties":{"user_id":{"type":"string","format":"uuid","title":"User Id"},"assignment_date":{"type":"string","format":"date","title":"Assignment Date"},"shift_code":{"type":"string","title":"Shift Code"},"remarks":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Remarks"}},"type":"object","required":["user_id","assignment_date","shift_code"],"title":"RosterAssignmentInput","x-readme-ref-name":"RosterAssignmentInput"}
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "assignment_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Assignment Date"
+    },
+    "shift_code": { "type": "string", "title": "Shift Code" },
+    "remarks": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Remarks"
+    }
+  },
+  "type": "object",
+  "required": ["user_id", "assignment_date", "shift_code"],
+  "title": "RosterAssignmentInput",
+  "x-readme-ref-name": "RosterAssignmentInput"
+}

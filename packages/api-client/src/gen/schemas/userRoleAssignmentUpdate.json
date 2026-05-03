@@ -1,1 +1,29 @@
-{"properties":{"scope":{"anyOf":[{"type":"string","enum":["SELF","DEPARTMENT","ALL"],"title":"RoleAssignmentScope","x-readme-ref-name":"RoleAssignmentScope"},{"type":"null"}]},"department_id":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Department Id"},"effective_to":{"anyOf":[{"type":"string","format":"date-time"},{"type":"null"}],"title":"Effective To"}},"type":"object","title":"UserRoleAssignmentUpdate","x-readme-ref-name":"UserRoleAssignmentUpdate"}
+{
+  "properties": {
+    "scope": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["SELF", "DEPARTMENT", "ALL"],
+          "title": "RoleAssignmentScope",
+          "x-readme-ref-name": "RoleAssignmentScope"
+        },
+        { "type": "null" }
+      ]
+    },
+    "department_id": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Department Id"
+    },
+    "effective_to": {
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "title": "Effective To"
+    }
+  },
+  "type": "object",
+  "title": "UserRoleAssignmentUpdate",
+  "x-readme-ref-name": "UserRoleAssignmentUpdate"
+}

@@ -1,1 +1,6 @@
-{"type":"string","enum":["SUBMIT","APPROVE","REJECT","RETURN","CANCEL"],"title":"WorkflowAction","x-readme-ref-name":"WorkflowAction"}
+{
+  "type": "string",
+  "enum": ["SUBMIT", "APPROVE", "REJECT", "RETURN", "CANCEL"],
+  "title": "WorkflowAction",
+  "x-readme-ref-name": "WorkflowAction"
+}

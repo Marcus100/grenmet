@@ -1,1 +1,23 @@
-{"properties":{"can_approve_leave":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Can Approve Leave"},"can_approve_shift_swap":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Can Approve Shift Swap"},"can_approve_timesheets":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Can Approve Timesheets"},"can_approve_absentee_reports":{"anyOf":[{"type":"boolean"},{"type":"null"}],"title":"Can Approve Absentee Reports"}},"type":"object","title":"ApprovalAuthorityUpdate","x-readme-ref-name":"ApprovalAuthorityUpdate"}
+{
+  "properties": {
+    "can_approve_leave": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Can Approve Leave"
+    },
+    "can_approve_shift_swap": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Can Approve Shift Swap"
+    },
+    "can_approve_timesheets": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Can Approve Timesheets"
+    },
+    "can_approve_absentee_reports": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Can Approve Absentee Reports"
+    }
+  },
+  "type": "object",
+  "title": "ApprovalAuthorityUpdate",
+  "x-readme-ref-name": "ApprovalAuthorityUpdate"
+}
