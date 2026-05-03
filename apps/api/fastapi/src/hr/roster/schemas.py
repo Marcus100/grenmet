@@ -136,7 +136,7 @@ class RosterRevisionPublic(BaseModel):
     action: RosterRevisionAction
     changed_by_user_id: uuid.UUID
     summary: str | None = None
-    snapshot: dict
+    snapshot: dict[str, object]
     created_at: datetime
 
 

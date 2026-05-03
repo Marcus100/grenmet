@@ -90,7 +90,7 @@ async def list_public_holidays(
         import sqlalchemy as sa_filter
 
         statement = statement.where(
-            sa_filter.extract("year", PublicHoliday.holiday_date) == year
+            sa_filter.extract("year", col(PublicHoliday.holiday_date)) == year
         )
     result = await session.execute(statement)
     return list(result.scalars().all())
@@ -101,7 +101,7 @@ async def delete_public_holiday(
 ) -> None:
     require_permission(current_user=current_user, permission_key="roster.manage")
     holiday = await get_public_holiday_or_404(session=session, holiday_id=holiday_id)
-    session.delete(holiday)
+    await session.delete(holiday)
     await session.commit()
 
 
@@ -117,7 +117,7 @@ async def _create_revision(
     action: RosterRevisionAction,
     changed_by_user_id: uuid.UUID,
     summary: str | None = None,
-    snapshot: dict | None = None,
+    snapshot: dict[str, object] | None = None,
 ) -> RosterRevision:
     result = await session.execute(
         select(RosterRevision)
@@ -400,7 +400,7 @@ async def import_roster_csv(
     await session.refresh(job)
 
     for row in validation_result.rows:
-        raw_data = {}
+        raw_data: dict[str, object] = {}
         if row.row_number - 2 < len(valid_assignments):
             valid_assignment = valid_assignments[row.row_number - 2]
             raw_data = valid_assignment.model_dump(mode="json")

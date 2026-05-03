@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
@@ -66,7 +67,7 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 _async_url = str(settings.SQLALCHEMY_DATABASE_URI).replace(
     "postgresql+psycopg", "postgresql+asyncpg", 1
 )
-_async_engine_kwargs = {"echo": False}
+_async_engine_kwargs: dict[str, Any] = {"echo": False}
 
 # pytest creates fresh event loops across tests; disabling async pooling there avoids
 # cross-loop asyncpg connection reuse while preserving pooled behavior in the app.

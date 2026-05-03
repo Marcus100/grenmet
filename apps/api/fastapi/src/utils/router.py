@@ -47,7 +47,7 @@ async def health_check() -> bool:
         503: {"description": "Database unreachable"},
     },
 )
-async def ready(session: SessionDep) -> dict:
+async def ready(session: SessionDep) -> dict[str, str]:
     """Readiness: check DB connectivity. Returns 503 on failure."""
     try:
         await session.execute(text("SELECT 1"))

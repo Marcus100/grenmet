@@ -110,7 +110,9 @@ class RosterRevision(SQLModel, table=True):
     action: RosterRevisionAction
     changed_by_user_id: uuid.UUID = Field(foreign_key="user.id")
     summary: str | None = Field(default=None, max_length=500)
-    snapshot: dict = Field(default_factory=dict, sa_column=sa.Column(sa.JSON))
+    snapshot: dict[str, object] = Field(
+        default_factory=dict, sa_column=sa.Column(sa.JSON)
+    )
     created_at: datetime = Field(default_factory=utc_now)
 
 

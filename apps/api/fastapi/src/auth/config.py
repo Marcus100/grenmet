@@ -67,4 +67,4 @@ class AuthConfig(BaseSettings):
 
 
 # Global auth settings instance
-auth_settings = AuthConfig()  # type: ignore[call-arg]
+auth_settings = AuthConfig()
