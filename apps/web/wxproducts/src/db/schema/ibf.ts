@@ -145,7 +145,7 @@ export const ibfAssessmentSchema = z.object({
 
 // ─── Drizzle ORM table ────────────────────────────────────────────────────────
 
-import { index, pgTable, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, pgTable } from "drizzle-orm/pg-core";
 import { timestamps } from "@/db/schema/db-helpers";
 import { products } from "@/db/schema/product-metadata";
 
@@ -157,7 +157,10 @@ export const ibfAssessments = pgTable(
   "ibf_assessments",
   (t) => ({
     id: t.integer().generatedAlwaysAsIdentity().primaryKey(),
-    ibfAssessmentId: t.text().notNull(),
+    ibfAssessmentId: t
+      .text()
+      .notNull()
+      .unique("ibf_assessments_assessment_id_unique"),
     productId: t
       .text()
       .notNull()
@@ -167,10 +170,7 @@ export const ibfAssessments = pgTable(
     issuedAtUtc: t.timestamp({ withTimezone: true }).notNull(),
     ...timestamps,
   }),
-  (table) => [
-    uniqueIndex("ibf_assessments_assessment_id_idx").on(table.ibfAssessmentId),
-    index("ibf_assessments_product_id_idx").on(table.productId),
-  ]
+  (table) => [index("ibf_assessments_product_id_idx").on(table.productId)]
 );
 
 export type IbfAssessmentRow = typeof ibfAssessments.$inferSelect;
