@@ -32,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     # Run on master push (for staging) or release (for production) or manual dispatch.
     if: |
+      (github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch') ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'release' && github.event.action == 'published')
