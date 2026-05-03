@@ -128,7 +128,7 @@ async def test_leave_approval_writes_balance_event(
         current_user=employee,
         payload=LeaveRequestCreate(
             department_id="dept_leave",
-            leave_type="ANNUAL",
+            leave_type="VACATION",
             start_date="2026-04-01",
             end_date="2026-04-02",
             days_requested=Decimal("2.0"),
