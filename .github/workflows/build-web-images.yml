@@ -101,6 +101,19 @@ jobs:
               API_URL="https://api.barrels.gd"
               ENVIRONMENT="production"
             fi
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            BRANCH="${{ github.ref_name }}"
+            if [ "$BRANCH" == "staging" ]; then
+              TAG="staging"
+              VERSION=""
+              API_URL="https://api.staging.barrels.gd"
+              ENVIRONMENT="staging"
+            else
+              TAG="latest"
+              VERSION=""
+              API_URL="https://api.barrels.gd"
+              ENVIRONMENT="production"
+            fi
           else
             # workflow_run — branch determines staging vs production
             BRANCH="${{ github.event.workflow_run.head_branch }}"
