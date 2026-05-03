@@ -7,7 +7,6 @@ from sqlmodel import col, delete, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
-from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_CSV_IMPORT_INVALID_ROWS,
     ERROR_CSV_MISSING_COLUMNS,
@@ -25,6 +24,7 @@ from src.hr.dependencies import (
 from src.hr.exceptions import (
     HRValidationError,
 )
+from src.utils.datetime import utc_now
 
 from .models import (
     ImportStatus,
@@ -61,7 +61,9 @@ async def create_public_holiday(
 ) -> PublicHoliday:
     require_permission(current_user=current_user, permission_key="roster.manage")
     result = await session.execute(
-        select(PublicHoliday).where(col(PublicHoliday.holiday_date) == payload.holiday_date)
+        select(PublicHoliday).where(
+            col(PublicHoliday.holiday_date) == payload.holiday_date
+        )
     )
     existing = result.scalars().first()
     if existing:

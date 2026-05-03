@@ -10,13 +10,10 @@ from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-
-from src.rate_limit import limiter
 
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
@@ -38,6 +35,7 @@ from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.workflow.router import router as hr_workflow_router
+from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router

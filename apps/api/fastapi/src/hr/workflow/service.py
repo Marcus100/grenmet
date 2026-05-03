@@ -5,14 +5,10 @@ from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user_for_role, require_permission
-from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
-    ERROR_WORKFLOW_INSTANCE_NOT_FOUND,
     ERROR_WORKFLOW_NOT_PENDING,
     ERROR_WORKFLOW_PERMISSION_DENIED,
-    ERROR_WORKFLOW_STEP_NOT_FOUND,
-    ERROR_WORKFLOW_TEMPLATE_NOT_FOUND,
 )
 from src.hr.exceptions import (
     HRPermissionDeniedError,
@@ -21,6 +17,7 @@ from src.hr.exceptions import (
     WorkflowStepNotFoundError,
     WorkflowTemplateNotFoundError,
 )
+from src.utils.datetime import utc_now
 
 from .models import (
     ApprovalActionLog,
@@ -43,7 +40,9 @@ from .schemas import (
 async def create_workflow_template(
     *, session: AsyncSession, current_user: User, template_in: WorkflowTemplateCreate
 ) -> WorkflowTemplate:
-    require_permission(current_user=current_user, permission_key="workflow.template.manage")
+    require_permission(
+        current_user=current_user, permission_key="workflow.template.manage"
+    )
     db_template = WorkflowTemplate.model_validate(
         template_in,
         update={
@@ -63,7 +62,9 @@ async def create_workflow_step_template(
     workflow_template_id: uuid.UUID,
     step_in: WorkflowStepTemplateCreate,
 ) -> WorkflowStepTemplate:
-    require_permission(current_user=current_user, permission_key="workflow.template.manage")
+    require_permission(
+        current_user=current_user, permission_key="workflow.template.manage"
+    )
     workflow_template = await session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
@@ -79,10 +80,14 @@ async def create_workflow_step_template(
 async def read_workflow_templates(
     *, session: AsyncSession, current_user: User, department_id: str | None = None
 ) -> list[WorkflowTemplate]:
-    require_permission(current_user=current_user, permission_key="workflow.template.view")
+    require_permission(
+        current_user=current_user, permission_key="workflow.template.view"
+    )
     statement = select(WorkflowTemplate)
     if department_id:
-        statement = statement.where(col(WorkflowTemplate.department_id) == department_id)
+        statement = statement.where(
+            col(WorkflowTemplate.department_id) == department_id
+        )
     result = await session.execute(statement)
     return list(result.scalars().all())
 
@@ -113,7 +118,9 @@ async def _create_step_instances_for_workflow(
 async def create_workflow_instance(
     *, session: AsyncSession, current_user: User, instance_in: WorkflowInstanceCreate
 ) -> WorkflowInstance:
-    workflow_template = await session.get(WorkflowTemplate, instance_in.workflow_template_id)
+    workflow_template = await session.get(
+        WorkflowTemplate, instance_in.workflow_template_id
+    )
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
     db_instance = WorkflowInstance(
@@ -145,7 +152,9 @@ async def read_workflow_instance_details(
     current_user: User | None = None,
 ) -> tuple[WorkflowInstance, list[WorkflowStepInstance]]:
     if current_user:
-        require_permission(current_user=current_user, permission_key="workflow.instance.view")
+        require_permission(
+            current_user=current_user, permission_key="workflow.instance.view"
+        )
     workflow_instance = await session.get(WorkflowInstance, workflow_instance_id)
     if not workflow_instance:
         raise WorkflowInstanceNotFoundError()
@@ -180,7 +189,9 @@ async def apply_workflow_action(
     workflow_instance_id: uuid.UUID,
     action_in: WorkflowActionRequest,
 ) -> WorkflowInstance:
-    require_permission(current_user=current_user, permission_key="workflow.instance.action")
+    require_permission(
+        current_user=current_user, permission_key="workflow.instance.action"
+    )
     workflow_instance, steps = await read_workflow_instance_details(
         session=session,
         workflow_instance_id=workflow_instance_id,
@@ -188,7 +199,10 @@ async def apply_workflow_action(
     )
 
     if action_in.action == WorkflowAction.SUBMIT:
-        if workflow_instance.status not in {WorkflowStatus.DRAFT, WorkflowStatus.RETURNED}:
+        if workflow_instance.status not in {
+            WorkflowStatus.DRAFT,
+            WorkflowStatus.RETURNED,
+        }:
             raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
         workflow_instance.status = WorkflowStatus.PENDING
         workflow_instance.submitted_at = utc_now()
@@ -210,7 +224,11 @@ async def apply_workflow_action(
         raise HRValidationError(ERROR_WORKFLOW_NOT_PENDING)
 
     current_step = next(
-        (step for step in steps if step.step_order == workflow_instance.current_step_order),
+        (
+            step
+            for step in steps
+            if step.step_order == workflow_instance.current_step_order
+        ),
         None,
     )
     if not current_step:
@@ -248,7 +266,9 @@ async def apply_workflow_action(
         workflow_instance.resolved_at = utc_now()
     elif action_in.action == WorkflowAction.RETURN:
         workflow_instance.status = WorkflowStatus.RETURNED
-        workflow_instance.current_step_order = max(1, workflow_instance.current_step_order - 1)
+        workflow_instance.current_step_order = max(
+            1, workflow_instance.current_step_order - 1
+        )
     elif action_in.action == WorkflowAction.APPROVE:
         next_step_exists = any(
             step.step_order > workflow_instance.current_step_order for step in steps

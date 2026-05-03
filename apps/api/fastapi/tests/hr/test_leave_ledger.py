@@ -55,7 +55,9 @@ async def test_leave_approval_writes_balance_event(
             access="department",
             description="Action leave requests",
         )
+    await db_async.refresh(role, attribute_names=["permissions"])
     role.permissions.append(leave_action_permission)
+    await db_async.refresh(supervisor, attribute_names=["roles"])
     if role.id not in {assigned_role.id for assigned_role in supervisor.roles}:
         supervisor.roles.append(role)
     employee_role = Role(name=f"EMPLOYEE_{random_lower_string().upper()}")
@@ -80,6 +82,7 @@ async def test_leave_approval_writes_balance_event(
         )
     employee_role.permissions.append(leave_create_permission)
     employee_role.permissions.append(canonical_leave_create_permission)
+    await db_async.refresh(employee, attribute_names=["roles"])
     employee.roles.append(employee_role)
     db_async.add(employee_role)
     db_async.add(leave_create_permission)

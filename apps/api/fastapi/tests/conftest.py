@@ -11,6 +11,7 @@ from src.auth.models import User
 from src.database import async_session_factory, engine, init_db, init_db_async
 from src.email_config import email_settings
 from src.main import app
+from src.rate_limit import limiter
 from tests.utils.user import (
     authentication_token_from_email,
     authentication_token_from_email_async,
@@ -19,6 +20,14 @@ from tests.utils.utils import (
     get_superuser_token_headers,
     get_superuser_token_headers_async,
 )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_rate_limiting() -> Generator[None, None, None]:
+    """Disable rate limiting during tests to prevent 429 errors from rapid login calls."""
+    limiter._enabled = False
+    yield
+    limiter._enabled = True
 
 
 @pytest.fixture(scope="session", autouse=True)

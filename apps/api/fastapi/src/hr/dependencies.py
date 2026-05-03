@@ -66,9 +66,7 @@ async def get_public_holiday_or_404(
     return holiday
 
 
-async def _roster_period_dep(
-    session: SessionDep, period_id: uuid.UUID
-) -> RosterPeriod:
+async def _roster_period_dep(session: SessionDep, period_id: uuid.UUID) -> RosterPeriod:
     return await get_roster_period_or_404(session=session, period_id=period_id)
 
 
@@ -150,9 +148,7 @@ async def _shift_swap_dep(
     )
 
 
-async def _status_report_dep(
-    session: SessionDep, report_id: uuid.UUID
-) -> StatusReport:
+async def _status_report_dep(session: SessionDep, report_id: uuid.UUID) -> StatusReport:
     return await get_status_report_or_404(session=session, report_id=report_id)
 
 

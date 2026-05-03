@@ -29,7 +29,9 @@ router = APIRouter(
     description="Return role assignments, optionally filtered by user_id (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Role assignments returned"}},
 )
-async def read_role_assignments(session: SessionDep, user_id: uuid.UUID | None = None) -> Any:
+async def read_role_assignments(
+    session: SessionDep, user_id: uuid.UUID | None = None
+) -> Any:
     assignments = await service.get_user_role_assignments(
         session=session, user_id=user_id
     )

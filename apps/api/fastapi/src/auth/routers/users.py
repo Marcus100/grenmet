@@ -14,6 +14,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from src.auth import service
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
@@ -36,7 +37,6 @@ from src.auth.schemas import (
     UserUpdateMe,
 )
 from src.auth.utils import get_password_hash, verify_password
-from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings

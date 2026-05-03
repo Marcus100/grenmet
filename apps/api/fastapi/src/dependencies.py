@@ -38,7 +38,7 @@ from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_INVALID_CREDENTIALS,
 )
-from src.auth.models import Role, User, UserImage
+from src.auth.models import Role, User
 from src.auth.utils import ALGORITHM
 from src.config import Settings, get_settings
 from src.database import async_session_factory

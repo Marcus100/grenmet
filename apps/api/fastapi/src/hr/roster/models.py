@@ -120,7 +120,9 @@ class RosterImportJob(SQLModel, table=True):
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     department_id: str = Field(foreign_key="hr.department.id", index=True)
-    roster_period_id: uuid.UUID | None = Field(default=None, foreign_key="hr.roster_period.id")
+    roster_period_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.roster_period.id"
+    )
     file_name: str = Field(max_length=255)
     status: ImportStatus = Field(default=ImportStatus.PENDING)
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
@@ -137,7 +139,9 @@ class RosterImportRow(SQLModel, table=True):
     __table_args__ = {"schema": "hr"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    roster_import_job_id: uuid.UUID = Field(foreign_key="hr.roster_import_job.id", index=True)
+    roster_import_job_id: uuid.UUID = Field(
+        foreign_key="hr.roster_import_job.id", index=True
+    )
     row_number: int = Field(ge=1)
     raw_data: dict[str, str] = Field(default_factory=dict, sa_column=sa.Column(sa.JSON))
     validation_errors: list[str] = Field(

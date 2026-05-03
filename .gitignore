@@ -122,6 +122,7 @@ out/
 # Build outputs
 # =======================
 build/
+!apps/api/fastapi/email-templates/build/
 dist/
 *.tsbuildinfo
 
