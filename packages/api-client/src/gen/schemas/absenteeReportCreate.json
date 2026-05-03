@@ -1,1 +1,50 @@
-{"properties":{"user_id":{"type":"string","format":"uuid","title":"User Id"},"department_id":{"type":"string","title":"Department Id"},"report_date":{"type":"string","format":"date","title":"Report Date"},"expected_shift_code":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Expected Shift Code"},"absence_start_time":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Absence Start Time"},"absence_end_time":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Absence End Time"},"reason_code":{"type":"string","title":"Reason Code"},"notes":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Notes"},"contact_attempted":{"type":"boolean","title":"Contact Attempted","default":false},"contact_method":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Contact Method"},"replacement_arranged":{"type":"boolean","title":"Replacement Arranged","default":false},"replacement_user_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Replacement User Id"}},"type":"object","required":["user_id","department_id","report_date","reason_code"],"title":"AbsenteeReportCreate","x-readme-ref-name":"AbsenteeReportCreate"}
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Report Date"
+    },
+    "expected_shift_code": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Expected Shift Code"
+    },
+    "absence_start_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Absence Start Time"
+    },
+    "absence_end_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Absence End Time"
+    },
+    "reason_code": { "type": "string", "title": "Reason Code" },
+    "notes": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Notes"
+    },
+    "contact_attempted": {
+      "type": "boolean",
+      "title": "Contact Attempted",
+      "default": false
+    },
+    "contact_method": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Contact Method"
+    },
+    "replacement_arranged": {
+      "type": "boolean",
+      "title": "Replacement Arranged",
+      "default": false
+    },
+    "replacement_user_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Replacement User Id"
+    }
+  },
+  "type": "object",
+  "required": ["user_id", "department_id", "report_date", "reason_code"],
+  "title": "AbsenteeReportCreate",
+  "x-readme-ref-name": "AbsenteeReportCreate"
+}

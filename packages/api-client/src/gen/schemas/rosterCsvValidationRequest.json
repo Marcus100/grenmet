@@ -1,1 +1,19 @@
-{"properties":{"department_id":{"type":"string","title":"Department Id"},"file_name":{"type":"string","title":"File Name","default":"roster.csv"},"roster_period_id":{"anyOf":[{"type":"string","format":"uuid"},{"type":"null"}],"title":"Roster Period Id"},"csv_text":{"type":"string","title":"Csv Text"}},"type":"object","required":["department_id","csv_text"],"title":"RosterCsvValidationRequest","x-readme-ref-name":"RosterCsvValidationRequest"}
+{
+  "properties": {
+    "department_id": { "type": "string", "title": "Department Id" },
+    "file_name": {
+      "type": "string",
+      "title": "File Name",
+      "default": "roster.csv"
+    },
+    "roster_period_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Roster Period Id"
+    },
+    "csv_text": { "type": "string", "title": "Csv Text" }
+  },
+  "type": "object",
+  "required": ["department_id", "csv_text"],
+  "title": "RosterCsvValidationRequest",
+  "x-readme-ref-name": "RosterCsvValidationRequest"
+}

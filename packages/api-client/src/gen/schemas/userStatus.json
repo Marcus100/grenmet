@@ -1,1 +1,6 @@
-{"type":"string","enum":["ACTIVE","INACTIVE"],"title":"UserStatus","x-readme-ref-name":"UserStatus"}
+{
+  "type": "string",
+  "enum": ["ACTIVE", "INACTIVE"],
+  "title": "UserStatus",
+  "x-readme-ref-name": "UserStatus"
+}

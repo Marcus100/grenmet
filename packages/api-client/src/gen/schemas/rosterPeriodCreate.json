@@ -1,1 +1,15 @@
-{"properties":{"department_id":{"type":"string","title":"Department Id"},"period_start":{"type":"string","format":"date","title":"Period Start"},"period_end":{"type":"string","format":"date","title":"Period End"}},"type":"object","required":["department_id","period_start","period_end"],"title":"RosterPeriodCreate","x-readme-ref-name":"RosterPeriodCreate"}
+{
+  "properties": {
+    "department_id": { "type": "string", "title": "Department Id" },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "title": "Period Start"
+    },
+    "period_end": { "type": "string", "format": "date", "title": "Period End" }
+  },
+  "type": "object",
+  "required": ["department_id", "period_start", "period_end"],
+  "title": "RosterPeriodCreate",
+  "x-readme-ref-name": "RosterPeriodCreate"
+}

@@ -1,1 +1,27 @@
-{"properties":{"department_id":{"type":"string","title":"Department Id"},"workflow_type":{"type":"string","enum":["LEAVE_REQUEST","SHIFT_SWAP","ABSENTEE_REPORT","STATUS_REPORT","TIMESHEET"],"title":"WorkflowType","x-readme-ref-name":"WorkflowType"},"name":{"type":"string","maxLength":150,"minLength":2,"title":"Name"}},"type":"object","required":["department_id","workflow_type","name"],"title":"WorkflowTemplateCreate","x-readme-ref-name":"WorkflowTemplateCreate"}
+{
+  "properties": {
+    "department_id": { "type": "string", "title": "Department Id" },
+    "workflow_type": {
+      "type": "string",
+      "enum": [
+        "LEAVE_REQUEST",
+        "SHIFT_SWAP",
+        "ABSENTEE_REPORT",
+        "STATUS_REPORT",
+        "TIMESHEET"
+      ],
+      "title": "WorkflowType",
+      "x-readme-ref-name": "WorkflowType"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 2,
+      "title": "Name"
+    }
+  },
+  "type": "object",
+  "required": ["department_id", "workflow_type", "name"],
+  "title": "WorkflowTemplateCreate",
+  "x-readme-ref-name": "WorkflowTemplateCreate"
+}
