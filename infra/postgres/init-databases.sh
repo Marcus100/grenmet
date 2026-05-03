@@ -5,7 +5,7 @@ set -euo pipefail
 
 create_db() {
   local user="$1" password="$2" db="$3"
-  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-SQL
+  psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname postgres <<-SQL
     DO \$\$
     BEGIN
       IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '$user') THEN
