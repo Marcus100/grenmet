@@ -6,9 +6,9 @@ import pg from "pg";
 
 const { Pool } = pg;
 
-const url = process.env.DB_URL;
+const url = process.env.DATABASE_URL ?? process.env.DB_URL;
 if (!url) {
-  console.error("DB_URL environment variable is required");
+  console.error("DATABASE_URL environment variable is required");
   process.exit(1);
 }
 
