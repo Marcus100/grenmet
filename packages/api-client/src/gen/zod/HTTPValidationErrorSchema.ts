@@ -3,11 +3,9 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { validationErrorSchema } from "./validationErrorSchema.js";
 
 export const HTTPValidationErrorSchema = z.object({
-  get detail() {
-    return z.array(validationErrorSchema).optional();
-  },
+  detail: z.optional(z.array(z.lazy(() => validationErrorSchema))),
 });

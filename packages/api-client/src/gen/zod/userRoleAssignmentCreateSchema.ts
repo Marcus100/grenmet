@@ -3,15 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const userRoleAssignmentCreateSchema = z.object({
-  user_id: z.uuid(),
-  role_id: z.uuid(),
-  get scope() {
-    return roleAssignmentScopeSchema.optional();
-  },
+  user_id: z.string().uuid(),
+  role_id: z.string().uuid(),
+  scope: z.optional(z.lazy(() => roleAssignmentScopeSchema)),
   department_id: z.optional(z.union([z.string(), z.null()])),
-  effective_to: z.optional(z.union([z.iso.datetime(), z.null()])),
+  effective_to: z.optional(z.union([z.string().datetime(), z.null()])),
 });

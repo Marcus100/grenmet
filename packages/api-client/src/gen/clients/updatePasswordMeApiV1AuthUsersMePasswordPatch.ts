@@ -19,7 +19,7 @@ import type {
 function getUpdatePasswordMeApiV1AuthUsersMePasswordPatchUrl() {
   const res = {
     method: "PATCH",
-    url: "/api/v1/auth/users/me/password" as const,
+    url: `/api/v1/auth/users/me/password` as const,
   };
   return res;
 }

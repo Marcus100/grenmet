@@ -73,10 +73,10 @@ async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
     description="Create a permission (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Permission created"}},
 )
-async def create_permission(*, session: SessionDep, permission_in: PermissionCreate) -> Any:
+async def create_permission(
+    *, session: SessionDep, permission_in: PermissionCreate
+) -> Any:
     """
     Create new permission (superuser only).
     """
-    return await service.create_permission(
-        session=session, permission_in=permission_in
-    )
+    return await service.create_permission(session=session, permission_in=permission_in)

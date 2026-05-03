@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowInstanceDetailsSchema } from "./workflowInstanceDetailsSchema.js";
 
 export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParamsSchema =
   z.object({
-    instance_id: z.uuid(),
+    instance_id: z.string().uuid(),
   });
 
 /**

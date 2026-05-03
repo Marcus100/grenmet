@@ -20,7 +20,7 @@ import type {
 function getCreateInstanceApiV1HrWorkflowsInstancesPostUrl() {
   const res = {
     method: "POST",
-    url: "/api/v1/hr/workflows/instances" as const,
+    url: `/api/v1/hr/workflows/instances` as const,
   };
   return res;
 }

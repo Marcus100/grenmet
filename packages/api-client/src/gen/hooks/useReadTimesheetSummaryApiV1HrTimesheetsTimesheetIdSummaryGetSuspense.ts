@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet } from "../clients/readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 import type {
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
@@ -31,7 +32,7 @@ export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetSuspenseQ
     [
       {
         url: "/api/v1/hr/timesheets/:timesheet_id/summary",
-        params: { timesheet_id },
+        params: { timesheet_id: timesheet_id },
       },
     ] as const;
 

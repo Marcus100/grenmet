@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch } from "../clients/actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 import type {
   ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch403,
@@ -55,12 +56,13 @@ export function actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id, data }) =>
-      actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch(
+    mutationFn: async ({ shift_swap_id, data }) => {
+      return actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch(
         shift_swap_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

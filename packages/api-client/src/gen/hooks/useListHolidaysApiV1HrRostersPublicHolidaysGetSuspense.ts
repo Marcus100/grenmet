@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { listHolidaysApiV1HrRostersPublicHolidaysGet } from "../clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
 import type {
   ListHolidaysApiV1HrRostersPublicHolidaysGet403,

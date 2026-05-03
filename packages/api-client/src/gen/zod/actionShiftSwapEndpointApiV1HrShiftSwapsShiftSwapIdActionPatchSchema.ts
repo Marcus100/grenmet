@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 
 export const actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParamsSchema =
   z.object({
-    shift_swap_id: z.uuid(),
+    shift_swap_id: z.string().uuid(),
   });
 
 /**

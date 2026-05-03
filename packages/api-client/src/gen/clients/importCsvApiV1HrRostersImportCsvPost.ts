@@ -18,7 +18,7 @@ import type {
 } from "../models/ImportCsvApiV1HrRostersImportCsvPost.js";
 
 function getImportCsvApiV1HrRostersImportCsvPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/rosters/import-csv" as const };
+  const res = { method: "POST", url: `/api/v1/hr/rosters/import-csv` as const };
   return res;
 }
 

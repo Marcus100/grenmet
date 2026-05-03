@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { deleteUserMeApiV1AuthUsersMeDelete } from "../clients/deleteUserMeApiV1AuthUsersMeDelete.js";
 import type {
   DeleteUserMeApiV1AuthUsersMeDelete403,
@@ -38,7 +39,9 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => deleteUserMeApiV1AuthUsersMeDelete(config),
+    mutationFn: async () => {
+      return deleteUserMeApiV1AuthUsersMeDelete(config);
+    },
   });
 }
 

@@ -16,7 +16,7 @@ import type {
 } from "../models/ReadUsersApiV1AuthUsersGet.js";
 
 function getReadUsersApiV1AuthUsersGetUrl() {
-  const res = { method: "GET", url: "/api/v1/auth/users/" as const };
+  const res = { method: "GET", url: `/api/v1/auth/users/` as const };
   return res;
 }
 

@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowActionRequestSchema } from "./workflowActionRequestSchema.js";
 import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
 
 export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParamsSchema =
   z.object({
-    instance_id: z.uuid(),
+    instance_id: z.string().uuid(),
   });
 
 /**

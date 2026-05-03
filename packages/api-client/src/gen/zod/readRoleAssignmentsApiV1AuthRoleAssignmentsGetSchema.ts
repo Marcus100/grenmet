@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentsPublicSchema } from "./userRoleAssignmentsPublicSchema.js";
 
 export const readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParamsSchema = z
   .object({
-    user_id: z.optional(z.union([z.uuid(), z.null()])),
+    user_id: z.optional(z.union([z.string().uuid(), z.null()])),
   })
   .optional();
 

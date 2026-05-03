@@ -2,189 +2,174 @@ name: Deploy to Staging
 
 on:
   workflow_run:
-    workflows:
-      - "Build and Push Docker Images"
-    types:
-      - completed
-    branches:
-      - staging
+    workflows: ["Build and Push Docker Images", "Build Web App Images"]
+    types: [completed]
+    branches: [staging]
   workflow_dispatch:
 
 jobs:
-  deploy:
-    # Gate: only run when build-images succeeded, or on manual dispatch
+  # Guard: both build workflows must have succeeded on the staging branch before
+  # we deploy. workflow_run fires once per workflow that finishes, so without this
+  # check the deploy would start as soon as the first build completes, potentially
+  # pulling a stale image for the other set.
+  check-builds:
+    runs-on: ubuntu-latest
     if: |
       github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
-    runs-on:
-      - self-hosted
-      - staging
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - name: Check both build workflows succeeded
+        id: check
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            if (context.eventName === 'workflow_dispatch') {
+              core.setOutput('ready', 'true');
+              return;
+            }
+            const workflows = ['Build and Push Docker Images', 'Build Web App Images'];
+            let allSuccess = true;
+            for (const name of workflows) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: 'staging',
+                per_page: 10,
+              });
+              const recent = data.workflow_runs.find(r => r.name === name && r.conclusion === 'success');
+              if (!recent) { allSuccess = false; break; }
+            }
+            core.setOutput('ready', allSuccess ? 'true' : 'false');
+
+  deploy:
+    needs: check-builds
+    if: needs.check-builds.outputs.ready == 'true'
+    runs-on: [self-hosted, staging]
     timeout-minutes: 20
     environment:
       name: staging
     permissions:
       contents: read
+      packages: read
     defaults:
       run:
-        working-directory: apps/api/fastapi
+        working-directory: infra/docker
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
-          clean: false # preserve any pre-existing workspace files if present
+          clean: false
 
       - name: Setup environment
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
           FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
+          WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+          SESSION_COOKIE_NAME: ${{ secrets.SESSION_COOKIE_NAME }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           set -euo pipefail
           cat > .env <<EOF
           ENVIRONMENT=staging
-          DOMAIN=staging.api.weather.gd
-          STACK_NAME=grenmet-api-staging
-          PROJECT_NAME=grenmet-api-staging
+          DOMAIN=api.staging.barrels.gd
           POSTGRES_DB=app_staging
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
           POSTGRES_USER=${POSTGRES_USER}
           POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          WXWATCH_DB_NAME=wxwatch_staging
+          WXWATCH_DB_USER=wxwatch
+          WXWATCH_DB_PASSWORD=${WXWATCH_DB_PASSWORD}
+          WXPRODUCTS_DB_NAME=wxproducts_staging
+          WXPRODUCTS_DB_USER=wxproducts
+          WXPRODUCTS_DB_PASSWORD=${WXPRODUCTS_DB_PASSWORD}
           SECRET_KEY=${SECRET_KEY}
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
           REGISTRY=ghcr.io
-          IMAGE_NAME=grenmet/grenmet-api
+          IMAGE_NAME=${{ github.repository }}
           TAG=staging
+          GHCR_OWNER=${{ github.repository_owner }}
+          WEB_TAG=staging
+          SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME}
+          RESEND_API_KEY=${RESEND_API_KEY}
+          WXWATCH_DB_URL=postgresql://wxwatch:${WXWATCH_DB_PASSWORD}@db:5432/wxwatch_staging
+          WXPRODUCTS_DB_URL=postgresql://wxproducts:${WXPRODUCTS_DB_PASSWORD}@db:5432/wxproducts_staging
           EMAIL=${EMAIL}
           USERNAME=${USERNAME}
           HASHED_PASSWORD=${HASHED_PASSWORD}
-          SENTRY_DSN=
+          SENTRY_DSN=${SENTRY_DSN:-}
+          PROJECT_NAME=Grenmet API
+          BACKEND_CORS_ORIGINS=https://auth.staging.barrels.gd,https://admin.staging.barrels.gd,https://wxwatch.staging.barrels.gd,https://wxproducts.staging.barrels.gd,https://hurricane.staging.barrels.gd,https://spice.staging.barrels.gd,https://hr.staging.barrels.gd,https://sales.staging.barrels.gd
+          SESSION_COOKIE_DOMAIN=.staging.barrels.gd
+          EMAILS_FROM_EMAIL=noreply@weather.gd
           EOF
 
-          # Strip leading whitespace from heredoc
           sed -i 's/^[[:space:]]*//' .env
-
-          echo "PROJECT_NAME=grenmet-api-staging" >> "$GITHUB_ENV"
-          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|PASSWORD|HASHED_PASSWORD|RESEND_API_KEY|SENTRY_DSN)=.*/\1=****/' .env
 
       - name: Validate compose configuration
-        run: |
-          set -euo pipefail
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml config >/dev/null
+        run: docker compose --env-file .env -f docker-compose.staging.yml config >/dev/null
 
       - name: Authenticate with GHCR
-        env:
-          GHCR_USERNAME: grenmet
-          GHCR_TOKEN: ${{ secrets.GHCR_PAT }}
-        run: |
-          set -euo pipefail
-          if [ -z "${GHCR_TOKEN:-}" ]; then
-            echo "ERROR: GHCR_PAT secret is not configured for this workflow." >&2
-            exit 1
-          fi
-          echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USERNAME" --password-stdin
-          echo "Authenticated to ghcr.io as $GHCR_USERNAME"
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Stop existing staging stack
         run: |
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" down --remove-orphans || true
+
+      - name: Pull images
+        run: |
           set -euo pipefail
-          echo "Stopping any existing services for project ${{ env.PROJECT_NAME }}..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" down --remove-orphans || true
-          echo "Existing services stopped (if any)."
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
+            api db proxy prestart adminer || true
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
+            web-auth web-admin web-wxwatch web-hurricaneplan web-spicewx \
+            web-wxproducts web-hr web-salesbus 2>/dev/null || true
 
-      - name: Pull images from registry
+      - name: Deploy full staging stack
         run: |
-          set -euxo pipefail
-          echo "Pulling images from GitHub Container Registry..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" pull
-          echo "Images pulled successfully"
+          set -euo pipefail
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" up -d
+          echo "=== Service status ===" ; docker compose -p "grenmet-staging" ps || true
 
-      - name: Deploy with Docker Compose
+      - name: Health checks
         run: |
-          echo "Deploying to staging..."
-          echo "  - Environment: .env (from GitHub Secrets)"
-          echo "  - Project: ${{ env.PROJECT_NAME }}"
-          echo "  - Domain: staging.api.weather.gd"
-
-          if docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" up -d; then
-            echo "Services started successfully"
-          else
-            echo "ERROR Failed to start services"
-            echo "=== Service Status ==="
-            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
-            echo "=== Service Logs ==="
-            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=50 || true
-            exit 1
-          fi
-
-          echo "Waiting for services to be ready..."
+          echo "Waiting for services..."
           sleep 30
 
-          echo "Checking deployment status..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps
-
-          echo "Performing health check..."
-          HEALTH_CHECK_PASSED=false
+          echo "=== API health check ==="
+          PASSED=false
           for i in {1..10}; do
-            echo "Health check attempt $i/10..."
-            if curl -f -s "https://staging.api.weather.gd/api/v1/utils/health-check/" > /dev/null; then
-              echo "Staging API health check passed"
-              HEALTH_CHECK_PASSED=true
-              break
-            else
-              echo "Health check failed (attempt $i/10)"
-              if [ $i -eq 5 ]; then
-                echo "=== Mid-deployment debugging ==="
-                docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=30 api || true
-                docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
-              fi
-              echo "Waiting 10 seconds before next attempt..."
-              sleep 10
+            if curl -f -s "https://api.staging.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
+              echo "Staging API health check passed"; PASSED=true; break
             fi
+            echo "Attempt $i/10..."; sleep 10
           done
+          [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
-          if [ "$HEALTH_CHECK_PASSED" = false ]; then
-            echo "ERROR Health check failed after 10 attempts"
-            docker compose --env-file .env -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --tail=100 || true
-            curl -v "https://staging.api.weather.gd/api/v1/utils/health-check/" || true
-            exit 1
-          fi
+          echo "=== Auth app health check ==="
+          curl -sSo /dev/null -w "%{http_code}" https://auth.staging.barrels.gd/ || echo "Auth staging health check failed"
 
       - name: Show logs on failure
         if: failure()
         run: |
-          echo "STAGING DEPLOYMENT FAILED - DEBUGGING INFO"
-          echo "=== Docker Container Status ==="
-          docker ps -a || true
-          echo "=== Docker Compose Status ==="
-          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" ps || true
-          echo "=== Prestart Logs (last 200 lines) ==="
-          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 prestart || true
-          echo "=== Database Logs (last 200 lines) ==="
-          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 db || true
-          echo "=== API Logs (last 200 lines) ==="
-          docker compose -f ../../infra/docker/docker-compose.staging.yml -p "${{ env.PROJECT_NAME }}" logs --no-color --tail=200 api || true
-          echo "=== Environment File (sanitized) ==="
-          sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env || true
-          echo "=== Network Status ==="
-          docker network ls || true
-          echo "=== Volume Status ==="
-          docker volume ls | grep "${{ env.PROJECT_NAME }}" || true
+          docker compose -p "grenmet-staging" ps || true
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" logs --no-color --tail=100 prestart || true
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" logs --no-color --tail=100 api || true
 
-      - name: Cleanup runner environment
+      - name: Cleanup
         if: always()
         run: |
-          echo "Cleaning up staging runner environment..."
-          # Prune unused images/containers/networks but NOT volumes (protects pgdata-staging)
-          docker system prune -af || true
-          # Remove any temporary files
-          rm -rf /tmp/* || true
-          # Clear sensitive environment variables
-          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD HASHED_PASSWORD || true
-          echo "Staging runner cleanup completed"
+          docker image prune -f || true
+          rm -f .env

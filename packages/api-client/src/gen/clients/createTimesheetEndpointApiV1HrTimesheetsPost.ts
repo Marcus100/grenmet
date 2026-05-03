@@ -17,7 +17,7 @@ import type {
 } from "../models/CreateTimesheetEndpointApiV1HrTimesheetsPost.js";
 
 function getCreateTimesheetEndpointApiV1HrTimesheetsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/timesheets/" as const };
+  const res = { method: "POST", url: `/api/v1/hr/timesheets/` as const };
   return res;
 }
 

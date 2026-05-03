@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createPermissionApiV1AuthPermissionsPost } from "../clients/createPermissionApiV1AuthPermissionsPost.js";
 import type {
   CreatePermissionApiV1AuthPermissionsPost422,
@@ -43,8 +44,9 @@ export function createPermissionApiV1AuthPermissionsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createPermissionApiV1AuthPermissionsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createPermissionApiV1AuthPermissionsPost(data, config);
+    },
   });
 }
 

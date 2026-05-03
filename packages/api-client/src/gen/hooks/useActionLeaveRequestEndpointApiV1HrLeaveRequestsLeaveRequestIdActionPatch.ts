@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch } from "../clients/actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 import type {
   ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
@@ -56,12 +57,13 @@ export function actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActi
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id, data }) =>
-      actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
+    mutationFn: async ({ leave_request_id, data }) => {
+      return actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
         leave_request_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

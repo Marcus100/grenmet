@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 import { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";

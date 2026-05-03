@@ -3,15 +3,15 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
 import { employmentUpdateSchema } from "./employmentUpdateSchema.js";
 
 export const employmentAdminUpdateSchema = z.object({
-  get employment() {
-    return z.union([employmentUpdateSchema, z.null()]).optional();
-  },
-  get approval_authority() {
-    return z.union([approvalAuthorityUpdateSchema, z.null()]).optional();
-  },
+  employment: z.optional(
+    z.union([z.lazy(() => employmentUpdateSchema), z.null()])
+  ),
+  approval_authority: z.optional(
+    z.union([z.lazy(() => approvalAuthorityUpdateSchema), z.null()])
+  ),
 });

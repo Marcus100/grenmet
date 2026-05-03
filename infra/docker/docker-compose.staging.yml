@@ -1,23 +1,35 @@
-# GrenMet API — Staging Stack
+# GrenMet — Staging Stack
 # Used by: .github/workflows/deploy-staging.yml
-# working-directory: apps/api/fastapi → reference as ../../infra/docker/docker-compose.staging.yml
 #
 # Required secrets (set in GitHub Environment "staging"):
 #   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
+#   WXWATCH_DB_NAME, WXWATCH_DB_USER, WXWATCH_DB_PASSWORD
+#   WXPRODUCTS_DB_NAME, WXPRODUCTS_DB_USER, WXPRODUCTS_DB_PASSWORD
 #   SECRET_KEY, FIRST_SUPERUSER, FIRST_SUPERUSER_PASSWORD
-#   REGISTRY, IMAGE_NAME, TAG (=staging), DOMAIN, ENVIRONMENT
+#   REGISTRY, IMAGE_NAME, TAG, DOMAIN, ENVIRONMENT
 #   EMAIL, USERNAME, HASHED_PASSWORD, SENTRY_DSN
+#   SESSION_COOKIE_NAME, RESEND_API_KEY
+#   WXWATCH_DB_URL, WXPRODUCTS_DB_URL
+#   GHCR_OWNER, WEB_TAG
 
 services:
+  # ── Database ────────────────────────────────────────────────────────────────
   db:
     image: postgres:17
     restart: always
     volumes:
       - pgdata-staging:/var/lib/postgresql/data
+      - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      WXWATCH_DB_NAME: ${WXWATCH_DB_NAME:-wxwatch_staging}
+      WXWATCH_DB_USER: ${WXWATCH_DB_USER:-wxwatch}
+      WXWATCH_DB_PASSWORD: ${WXWATCH_DB_PASSWORD}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts_staging}
+      WXPRODUCTS_DB_USER: ${WXPRODUCTS_DB_USER:-wxproducts}
+      WXPRODUCTS_DB_PASSWORD: ${WXPRODUCTS_DB_PASSWORD}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -25,8 +37,9 @@ services:
       start_period: 30s
       timeout: 10s
     networks:
-      - grenmet-api-staging
+      - grenmet-staging
 
+  # ── FastAPI ─────────────────────────────────────────────────────────────────
   prestart:
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: "no"
@@ -44,8 +57,9 @@ services:
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
     networks:
-      - grenmet-api-staging
+      - grenmet-staging
 
   api:
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
@@ -65,17 +79,215 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       DOMAIN: ${DOMAIN}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      PROJECT_NAME: ${PROJECT_NAME}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grenmet-api-staging.rule=Host(`staging.api.weather.gd`)"
+      - "traefik.http.routers.grenmet-api-staging.rule=Host(`api.staging.barrels.gd`)"
       - "traefik.http.routers.grenmet-api-staging.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api-staging.loadbalancer.server.port=8000"
     networks:
-      - grenmet-api-staging
+      - grenmet-staging
 
+  # ── Drizzle migrations ───────────────────────────────────────────────────────
+  wxwatch-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-staging}
+    restart: "no"
+    command: ["node", "apps/web/wxwatch/scripts/migrate.mjs"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: ${WXWATCH_DB_URL}
+    networks:
+      - grenmet-staging
+
+  wxproducts-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-staging}
+    restart: "no"
+    command: ["node", "apps/web/wxproducts/scripts/migrate.mjs"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+    networks:
+      - grenmet-staging
+
+  # ── Web Apps ─────────────────────────────────────────────────────────────────
+  web-auth:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-auth-staging.rule=Host(`auth.staging.barrels.gd`)"
+      - "traefik.http.routers.web-auth-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-auth-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-auth-staging.loadbalancer.server.port=3000"
+    networks:
+      - grenmet-staging
+
+  web-admin:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      AUTH_APP_URL: https://auth.staging.barrels.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-admin-staging.rule=Host(`admin.staging.barrels.gd`)"
+      - "traefik.http.routers.web-admin-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-admin-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-admin-staging.loadbalancer.server.port=3001"
+    networks:
+      - grenmet-staging
+
+  web-wxwatch:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-staging}
+    restart: always
+    depends_on:
+      wxwatch-migrate:
+        condition: service_completed_successfully
+    environment:
+      AUTH_APP_URL: https://auth.staging.barrels.gd
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      DB_URL: ${WXWATCH_DB_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-wxwatch-staging.rule=Host(`wxwatch.staging.barrels.gd`)"
+      - "traefik.http.routers.web-wxwatch-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-wxwatch-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-wxwatch-staging.loadbalancer.server.port=3002"
+    networks:
+      - grenmet-staging
+
+  web-hurricaneplan:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-hurricaneplan-staging.rule=Host(`hurricane.staging.barrels.gd`)"
+      - "traefik.http.routers.web-hurricaneplan-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-hurricaneplan-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3003"
+    networks:
+      - grenmet-staging
+
+  web-spicewx:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-spicewx-staging.rule=Host(`spice.staging.barrels.gd`)"
+      - "traefik.http.routers.web-spicewx-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-spicewx-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3004"
+    networks:
+      - grenmet-staging
+
+  web-wxproducts:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-staging}
+    restart: always
+    depends_on:
+      wxproducts-migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-wxproducts-staging.rule=Host(`wxproducts.staging.barrels.gd`)"
+      - "traefik.http.routers.web-wxproducts-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-wxproducts-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-wxproducts-staging.loadbalancer.server.port=3005"
+    networks:
+      - grenmet-staging
+
+  web-hr:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      AUTH_API_URL: https://api.staging.barrels.gd
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-hr-staging.rule=Host(`hr.staging.barrels.gd`)"
+      - "traefik.http.routers.web-hr-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-hr-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-hr-staging.loadbalancer.server.port=3006"
+    networks:
+      - grenmet-staging
+
+  web-salesbus:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-staging}
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
+      NEXT_PUBLIC_ENVIRONMENT: staging
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-salesbus-staging.rule=Host(`sales.staging.barrels.gd`)"
+      - "traefik.http.routers.web-salesbus-staging.entrypoints=websecure"
+      - "traefik.http.routers.web-salesbus-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-salesbus-staging.loadbalancer.server.port=3007"
+    networks:
+      - grenmet-staging
+
+  # ── Database UI ──────────────────────────────────────────────────────────────
+  adminer:
+    image: adminer:latest
+    restart: always
+    environment:
+      ADMINER_DESIGN: pepa-linha-dark
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer-staging.rule=Host(`adminer.staging.barrels.gd`)"
+      - "traefik.http.routers.adminer-staging.entrypoints=websecure"
+      - "traefik.http.routers.adminer-staging.tls.certresolver=letsencrypt"
+      - "traefik.http.services.adminer-staging.loadbalancer.server.port=8080"
+      - "traefik.http.routers.adminer-staging.middlewares=adminer-auth-staging"
+      - "traefik.http.middlewares.adminer-auth-staging.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
+    depends_on:
+      - db
+    networks:
+      - grenmet-staging
+
+  # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
-    image: traefik:v3.0
+    image: traefik:v3
     restart: always
     ports:
       - "80:80"
@@ -96,22 +308,22 @@ services:
       - --api
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.traefik-dashboard-staging.rule=Host(`traefik.staging.weather.gd`)"
+      - "traefik.http.routers.traefik-dashboard-staging.rule=Host(`traefik.staging.barrels.gd`)"
       - "traefik.http.routers.traefik-dashboard-staging.entrypoints=websecure"
       - "traefik.http.routers.traefik-dashboard-staging.tls.certresolver=letsencrypt"
       - "traefik.http.routers.traefik-dashboard-staging.service=api@internal"
       - "traefik.http.routers.traefik-dashboard-staging.middlewares=dashboard-auth-staging"
       - "traefik.http.middlewares.dashboard-auth-staging.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-      - "traefik.http.routers.http-catchall-staging.rule=hostregexp(`.+`)"
+      - "traefik.http.routers.http-catchall-staging.rule=HostRegexp(`.+`)"
       - "traefik.http.routers.http-catchall-staging.entrypoints=web"
       - "traefik.http.routers.http-catchall-staging.middlewares=https-redirect-staging"
       - "traefik.http.middlewares.https-redirect-staging.redirectscheme.scheme=https"
       - "traefik.http.middlewares.https-redirect-staging.redirectscheme.permanent=true"
     networks:
-      - grenmet-api-staging
+      - grenmet-staging
 
 networks:
-  grenmet-api-staging:
+  grenmet-staging:
     driver: bridge
 
 volumes:

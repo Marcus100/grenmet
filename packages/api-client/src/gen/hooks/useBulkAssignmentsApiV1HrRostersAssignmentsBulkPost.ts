@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "../clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 import type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
@@ -51,8 +52,9 @@ export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config),
+    mutationFn: async ({ data }) => {
+      return bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config);
+    },
   });
 }
 

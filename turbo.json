@@ -4,17 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "AUTH_APP_URL",
-        "AUTH_API_URL",
-        "AUTH_API_V1_STR",
-        "SESSION_COOKIE_NAME",
-        "SESSION_COOKIE_DOMAIN",
-        "DB_URL",
-        "DATABASE_URL",
-        "RESEND_API_KEY"
-      ]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
       "cache": false,
@@ -48,7 +38,7 @@
     },
     "generate": {
       "cache": false,
-      "outputs": ["src/**"]
+      "outputs": ["src/gen/**"]
     },
     "test": {
       "dependsOn": ["^build"],

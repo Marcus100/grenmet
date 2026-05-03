@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
@@ -10,13 +11,10 @@ from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-
-from src.rate_limit import limiter
 
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
@@ -38,6 +36,7 @@ from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.workflow.router import router as hr_workflow_router
+from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
@@ -55,7 +54,7 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
     yield
@@ -94,7 +93,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
 # Request logging middleware (runs after CORS; logs method, path, status, duration)
 logger = logging.getLogger("src.request")

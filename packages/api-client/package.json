@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "generate": "kubb generate",
+    "generate": "kubb generate && biome check --write ./src/gen",
     "generate:watch": "kubb generate --watch",
     "generate:debug": "kubb generate --debug",
     "build": "tsc",

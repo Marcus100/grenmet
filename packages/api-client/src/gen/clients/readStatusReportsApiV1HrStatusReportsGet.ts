@@ -17,7 +17,7 @@ import type {
 } from "../models/ReadStatusReportsApiV1HrStatusReportsGet.js";
 
 function getReadStatusReportsApiV1HrStatusReportsGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/status-reports" as const };
+  const res = { method: "GET", url: `/api/v1/hr/status-reports` as const };
   return res;
 }
 

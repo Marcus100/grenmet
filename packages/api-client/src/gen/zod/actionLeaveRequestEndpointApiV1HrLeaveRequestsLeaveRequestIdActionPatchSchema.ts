@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestActionSchema } from "./leaveRequestActionSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 
 export const actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParamsSchema =
   z.object({
-    leave_request_id: z.uuid(),
+    leave_request_id: z.string().uuid(),
   });
 
 /**

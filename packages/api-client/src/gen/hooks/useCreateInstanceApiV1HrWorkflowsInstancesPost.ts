@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createInstanceApiV1HrWorkflowsInstancesPost } from "../clients/createInstanceApiV1HrWorkflowsInstancesPost.js";
 import type {
   CreateInstanceApiV1HrWorkflowsInstancesPost403,
@@ -49,8 +50,9 @@ export function createInstanceApiV1HrWorkflowsInstancesPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createInstanceApiV1HrWorkflowsInstancesPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createInstanceApiV1HrWorkflowsInstancesPost(data, config);
+    },
   });
 }
 

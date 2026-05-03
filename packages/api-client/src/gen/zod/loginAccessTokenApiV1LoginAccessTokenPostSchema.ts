@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { tokenSchema } from "./tokenSchema.js";

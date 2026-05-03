@@ -9,7 +9,6 @@ from src.exceptions import AppException, AuthorizationError, NotFoundError
 
 from . import constants as hr_constants
 
-
 # --- 404 Not Found ---
 
 

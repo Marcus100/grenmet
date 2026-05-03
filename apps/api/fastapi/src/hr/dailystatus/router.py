@@ -66,7 +66,10 @@ async def read_status_reports(
         session=session, current_user=current_user, department_id=department_id
     )
     return StatusReportListPublic(
-        data=[StatusReportPublic.model_validate(item, from_attributes=True) for item in rows],
+        data=[
+            StatusReportPublic.model_validate(item, from_attributes=True)
+            for item in rows
+        ],
         count=len(rows),
     )
 

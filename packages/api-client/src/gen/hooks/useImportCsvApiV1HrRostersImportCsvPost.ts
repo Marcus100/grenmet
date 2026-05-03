@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { importCsvApiV1HrRostersImportCsvPost } from "../clients/importCsvApiV1HrRostersImportCsvPost.js";
 import type {
   ImportCsvApiV1HrRostersImportCsvPost400,
@@ -49,8 +50,9 @@ export function importCsvApiV1HrRostersImportCsvPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      importCsvApiV1HrRostersImportCsvPost(data, config),
+    mutationFn: async ({ data }) => {
+      return importCsvApiV1HrRostersImportCsvPost(data, config);
+    },
   });
 }
 

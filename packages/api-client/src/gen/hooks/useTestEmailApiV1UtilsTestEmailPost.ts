@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { testEmailApiV1UtilsTestEmailPost } from "../clients/testEmailApiV1UtilsTestEmailPost.js";
 import type {
   TestEmailApiV1UtilsTestEmailPost422,
@@ -39,8 +40,9 @@ export function testEmailApiV1UtilsTestEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ params }) =>
-      testEmailApiV1UtilsTestEmailPost(params, config),
+    mutationFn: async ({ params }) => {
+      return testEmailApiV1UtilsTestEmailPost(params, config);
+    },
   });
 }
 

@@ -55,7 +55,9 @@ async def test_leave_approval_writes_balance_event(
             access="department",
             description="Action leave requests",
         )
+    await db_async.refresh(role, attribute_names=["permissions"])
     role.permissions.append(leave_action_permission)
+    await db_async.refresh(supervisor, attribute_names=["roles"])
     if role.id not in {assigned_role.id for assigned_role in supervisor.roles}:
         supervisor.roles.append(role)
     employee_role = Role(name=f"EMPLOYEE_{random_lower_string().upper()}")
@@ -80,10 +82,12 @@ async def test_leave_approval_writes_balance_event(
         )
     employee_role.permissions.append(leave_create_permission)
     employee_role.permissions.append(canonical_leave_create_permission)
+    await db_async.refresh(employee, attribute_names=["roles"])
     employee.roles.append(employee_role)
     db_async.add(employee_role)
     db_async.add(leave_create_permission)
     db_async.add(canonical_leave_create_permission)
+    await db_async.flush()  # employee_role must exist before UserRoleAssignment FK references it
     if not await db_async.get(Department, "dept_leave"):
         db_async.add(Department(id="dept_leave", name="Dept Leave"))
     db_async.add(
@@ -124,7 +128,7 @@ async def test_leave_approval_writes_balance_event(
         current_user=employee,
         payload=LeaveRequestCreate(
             department_id="dept_leave",
-            leave_type="ANNUAL",
+            leave_type="VACATION",
             start_date="2026-04-01",
             end_date="2026-04-02",
             days_requested=Decimal("2.0"),

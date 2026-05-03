@@ -3,11 +3,9 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { submissionModeSchema } from "./submissionModeSchema.js";
 
 export const timesheetSubmitRequestSchema = z.object({
-  get mode() {
-    return submissionModeSchema.optional();
-  },
+  mode: z.optional(z.lazy(() => submissionModeSchema)),
 });

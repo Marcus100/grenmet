@@ -16,7 +16,7 @@ import type {
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
 
 function getCreateRoleApiV1AuthRolesPostUrl() {
-  const res = { method: "POST", url: "/api/v1/auth/roles/" as const };
+  const res = { method: "POST", url: `/api/v1/auth/roles/` as const };
   return res;
 }
 

@@ -19,7 +19,7 @@ import type {
 function getReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetUrl() {
   const res = {
     method: "GET",
-    url: "/api/v1/hr/timesheets/department" as const,
+    url: `/api/v1/hr/timesheets/department` as const,
   };
   return res;
 }

@@ -17,7 +17,7 @@ import type {
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
 
 function getLoginAccessTokenApiV1LoginAccessTokenPostUrl() {
-  const res = { method: "POST", url: "/api/v1/login/access-token" as const };
+  const res = { method: "POST", url: `/api/v1/login/access-token` as const };
   return res;
 }
 

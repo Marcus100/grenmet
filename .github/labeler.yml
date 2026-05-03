@@ -121,10 +121,15 @@ web/spicewx:
       - any-glob-to-any-file:
           - apps/web/spicewx/**/*
 
-web/templates-draft:
+web/hr:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/templates-draft/**/*
+          - apps/web/hr/**/*
+
+web/salesbus:
+  - changed-files:
+      - any-glob-to-any-file:
+          - apps/web/salesbus/**/*
 
 web/wxproducts:
   - changed-files:

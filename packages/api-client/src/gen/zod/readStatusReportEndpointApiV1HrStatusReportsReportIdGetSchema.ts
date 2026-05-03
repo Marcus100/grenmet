@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 
 export const readStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParamsSchema =
   z.object({
-    report_id: z.uuid(),
+    report_id: z.string().uuid(),
   });
 
 /**

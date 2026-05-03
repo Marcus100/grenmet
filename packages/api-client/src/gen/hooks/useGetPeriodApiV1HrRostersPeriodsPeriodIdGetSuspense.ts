@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "../clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 import type {
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
@@ -30,7 +31,7 @@ export const getPeriodApiV1HrRostersPeriodsPeriodIdGetSuspenseQueryKey = (
   [
     {
       url: "/api/v1/hr/rosters/periods/:period_id",
-      params: { period_id },
+      params: { period_id: period_id },
     },
   ] as const;
 

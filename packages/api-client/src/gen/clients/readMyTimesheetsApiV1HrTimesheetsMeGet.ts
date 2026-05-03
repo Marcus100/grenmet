@@ -12,7 +12,7 @@ import fetch from "../../client.js";
 import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 
 function getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/timesheets/me" as const };
+  const res = { method: "GET", url: `/api/v1/hr/timesheets/me` as const };
   return res;
 }
 

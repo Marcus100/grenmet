@@ -167,7 +167,9 @@ class RosterRestrictedShift(SQLModel, table=True):
 class LeaveBalance(SQLModel, table=True):
     __tablename__ = "leave_balance"
     __table_args__ = (
-        sa.UniqueConstraint("user_id", "leave_type", name="uq_hr_leave_balance_user_type"),
+        sa.UniqueConstraint(
+            "user_id", "leave_type", name="uq_hr_leave_balance_user_type"
+        ),
         {"schema": "hr"},
     )
 

@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "../clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 import type {
   UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
@@ -47,8 +48,9 @@ export function updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      updatePasswordMeApiV1AuthUsersMePasswordPatch(data, config),
+    mutationFn: async ({ data }) => {
+      return updatePasswordMeApiV1AuthUsersMePasswordPatch(data, config);
+    },
   });
 }
 

@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const approvalAuthorityUpdateSchema = z.object({
   can_approve_leave: z.optional(z.union([z.boolean(), z.null()])),

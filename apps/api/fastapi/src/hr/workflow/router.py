@@ -41,7 +41,10 @@ router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
     },
 )
 async def create_template(
-    *, session: SessionDep, current_user: CurrentUser, template_in: WorkflowTemplateCreate
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    template_in: WorkflowTemplateCreate,
 ) -> Any:
     return await create_workflow_template(
         session=session, current_user=current_user, template_in=template_in
@@ -113,7 +116,10 @@ async def create_template_step(
     },
 )
 async def create_instance(
-    *, session: SessionDep, current_user: CurrentUser, instance_in: WorkflowInstanceCreate
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    instance_in: WorkflowInstanceCreate,
 ) -> Any:
     return await create_workflow_instance(
         session=session, current_user=current_user, instance_in=instance_in
@@ -142,9 +148,7 @@ async def read_instance(
         workflow_instance_id=workflow_instance.id,
     )
     return WorkflowInstanceDetails(
-        instance=WorkflowInstancePublic.model_validate(
-            instance, from_attributes=True
-        ),
+        instance=WorkflowInstancePublic.model_validate(instance, from_attributes=True),
         steps=[
             WorkflowStepInstancePublic.model_validate(step, from_attributes=True)
             for step in steps
@@ -159,9 +163,15 @@ async def read_instance(
     description="Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
     responses={
         status.HTTP_200_OK: {"description": "Action applied"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Workflow cannot be submitted or is not pending"},
-        status.HTTP_404_NOT_FOUND: {"description": "Workflow instance or step not found"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to perform this workflow action"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Workflow cannot be submitted or is not pending"
+        },
+        status.HTTP_404_NOT_FOUND: {
+            "description": "Workflow instance or step not found"
+        },
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to perform this workflow action"
+        },
     },
 )
 async def take_action(

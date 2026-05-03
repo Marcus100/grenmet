@@ -17,7 +17,7 @@ import type {
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
 
 function getUpdateUserMeApiV1AuthUsersMePatchUrl() {
-  const res = { method: "PATCH", url: "/api/v1/auth/users/me" as const };
+  const res = { method: "PATCH", url: `/api/v1/auth/users/me` as const };
   return res;
 }
 

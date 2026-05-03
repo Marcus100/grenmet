@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createShiftSwapEndpointApiV1HrShiftSwapsPost } from "../clients/createShiftSwapEndpointApiV1HrShiftSwapsPost.js";
 import type {
   CreateShiftSwapEndpointApiV1HrShiftSwapsPost403,
@@ -46,8 +47,9 @@ export function createShiftSwapEndpointApiV1HrShiftSwapsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createShiftSwapEndpointApiV1HrShiftSwapsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createShiftSwapEndpointApiV1HrShiftSwapsPost(data, config);
+    },
   });
 }
 

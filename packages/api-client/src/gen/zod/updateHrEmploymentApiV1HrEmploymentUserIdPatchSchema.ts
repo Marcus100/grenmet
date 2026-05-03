@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 
 export const updateHrEmploymentApiV1HrEmploymentUserIdPatchPathParamsSchema =
   z.object({
-    user_id: z.uuid(),
+    user_id: z.string().uuid(),
   });
 
 /**

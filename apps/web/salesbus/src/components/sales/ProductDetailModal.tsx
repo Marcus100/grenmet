@@ -40,7 +40,7 @@ export function ProductDetailModal({
       setQuantity(1);
       setCaseType("full");
     }
-  }, [isOpen, product?.id]);
+  }, [isOpen]);
 
   if (!product) return null;
 

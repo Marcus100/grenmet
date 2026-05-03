@@ -32,7 +32,9 @@ def send_email(
     html_content: str = "",
 ) -> None:
     """Send email using SMTP or Resend API."""
-    assert email_settings.emails_enabled, "no provided configuration for email variables"
+    assert email_settings.emails_enabled, (
+        "no provided configuration for email variables"
+    )
 
     # Debug logging for email send
     logger.info(f"[EMAIL_DEBUG] Sending email to: {email_to}")
@@ -69,7 +71,9 @@ def send_email(
         # Create message
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"{email_settings.EMAILS_FROM_NAME} <{email_settings.EMAILS_FROM_EMAIL}>"
+        msg["From"] = (
+            f"{email_settings.EMAILS_FROM_NAME} <{email_settings.EMAILS_FROM_EMAIL}>"
+        )
         msg["To"] = email_to
 
         # Add HTML content
@@ -99,7 +103,9 @@ def send_email(
             logger.info("[EMAIL_DEBUG] Using SSL connection")
             if not email_settings.SMTP_HOST or not email_settings.SMTP_PORT:
                 raise ValueError("SMTP_HOST and SMTP_PORT must be configured for SSL")
-            server = smtplib.SMTP_SSL(email_settings.SMTP_HOST, email_settings.SMTP_PORT)
+            server = smtplib.SMTP_SSL(
+                email_settings.SMTP_HOST, email_settings.SMTP_PORT
+            )
 
         # Login if credentials provided
         if (
@@ -158,7 +164,9 @@ def verify_password_reset_token(token: str) -> str | None:
     """Verify password reset token."""
     ALGORITHM = "HS256"
     try:
-        decoded_token = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        decoded_token = jwt.decode(
+            token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
+        )
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
