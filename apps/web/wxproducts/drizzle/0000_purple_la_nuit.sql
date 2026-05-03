@@ -51,7 +51,8 @@ CREATE TABLE "ibf_assessments" (
 	"body" jsonb NOT NULL,
 	"issued_at_utc" timestamp with time zone NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "ibf_assessments_assessment_id_unique" UNIQUE("ibf_assessment_id")
 );
 --> statement-breakpoint
 CREATE TABLE "marine_products" (
@@ -125,7 +126,8 @@ CREATE TABLE "product_suites" (
 	"suite_issue_datetime_utc" timestamp with time zone,
 	"full_suite" jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "product_suites_suite_id_unique" UNIQUE("suite_id")
 );
 --> statement-breakpoint
 CREATE TABLE "products" (
@@ -137,7 +139,8 @@ CREATE TABLE "products" (
 	"metadata" jsonb,
 	"links" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "products_product_id_unique" UNIQUE("product_id")
 );
 --> statement-breakpoint
 CREATE TABLE "synop_observations" (
@@ -182,7 +185,6 @@ CREATE INDEX "cap_bundles_suite_id_idx" ON "cap_bundles" USING btree ("suite_id"
 CREATE UNIQUE INDEX "evening_products_product_ref_idx" ON "evening_products" USING btree ("product_ref");--> statement-breakpoint
 CREATE UNIQUE INDEX "hourly_summaries_valid_hour_idx" ON "hourly_summaries" USING btree ("valid_hour_utc");--> statement-breakpoint
 CREATE INDEX "hourly_summaries_source_type_idx" ON "hourly_summaries" USING btree ("source_type");--> statement-breakpoint
-CREATE UNIQUE INDEX "ibf_assessments_assessment_id_idx" ON "ibf_assessments" USING btree ("ibf_assessment_id");--> statement-breakpoint
 CREATE INDEX "ibf_assessments_product_id_idx" ON "ibf_assessments" USING btree ("product_id");--> statement-breakpoint
 CREATE UNIQUE INDEX "marine_products_product_ref_idx" ON "marine_products" USING btree ("product_ref");--> statement-breakpoint
 CREATE INDEX "marine_products_color_code_idx" ON "marine_products" USING btree ("color_code");--> statement-breakpoint
@@ -192,9 +194,7 @@ CREATE UNIQUE INDEX "midday_products_product_ref_idx" ON "midday_products" USING
 CREATE INDEX "midday_products_station_name_idx" ON "midday_products" USING btree ("station_name");--> statement-breakpoint
 CREATE UNIQUE INDEX "morning_products_product_ref_idx" ON "morning_products" USING btree ("product_ref");--> statement-breakpoint
 CREATE UNIQUE INDEX "tropical_outlook_products_product_ref_idx" ON "tropical_outlook_products" USING btree ("product_ref");--> statement-breakpoint
-CREATE UNIQUE INDEX "product_suites_suite_id_idx" ON "product_suites" USING btree ("suite_id");--> statement-breakpoint
 CREATE INDEX "product_suites_issue_datetime_idx" ON "product_suites" USING btree ("suite_issue_datetime_utc");--> statement-breakpoint
-CREATE UNIQUE INDEX "products_product_id_idx" ON "products" USING btree ("product_id");--> statement-breakpoint
 CREATE INDEX "products_suite_id_idx" ON "products" USING btree ("suite_id");--> statement-breakpoint
 CREATE INDEX "products_issue_datetime_idx" ON "products" USING btree ("issue_datetime_utc");--> statement-breakpoint
 CREATE INDEX "products_type_idx" ON "products" USING btree ("product_type");--> statement-breakpoint

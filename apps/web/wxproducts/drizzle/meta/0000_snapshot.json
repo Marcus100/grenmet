@@ -1,5 +1,5 @@
 {
-  "id": "579111bc-f014-4b9d-bde3-2d1e4ae07215",
+  "id": "4a440fa5-9383-43a5-9cd5-3938ed06e2ca",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -526,21 +526,6 @@
         }
       },
       "indexes": {
-        "ibf_assessments_assessment_id_idx": {
-          "name": "ibf_assessments_assessment_id_idx",
-          "columns": [
-            {
-              "expression": "ibf_assessment_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "ibf_assessments_product_id_idx": {
           "name": "ibf_assessments_product_id_idx",
           "columns": [
@@ -569,7 +554,13 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "ibf_assessments_assessment_id_unique": {
+          "name": "ibf_assessments_assessment_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["ibf_assessment_id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1233,21 +1224,6 @@
         }
       },
       "indexes": {
-        "product_suites_suite_id_idx": {
-          "name": "product_suites_suite_id_idx",
-          "columns": [
-            {
-              "expression": "suite_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "product_suites_issue_datetime_idx": {
           "name": "product_suites_issue_datetime_idx",
           "columns": [
@@ -1266,7 +1242,13 @@
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "product_suites_suite_id_unique": {
+          "name": "product_suites_suite_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["suite_id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -1345,21 +1327,6 @@
         }
       },
       "indexes": {
-        "products_product_id_idx": {
-          "name": "products_product_id_idx",
-          "columns": [
-            {
-              "expression": "product_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
         "products_suite_id_idx": {
           "name": "products_suite_id_idx",
           "columns": [
@@ -1418,7 +1385,13 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "products_product_id_unique": {
+          "name": "products_product_id_unique",
+          "nullsNotDistinct": false,
+          "columns": ["product_id"]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
