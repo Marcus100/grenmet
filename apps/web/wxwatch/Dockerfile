@@ -33,6 +33,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 RUN pnpm exec turbo run build --filter=@grenmet/web-wxwatch
 RUN mkdir -p apps/web/wxwatch/public
+RUN npm install --prefix apps/web/wxwatch/scripts --omit=dev
 
 FROM node:22-alpine AS runner
 WORKDIR /app

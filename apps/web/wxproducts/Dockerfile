@@ -34,6 +34,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY . .
 RUN pnpm exec turbo run build --filter=@grenmet/web-wxproducts
 RUN mkdir -p apps/web/wxproducts/public
+RUN npm install --prefix apps/web/wxproducts/scripts --omit=dev
 
 FROM node:22-alpine AS runner
 WORKDIR /app
