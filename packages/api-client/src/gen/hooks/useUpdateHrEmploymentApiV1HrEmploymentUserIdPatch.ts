@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "../clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 import type {
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
@@ -53,8 +54,13 @@ export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) =>
-      updateHrEmploymentApiV1HrEmploymentUserIdPatch(user_id, data, config),
+    mutationFn: async ({ user_id, data }) => {
+      return updateHrEmploymentApiV1HrEmploymentUserIdPatch(
+        user_id,
+        data,
+        config
+      );
+    },
   });
 }
 

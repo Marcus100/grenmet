@@ -88,7 +88,7 @@ async def test_supervisor_cannot_update_other_department(
         await db_async.commit()
         await db_async.refresh(role)
 
-    await db_async.refresh(supervisor)
+    await db_async.refresh(supervisor, attribute_names=["roles"])
     if role.id not in {assigned_role.id for assigned_role in supervisor.roles}:
         supervisor.roles.append(role)
         db_async.add(supervisor)

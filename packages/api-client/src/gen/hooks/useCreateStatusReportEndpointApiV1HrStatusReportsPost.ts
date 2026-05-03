@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createStatusReportEndpointApiV1HrStatusReportsPost } from "../clients/createStatusReportEndpointApiV1HrStatusReportsPost.js";
 import type {
   CreateStatusReportEndpointApiV1HrStatusReportsPost403,
@@ -49,8 +50,9 @@ export function createStatusReportEndpointApiV1HrStatusReportsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createStatusReportEndpointApiV1HrStatusReportsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createStatusReportEndpointApiV1HrStatusReportsPost(data, config);
+    },
   });
 }
 

@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 import type {
   ReadTemplatesApiV1HrWorkflowsTemplatesGet403,

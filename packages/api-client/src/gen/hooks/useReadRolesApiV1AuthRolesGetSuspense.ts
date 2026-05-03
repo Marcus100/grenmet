@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readRolesApiV1AuthRolesGet } from "../clients/readRolesApiV1AuthRolesGet.js";
 import type {
   ReadRolesApiV1AuthRolesGet422,

@@ -7,7 +7,8 @@ This router handles all authentication-related operations including:
 - Password reset
 """
 
-from typing import Annotated, Any
+from datetime import datetime
+from typing import Annotated, Any, overload
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
@@ -59,10 +60,32 @@ def _request_metadata(request: Request) -> tuple[str | None, str | None]:
     return user_agent, ip_address
 
 
+@overload
 def _session_auth_response(
     *,
     access_token: str,
-    access_token_expires_at: Any,
+    access_token_expires_at: datetime,
+    session_token: str,
+    db_session: Any,
+    user: Any,
+) -> SessionLoginResponse: ...
+
+
+@overload
+def _session_auth_response(
+    *,
+    access_token: str,
+    access_token_expires_at: datetime,
+    session_token: None,
+    db_session: Any,
+    user: Any,
+) -> SessionAccessTokenResponse: ...
+
+
+def _session_auth_response(
+    *,
+    access_token: str,
+    access_token_expires_at: datetime,
     session_token: str | None,
     db_session: Any,
     user: Any,
@@ -290,7 +313,9 @@ async def logout_session(session: SessionDep, body: SessionTokenRequest) -> Mess
     summary="Revoke every session for the current user",
     description="Invalidate all persisted sessions belonging to the current user.",
 )
-async def logout_all_sessions(session: SessionDep, body: SessionTokenRequest) -> Message:
+async def logout_all_sessions(
+    session: SessionDep, body: SessionTokenRequest
+) -> Message:
     """Revoke all active sessions for the user identified by the supplied session secret."""
     db_session = await service.get_active_session_by_secret(
         session=session, session_secret=body.session_token

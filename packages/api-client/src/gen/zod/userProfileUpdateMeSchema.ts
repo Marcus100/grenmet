@@ -3,19 +3,17 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { addressUpdateSchema } from "./addressUpdateSchema.js";
 import { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 import { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.js";
 
 export const userProfileUpdateMeSchema = z.object({
-  get profile() {
-    return z.union([profileDetailsUpdateSchema, z.null()]).optional();
-  },
-  get address() {
-    return z.union([addressUpdateSchema, z.null()]).optional();
-  },
-  get roster_preferences() {
-    return z.union([rosterPreferencesUpdateSchema, z.null()]).optional();
-  },
+  profile: z.optional(
+    z.union([z.lazy(() => profileDetailsUpdateSchema), z.null()])
+  ),
+  address: z.optional(z.union([z.lazy(() => addressUpdateSchema), z.null()])),
+  roster_preferences: z.optional(
+    z.union([z.lazy(() => rosterPreferencesUpdateSchema), z.null()])
+  ),
 });

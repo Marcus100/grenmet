@@ -12,7 +12,7 @@ import fetch from "../../client.js";
 import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
 
 function getHealthCheckApiV1UtilsHealthCheckGetUrl() {
-  const res = { method: "GET", url: "/api/v1/utils/health-check/" as const };
+  const res = { method: "GET", url: `/api/v1/utils/health-check/` as const };
   return res;
 }
 

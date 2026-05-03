@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "../clients/createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 import type {
   CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403,
@@ -55,12 +56,13 @@ export function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ template_id, data }) =>
-      createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
+    mutationFn: async ({ template_id, data }) => {
+      return createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
         template_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

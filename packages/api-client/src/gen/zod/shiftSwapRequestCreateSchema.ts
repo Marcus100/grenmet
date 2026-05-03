@@ -3,20 +3,18 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestCreateSchema = z.object({
-  counterpart_user_id: z.uuid(),
+  counterpart_user_id: z.string().uuid(),
   department_id: z.string(),
-  get swap_type() {
-    return swapTypeSchema.optional();
-  },
-  source_date: z.iso.date(),
+  swap_type: z.optional(z.lazy(() => swapTypeSchema)),
+  source_date: z.string().date(),
   source_shift_code: z.string(),
-  target_date: z.iso.date(),
+  target_date: z.string().date(),
   target_shift_code: z.string(),
-  effective_date: z.optional(z.union([z.iso.date(), z.null()])),
-  restoration_date: z.optional(z.union([z.iso.date(), z.null()])),
+  effective_date: z.optional(z.union([z.string().date(), z.null()])),
+  restoration_date: z.optional(z.union([z.string().date(), z.null()])),
   reason: z.optional(z.union([z.string(), z.null()])),
 });

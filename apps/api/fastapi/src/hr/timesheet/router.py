@@ -35,7 +35,9 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
     description="Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet and entries created"},
-        status.HTTP_403_FORBIDDEN: {"description": "Self/proxy submission disabled or not allowed for user"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Self/proxy submission disabled or not allowed for user"
+        },
     },
 )
 async def create_timesheet_endpoint(
@@ -46,7 +48,10 @@ async def create_timesheet_endpoint(
     )
     return TimesheetDetails(
         timesheet=TimesheetPublic.model_validate(timesheet, from_attributes=True),
-        entries=[TimesheetEntryPublic.model_validate(entry, from_attributes=True) for entry in entries],
+        entries=[
+            TimesheetEntryPublic.model_validate(entry, from_attributes=True)
+            for entry in entries
+        ],
     )
 
 
@@ -58,7 +63,9 @@ async def create_timesheet_endpoint(
     responses={
         status.HTTP_200_OK: {"description": "Timesheet submitted"},
         status.HTTP_400_BAD_REQUEST: {"description": "Timesheet already submitted"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed (self only for own; proxy not allowed)"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed (self only for own; proxy not allowed)"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
@@ -85,7 +92,9 @@ async def submit_timesheet_endpoint(
     responses={
         status.HTTP_200_OK: {"description": "Timesheet approved"},
         status.HTTP_400_BAD_REQUEST: {"description": "Timesheet is not submitted"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to approve this timesheet"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to approve this timesheet"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
@@ -105,11 +114,11 @@ async def approve_timesheet_endpoint(
     responses={status.HTTP_200_OK: {"description": "Timesheets returned"}},
 )
 async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = await list_my_timesheets(
-        session=session, current_user=current_user
-    )
+    rows = await list_my_timesheets(session=session, current_user=current_user)
     return TimesheetListPublic(
-        data=[TimesheetPublic.model_validate(item, from_attributes=True) for item in rows],
+        data=[
+            TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
+        ],
         count=len(rows),
     )
 
@@ -131,7 +140,9 @@ async def read_department_timesheets(
         session=session, current_user=current_user, department_id=department_id
     )
     return TimesheetListPublic(
-        data=[TimesheetPublic.model_validate(item, from_attributes=True) for item in rows],
+        data=[
+            TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
+        ],
         count=len(rows),
     )
 
@@ -143,7 +154,9 @@ async def read_department_timesheets(
     description="Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
     responses={
         status.HTTP_200_OK: {"description": "Summary returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to read this timesheet"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to read this timesheet"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
@@ -164,7 +177,9 @@ async def read_timesheet_summary(
     description="Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet and entries returned"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to read this timesheet"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to read this timesheet"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )

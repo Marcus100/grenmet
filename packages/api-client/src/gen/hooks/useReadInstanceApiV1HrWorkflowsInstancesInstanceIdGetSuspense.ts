@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 import type {
   ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
@@ -31,7 +32,7 @@ export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspenseQueryKey 
     [
       {
         url: "/api/v1/hr/workflows/instances/:instance_id",
-        params: { instance_id },
+        params: { instance_id: instance_id },
       },
     ] as const;
 

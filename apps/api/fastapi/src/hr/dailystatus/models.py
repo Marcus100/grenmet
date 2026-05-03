@@ -33,7 +33,9 @@ class StatusReport(SQLModel, table=True):
     communications_status: str | None = Field(default=None, max_length=1000)
     general_remarks: str | None = Field(default=None, max_length=2000)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
-    workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
+    workflow_instance_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.workflow_instance.id"
+    )
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

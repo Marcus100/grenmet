@@ -1,4 +1,5 @@
 import uuid
+from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -84,7 +85,10 @@ async def _active_role_assignment_scope_by_role(
         if assignment.effective_to and assignment.effective_to < now:
             continue
         current_scope = scope_by_role.get(assignment.role_id)
-        if current_scope is None or precedence[assignment.scope] > precedence[current_scope]:
+        if (
+            current_scope is None
+            or precedence[assignment.scope] > precedence[current_scope]
+        ):
             scope_by_role[assignment.role_id] = assignment.scope
     return scope_by_role
 
@@ -109,7 +113,9 @@ async def _get_or_create_profile(session: AsyncSession, user: User) -> UserProfi
     return profile
 
 
-async def _get_or_create_address(session: AsyncSession, user_id: uuid.UUID) -> UserAddress:
+async def _get_or_create_address(
+    session: AsyncSession, user_id: uuid.UUID
+) -> UserAddress:
     result = await session.execute(
         select(UserAddress).where(UserAddress.user_id == user_id)
     )
@@ -282,7 +288,9 @@ async def _build_profile_response(
     )
 
 
-async def read_profile_for_user(*, session: AsyncSession, current_user: User) -> UserProfilePublic:
+async def read_profile_for_user(
+    *, session: AsyncSession, current_user: User
+) -> UserProfilePublic:
     profile = await _get_or_create_profile(session=session, user=current_user)
     address = await _get_or_create_address(session=session, user_id=current_user.id)
     roster_preference = await _get_or_create_roster_preference(
@@ -338,7 +346,9 @@ async def update_roster_preferences(
     user_id: uuid.UUID,
     roster_data: dict[str, object],
 ) -> RosterPreference:
-    roster_preference = await _get_or_create_roster_preference(session=session, user_id=user_id)
+    roster_preference = await _get_or_create_roster_preference(
+        session=session, user_id=user_id
+    )
     preferred_shifts = roster_data.pop("preferred_shifts", None)
     restricted_shifts = roster_data.pop("restricted_shifts", None)
     roster_preference.sqlmodel_update(roster_data)
@@ -374,7 +384,9 @@ async def update_profile_for_current_user(
 ) -> UserProfilePublic:
     profile_updates = payload.get("profile")
     if isinstance(profile_updates, dict):
-        await update_profile_details(session=session, user=current_user, profile_data=profile_updates)
+        await update_profile_details(
+            session=session, user=current_user, profile_data=profile_updates
+        )
 
     address_updates = payload.get("address")
     if isinstance(address_updates, dict):
@@ -451,7 +463,9 @@ async def update_employment_for_user(
         select(User)
         .where(User.id == target_user_id)
         .options(
-            selectinload(User.roles).selectinload(Role.permissions),
+            selectinload(cast(Any, User.roles)).selectinload(
+                cast(Any, Role.permissions)
+            ),
         )
     )
     result = await session.execute(stmt)

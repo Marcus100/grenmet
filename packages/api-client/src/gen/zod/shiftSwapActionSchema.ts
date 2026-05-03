@@ -3,12 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const shiftSwapActionSchema = z.object({
-  get status() {
-    return requestStatusSchema;
-  },
+  status: z.lazy(() => requestStatusSchema),
   comments: z.optional(z.union([z.string(), z.null()])),
 });

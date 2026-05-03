@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch } from "../clients/approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 import type {
   ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch400,
@@ -51,11 +52,12 @@ export function approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id }) =>
-      approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
+    mutationFn: async ({ timesheet_id }) => {
+      return approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch(
         timesheet_id,
         config
-      ),
+      );
+    },
   });
 }
 

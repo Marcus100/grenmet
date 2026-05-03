@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
 
 export const readPermissionApiV1AuthPermissionsPermissionIdGetPathParamsSchema =
   z.object({
-    permission_id: z.uuid(),
+    permission_id: z.string().uuid(),
   });
 
 /**

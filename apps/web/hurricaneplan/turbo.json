@@ -1,0 +1,15 @@
+{
+  "$schema": "https://v2-9-6.turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "AUTH_APP_URL",
+        "AUTH_API_URL",
+        "AUTH_API_V1_STR",
+        "SESSION_COOKIE_NAME",
+        "AUTH_ALLOWED_RETURN_HOSTS"
+      ]
+    }
+  }
+}

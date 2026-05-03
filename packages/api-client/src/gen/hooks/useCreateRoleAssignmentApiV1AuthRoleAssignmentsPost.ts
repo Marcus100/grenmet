@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "../clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 import type {
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
@@ -45,8 +46,9 @@ export function createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createRoleAssignmentApiV1AuthRoleAssignmentsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createRoleAssignmentApiV1AuthRoleAssignmentsPost(data, config);
+    },
   });
 }
 

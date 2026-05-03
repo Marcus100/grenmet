@@ -16,7 +16,7 @@ import type {
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
 
 function getResetPasswordApiV1ResetPasswordPostUrl() {
-  const res = { method: "POST", url: "/api/v1/reset-password/" as const };
+  const res = { method: "POST", url: `/api/v1/reset-password/` as const };
   return res;
 }
 

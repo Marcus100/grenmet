@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const userRegisterSchema = z.object({
-  email: z.email(),
+  email: z.string().email(),
   username: z.string().min(3).max(255),
   password: z.string().min(8).max(40),
   first_name: z.string().min(1).max(100),

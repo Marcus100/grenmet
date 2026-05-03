@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createPeriodApiV1HrRostersPeriodsPost } from "../clients/createPeriodApiV1HrRostersPeriodsPost.js";
 import type {
   CreatePeriodApiV1HrRostersPeriodsPost400,
@@ -49,8 +50,9 @@ export function createPeriodApiV1HrRostersPeriodsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createPeriodApiV1HrRostersPeriodsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createPeriodApiV1HrRostersPeriodsPost(data, config);
+    },
   });
 }
 

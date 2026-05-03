@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { loginAccessTokenApiV1LoginAccessTokenPost } from "../clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
 import type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
@@ -47,8 +48,9 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      loginAccessTokenApiV1LoginAccessTokenPost(data, config),
+    mutationFn: async ({ data }) => {
+      return loginAccessTokenApiV1LoginAccessTokenPost(data, config);
+    },
   });
 }
 

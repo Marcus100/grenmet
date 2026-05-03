@@ -7,7 +7,6 @@ from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
-from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_TIMESHEET_ALREADY_SUBMITTED,
     ERROR_TIMESHEET_APPROVE_NOT_ALLOWED,
@@ -28,6 +27,7 @@ from src.hr.roster.models import RosterAssignment
 from src.hr.workflow.models import WorkflowTemplate, WorkflowType
 from src.hr.workflow.schemas import WorkflowInstanceCreate
 from src.hr.workflow.service import create_workflow_instance
+from src.utils.datetime import utc_now
 
 from .models import (
     DepartmentPolicy,
@@ -138,9 +138,7 @@ async def submit_timesheet(
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
 ) -> Timesheet:
-    timesheet = await get_timesheet_or_404(
-        session=session, timesheet_id=timesheet_id
-    )
+    timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
@@ -160,9 +158,7 @@ async def submit_timesheet(
             target_user_id=timesheet.user_id,
             permission_key="timesheet.submit.proxy",
         ):
-            raise HRPermissionDeniedError(
-                ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED
-            )
+            raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED)
 
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
@@ -184,12 +180,8 @@ async def submit_timesheet(
 async def approve_timesheet(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> Timesheet:
-    require_permission(
-        current_user=current_user, permission_key="timesheet.approve"
-    )
-    timesheet = await get_timesheet_or_404(
-        session=session, timesheet_id=timesheet_id
-    )
+    require_permission(current_user=current_user, permission_key="timesheet.approve")
+    timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.SUBMITTED:
         raise HRValidationError(ERROR_TIMESHEET_NOT_SUBMITTED)
     if not await can_act_on_user(
@@ -238,9 +230,7 @@ async def list_department_timesheets(
 async def read_timesheet_details(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
-    timesheet = await get_timesheet_or_404(
-        session=session, timesheet_id=timesheet_id
-    )
+    timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if current_user.id != timesheet.user_id and not await can_act_on_user(
         session=session,
         current_user=current_user,
@@ -249,9 +239,7 @@ async def read_timesheet_details(
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
     result = await session.execute(
-        select(TimesheetEntry).where(
-            col(TimesheetEntry.timesheet_id) == timesheet_id
-        )
+        select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
     )
     entries = list(result.scalars().all())
     return timesheet, entries
@@ -260,9 +248,7 @@ async def read_timesheet_details(
 async def get_timesheet_summary(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> TimesheetSummaryByShift:
-    timesheet = await get_timesheet_or_404(
-        session=session, timesheet_id=timesheet_id
-    )
+    timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if current_user.id != timesheet.user_id and not await can_act_on_user(
         session=session,
         current_user=current_user,
@@ -272,9 +258,7 @@ async def get_timesheet_summary(
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
 
     result = await session.execute(
-        select(TimesheetEntry).where(
-            col(TimesheetEntry.timesheet_id) == timesheet_id
-        )
+        select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
     )
     entries = list(result.scalars().all())
 

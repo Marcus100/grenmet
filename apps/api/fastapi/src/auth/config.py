@@ -11,7 +11,7 @@ class AuthConfig(BaseSettings):
     """Auth-domain settings loaded from env. Decoupled from global Settings."""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.local",
         env_ignore_empty=True,
         extra="ignore",
     )
@@ -67,4 +67,4 @@ class AuthConfig(BaseSettings):
 
 
 # Global auth settings instance
-auth_settings = AuthConfig()  # type: ignore[call-arg]
+auth_settings = AuthConfig()

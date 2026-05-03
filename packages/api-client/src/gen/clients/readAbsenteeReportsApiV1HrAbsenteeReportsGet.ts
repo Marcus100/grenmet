@@ -17,7 +17,7 @@ import type {
 } from "../models/ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 
 function getReadAbsenteeReportsApiV1HrAbsenteeReportsGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/absentee-reports" as const };
+  const res = { method: "GET", url: `/api/v1/hr/absentee-reports` as const };
   return res;
 }
 

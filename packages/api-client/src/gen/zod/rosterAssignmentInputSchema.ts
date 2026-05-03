@@ -3,11 +3,11 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const rosterAssignmentInputSchema = z.object({
-  user_id: z.uuid(),
-  assignment_date: z.iso.date(),
+  user_id: z.string().uuid(),
+  assignment_date: z.string().date(),
   shift_code: z.string(),
   remarks: z.optional(z.union([z.string(), z.null()])),
 });

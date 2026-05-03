@@ -19,7 +19,7 @@ import type {
 function getCreateTemplateApiV1HrWorkflowsTemplatesPostUrl() {
   const res = {
     method: "POST",
-    url: "/api/v1/hr/workflows/templates" as const,
+    url: `/api/v1/hr/workflows/templates` as const,
   };
   return res;
 }

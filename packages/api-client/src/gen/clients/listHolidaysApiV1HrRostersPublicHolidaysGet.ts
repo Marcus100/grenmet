@@ -19,7 +19,7 @@ import type {
 function getListHolidaysApiV1HrRostersPublicHolidaysGetUrl() {
   const res = {
     method: "GET",
-    url: "/api/v1/hr/rosters/public-holidays" as const,
+    url: `/api/v1/hr/rosters/public-holidays` as const,
   };
   return res;
 }

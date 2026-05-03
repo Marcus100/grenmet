@@ -18,7 +18,7 @@ import type {
 function getCreateRoleAssignmentApiV1AuthRoleAssignmentsPostUrl() {
   const res = {
     method: "POST",
-    url: "/api/v1/auth/role-assignments/" as const,
+    url: `/api/v1/auth/role-assignments/` as const,
   };
   return res;
 }

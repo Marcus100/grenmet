@@ -17,7 +17,7 @@ import type {
 } from "../models/CreateStatusReportEndpointApiV1HrStatusReportsPost.js";
 
 function getCreateStatusReportEndpointApiV1HrStatusReportsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/status-reports" as const };
+  const res = { method: "POST", url: `/api/v1/hr/status-reports` as const };
   return res;
 }
 

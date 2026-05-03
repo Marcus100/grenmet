@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createTemplateApiV1HrWorkflowsTemplatesPost } from "../clients/createTemplateApiV1HrWorkflowsTemplatesPost.js";
 import type {
   CreateTemplateApiV1HrWorkflowsTemplatesPost403,
@@ -47,8 +48,9 @@ export function createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createTemplateApiV1HrWorkflowsTemplatesPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createTemplateApiV1HrWorkflowsTemplatesPost(data, config);
+    },
   });
 }
 

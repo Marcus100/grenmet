@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import type {
   ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
@@ -30,7 +31,7 @@ export const readPermissionApiV1AuthPermissionsPermissionIdGetSuspenseQueryKey =
     [
       {
         url: "/api/v1/auth/permissions/:permission_id",
-        params: { permission_id },
+        params: { permission_id: permission_id },
       },
     ] as const;
 

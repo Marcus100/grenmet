@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet } from "../clients/readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 import type {
   ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404,
@@ -30,7 +31,7 @@ export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetSuspenseQu
     [
       {
         url: "/api/v1/auth/role-assignments/:assignment_id",
-        params: { assignment_id },
+        params: { assignment_id: assignment_id },
       },
     ] as const;
 

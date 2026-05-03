@@ -16,7 +16,7 @@ import type {
 } from "../models/TestEmailApiV1UtilsTestEmailPost.js";
 
 function getTestEmailApiV1UtilsTestEmailPostUrl() {
-  const res = { method: "POST", url: "/api/v1/utils/test-email/" as const };
+  const res = { method: "POST", url: `/api/v1/utils/test-email/` as const };
   return res;
 }
 

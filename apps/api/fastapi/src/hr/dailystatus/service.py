@@ -16,9 +16,7 @@ from .schemas import StatusReportCreate
 async def create_status_report(
     *, session: AsyncSession, current_user: User, payload: StatusReportCreate
 ) -> tuple[StatusReport, list[StatusReportEntry]]:
-    require_permission(
-        current_user=current_user, permission_key="status.report.create"
-    )
+    require_permission(current_user=current_user, permission_key="status.report.create")
     report = StatusReport(
         department_id=payload.department_id,
         report_date=payload.report_date,
@@ -70,9 +68,7 @@ async def create_status_report(
 async def read_status_report_details(
     *, session: AsyncSession, current_user: User, report_id: uuid.UUID
 ) -> tuple[StatusReport, list[StatusReportEntry]]:
-    require_permission(
-        current_user=current_user, permission_key="status.report.read"
-    )
+    require_permission(current_user=current_user, permission_key="status.report.read")
     report = await get_status_report_or_404(
         session=session,
         report_id=report_id,
@@ -89,14 +85,10 @@ async def read_status_report_details(
 async def list_status_reports(
     *, session: AsyncSession, current_user: User, department_id: str | None = None
 ) -> list[StatusReport]:
-    require_permission(
-        current_user=current_user, permission_key="status.report.read"
-    )
+    require_permission(current_user=current_user, permission_key="status.report.read")
     statement = select(StatusReport)
     if department_id:
-        statement = statement.where(
-            col(StatusReport.department_id) == department_id
-        )
+        statement = statement.where(col(StatusReport.department_id) == department_id)
     result = await session.execute(
         statement.order_by(col(StatusReport.created_at).desc())
     )

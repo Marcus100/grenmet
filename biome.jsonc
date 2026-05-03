@@ -5,6 +5,9 @@
     "ultracite/biome/react",
     "ultracite/biome/next"
   ],
+  "files": {
+    "includes": ["**", "!.claude", "!apps/api/fastapi"]
+  },
   "linter": {
     "rules": {
       "style": {
@@ -20,8 +23,30 @@
         "noSvgWithoutTitle": "warn"
       },
       "complexity": {
-        "noExcessiveCognitiveComplexity": "warn"
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 20 }
+        }
+      },
+      "suspicious": {
+        "noConsole": "warn"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/scripts/**", "*.mjs", "*.cjs"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noConsole": "off" }
+        }
+      }
+    },
+    {
+      "includes": ["packages/api-client/src/gen/**"],
+      "linter": {
+        "enabled": false
+      }
+    }
+  ]
 }

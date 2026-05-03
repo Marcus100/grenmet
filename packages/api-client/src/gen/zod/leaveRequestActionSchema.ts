@@ -3,13 +3,11 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const leaveRequestActionSchema = z.object({
-  get status() {
-    return requestStatusSchema;
-  },
+  status: z.lazy(() => requestStatusSchema),
   comments: z.optional(z.union([z.string(), z.null()])),
   head_of_dept_comments: z.optional(z.union([z.string(), z.null()])),
 });

@@ -46,7 +46,9 @@ async def create_leave_request_endpoint(
     description="Approve or update a leave request. Requires leave.request.action and scope over the user.",
     responses={
         status.HTTP_200_OK: {"description": "Leave request updated"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to action this leave request"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to action this leave request"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
     },
 )
@@ -73,10 +75,11 @@ async def action_leave_request_endpoint(
     responses={status.HTTP_200_OK: {"description": "Leave requests returned"}},
 )
 async def read_my_leave_requests(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = await list_leave_requests(
-        session=session, current_user=current_user
-    )
+    rows = await list_leave_requests(session=session, current_user=current_user)
     return LeaveRequestListPublic(
-        data=[LeaveRequestPublic.model_validate(item, from_attributes=True) for item in rows],
+        data=[
+            LeaveRequestPublic.model_validate(item, from_attributes=True)
+            for item in rows
+        ],
         count=len(rows),
     )
