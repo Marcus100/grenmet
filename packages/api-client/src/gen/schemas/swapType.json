@@ -1,6 +1,1 @@
-{
-  "type": "string",
-  "enum": ["TEMPORARY", "PERMANENT"],
-  "title": "SwapType",
-  "x-readme-ref-name": "SwapType"
-}
+{"type":"string","enum":["TEMPORARY","PERMANENT"],"title":"SwapType","x-readme-ref-name":"SwapType"}
