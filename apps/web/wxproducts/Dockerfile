@@ -49,8 +49,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxproducts/public ./apps
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxproducts/drizzle ./apps/web/wxproducts/drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxproducts/scripts ./apps/web/wxproducts/scripts
 
+RUN printf '#!/bin/sh\nset -e\nnode apps/web/wxproducts/scripts/migrate.mjs\nexec node apps/web/wxproducts/server.js\n' > /entrypoint.sh \
+    && chmod +x /entrypoint.sh
+
 USER nextjs
 EXPOSE 3005
 ENV PORT=3005
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "apps/web/wxproducts/server.js"]
+ENTRYPOINT ["/entrypoint.sh"]
