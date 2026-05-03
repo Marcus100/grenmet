@@ -6,7 +6,7 @@
     "ultracite/biome/next"
   ],
   "files": {
-    "includes": ["**", "!.claude"]
+    "includes": ["**", "!.claude", "!apps/api/fastapi"]
   },
   "linter": {
     "rules": {
