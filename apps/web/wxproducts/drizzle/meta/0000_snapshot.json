@@ -122,12 +122,8 @@
           "name": "cap_alerts_bundle_id_cap_bundles_id_fk",
           "tableFrom": "cap_alerts",
           "tableTo": "cap_bundles",
-          "columnsFrom": [
-            "bundle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["bundle_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -135,12 +131,8 @@
           "name": "cap_alerts_ibf_assessment_id_ibf_assessments_ibf_assessment_id_fk",
           "tableFrom": "cap_alerts",
           "tableTo": "ibf_assessments",
-          "columnsFrom": [
-            "ibf_assessment_id"
-          ],
-          "columnsTo": [
-            "ibf_assessment_id"
-          ],
+          "columnsFrom": ["ibf_assessment_id"],
+          "columnsTo": ["ibf_assessment_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -242,12 +234,8 @@
           "name": "cap_bundles_suite_id_product_suites_suite_id_fk",
           "tableFrom": "cap_bundles",
           "tableTo": "product_suites",
-          "columnsFrom": [
-            "suite_id"
-          ],
-          "columnsTo": [
-            "suite_id"
-          ],
+          "columnsFrom": ["suite_id"],
+          "columnsTo": ["suite_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -334,12 +322,8 @@
           "name": "evening_products_product_ref_products_id_fk",
           "tableFrom": "evening_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_ref"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_ref"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -454,12 +438,8 @@
           "name": "hourly_summaries_source_metar_id_aviation_observations_id_fk",
           "tableFrom": "hourly_summaries",
           "tableTo": "aviation_observations",
-          "columnsFrom": [
-            "source_metar_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["source_metar_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -467,12 +447,8 @@
           "name": "hourly_summaries_source_synop_id_synop_observations_id_fk",
           "tableFrom": "hourly_summaries",
           "tableTo": "synop_observations",
-          "columnsFrom": [
-            "source_synop_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["source_synop_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -586,12 +562,8 @@
           "name": "ibf_assessments_product_id_products_product_id_fk",
           "tableFrom": "ibf_assessments",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_id"
-          ],
-          "columnsTo": [
-            "product_id"
-          ],
+          "columnsFrom": ["product_id"],
+          "columnsTo": ["product_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -718,12 +690,8 @@
           "name": "marine_products_product_ref_products_id_fk",
           "tableFrom": "marine_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_ref"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_ref"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -973,12 +941,8 @@
           "name": "midday_products_product_ref_products_id_fk",
           "tableFrom": "midday_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_ref"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_ref"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1071,12 +1035,8 @@
           "name": "morning_products_product_ref_products_id_fk",
           "tableFrom": "morning_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_ref"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_ref"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1187,12 +1147,8 @@
           "name": "tropical_outlook_products_product_ref_products_id_fk",
           "tableFrom": "tropical_outlook_products",
           "tableTo": "products",
-          "columnsFrom": [
-            "product_ref"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["product_ref"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1455,12 +1411,8 @@
           "name": "products_suite_id_product_suites_suite_id_fk",
           "tableFrom": "products",
           "tableTo": "product_suites",
-          "columnsFrom": [
-            "suite_id"
-          ],
-          "columnsTo": [
-            "suite_id"
-          ],
+          "columnsFrom": ["suite_id"],
+          "columnsTo": ["suite_id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1713,38 +1665,22 @@
     "public.obs_source_type": {
       "name": "obs_source_type",
       "schema": "public",
-      "values": [
-        "metar",
-        "synop"
-      ]
+      "values": ["metar", "synop"]
     },
     "public.color_code": {
       "name": "color_code",
       "schema": "public",
-      "values": [
-        "GREEN",
-        "ORANGE",
-        "RED",
-        "YELLOW"
-      ]
+      "values": ["GREEN", "ORANGE", "RED", "YELLOW"]
     },
     "public.aviation_report_type": {
       "name": "aviation_report_type",
       "schema": "public",
-      "values": [
-        "METAR",
-        "SPECI"
-      ]
+      "values": ["METAR", "SPECI"]
     },
     "public.product_status": {
       "name": "product_status",
       "schema": "public",
-      "values": [
-        "archived",
-        "operational",
-        "test",
-        "training"
-      ]
+      "values": ["archived", "operational", "test", "training"]
     },
     "public.product_type": {
       "name": "product_type",
