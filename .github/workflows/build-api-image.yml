@@ -75,6 +75,17 @@ jobs:
             echo "primary_tag=$TAG" >> $GITHUB_OUTPUT
             echo "version_tag=" >> $GITHUB_OUTPUT
             echo "Building $TAG tag (manual trigger)"
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            BRANCH="${{ github.ref_name }}"
+            if [ "$BRANCH" == "staging" ]; then
+              echo "primary_tag=staging" >> $GITHUB_OUTPUT
+              echo "version_tag=" >> $GITHUB_OUTPUT
+              echo "Building staging tag"
+            else
+              echo "primary_tag=latest" >> $GITHUB_OUTPUT
+              echo "version_tag=" >> $GITHUB_OUTPUT
+              echo "Building latest tag for main branch"
+            fi
           else
             # workflow_run — branch determines staging vs production
             BRANCH="${{ github.event.workflow_run.head_branch }}"
