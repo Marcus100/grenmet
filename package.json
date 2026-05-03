@@ -8,7 +8,7 @@
     "pnpm": ">=10"
   },
   "scripts": {
-    "build": "turbo run build --concurrency=50%",
+    "build": "turbo run build",
     "clean": "git clean -xdf node_modules",
     "dev": "turbo run dev --parallel",
     "start": "docker compose -p grenmet --env-file apps/api/fastapi/.env.local -f infra/docker/docker-compose.yml --profile tools up -d && docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml up",
