@@ -48,11 +48,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/public ./apps/we
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/drizzle ./apps/web/wxwatch/drizzle
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/wxwatch/scripts ./apps/web/wxwatch/scripts
 
-RUN printf '#!/bin/sh\nset -e\nnode apps/web/wxwatch/scripts/migrate.mjs\nexec node apps/web/wxwatch/server.js\n' > /entrypoint.sh \
-    && chmod +x /entrypoint.sh
-
 USER nextjs
 EXPOSE 3002
 ENV PORT=3002
 ENV HOSTNAME=0.0.0.0
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["node", "apps/web/wxwatch/server.js"]
