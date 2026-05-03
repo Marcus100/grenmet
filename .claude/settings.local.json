@@ -35,7 +35,8 @@
       "Bash(ls -d /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/wxproducts/src/*/)",
       "Bash(grep -E \"\\\\.ts$\")",
       "Bash(pnpm fix:*)",
-      "Bash(pnpm check:fix)"
+      "Bash(pnpm check:fix)",
+      "Bash(gh pr *)"
     ]
   }
 }

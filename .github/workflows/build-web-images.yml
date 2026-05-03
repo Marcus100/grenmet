@@ -76,7 +76,7 @@ jobs:
       - name: Determine image tag and build args
         id: meta
         run: |
-          OWNER="${{ github.repository_owner }}"
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
 
           if [ "${{ github.event_name }}" == "release" ]; then
             TAG="latest"

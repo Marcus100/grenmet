@@ -40,6 +40,9 @@ jobs:
         with:
           fetch-depth: 0 # Needed for semver tag extraction
 
+      - name: Set lowercase repo name
+        run: echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
 
@@ -87,8 +90,8 @@ jobs:
           pull: true
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.primary_tag }}
-            ${{ steps.tags.outputs.version_tag != '' && format('ghcr.io/{0}:{1}', github.repository, steps.tags.outputs.version_tag) || '' }}
+            ghcr.io/${{ env.REPO_LOWER }}:${{ steps.tags.outputs.primary_tag }}
+            ${{ steps.tags.outputs.version_tag != '' && format('ghcr.io/{0}:{1}', env.REPO_LOWER, steps.tags.outputs.version_tag) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
@@ -97,7 +100,7 @@ jobs:
       - name: Image digest and tags summary
         run: |
           echo "✅ grenmet-api image built and pushed successfully"
-          echo "Registry: ghcr.io/${{ github.repository }}"
+          echo "Registry: ghcr.io/${{ env.REPO_LOWER }}"
           echo "Primary tag: ${{ steps.tags.outputs.primary_tag }}"
           if [ -n "${{ steps.tags.outputs.version_tag }}" ]; then
             echo "Version tag: ${{ steps.tags.outputs.version_tag }}"
