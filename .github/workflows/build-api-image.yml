@@ -8,6 +8,12 @@ on:
     branches:
       - main
       - staging
+  push:
+    branches:
+      - staging
+    paths:
+      - "apps/api/fastapi/**"
+      - ".github/workflows/build-api-image.yml"
   release:
     types: [published]
   workflow_dispatch:
