@@ -5,6 +5,13 @@ on:
     workflows: ["CI — Web Apps"]
     types: [completed]
     branches: [main, staging]
+  push:
+    branches:
+      - staging
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/build-web-images.yml"
   release:
     types: [published]
   workflow_dispatch:
