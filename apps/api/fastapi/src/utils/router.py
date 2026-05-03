@@ -42,7 +42,10 @@ async def health_check() -> bool:
     "/ready/",
     summary="Readiness",
     description="Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
-    responses={200: {"description": "Database reachable"}, 503: {"description": "Database unreachable"}},
+    responses={
+        200: {"description": "Database reachable"},
+        503: {"description": "Database unreachable"},
+    },
 )
 async def ready(session: SessionDep) -> dict:
     """Readiness: check DB connectivity. Returns 503 on failure."""

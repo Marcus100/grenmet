@@ -1,8 +1,7 @@
+import httpx
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session
-
-import httpx
 
 from src.auth import service as crud
 from src.auth.models import User
@@ -29,9 +28,7 @@ async def user_authentication_headers_async(
 ) -> dict[str, str]:
     """Get authentication headers for a user (async client)."""
     data = {"username": email, "password": password}
-    r = await client.post(
-        f"{settings.API_V1_STR}/login/access-token", data=data
-    )
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=data)
     r.raise_for_status()
     tokens = r.json()
     return {"Authorization": f"Bearer {tokens['access_token']}"}
@@ -80,7 +77,7 @@ def create_random_user(db: Session) -> User:
         username=username,
         password=password,
         first_name="Test",
-        last_name="User"
+        last_name="User",
     )
     user = crud.create_user(session=db, user_create=user_in)
     return user
@@ -99,10 +96,10 @@ def authentication_token_from_email(
     if not user:
         user_in_create = UserCreate(
             email=email,
-            username=email.split('@')[0],
+            username=email.split("@")[0],
             password=password,
             first_name="Test",
-            last_name="User"
+            last_name="User",
         )
         user = crud.create_user(session=db, user_create=user_in_create)
     else:
@@ -111,7 +108,7 @@ def authentication_token_from_email(
             username=user.username,
             first_name=user.first_name,
             last_name=user.last_name,
-            password=password
+            password=password,
         )
         if not user.id:
             raise Exception("User id not set")

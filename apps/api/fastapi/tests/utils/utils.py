@@ -35,9 +35,7 @@ async def get_superuser_token_headers_async(
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
-    r = await client.post(
-        f"{settings.API_V1_STR}/login/access-token", data=login_data
-    )
+    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
     r.raise_for_status()
     tokens = r.json()
     return {"Authorization": f"Bearer {tokens['access_token']}"}

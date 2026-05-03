@@ -51,7 +51,9 @@ async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User
     return db_obj
 
 
-async def update_user(*, session: AsyncSession, db_user: User, user_in: UserUpdate) -> Any:
+async def update_user(
+    *, session: AsyncSession, db_user: User, user_in: UserUpdate
+) -> Any:
     """Update user with optional password hashing."""
     user_data = user_in.model_dump(exclude_unset=True)
     extra_data = {}
@@ -95,7 +97,9 @@ async def get_users(
     return users, total
 
 
-async def authenticate(*, session: AsyncSession, email: str, password: str) -> User | None:
+async def authenticate(
+    *, session: AsyncSession, email: str, password: str
+) -> User | None:
     """Authenticate user with email and password."""
     db_user = await get_user_by_email(session=session, email=email)
     if not db_user:
@@ -181,7 +185,9 @@ async def get_active_session_by_secret(
     *, session: AsyncSession, session_secret: str
 ) -> AuthSession | None:
     """Return an active session or None when the secret is invalid, expired, or revoked."""
-    db_session = await get_session_by_secret(session=session, session_secret=session_secret)
+    db_session = await get_session_by_secret(
+        session=session, session_secret=session_secret
+    )
     if not db_session or not is_session_active(db_session):
         return None
     return db_session
@@ -208,7 +214,9 @@ async def touch_session(
     return db_session
 
 
-async def revoke_session(*, session: AsyncSession, db_session: AuthSession) -> AuthSession:
+async def revoke_session(
+    *, session: AsyncSession, db_session: AuthSession
+) -> AuthSession:
     """Revoke a persisted session."""
     now = utc_now()
     if db_session.revoked_at is None:
@@ -316,7 +324,9 @@ async def get_role(*, session: AsyncSession, role_id: uuid.UUID) -> Role | None:
     return result.scalars().first()
 
 
-async def get_roles(*, session: AsyncSession, skip: int = 0, limit: int = 100) -> list[Role]:
+async def get_roles(
+    *, session: AsyncSession, skip: int = 0, limit: int = 100
+) -> list[Role]:
     """Get all roles."""
     statement = select(Role).offset(skip).limit(limit)
     result = await session.execute(statement)
@@ -360,9 +370,8 @@ async def update_permission(
 ) -> Permission:
     """Update a permission."""
     permission_data = permission_in.model_dump(exclude_unset=True)
-    if (
-        "key" not in permission_data
-        and ("entity" in permission_data or "action" in permission_data)
+    if "key" not in permission_data and (
+        "entity" in permission_data or "action" in permission_data
     ):
         permission_data["key"] = (
             f"{permission_data.get('entity', db_permission.entity)}."
@@ -375,7 +384,9 @@ async def update_permission(
     return db_permission
 
 
-async def get_permission(*, session: AsyncSession, permission_id: uuid.UUID) -> Permission | None:
+async def get_permission(
+    *, session: AsyncSession, permission_id: uuid.UUID
+) -> Permission | None:
     """Get a permission by ID."""
     statement = select(Permission).where(Permission.id == permission_id)
     result = await session.execute(statement)

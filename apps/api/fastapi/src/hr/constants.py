@@ -18,7 +18,9 @@ ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT = (
 ERROR_ROSTER_PERIOD_END_BEFORE_START = "period_end must be after period_start"
 ERROR_ROSTER_PERIOD_NOT_FOUND = "Roster period not found"
 ERROR_CSV_NO_HEADER = "CSV has no header"
-ERROR_CSV_MISSING_COLUMNS = "CSV missing columns: {}"  # .format(", ".join(sorted(cols)))
+ERROR_CSV_MISSING_COLUMNS = (
+    "CSV missing columns: {}"  # .format(", ".join(sorted(cols)))
+)
 ERROR_CSV_IMPORT_INVALID_ROWS = "CSV import has invalid rows"
 
 # --- Public Holidays ---

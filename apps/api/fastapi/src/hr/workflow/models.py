@@ -52,7 +52,9 @@ class WorkflowStepTemplate(SQLModel, table=True):
     __table_args__ = {"schema": "hr"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_template_id: uuid.UUID = Field(foreign_key="hr.workflow_template.id", index=True)
+    workflow_template_id: uuid.UUID = Field(
+        foreign_key="hr.workflow_template.id", index=True
+    )
     step_order: int = Field(ge=1)
     required_role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
@@ -66,7 +68,9 @@ class WorkflowInstance(SQLModel, table=True):
     __table_args__ = {"schema": "hr"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_template_id: uuid.UUID = Field(foreign_key="hr.workflow_template.id", index=True)
+    workflow_template_id: uuid.UUID = Field(
+        foreign_key="hr.workflow_template.id", index=True
+    )
     department_id: str = Field(foreign_key="hr.department.id", index=True)
     workflow_type: WorkflowType
     entity_type: str = Field(max_length=100)
@@ -85,12 +89,16 @@ class WorkflowStepInstance(SQLModel, table=True):
     __table_args__ = {"schema": "hr"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_instance_id: uuid.UUID = Field(foreign_key="hr.workflow_instance.id", index=True)
+    workflow_instance_id: uuid.UUID = Field(
+        foreign_key="hr.workflow_instance.id", index=True
+    )
     step_order: int = Field(ge=1)
     required_role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     is_required: bool = True
-    approver_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", index=True)
+    approver_user_id: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", index=True
+    )
     action: WorkflowAction | None = None
     comments: str | None = Field(default=None, max_length=1000)
     acted_at: datetime | None = None
@@ -103,7 +111,9 @@ class ApprovalActionLog(SQLModel, table=True):
     __table_args__ = {"schema": "hr"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_instance_id: uuid.UUID = Field(foreign_key="hr.workflow_instance.id", index=True)
+    workflow_instance_id: uuid.UUID = Field(
+        foreign_key="hr.workflow_instance.id", index=True
+    )
     workflow_step_instance_id: uuid.UUID | None = Field(
         default=None, foreign_key="hr.workflow_step_instance.id", index=True
     )

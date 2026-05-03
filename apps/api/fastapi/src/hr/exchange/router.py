@@ -44,7 +44,9 @@ async def create_shift_swap_endpoint(
     description="Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
     responses={
         status.HTTP_200_OK: {"description": "Shift swap request updated"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to action this shift swap"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to action this shift swap"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
     },
 )

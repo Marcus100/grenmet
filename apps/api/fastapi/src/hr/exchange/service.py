@@ -4,7 +4,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
-from src.utils.datetime import utc_now
 from src.hr.constants import (
     ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED,
 )
@@ -14,6 +13,7 @@ from src.hr.exceptions import (
 )
 from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity
+from src.utils.datetime import utc_now
 
 from .models import ShiftSwapRequest
 from .schemas import ShiftSwapAction, ShiftSwapRequestCreate

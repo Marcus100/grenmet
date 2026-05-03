@@ -106,7 +106,7 @@ def test_refresh_session_rotates_secret(client: TestClient) -> None:
 
     fresh_exchange_response = client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
-        json={"session_token": refresh_payload['session_token']},
+        json={"session_token": refresh_payload["session_token"]},
     )
     assert fresh_exchange_response.status_code == 200
 
