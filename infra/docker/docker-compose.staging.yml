@@ -103,7 +103,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DB_URL: ${WXWATCH_DB_URL}
+      DATABASE_URL: ${WXWATCH_DB_URL}
     networks:
       - grenmet-staging
 
@@ -170,7 +170,7 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .staging.barrels.gd
-      DB_URL: ${WXWATCH_DB_URL}
+      DATABASE_URL: ${WXWATCH_DB_URL}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-wxwatch-staging.rule=Host(`wxwatch.staging.barrels.gd`)"
