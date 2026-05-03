@@ -68,9 +68,22 @@ async def test_workflow_transition_submit_to_approve(
             access="department",
             description="Action workflow instance",
         )
+    result = await db_async.execute(
+        select(Permission).where(Permission.key == "workflow.instance.view")
+    )
+    workflow_view_permission = result.scalars().first()
+    if not workflow_view_permission:
+        workflow_view_permission = Permission(
+            key="workflow.instance.view",
+            action="read",
+            entity="workflow_instance",
+            access="department",
+            description="View workflow instance",
+        )
     await db_async.refresh(role, attribute_names=["permissions"])
     role.permissions.append(workflow_manage_permission)
     role.permissions.append(workflow_action_permission)
+    role.permissions.append(workflow_view_permission)
     await db_async.refresh(user, attribute_names=["roles"])
     user.roles.append(role)
     db_async.add(role)
