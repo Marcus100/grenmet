@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session as SQLModelSession
-from sqlmodel import select
+from sqlmodel import col, select
 
 from src.auth.config import auth_settings
 from src.auth.models import Permission, Role, User, UserRoleAssignment
@@ -236,7 +236,7 @@ async def revoke_user_sessions(
     """Revoke every active session owned by a user."""
     statement = select(AuthSession).where(
         AuthSession.user_id == user_id,
-        AuthSession.revoked_at.is_(None),
+        col(AuthSession.revoked_at).is_(None),
     )
     result = await session.execute(statement)
     sessions = list(result.scalars().all())

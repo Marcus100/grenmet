@@ -1,4 +1,5 @@
 import uuid
+from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -462,7 +463,9 @@ async def update_employment_for_user(
         select(User)
         .where(User.id == target_user_id)
         .options(
-            selectinload(User.roles).selectinload(Role.permissions),
+            selectinload(cast(Any, User.roles)).selectinload(
+                cast(Any, Role.permissions)
+            ),
         )
     )
     result = await session.execute(stmt)

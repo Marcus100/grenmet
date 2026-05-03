@@ -1,5 +1,6 @@
 import logging
 import time
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
@@ -53,7 +54,7 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI):
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
     yield
@@ -92,7 +93,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
 # Request logging middleware (runs after CORS; logs method, path, status, duration)
 logger = logging.getLogger("src.request")

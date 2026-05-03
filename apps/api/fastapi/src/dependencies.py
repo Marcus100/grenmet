@@ -21,7 +21,7 @@ Usage Example:
 
 import uuid
 from collections.abc import AsyncGenerator
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -102,8 +102,10 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         select(User)
         .where(User.id == user_id)
         .options(
-            selectinload(User.roles).selectinload(Role.permissions),
-            selectinload(User.user_image),
+            selectinload(cast(Any, User.roles)).selectinload(
+                cast(Any, Role.permissions)
+            ),
+            selectinload(cast(Any, User.user_image)),
         )
     )
     result = await session.execute(stmt)

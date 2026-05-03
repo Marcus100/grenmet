@@ -7,8 +7,9 @@ from src.auth.schemas import PermissionCreate, RoleCreate, UserCreate
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_user_model_creation(_db: Session) -> None:
+def test_user_model_creation(db: Session) -> None:
     """Test User model creation."""
+    _ = db
     email = random_email()
     password = random_lower_string()
     user_in = UserCreate(
@@ -28,8 +29,9 @@ def test_user_model_creation(_db: Session) -> None:
     assert user.is_superuser is False
 
 
-def test_role_model_creation(_db: Session) -> None:
+def test_role_model_creation(db: Session) -> None:
     """Test Role model creation."""
+    _ = db
     role_in = RoleCreate(name="test_role", description="Test role for testing")
     role = Role.model_validate(role_in)
 
@@ -37,8 +39,9 @@ def test_role_model_creation(_db: Session) -> None:
     assert role.description == "Test role for testing"
 
 
-def test_permission_model_creation(_db: Session) -> None:
+def test_permission_model_creation(db: Session) -> None:
     """Test Permission model creation."""
+    _ = db
     permission_in = PermissionCreate(
         key="read:user:own",
         action="read",
