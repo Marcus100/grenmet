@@ -1,6 +1,1 @@
-{
-  "type": "string",
-  "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
-  "title": "EmploymentStatus",
-  "x-readme-ref-name": "EmploymentStatus"
-}
+{"type":"string","enum":["ACTIVE","INACTIVE","TERMINATED"],"title":"EmploymentStatus","x-readme-ref-name":"EmploymentStatus"}

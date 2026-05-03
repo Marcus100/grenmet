@@ -1,6 +1,1 @@
-{
-  "type": "string",
-  "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
-  "title": "EmploymentType",
-  "x-readme-ref-name": "EmploymentType"
-}
+{"type":"string","enum":["FULL_TIME","PART_TIME","CONTRACT","TEMPORARY"],"title":"EmploymentType","x-readme-ref-name":"EmploymentType"}

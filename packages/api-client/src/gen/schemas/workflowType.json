@@ -1,12 +1,1 @@
-{
-  "type": "string",
-  "enum": [
-    "LEAVE_REQUEST",
-    "SHIFT_SWAP",
-    "ABSENTEE_REPORT",
-    "STATUS_REPORT",
-    "TIMESHEET"
-  ],
-  "title": "WorkflowType",
-  "x-readme-ref-name": "WorkflowType"
-}
+{"type":"string","enum":["LEAVE_REQUEST","SHIFT_SWAP","ABSENTEE_REPORT","STATUS_REPORT","TIMESHEET"],"title":"WorkflowType","x-readme-ref-name":"WorkflowType"}

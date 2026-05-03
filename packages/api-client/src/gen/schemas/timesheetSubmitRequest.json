@@ -1,14 +1,1 @@
-{
-  "properties": {
-    "mode": {
-      "default": "SELF",
-      "type": "string",
-      "enum": ["SELF", "PROXY"],
-      "title": "SubmissionMode",
-      "x-readme-ref-name": "SubmissionMode"
-    }
-  },
-  "type": "object",
-  "title": "TimesheetSubmitRequest",
-  "x-readme-ref-name": "TimesheetSubmitRequest"
-}
+{"properties":{"mode":{"default":"SELF","type":"string","enum":["SELF","PROXY"],"title":"SubmissionMode","x-readme-ref-name":"SubmissionMode"}},"type":"object","title":"TimesheetSubmitRequest","x-readme-ref-name":"TimesheetSubmitRequest"}
