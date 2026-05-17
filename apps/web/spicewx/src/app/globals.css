@@ -55,7 +55,7 @@
   --gm-border: #d0d5dd;
 
   /* shadcn semantic tokens mapped to GrenMet brand */
-  --background: var(--gm-surface);
+  --background: #ffffff;
   --foreground: oklch(0.141 0.005 285.823);
   --card: #ffffff;
   --card-foreground: oklch(0.141 0.005 285.823);
