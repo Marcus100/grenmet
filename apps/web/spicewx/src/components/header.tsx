@@ -10,13 +10,13 @@ import {
   MenuItems,
 } from "@headlessui/react";
 import { Bars3Icon, BellIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Forecasts", href: "/forecasts", current: true },
-  { name: "Warnings", href: "/warnings", current: false },
-  { name: "Marine", href: "/marine", current: false },
-  { name: "Aviation", href: "/aviation", current: false },
+  { name: "Weather and Climate", href: "/forecasts", current: true },
+  { name: "Products & Services", href: "/warnings", current: false },
+  { name: "Resources", href: "/marine", current: false },
 ];
 
 const userNavigation = [
@@ -27,17 +27,27 @@ const userNavigation = [
 
 export function Header() {
   return (
-    <Disclosure as="nav" className="mb-4 bg-gm-navy">
+    <Disclosure as="nav" className="mb-4 border-gm-border border-b bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 justify-between">
           <div className="flex">
-            <div className="flex shrink-0 items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded bg-gm-blue font-bold text-lg text-white">
-                G
-              </div>
-              <span className="hidden font-semibold text-sm text-white sm:block">
-                Grenada Meteorological Service
-              </span>
+            <div className="flex shrink-0 items-center">
+              {/* Mobile: submark */}
+              <Image
+                alt="GrenMet"
+                className="block sm:hidden"
+                height={50}
+                src="/gmslogos/logo-submark-navy-blue.png"
+                width={50}
+              />
+              {/* Desktop: full primary logo */}
+              <Image
+                alt="Grenada Meteorological Service"
+                className="hidden sm:block"
+                height={40}
+                src="/gmslogos/logo-primary-navy.png"
+                width={180}
+              />
             </div>
             <div className="hidden sm:-my-px sm:ml-8 sm:flex sm:space-x-6">
               {navigation.map((item) => (
@@ -45,9 +55,9 @@ export function Header() {
                   aria-current={item.current ? "page" : undefined}
                   className={cn(
                     item.current
-                      ? "border-gm-sky text-white"
-                      : "border-transparent text-blue-200 hover:border-blue-300 hover:text-white",
-                    "inline-flex items-center border-b-2 px-1 pt-1 font-medium text-sm transition-colors",
+                      ? "border-gm-blue text-gm-navy"
+                      : "border-transparent text-muted-foreground hover:border-gm-border hover:text-gm-navy",
+                    "inline-flex items-center border-b-2 px-1 pt-1 font-medium text-sm transition-colors"
                   )}
                   href={item.href}
                   key={item.name}
@@ -60,7 +70,7 @@ export function Header() {
 
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <button
-              className="relative rounded-full p-1 text-blue-200 transition-colors hover:text-white focus:outline-2 focus:outline-gm-sky focus:outline-offset-2"
+              className="relative rounded-full p-1 text-muted-foreground transition-colors hover:text-gm-navy focus:outline-2 focus:outline-gm-sky focus:outline-offset-2"
               type="button"
             >
               <span className="absolute -inset-1.5" />
@@ -69,7 +79,7 @@ export function Header() {
             </button>
 
             <Menu as="div" className="relative ml-3">
-              <MenuButton className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gm-blue font-bold text-sm text-white focus-visible:outline-2 focus-visible:outline-gm-sky focus-visible:outline-offset-2">
+              <MenuButton className="relative flex h-8 w-8 items-center justify-center rounded-full bg-gm-navy font-bold text-sm text-white focus-visible:outline-2 focus-visible:outline-gm-sky focus-visible:outline-offset-2">
                 <span className="absolute -inset-1.5" />
                 <span className="sr-only">Open user menu</span>U
               </MenuButton>
@@ -92,7 +102,7 @@ export function Header() {
           </div>
 
           <div className="-mr-2 flex items-center sm:hidden">
-            <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-blue-200 transition-colors hover:bg-white/10 hover:text-white focus:outline-2 focus:outline-gm-sky focus:outline-offset-2">
+            <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-gm-surface hover:text-gm-navy focus:outline-2 focus:outline-gm-sky focus:outline-offset-2">
               <span className="absolute -inset-0.5" />
               <span className="sr-only">Open main menu</span>
               <Bars3Icon
@@ -108,7 +118,7 @@ export function Header() {
         </div>
       </div>
 
-      <DisclosurePanel className="border-white/10 border-t bg-gm-navy sm:hidden">
+      <DisclosurePanel className="border-gm-border border-t bg-white sm:hidden">
         <div className="space-y-1 pt-2 pb-3">
           {navigation.map((item) => (
             <DisclosureButton
@@ -116,9 +126,9 @@ export function Header() {
               as="a"
               className={cn(
                 item.current
-                  ? "border-gm-sky bg-white/10 text-white"
-                  : "border-transparent text-blue-200 hover:border-blue-300 hover:bg-white/5 hover:text-white",
-                "block border-l-4 py-2 pr-4 pl-3 font-medium text-base transition-colors",
+                  ? "border-gm-blue bg-gm-surface text-gm-navy"
+                  : "border-transparent text-muted-foreground hover:border-gm-border hover:bg-gm-surface hover:text-gm-navy",
+                "block border-l-4 py-2 pr-4 pl-3 font-medium text-base transition-colors"
               )}
               href={item.href}
               key={item.name}

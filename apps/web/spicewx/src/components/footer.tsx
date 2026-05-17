@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const links = [
   { label: "Forecasts", href: "/forecasts" },
   { label: "Warnings", href: "/warnings" },
@@ -8,19 +10,17 @@ const links = [
 ];
 
 export const Footer = () => (
-  <footer className="bg-gm-navy text-blue-200">
+  <footer className="border-gm-border border-t text-muted-foreground">
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-gm-blue font-bold text-lg text-white">
-            G
-          </div>
-          <div>
-            <p className="font-semibold text-sm text-white">
-              Grenada Meteorological Service
-            </p>
-            <p className="text-xs">weather.gd</p>
-          </div>
+          <Image
+            alt="GrenMet"
+            className="h-9 w-auto"
+            height={36}
+            src="/gmslogos/logo-primary-navy.png"
+            width={108}
+          />
         </div>
 
         <nav aria-label="Footer navigation">
@@ -28,7 +28,7 @@ export const Footer = () => (
             {links.map((link) => (
               <li key={link.label}>
                 <a
-                  className="text-sm transition-colors hover:text-white"
+                  className="text-sm transition-colors hover:text-gm-navy"
                   href={link.href}
                 >
                   {link.label}
@@ -39,7 +39,7 @@ export const Footer = () => (
         </nav>
       </div>
 
-      <div className="mt-8 border-white/10 border-t pt-6">
+      <div className="mt-8 border-gm-border border-t pt-6">
         <p className="text-xs">
           &copy; {new Date().getFullYear()} Grenada Meteorological Service. All
           rights reserved.
