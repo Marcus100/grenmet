@@ -8,26 +8,22 @@ export interface Warning {
   region: string;
 }
 
-export const CONDITIONS: Condition[] = [
-  { label: "Max Temp", value: "31°C" },
-  { label: "Min Temp", value: "24°C" },
-  { label: "Wind Speed", value: "10–20 mph" },
-  { label: "Wind Direction", value: "N to E" },
-  { label: "Rain Chance", value: "40%" },
-  { label: "Sea State", value: "Moderate to rough" },
-  { label: "Wave Height", value: "6–9 ft" },
-  { label: "Swell", value: "NE to E" },
-  { label: "Low Tide", value: "12:30 pm" },
-  { label: "High Tide", value: "05:50 am" },
-  { label: "Sunset Today", value: "06:30 pm" },
-  { label: "Sunrise Tomorrow", value: "5:30 am" },
-];
-
 export const WARNINGS: Warning[] = [
-  { region: "Rain", count: 1 },
-  { region: "Thunderstorm", count: 1 },
+  { region: "Rain", count: 0 },
+  { region: "Thunderstorm", count: 0 },
   { region: "Wind", count: 0 },
   { region: "Marine", count: 0 },
   { region: "Dust", count: 0 },
-  { region: "Heat", count: 1 },
+  { region: "Heat", count: 0 },
+];
+
+export const TODAY_CONDITIONS: Condition[] = [
+  { label: "Tonight's Min", value: "26.0°C" },
+  { label: "Wind Speed", value: "14–24 mph" },
+  { label: "Wind Direction", value: "ENE to E" },
+  { label: "Sea State", value: "Moderate" },
+  { label: "Wave Height", value: "4–6 ft" },
+  { label: "Low Tide", value: "9:45 p.m." },
+  { label: "High Tide", value: "3:30 a.m." },
+  { label: "Warning", value: "None" },
 ];

@@ -1,7 +1,7 @@
 export interface ForecastDay {
   date: number;
+  dayName: string;
   isToday: boolean;
-  label: string | null;
   month: string;
   slug: string; // YYYY-MM-DD, used as the [date] URL segment
 }
@@ -13,8 +13,8 @@ export function getForecastDays(): ForecastDay[] {
     d.setDate(today.getDate() + i);
     return {
       date: d.getDate(),
-      month: d.toLocaleString("en-US", { month: "long" }),
-      label: i === 0 ? "Now" : null,
+      dayName: d.toLocaleString("en-US", { weekday: "short" }),
+      month: d.toLocaleString("en-US", { month: "short" }),
       slug: d.toISOString().slice(0, 10),
       isToday: i === 0,
     };
