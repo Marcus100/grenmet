@@ -14,9 +14,10 @@ import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Weather and Climate", href: "/forecasts", current: true },
-  { name: "Products & Services", href: "/warnings", current: false },
-  { name: "Resources", href: "/marine", current: false },
+  { name: "Weather and Climate", href: "/weather", current: true },
+  { name: "Products & Services", href: "/products", current: false },
+  { name: "Resources", href: "/resources", current: false },
+  { name: "About Us", href: "/about", current: false },
 ];
 
 const userNavigation = [
@@ -34,11 +35,11 @@ export function Header() {
             <div className="flex shrink-0 items-center">
               {/* Mobile: submark */}
               <Image
-                alt="GrenMet"
-                className="block sm:hidden"
-                height={50}
-                src="/gmslogos/logo-submark-navy-blue.png"
-                width={50}
+                alt="Grenada Meteorological Service"
+                className="sm:hidden block"
+                height={40}
+                src="/gmslogos/logo-primary-navy.png"
+                width={180}
               />
               {/* Desktop: full primary logo */}
               <Image
@@ -57,7 +58,7 @@ export function Header() {
                     item.current
                       ? "border-gm-blue text-gm-navy"
                       : "border-transparent text-muted-foreground hover:border-gm-border hover:text-gm-navy",
-                    "inline-flex items-center border-b-2 px-1 pt-1 font-medium text-sm transition-colors"
+                    "inline-flex items-center border-b-2 px-1 pt-1 font-medium text-sm transition-colors",
                   )}
                   href={item.href}
                   key={item.name}
@@ -128,7 +129,7 @@ export function Header() {
                 item.current
                   ? "border-gm-blue bg-gm-surface text-gm-navy"
                   : "border-transparent text-muted-foreground hover:border-gm-border hover:bg-gm-surface hover:text-gm-navy",
-                "block border-l-4 py-2 pr-4 pl-3 font-medium text-base transition-colors"
+                "block border-l-4 py-2 pr-4 pl-3 font-medium text-base transition-colors",
               )}
               href={item.href}
               key={item.name}

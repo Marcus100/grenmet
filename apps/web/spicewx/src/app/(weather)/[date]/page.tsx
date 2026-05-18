@@ -1,7 +1,16 @@
 import { notFound } from "next/navigation";
-import { WeatherConditions } from "@/components/weather-conditions";
-import { CONDITIONS, WARNINGS } from "@/lib/forecast-data";
+import { TuesdayMay19Forecast } from "@/components/forecasts/tuesday-may-19";
+import { WednesdayMay20Forecast } from "@/components/forecasts/wednesday-may-20";
+import { ThursdayMay21Forecast } from "@/components/forecasts/thursday-may-21";
+import { FridayMay22Forecast } from "@/components/forecasts/friday-may-22";
 import { getUpcomingDaySlugs } from "@/lib/forecast-days";
+
+const FORECAST_COMPONENTS: Record<string, () => React.JSX.Element> = {
+  "2026-05-19": TuesdayMay19Forecast,
+  "2026-05-20": WednesdayMay20Forecast,
+  "2026-05-21": ThursdayMay21Forecast,
+  "2026-05-22": FridayMay22Forecast,
+};
 
 interface Props {
   params: Promise<{ date: string }>;
@@ -14,17 +23,11 @@ export default async function ForecastDayPage({ params }: Props) {
     notFound();
   }
 
-  const d = new Date(`${date}T12:00:00`);
-  const displayDate = d.toLocaleString("en-US", {
-    day: "numeric",
-    month: "long",
-  });
+  const ForecastComponent = FORECAST_COMPONENTS[date];
 
-  return (
-    <WeatherConditions
-      conditions={CONDITIONS}
-      title={`Key Conditions — ${displayDate}`}
-      warnings={WARNINGS}
-    />
-  );
+  if (!ForecastComponent) {
+    notFound();
+  }
+
+  return <ForecastComponent />;
 }

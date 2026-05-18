@@ -17,21 +17,34 @@ export function WeatherDateNav() {
         return (
           <Link
             className={cn(
-              "flex flex-1 flex-col items-center justify-center border-b-2 py-3 text-center transition-colors",
-              "lg:w-16 lg:flex-none lg:border-b-0 lg:border-l-4 lg:px-2 lg:py-5",
+              "flex flex-1 flex-col items-center justify-center gap-1 border-b-2 py-3 text-center transition-colors",
+              "lg:w-24 lg:flex-none lg:border-b-0 lg:border-l-4 lg:gap-1.5 lg:px-3",
               isActive
                 ? "border-gm-blue text-gm-navy"
-                : "border-transparent text-gray-400 hover:text-gm-navy"
+                : "border-transparent text-gray-400 hover:text-gm-navy",
             )}
             href={href}
             key={day.slug}
           >
-            <span className="font-bold text-base leading-none lg:text-2xl">
-              {day.label ?? day.date}
-            </span>
-            <span className="mt-0.5 text-xs tracking-wide lg:mt-1">
-              {day.month}
-            </span>
+            {day.isToday ? (
+              <>
+                <span className="font-bold text-base leading-none lg:text-2xl">
+                  12:00 PM
+                </span>
+                <span className="font-bold text-base leading-none lg:text-2xl">
+                  {day.date}
+                </span>
+                <span className="text-xs tracking-wide">{day.month}</span>
+              </>
+            ) : (
+              <>
+                <span className="text-xs tracking-wide">{day.dayName}</span>
+                <span className="font-bold text-base leading-none lg:text-2xl">
+                  {day.date}
+                </span>
+                <span className="text-xs tracking-wide">{day.month}</span>
+              </>
+            )}
           </Link>
         );
       })}

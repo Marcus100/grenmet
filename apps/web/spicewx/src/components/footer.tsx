@@ -15,11 +15,11 @@ export const Footer = () => (
       <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <Image
-            alt="GrenMet"
-            className="h-9 w-auto"
-            height={36}
+            alt="Grenada Meteorological Service"
+            className=""
+            height={40}
             src="/gmslogos/logo-primary-navy.png"
-            width={108}
+            width={180}
           />
         </div>
 
