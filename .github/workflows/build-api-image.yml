@@ -47,9 +47,6 @@ jobs:
         with:
           fetch-depth: 0 # Needed for semver tag extraction
 
-      - name: Set lowercase repo name
-        run: echo "REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
 
@@ -63,14 +60,15 @@ jobs:
       - name: Determine image tags
         id: tags
         run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          echo "image=ghcr.io/$REPO_LOWER" >> $GITHUB_OUTPUT
+
           if [ "${{ github.event_name }}" == "release" ]; then
-            # Production release: tag with 'latest' and release version
             RELEASE_VERSION="${{ github.event.release.tag_name }}"
             echo "primary_tag=latest" >> $GITHUB_OUTPUT
             echo "version_tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
             echo "Building latest and $RELEASE_VERSION tags for production release"
           elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            # Manual trigger: use specified tag
             TAG="${{ github.event.inputs.tag }}"
             echo "primary_tag=$TAG" >> $GITHUB_OUTPUT
             echo "version_tag=" >> $GITHUB_OUTPUT
@@ -87,7 +85,6 @@ jobs:
               echo "Building latest tag for main branch"
             fi
           else
-            # workflow_run — branch determines staging vs production
             BRANCH="${{ github.event.workflow_run.head_branch }}"
             if [ "$BRANCH" == "staging" ]; then
               echo "primary_tag=staging" >> $GITHUB_OUTPUT
@@ -108,8 +105,8 @@ jobs:
           pull: true
           push: true
           tags: |
-            ghcr.io/${{ env.REPO_LOWER }}:${{ steps.tags.outputs.primary_tag }}
-            ${{ steps.tags.outputs.version_tag != '' && format('ghcr.io/{0}:{1}', env.REPO_LOWER, steps.tags.outputs.version_tag) || '' }}
+            ${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.primary_tag }}
+            ${{ steps.tags.outputs.version_tag != '' && format('{0}:{1}', steps.tags.outputs.image, steps.tags.outputs.version_tag) || '' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
@@ -118,7 +115,7 @@ jobs:
       - name: Image digest and tags summary
         run: |
           echo "✅ grenmet-api image built and pushed successfully"
-          echo "Registry: ghcr.io/${{ env.REPO_LOWER }}"
+          echo "Registry: ${{ steps.tags.outputs.image }}"
           echo "Primary tag: ${{ steps.tags.outputs.primary_tag }}"
           if [ -n "${{ steps.tags.outputs.version_tag }}" ]; then
             echo "Version tag: ${{ steps.tags.outputs.version_tag }}"
