@@ -145,9 +145,6 @@ jobs:
 
       - name: Health checks
         run: |
-          echo "Waiting for services..."
-          sleep 30
-
           echo "=== API health check ==="
           PASSED=false
           for i in {1..10}; do

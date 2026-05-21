@@ -160,8 +160,6 @@ jobs:
 
       - name: Health checks
         run: |
-          sleep 20
-
           echo "=== API health check ==="
           PASSED=false
           for i in {1..10}; do
