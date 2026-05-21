@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
@@ -11,13 +11,11 @@ export const employmentUpdateSchema = z.object({
   employee_number: z.optional(z.union([z.string(), z.null()])),
   department_id: z.optional(z.union([z.string(), z.null()])),
   position: z.optional(z.union([z.string(), z.null()])),
-  get employment_type() {
-    return z.union([employmentTypeSchema, z.null()]).optional();
-  },
-  start_date: z.optional(z.union([z.iso.date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.uuid(), z.null()])),
+  employment_type: z.optional(
+    z.union([z.lazy(() => employmentTypeSchema), z.null()])
+  ),
+  start_date: z.optional(z.union([z.string().date(), z.null()])),
+  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
   work_location: z.optional(z.union([z.string(), z.null()])),
-  get status() {
-    return z.union([employmentStatusSchema, z.null()]).optional();
-  },
+  status: z.optional(z.union([z.lazy(() => employmentStatusSchema), z.null()])),
 });

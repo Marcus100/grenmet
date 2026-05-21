@@ -1,0 +1,159 @@
+name: Build Web App Images
+
+on:
+  workflow_run:
+    workflows: ["CI — Web Apps"]
+    types: [completed]
+    branches: [main, staging]
+  push:
+    branches:
+      - staging
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/build-web-images.yml"
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Image tag (staging or latest)"
+        required: true
+        type: choice
+        options:
+          - staging
+          - latest
+
+jobs:
+  build:
+    name: Build ${{ matrix.app }}
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'release' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: web-auth
+            path: apps/web/auth
+            port: 3000
+          - app: web-admin
+            path: apps/web/admin-gms
+            port: 3001
+          - app: web-wxwatch
+            path: apps/web/wxwatch
+            port: 3002
+          - app: web-hurricaneplan
+            path: apps/web/hurricaneplan
+            port: 3003
+          - app: web-spicewx
+            path: apps/web/spicewx
+            port: 3004
+          - app: web-wxproducts
+            path: apps/web/wxproducts
+            port: 3005
+          - app: web-hr
+            path: apps/web/hr
+            port: 3006
+          - app: web-salesbus
+            path: apps/web/salesbus
+            port: 3007
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine image tag and build args
+        id: meta
+        run: |
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+
+          if [ "${{ github.event_name }}" == "release" ]; then
+            TAG="latest"
+            VERSION="${{ github.event.release.tag_name }}"
+            API_URL="https://api.barrels.gd"
+            ENVIRONMENT="production"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            TAG="${{ github.event.inputs.tag }}"
+            VERSION=""
+            if [ "$TAG" == "staging" ]; then
+              API_URL="https://api.staging.barrels.gd"
+              ENVIRONMENT="staging"
+            else
+              API_URL="https://api.barrels.gd"
+              ENVIRONMENT="production"
+            fi
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            BRANCH="${{ github.ref_name }}"
+            if [ "$BRANCH" == "staging" ]; then
+              TAG="staging"
+              VERSION=""
+              API_URL="https://api.staging.barrels.gd"
+              ENVIRONMENT="staging"
+            else
+              TAG="latest"
+              VERSION=""
+              API_URL="https://api.barrels.gd"
+              ENVIRONMENT="production"
+            fi
+          else
+            # workflow_run — branch determines staging vs production
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ "$BRANCH" == "staging" ]; then
+              TAG="staging"
+              VERSION=""
+              API_URL="https://api.staging.barrels.gd"
+              ENVIRONMENT="staging"
+            else
+              TAG="latest"
+              VERSION=""
+              API_URL="https://api.barrels.gd"
+              ENVIRONMENT="production"
+            fi
+          fi
+
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "api_url=$API_URL" >> $GITHUB_OUTPUT
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+          echo "image=ghcr.io/$OWNER/grenmet-${{ matrix.app }}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6.9.0
+        with:
+          context: .
+          file: ${{ matrix.path }}/Dockerfile
+          push: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ steps.meta.outputs.api_url }}
+            NEXT_PUBLIC_ENVIRONMENT=${{ steps.meta.outputs.environment }}
+          tags: |
+            ${{ steps.meta.outputs.image }}:${{ steps.meta.outputs.tag }}
+            ${{ steps.meta.outputs.version != '' && format('{0}:{1}', steps.meta.outputs.image, steps.meta.outputs.version) || '' }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,scope=${{ matrix.app }},mode=max
+          platforms: linux/amd64
+
+      - name: Summary
+        run: |
+          echo "Built and pushed ghcr.io/${{ github.repository_owner }}/grenmet-${{ matrix.app }}:${{ steps.meta.outputs.tag }}"

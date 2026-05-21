@@ -35,7 +35,15 @@
       "Bash(ls -d /c/Users/eugin/OneDrive/DEV/grenmet/apps/web/wxproducts/src/*/)",
       "Bash(grep -E \"\\\\.ts$\")",
       "Bash(pnpm fix:*)",
-      "Bash(pnpm check:fix)"
+      "Bash(pnpm check:fix)",
+      "Bash(gh pr *)",
+      "mcp__figma__generate_figma_design",
+      "mcp__figma__use_figma",
+      "mcp__figma__get_design_context",
+      "mcp__figma__get_screenshot",
+      "Read(//mnt/c/Users/eugin/OneDrive/DEV/grenmet/**)",
+      "Read(//mnt/c/Users/eugin/OneDrive/DEV/grenmet/apps/web/spicewx/**)",
+      "Bash(node -e \"console.log\\(require\\('/mnt/c/Users/eugin/OneDrive/DEV/grenmet/node_modules/lucide-react/package.json'\\).version\\)\")"
     ]
   }
 }

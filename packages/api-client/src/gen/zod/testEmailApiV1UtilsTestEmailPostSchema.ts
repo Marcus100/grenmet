@@ -3,12 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
 export const testEmailApiV1UtilsTestEmailPostQueryParamsSchema = z.object({
-  email_to: z.email(),
+  email_to: z.string().email(),
 });
 
 /**

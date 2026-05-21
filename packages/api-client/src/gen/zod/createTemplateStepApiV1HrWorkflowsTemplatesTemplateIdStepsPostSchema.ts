@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowStepTemplateCreateSchema } from "./workflowStepTemplateCreateSchema.js";
 import { workflowStepTemplatePublicSchema } from "./workflowStepTemplatePublicSchema.js";
 
 export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParamsSchema =
   z.object({
-    template_id: z.uuid(),
+    template_id: z.string().uuid(),
   });
 
 /**

@@ -41,6 +41,7 @@ async def test_roster_csv_validation_detects_invalid_shift(
         description="Import roster canonical",
     )
     role.permissions.append(compatible_permission)
+    await db_async.refresh(user, attribute_names=["roles"])
     user.roles.append(role)
     if not await db_async.get(Department, "dept_csv"):
         db_async.add(Department(id="dept_csv", name="Dept CSV"))

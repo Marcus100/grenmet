@@ -3,11 +3,11 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const publicHolidayCreateSchema = z.object({
   name: z.string(),
-  holiday_date: z.iso.date(),
+  holiday_date: z.string().date(),
   is_recurring: z.optional(z.boolean().default(false)),
   country_code: z.optional(z.string().default("GD")),
 });

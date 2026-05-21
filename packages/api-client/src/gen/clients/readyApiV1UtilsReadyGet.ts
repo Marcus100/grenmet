@@ -15,7 +15,7 @@ import type {
 } from "../models/ReadyApiV1UtilsReadyGet.js";
 
 function getReadyApiV1UtilsReadyGetUrl() {
-  const res = { method: "GET", url: "/api/v1/utils/ready/" as const };
+  const res = { method: "GET", url: `/api/v1/utils/ready/` as const };
   return res;
 }
 

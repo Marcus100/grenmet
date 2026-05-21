@@ -28,17 +28,11 @@ Thumbs.db
 # =======================
 # Environment Variables
 # =======================
-# Ignore all .env files
+# Ignore real env files, but allow committed templates.
 .env
 .env.*
-# But allow all .example files (templates)
-
 !.env.example
-
-# Explicitly ignore actual env files (not examples)
-.env.local
-.env.staging
-.env.prod
+!.env.*.example
 
 # =======================
 # Python
@@ -122,6 +116,7 @@ out/
 # Build outputs
 # =======================
 build/
+!apps/api/fastapi/email-templates/build/
 dist/
 *.tsbuildinfo
 

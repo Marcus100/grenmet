@@ -17,7 +17,7 @@ import type {
 } from "../models/CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
 
 function getCreateLeaveRequestEndpointApiV1HrLeaveRequestsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/leave-requests" as const };
+  const res = { method: "POST", url: `/api/v1/hr/leave-requests` as const };
   return res;
 }
 

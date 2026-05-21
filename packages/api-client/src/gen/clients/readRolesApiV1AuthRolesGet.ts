@@ -16,7 +16,7 @@ import type {
 } from "../models/ReadRolesApiV1AuthRolesGet.js";
 
 function getReadRolesApiV1AuthRolesGetUrl() {
-  const res = { method: "GET", url: "/api/v1/auth/roles/" as const };
+  const res = { method: "GET", url: `/api/v1/auth/roles/` as const };
   return res;
 }
 

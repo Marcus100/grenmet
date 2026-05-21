@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readRoleApiV1AuthRolesRoleIdGet } from "../clients/readRoleApiV1AuthRolesRoleIdGet.js";
 import type {
   ReadRoleApiV1AuthRolesRoleIdGet404,
@@ -25,7 +26,10 @@ import type {
 
 export const readRoleApiV1AuthRolesRoleIdGetQueryKey = (
   role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"]
-) => [{ url: "/api/v1/auth/roles/:role_id", params: { role_id } }] as const;
+) =>
+  [
+    { url: "/api/v1/auth/roles/:role_id", params: { role_id: role_id } },
+  ] as const;
 
 export type ReadRoleApiV1AuthRolesRoleIdGetQueryKey = ReturnType<
   typeof readRoleApiV1AuthRolesRoleIdGetQueryKey

@@ -20,7 +20,7 @@ import type {
 function getBulkAssignmentsApiV1HrRostersAssignmentsBulkPostUrl() {
   const res = {
     method: "POST",
-    url: "/api/v1/hr/rosters/assignments/bulk" as const,
+    url: `/api/v1/hr/rosters/assignments/bulk` as const,
   };
   return res;
 }

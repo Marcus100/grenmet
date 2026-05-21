@@ -72,7 +72,9 @@ async def can_act_on_user(
 
     assignments = [
         assignment
-        for assignment in await _active_assignments(session=session, user_id=current_user.id)
+        for assignment in await _active_assignments(
+            session=session, user_id=current_user.id
+        )
         if assignment.role_id in role_ids_with_permission
     ]
     return await _assignment_allows_target(
@@ -97,7 +99,9 @@ async def can_act_on_user_for_role(
         return True
     assignments = [
         assignment
-        for assignment in await _active_assignments(session=session, user_id=current_user.id)
+        for assignment in await _active_assignments(
+            session=session, user_id=current_user.id
+        )
         if assignment.role_id == required_role_id
     ]
     return await _assignment_allows_target(
@@ -133,7 +137,10 @@ async def _assignment_allows_target(
     for assignment in assignments:
         if assignment.scope == RoleAssignmentScope.ALL:
             return True
-        if assignment.scope == RoleAssignmentScope.SELF and current_user_id == target_user_id:
+        if (
+            assignment.scope == RoleAssignmentScope.SELF
+            and current_user_id == target_user_id
+        ):
             return True
         if (
             assignment.scope == RoleAssignmentScope.DEPARTMENT

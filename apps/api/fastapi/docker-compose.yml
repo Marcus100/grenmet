@@ -25,7 +25,7 @@ services:
       - ./pyproject.toml:/app/pyproject.toml
       - ./uv.lock:/app/uv.lock
     env_file:
-      - .env
+      - .env.local
     environment:
       - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -46,7 +46,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env.local
     environment:
       - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
@@ -75,7 +75,17 @@ services:
         - CMD
         - python
         - -c
-        - "import sys,urllib.request,socket; socket.setdefaulttimeout(3);\n\ntry:\n    r=urllib.request.urlopen('http://localhost:8000/api/v1/utils/health-check/'); sys.exit(0 if r.status==200 else 1)\nexcept Exception:\n    sys.exit(1)"
+        - "import sys,urllib.request,socket; socket.setdefaulttimeout(3);
+
+
+          try:
+
+          \    r=urllib.request.urlopen('http://localhost:8000/api/v1/utils/hea\
+          lth-check/'); sys.exit(0 if r.status==200 else 1)
+
+          except Exception:
+
+          \    sys.exit(1)"
       interval: 10s
       timeout: 5s
       retries: 5

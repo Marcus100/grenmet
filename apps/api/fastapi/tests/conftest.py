@@ -4,13 +4,12 @@ import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import Session, delete
+from sqlmodel import Session, SQLModel
 
-from src.auth.models import Session as AuthSession
-from src.auth.models import User
 from src.database import async_session_factory, engine, init_db, init_db_async
 from src.email_config import email_settings
 from src.main import app
+from src.rate_limit import limiter
 from tests.utils.user import (
     authentication_token_from_email,
     authentication_token_from_email_async,
@@ -21,27 +20,48 @@ from tests.utils.utils import (
 )
 
 
+def _clear_database(session: Session) -> None:
+    """Clear app tables in dependency order so FK constraints are respected."""
+    session.rollback()
+    for table in reversed(SQLModel.metadata.sorted_tables):
+        session.execute(table.delete())
+    session.commit()
+
+
+async def _clear_database_async(session: AsyncSession) -> None:
+    """Clear app tables in dependency order so FK constraints are respected."""
+    await session.rollback()
+    for table in reversed(SQLModel.metadata.sorted_tables):
+        await session.execute(table.delete())
+    await session.commit()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def disable_rate_limiting() -> Generator[None, None, None]:
+    """Disable rate limiting during tests to prevent 429 errors from rapid login calls."""
+    limiter.enabled = False
+    yield
+    limiter.enabled = True
+
+
 @pytest.fixture(scope="session", autouse=True)
 def db() -> Generator[Session, None, None]:
     """Sync database session (legacy). Prefer async db_async for new tests."""
     with Session(engine) as session:
+        _clear_database(session)
         init_db(session)
         yield session
-        session.execute(delete(AuthSession))
-        statement = delete(User)
-        session.execute(statement)
-        session.commit()
+        _clear_database(session)
 
 
 @pytest.fixture
 async def db_async() -> AsyncGenerator[AsyncSession, None]:
     """Async database session. Ensures superuser exists; cleans up users on teardown."""
     async with async_session_factory() as session:
+        await _clear_database_async(session)
         await init_db_async(session)
         yield session
-        await session.execute(delete(AuthSession))
-        await session.execute(delete(User))
-        await session.commit()
+        await _clear_database_async(session)
 
 
 @pytest.fixture(scope="module")

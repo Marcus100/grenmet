@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { testTokenApiV1LoginTestTokenPost } from "../clients/testTokenApiV1LoginTestTokenPost.js";
 import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
 
@@ -35,7 +36,9 @@ export function testTokenApiV1LoginTestTokenPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async () => testTokenApiV1LoginTestTokenPost(config),
+    mutationFn: async () => {
+      return testTokenApiV1LoginTestTokenPost(config);
+    },
   });
 }
 

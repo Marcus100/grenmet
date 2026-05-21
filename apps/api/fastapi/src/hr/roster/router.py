@@ -51,11 +51,12 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
     },
 )
 async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
-    shifts = await read_shift_catalog(
-        session=session, current_user=current_user
-    )
+    shifts = await read_shift_catalog(session=session, current_user=current_user)
     return ShiftCatalogsPublic(
-        data=[ShiftCatalogPublic.model_validate(shift, from_attributes=True) for shift in shifts],
+        data=[
+            ShiftCatalogPublic.model_validate(shift, from_attributes=True)
+            for shift in shifts
+        ],
         count=len(shifts),
     )
 
@@ -68,7 +69,9 @@ async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> 
     description="Create a new roster period. Requires roster.manage permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Roster period created"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Validation error (e.g. period_end before period_start)"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Validation error (e.g. period_end before period_start)"
+        },
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
@@ -92,7 +95,10 @@ async def create_period(
     },
 )
 async def bulk_assignments(
-    *, session: SessionDep, current_user: CurrentUser, payload: RosterAssignmentBulkCreate
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: RosterAssignmentBulkCreate,
 ) -> Any:
     assignments = await bulk_upsert_roster_assignments(
         session=session, current_user=current_user, payload=payload
@@ -138,12 +144,17 @@ async def get_period(
     description="Validate CSV content for roster import. Requires roster.import permission.",
     responses={
         status.HTTP_200_OK: {"description": "Validation result returned"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Invalid CSV (e.g. missing header or columns)"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid CSV (e.g. missing header or columns)"
+        },
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
 async def validate_csv(
-    *, session: SessionDep, current_user: CurrentUser, payload: RosterCsvValidationRequest
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: RosterCsvValidationRequest,
 ) -> Any:
     return await validate_roster_csv(
         session=session, current_user=current_user, payload=payload
@@ -162,7 +173,10 @@ async def validate_csv(
     },
 )
 async def import_csv(
-    *, session: SessionDep, current_user: CurrentUser, payload: RosterCsvValidationRequest
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: RosterCsvValidationRequest,
 ) -> Any:
     job = await import_roster_csv(
         session=session, current_user=current_user, payload=payload
@@ -188,7 +202,9 @@ async def import_csv(
     description="Transition a draft roster period to published. Requires roster.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Roster period published"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Period already published or closed"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Period already published or closed"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
@@ -208,7 +224,9 @@ async def publish_period(
     description="Close a published roster period. Requires roster.manage permission.",
     responses={
         status.HTTP_200_OK: {"description": "Roster period closed"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Period not published or already closed"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Period not published or already closed"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },

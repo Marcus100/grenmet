@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema = z.object({
   grant_type: z.optional(z.union([z.string().regex(/^password$/), z.null()])),

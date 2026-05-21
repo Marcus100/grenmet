@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readUserMeApiV1AuthUsersMeGet } from "../clients/readUserMeApiV1AuthUsersMeGet.js";
 import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
 

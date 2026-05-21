@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createHolidayApiV1HrRostersPublicHolidaysPost } from "../clients/createHolidayApiV1HrRostersPublicHolidaysPost.js";
 import type {
   CreateHolidayApiV1HrRostersPublicHolidaysPost400,
@@ -49,8 +50,9 @@ export function createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createHolidayApiV1HrRostersPublicHolidaysPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createHolidayApiV1HrRostersPublicHolidaysPost(data, config);
+    },
   });
 }
 

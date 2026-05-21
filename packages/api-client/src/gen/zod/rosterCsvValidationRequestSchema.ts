@@ -3,11 +3,11 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const rosterCsvValidationRequestSchema = z.object({
   department_id: z.string(),
   file_name: z.optional(z.string().default("roster.csv")),
-  roster_period_id: z.optional(z.union([z.uuid(), z.null()])),
+  roster_period_id: z.optional(z.union([z.string().uuid(), z.null()])),
   csv_text: z.string(),
 });

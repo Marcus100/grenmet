@@ -15,7 +15,7 @@ import type {
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
 function getListShiftCatalogApiV1HrRostersShiftsGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/rosters/shifts" as const };
+  const res = { method: "GET", url: `/api/v1/hr/rosters/shifts` as const };
   return res;
 }
 

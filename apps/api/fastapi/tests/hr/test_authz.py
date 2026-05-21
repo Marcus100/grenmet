@@ -51,7 +51,9 @@ async def test_department_scope_assignment_enforced(
             access="department",
             description="Approve timesheet",
         )
+    await db_async.refresh(role, attribute_names=["permissions"])
     role.permissions.append(permission)
+    await db_async.refresh(supervisor, attribute_names=["roles"])
     supervisor.roles.append(role)
     db_async.add(role)
     db_async.add(permission)

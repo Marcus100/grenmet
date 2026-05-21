@@ -25,7 +25,9 @@ from .schemas import LeaveRequestAction, LeaveRequestCreate
 async def create_leave_request(
     *, session: AsyncSession, current_user: User, payload: LeaveRequestCreate
 ) -> LeaveRequest:
-    require_permission(current_user=current_user, permission_key="leave.request.create.self")
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
     leave_request = LeaveRequest(
         user_id=current_user.id,
         department_id=payload.department_id,
@@ -95,7 +97,9 @@ async def action_leave_request(
             .order_by(col(LeaveBalanceEvent.created_at).desc())
         )
         last_event = result.scalars().first()
-        current_balance = last_event.balance_after_days if last_event else Decimal("0.0")
+        current_balance = (
+            last_event.balance_after_days if last_event else Decimal("0.0")
+        )
         new_balance = current_balance - leave_request.days_requested
         session.add(
             LeaveBalanceEvent(

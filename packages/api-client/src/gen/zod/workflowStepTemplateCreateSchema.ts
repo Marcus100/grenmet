@@ -3,14 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const workflowStepTemplateCreateSchema = z.object({
-  step_order: z.int().min(1),
-  required_role_id: z.uuid(),
-  get required_scope() {
-    return roleAssignmentScopeSchema.optional();
-  },
+  step_order: z.number().int().min(1),
+  required_role_id: z.string().uuid(),
+  required_scope: z.optional(z.lazy(() => roleAssignmentScopeSchema)),
   is_required: z.optional(z.boolean().default(true)),
 });

@@ -16,7 +16,7 @@ import type {
 } from "../models/ReadPermissionsApiV1AuthPermissionsGet.js";
 
 function getReadPermissionsApiV1AuthPermissionsGetUrl() {
-  const res = { method: "GET", url: "/api/v1/auth/permissions/" as const };
+  const res = { method: "GET", url: `/api/v1/auth/permissions/` as const };
   return res;
 }
 

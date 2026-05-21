@@ -17,7 +17,7 @@ import type {
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
 
 function getReadTemplatesApiV1HrWorkflowsTemplatesGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/workflows/templates" as const };
+  const res = { method: "GET", url: `/api/v1/hr/workflows/templates` as const };
   return res;
 }
 

@@ -14,6 +14,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+
 from src.auth import service
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
@@ -36,7 +37,6 @@ from src.auth.schemas import (
     UserUpdateMe,
 )
 from src.auth.utils import get_password_hash, verify_password
-from src.config import settings
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
@@ -210,7 +210,7 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     user = await session.get(User, current_user.id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
-    session.delete(user)
+    await session.delete(user)
     await session.commit()
     return Message(message=SUCCESS_USER_DELETED)
 
@@ -333,6 +333,6 @@ async def delete_user(
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user.id == current_user.id:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
-    session.delete(user)
+    await session.delete(user)
     await session.commit()
     return Message(message=SUCCESS_USER_DELETED)

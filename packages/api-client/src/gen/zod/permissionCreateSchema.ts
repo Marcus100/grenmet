@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const permissionCreateSchema = z.object({
   key: z.optional(z.union([z.string(), z.null()])),

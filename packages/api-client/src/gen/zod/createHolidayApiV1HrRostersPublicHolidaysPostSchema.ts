@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";

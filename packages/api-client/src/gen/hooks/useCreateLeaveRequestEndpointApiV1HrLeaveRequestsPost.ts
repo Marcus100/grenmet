@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createLeaveRequestEndpointApiV1HrLeaveRequestsPost } from "../clients/createLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
 import type {
   CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost403,
@@ -49,8 +50,9 @@ export function createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createLeaveRequestEndpointApiV1HrLeaveRequestsPost(data, config);
+    },
   });
 }
 

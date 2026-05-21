@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetSummaryByShiftSchema } from "./timesheetSummaryByShiftSchema.js";
 
 export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParamsSchema =
   z.object({
-    timesheet_id: z.uuid(),
+    timesheet_id: z.string().uuid(),
   });
 
 /**

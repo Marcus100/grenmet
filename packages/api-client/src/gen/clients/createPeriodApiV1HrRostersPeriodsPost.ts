@@ -18,7 +18,7 @@ import type {
 } from "../models/CreatePeriodApiV1HrRostersPeriodsPost.js";
 
 function getCreatePeriodApiV1HrRostersPeriodsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/rosters/periods" as const };
+  const res = { method: "POST", url: `/api/v1/hr/rosters/periods` as const };
   return res;
 }
 

@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { updateHrProfileMeApiV1HrProfileMePatch } from "../clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 import type {
   UpdateHrProfileMeApiV1HrProfileMePatch404,
@@ -47,8 +48,9 @@ export function updateHrProfileMeApiV1HrProfileMePatchMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      updateHrProfileMeApiV1HrProfileMePatch(data, config),
+    mutationFn: async ({ data }) => {
+      return updateHrProfileMeApiV1HrProfileMePatch(data, config);
+    },
   });
 }
 

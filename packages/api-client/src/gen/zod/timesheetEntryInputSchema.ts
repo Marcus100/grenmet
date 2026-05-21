@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const timesheetEntryInputSchema = z.object({
-  entry_date: z.iso.date(),
+  entry_date: z.string().date(),
   shift_code: z.optional(z.union([z.string(), z.null()])),
   roster_hours: z.optional(
     z

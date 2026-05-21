@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const userCreateSchema = z.object({
-  email: z.email().max(255),
+  email: z.string().email().max(255),
   username: z.string().max(255),
   first_name: z.string().max(100),
   middle_name: z.optional(z.union([z.string(), z.null()])),

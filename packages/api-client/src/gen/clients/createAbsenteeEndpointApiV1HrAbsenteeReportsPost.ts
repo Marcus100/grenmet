@@ -17,7 +17,7 @@ import type {
 } from "../models/CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
 
 function getCreateAbsenteeEndpointApiV1HrAbsenteeReportsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/absentee-reports" as const };
+  const res = { method: "POST", url: `/api/v1/hr/absentee-reports` as const };
   return res;
 }
 

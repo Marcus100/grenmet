@@ -3,12 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 
 export const readUserByIdApiV1AuthUsersUserIdGetPathParamsSchema = z.object({
-  user_id: z.uuid(),
+  user_id: z.string().uuid(),
 });
 
 /**

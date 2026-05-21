@@ -3,14 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { shiftPatternSchema } from "./shiftPatternSchema.js";
 
 export const rosterPreferencesUpdateSchema = z.object({
-  get default_shift_pattern() {
-    return z.union([shiftPatternSchema, z.null()]).optional();
-  },
+  default_shift_pattern: z.optional(
+    z.union([z.lazy(() => shiftPatternSchema), z.null()])
+  ),
   preferred_shifts: z.optional(z.union([z.array(z.string()), z.null()])),
   restricted_shifts: z.optional(z.union([z.array(z.string()), z.null()])),
-  max_night_shifts_per_month: z.optional(z.union([z.int(), z.null()])),
+  max_night_shifts_per_month: z.optional(z.union([z.number().int(), z.null()])),
 });

@@ -3,12 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rolePublicSchema } from "./rolePublicSchema.js";
 
 export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
-  role_id: z.uuid(),
+  role_id: z.string().uuid(),
 });
 
 /**

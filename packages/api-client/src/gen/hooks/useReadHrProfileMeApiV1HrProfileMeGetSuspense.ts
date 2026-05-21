@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readHrProfileMeApiV1HrProfileMeGet } from "../clients/readHrProfileMeApiV1HrProfileMeGet.js";
 import type {
   ReadHrProfileMeApiV1HrProfileMeGet404,

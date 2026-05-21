@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "../clients/getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 import type {
   GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403,
@@ -31,7 +32,7 @@ export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetSuspense
     [
       {
         url: "/api/v1/hr/rosters/periods/:period_id/revisions",
-        params: { period_id },
+        params: { period_id: period_id },
       },
     ] as const;
 

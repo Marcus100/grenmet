@@ -3,12 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { workflowActionSchema } from "./workflowActionSchema.js";
 
 export const workflowActionRequestSchema = z.object({
-  get action() {
-    return workflowActionSchema;
-  },
+  action: z.lazy(() => workflowActionSchema),
   comments: z.optional(z.union([z.string(), z.null()])),
 });

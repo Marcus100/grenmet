@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { recoverPasswordApiV1PasswordRecoveryEmailPost } from "../clients/recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 import type {
   RecoverPasswordApiV1PasswordRecoveryEmailPost422,
@@ -39,8 +40,9 @@ export function recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) =>
-      recoverPasswordApiV1PasswordRecoveryEmailPost(email, config),
+    mutationFn: async ({ email }) => {
+      return recoverPasswordApiV1PasswordRecoveryEmailPost(email, config);
+    },
   });
 }
 

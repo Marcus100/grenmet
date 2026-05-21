@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
