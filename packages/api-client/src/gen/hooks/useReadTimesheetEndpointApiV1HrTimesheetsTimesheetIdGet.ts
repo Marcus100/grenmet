@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet } from "../clients/readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
 import type {
   ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet403,
@@ -30,7 +31,7 @@ export const readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryKey = (
   [
     {
       url: "/api/v1/hr/timesheets/:timesheet_id",
-      params: { timesheet_id },
+      params: { timesheet_id: timesheet_id },
     },
   ] as const;
 

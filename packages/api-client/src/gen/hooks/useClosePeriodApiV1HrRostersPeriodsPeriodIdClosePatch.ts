@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "../clients/closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 import type {
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400,
@@ -51,8 +52,12 @@ export function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOption
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) =>
-      closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(period_id, config),
+    mutationFn: async ({ period_id }) => {
+      return closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(
+        period_id,
+        config
+      );
+    },
   });
 }
 

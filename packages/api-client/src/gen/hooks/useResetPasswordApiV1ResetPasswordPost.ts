@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { resetPasswordApiV1ResetPasswordPost } from "../clients/resetPasswordApiV1ResetPasswordPost.js";
 import type {
   ResetPasswordApiV1ResetPasswordPost422,
@@ -43,8 +44,9 @@ export function resetPasswordApiV1ResetPasswordPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      resetPasswordApiV1ResetPasswordPost(data, config),
+    mutationFn: async ({ data }) => {
+      return resetPasswordApiV1ResetPasswordPost(data, config);
+    },
   });
 }
 

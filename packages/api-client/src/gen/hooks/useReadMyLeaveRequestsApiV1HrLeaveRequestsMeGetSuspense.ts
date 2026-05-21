@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readMyLeaveRequestsApiV1HrLeaveRequestsMeGet } from "../clients/readMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 

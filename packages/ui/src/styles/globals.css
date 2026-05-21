@@ -1,19 +1,28 @@
 /*
-  Shared shadcn design tokens for @grenmet/ui.
+  Shared shadcn + GrenMet design tokens for @grenmet/ui.
 
-  Each app's globals.css should:
-    @import "tailwindcss";
-    @import "@grenmet/ui/styles/globals.css";
-    (then add app-specific @theme overrides below)
-
-  This file intentionally does NOT import tailwindcss or tw-animate-css
-  so those remain under the consuming app's control.
+  NOTE: CSS @import of this file from apps does NOT work with Turbopack.
+  Apps must copy the token declarations they need into their own globals.css.
+  This file serves as the canonical source of truth for the token values.
 */
 
 @layer base {
   :root {
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
+    /* GrenMet brand */
+    --gm-blue: #2478f2;
+    --gm-navy: #150068;
+    --gm-sky: #39a5f5;
+    --gm-sun: #ff981e;
+    --gm-surface: #f3f8fc;
+    /* GrenMet risk */
+    --gm-risk-green: #008430;
+    --gm-risk-yellow: #ffe923;
+    --gm-risk-amber: #ff990c;
+    --gm-risk-red: #cc0033;
+    /* GrenMet border */
+    --gm-border: #d0d5dd;
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
@@ -105,4 +114,15 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  /* GrenMet brand utilities */
+  --color-gm-blue: var(--gm-blue);
+  --color-gm-navy: var(--gm-navy);
+  --color-gm-sky: var(--gm-sky);
+  --color-gm-sun: var(--gm-sun);
+  --color-gm-surface: var(--gm-surface);
+  --color-gm-risk-green: var(--gm-risk-green);
+  --color-gm-risk-yellow: var(--gm-risk-yellow);
+  --color-gm-risk-amber: var(--gm-risk-amber);
+  --color-gm-risk-red: var(--gm-risk-red);
+  --color-gm-border: var(--gm-border);
 }

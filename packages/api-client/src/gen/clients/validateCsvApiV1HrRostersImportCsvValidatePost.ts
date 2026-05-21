@@ -20,7 +20,7 @@ import type {
 function getValidateCsvApiV1HrRostersImportCsvValidatePostUrl() {
   const res = {
     method: "POST",
-    url: "/api/v1/hr/rosters/import-csv/validate" as const,
+    url: `/api/v1/hr/rosters/import-csv/validate` as const,
   };
   return res;
 }

@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createUserApiV1AuthUsersPost } from "../clients/createUserApiV1AuthUsersPost.js";
 import type {
   CreateUserApiV1AuthUsersPost400,
@@ -44,7 +45,9 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => createUserApiV1AuthUsersPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createUserApiV1AuthUsersPost(data, config);
+    },
   });
 }
 

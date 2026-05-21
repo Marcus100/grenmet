@@ -27,7 +27,9 @@ class AbsenteeReport(SQLModel, table=True):
         default=None, foreign_key="user.id", ondelete="SET NULL"
     )
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
-    workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
+    workflow_instance_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.workflow_instance.id"
+    )
     submitted_by_user_id: uuid.UUID = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

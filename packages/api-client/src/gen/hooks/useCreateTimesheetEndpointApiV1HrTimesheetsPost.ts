@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createTimesheetEndpointApiV1HrTimesheetsPost } from "../clients/createTimesheetEndpointApiV1HrTimesheetsPost.js";
 import type {
   CreateTimesheetEndpointApiV1HrTimesheetsPost403,
@@ -46,8 +47,9 @@ export function createTimesheetEndpointApiV1HrTimesheetsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createTimesheetEndpointApiV1HrTimesheetsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createTimesheetEndpointApiV1HrTimesheetsPost(data, config);
+    },
   });
 }
 

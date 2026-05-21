@@ -3,13 +3,11 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
 export const workflowTemplateCreateSchema = z.object({
   department_id: z.string(),
-  get workflow_type() {
-    return workflowTypeSchema;
-  },
+  workflow_type: z.lazy(() => workflowTypeSchema),
   name: z.string().min(2).max(150),
 });

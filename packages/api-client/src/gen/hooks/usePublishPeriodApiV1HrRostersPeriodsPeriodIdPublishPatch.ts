@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "../clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 import type {
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
@@ -51,8 +52,12 @@ export function publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationOp
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) =>
-      publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(period_id, config),
+    mutationFn: async ({ period_id }) => {
+      return publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(
+        period_id,
+        config
+      );
+    },
   });
 }
 

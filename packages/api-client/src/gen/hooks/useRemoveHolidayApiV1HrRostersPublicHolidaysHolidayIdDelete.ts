@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "../clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 import type {
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
@@ -49,11 +50,12 @@ export function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutation
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ holiday_id }) =>
-      removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
+    mutationFn: async ({ holiday_id }) => {
+      return removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
         holiday_id,
         config
-      ),
+      );
+    },
   });
 }
 

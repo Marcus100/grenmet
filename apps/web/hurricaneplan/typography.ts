@@ -2,7 +2,8 @@ import type { Config } from "tailwindcss";
 
 export default {
   theme: {
-    typography: ({ theme }) => ({
+    // biome-ignore lint/suspicious/noExplicitAny: theme() is polymorphic — returns string | [string, object] depending on the path
+    typography: ({ theme }: { theme: (path: string) => any }) => ({
       DEFAULT: {
         css: {
           "--tw-prose-body": theme("colors.zinc.700"),

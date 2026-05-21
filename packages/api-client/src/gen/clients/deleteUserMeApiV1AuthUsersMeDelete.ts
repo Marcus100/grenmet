@@ -15,7 +15,7 @@ import type {
 } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 
 function getDeleteUserMeApiV1AuthUsersMeDeleteUrl() {
-  const res = { method: "DELETE", url: "/api/v1/auth/users/me" as const };
+  const res = { method: "DELETE", url: `/api/v1/auth/users/me` as const };
   return res;
 }
 

@@ -103,6 +103,7 @@ export const transactions: Transaction[] = [
     paymentType: "cash",
     items: [
       {
+        id: "txn-1-item-1",
         productId: "caribe-1",
         productName: "CARIBÉ",
         productImage: "/images/products/caribe.svg",
@@ -111,6 +112,7 @@ export const transactions: Transaction[] = [
         price: 60,
       },
       {
+        id: "txn-1-item-2",
         productId: "heineken-1",
         productName: "HEINEKEN",
         productImage: "/images/products/heineken.svg",
@@ -129,6 +131,7 @@ export const transactions: Transaction[] = [
     paymentType: "credit",
     items: [
       {
+        id: "txn-2-item-1",
         productId: "caribe-1",
         productName: "CARIBÉ",
         productImage: "/images/products/caribe.svg",
@@ -137,6 +140,7 @@ export const transactions: Transaction[] = [
         price: 48,
       },
       {
+        id: "txn-2-item-2",
         productId: "caribe-1",
         productName: "CARIBÉ",
         productImage: "/images/products/caribe.svg",
@@ -145,6 +149,7 @@ export const transactions: Transaction[] = [
         price: 12,
       },
       {
+        id: "txn-2-item-3",
         productId: "heineken-1",
         productName: "HEINEKEN",
         productImage: "/images/products/heineken.svg",
@@ -163,6 +168,7 @@ export const transactions: Transaction[] = [
     paymentType: "cash",
     items: [
       {
+        id: "txn-3-item-1",
         productId: "star-malt-1",
         productName: "STAR MALT",
         productImage: "/images/products/star-malt.svg",

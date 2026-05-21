@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { listShiftCatalogApiV1HrRostersShiftsGet } from "../clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
 import type {
   ListShiftCatalogApiV1HrRostersShiftsGet403,

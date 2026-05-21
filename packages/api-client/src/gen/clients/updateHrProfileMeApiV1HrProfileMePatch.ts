@@ -17,7 +17,7 @@ import type {
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
 
 function getUpdateHrProfileMeApiV1HrProfileMePatchUrl() {
-  const res = { method: "PATCH", url: "/api/v1/hr/profile/me" as const };
+  const res = { method: "PATCH", url: `/api/v1/hr/profile/me` as const };
   return res;
 }
 

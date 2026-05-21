@@ -47,9 +47,7 @@ async def test_not_authenticate_user(db_async: AsyncSession) -> None:
     """Test user authentication with incorrect credentials."""
     email = random_email()
     password = random_lower_string()
-    user = await crud.authenticate(
-        session=db_async, email=email, password=password
-    )
+    user = await crud.authenticate(session=db_async, email=email, password=password)
     assert user is None
 
 
@@ -152,9 +150,7 @@ async def test_update_user(db_async: AsyncSession) -> None:
     new_password = random_lower_string()
     user_in_update = UserUpdate(password=new_password, is_superuser=True)
     if user.id is not None:
-        await crud.update_user(
-            session=db_async, db_user=user, user_in=user_in_update
-        )
+        await crud.update_user(session=db_async, db_user=user, user_in=user_in_update)
     user_2 = await db_async.get(User, user.id)
     assert user_2
     assert user.email == user_2.email

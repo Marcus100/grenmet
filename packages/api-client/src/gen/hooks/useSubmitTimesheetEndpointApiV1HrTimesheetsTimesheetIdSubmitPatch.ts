@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch } from "../clients/submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 import type {
   SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch400,
@@ -57,12 +58,13 @@ export function submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMu
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id, data }) =>
-      submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch(
+    mutationFn: async ({ timesheet_id, data }) => {
+      return submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch(
         timesheet_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

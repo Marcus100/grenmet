@@ -17,7 +17,7 @@ import type {
 } from "../models/CreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
 
 function getCreateShiftSwapEndpointApiV1HrShiftSwapsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/hr/shift-swaps" as const };
+  const res = { method: "POST", url: `/api/v1/hr/shift-swaps` as const };
   return res;
 }
 

@@ -57,13 +57,9 @@ async def list_absentee_reports(
             current_user=current_user,
             permission_key="absentee.report.read.department",
         )
-        statement = statement.where(
-            col(AbsenteeReport.department_id) == department_id
-        )
+        statement = statement.where(col(AbsenteeReport.department_id) == department_id)
     else:
-        statement = statement.where(
-            col(AbsenteeReport.user_id) == current_user.id
-        )
+        statement = statement.where(col(AbsenteeReport.user_id) == current_user.id)
     result = await session.execute(
         statement.order_by(col(AbsenteeReport.created_at).desc())
     )

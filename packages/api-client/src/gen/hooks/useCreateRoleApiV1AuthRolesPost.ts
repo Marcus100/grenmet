@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createRoleApiV1AuthRolesPost } from "../clients/createRoleApiV1AuthRolesPost.js";
 import type {
   CreateRoleApiV1AuthRolesPost422,
@@ -41,7 +42,9 @@ export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => createRoleApiV1AuthRolesPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createRoleApiV1AuthRolesPost(data, config);
+    },
   });
 }
 

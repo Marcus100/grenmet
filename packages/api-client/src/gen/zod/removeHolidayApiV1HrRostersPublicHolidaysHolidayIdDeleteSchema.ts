@@ -3,12 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
 export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema =
   z.object({
-    holiday_id: z.uuid(),
+    holiday_id: z.string().uuid(),
   });
 
 /**

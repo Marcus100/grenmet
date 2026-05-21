@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { validateCsvApiV1HrRostersImportCsvValidatePost } from "../clients/validateCsvApiV1HrRostersImportCsvValidatePost.js";
 import type {
   ValidateCsvApiV1HrRostersImportCsvValidatePost400,
@@ -49,8 +50,9 @@ export function validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      validateCsvApiV1HrRostersImportCsvValidatePost(data, config),
+    mutationFn: async ({ data }) => {
+      return validateCsvApiV1HrRostersImportCsvValidatePost(data, config);
+    },
   });
 }
 

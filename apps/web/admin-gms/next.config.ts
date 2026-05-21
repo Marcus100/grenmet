@@ -1,10 +1,14 @@
+import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
 
 const SVG_REGEX = /\.svg$/;
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  output: "standalone",
+  ...(process.env.NODE_ENV === "production" && {
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
+  }),
   webpack(config) {
     config.module.rules.push({
       test: SVG_REGEX,

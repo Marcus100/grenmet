@@ -17,7 +17,7 @@ import type {
 } from "../models/RegisterUserApiV1AuthUsersSignupPost.js";
 
 function getRegisterUserApiV1AuthUsersSignupPostUrl() {
-  const res = { method: "POST", url: "/api/v1/auth/users/signup" as const };
+  const res = { method: "POST", url: `/api/v1/auth/users/signup` as const };
   return res;
 }
 

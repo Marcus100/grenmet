@@ -1,13 +1,13 @@
 import { getApiClientConfig } from "./configure.js";
 
-export type RequestConfig<TData = unknown> = {
-  method: string;
-  url: string;
-  params?: unknown;
+export interface RequestConfig<TData = unknown> {
   data?: TData;
   headers?: Record<string, string>;
+  method: string;
+  params?: unknown;
   signal?: AbortSignal;
-};
+  url: string;
+}
 
 export type ResponseErrorConfig<T = unknown> = Error & {
   status?: number;
@@ -17,9 +17,11 @@ export type ResponseErrorConfig<T = unknown> = Error & {
 
 export type Client = typeof client;
 
+const TRAILING_SLASH_REGEX = /\/$/;
+
 function buildUrl(baseURL: string | undefined, path: string): string {
   if (!baseURL) return path;
-  const base = baseURL.replace(/\/$/, "");
+  const base = baseURL.replace(TRAILING_SLASH_REGEX, "");
   if (path.startsWith("/")) {
     return `${base}${path}`;
   }

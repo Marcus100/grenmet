@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readUserByIdApiV1AuthUsersUserIdGet } from "../clients/readUserByIdApiV1AuthUsersUserIdGet.js";
 import type {
   ReadUserByIdApiV1AuthUsersUserIdGet403,
@@ -25,7 +26,10 @@ import type {
 
 export const readUserByIdApiV1AuthUsersUserIdGetQueryKey = (
   user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"]
-) => [{ url: "/api/v1/auth/users/:user_id", params: { user_id } }] as const;
+) =>
+  [
+    { url: "/api/v1/auth/users/:user_id", params: { user_id: user_id } },
+  ] as const;
 
 export type ReadUserByIdApiV1AuthUsersUserIdGetQueryKey = ReturnType<
   typeof readUserByIdApiV1AuthUsersUserIdGetQueryKey

@@ -1,155 +1,193 @@
-name: Deploy to production
+name: Deploy to Production
 
 on:
   release:
-    types: [published]
+    types: [ published ]
   workflow_run:
-    workflows: ["Build and Push Docker Images"]
-    types:
-      - completed
-    branches:
-      - main
+    workflows: [ "Build and Push Docker Images", "Build Web App Images" ]
+    types: [ completed ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
-    # Gate: release events (branch protection ensures CI passed on main),
-    # or when build-images completed successfully after a release.
+  # Guard: for workflow_run events both build workflows must have recently succeeded
+  # on main before we deploy. workflow_run fires once per workflow that finishes,
+  # so without this check the deploy could start with one stale image set.
+  check-builds:
+    runs-on: ubuntu-latest
     if: |
-      (github.event_name == 'release') ||
-      (github.event_name == 'workflow_run' &&
-       github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'release')
-    runs-on: [self-hosted, production]
+      github.event_name == 'release' ||
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - name: Check both build workflows succeeded
+        id: check
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            if (context.eventName !== 'workflow_run') {
+              core.setOutput('ready', 'true');
+              return;
+            }
+            const sha = context.payload.workflow_run.head_sha;
+            const branch = context.payload.workflow_run.head_branch;
+            const workflows = ['Build and Push Docker Images', 'Build Web App Images'];
+            for (const name of workflows) {
+              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                branch: branch,
+                per_page: 20,
+              });
+              const run = data.workflow_runs.find(r => r.name === name && r.head_sha === sha);
+              if (run && run.conclusion !== 'success') {
+                core.setOutput('ready', 'false');
+                return;
+              }
+              // No run for this sha means no relevant files changed — existing image is valid
+            }
+            core.setOutput('ready', 'true');
+
+  deploy:
+    needs: check-builds
+    if: needs.check-builds.outputs.ready == 'true'
+    runs-on: [ self-hosted, production ]
     timeout-minutes: 30
     environment:
       name: production
     permissions:
       contents: read
+      packages: read
     defaults:
       run:
-        working-directory: apps/api/fastapi
+        working-directory: infra/docker
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
 
       - name: Setup environment
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
           FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
+          WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+          SESSION_COOKIE_NAME: ${{ secrets.SESSION_COOKIE_NAME }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           set -euo pipefail
           RELEASE_TAG="${{ github.event.release.tag_name }}"
-          IMAGE_TAG="${RELEASE_TAG:-latest}"
+          API_TAG="${RELEASE_TAG:-latest}"
 
           cat > .env <<EOF
           ENVIRONMENT=production
-          DOMAIN=api.weather.gd
-          STACK_NAME=grenmet-api
-          PROJECT_NAME=grenmet-api
+          DOMAIN=api.barrels.gd
           POSTGRES_DB=app_prod
           POSTGRES_SERVER=db
           POSTGRES_PORT=5432
           POSTGRES_USER=${POSTGRES_USER}
           POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          WXWATCH_DB_NAME=wxwatch
+          WXWATCH_DB_USER=wxwatch
+          WXWATCH_DB_PASSWORD=${WXWATCH_DB_PASSWORD}
+          WXPRODUCTS_DB_NAME=wxproducts
+          WXPRODUCTS_DB_USER=wxproducts
+          WXPRODUCTS_DB_PASSWORD=${WXPRODUCTS_DB_PASSWORD}
           SECRET_KEY=${SECRET_KEY}
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
           REGISTRY=ghcr.io
-          IMAGE_NAME=grenmet/grenmet-api
-          TAG=${IMAGE_TAG}
+          IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          TAG=${API_TAG}
+          GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          WEB_TAG=latest
+          SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME}
+          RESEND_API_KEY=${RESEND_API_KEY}
+          WXWATCH_DB_URL=postgresql://wxwatch:${WXWATCH_DB_PASSWORD}@db:5432/wxwatch
+          WXPRODUCTS_DB_URL=postgresql://wxproducts:${WXPRODUCTS_DB_PASSWORD}@db:5432/wxproducts
           EMAIL=${EMAIL}
           USERNAME=${USERNAME}
           HASHED_PASSWORD=${HASHED_PASSWORD}
-          SENTRY_DSN=
+          SENTRY_DSN=${SENTRY_DSN:-}
+          PROJECT_NAME=Grenmet API
+          BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://wxwatch.barrels.gd,https://wxproducts.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd,https://hr.barrels.gd,https://sales.barrels.gd
+          SESSION_COOKIE_DOMAIN=.barrels.gd
+          EMAILS_FROM_EMAIL=noreply@weather.gd
           EOF
 
-          # Strip leading whitespace from heredoc
           sed -i 's/^[[:space:]]*//' .env
+          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|PASSWORD|HASHED_PASSWORD|RESEND_API_KEY|SENTRY_DSN)=.*/\1=****/' .env
 
-          echo "PROJECT_NAME=grenmet-api" >> "$GITHUB_ENV"
-          echo "=== Effective .env (sanitized) ===" ; sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' .env
+      - name: Validate compose configuration
+        run: docker compose --env-file .env -f docker-compose.prod.yml config >/dev/null
 
-      - name: Pull images from registry
+      - name: Authenticate with GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull images
         run: |
-          set -euxo pipefail
-          echo "Pulling images from GitHub Container Registry..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" pull
-          echo "Images pulled successfully"
+          set -euo pipefail
+          # Pull API image (always exists at this point)
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull api db proxy prestart adminer || true
+          # Pull web app images (may not exist yet on first deploy — ignore failures)
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull \
+            web-auth web-admin web-wxwatch web-hurricaneplan web-spicewx \
+            web-wxproducts web-hr web-salesbus 2>/dev/null || true
 
-      - name: Deploy with Docker Compose
+      - name: Start database
         run: |
-          set -euxo pipefail
-          echo "Starting database..."
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" up -d db
-          echo "Waiting for database to be ready..."
+          set -euo pipefail
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" up -d db
+          echo "Waiting for database..."
           for i in {1..20}; do
-            status=$(docker inspect --format='{{json .State.Health.Status}}' "grenmet-api-db-1" 2>/dev/null || echo null)
-            if echo "$status" | grep -q healthy; then echo "Database is ready"; break; fi
-            echo "Waiting for database to be ready... ($i/20)"; sleep 3
-            if [ $i -eq 20 ]; then
-              echo "::error::Database did not become ready in time";
-              docker compose -p "grenmet-api" logs db || true
-              exit 1
+            if docker inspect --format='{{json .State.Health.Status}}' "grenmet-db-1" 2>/dev/null | grep -q healthy; then
+              echo "Database ready"; break
             fi
+            echo "Attempt $i/20..."; sleep 3
+            [ $i -eq 20 ] && { echo "::error::Database did not become ready"; exit 1; }
           done
 
-          echo "Starting all services..."
-          set +e
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" up -d --remove-orphans
-          up_status=$?
-          echo "=== Service status ==="; docker compose -p "grenmet-api" ps || true
+      - name: Deploy full stack
+        run: |
+          set -euxo pipefail
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" up -d --remove-orphans
+          echo "=== Service status ===" ; docker compose -p "grenmet" ps || true
 
-          echo -e "\n=== Prestart logs (tail 120) ==="
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs prestart --tail=120 2>&1 || true
+      - name: Health checks
+        run: |
+          echo "=== API health check ==="
+          PASSED=false
+          for i in {1..10}; do
+            if curl -f -s "https://api.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
+              echo "Production API health check passed"; PASSED=true; break
+            fi
+            echo "Attempt $i/10..."; sleep 10
+          done
+          [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
-          echo -e "\n=== API logs (tail 120) ==="
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs api --tail=120 2>&1 || true
-
-          echo -e "\n=== DB logs (tail 60) ==="
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs db --tail=60 2>&1 || true
-
-          echo -e "\n=== Proxy logs (tail 60) ==="
-          docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs proxy --tail=60 2>&1 || true
-
-          echo -e "\n=== Effective .env (sanitized) ==="
-          sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' || true
-
-          if [ $up_status -ne 0 ]; then
-            echo "::error::docker compose up failed with status $up_status";
-            exit $up_status
-          fi
-
-          # Quick external health check; do not fail the job, just print result
-          set -e
-          echo -e "\n=== External health check ==="
-          curl -sS https://api.weather.gd/api/v1/utils/health-check/ || echo "health-check request failed"
+          echo "=== Auth app health check ==="
+          curl -sSo /dev/null -w "%{http_code}" https://auth.barrels.gd/ || echo "Auth health check failed"
 
       - name: Show logs on failure
         if: failure()
         run: |
-          echo "=== docker ps ===" && docker ps -a || true
-          echo "=== compose ps (grenmet-api) ===" && docker compose -p "grenmet-api" ps || true
-          echo "=== prestart logs (tail 400) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=400 prestart || true
-          echo "=== prestart suspected errors ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color prestart | grep -iE "(pydantic|validation|sentry|dsn|password|FIRST_SUPERUSER|alembic|traceback|exception)" || true
-          echo "=== db logs (tail 200) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=200 db || true
-          echo "=== api logs (tail 200) ===" && docker compose --env-file .env -f ../../infra/docker/docker-compose.prod.yml -p "grenmet-api" logs --no-color --tail=200 api || true
-          echo "=== env (sanitized) ===" && sed -n '1,200p' .env | sed -E 's/(SECRET_KEY|POSTGRES_PASSWORD|FIRST_SUPERUSER_PASSWORD|HASHED_PASSWORD)=.*/\1=****/' || true
-          echo "=== health check (best effort) ==="; curl -sS https://api.weather.gd/api/v1/utils/health-check/ || true
+          docker compose -p "grenmet" ps || true
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" logs --no-color --tail=100 prestart || true
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" logs --no-color --tail=100 api || true
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" logs --no-color --tail=50 db || true
 
-      - name: Cleanup runner environment
+      - name: Cleanup
         if: always()
         run: |
-          echo "Cleaning up runner environment..."
-          # Prune unused images/containers/networks but NOT volumes (protects pgdata)
-          docker system prune -af || true
-          # Remove any temporary files
-          rm -rf /tmp/* || true
-          # Clear sensitive environment variables
-          unset SECRET_KEY POSTGRES_PASSWORD FIRST_SUPERUSER_PASSWORD HASHED_PASSWORD || true
-          echo "Runner cleanup completed"
+          docker image prune -f || true
+          rm -f .env

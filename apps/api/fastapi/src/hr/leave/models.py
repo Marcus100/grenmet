@@ -5,9 +5,8 @@ from enum import Enum
 
 from sqlmodel import Field, SQLModel
 
-from src.utils.datetime import utc_now
-
 from src.hr.models import RequestStatus  # noqa: F401
+from src.utils.datetime import utc_now
 
 
 class LeaveType(str, Enum):
@@ -32,9 +31,15 @@ class LeaveRequest(SQLModel, table=True):
     leave_type: LeaveType
     start_date: date
     end_date: date
-    days_requested: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=6)
-    days_with_pay: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=6)
-    days_without_pay: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=6)
+    days_requested: Decimal = Field(
+        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    )
+    days_with_pay: Decimal = Field(
+        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    )
+    days_without_pay: Decimal = Field(
+        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    )
     reason: str | None = Field(default=None, max_length=1000)
     contact_phone: str | None = Field(default=None, max_length=30)
     leave_address: str | None = Field(default=None, max_length=500)
@@ -43,7 +48,9 @@ class LeaveRequest(SQLModel, table=True):
     )
     head_of_dept_comments: str | None = Field(default=None, max_length=1000)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
-    workflow_instance_id: uuid.UUID | None = Field(default=None, foreign_key="hr.workflow_instance.id")
+    workflow_instance_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.workflow_instance.id"
+    )
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -58,6 +65,8 @@ class LeaveBalanceEvent(SQLModel, table=True):
     delta_days: Decimal = Field(decimal_places=2, max_digits=6)
     balance_after_days: Decimal = Field(decimal_places=2, max_digits=6)
     reason: str = Field(max_length=200)
-    related_leave_request_id: uuid.UUID | None = Field(default=None, foreign_key="hr.leave_request.id")
+    related_leave_request_id: uuid.UUID | None = Field(
+        default=None, foreign_key="hr.leave_request.id"
+    )
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id")
     created_at: datetime = Field(default_factory=utc_now)

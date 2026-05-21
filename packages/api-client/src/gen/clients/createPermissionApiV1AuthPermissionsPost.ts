@@ -16,7 +16,7 @@ import type {
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
 
 function getCreatePermissionApiV1AuthPermissionsPostUrl() {
-  const res = { method: "POST", url: "/api/v1/auth/permissions/" as const };
+  const res = { method: "POST", url: `/api/v1/auth/permissions/` as const };
   return res;
 }
 

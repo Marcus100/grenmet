@@ -22,13 +22,13 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     description="Return the current user's HR profile (identity, employment, address, preferences).",
     responses={
         status.HTTP_200_OK: {"description": "HR profile returned"},
-        status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
+        status.HTTP_404_NOT_FOUND: {
+            "description": "HR profile not found for this user"
+        },
     },
 )
 async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    return await read_profile_for_user(
-        session=session, current_user=current_user
-    )
+    return await read_profile_for_user(session=session, current_user=current_user)
 
 
 @router.patch(
@@ -38,7 +38,9 @@ async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> 
     description="Update the current user's HR profile (identity, address, preferences).",
     responses={
         status.HTTP_200_OK: {"description": "Profile updated"},
-        status.HTTP_404_NOT_FOUND: {"description": "HR profile not found for this user"},
+        status.HTTP_404_NOT_FOUND: {
+            "description": "HR profile not found for this user"
+        },
     },
 )
 async def update_hr_profile_me(
@@ -63,7 +65,9 @@ async def update_hr_profile_me(
     responses={
         status.HTTP_200_OK: {"description": "Employment updated"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
-        status.HTTP_404_NOT_FOUND: {"description": "User or employment record not found"},
+        status.HTTP_404_NOT_FOUND: {
+            "description": "User or employment record not found"
+        },
     },
 )
 async def update_hr_employment(

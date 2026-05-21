@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "../clients/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 import type {
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
@@ -53,12 +54,13 @@ export function updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMut
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ assignment_id, data }) =>
-      updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
+    mutationFn: async ({ assignment_id, data }) => {
+      return updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
         assignment_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

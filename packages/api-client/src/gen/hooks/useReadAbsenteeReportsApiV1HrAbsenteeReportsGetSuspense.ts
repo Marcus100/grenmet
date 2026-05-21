@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "../clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 import type {
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403,

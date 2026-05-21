@@ -3,16 +3,14 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { leaveTypeSchema } from "./leaveTypeSchema.js";
 
 export const leaveRequestCreateSchema = z.object({
   department_id: z.string(),
-  get leave_type() {
-    return leaveTypeSchema;
-  },
-  start_date: z.iso.date(),
-  end_date: z.iso.date(),
+  leave_type: z.lazy(() => leaveTypeSchema),
+  start_date: z.string().date(),
+  end_date: z.string().date(),
   days_requested: z.optional(
     z
       .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
@@ -31,5 +29,5 @@ export const leaveRequestCreateSchema = z.object({
   reason: z.optional(z.union([z.string(), z.null()])),
   contact_phone: z.optional(z.union([z.string(), z.null()])),
   leave_address: z.optional(z.union([z.string(), z.null()])),
-  acting_officer_id: z.optional(z.union([z.uuid(), z.null()])),
+  acting_officer_id: z.optional(z.union([z.string().uuid(), z.null()])),
 });

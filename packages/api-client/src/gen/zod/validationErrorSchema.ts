@@ -3,10 +3,10 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 
 export const validationErrorSchema = z.object({
-  loc: z.array(z.union([z.int(), z.string()])),
+  loc: z.array(z.union([z.number().int(), z.string()])),
   msg: z.string(),
   type: z.string(),
 });

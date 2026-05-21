@@ -3,13 +3,13 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
 export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParamsSchema =
   z.object({
-    period_id: z.uuid(),
+    period_id: z.string().uuid(),
   });
 
 /**

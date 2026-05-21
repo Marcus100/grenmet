@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { createAbsenteeEndpointApiV1HrAbsenteeReportsPost } from "../clients/createAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
 import type {
   CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost403,
@@ -49,8 +50,9 @@ export function createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) =>
-      createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config),
+    mutationFn: async ({ data }) => {
+      return createAbsenteeEndpointApiV1HrAbsenteeReportsPost(data, config);
+    },
   });
 }
 

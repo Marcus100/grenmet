@@ -12,7 +12,7 @@ import fetch from "../../client.js";
 import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
 
 function getReadUserMeApiV1AuthUsersMeGetUrl() {
-  const res = { method: "GET", url: "/api/v1/auth/users/me" as const };
+  const res = { method: "GET", url: `/api/v1/auth/users/me` as const };
   return res;
 }
 

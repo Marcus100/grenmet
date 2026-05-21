@@ -18,13 +18,17 @@ const columns = [
 ];
 
 function BlankRows({ count }: { count: number }) {
+  const rowIds = Array.from(
+    { length: count },
+    (_, index) => `blank-row-${index + 1}`
+  );
+
   return (
     <>
-      {Array.from({ length: count }).map((_, idx) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: static blank rows, no state/reordering
-        <tr key={idx}>
+      {rowIds.map((rowId) => (
+        <tr key={rowId}>
           {columns.map((col) => (
-            <td className="h-6 border border-zinc-900" key={`${idx}-${col}`} />
+            <td className="h-6 border border-zinc-900" key={col} />
           ))}
         </tr>
       ))}

@@ -3,12 +3,12 @@
  * Do not edit manually.
  */
 
-import { z } from "zod/v4";
+import * as z from "zod";
 import { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
 
 export const statusReportCreateSchema = z.object({
   department_id: z.string(),
-  report_date: z.iso.date(),
+  report_date: z.string().date(),
   shift_code: z.string(),
   weather_summary: z.optional(z.union([z.string(), z.null()])),
   equipment_summary: z.optional(z.union([z.string(), z.null()])),
@@ -17,7 +17,5 @@ export const statusReportCreateSchema = z.object({
   navaids_status: z.optional(z.union([z.string(), z.null()])),
   communications_status: z.optional(z.union([z.string(), z.null()])),
   general_remarks: z.optional(z.union([z.string(), z.null()])),
-  get entries() {
-    return z.array(statusReportEntryInputSchema).optional();
-  },
+  entries: z.optional(z.array(z.lazy(() => statusReportEntryInputSchema))),
 });

@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } from "../clients/recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 import type {
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
@@ -43,11 +44,12 @@ export function recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailP
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) =>
-      recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
+    mutationFn: async ({ email }) => {
+      return recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
         email,
         config
-      ),
+      );
+    },
   });
 }
 

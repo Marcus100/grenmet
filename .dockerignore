@@ -1,0 +1,56 @@
+# VCS
+.git
+.gitignore
+.gitattributes
+
+# Dev tooling
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js / build outputs
+**/.next/
+**/out/
+**/dist/
+**/.turbo/
+**/build/
+**/*.tsbuildinfo
+
+# Test / coverage
+**/coverage/
+**/test-results/
+**/playwright-report/
+**/.playwright/
+
+# Python
+**/__pycache__/
+**/*.pyc
+**/.venv/
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Docs / CI (not needed in image)
+*.md
+.github/
+docs/
+
+# Turbo cache
+.turbo/

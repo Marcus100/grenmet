@@ -7,7 +7,7 @@ from typing_extensions import Self
 
 class EmailConfig(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=".env.local",
         env_ignore_empty=True,
         extra="ignore",
     )
@@ -28,7 +28,7 @@ class EmailConfig(BaseSettings):
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:
-            self.EMAILS_FROM_NAME = self.PROJECT_NAME  # type: ignore[assignment]
+            self.EMAILS_FROM_NAME = self.PROJECT_NAME
         return self
 
     @property
@@ -42,4 +42,4 @@ class EmailConfig(BaseSettings):
         return self.emails_enabled
 
 
-email_settings = EmailConfig()  # type: ignore[call-arg]
+email_settings = EmailConfig()

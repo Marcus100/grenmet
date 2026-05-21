@@ -14,6 +14,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost } from "../clients/takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 import type {
   TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400,
@@ -58,12 +59,13 @@ export function takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutation
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ instance_id, data }) =>
-      takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
+    mutationFn: async ({ instance_id, data }) => {
+      return takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
         instance_id,
         data,
         config
-      ),
+      );
+    },
   });
 }
 

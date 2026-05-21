@@ -15,7 +15,7 @@ import type {
 } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 
 function getReadHrProfileMeApiV1HrProfileMeGetUrl() {
-  const res = { method: "GET", url: "/api/v1/hr/profile/me" as const };
+  const res = { method: "GET", url: `/api/v1/hr/profile/me` as const };
   return res;
 }
 

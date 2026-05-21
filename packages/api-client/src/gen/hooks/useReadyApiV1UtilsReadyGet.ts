@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readyApiV1UtilsReadyGet } from "../clients/readyApiV1UtilsReadyGet.js";
 import type {
   ReadyApiV1UtilsReadyGet503,

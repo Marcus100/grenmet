@@ -57,6 +57,9 @@ async def read_absentee_reports(
         department_id=department_id,
     )
     return AbsenteeReportListPublic(
-        data=[AbsenteeReportPublic.model_validate(item, from_attributes=True) for item in rows],
+        data=[
+            AbsenteeReportPublic.model_validate(item, from_attributes=True)
+            for item in rows
+        ],
         count=len(rows),
     )

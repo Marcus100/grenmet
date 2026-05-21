@@ -5,7 +5,12 @@ from pydantic import Field
 
 from src.models import BaseModel
 
-from .models import ImportStatus, RosterPeriodStatus, RosterRevisionAction, ShiftCategory
+from .models import (
+    ImportStatus,
+    RosterPeriodStatus,
+    RosterRevisionAction,
+    ShiftCategory,
+)
 
 
 class ShiftCatalogPublic(BaseModel):
@@ -131,7 +136,7 @@ class RosterRevisionPublic(BaseModel):
     action: RosterRevisionAction
     changed_by_user_id: uuid.UUID
     summary: str | None = None
-    snapshot: dict
+    snapshot: dict[str, object]
     created_at: datetime
 
 

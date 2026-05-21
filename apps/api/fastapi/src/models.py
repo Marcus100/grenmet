@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from datetime import datetime
+from typing import Any, cast
 from zoneinfo import ZoneInfo
 
 from fastapi.encoders import jsonable_encoder
@@ -38,9 +39,9 @@ class CustomModel(PydanticBaseModel):
         data = serializer(self)
         return _serialize_value(data)
 
-    def serializable_dict(self) -> dict:
+    def serializable_dict(self) -> dict[str, Any]:
         """Return a dict which contains only serializable fields (for JSON)."""
-        return jsonable_encoder(self.model_dump())
+        return cast(dict[str, Any], jsonable_encoder(self.model_dump()))
 
 
 # Export CustomModel as BaseModel for consistency across the app

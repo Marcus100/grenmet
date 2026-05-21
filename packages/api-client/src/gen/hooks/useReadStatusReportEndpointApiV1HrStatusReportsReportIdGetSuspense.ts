@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readStatusReportEndpointApiV1HrStatusReportsReportIdGet } from "../clients/readStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
 import type {
   ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet403,
@@ -31,7 +32,7 @@ export const readStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspenseQuer
     [
       {
         url: "/api/v1/hr/status-reports/:report_id",
-        params: { report_id },
+        params: { report_id: report_id },
       },
     ] as const;
 

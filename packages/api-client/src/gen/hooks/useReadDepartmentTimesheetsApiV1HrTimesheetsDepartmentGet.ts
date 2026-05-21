@@ -15,6 +15,7 @@ import type {
   RequestConfig,
   ResponseErrorConfig,
 } from "../../client.js";
+import fetch from "../../client.js";
 import { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "../clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 import type {
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
