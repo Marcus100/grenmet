@@ -1,73 +1,65 @@
-import { AlertTriangle, ArrowRight } from "lucide-react";
-import type { Condition, Warning } from "@/lib/forecast-data";
-import { cn } from "@/lib/utils";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowDownToLine,
+  ArrowUpToLine,
+  Navigation,
+  Sunrise,
+  Sunset,
+  Thermometer,
+  Umbrella,
+  Waves,
+  Wind,
+} from "lucide-react";
+import type { Condition } from "@/lib/forecast-data";
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  "Max Temp": Thermometer,
+  "Min Temp": Thermometer,
+  "Wind Speed": Wind,
+  "Wind Direction": Navigation,
+  "Rain Chance": Umbrella,
+  "Sea State": Waves,
+  "Wave Height": Waves,
+  "Low Tide": ArrowDownToLine,
+  "High Tide": ArrowUpToLine,
+  Sunrise,
+  Sunset,
+  "Sunrise Today": Sunrise,
+  "Sunrise Tomorrow": Sunrise,
+  "Sunrise Sunday": Sunrise,
+  "Sunset Today": Sunset,
+};
 
 interface WeatherConditionsProps {
   conditions: Condition[];
-  title: string;
-  warnings: Warning[];
 }
 
-export function WeatherConditions({
-  title,
-  conditions,
-  warnings,
-}: WeatherConditionsProps) {
+export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
-    <div className="flex flex-1 flex-col lg:flex-row">
-      <div className="flex-1 p-4 lg:p-5">
-        <h2 className="mb-4 font-bold text-gm-blue text-sm uppercase tracking-widest">
-          {title}
-        </h2>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-5 lg:grid-cols-3 lg:gap-x-6">
-          {conditions.map((item) => (
-            <div className="flex items-center gap-3" key={item.label}>
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gm-surface text-gm-blue text-xs">
-                icon
-              </div>
-              <div>
-                <p className="font-bold text-gm-navy text-sm">{item.value}</p>
-                <p className="text-gray-500 text-xs">{item.label}</p>
-              </div>
+    <div className="grid grid-cols-2 gap-2 bg-white pt-2 pb-1">
+      {conditions.map((item) => {
+        const Icon = ICON_MAP[item.label];
+        return (
+          <div
+            className="flex items-center gap-2 px-[10px] py-[8px]"
+            key={item.label}
+          >
+            <div className="flex size-[30px] shrink-0 items-center justify-center">
+              {Icon && (
+                <Icon className="h-5 w-5 text-gray-400" strokeWidth={1.5} />
+              )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="hidden w-64 shrink-0 flex-col lg:flex">
-        <a
-          className="flex items-center justify-between bg-gm-risk-amber px-4 py-3 font-semibold text-gray-900 text-sm"
-          href="/warnings"
-        >
-          <span className="flex items-center gap-1.5">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            Current warnings
-          </span>
-          <ArrowRight className="h-4 w-4 shrink-0" />
-        </a>
-        <div className="flex-1 divide-y divide-white/10 bg-gm-navy">
-          {warnings.map((w) => (
-            <div className="flex items-center gap-3 px-4 py-3" key={w.region}>
-              <span
-                className={cn(
-                  "w-4 shrink-0 font-bold text-sm tabular-nums",
-                  w.count > 0 ? "text-gm-risk-amber" : "text-white/30"
-                )}
-              >
-                {w.count}
-              </span>
-              <span
-                className={cn(
-                  "text-sm",
-                  w.count > 0 ? "text-white" : "text-white/50"
-                )}
-              >
-                {w.region}
-              </span>
+            <div className="flex min-w-0 flex-col gap-px">
+              <p className="font-semibold text-[14px] text-gray-900 leading-[16px]">
+                {item.value}
+              </p>
+              <p className="text-[#4b5563] text-[11px] leading-[13px]">
+                {item.label}
+              </p>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

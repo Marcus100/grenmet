@@ -3,7 +3,6 @@ import Image from "next/image";
 const posts = [
   {
     id: 1,
-    author: "GMS Grenada",
     time: "Yesterday at 10:41 am",
     paragraphs: [
       "We're halfway through May and conditions across Grenada remain partly cloudy with isolated afternoon showers.",
@@ -14,7 +13,6 @@ const posts = [
   },
   {
     id: 2,
-    author: "GMS Grenada",
     time: "May 15 at 10:38 pm",
     paragraphs: [
       "What will the weather look like after 17 May? The week begins with high pressure building from the north bringing drier and warmer conditions.",
@@ -25,7 +23,6 @@ const posts = [
   },
   {
     id: 3,
-    author: "GMS Grenada",
     time: "May 15 at 9:08 pm",
     paragraphs: [
       "The changing sea state makes coastal conditions difficult to predict for this weekend. We'll keep you updated:",
@@ -36,7 +33,6 @@ const posts = [
   },
   {
     id: 4,
-    author: "GMS Grenada",
     time: "May 15 at 8:11 pm",
     paragraphs: [
       "Carriacou and Petite Martinique could experience some of the strongest winds this weekend.",
@@ -49,40 +45,42 @@ const posts = [
 
 function PostCard({ post }: { post: (typeof posts)[number] }) {
   return (
-    <div className="flex flex-col rounded-xl border border-gm-border bg-white p-4 shadow-sm">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gm-sky font-bold text-sm text-white">
+    <div className="flex flex-col gap-[12px] rounded-[12px] border border-[#d0d5dd] bg-white p-[17px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-[12px]">
+          <div className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-[#39a5f5] font-bold text-[14px] text-white">
             G
           </div>
-          <div>
-            <p className="font-semibold text-gm-navy text-sm">{post.author}</p>
-            <p className="text-gray-400 text-xs">{post.time}</p>
+          <div className="flex flex-col">
+            <p className="font-semibold text-[#150068] text-[13px] leading-[18px]">
+              GMS
+            </p>
+            <p className="text-[#99a1af] text-[11px] leading-[16px]">
+              {post.time}
+            </p>
           </div>
         </div>
-        <button
-          className="shrink-0 text-gray-400 hover:text-gray-600"
-          type="button"
-        >
-          •••
-        </button>
+        <p className="text-[#99a1af] text-[16px] leading-[24px]">•••</p>
       </div>
 
-      <div className="flex flex-col gap-2">
+      {/* Body */}
+      <div className="flex flex-col gap-[8px]">
         {post.paragraphs.map((p) => (
-          <p className="text-gray-700 text-sm leading-relaxed" key={p}>
+          <p className="text-[#364153] text-[13px] leading-[20px]" key={p}>
             {p}
           </p>
         ))}
       </div>
 
-      <div className="mt-3 overflow-hidden rounded-lg bg-gray-100">
+      {/* Image */}
+      <div className="overflow-hidden rounded-[8px] bg-[#f3f4f6]">
         <Image
           alt=""
-          className="h-44 w-full object-cover"
-          height={176}
+          className="h-[200px] w-full object-cover"
+          height={200}
           src={post.image}
-          width={400}
+          width={280}
         />
       </div>
     </div>
@@ -92,22 +90,21 @@ function PostCard({ post }: { post: (typeof posts)[number] }) {
 export function GmsNews() {
   return (
     <section className="mb-4">
-      <div className="flex items-center justify-between px-4 lg:px-0">
-        <h2 className="font-bold text-gm-navy text-lg lg:text-xl">
+      <div className="mb-[10px] flex items-center justify-between">
+        <h2 className="font-bold text-[#150068] text-[18px] leading-[24px]">
           Latest from us
         </h2>
         <a
-          className="font-medium text-gm-blue text-sm hover:underline"
+          className="font-medium text-[#2478f2] text-[14px] leading-[20px]"
           href="/news"
         >
           See more
         </a>
       </div>
 
-      {/* Mobile: horizontal scroll carousel → Desktop: 4-col grid */}
-      <div className="flex gap-3 overflow-x-auto [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:gap-4 lg:overflow-visible lg:px-0 lg:pb-0">
+      <div className="flex gap-[12px] overflow-x-auto [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:overflow-visible">
         {posts.map((post) => (
-          <div className="w-[85vw] shrink-0 lg:w-auto" key={post.id}>
+          <div className="w-75 shrink-0 lg:w-auto" key={post.id}>
             <PostCard post={post} />
           </div>
         ))}
