@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
+import { FridayMay22Forecast } from "@/components/forecasts/friday-may-22";
+import { ThursdayMay21Forecast } from "@/components/forecasts/thursday-may-21";
 import { TuesdayMay19Forecast } from "@/components/forecasts/tuesday-may-19";
 import { WednesdayMay20Forecast } from "@/components/forecasts/wednesday-may-20";
-import { ThursdayMay21Forecast } from "@/components/forecasts/thursday-may-21";
-import { FridayMay22Forecast } from "@/components/forecasts/friday-may-22";
 import { getUpcomingDaySlugs } from "@/lib/forecast-days";
 
 const FORECAST_COMPONENTS: Record<string, () => React.JSX.Element> = {
