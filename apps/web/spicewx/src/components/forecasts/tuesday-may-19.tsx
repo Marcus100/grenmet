@@ -1,5 +1,4 @@
 import { WeatherConditions } from "@/components/weather-conditions";
-import { WARNINGS } from "@/lib/forecast-data";
 
 const CONDITIONS = [
   { label: "Sunrise", value: "5:42 a.m." },
@@ -12,15 +11,8 @@ const CONDITIONS = [
   { label: "Wave Height", value: "6–8 ft" },
   { label: "Low Tide", value: "10:30 a.m." },
   { label: "High Tide", value: "4:45 p.m." },
-  { label: "Warning", value: "None" },
 ];
 
 export function TuesdayMay19Forecast() {
-  return (
-    <WeatherConditions
-      conditions={CONDITIONS}
-      title="Key Conditions — Tue 19 May"
-      warnings={WARNINGS}
-    />
-  );
+  return <WeatherConditions conditions={CONDITIONS} />;
 }

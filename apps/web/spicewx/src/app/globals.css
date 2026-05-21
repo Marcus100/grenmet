@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Dark mode only activates via explicit .dark class — never from system preference */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --font-sans: var(--font-inter);
 
@@ -71,6 +74,7 @@
   --destructive-foreground: #ffffff;
   --border: var(--gm-border);
   --ring: var(--gm-blue);
+  color-scheme: light;
 }
 
 body {
