@@ -78,7 +78,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/grenmet-api
+          images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=staging,enable=${{ steps.ctx.outputs.is_staging == 'true' }}
             type=raw,value=latest,enable=${{ steps.ctx.outputs.is_staging == 'false' }}
