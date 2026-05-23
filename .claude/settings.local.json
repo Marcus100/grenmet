@@ -43,7 +43,11 @@
       "mcp__figma__get_screenshot",
       "Read(//mnt/c/Users/eugin/OneDrive/DEV/grenmet/**)",
       "Read(//mnt/c/Users/eugin/OneDrive/DEV/grenmet/apps/web/spicewx/**)",
-      "Bash(node -e \"console.log\\(require\\('/mnt/c/Users/eugin/OneDrive/DEV/grenmet/node_modules/lucide-react/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('/mnt/c/Users/eugin/OneDrive/DEV/grenmet/node_modules/lucide-react/package.json'\\).version\\)\")",
+      "mcp__figma__get_metadata",
+      "mcp__figma__get_libraries",
+      "mcp__figma__whoami",
+      "mcp__figma__create_new_file"
     ]
   }
 }

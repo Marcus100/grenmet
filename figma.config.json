@@ -1,0 +1,10 @@
+{
+  "codeConnect": {
+    "parser": "react",
+    "label": "React",
+    "include": ["packages/ui/src/**/*.tsx"],
+    "paths": {
+      "@grenmet/ui/*": ["packages/ui/src/*"]
+    }
+  }
+}

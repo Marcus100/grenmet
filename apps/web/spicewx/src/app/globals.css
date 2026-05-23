@@ -34,12 +34,38 @@
   --color-gm-navy: var(--gm-navy);
   --color-gm-sky: var(--gm-sky);
   --color-gm-sun: var(--gm-sun);
+  --color-gm-surface-page: var(--gm-surface-page);
   --color-gm-surface: var(--gm-surface);
+  --color-gm-surface-panel: var(--gm-surface-panel);
+  --color-gm-text-primary: var(--gm-text-primary);
+  --color-gm-text-secondary: var(--gm-text-secondary);
+  --color-gm-text-muted: var(--gm-text-muted);
+  --color-gm-text-inverse: var(--gm-text-inverse);
   --color-gm-risk-green: var(--gm-risk-green);
   --color-gm-risk-yellow: var(--gm-risk-yellow);
   --color-gm-risk-amber: var(--gm-risk-amber);
   --color-gm-risk-red: var(--gm-risk-red);
+  --color-gm-risk-grey: var(--gm-risk-grey);
+  --color-gm-weather-severity-low: var(--gm-weather-severity-low);
+  --color-gm-weather-severity-be-aware: var(--gm-weather-severity-be-aware);
+  --color-gm-weather-severity-be-prepared: var(
+    --gm-weather-severity-be-prepared
+  );
+  --color-gm-weather-severity-take-action: var(
+    --gm-weather-severity-take-action
+  );
+  --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
   --color-gm-border: var(--gm-border);
+  --spacing-gm-4: var(--gm-spacing-4);
+  --spacing-gm-8: var(--gm-spacing-8);
+  --spacing-gm-12: var(--gm-spacing-12);
+  --spacing-gm-16: var(--gm-spacing-16);
+  --spacing-gm-20: var(--gm-spacing-20);
+  --spacing-gm-24: var(--gm-spacing-24);
+  --radius-gm-2: var(--gm-radius-2);
+  --radius-gm-5: var(--gm-radius-5);
+  --radius-gm-8: var(--gm-radius-8);
+  --radius-gm-full: var(--gm-radius-full);
 }
 
 :root {
@@ -47,14 +73,36 @@
 
   /* GrenMet brand */
   --gm-blue: #2478f2;
-  --gm-navy: #150068;
-  --gm-sky: #39a5f5;
+  --gm-navy: #15006b;
+  --gm-sky: #39a9f5;
   --gm-sun: #ff981e;
+  --gm-surface-page: #ffffff;
   --gm-surface: #f3f8fc;
-  --gm-risk-green: #008430;
+  --gm-surface-panel: #eaf3fb;
+  --gm-text-primary: #111827;
+  --gm-text-secondary: #4b5563;
+  --gm-text-muted: #6b7280;
+  --gm-text-inverse: #ffffff;
+  --gm-risk-green: #00843d;
   --gm-risk-yellow: #ffe923;
-  --gm-risk-amber: #ff990c;
+  --gm-risk-amber: #ff9900;
   --gm-risk-red: #cc0033;
+  --gm-risk-grey: #dcdcdc;
+  --gm-weather-severity-low: var(--gm-risk-green);
+  --gm-weather-severity-be-aware: var(--gm-risk-yellow);
+  --gm-weather-severity-be-prepared: var(--gm-risk-amber);
+  --gm-weather-severity-take-action: var(--gm-risk-red);
+  --gm-weather-severity-expired: var(--gm-risk-grey);
+  --gm-spacing-4: 4px;
+  --gm-spacing-8: 8px;
+  --gm-spacing-12: 12px;
+  --gm-spacing-16: 16px;
+  --gm-spacing-20: 20px;
+  --gm-spacing-24: 24px;
+  --gm-radius-2: 2px;
+  --gm-radius-5: 5px;
+  --gm-radius-8: 8px;
+  --gm-radius-full: 999px;
   --gm-border: #d0d5dd;
 
   /* shadcn semantic tokens mapped to GrenMet brand */
