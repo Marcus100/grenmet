@@ -17,7 +17,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
-      <body className="flex min-h-screen flex-col bg-white text-gray-900">
+      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
         <Header />
         <main className="flex-1">{children}</main>
         <Footer />

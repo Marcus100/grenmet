@@ -40,13 +40,39 @@ The check fails if an app has a stale generated block or declares `--gm-*` token
 
 `spicewx` remains the first app mirror for the v1 GrenMet contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
 
+## Foundation Compliance
+
+The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
+
+Inter is the provisional GrenMet web font while the brand direction is still being worked out. Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the GrenMet foundation.
+
+Use `spicewx` as the first cleanup app. It should become the reference for how a public GrenMet app uses shared foundations before the same rules are tightened across the other apps.
+
+The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `spicewx` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
+
+Accepted pilot exceptions are fixed media dimensions, image crop heights, weather-date display sizing, and layout measurements that only make sense inside one composed product view. These exceptions can remain as explicit Tailwind arbitrary values while the audit is warning-only.
+
+Run the warning-only audit command to find foundation drift:
+
+```bash
+pnpm design-system:audit
+```
+
+For a complete uncapped report, run:
+
+```bash
+pnpm design-system:audit:full
+```
+
+The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing and radius values, app-local shadows, active dark/system theme hooks, and local theme tokens that do not map back to GrenMet. It does not fail CI yet; use it to plan cleanup before promoting selected rules into blocking checks.
+
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations / Core + Product` is the current v1 contract: one Light mode, 32 scoped variables, and WEB code syntax for every token. The `12 Design System` page includes a `GrenMet v1 Foundation Contract` reference section for color, spacing, and radius review.
+The Figma collection `GrenMet Foundations / Core + Product` is the current v1 contract: one Light mode, scoped variables, and WEB code syntax for every public token. The `12 Design System` page includes a `GrenMet v1 Foundation Contract` reference section for color, spacing, and radius review.
 
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
-The current audit verified all 32 local variables in `GrenMet Foundations / Core + Product` have valid `var(--gm-...)` WEB code syntax.
+The current audit verified the collection includes the v1 color, spacing, radius, typography, line-height, and shadow code-contract variables with valid `var(--gm-...)` WEB code syntax.
 
 ## Light Mode V1
 
