@@ -128,14 +128,27 @@ AUTH_ALLOWED_RETURN_HOSTS=admin.barrels.gd,wxwatch.barrels.gd,hurricane.barrels.
 AUTH_ALLOWED_RETURN_HOSTS=admin.weather.gd,wxwatch.weather.gd,hurricane.weather.gd,spice.weather.gd,wxproducts.weather.gd,hr.weather.gd,sales.weather.gd
 ```
 
-### Apps that delegate auth (auth, hr, hurricaneplan, spicewx)
+### Apps that delegate auth (hurricaneplan, spicewx)
+
+These apps redirect to `web-auth` for sign-in. They do not manage sessions directly.
 
 | Variable | Purpose |
 |---|---|
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `SESSION_COOKIE_NAME` | Must match the value in the auth app |
-| `AUTH_ALLOWED_RETURN_HOSTS` | Not needed here — this lives only in the auth app |
+
+### hr (`apps/web/hr/.env.local`)
+
+HR also delegates to `web-auth` but redirects back to itself after sign-in, so it needs `AUTH_APP_URL` and `AUTH_ALLOWED_RETURN_HOSTS` in addition to the standard auth variables.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_APP_URL` | URL of the auth app (e.g. `http://localhost:3000`) |
+| `AUTH_API_URL` | FastAPI base URL |
+| `AUTH_API_V1_STR` | API version prefix |
+| `SESSION_COOKIE_NAME` | Shared session cookie name |
+| `AUTH_ALLOWED_RETURN_HOSTS` | Allowlist for post-login redirects (e.g. `localhost:3006`) |
 
 ### admin-gms (`apps/web/admin-gms/.env.local`)
 
@@ -164,6 +177,18 @@ AUTH_ALLOWED_RETURN_HOSTS=admin.weather.gd,wxwatch.weather.gd,hurricane.weather.
 | Variable | Purpose |
 |---|---|
 | `DATABASE_URL` | wxproducts' own Postgres connection string |
+
+### salesbus (`apps/web/salesbus/.env.local`)
+
+Salesbus is not yet integrated with the shared auth system. It uses only client-side public variables.
+
+| Variable | Purpose |
+|---|---|
+| `NEXT_PUBLIC_API_URL` | FastAPI base URL for client-side requests |
+| `NEXT_PUBLIC_APP_NAME` | Application display name |
+| `NEXT_PUBLIC_APP_VERSION` | Application version string |
+| `NEXT_PUBLIC_ENABLE_DEBUG` | Enable debug output in development (`true` / `false`) |
+| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable analytics (`true` / `false`; disabled by default in dev) |
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 

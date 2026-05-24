@@ -60,6 +60,7 @@ pnpm dev
 
 - **API Swagger**: http://localhost:8000/swagger
 - **API ReDoc**: http://localhost:8000/redoc
+- **API Scalar**: http://localhost:8000/scalar
 - **OpenAPI JSON**: http://localhost:8000/api/v1/openapi.json
 - **Health Check**: http://localhost:8000/api/v1/utils/health-check/
 - **Adminer**: http://localhost:8080
@@ -150,13 +151,14 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 | Document | Description |
 | --- | --- |
-| [Deployment guide](deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
+| [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
 | [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
 | [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
 | [Design System](docs/design-system.md) | GrenMet v1 tokens, Figma bridge, compliance guide, audit commands |
 | [API Development](docs/api/development.md) | FastAPI local development guide |
 | [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
 | [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |
+| [Programme docs](docs/internal/) | Roadmap, DTO Terms of Reference, end-of-period report template |
 
 ### App READMEs
 

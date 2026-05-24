@@ -161,9 +161,8 @@ secrets/
 # ROADMAP.md will be committed when ready for public visibility.
 # docs/reports/ contains the TOR, progress reports, and roadmap — all gitignored.
 # =======================
-docs/programme/
 docs/reports/
-ROADMAP.md
+
 
 # =======================
 # Kubb generated SDK policy

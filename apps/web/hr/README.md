@@ -16,6 +16,13 @@ pnpm dev:web:hr
 
 The app runs on `http://localhost:3006`.
 
+## Run from app directory
+
+```bash
+cd apps/web/hr
+pnpm dev
+```
+
 ## Environment Variables
 
 See `.env.local.example` for required values:
@@ -24,14 +31,7 @@ See `.env.local.example` for required values:
 - `AUTH_API_URL` — FastAPI base URL
 - `AUTH_API_V1_STR` — API version prefix
 - `SESSION_COOKIE_NAME` — shared session cookie name
-- `AUTH_ALLOWED_RETURN_HOSTS` — allowlist for post-login redirects
-
-## Run from app directory
-
-```bash
-cd apps/web/hr
-pnpm dev
-```
+- `AUTH_ALLOWED_RETURN_HOSTS` — allowlist for post-login redirects (e.g. `localhost:3006`)
 
 ## Quality Commands
 

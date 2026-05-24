@@ -10,21 +10,18 @@ const webApps = [
   {
     name: "admin-gms",
     root: "apps/web/admin-gms",
-    note:
-      "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
+    note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
   },
   { name: "auth", root: "apps/web/auth" },
   {
     name: "hr",
     root: "apps/web/hr",
-    note:
-      "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
+    note: "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
   },
   {
     name: "hurricaneplan",
     root: "apps/web/hurricaneplan",
-    note:
-      "Docs-template styling is expected to be noisy; review global shell colors first.",
+    note: "Docs-template styling is expected to be noisy; review global shell colors first.",
   },
   { name: "salesbus", root: "apps/web/salesbus" },
   {
@@ -35,8 +32,7 @@ const webApps = [
   {
     name: "wxproducts",
     root: "apps/web/wxproducts",
-    note:
-      "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
+    note: "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
   },
   { name: "wxwatch", root: "apps/web/wxwatch" },
 ];
@@ -88,8 +84,7 @@ const fontFamilyPattern = /\bfont-family\s*:\s*([^;]+);/gi;
 const fontTokenPattern = /--font-[a-z0-9-]+\s*:\s*([^;]+);/gi;
 const typographyDeclarationPattern =
   /\b(?:font-size|line-height|letter-spacing)\s*:\s*([^;]+);/gi;
-const arbitraryTypographyPattern =
-  /\b(?:text|leading|tracking)-\[[^\]\n]+\]/g;
+const arbitraryTypographyPattern = /\b(?:text|leading|tracking)-\[[^\]\n]+\]/g;
 const arbitrarySpacingPattern =
   /\b-?(?:m[trblxy]?|p[trblxy]?|gap(?:-[xy])?|space-[xy]|inset(?:-[xy])?|top|right|bottom|left|w|h|min-w|max-w|min-h|max-h|size|basis|translate-[xy]|scroll-m[trblxy]?|scroll-p[trblxy]?|border|outline-offset)-\[[^\]\n]+\]/g;
 const cssSpacingDeclarationPattern =
@@ -106,13 +101,29 @@ const themeFontOverridePattern =
 const localTokenPattern =
   /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/i;
 
+// Hoisted regex literals (useTopLevelRegex):
+const lengthValuePattern =
+  /(?:\d|px|rem|em|ch|vh|vw|vmin|vmax|%|mm|cm|in|pt|pc|calc\(|clamp\(|min\(|max\()/;
+const trailingSemicolonPattern = /;$/;
+const allowedRawSpacingPattern =
+  /^(?:0|auto|0 auto|auto 0|inherit|initial|unset)$/;
+const arbitraryColorTestPattern =
+  /#|rgb|hsl|oklch|oklab|lab|lch|color-mix|var\(--color-|var\(--brand-|var\(--success|var\(--error|var\(--warning/;
+const fontImportAliasPattern = /\s+as\s+/i;
+const typographyInheritPattern = /inherit|normal|1\b/;
+const lineSplitPattern = /\r?\n/;
+
 const showAll = process.argv.includes("--all");
 const limitArg = process.argv.find((arg) => arg.startsWith("--limit="));
-const detailLimit = showAll
-  ? Number.POSITIVE_INFINITY
-  : limitArg
-    ? Number.parseInt(limitArg.split("=")[1] ?? "12", 10)
-    : 12;
+
+let detailLimit;
+if (showAll) {
+  detailLimit = Number.POSITIVE_INFINITY;
+} else if (limitArg) {
+  detailLimit = Number.parseInt(limitArg.split("=")[1] ?? "12", 10);
+} else {
+  detailLimit = 12;
+}
 
 function toDisplayPath(path) {
   return relative(rootDir, path).replaceAll("\\", "/");
@@ -148,15 +159,16 @@ function isTokenMappedToGrenMet(value) {
 }
 
 function isLikelyLengthValue(value) {
-  return /(?:\d|px|rem|em|ch|vh|vw|vmin|vmax|%|mm|cm|in|pt|pc|calc\(|clamp\(|min\(|max\()/.test(
-    value
-  );
+  return lengthValuePattern.test(value);
 }
 
 function isAllowedSpacingValue(value) {
   const lower = value.toLowerCase();
   const rawValue = lower.includes(":")
-    ? lower.slice(lower.indexOf(":") + 1).replace(/;$/, "").trim()
+    ? lower
+        .slice(lower.indexOf(":") + 1)
+        .replace(trailingSemicolonPattern, "")
+        .trim()
     : lower.trim();
 
   return (
@@ -164,7 +176,7 @@ function isAllowedSpacingValue(value) {
     value.includes("var(--gm-space-") ||
     value.includes("var(--spacing") ||
     lower.includes("safe-area-inset") ||
-    /^(?:0|auto|0 auto|auto 0|inherit|initial|unset)$/.test(rawValue)
+    allowedRawSpacingPattern.test(rawValue)
   );
 }
 
@@ -187,9 +199,7 @@ function isAllowedTypographyValue(value) {
 }
 
 function isArbitraryColorUtility(value) {
-  return /#|rgb|hsl|oklch|oklab|lab|lch|color-mix|var\(--color-|var\(--brand-|var\(--success|var\(--error|var\(--warning/.test(
-    value
-  );
+  return arbitraryColorTestPattern.test(value);
 }
 
 function isAllowedColorValue(value) {
@@ -247,11 +257,8 @@ function addFinding(report, category, filePath, lineNumber, value, message) {
   });
 }
 
-function scanLine(report, filePath, lineNumber, line) {
-  let match;
-
-  colorValuePattern.lastIndex = 0;
-  while ((match = colorValuePattern.exec(line))) {
+function scanColorFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(colorValuePattern)) {
     if (isAllowedColorValue(match[0])) {
       continue;
     }
@@ -266,8 +273,7 @@ function scanLine(report, filePath, lineNumber, line) {
     );
   }
 
-  arbitraryColorPattern.lastIndex = 0;
-  while ((match = arbitraryColorPattern.exec(line))) {
+  for (const match of line.matchAll(arbitraryColorPattern)) {
     const value = match[0];
     if (isArbitraryColorUtility(value) && !isAllowedColorValue(value)) {
       addFinding(
@@ -280,12 +286,13 @@ function scanLine(report, filePath, lineNumber, line) {
       );
     }
   }
+}
 
-  nextFontImportPattern.lastIndex = 0;
-  while ((match = nextFontImportPattern.exec(line))) {
+function scanFontImportFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(nextFontImportPattern)) {
     const imports = match[1]
       .split(",")
-      .map((name) => name.trim().split(/\s+as\s+/i)[0])
+      .map((name) => name.trim().split(fontImportAliasPattern)[0])
       .filter(Boolean);
 
     for (const importedFont of imports) {
@@ -301,9 +308,12 @@ function scanLine(report, filePath, lineNumber, line) {
       }
     }
   }
+}
 
-  fontFamilyPattern.lastIndex = 0;
-  while ((match = fontFamilyPattern.exec(line))) {
+function scanTypographyFindings(report, filePath, lineNumber, line) {
+  scanFontImportFindings(report, filePath, lineNumber, line);
+
+  for (const match of line.matchAll(fontFamilyPattern)) {
     const value = compact(match[1] ?? "");
     if (!isAllowedFontValue(value)) {
       addFinding(
@@ -317,8 +327,7 @@ function scanLine(report, filePath, lineNumber, line) {
     }
   }
 
-  fontTokenPattern.lastIndex = 0;
-  while ((match = fontTokenPattern.exec(line))) {
+  for (const match of line.matchAll(fontTokenPattern)) {
     const value = compact(match[0]);
     if (!isAllowedFontValue(value)) {
       addFinding(
@@ -332,12 +341,10 @@ function scanLine(report, filePath, lineNumber, line) {
     }
   }
 
-  typographyDeclarationPattern.lastIndex = 0;
-  while ((match = typographyDeclarationPattern.exec(line))) {
+  for (const match of line.matchAll(typographyDeclarationPattern)) {
     const value = compact(match[0]);
     if (
-      !isAllowedTypographyValue(value) &&
-      !/inherit|normal|1\b/.test(value)
+      !(isAllowedTypographyValue(value) || typographyInheritPattern.test(value))
     ) {
       addFinding(
         report,
@@ -350,10 +357,9 @@ function scanLine(report, filePath, lineNumber, line) {
     }
   }
 
-  arbitraryTypographyPattern.lastIndex = 0;
-  while ((match = arbitraryTypographyPattern.exec(line))) {
+  for (const match of line.matchAll(arbitraryTypographyPattern)) {
     const value = match[0];
-    if (!isArbitraryColorUtility(value) && !value.includes("var(--gm-")) {
+    if (!(isArbitraryColorUtility(value) || value.includes("var(--gm-"))) {
       addFinding(
         report,
         "typography",
@@ -365,8 +371,22 @@ function scanLine(report, filePath, lineNumber, line) {
     }
   }
 
-  arbitrarySpacingPattern.lastIndex = 0;
-  while ((match = arbitrarySpacingPattern.exec(line))) {
+  // Detect --font-sans overrides that bypass the GrenMet font bridge.
+  // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
+  for (const match of line.matchAll(themeFontOverridePattern)) {
+    addFinding(
+      report,
+      "typography",
+      filePath,
+      lineNumber,
+      match[0],
+      "--font-sans overrides the GrenMet font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+    );
+  }
+}
+
+function scanSpacingFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(arbitrarySpacingPattern)) {
     const value = match[0];
     if (!isArbitraryColorUtility(value)) {
       addFinding(
@@ -380,8 +400,7 @@ function scanLine(report, filePath, lineNumber, line) {
     }
   }
 
-  cssSpacingDeclarationPattern.lastIndex = 0;
-  while ((match = cssSpacingDeclarationPattern.exec(line))) {
+  for (const match of line.matchAll(cssSpacingDeclarationPattern)) {
     const value = compact(match[0]);
     if (isLikelyLengthValue(value) && !isAllowedSpacingValue(value)) {
       addFinding(
@@ -394,9 +413,10 @@ function scanLine(report, filePath, lineNumber, line) {
       );
     }
   }
+}
 
-  arbitraryRadiusPattern.lastIndex = 0;
-  while ((match = arbitraryRadiusPattern.exec(line))) {
+function scanRadiusFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(arbitraryRadiusPattern)) {
     addFinding(
       report,
       "radius",
@@ -407,8 +427,7 @@ function scanLine(report, filePath, lineNumber, line) {
     );
   }
 
-  cssRadiusDeclarationPattern.lastIndex = 0;
-  while ((match = cssRadiusDeclarationPattern.exec(line))) {
+  for (const match of line.matchAll(cssRadiusDeclarationPattern)) {
     const value = compact(match[1] ?? "");
     if (!isAllowedRadiusValue(value)) {
       addFinding(
@@ -421,9 +440,10 @@ function scanLine(report, filePath, lineNumber, line) {
       );
     }
   }
+}
 
-  shadowPattern.lastIndex = 0;
-  while ((match = shadowPattern.exec(line))) {
+function scanShadowFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(shadowPattern)) {
     addFinding(
       report,
       "shadows",
@@ -433,9 +453,10 @@ function scanLine(report, filePath, lineNumber, line) {
       "Define GrenMet shadow tokens before app-local elevation becomes permanent."
     );
   }
+}
 
-  darkModePattern.lastIndex = 0;
-  while ((match = darkModePattern.exec(line))) {
+function scanDarkModeFindings(report, filePath, lineNumber, line) {
+  for (const match of line.matchAll(darkModePattern)) {
     addFinding(
       report,
       "darkMode",
@@ -445,42 +466,42 @@ function scanLine(report, filePath, lineNumber, line) {
       "V1 is light-mode only; dark hooks should be inactive or intentionally deferred."
     );
   }
+}
 
-  // Detect --font-sans overrides that bypass the GrenMet font bridge.
-  // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
-  themeFontOverridePattern.lastIndex = 0;
-  while ((match = themeFontOverridePattern.exec(line))) {
+function scanLocalTokenFindings(report, filePath, lineNumber, line) {
+  const localTokenMatch = line.match(localTokenPattern);
+  if (!localTokenMatch) {
+    return;
+  }
+
+  const tokenName = localTokenMatch[1] ?? "";
+  const tokenValue = localTokenMatch[2] ?? "";
+
+  if (!(tokenName.startsWith("--gm-") || isTokenMappedToGrenMet(tokenValue))) {
     addFinding(
       report,
-      "typography",
+      "localTokens",
       filePath,
       lineNumber,
-      match[0],
-      "--font-sans overrides the GrenMet font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+      `${tokenName}: ${compact(tokenValue)}`,
+      "Bridge app-local token names to --gm-* or semantic tokens."
     );
   }
+}
 
-  const localTokenMatch = line.match(localTokenPattern);
-  if (localTokenMatch) {
-    const tokenName = localTokenMatch[1] ?? "";
-    const tokenValue = localTokenMatch[2] ?? "";
-
-    if (!tokenName.startsWith("--gm-") && !isTokenMappedToGrenMet(tokenValue)) {
-      addFinding(
-        report,
-        "localTokens",
-        filePath,
-        lineNumber,
-        `${tokenName}: ${compact(tokenValue)}`,
-        "Bridge app-local token names to --gm-* or semantic tokens."
-      );
-    }
-  }
+function scanLine(report, filePath, lineNumber, line) {
+  scanColorFindings(report, filePath, lineNumber, line);
+  scanTypographyFindings(report, filePath, lineNumber, line);
+  scanSpacingFindings(report, filePath, lineNumber, line);
+  scanRadiusFindings(report, filePath, lineNumber, line);
+  scanShadowFindings(report, filePath, lineNumber, line);
+  scanDarkModeFindings(report, filePath, lineNumber, line);
+  scanLocalTokenFindings(report, filePath, lineNumber, line);
 }
 
 async function scanFile(report, filePath) {
   const source = maskGeneratedBlocks(await readFile(filePath, "utf8"));
-  const lines = source.split(/\r?\n/);
+  const lines = source.split(lineSplitPattern);
 
   for (let index = 0; index < lines.length; index += 1) {
     scanLine(report, filePath, index + 1, lines[index]);
@@ -572,9 +593,7 @@ function printReport(reports) {
 
       if (findings.length > visibleFindings.length) {
         console.log(
-          `- ... ${findings.length - visibleFindings.length} more ${categoryLabels[
-            category
-          ].toLowerCase()} findings`
+          `- ... ${findings.length - visibleFindings.length} more ${categoryLabels[category].toLowerCase()} findings`
         );
       }
     }
