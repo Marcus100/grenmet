@@ -12,6 +12,7 @@ Part of the Grenmet monorepo — run from the repo root.
 
 ```bash
 pnpm install
+cp apps/web/wxproducts/.env.local.example apps/web/wxproducts/.env.local
 pnpm dev:web:wxproducts
 ```
 

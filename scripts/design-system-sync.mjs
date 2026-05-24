@@ -23,6 +23,9 @@ const darkVariantPattern =
   /^\s*@custom-variant\s+dark\s+\([^;]+;\s*(?:\r?\n)?/gm;
 const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/im;
 
+// Hoisted regex literal (useTopLevelRegex):
+const tailwindAtRulePattern = /^@(charset|import|plugin|config)\b/;
+
 function normalize(text) {
   return text.replace(/\r\n/g, "\n").trim();
 }
@@ -44,7 +47,10 @@ async function readFoundationBlock() {
 }
 
 function stripGeneratedBlock(text) {
-  return text.replace(blockPattern, "").replace(/\n{3,}/g, "\n\n").trimStart();
+  return text
+    .replace(blockPattern, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trimStart();
 }
 
 // NOTE: This function strips the @custom-variant dark directive so it is not
@@ -63,7 +69,7 @@ function insertAfterTailwindDirectives(text, block) {
   while (index < lines.length) {
     const trimmed = lines[index].trim();
 
-    if (/^@(charset|import|plugin|config)\b/.test(trimmed)) {
+    if (tailwindAtRulePattern.test(trimmed)) {
       sawDirective = true;
       index += 1;
       continue;
@@ -80,7 +86,8 @@ function insertAfterTailwindDirectives(text, block) {
   const head = lines.slice(0, index).join("\n").trimEnd();
   const tail = lines.slice(index).join("\n").trimStart();
 
-  return `${head ? `${head}\n\n` : ""}${block}\n\n${tail}`.trimEnd() + "\n";
+  const result = `${head ? `${head}\n\n` : ""}${block}\n\n${tail}`.trimEnd();
+  return `${result}\n`;
 }
 
 function syncContent(text, block) {

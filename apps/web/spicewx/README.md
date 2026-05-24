@@ -10,6 +10,7 @@ Part of the Grenmet monorepo — run from the repo root.
 
 ```bash
 pnpm install
+cp apps/web/spicewx/.env.local.example apps/web/spicewx/.env.local
 pnpm dev:web:spicewx
 ```
 
