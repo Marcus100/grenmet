@@ -100,6 +100,9 @@ const shadowPattern =
   /\bshadow-\[[^\]\n]+\]|\bbox-shadow\s*:\s*[^;]+;|--(?:shadow|shadow-theme)-[a-z0-9-]+\s*:\s*[^;]+;/gi;
 const darkModePattern =
   /\bprefers-color-scheme\b|\bdark:|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
+const darkBlockPattern = /^\s*\.dark\s*\{/m;
+const themeFontOverridePattern =
+  /--font-sans\s*:\s*(?!var\(--gm-font-sans)[^;]+;/g;
 const localTokenPattern =
   /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/i;
 
@@ -443,6 +446,20 @@ function scanLine(report, filePath, lineNumber, line) {
     );
   }
 
+  // Detect --font-sans overrides that bypass the GrenMet font bridge.
+  // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
+  themeFontOverridePattern.lastIndex = 0;
+  while ((match = themeFontOverridePattern.exec(line))) {
+    addFinding(
+      report,
+      "typography",
+      filePath,
+      lineNumber,
+      match[0],
+      "--font-sans overrides the GrenMet font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+    );
+  }
+
   const localTokenMatch = line.match(localTokenPattern);
   if (localTokenMatch) {
     const tokenName = localTokenMatch[1] ?? "";
@@ -467,6 +484,20 @@ async function scanFile(report, filePath) {
 
   for (let index = 0; index < lines.length; index += 1) {
     scanLine(report, filePath, index + 1, lines[index]);
+  }
+
+  // File-level check: freestanding .dark {} rule block (not caught by per-line scan).
+  // The darkModePattern catches `dark:` utility classes; this catches the CSS rule block
+  // itself, which activates dark tokens whenever the .dark class is applied.
+  if (darkBlockPattern.test(source)) {
+    addFinding(
+      report,
+      "darkMode",
+      filePath,
+      0,
+      ".dark { }",
+      "V1 is light-mode only. A .dark {} CSS rule block activates dark tokens on .dark class. Remove or guard behind a V2 feature flag."
+    );
   }
 }
 

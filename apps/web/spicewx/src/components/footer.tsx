@@ -21,13 +21,13 @@ const SOCIAL = [
     label: "X / Twitter",
     abbr: "X",
     href: "https://x.com",
-    size: "text-sm",
+    size: "text-gm-body",
   },
   {
     label: "Facebook",
     abbr: "f",
     href: "https://facebook.com",
-    size: "text-lg",
+    size: "text-gm-heading-sm",
   },
   {
     label: "Instagram",
@@ -72,7 +72,7 @@ export function Footer() {
           >
             {row.map((link) => (
               <a
-                className="flex-1 text-gm-text-primary text-lg underline"
+                className="flex-1 text-gm-heading-sm text-gm-text-primary underline"
                 href={link.href}
                 key={link.label}
               >

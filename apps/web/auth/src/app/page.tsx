@@ -80,7 +80,7 @@ function MarketingPanel() {
         <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium font-mono text-(--muted) text-[11px] uppercase tracking-[0.24em]">
           Grenmet Shared Auth
         </span>
-        <span className="rounded-full bg-(--accent-soft) px-3 py-1 font-medium text-(--accent-strong) text-[13px]">
+        <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-[13px]">
           FastAPI session-backed
         </span>
       </div>
@@ -171,7 +171,7 @@ function AuthenticatedPanel({
         </div>
       </dl>
 
-      <div className="rounded-[1.25rem] border border-(--line) bg-(--accent-soft) p-4 text-(--accent-strong) text-sm leading-6">
+      <div className="rounded-[1.25rem] border border-(--line) bg-(--auth-accent-soft) p-4 text-(--auth-accent-strong) text-sm leading-6">
         This app validated your cookie through /login/session/access-token. Use
         the controls below to rotate the session or revoke it in FastAPI.
       </div>
@@ -179,7 +179,7 @@ function AuthenticatedPanel({
       <div className="grid gap-3 sm:grid-cols-3">
         <form action={refreshSessionAction}>
           <button
-            className="w-full rounded-full bg-(--accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--accent-strong)"
+            className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
             type="submit"
           >
             Extend session

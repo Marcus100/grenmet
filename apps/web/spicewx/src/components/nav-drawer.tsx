@@ -109,7 +109,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
-      <div className="flex h-gm-72 shrink-0 items-center justify-between border-gm-border border-b pr-gm-20 pl-gm-24">
+      <div className="flex h-gm-header shrink-0 items-center justify-between border-gm-border border-b pr-gm-20 pl-gm-24">
         <Image
           alt="Grenada Meteorological Service"
           height={36}
@@ -142,13 +142,13 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               <>
                 <DisclosureButton
                   className={cn(
-                    "flex h-gm-72 w-full items-center justify-between pr-gm-20 pl-gm-24",
+                    "flex h-gm-header w-full items-center justify-between pr-gm-20 pl-gm-24",
                     i > 0 && "border-gm-border border-t"
                   )}
                 >
                   <span
                     className={cn(
-                      "text-3xl leading-9",
+                      "text-gm-heading-md leading-gm-heading-md",
                       sectionOpen
                         ? "font-semibold text-gm-navy"
                         : "font-normal text-gm-text-primary"
@@ -172,7 +172,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                   <DisclosurePanel>
                     {section.links.map((link) => (
                       <a
-                        className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-text-primary text-xl leading-7 hover:text-gm-navy"
+                        className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-nav text-gm-text-primary leading-gm-nav hover:text-gm-navy"
                         href={link.href}
                         key={link.name}
                         onClick={onClose}

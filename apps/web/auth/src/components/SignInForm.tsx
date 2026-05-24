@@ -29,7 +29,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         </label>
         <input
           autoComplete="username"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--accent) focus:ring-(--accent-soft) focus:ring-4"
+          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           defaultValue={state.email}
           id="email"
           name="email"
@@ -48,7 +48,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         </label>
         <input
           autoComplete="current-password"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--accent) focus:ring-(--accent-soft) focus:ring-4"
+          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           id="password"
           name="password"
           placeholder="Enter your password"
@@ -64,7 +64,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       ) : null}
 
       <button
-        className="w-full rounded-full bg-(--accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--accent-strong) disabled:opacity-60"
+        className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong) disabled:opacity-60"
         disabled={pending}
         type="submit"
       >

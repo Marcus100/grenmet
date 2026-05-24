@@ -5,13 +5,13 @@ Deployment guide for the FastAPI service at `apps/api/fastapi`.
 ## Prerequisites
 
 - Docker and Docker Compose
-- Configured environment file (`apps/api/fastapi/.env`)
+- Configured environment file (`apps/api/fastapi/.env.local`)
 - Reachable PostgreSQL instance
 
 Create the local env file if needed:
 
 ```bash
-cp apps/api/fastapi/.env.example apps/api/fastapi/.env
+cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 ```
 
 ## Build Production Image
