@@ -38,7 +38,7 @@
     "generate:api-client": "turbo run generate --filter=@grenmet/api-client"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "^2.4.15",
     "turbo": "^2.9.14",
     "ultracite": "^7.6.0"
   },

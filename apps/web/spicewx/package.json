@@ -19,17 +19,20 @@
     "@grenmet/ui": "workspace:*",
     "@headlessui/react": "catalog:",
     "@heroicons/react": "^2.2.0",
+    "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tailwind-merge": "catalog:"
+    "tailwind-merge": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",

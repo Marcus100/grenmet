@@ -19,7 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from the root.
 
 - `apps/web/*` — Next.js 16.1.1 apps (React 19, TypeScript strict)
-- `apps/api/honoapi` — Hono Node.js API (`@grenmet/api-hono`) — currently a stub
+- `apps/api/honoapi` — Hono Node.js API (`@grenmet/api-hono`) — properly scaffolded, port 4000
 - `apps/api/fastapi` — FastAPI backend (Docker only, Python — not in pnpm workspace)
 - `packages/api-client` — Kubb-generated TypeScript client from FastAPI OpenAPI
 - `packages/auth` — Shared auth (`@grenmet/auth`)
@@ -38,7 +38,7 @@ pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from th
 | `apps/web/wxproducts`    | `@grenmet/web-wxproducts`    | 3005 |
 | `apps/web/hr`            | `@grenmet/web-hr`            | 3006 |
 | `apps/web/salesbus`      | `@grenmet/web-salesbus`      | 3007 |
-| `apps/api/honoapi`       | `@grenmet/api-hono`          | —    |
+| `apps/api/honoapi`       | `@grenmet/api-hono`          | 4000 |
 
 ## Commands
 

@@ -1,22 +1,32 @@
 export type {
+  MessageResponse,
   SessionAccessTokenResponse,
   SessionLoginResponse,
+  Token,
+  UserPublic,
 } from "@grenmet/auth";
 
 export { AuthApiError, isAuthApiError } from "@grenmet/auth";
 
 import type {
+  MessageResponse,
   SessionAccessTokenResponse,
   SessionLoginResponse,
+  Token,
+  UserPublic,
 } from "@grenmet/auth";
 import {
   clearSessionCookie as _clearSessionCookie,
   createSession as _createSession,
   exchangeSessionForAccessToken as _exchangeSessionForAccessToken,
+  loginWithPassword as _loginWithPassword,
   logoutAllSessions as _logoutAllSessions,
   logoutSession as _logoutSession,
   readSessionCookie as _readSessionCookie,
   refreshSession as _refreshSession,
+  requestPasswordRecovery as _requestPasswordRecovery,
+  resetPassword as _resetPassword,
+  signUp as _signUp,
   writeSessionCookie as _writeSessionCookie,
 } from "@grenmet/auth/server";
 import { getAuthConfig } from "./auth-config";
@@ -71,4 +81,47 @@ export function writeSessionCookie(
 
 export function clearSessionCookie(): Promise<void> {
   return _clearSessionCookie(getAuthConfig());
+}
+
+// ---------------------------------------------------------------------------
+// Password recovery & reset
+// ---------------------------------------------------------------------------
+
+export function requestPasswordRecovery(
+  email: string
+): Promise<MessageResponse> {
+  return _requestPasswordRecovery(getAuthConfig(), email);
+}
+
+export function resetPassword(input: {
+  token: string;
+  newPassword: string;
+}): Promise<MessageResponse> {
+  return _resetPassword(getAuthConfig(), input);
+}
+
+// ---------------------------------------------------------------------------
+// Self-registration
+// ---------------------------------------------------------------------------
+
+export function signUp(input: {
+  email: string;
+  username: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  middleName?: string | null;
+}): Promise<UserPublic> {
+  return _signUp(getAuthConfig(), input);
+}
+
+// ---------------------------------------------------------------------------
+// OAuth2 bearer token (machine / API consumers)
+// ---------------------------------------------------------------------------
+
+export function loginWithPassword(input: {
+  username: string;
+  password: string;
+}): Promise<Token> {
+  return _loginWithPassword(getAuthConfig(), input);
 }

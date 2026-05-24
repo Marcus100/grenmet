@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signInAction } from "@/app/actions";
 import { initialSignInState } from "@/app/actions-types";
@@ -40,12 +41,21 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label
-          className="block font-medium text-[13px] text-foreground"
-          htmlFor="password"
-        >
-          Password
-        </label>
+        <div className="flex items-center justify-between">
+          <label
+            className="block font-medium text-[13px] text-foreground"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <Link
+            className="text-(--auth-accent) text-[13px] underline-offset-4 hover:underline"
+            href="/forgot-password"
+            tabIndex={-1}
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           autoComplete="current-password"
           className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
@@ -70,6 +80,16 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       >
         {pending ? "Signing in..." : "Sign in"}
       </button>
+
+      <p className="text-center text-(--muted) text-[13px]">
+        No account?{" "}
+        <Link
+          className="text-(--auth-accent) underline-offset-4 hover:underline"
+          href="/signup"
+        >
+          Create one
+        </Link>
+      </p>
     </form>
   );
 }

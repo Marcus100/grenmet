@@ -138,7 +138,7 @@ jobs:
         run: |
           set -euo pipefail
           # Pull API image (always exists at this point)
-          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull api db proxy prestart adminer || true
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull api db proxy prestart || true
           # Pull web app images (may not exist yet on first deploy — ignore failures)
           docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull \
             web-auth web-admin web-wxwatch web-hurricaneplan web-spicewx \

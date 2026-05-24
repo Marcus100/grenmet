@@ -1,5 +1,5 @@
 import type { AuthConfig } from "@grenmet/auth";
-import { env } from "@/env";
+import { env } from "@/lib/env";
 
 function normalizeUrlSegment(value: string): string {
   return value.endsWith("/") ? value.slice(0, -1) : value;
