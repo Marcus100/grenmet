@@ -4,6 +4,56 @@ GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in s
 
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
+---
+
+## How the design system works
+
+The design system has three layers:
+
+**1. CSS custom properties (`--gm-*`)**
+
+Defined in `packages/ui/src/styles/globals.css`. These are the canonical values — colors, spacing steps, radius values, type sizes. Every app receives this block automatically when it imports `@grenmet/ui`.
+
+```css
+--gm-blue: #0057A3;
+--gm-spacing-4: 4px;
+--gm-radius-md: 8px;
+--gm-weather-severity-take-action: #D00000;
+```
+
+**2. Tailwind v4 utility aliases (`@theme`)**
+
+Declared in the same file using `@theme`. These expose the CSS custom properties as Tailwind utility classes.
+
+```css
+/* @theme declares these */
+--color-gm-blue: var(--gm-blue);
+--spacing-gm-4: var(--gm-spacing-4);
+```
+
+This means you can write `text-gm-blue`, `p-gm-4`, `text-gm-heading-md` etc. as Tailwind classes.
+
+**3. shadcn-compatible semantic tokens**
+
+`--primary`, `--secondary`, `--muted`, `--background`, etc. are also defined and resolve through `--gm-*` tokens. This makes it possible to use shadcn-style components that reference semantic token names rather than specific colors.
+
+### When to use what
+
+| Use | How |
+|---|---|
+| Standard UI elements | Import from `@grenmet/ui/components/ui/<name>` |
+| Color, spacing, type scale | Use `--gm-*` CSS variables or their Tailwind aliases |
+| Semantic colors (backgrounds, borders) | Use `--background`, `--border`, etc. |
+| One-off measurements | Keep inline and treat as migration debt |
+
+Avoid hardcoding values that exist in the token set. Run the audit to find drift:
+
+```bash
+pnpm design-system:audit
+```
+
+---
+
 ## Lanes
 
 Keep the design system split clear while it grows:

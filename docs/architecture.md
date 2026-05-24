@@ -1,5 +1,7 @@
 # GMS Digital Service Architecture
 
+> **This is a strategic planning document**, not a codebase architecture guide. It describes the GMS service strategy, product catalogue, and design system framing. For how the code fits together — monorepo structure, auth flow, shared packages, database architecture — see [Technical Overview](./technical-overview.md).
+
 This document holds the strategic service-design framing for Grenada Meteorological Service digital work. It is deliberately broader than the current GrenMet Figma-to-code bridge.
 
 ## Current Boundary
@@ -93,6 +95,8 @@ Priority v1 product families:
 
 The full catalogue is a strategy reference. It can be phased, revised, and governed before every service becomes a product surface.
 
+For full service definitions, product tables, purpose statements, risk frameworks, and implementation notes, see **[GMS Service and Product Catalogue](./service-catalogue.md)**.
+
 | Service | Primary scope |
 | --- | --- |
 | Public Weather Service | Routine public forecasts, current conditions, explainers |
@@ -114,7 +118,7 @@ The full catalogue is a strategy reference. It can be phased, revised, and gover
 
 ## Strategic Product Catalogue
 
-Products are how services become repeatable decisions, content, data, and workflows. This catalogue is a reference set, not a build order.
+Products are how services become repeatable decisions, content, data, and workflows. This catalogue is a reference set, not a build order. See [GMS Service and Product Catalogue](./service-catalogue.md) for the detailed per-service product tables.
 
 | Service area | Product catalogue reference |
 | --- | --- |
