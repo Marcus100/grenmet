@@ -1,11 +1,18 @@
 import { serve } from "@hono/node-server";
-import { Hono } from "hono";
+import { createApp } from "./app.js";
+import { env } from "./env.js";
 
-const app = new Hono();
+const app = createApp();
 
-app.get("/", (c) => c.text("Hello Hono!"));
-
-serve({
-  fetch: app.fetch,
-  port: 3000,
-});
+serve(
+  {
+    fetch: app.fetch,
+    port: env.PORT,
+    hostname: env.HOST,
+  },
+  (info) => {
+    console.log(
+      `🔥 Hono API running on http://${info.address}:${info.port} [${env.ENVIRONMENT}]`
+    );
+  }
+);

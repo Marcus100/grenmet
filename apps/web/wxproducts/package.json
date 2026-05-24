@@ -31,6 +31,7 @@
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/react": "catalog:",
