@@ -27,6 +27,8 @@
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
     "design-system:sync": "node scripts/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system-sync.mjs --check",
+    "design-system:audit": "node scripts/design-system-audit.mjs",
+    "design-system:audit:full": "node scripts/design-system-audit.mjs --all",
     "lint": "turbo run lint",
     "check": "turbo run check",
     "check:fix": "turbo run check:fix",

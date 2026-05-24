@@ -107,9 +107,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white">
+    <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
-      <div className="flex h-[72px] shrink-0 items-center justify-between border-[#d0d5dd] border-b pr-[20px] pl-[24px]">
+      <div className="flex h-gm-72 shrink-0 items-center justify-between border-gm-border border-b pr-gm-20 pl-gm-24">
         <Image
           alt="Grenada Meteorological Service"
           height={36}
@@ -119,50 +119,50 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         />
         <button
           aria-label="Close navigation"
-          className="flex size-[44px] items-center justify-center"
+          className="flex size-gm-44 items-center justify-center"
           onClick={onClose}
           type="button"
         >
-          <XMarkIcon className="size-[24px] text-gray-900" />
+          <XMarkIcon className="size-gm-24 text-gm-text-primary" />
         </button>
       </div>
 
       {/* Brand accent line */}
-      <div className="flex h-[4px] w-full shrink-0">
+      <div className="flex h-gm-4 w-full shrink-0">
         <div className="h-full flex-[55] bg-gm-blue" />
         <div className="h-full flex-[25] bg-gm-sky" />
         <div className="h-full flex-[20] bg-gm-sun" />
       </div>
 
       {/* Nav body */}
-      <nav className="flex-1 overflow-y-auto pb-[36px]">
+      <nav className="flex-1 overflow-y-auto pb-gm-36">
         {NAV_SECTIONS.map((section, i) => (
           <Disclosure key={section.label}>
             {({ open: sectionOpen }) => (
               <>
                 <DisclosureButton
                   className={cn(
-                    "flex h-[72px] w-full items-center justify-between pr-[20px] pl-[24px]",
-                    i > 0 && "border-[#d0d5dd] border-t"
+                    "flex h-gm-72 w-full items-center justify-between pr-gm-20 pl-gm-24",
+                    i > 0 && "border-gm-border border-t"
                   )}
                 >
                   <span
                     className={cn(
-                      "text-[30px] leading-[36px]",
+                      "text-3xl leading-9",
                       sectionOpen
                         ? "font-semibold text-gm-navy"
-                        : "font-normal text-[#111827]"
+                        : "font-normal text-gm-text-primary"
                     )}
                   >
                     {section.label}
                   </span>
-                  <div className="flex size-[44px] items-center justify-center">
+                  <div className="flex size-gm-44 items-center justify-center">
                     <ChevronDownIcon
                       className={cn(
-                        "size-[24px] transition-transform duration-150",
+                        "size-gm-24 transition-transform duration-150",
                         sectionOpen
                           ? "rotate-180 text-gm-navy"
-                          : "text-gray-400"
+                          : "text-gm-text-muted"
                       )}
                     />
                   </div>
@@ -172,7 +172,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                   <DisclosurePanel>
                     {section.links.map((link) => (
                       <a
-                        className="flex h-[44px] items-center pr-[20px] pl-[42px] text-[#111827] text-[20px] leading-[28px] hover:text-gm-navy"
+                        className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-text-primary text-xl leading-7 hover:text-gm-navy"
                         href={link.href}
                         key={link.name}
                         onClick={onClose}

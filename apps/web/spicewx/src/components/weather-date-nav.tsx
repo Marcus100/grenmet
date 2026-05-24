@@ -10,7 +10,7 @@ export function WeatherDateNav() {
   const days = getForecastDays();
 
   return (
-    <div className="flex h-[83px] bg-[#f3f4f6]">
+    <div className="flex h-[83px] bg-gm-surface">
       {days.map((day) => {
         const href = day.isToday ? "/" : `/${day.slug}`;
         const isActive = day.isToday ? pathname === "/" : pathname === href;
@@ -18,10 +18,10 @@ export function WeatherDateNav() {
         return (
           <Link
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-[4px] text-center",
+              "flex flex-1 flex-col items-center justify-center gap-gm-4 text-center",
               isActive
-                ? "border-[1.5px] border-gm-navy bg-white px-[1.5px] py-[7.5px] text-gm-navy"
-                : "bg-[#f3f4f6] py-[6px] text-gray-500"
+                ? "border-2 border-gm-navy bg-background px-[1.5px] py-[7.5px] text-gm-navy"
+                : "bg-gm-surface py-1.5 text-gm-text-muted"
             )}
             href={href}
             key={day.slug}
