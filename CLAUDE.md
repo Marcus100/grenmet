@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Workflow Boundaries
+
+- When asked for analysis, recommendations, or opinions: STOP after providing them. Do NOT begin implementation until explicitly approved.
+- When asked to "review", "analyze", or give "best practices", deliver the analysis only and ask before editing files.
+- Never run `git commit`, `git push`, `gh pr merge`, or any deploy command autonomously. Show the exact command and wait for the user to run it or say "go".
+
+## Tool Usage
+
+- Prefer showing bash commands for the user to run when they involve commits, pushes, deploys, or destructive operations.
+- When the user wants to inspect a file, return full file contents — do not spawn an Agent that returns summaries.
+- Before investigating a CI or build failure, enumerate the top hypotheses with the fastest falsification command for each. Test cheapest first. Report after each one before continuing.
+
 ## Monorepo Overview
 
 pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from the root.
@@ -16,17 +28,17 @@ pnpm v10 workspaces + Turbo v2. All tasks run through `turbo run <task>` from th
 
 ### App directory → package name → port
 
-| Directory | Package name | Port |
-|---|---|---|
-| `apps/web/admin-gms` | `@grenmet/web-admin` | 3001 |
-| `apps/web/auth` | `@grenmet/web-auth` | 3000 |
-| `apps/web/wxwatch` | `@grenmet/web-wxwatch` | 3002 |
+| Directory                | Package name                 | Port |
+| ------------------------ | ---------------------------- | ---- |
+| `apps/web/admin-gms`     | `@grenmet/web-admin`         | 3001 |
+| `apps/web/auth`          | `@grenmet/web-auth`          | 3000 |
+| `apps/web/wxwatch`       | `@grenmet/web-wxwatch`       | 3002 |
 | `apps/web/hurricaneplan` | `@grenmet/web-hurricaneplan` | 3003 |
-| `apps/web/spicewx` | `@grenmet/web-spicewx` | 3004 |
-| `apps/web/wxproducts` | `@grenmet/web-wxproducts` | 3005 |
-| `apps/web/hr` | `@grenmet/web-hr` | 3006 |
-| `apps/web/salesbus` | `@grenmet/web-salesbus` | 3007 |
-| `apps/api/honoapi` | `@grenmet/api-hono` | — |
+| `apps/web/spicewx`       | `@grenmet/web-spicewx`       | 3004 |
+| `apps/web/wxproducts`    | `@grenmet/web-wxproducts`    | 3005 |
+| `apps/web/hr`            | `@grenmet/web-hr`            | 3006 |
+| `apps/web/salesbus`      | `@grenmet/web-salesbus`      | 3007 |
+| `apps/api/honoapi`       | `@grenmet/api-hono`          | —    |
 
 ## Commands
 
@@ -129,7 +141,7 @@ The `web-auth` app (`:3000`) is the only app that handles sign-in/sign-up. All o
 All web apps import from `@grenmet/ui`. Import pattern:
 
 ```ts
-import { Button } from "@grenmet/ui/components/ui/button"
+import { Button } from "@grenmet/ui/components/ui/button";
 ```
 
 Available components: accordion, alert, avatar, badge, button, card, checkbox, dialog, dropdown-menu, input, label, popover, radio-group, select, separator, sheet, skeleton, switch, table, tabs, textarea, tooltip.
@@ -166,12 +178,22 @@ Currently a stub (`GET /` → "Hello Hono!"). Not used by any web app yet.
 **wxwatch** (`src/db/schema.ts`) — single table `weatherImages` for storing scraped weather image metadata (paths, checksums, timestamps, JSONB raw metadata, etc.)
 
 **wxproducts** (`src/db/schema/`) — modular domain schema:
+
 - Forecast products: `morning`, `midday`, `evening` (GMS daily forecasts)
 - Aviation: `metarSpeci`, `taf`
 - Surface obs: `synop`
 - Other products: `marine`, `cap`, `bufr`, `ibf`
 - Supporting types: `primitives`, `zod-primitives`, `iwxxm-primitives`, `elements`, `weather`, `product-metadata`, `suite-types`
 - All exported from `src/db/schema/index.ts`
+
+### Figma / Design
+
+The Figma MCP server is available for design-to-code and code-to-design workflows.
+
+- Always load the `/figma-use` skill before calling `use_figma` — it is mandatory.
+- Use `/figma-generate-design` for translating a page or layout into Figma.
+- Moving pages between Figma files via the API is unreliable — do not attempt it programmatically; instruct the user to move manually in the Figma UI.
+- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright) when the dev server is running.
 
 ### Linting & formatting
 
@@ -190,21 +212,25 @@ Biome via [Ultracite](https://ultracite.dev) presets (`ultracite/biome/core`, `/
 Each app has a `.env.example`. Access env vars via the typed `env.ts` file in each app using `@t3-oss/env-nextjs` — never access `process.env` directly.
 
 **Auth-delegating apps** (`auth`, `hr`, `hurricaneplan`, `spicewx`):
+
 ```
 AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, AUTH_ALLOWED_RETURN_HOSTS
 ```
 
 **wxwatch** (auth + own DB):
+
 ```
-AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, SESSION_COOKIE_DOMAIN, DB_URL
+AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, SESSION_COOKIE_DOMAIN, DATABASE_URL
 ```
 
 **wxproducts** (own DB only):
+
 ```
 DATABASE_URL
 ```
 
 **admin-gms** (auth + FastAPI):
+
 ```
 AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, NEXT_PUBLIC_API_URL, RESEND_API_KEY
 ```
@@ -214,6 +240,14 @@ AUTH_APP_URL, AUTH_API_URL, AUTH_API_V1_STR, SESSION_COOKIE_NAME, NEXT_PUBLIC_AP
 ### Dependency versions (pnpm catalog)
 
 Canonical versions are pinned in `pnpm-workspace.yaml` under `catalog:`. Use `catalog:` references in `package.json` rather than hardcoding versions for shared deps (React, Next.js, TypeScript, Tailwind, TanStack, Drizzle, Zod, etc.).
+
+## CI/CD Conventions
+
+- Docker image names in GitHub workflows must be lowercase — verify before pushing workflow changes.
+- Pin all GitHub Actions to SHAs, not tags.
+- After modifying Biome config, verify both `assist` (import sorting) and `formatter` keys are correct in overrides — Linux CI formatting can differ from macOS.
+- When changing Next.js config, verify `outputFileTracingRoot` is set at the top level of the config object, not inside `experimental`.
+- Generated files (`packages/api-client/src/gen/`) must stay in sync with `apps/api/fastapi/openapi.json` — drift causes CI to fail.
 
 ## Code conventions
 
