@@ -41,7 +41,7 @@ export default function CustomerDetailPage() {
   if (!customer) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <p className="text-[var(--color-text-secondary)] text-base sm:text-lg">
+        <p className="text-base text-muted-foreground sm:text-lg">
           Customer not found
         </p>
       </div>
@@ -52,34 +52,34 @@ export default function CustomerDetailPage() {
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 sm:gap-5 sm:p-5">
       {/* Customer name header */}
       <div className="rounded-xl bg-gray-200 p-4 sm:p-5">
-        <h1 className="text-center font-bold text-[var(--color-text-primary)] text-lg tracking-wide sm:text-xl">
+        <h1 className="text-center font-bold text-foreground text-lg tracking-wide sm:text-xl">
           {customer.name}
         </h1>
       </div>
 
       {/* Balance summary */}
-      <div className="rounded-xl bg-[var(--color-surface)] p-4 sm:p-5">
+      <div className="rounded-xl bg-card p-4 sm:p-5">
         <div className="flex items-center justify-between border-gray-100 border-b py-3">
-          <span className="font-medium text-[var(--color-text-primary)] text-base sm:text-lg">
+          <span className="font-medium text-base text-foreground sm:text-lg">
             Total
           </span>
-          <span className="font-bold text-[var(--color-text-primary)] text-lg sm:text-xl">
+          <span className="font-bold text-foreground text-lg sm:text-xl">
             {formatPrice(balance.totalOwed)}
           </span>
         </div>
         <div className="flex items-center justify-between border-gray-100 border-b py-3">
-          <span className="font-medium text-[var(--color-text-primary)] text-base sm:text-lg">
+          <span className="font-medium text-base text-foreground sm:text-lg">
             Amount Payed
           </span>
-          <span className="font-bold text-[var(--color-success)] text-lg sm:text-xl">
+          <span className="font-bold text-gm-risk-green text-lg sm:text-xl">
             +{formatPrice(balance.totalPaid)}
           </span>
         </div>
         <div className="flex items-center justify-between py-3">
-          <span className="font-medium text-[var(--color-text-primary)] text-base sm:text-lg">
+          <span className="font-medium text-base text-foreground sm:text-lg">
             Current Amount Owed
           </span>
-          <span className="font-bold text-[var(--color-primary)] text-lg sm:text-xl">
+          <span className="font-bold text-gm-blue text-lg sm:text-xl">
             {formatPrice(balance.currentBalance)}
           </span>
         </div>
@@ -104,11 +104,11 @@ export default function CustomerDetailPage() {
       />
 
       {/* Transaction list */}
-      <div className="rounded-xl bg-[var(--color-surface)] p-4 sm:p-5">
+      <div className="rounded-xl bg-card p-4 sm:p-5">
         {filteredTransactions.length > 0 ? (
           <TransactionList transactions={filteredTransactions} />
         ) : (
-          <p className="py-6 text-center text-[var(--color-text-secondary)] text-base sm:text-lg">
+          <p className="py-6 text-center text-base text-muted-foreground sm:text-lg">
             No transactions for this date
           </p>
         )}

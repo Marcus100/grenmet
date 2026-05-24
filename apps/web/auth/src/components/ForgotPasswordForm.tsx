@@ -6,7 +6,7 @@ import { forgotPasswordAction } from "@/app/actions";
 import { initialForgotPasswordState } from "@/app/actions-types";
 
 const inputClass =
-  "w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
+  "w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(
@@ -19,7 +19,7 @@ export function ForgotPasswordForm() {
       <div className="space-y-5">
         <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 text-sm leading-6">
           <p className="font-medium">Check your inbox</p>
-          <p className="mt-1 text-(--muted) text-[13px]">
+          <p className="mt-1 text-(--muted) text-gm-body-sm">
             If <strong>{state.email}</strong> is registered, a password-reset
             link has been sent. It may take a minute to arrive.
           </p>
@@ -38,7 +38,7 @@ export function ForgotPasswordForm() {
     <form action={formAction} className="space-y-5">
       <div className="space-y-2">
         <label
-          className="block font-medium text-[13px] text-foreground"
+          className="block font-medium text-foreground text-gm-body-sm"
           htmlFor="email"
         >
           Email address
@@ -69,7 +69,7 @@ export function ForgotPasswordForm() {
         {pending ? "Sending…" : "Send reset link"}
       </button>
 
-      <p className="text-center text-(--muted) text-[13px]">
+      <p className="text-center text-(--muted) text-gm-body-sm">
         Remembered it?{" "}
         <Link
           className="text-(--auth-accent) underline-offset-4 hover:underline"

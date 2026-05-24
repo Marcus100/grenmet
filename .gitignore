@@ -162,6 +162,7 @@ secrets/
 # docs/reports/ contains the TOR, progress reports, and roadmap — all gitignored.
 # =======================
 docs/reports/
+artifacts/
 
 
 # =======================

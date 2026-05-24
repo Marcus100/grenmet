@@ -242,39 +242,8 @@
 /* END GRENMET DESIGN SYSTEM V1 */
 
 :root {
-  /* Primary Colors */
-  --color-primary: var(--gm-blue);
-  --color-primary-dark: var(--gm-navy);
-  --color-primary-light: var(--gm-sky);
-
-  /* Background Colors */
-  --color-background: var(--gm-surface);
-  --color-surface: var(--gm-surface-page);
-  --color-surface-elevated: var(--gm-surface-page);
-
-  /* Text Colors */
-  --color-text-primary: var(--gm-text-primary);
-  --color-text-secondary: var(--gm-text-secondary);
-  --color-text-muted: var(--gm-text-muted);
-
-  /* Semantic Colors */
-  --color-success: var(--gm-risk-green);
-  --color-error: var(--gm-risk-red);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
   /* Spacing - responsive */
   --spacing-page: 1rem;
-
-  /* Border Radius */
-  --radius-sm: var(--gm-radius-5);
-  --radius-md: var(--gm-radius-8);
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
 
   /* Safe areas for PWA */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -290,21 +259,6 @@
   }
 }
 
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-primary-light: var(--color-primary-light);
-  --color-background: var(--color-background);
-  --color-surface: var(--color-surface);
-  --color-surface-elevated: var(--color-surface-elevated);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-success: var(--color-success);
-  --color-error: var(--color-error);
-  --font-sans: var(--font-inter);
-}
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -317,9 +271,9 @@ html {
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  background: var(--gm-surface);
+  color: var(--foreground);
+  font-family: var(--gm-font-sans);
   min-height: 100dvh;
   /* Prevent overscroll bounce on iOS */
   overscroll-behavior: none;
@@ -332,62 +286,49 @@ body {
 
 /* Typography scale - responsive */
 .text-heading-1 {
-  font-size: 1.5rem;
+  font-size: var(--gm-font-size-heading-sm);
   font-weight: 700;
-  line-height: 2rem;
+  line-height: var(--gm-line-height-heading-sm);
 }
 
 .text-heading-2 {
-  font-size: 1.25rem;
+  font-size: var(--gm-font-size-body-base);
   font-weight: 700;
-  line-height: 1.75rem;
+  line-height: var(--gm-line-height-body-base);
 }
 
 .text-heading-3 {
-  font-size: 1.125rem;
+  font-size: var(--gm-font-size-body);
   font-weight: 600;
-  line-height: 1.5rem;
+  line-height: var(--gm-line-height-body);
 }
 
 .text-body {
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-size: var(--gm-font-size-body-base);
+  line-height: var(--gm-line-height-body-base);
 }
 
 .text-body-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: var(--gm-font-size-body-sm);
+  line-height: var(--gm-line-height-body-sm);
 }
 
 /* Tablet typography scale */
 @media (min-width: 640px) {
   .text-heading-1 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: var(--gm-font-size-heading-md);
+    line-height: var(--gm-line-height-heading-md);
   }
 
   .text-heading-2 {
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: var(--gm-font-size-heading-sm);
+    line-height: var(--gm-line-height-heading-sm);
   }
 
   .text-heading-3 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: var(--gm-font-size-body-base);
+    line-height: var(--gm-line-height-body-base);
   }
-}
-
-/* Utility classes for common patterns */
-.card {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-elevated {
-  background: var(--color-surface-elevated);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
 }
 
 /* Safe area padding for PWA */
@@ -435,7 +376,7 @@ body {
   }
 
   .landscape\:gap-6 {
-    gap: 1.5rem;
+    gap: var(--gm-spacing-24);
   }
 }
 
@@ -482,7 +423,7 @@ body {
 
 /* Focus visible styles for accessibility */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 

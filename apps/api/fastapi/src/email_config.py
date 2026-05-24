@@ -25,6 +25,19 @@ class EmailConfig(BaseSettings):
     EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
     EMAIL_TEST_USER: EmailStr = "test@weather.gd"
 
+    # React Email render endpoint (web-auth Next.js app).
+    # When set, FastAPI calls this URL to render HTML instead of using Jinja2.
+    # Example (local):  http://localhost:3000
+    # Example (Docker): http://web-auth:3000
+    EMAIL_RENDER_URL: str | None = None
+    # Shared secret sent in X-Email-Render-Secret header.
+    # Must match EMAIL_RENDER_SECRET in the web-auth .env.local.
+    EMAIL_RENDER_SECRET: str | None = None
+
+    # Resend webhook signing secret (from Resend dashboard → Webhooks → Signing secret).
+    # Used to verify incoming webhook payloads.
+    RESEND_WEBHOOK_SECRET: str | None = None
+
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:
