@@ -10,13 +10,14 @@ grenmet/
 │   ├── api/
 │   │   ├── fastapi/            # FastAPI backend (Python)
 │   │   └── honoapi/            # Hono API
-│   ├── mobile/                 # Mobile app(s)
+│   ├── mobile/                 # Mobile app(s) — placeholder
 │   └── web/
 │       ├── admin-gms/          # Admin dashboard
 │       ├── auth/               # Shared auth gateway
+│       ├── hr/                 # HR document printing app
 │       ├── hurricaneplan/      # Hurricane planning site
+│       ├── salesbus/           # Sales and inventory management
 │       ├── spicewx/            # SpiceWx app
-│       ├── templates-draft/    # Templates prototype app
 │       ├── wxproducts/         # WxProducts app
 │       ├── wxwatch/            # WxWatch app
 ├── packages/
@@ -86,12 +87,12 @@ From repo root:
 
 - [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
+- [hr](apps/web/hr/README.md) – `pnpm dev:web:hr`
 - [hurricaneplan](apps/web/hurricaneplan/README.md) – `pnpm dev:web:hurricane`
+- [salesbus](apps/web/salesbus/README.md) – `pnpm dev:web:salesbus`
 - [spicewx](apps/web/spicewx/README.md) – `pnpm dev:web:spicewx`
-- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
-- [templates-draft](apps/web/templates-draft/README.md) – `pnpm dev:web:templates-draft`
 - [wxproducts](apps/web/wxproducts/README.md) – `pnpm dev:web:wxproducts`
-- [hr](apps/web/hr) – `pnpm dev:web:hr`
+- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
 
 ## Scripts
 
@@ -110,16 +111,16 @@ All commands are run from the monorepo root.
 
 | Script                         | App / scope                                 |
 | ------------------------------ | ------------------------------------------- |
-| `pnpm dev`                     | All apps (Turbo dev in parallel)            |
-| `pnpm dev:web:admin`           | [admin-gms](apps/web/admin-gms)             |
-| `pnpm dev:web:auth`            | [auth](apps/web/auth)                       |
-| `pnpm dev:web:hurricane`       | [hurricaneplan](apps/web/hurricaneplan)     |
-| `pnpm dev:web:spicewx`         | [spicewx](apps/web/spicewx)                 |
-| `pnpm dev:web:wxwatch`         | [wxwatch](apps/web/wxwatch)                 |
-| `pnpm dev:web:templates-draft` | [templates-draft](apps/web/templates-draft) |
-| `pnpm dev:web:wxproducts`      | [wxproducts](apps/web/wxproducts)           |
-| `pnpm dev:web:hr`              | [hr](apps/web/hr)                           |
-| `pnpm dev:honoapi`             | [Hono API](apps/api/honoapi)                |
+| `pnpm dev`                | All apps (Turbo dev in parallel)        |
+| `pnpm dev:web:admin`      | [admin-gms](apps/web/admin-gms)         |
+| `pnpm dev:web:auth`       | [auth](apps/web/auth)                   |
+| `pnpm dev:web:hr`         | [hr](apps/web/hr)                       |
+| `pnpm dev:web:hurricane`  | [hurricaneplan](apps/web/hurricaneplan) |
+| `pnpm dev:web:salesbus`   | [salesbus](apps/web/salesbus)           |
+| `pnpm dev:web:spicewx`    | [spicewx](apps/web/spicewx)             |
+| `pnpm dev:web:wxproducts` | [wxproducts](apps/web/wxproducts)       |
+| `pnpm dev:web:wxwatch`    | [wxwatch](apps/web/wxwatch)             |
+| `pnpm dev:honoapi`        | [Hono API](apps/api/honoapi)            |
 
 API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && docker compose watch` for API-only.
 
@@ -146,7 +147,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | App | Development                                                                                                                                                                                                                                    | Testing                        |
 | --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
 | API | [Development](docs/api/development.md)                                                                                                                                                                                                         | [Testing](docs/api/testing.md) |
-| Web | [admin-gms](apps/web/admin-gms/README.md), [wxwatch](apps/web/wxwatch/README.md), [templates-draft](apps/web/templates-draft/README.md), [wxproducts](apps/web/wxproducts/README.md), [spicewx](apps/web/spicewx/README.md), [hr](apps/web/hr) | See app README                 |
+| Web | [admin-gms](apps/web/admin-gms/README.md), [auth](apps/web/auth/README.md), [hr](apps/web/hr/README.md), [hurricaneplan](apps/web/hurricaneplan/README.md), [salesbus](apps/web/salesbus/README.md), [spicewx](apps/web/spicewx/README.md), [wxproducts](apps/web/wxproducts/README.md), [wxwatch](apps/web/wxwatch/README.md) | See app README                 |
 
 ## Development
 
