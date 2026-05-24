@@ -242,10 +242,6 @@
 /* END GRENMET DESIGN SYSTEM V1 */
 
 /*
-  Auth uses Space Grotesk as a deliberate brand differentiation.
-  This is an intentional product-layer exception; revisit when GrenMet
-  brand direction is final.
-
   --auth-accent* are app-local tokens distinct from the shadcn --accent
   semantic. Using the same name would silently shadow the generated block's
   --accent: var(--gm-sky) and break shared component hover states.
@@ -262,13 +258,6 @@
   --muted: var(--gm-text-muted);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-space-grotesk);
-  --font-mono: var(--font-ibm-plex-mono);
-}
-
 * {
   box-sizing: border-box;
 }
@@ -279,7 +268,7 @@ html {
 
 body {
   min-height: 100vh;
-  font-family: var(--font-space-grotesk), sans-serif;
+  font-family: var(--gm-font-sans);
   color: var(--foreground);
   background: var(--background);
   background-image: linear-gradient(

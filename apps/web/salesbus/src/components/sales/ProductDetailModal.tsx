@@ -68,17 +68,17 @@ export function ProductDetailModal({
           </div>
 
           <div className="flex-1">
-            <h2 className="font-bold text-[var(--color-text-primary)] text-xl tracking-wide sm:text-2xl">
+            <h2 className="font-bold text-foreground text-xl tracking-wide sm:text-2xl">
               {product.name}
             </h2>
-            <p className="mt-1 text-[var(--color-text-secondary)] text-sm sm:text-base">
+            <p className="mt-1 text-muted-foreground text-sm sm:text-base">
               {formatPrice(product.halfCasePrice)} half case •{" "}
               {formatPrice(product.fullCasePrice)} full case
             </p>
 
             {/* Price and Quantity */}
             <div className="mt-4 flex items-center justify-between sm:mt-5">
-              <span className="font-bold text-2xl text-[var(--color-primary)] sm:text-3xl">
+              <span className="font-bold text-2xl text-gm-blue sm:text-3xl">
                 {formatPrice(totalPrice)}
               </span>
               <QuantitySelector onChange={setQuantity} value={quantity} />
@@ -88,7 +88,7 @@ export function ProductDetailModal({
 
         {/* Case Type Selector */}
         <div>
-          <h3 className="mb-3 font-semibold text-[var(--color-text-primary)] text-base sm:text-lg">
+          <h3 className="mb-3 font-semibold text-base text-foreground sm:text-lg">
             Type
           </h3>
           <SegmentedControl

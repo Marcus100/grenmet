@@ -23,14 +23,14 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
 
       <div className="space-y-2">
         <label
-          className="block font-medium text-[13px] text-foreground"
+          className="block font-medium text-foreground text-gm-body-sm"
           htmlFor="email"
         >
           Email address
         </label>
         <input
           autoComplete="username"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
+          className="w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           defaultValue={state.email}
           id="email"
           name="email"
@@ -43,13 +43,13 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <label
-            className="block font-medium text-[13px] text-foreground"
+            className="block font-medium text-foreground text-gm-body-sm"
             htmlFor="password"
           >
             Password
           </label>
           <Link
-            className="text-(--auth-accent) text-[13px] underline-offset-4 hover:underline"
+            className="text-(--auth-accent) text-gm-body-sm underline-offset-4 hover:underline"
             href="/forgot-password"
             tabIndex={-1}
           >
@@ -58,7 +58,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         </div>
         <input
           autoComplete="current-password"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
+          className="w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           id="password"
           name="password"
           placeholder="Enter your password"
@@ -81,7 +81,7 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         {pending ? "Signing in..." : "Sign in"}
       </button>
 
-      <p className="text-center text-(--muted) text-[13px]">
+      <p className="text-center text-(--muted) text-gm-body-sm">
         No account?{" "}
         <Link
           className="text-(--auth-accent) underline-offset-4 hover:underline"

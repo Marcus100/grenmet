@@ -42,7 +42,7 @@ export default function CustomersPage() {
       </div>
 
       {filteredCustomers.length === 0 && (
-        <div className="py-12 text-center text-[var(--color-text-secondary)]">
+        <div className="py-12 text-center text-muted-foreground">
           <p className="text-base sm:text-lg">No customers found</p>
         </div>
       )}

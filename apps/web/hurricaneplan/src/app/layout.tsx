@@ -1,5 +1,6 @@
 import glob from "fast-glob";
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
@@ -8,6 +9,12 @@ import type { Section } from "@/components/SectionProvider";
 import "@/styles/tailwind.css";
 
 const PAGE_PATH_REGEX = /(^|\/)page\.mdx$/;
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +39,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className="h-full"
+      className={`${inter.variable} h-full`}
       lang="en"
       style={{ colorScheme: "light" }}
       suppressHydrationWarning

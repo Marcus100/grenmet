@@ -109,7 +109,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center">
       <div className="h-px flex-1 bg-zinc-300" />
-      <h2 className="font-semibold text-[11px] text-zinc-900 uppercase tracking-[0.22em]">
+      <h2 className="font-semibold text-gm-label text-zinc-900 uppercase tracking-widest">
         {children}
       </h2>
       <div className="h-px flex-1 bg-zinc-300" />
@@ -128,7 +128,7 @@ function LabelValue({
 
   return (
     <div>
-      <p className="font-semibold text-[11px] text-zinc-500 uppercase tracking-[0.16em]">
+      <p className="font-semibold text-gm-label text-zinc-500 uppercase tracking-widest">
         {label}
       </p>
       <p className="mt-1 text-sm text-zinc-900">{value}</p>
@@ -220,7 +220,7 @@ function Badge({ value }: { value: string }) {
 
   return (
     <span
-      className={`rounded-full px-3 py-1 font-semibold text-[10px] uppercase tracking-[0.14em] ${
+      className={`rounded-full px-3 py-1 font-semibold text-gm-micro uppercase tracking-widest ${
         styles[value] ?? "bg-zinc-700 text-white"
       }`}
     >
@@ -436,7 +436,7 @@ export default function MorningForecast({
             {impacts && (
               <section className="">
                 <div className="border-orange-500 border-l-4 bg-orange-50 px-4 py-2">
-                  <h2 className="font-semibold text-[11px] text-orange-800 uppercase tracking-[0.22em]">
+                  <h2 className="font-semibold text-gm-label text-orange-800 uppercase tracking-widest">
                     Impact
                   </h2>
                 </div>
@@ -450,7 +450,7 @@ export default function MorningForecast({
             {recommendedActions && (
               <section className="">
                 <div className="border-blue-500 border-l-4 bg-blue-50 px-4 py-2">
-                  <h2 className="font-semibold text-[11px] text-blue-800 uppercase tracking-[0.22em]">
+                  <h2 className="font-semibold text-blue-800 text-gm-label uppercase tracking-widest">
                     Response
                   </h2>
                 </div>

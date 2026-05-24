@@ -117,6 +117,19 @@ The v1 type scale as of the current expansion:
 
 Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[200px]`), the active-state border compensation in `WeatherDateNav` (`px-[1.5px] py-[7.5px]`), the month label tight leading (`leading-[14px]`), and the responsive container pattern (`max-w-7xl px-4 sm:px-6 lg:px-8`).
 
+### Migration Checklist
+
+| App | Status | Accepted exceptions | Next action |
+|---|---|---|---|
+| `spicewx` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
+| `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use GrenMet type tokens for labels and timestamps. |
+| `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
+| `wxproducts` | Product/print migration | A4 print/PDF dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
+| `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
+| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with GrenMet tokens. |
+| `hurricaneplan` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
+| `admin-gms` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
+
 Run the warning-only audit command to find foundation drift:
 
 ```bash
@@ -141,7 +154,7 @@ The current audit verified the collection includes the v1 color, spacing, radius
 
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `admin-gms`; retained as migration debt because downstream third-party overrides depend on it.
-- **typography** — detects `--font-sans` overrides inside `@theme inline` that bypass the GrenMet font bridge. Active in `auth` (Space Grotesk, intentional brand exception), `wxwatch`, and `wxproducts` (Geist, intentional app exception).
+- **typography** — detects `--font-sans` overrides inside `@theme inline` that bypass the GrenMet font bridge. V1 apps should resolve these back to `--gm-font-sans` unless a product exception is approved and documented.
 
 Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class GrenMet tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
 

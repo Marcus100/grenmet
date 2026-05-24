@@ -8,6 +8,8 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
     SESSION_COOKIE_DOMAIN: z.string().optional(),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
+    // Shared secret that FastAPI must present when calling the /api/email/render endpoint.
+    EMAIL_RENDER_SECRET: z.string().optional(),
   },
   runtimeEnv: {
     AUTH_API_URL: process.env.AUTH_API_URL,
@@ -15,5 +17,6 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
+    EMAIL_RENDER_SECRET: process.env.EMAIL_RENDER_SECRET,
   },
 });

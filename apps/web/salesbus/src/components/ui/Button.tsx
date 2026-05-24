@@ -14,26 +14,26 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary: `
-    bg-[var(--color-primary)] text-white
-    hover:bg-[var(--color-primary-dark)]
-    active:bg-[var(--color-primary-dark)]
+    bg-gm-blue text-white
+    hover:bg-gm-navy
+    active:bg-gm-navy
   `,
   secondary: `
-    bg-[var(--color-surface)] text-[var(--color-text-primary)]
+    bg-card text-foreground
     border border-gray-300
     hover:bg-gray-50
     active:bg-gray-100
   `,
   ghost: `
-    bg-transparent text-[var(--color-text-secondary)]
-    hover:bg-gray-100 hover:text-[var(--color-text-primary)]
+    bg-transparent text-muted-foreground
+    hover:bg-gray-100 hover:text-foreground
     active:bg-gray-200
   `,
   outline: `
-    bg-transparent text-[var(--color-primary)]
-    border-2 border-[var(--color-primary)]
-    hover:bg-[var(--color-primary)] hover:text-white
-    active:bg-[var(--color-primary-dark)]
+    bg-transparent text-gm-blue
+    border-2 border-gm-blue
+    hover:bg-gm-blue hover:text-white
+    active:bg-gm-navy
   `,
 };
 
@@ -55,7 +55,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`inline-flex touch-manipulation items-center justify-center gap-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]}
+      className={`inline-flex touch-manipulation items-center justify-center gap-2 rounded-lg font-semibold transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-gm-blue focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${variantStyles[variant]}
         ${sizeStyles[size]}
         ${fullWidth ? "w-full" : ""}
         ${className}

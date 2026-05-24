@@ -16,7 +16,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#4A7FC1",
+  themeColor: "var(--gm-blue)",
 };
 
 export const metadata: Metadata = {
@@ -43,13 +43,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }}>
+    <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
       <head>
         <meta content="yes" name="mobile-web-app-capable" />
         <meta content="yes" name="apple-mobile-web-app-capable" />
         <meta content="default" name="apple-mobile-web-app-status-bar-style" />
       </head>
-      <body className={`${inter.variable} antialiased`}>
+      <body className="antialiased">
         <QueryProvider>
           <CartProvider>{children}</CartProvider>
         </QueryProvider>
