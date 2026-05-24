@@ -8,7 +8,7 @@ Part of the Grenmet monorepo — run from the repo root.
 
 ```bash
 pnpm install
-cp apps/web/admin-gms/.env.example apps/web/admin-gms/.env
+cp apps/web/admin-gms/.env.local.example apps/web/admin-gms/.env.local
 pnpm dev:web:admin
 ```
 
@@ -23,7 +23,7 @@ pnpm dev
 
 ## Environment Variables
 
-See `.env.example`. Required:
+See `.env.local.example`. Required:
 
 ```
 AUTH_APP_URL

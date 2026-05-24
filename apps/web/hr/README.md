@@ -10,10 +10,21 @@ From repo root:
 
 ```bash
 pnpm install
+cp apps/web/hr/.env.local.example apps/web/hr/.env.local
 pnpm dev:web:hr
 ```
 
 The app runs on `http://localhost:3006`.
+
+## Environment Variables
+
+See `.env.local.example` for required values:
+
+- `AUTH_APP_URL` — URL of the auth app (e.g. `http://localhost:3000`)
+- `AUTH_API_URL` — FastAPI base URL
+- `AUTH_API_V1_STR` — API version prefix
+- `SESSION_COOKIE_NAME` — shared session cookie name
+- `AUTH_ALLOWED_RETURN_HOSTS` — allowlist for post-login redirects
 
 ## Run from app directory
 

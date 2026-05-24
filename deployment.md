@@ -385,7 +385,7 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | HR                | `https://hr.staging.barrels.gd`         |
 | Salesbus          | `https://sales.staging.barrels.gd`      |
 | FastAPI backend   | `https://api.staging.barrels.gd`        |
-| API docs          | `https://api.staging.barrels.gd/docs`   |
+| API docs          | `https://api.staging.barrels.gd/swagger` |
 | Adminer (DB UI)   | `https://adminer.staging.barrels.gd`    |
 | Traefik dashboard | `https://traefik.staging.barrels.gd`    |
 
@@ -402,6 +402,6 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | HR                | `https://hr.barrels.gd`         |
 | Salesbus          | `https://sales.barrels.gd`      |
 | FastAPI backend   | `https://api.barrels.gd`        |
-| API docs          | `https://api.barrels.gd/docs`   |
+| API docs          | `https://api.barrels.gd/swagger` |
 | Adminer (DB UI)   | `https://adminer.barrels.gd`    |
 | Traefik dashboard | `https://traefik.barrels.gd`    |

@@ -10,10 +10,21 @@ From repo root:
 
 ```bash
 pnpm install
+cp apps/web/salesbus/.env.local.example apps/web/salesbus/.env.local
 pnpm dev:web:salesbus
 ```
 
 The app runs on `http://localhost:3007`.
+
+## Environment Variables
+
+See `.env.local.example` for required values:
+
+- `NEXT_PUBLIC_API_URL` — FastAPI base URL for client-side requests
+- `NEXT_PUBLIC_APP_NAME` — Application name
+- `NEXT_PUBLIC_APP_VERSION` — Application version
+- `NEXT_PUBLIC_ENABLE_DEBUG` — Enable debug output in development
+- `NEXT_PUBLIC_ENABLE_ANALYTICS` — Enable analytics (disabled by default)
 
 ## Run from app directory
 

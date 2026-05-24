@@ -209,7 +209,7 @@ Biome via [Ultracite](https://ultracite.dev) presets (`ultracite/biome/core`, `/
 
 ### Environment variables
 
-Each app has a `.env.example`. Access env vars via the typed `env.ts` file in each app using `@t3-oss/env-nextjs` — never access `process.env` directly.
+Each app has a `.env.local.example`. Access env vars via the typed `env.ts` file in each app using `@t3-oss/env-nextjs` — never access `process.env` directly.
 
 **Auth-delegating apps** (`auth`, `hr`, `hurricaneplan`, `spicewx`):
 
