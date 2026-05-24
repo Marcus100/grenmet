@@ -10,7 +10,7 @@ From repo root:
 
 ```bash
 pnpm install
-cp apps/web/hurricaneplan/.env.example apps/web/hurricaneplan/.env
+cp apps/web/hurricaneplan/.env.local.example apps/web/hurricaneplan/.env.local
 pnpm dev:web:hurricane
 ```
 
@@ -25,7 +25,7 @@ pnpm dev
 
 ## Environment Variables
 
-See `.env.example`. Required:
+See `.env.local.example`. Required:
 
 ```
 AUTH_API_URL

@@ -17,7 +17,7 @@ Run `pnpm check`. Report all violations grouped by file.
 Read every `*.yml` file under `.github/workflows/`. Verify all Docker image names are lowercase and consistent between the `build` and `deploy` jobs. Flag any mismatch.
 
 **4. Env drift**
-For each app's `.env.example`, verify every variable is either referenced in `docker-compose.yml`, the relevant workflow, or the app's `env.ts`. Flag variables defined in `.env.example` but missing from runtime config, and vice versa.
+For each app's `.env.local.example`, verify every variable is either referenced in `docker-compose.yml`, the relevant workflow, or the app's `env.ts`. Flag variables defined in `.env.local.example` but missing from runtime config, and vice versa.
 
 **5. API client sync**
 Compare the modification time of `apps/api/fastapi/openapi.json` against `packages/api-client/src/gen/`. If `openapi.json` is newer, flag as drift — regeneration is needed (`pnpm generate:api-client`).

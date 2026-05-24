@@ -49,7 +49,7 @@ grenmet/
 pnpm install
 
 # Create API env file (first time)
-cp apps/api/fastapi/.env.example apps/api/fastapi/.env
+cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 
 # Start shared infra + FastAPI
 pnpm start
@@ -77,7 +77,7 @@ docker compose -f infra/docker/docker-compose.yml --profile tools up -d
 
 # then
 cd apps/api/fastapi
-cp .env.example .env
+cp .env.local.example .env.local
 docker compose watch
 ```
 
@@ -217,7 +217,7 @@ See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
 
 ### Environment files
 
-- API: `apps/api/fastapi/.env.example` — copy to `.env` and set values as needed.
+- API: `apps/api/fastapi/.env.local.example` — copy to `.env.local` and set values as needed.
 
 ## Contributing
 

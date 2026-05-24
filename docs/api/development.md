@@ -13,7 +13,7 @@ Use this for daily development when you want shared infra and API together.
 ```bash
 # from repo root
 pnpm install
-cp apps/api/fastapi/.env.example apps/api/fastapi/.env
+cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 pnpm start
 ```
 
@@ -34,7 +34,7 @@ docker compose -f infra/docker/docker-compose.yml --profile tools up -d
 
 # then
 cd apps/api/fastapi
-cp .env.example .env
+cp .env.local.example .env.local
 docker compose watch
 ```
 

@@ -8,7 +8,7 @@ From repo root:
 
 ```bash
 pnpm install
-cp apps/web/auth/.env.example apps/web/auth/.env
+cp apps/web/auth/.env.local.example apps/web/auth/.env.local
 pnpm dev:web:auth
 ```
 
@@ -23,7 +23,7 @@ pnpm dev
 
 ## Environment Variables
 
-Primary variables (see `.env.example`):
+Primary variables (see `.env.local.example`):
 
 - `AUTH_API_URL`
 - `AUTH_API_V1_STR`

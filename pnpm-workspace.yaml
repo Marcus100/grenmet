@@ -2,7 +2,6 @@ packages:
   # Apps
   - "apps/web/*"
   - "apps/api/honoapi"
-  # Note: mobile app uses npm, not pnpm (excluded from workspace)
   # Note: fastapi is Python, not managed by pnpm
 
   # Shared packages
