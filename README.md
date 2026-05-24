@@ -151,9 +151,13 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 | Document | Description |
 | --- | --- |
+| [Technical Overview](docs/technical-overview.md) | How the codebase fits together — monorepo structure, auth flow, shared packages, databases |
+| [Contributing](CONTRIBUTING.md) | Branching strategy, commit conventions, pre-commit checklist, PR process, code conventions |
 | [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
 | [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
+| [Troubleshooting](docs/troubleshooting.md) | Common dev issues — auth loops, stale types, Turbo cache, port conflicts, DB migrations |
 | [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
+| [Service and Product Catalogue](docs/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
 | [Design System](docs/design-system.md) | GrenMet v1 tokens, Figma bridge, compliance guide, audit commands |
 | [API Development](docs/api/development.md) | FastAPI local development guide |
 | [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
@@ -223,10 +227,13 @@ See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
 
 ## Contributing
 
-1. Create a feature branch from `dev`
-2. Make your changes
-3. Ensure all tests pass
-4. Submit a PR to `dev`
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide: branching strategy, commit conventions, pre-commit checklist, PR process, and code conventions.
+
+Quick reference:
+
+1. Branch from `dev` → `feature/your-feature-name`
+2. Make changes; run `pnpm fix && pnpm type-check` before committing
+3. Open a PR against `dev` with a [Conventional Commits](https://www.conventionalcommits.org/) title
 
 ## License
 
