@@ -10,7 +10,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-gm-72 items-center justify-between border-gm-border border-b bg-background pr-gm-20 pl-gm-24">
+      <header className="sticky top-0 z-40 flex h-gm-header items-center justify-between border-gm-border border-b bg-background pr-gm-20 pl-gm-24">
         <Image
           alt="Grenada Meteorological Service"
           height={36}

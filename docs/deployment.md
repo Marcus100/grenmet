@@ -2,6 +2,8 @@
 
 This document summarizes deployment entry points for the Grenmet monorepo.
 
+> **Full step-by-step deployment guide** (GitHub setup, server provisioning, DNS, runner configuration, secrets, staging and production walkthroughs) is at [`deployment.md`](../deployment.md) in the repo root.
+
 ## Scope
 
 - Shared infrastructure compose files: `infra/docker/`

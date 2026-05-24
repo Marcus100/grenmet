@@ -2,7 +2,7 @@
 
 GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in small, verified passes. Figma owns design intent; `@grenmet/ui` owns repo enforcement. Token changes must be reconciled in both places before they are considered part of the v1 contract.
 
-This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./gms-digital-service-architecture.md).
+This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
 ## Lanes
 
@@ -50,7 +50,22 @@ Use `spicewx` as the first cleanup app. It should become the reference for how a
 
 The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `spicewx` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
 
-Accepted pilot exceptions are fixed media dimensions, image crop heights, weather-date display sizing, and layout measurements that only make sense inside one composed product view. These exceptions can remain as explicit Tailwind arbitrary values while the audit is warning-only.
+The v1 type scale as of the current expansion:
+
+| Token | Size | Line height | Use |
+|---|---|---|---|
+| `text-gm-micro` | 10px | 16px | Timestamps, fine labels |
+| `text-gm-label` | 11px | 16px | Tag labels, pill text |
+| `text-gm-caption` | 12px | 16px | Captions, metadata |
+| `text-gm-body-sm` | 13px | 20px | Secondary body text |
+| `text-gm-body` | 14px | 20px | Primary body text |
+| `text-gm-body-base` | 16px | 24px | Card titles, prominent links |
+| `text-gm-heading-sm` | 18px | 24px | Section headings |
+| `text-gm-nav` | 20px | 28px | Navigation sub-links |
+| `text-gm-heading-md` | 30px | 36px | Page titles, nav section labels |
+| `text-gm-heading-lg` | 34px | 36px | Large display numbers (date, stats) |
+
+Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[200px]`), the active-state border compensation in `WeatherDateNav` (`px-[1.5px] py-[7.5px]`), the month label tight leading (`leading-[14px]`), and the responsive container pattern (`max-w-7xl px-4 sm:px-6 lg:px-8`).
 
 Run the warning-only audit command to find foundation drift:
 
@@ -73,6 +88,12 @@ The Figma collection `GrenMet Foundations / Core + Product` is the current v1 co
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
 The current audit verified the collection includes the v1 color, spacing, radius, typography, line-height, and shadow code-contract variables with valid `var(--gm-...)` WEB code syntax.
+
+The audit also surfaces two additional categories not present in the initial pilot:
+- **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `admin-gms`; retained as migration debt because downstream third-party overrides depend on it.
+- **typography** — detects `--font-sans` overrides inside `@theme inline` that bypass the GrenMet font bridge. Active in `auth` (Space Grotesk, intentional brand exception), `wxwatch`, and `wxproducts` (Geist, intentional app exception).
+
+Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class GrenMet tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
 
 ## Light Mode V1
 

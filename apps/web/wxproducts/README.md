@@ -1,10 +1,14 @@
 # WxProducts (`@grenmet/web-wxproducts`)
 
-Next.js app for weather product workflows.
+Structured meteorological products platform for GMS. Port **3005**.
+
+Stores and serves the full range of GMS forecast and observational products — morning, midday, and evening forecasts; marine bulletins; METAR/SPECI; TAF; SYNOP; CAP alerts; IBF; BUFR; tropical outlook; hourly observations. Supports print-ready PDF export of forecast products.
+
+Has its own PostgreSQL database (separate from FastAPI's DB and wxwatch's DB) managed with Drizzle ORM.
+
+Part of the Grenmet monorepo — run from the repo root.
 
 ## Development
-
-From repo root:
 
 ```bash
 pnpm install
@@ -20,19 +24,41 @@ cd apps/web/wxproducts
 pnpm dev
 ```
 
-## Database Utility Commands
+## Environment Variables
 
-If you use the Drizzle setup in this app:
+See `.env.local.example` for required values:
+
+- `DATABASE_URL` — wxproducts PostgreSQL connection string
+
+## Routes
+
+| Route | Description |
+|---|---|
+| `/` | Root — all forecast products |
+| `/fcsts/morning` | Morning forecast view |
+| `/fcsts/midday` | Midday weather report |
+| `/fcsts/evening` | Evening forecast view |
+| `/hourly` | Hourly observations |
+| `/bulletins/marine` | Marine bulletin |
+| `/pdf/morning` | Print-optimised layout for PDF export |
+
+## Database Commands
 
 ```bash
-pnpm db:generate
-pnpm db:migrate
+pnpm db:generate    # Generate Drizzle migrations from schema changes
+pnpm db:migrate     # Apply pending migrations
+```
+
+## PDF Export
+
+```bash
+pnpm pdf:morning    # Playwright headless export of the morning forecast to PDF
 ```
 
 ## Quality Commands
 
 ```bash
-pnpm check
-pnpm check:ci
-pnpm type-check
+pnpm check          # Biome lint + format check
+pnpm check:ci       # CI-mode check (no auto-fix)
+pnpm type-check     # TypeScript type checking
 ```

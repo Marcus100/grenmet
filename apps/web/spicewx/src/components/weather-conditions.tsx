@@ -36,7 +36,7 @@ interface WeatherConditionsProps {
 
 export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 bg-background pt-2 pb-1">
+    <div className="grid grid-cols-2 gap-gm-8 bg-background pt-2 pb-1">
       {conditions.map((item) => {
         const Icon = ICON_MAP[item.label];
         return (

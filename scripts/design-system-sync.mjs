@@ -47,6 +47,10 @@ function stripGeneratedBlock(text) {
   return text.replace(blockPattern, "").replace(/\n{3,}/g, "\n\n").trimStart();
 }
 
+// NOTE: This function strips the @custom-variant dark directive so it is not
+// duplicated when the generated block is re-inserted. It does NOT strip
+// freestanding `.dark { }` CSS rule blocks — those require manual removal and
+// are flagged by the audit script's darkMode category (design-system:audit).
 function stripLocalDarkVariant(text) {
   return text.replace(darkVariantPattern, "");
 }

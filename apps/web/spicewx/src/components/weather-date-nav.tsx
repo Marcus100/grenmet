@@ -26,13 +26,13 @@ export function WeatherDateNav() {
             href={href}
             key={day.slug}
           >
-            <span className="text-[10px] leading-[16px]">
+            <span className="text-gm-micro leading-gm-micro">
               {day.isToday ? "12:00 PM" : day.dayName}
             </span>
-            <span className="font-bold text-[34px] leading-[36px]">
+            <span className="font-bold text-gm-heading-lg leading-gm-heading-lg">
               {day.date}
             </span>
-            <span className="text-[13px] uppercase leading-[14px]">
+            <span className="text-gm-body-sm uppercase leading-[14px]">
               {day.month}
             </span>
           </Link>

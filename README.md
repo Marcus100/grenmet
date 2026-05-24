@@ -8,26 +8,28 @@ A monorepo containing Grenmet applications, shared packages, and deployment infr
 grenmet/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   ├── fastapi/            # FastAPI backend (Python)
-│   │   └── honoapi/            # Hono API
-│   ├── mobile/                 # Mobile app(s) — placeholder
+│   │   ├── fastapi/            # FastAPI backend (Python) — auth + HR domains
+│   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
-│       ├── admin-gms/          # Admin dashboard
-│       ├── auth/               # Shared auth gateway
-│       ├── hr/                 # HR document printing app
-│       ├── hurricaneplan/      # Hurricane planning site
+│       ├── admin-gms/          # Internal GMS operations dashboard
+│       ├── auth/               # Shared sign-in/sign-up gateway for all apps
+│       ├── hr/                 # HR management — timesheets, rosters, shifts, leave
+│       ├── hurricaneplan/      # Public hurricane preparedness content site (MDX)
 │       ├── salesbus/           # Sales and inventory management
-│       ├── spicewx/            # SpiceWx app
-│       ├── wxproducts/         # WxProducts app
-│       ├── wxwatch/            # WxWatch app
+│       ├── spicewx/            # Public GMS weather website (design system reference app)
+│       ├── wxproducts/         # Structured forecast products platform + PDF export
+│       └── wxwatch/            # Weather image archive (automated scraping + browseable)
 ├── packages/
-│   ├── api-client/             # Shared API client (generated from OpenAPI)
-│   ├── auth/                   # Shared auth package
+│   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
+│   ├── auth/                   # Shared auth/session package (@grenmet/auth)
 │   ├── tsconfig/               # Shared TypeScript config
-│   └── ui/                     # Shared UI package(s)
+│   └── ui/                     # Shared UI component library (@grenmet/ui) + GrenMet design system
 ├── docs/
-│   ├── api/                    # API-specific docs
-│   └── deployment.md           # Monorepo deployment overview
+│   ├── api/                    # API development, testing, and deployment guides
+│   ├── architecture.md         # GMS service architecture and strategic product catalogue
+│   ├── design-system.md        # GrenMet v1 design system — tokens, Figma bridge, compliance
+│   ├── deployment.md           # Deployment entry points summary
+│   └── env.md                  # Environment variable reference for all apps
 ├── infra/
 │   └── docker/                 # Shared infrastructure (Postgres, Adminer, Mailcatcher)
 ├── scripts/
@@ -144,10 +146,31 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 ## Documentation
 
-| App | Development                                                                                                                                                                                                                                    | Testing                        |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| API | [Development](docs/api/development.md)                                                                                                                                                                                                         | [Testing](docs/api/testing.md) |
-| Web | [admin-gms](apps/web/admin-gms/README.md), [auth](apps/web/auth/README.md), [hr](apps/web/hr/README.md), [hurricaneplan](apps/web/hurricaneplan/README.md), [salesbus](apps/web/salesbus/README.md), [spicewx](apps/web/spicewx/README.md), [wxproducts](apps/web/wxproducts/README.md), [wxwatch](apps/web/wxwatch/README.md) | See app README                 |
+### Reference guides
+
+| Document | Description |
+| --- | --- |
+| [Deployment guide](deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
+| [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
+| [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
+| [Design System](docs/design-system.md) | GrenMet v1 tokens, Figma bridge, compliance guide, audit commands |
+| [API Development](docs/api/development.md) | FastAPI local development guide |
+| [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
+| [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |
+
+### App READMEs
+
+| App | README |
+| --- | --- |
+| admin-gms | [apps/web/admin-gms/README.md](apps/web/admin-gms/README.md) |
+| auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
+| hr | [apps/web/hr/README.md](apps/web/hr/README.md) |
+| hurricaneplan | [apps/web/hurricaneplan/README.md](apps/web/hurricaneplan/README.md) |
+| salesbus | [apps/web/salesbus/README.md](apps/web/salesbus/README.md) |
+| spicewx | [apps/web/spicewx/README.md](apps/web/spicewx/README.md) |
+| wxproducts | [apps/web/wxproducts/README.md](apps/web/wxproducts/README.md) |
+| wxwatch | [apps/web/wxwatch/README.md](apps/web/wxwatch/README.md) |
+| FastAPI | [apps/api/fastapi/README.md](apps/api/fastapi/README.md) |
 
 ## Development
 
@@ -205,7 +228,7 @@ See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
 
 ## License
 
-Proprietary - Grenmet
+Proprietary — Grenada Airports Authority (GAA) / Grenada Meteorological Service (GMS)
 
 ### Shared dependency versions
 

@@ -116,10 +116,16 @@ AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost
 
 Port map: 3001=admin-gms, 3002=wxwatch, 3003=hurricaneplan, 3004=spicewx, 3005=wxproducts, 3006=hr, 3007=salesbus.
 
-For staging/production, replace with the actual subdomain hosts (no port needed):
+For staging/production, replace with the actual subdomain hosts (no port needed).
 
+**Current active domain (`barrels.gd`):**
 ```
-AUTH_ALLOWED_RETURN_HOSTS=admin.weather.gd,wxwatch.weather.gd,hurricaneplan.weather.gd,...
+AUTH_ALLOWED_RETURN_HOSTS=admin.barrels.gd,wxwatch.barrels.gd,hurricane.barrels.gd,spice.barrels.gd,wxproducts.barrels.gd,hr.barrels.gd,sales.barrels.gd
+```
+
+**Planned production domain (`weather.gd`) — update when DNS cutover is complete:**
+```
+AUTH_ALLOWED_RETURN_HOSTS=admin.weather.gd,wxwatch.weather.gd,hurricane.weather.gd,spice.weather.gd,wxproducts.weather.gd,hr.weather.gd,sales.weather.gd
 ```
 
 ### Apps that delegate auth (auth, hr, hurricaneplan, spicewx)

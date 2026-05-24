@@ -53,7 +53,7 @@ Go into each environment and add the following secrets. Staging and production u
 | `SECRET_KEY`               | FastAPI JWT signing key               | `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
 | `POSTGRES_USER`            | Postgres superuser name               | `app`                                                          |
 | `POSTGRES_PASSWORD`        | Postgres superuser password           | Generate with the command above                                |
-| `FIRST_SUPERUSER`          | Bootstrap admin email                 | `admin@barrels.gd`                                             |
+| `FIRST_SUPERUSER`          | Bootstrap admin email                 | `admin@weather.gd`                                             |
 | `FIRST_SUPERUSER_PASSWORD` | Bootstrap admin password              | Strong random string                                           |
 | `WXWATCH_DB_PASSWORD`      | wxwatch DB user password              | Generate with the command above                                |
 | `WXPRODUCTS_DB_PASSWORD`   | wxproducts DB user password           | Generate with the command above                                |
