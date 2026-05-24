@@ -25,6 +25,8 @@
     "dev:web:hr": "turbo run dev --filter=@grenmet/web-hr",
     "dev:web:salesbus": "turbo run dev --filter=@grenmet/web-salesbus",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
+    "design-system:sync": "node scripts/design-system-sync.mjs --write",
+    "design-system:check": "node scripts/design-system-sync.mjs --check",
     "lint": "turbo run lint",
     "check": "turbo run check",
     "check:fix": "turbo run check:fix",

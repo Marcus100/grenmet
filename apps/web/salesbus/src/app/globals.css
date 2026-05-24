@@ -1,24 +1,193 @@
 @import "tailwindcss";
 
+/* BEGIN GRENMET DESIGN SYSTEM V1 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* GrenMet brand */
+    --gm-blue: #2478f2;
+    --gm-navy: #15006b;
+    --gm-sky: #39a9f5;
+    --gm-sun: #ff981e;
+
+    /* GrenMet surfaces */
+    --gm-surface-page: #ffffff;
+    --gm-surface: #f3f8fc;
+    --gm-surface-panel: #eaf3fb;
+
+    /* GrenMet text */
+    --gm-text-primary: #111827;
+    --gm-text-secondary: #4b5563;
+    --gm-text-muted: #6b7280;
+    --gm-text-inverse: #ffffff;
+
+    /* GrenMet risk */
+    --gm-risk-green: #00843d;
+    --gm-risk-yellow: #ffe923;
+    --gm-risk-amber: #ff9900;
+    --gm-risk-red: #cc0033;
+    --gm-risk-grey: #dcdcdc;
+
+    /* GrenMet weather severity */
+    --gm-weather-severity-low: var(--gm-risk-green);
+    --gm-weather-severity-be-aware: var(--gm-risk-yellow);
+    --gm-weather-severity-be-prepared: var(--gm-risk-amber);
+    --gm-weather-severity-take-action: var(--gm-risk-red);
+    --gm-weather-severity-expired: var(--gm-risk-grey);
+
+    /* GrenMet spacing */
+    --gm-spacing-4: 4px;
+    --gm-spacing-8: 8px;
+    --gm-spacing-12: 12px;
+    --gm-spacing-16: 16px;
+    --gm-spacing-20: 20px;
+    --gm-spacing-24: 24px;
+
+    /* GrenMet radius */
+    --gm-radius-2: 2px;
+    --gm-radius-5: 5px;
+    --gm-radius-8: 8px;
+    --gm-radius-full: 999px;
+
+    /* GrenMet borders */
+    --gm-border: #d0d5dd;
+
+    /* shadcn-compatible semantics mapped to GrenMet */
+    --background: var(--gm-surface-page);
+    --foreground: var(--gm-text-primary);
+    --card: var(--gm-surface-page);
+    --card-foreground: var(--gm-text-primary);
+    --popover: var(--gm-surface-page);
+    --popover-foreground: var(--gm-text-primary);
+    --primary: var(--gm-navy);
+    --primary-foreground: var(--gm-text-inverse);
+    --secondary: #eaf2fb;
+    --secondary-foreground: var(--gm-navy);
+    --muted: #e4eef7;
+    --muted-foreground: var(--gm-text-muted);
+    --accent: var(--gm-sky);
+    --accent-foreground: var(--gm-text-inverse);
+    --destructive: var(--gm-risk-red);
+    --destructive-foreground: var(--gm-text-inverse);
+    --border: var(--gm-border);
+    --input: var(--gm-border);
+    --ring: var(--gm-blue);
+    --radius: 0.5rem;
+
+    /* Sidebar semantics used by shared/admin UI */
+    --sidebar: var(--gm-surface-page);
+    --sidebar-foreground: var(--gm-text-primary);
+    --sidebar-primary: var(--gm-navy);
+    --sidebar-primary-foreground: var(--gm-text-inverse);
+    --sidebar-accent: #eaf2fb;
+    --sidebar-accent-foreground: var(--gm-navy);
+    --sidebar-border: var(--gm-border);
+    --sidebar-ring: var(--gm-blue);
+
+    /* Optional app font bridge */
+    --gm-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--gm-font-sans);
+
+  /* shadcn semantic utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* GrenMet brand utilities */
+  --color-gm-blue: var(--gm-blue);
+  --color-gm-navy: var(--gm-navy);
+  --color-gm-sky: var(--gm-sky);
+  --color-gm-sun: var(--gm-sun);
+  --color-gm-surface-page: var(--gm-surface-page);
+  --color-gm-surface: var(--gm-surface);
+  --color-gm-surface-panel: var(--gm-surface-panel);
+  --color-gm-text-primary: var(--gm-text-primary);
+  --color-gm-text-secondary: var(--gm-text-secondary);
+  --color-gm-text-muted: var(--gm-text-muted);
+  --color-gm-text-inverse: var(--gm-text-inverse);
+  --color-gm-risk-green: var(--gm-risk-green);
+  --color-gm-risk-yellow: var(--gm-risk-yellow);
+  --color-gm-risk-amber: var(--gm-risk-amber);
+  --color-gm-risk-red: var(--gm-risk-red);
+  --color-gm-risk-grey: var(--gm-risk-grey);
+  --color-gm-weather-severity-low: var(--gm-weather-severity-low);
+  --color-gm-weather-severity-be-aware: var(--gm-weather-severity-be-aware);
+  --color-gm-weather-severity-be-prepared: var(
+    --gm-weather-severity-be-prepared
+  );
+  --color-gm-weather-severity-take-action: var(
+    --gm-weather-severity-take-action
+  );
+  --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
+  --color-gm-border: var(--gm-border);
+  --spacing-gm-4: var(--gm-spacing-4);
+  --spacing-gm-8: var(--gm-spacing-8);
+  --spacing-gm-12: var(--gm-spacing-12);
+  --spacing-gm-16: var(--gm-spacing-16);
+  --spacing-gm-20: var(--gm-spacing-20);
+  --spacing-gm-24: var(--gm-spacing-24);
+  --radius-gm-2: var(--gm-radius-2);
+  --radius-gm-5: var(--gm-radius-5);
+  --radius-gm-8: var(--gm-radius-8);
+  --radius-gm-full: var(--gm-radius-full);
+}
+/* END GRENMET DESIGN SYSTEM V1 */
+
 :root {
   /* Primary Colors */
-  --color-primary: #4a7fc1;
-  --color-primary-dark: #3a6ba8;
-  --color-primary-light: #5b9bd5;
+  --color-primary: var(--gm-blue);
+  --color-primary-dark: var(--gm-navy);
+  --color-primary-light: var(--gm-sky);
 
   /* Background Colors */
-  --color-background: #e8edf2;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
+  --color-background: var(--gm-surface);
+  --color-surface: var(--gm-surface-page);
+  --color-surface-elevated: var(--gm-surface-page);
 
   /* Text Colors */
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
+  --color-text-primary: var(--gm-text-primary);
+  --color-text-secondary: var(--gm-text-secondary);
+  --color-text-muted: var(--gm-text-muted);
 
   /* Semantic Colors */
-  --color-success: #22c55e;
-  --color-error: #dc2626;
+  --color-success: var(--gm-risk-green);
+  --color-error: var(--gm-risk-red);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -30,8 +199,8 @@
   --spacing-page: 1rem;
 
   /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
+  --radius-sm: var(--gm-radius-5);
+  --radius-md: var(--gm-radius-8);
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
 
@@ -48,28 +217,6 @@
     --spacing-page: 1.25rem;
   }
 }
-
-/* Dark theme ready - uncomment when needed */
-/*
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary: #5B9BD5;
-    --color-primary-dark: #4A7FC1;
-    --color-primary-light: #7AB8E8;
-    
-    --color-background: #0F1419;
-    --color-surface: #1A1F26;
-    --color-surface-elevated: #242A33;
-    
-    --color-text-primary: #F3F4F6;
-    --color-text-secondary: #9CA3AF;
-    --color-text-muted: #6B7280;
-    
-    --color-success: #34D399;
-    --color-error: #F87171;
-  }
-}
-*/
 
 @theme inline {
   --color-primary: var(--color-primary);
