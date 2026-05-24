@@ -31,8 +31,13 @@ export default async function RootLayout({
   const allSections = Object.fromEntries(allSectionsEntries);
 
   return (
-    <html className="h-full" lang="en" suppressHydrationWarning>
-      <body className="flex min-h-full bg-white antialiased dark:bg-zinc-900">
+    <html
+      className="h-full"
+      lang="en"
+      style={{ colorScheme: "light" }}
+      suppressHydrationWarning
+    >
+      <body className="flex min-h-full bg-white antialiased">
         <Providers>
           <div className="w-full">
             <Layout allSections={allSections}>{children}</Layout>

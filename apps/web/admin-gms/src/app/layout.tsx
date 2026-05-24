@@ -25,11 +25,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" style={{ colorScheme: "light" }} suppressHydrationWarning>
       <body className={`${outfit.className} dark:bg-gray-900`}>
         <QueryProvider>
           <ApiProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem={false}
+              forcedTheme="light"
+            >
               <SidebarProvider>{children}</SidebarProvider>
             </ThemeProvider>
           </ApiProvider>
