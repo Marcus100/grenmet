@@ -113,10 +113,10 @@ const columns = [
             />
           </div>
           <div>
-            <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            <p className="font-medium text-foreground text-theme-sm">
               {product.name}
             </p>
-            <span className="text-gray-500 text-theme-xs dark:text-gray-400">
+            <span className="text-muted-foreground text-theme-xs">
               {product.variants}
             </span>
           </div>
@@ -201,10 +201,10 @@ export default function RecentOrders() {
   });
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-4 pt-4 pb-3 sm:px-6 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-2xl border border-border bg-background px-4 pt-4 pb-3 sm:px-6">
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="font-semibold text-gray-800 text-lg dark:text-white/90">
+          <h3 className="font-semibold text-foreground text-lg">
             Recent Orders
           </h3>
         </div>
@@ -250,12 +250,12 @@ export default function RecentOrders() {
       <div className="max-w-full overflow-x-auto">
         <Table>
           {/* Table Header */}
-          <TableHeader className="border-gray-100 border-y dark:border-gray-800">
+          <TableHeader className="border-gray-100 border-y">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
                   <TableHead
-                    className="py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400"
+                    className="py-3 text-start text-muted-foreground text-theme-xs"
                     key={header.id}
                   >
                     {header.isPlaceholder
@@ -271,13 +271,13 @@ export default function RecentOrders() {
           </TableHeader>
 
           {/* Table Body */}
-          <TableBody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <TableBody className="divide-y divide-gray-100">
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell
-                      className="py-3 text-gray-500 text-theme-sm dark:text-gray-400"
+                      className="py-3 text-muted-foreground text-theme-sm"
                       key={cell.id}
                     >
                       {flexRender(

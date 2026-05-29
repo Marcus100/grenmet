@@ -62,6 +62,23 @@
     --gm-weather-severity-take-action: var(--gm-risk-red);
     --gm-weather-severity-expired: var(--gm-risk-grey);
 
+    /* GrenMet warning pairs (AA contrast when foreground is used on background) */
+    --gm-warning-green-bg: var(--gm-risk-green);
+    --gm-warning-green-fg: var(--gm-text-inverse);
+    --gm-warning-green-border: var(--gm-risk-green);
+    --gm-warning-yellow-bg: var(--gm-risk-yellow);
+    --gm-warning-yellow-fg: var(--gm-text-primary);
+    --gm-warning-yellow-border: var(--gm-risk-yellow);
+    --gm-warning-amber-bg: var(--gm-risk-amber);
+    --gm-warning-amber-fg: var(--gm-text-primary);
+    --gm-warning-amber-border: var(--gm-risk-amber);
+    --gm-warning-red-bg: var(--gm-risk-red);
+    --gm-warning-red-fg: var(--gm-text-inverse);
+    --gm-warning-red-border: var(--gm-risk-red);
+    --gm-warning-grey-bg: var(--gm-risk-grey);
+    --gm-warning-grey-fg: var(--gm-text-primary);
+    --gm-warning-grey-border: var(--gm-risk-grey);
+
     /* GrenMet spacing */
     --gm-spacing-4: 4px;
     --gm-spacing-8: 8px;
@@ -129,6 +146,7 @@
 
     /* Optional app font bridge */
     --gm-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --gm-font-document: var(--font-noto-sans, "Noto Sans", var(--gm-font-sans));
 
     color-scheme: light;
   }
@@ -136,6 +154,7 @@
 
 @theme inline {
   --font-sans: var(--gm-font-sans);
+  --font-gm-document: var(--gm-font-document);
 
   /* shadcn semantic utilities */
   --color-background: var(--background);
@@ -199,6 +218,21 @@
     --gm-weather-severity-take-action
   );
   --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
+  --color-gm-warning-green-bg: var(--gm-warning-green-bg);
+  --color-gm-warning-green-fg: var(--gm-warning-green-fg);
+  --color-gm-warning-green-border: var(--gm-warning-green-border);
+  --color-gm-warning-yellow-bg: var(--gm-warning-yellow-bg);
+  --color-gm-warning-yellow-fg: var(--gm-warning-yellow-fg);
+  --color-gm-warning-yellow-border: var(--gm-warning-yellow-border);
+  --color-gm-warning-amber-bg: var(--gm-warning-amber-bg);
+  --color-gm-warning-amber-fg: var(--gm-warning-amber-fg);
+  --color-gm-warning-amber-border: var(--gm-warning-amber-border);
+  --color-gm-warning-red-bg: var(--gm-warning-red-bg);
+  --color-gm-warning-red-fg: var(--gm-warning-red-fg);
+  --color-gm-warning-red-border: var(--gm-warning-red-border);
+  --color-gm-warning-grey-bg: var(--gm-warning-grey-bg);
+  --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
+  --color-gm-warning-grey-border: var(--gm-warning-grey-border);
   --color-gm-border: var(--gm-border);
   --text-gm-micro: var(--gm-font-size-micro);
   --text-gm-label: var(--gm-font-size-label);

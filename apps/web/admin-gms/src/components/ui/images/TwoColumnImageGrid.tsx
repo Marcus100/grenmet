@@ -6,7 +6,7 @@ export default function TwoColumnImageGrid() {
       <div>
         <Image
           alt=" grid"
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-800"
+          className="w-full rounded-xl border border-border"
           height={295}
           src="/images/grid-image/image-02.png"
           width={517}
@@ -16,7 +16,7 @@ export default function TwoColumnImageGrid() {
       <div>
         <Image
           alt=" grid"
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-800"
+          className="w-full rounded-xl border border-border"
           height={295}
           src="/images/grid-image/image-03.png"
           width={517}

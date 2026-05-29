@@ -162,20 +162,21 @@ Risk framing should keep distinct dimensions visible:
 - Duration describes exposure.
 - Confidence describes remaining uncertainty.
 
-Warning communication should never rely on color alone. A warning needs a level label, hazard name, response text, iconography or other visual cue, validity, and source.
+Warning communication should never rely on color alone. A warning needs a level label, hazard name, response text, iconography or other visual cue, validity, and source. Use color as a paired reinforcement for level/status, not as the only carrier of meaning.
 
 ### Warning Content Contract
 
 Every official warning direction should account for:
 
-1. Warning level and hazard type
-2. Headline
+1. Headline
+2. Hazard and warning or response level text
 3. Affected areas
-4. Valid period, issue time, update time, and current status
-5. What to expect and potential impacts
-6. Recommended actions
-7. Confidence and next update
-8. Source and contact or attribution
+4. Impact and likelihood
+5. Valid period, issue time, update time, and current status
+6. Source and contact or attribution
+7. What to expect
+8. What to do or recommended actions
+9. Confidence and next update
 
 ### CAP-Aware Direction
 
@@ -252,4 +253,3 @@ type GMSProductDirection = {
 | 4. Warning and IBF system | Warning levels, impact matrix, advisory/watch/warning logic, detail page, CAP mapping, notifications |
 | 5. Product templates | Homepage, forecast, warning, marine, aviation, data pages, PDFs, social graphics, dashboards |
 | 6. Digital operations | Product editor, approvals, CAP export, archive, observation dashboard, dissemination logs, verification |
-

@@ -8,6 +8,11 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 const webApps = [
   {
+    name: "@grenmet/ui",
+    root: "packages/ui",
+    note: "Shared primitives should stay token-clean; generated foundation blocks are masked before scanning.",
+  },
+  {
     name: "admin-gms",
     root: "apps/web/admin-gms",
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
@@ -146,7 +151,10 @@ function isAllowedFontValue(value) {
   const lower = value.toLowerCase();
   return (
     lower.includes("inter") ||
+    lower.includes("noto sans") ||
+    lower.includes("gm-font-document") ||
     lower.includes("gm-font-sans") ||
+    lower.includes("font-noto-sans") ||
     lower.includes("font-inter") ||
     lower.includes("inherit") ||
     lower.includes("ui-sans-serif") ||
@@ -296,14 +304,14 @@ function scanFontImportFindings(report, filePath, lineNumber, line) {
       .filter(Boolean);
 
     for (const importedFont of imports) {
-      if (importedFont !== "Inter") {
+      if (!(importedFont === "Inter" || importedFont === "Noto_Sans")) {
         addFinding(
           report,
           "typography",
           filePath,
           lineNumber,
           importedFont,
-          "Inter is the provisional GrenMet web font for v1."
+          "Inter is the GrenMet web UI font for v1; Noto Sans is reserved for the official document lane."
         );
       }
     }
@@ -537,7 +545,8 @@ function printReport(reports) {
 
   console.log("GrenMet foundation audit");
   console.log("Mode: warning only; this command exits 0.");
-  console.log("Provisional web font: Inter.");
+  console.log("Web UI font: Inter.");
+  console.log("Official document font: Noto Sans via --gm-font-document.");
   console.log("Pilot cleanup app: spicewx.");
   console.log("");
 
