@@ -1,8 +1,7 @@
-import { Outfit } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
 import type { Metadata } from "next";
-import { ThemeProvider } from "next-themes";
 import { ApiProvider } from "@/components/providers/ApiProvider";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -15,8 +14,9 @@ export const metadata: Metadata = {
   description: "Your weather dashboard description",
 };
 
-const outfit = Outfit({
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export default function RootLayout({
@@ -25,18 +25,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ colorScheme: "light" }} suppressHydrationWarning>
-      <body className={`${outfit.className} dark:bg-gray-900`}>
+    <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
+      <body>
         <QueryProvider>
           <ApiProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem={false}
-              forcedTheme="light"
-            >
-              <SidebarProvider>{children}</SidebarProvider>
-            </ThemeProvider>
+            <SidebarProvider>{children}</SidebarProvider>
           </ApiProvider>
         </QueryProvider>
       </body>

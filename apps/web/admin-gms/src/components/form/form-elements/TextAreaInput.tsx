@@ -1,7 +1,7 @@
 "use client";
+import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
-import TextArea from "../input/TextArea";
 import Label from "../Label";
 
 export default function TextAreaInput() {
@@ -10,32 +10,34 @@ export default function TextAreaInput() {
   return (
     <ComponentCard title="Textarea input field">
       <div className="space-y-6">
-        {/* Default TextArea */}
+        {/* Default */}
         <div>
           <Label>Description</Label>
-          <TextArea
-            onChange={(value) => setMessage(value)}
+          <Textarea
+            onChange={(e) => setMessage(e.target.value)}
             rows={6}
             value={message}
           />
         </div>
 
-        {/* Disabled TextArea */}
+        {/* Disabled */}
         <div>
           <Label>Description</Label>
-          <TextArea disabled rows={6} />
+          <Textarea disabled rows={6} />
         </div>
 
-        {/* Error TextArea */}
+        {/* Error */}
         <div>
           <Label>Description</Label>
-          <TextArea
-            error
-            hint="Please enter a valid message."
-            onChange={(value) => setMessageTwo(value)}
+          <Textarea
+            aria-invalid
+            onChange={(e) => setMessageTwo(e.target.value)}
             rows={6}
             value={messageTwo}
           />
+          <p className="mt-2 text-error-500 text-sm">
+            Please enter a valid message.
+          </p>
         </div>
       </div>
     </ComponentCard>

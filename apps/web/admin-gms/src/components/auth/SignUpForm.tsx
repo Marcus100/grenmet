@@ -1,8 +1,8 @@
 "use client";
+import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
+import { Input } from "@grenmet/ui/components/ui/input";
 import Link from "next/link";
 import { useState } from "react";
-import Checkbox from "@/components/form/input/Checkbox";
-import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 
@@ -13,7 +13,7 @@ export default function SignUpForm() {
     <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
       <div className="mx-auto mb-5 w-full max-w-md sm:pt-10">
         <Link
-          className="inline-flex items-center text-gray-500 text-sm transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+          className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-gray-700"
           href="/"
         >
           <ChevronLeftIcon />
@@ -23,17 +23,17 @@ export default function SignUpForm() {
       <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center">
         <div>
           <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm sm:text-title-md dark:text-white/90">
+            <h1 className="mb-2 font-semibold text-foreground text-title-sm sm:text-title-md">
               Sign Up
             </h1>
-            <p className="text-gray-500 text-sm dark:text-gray-400">
+            <p className="text-muted-foreground text-sm">
               Enter your email and password to sign up!
             </p>
           </div>
           <div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
               <button
-                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-foreground"
                 type="button"
               >
                 <svg
@@ -64,7 +64,7 @@ export default function SignUpForm() {
                 Sign up with Google
               </button>
               <button
-                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-foreground"
                 type="button"
               >
                 <svg
@@ -83,10 +83,10 @@ export default function SignUpForm() {
             </div>
             <div className="relative py-3 sm:py-5">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-gray-200 border-t dark:border-gray-800" />
+                <div className="w-full border-border border-t" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-white p-2 text-gray-400 sm:px-5 sm:py-2 dark:bg-gray-900">
+                <span className="bg-background p-2 text-gray-400 sm:px-5 sm:py-2">
                   Or
                 </span>
               </div>
@@ -147,9 +147,9 @@ export default function SignUpForm() {
                       type="button"
                     >
                       {showPassword ? (
-                        <EyeIcon className="fill-gray-500 dark:fill-gray-400" />
+                        <EyeIcon className="fill-muted-foreground" />
                       ) : (
-                        <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400" />
+                        <EyeCloseIcon className="fill-muted-foreground" />
                       )}
                     </button>
                   </div>
@@ -159,23 +159,21 @@ export default function SignUpForm() {
                   <Checkbox
                     checked={isChecked}
                     className="h-5 w-5"
-                    onChange={setIsChecked}
+                    onCheckedChange={(v) => setIsChecked(Boolean(v))}
                   />
-                  <p className="inline-block font-normal text-gray-500 dark:text-gray-400">
+                  <p className="inline-block font-normal text-muted-foreground">
                     By creating an account means you agree to the{" "}
-                    <span className="text-gray-800 dark:text-white/90">
+                    <span className="text-foreground">
                       Terms and Conditions,
                     </span>{" "}
                     and our{" "}
-                    <span className="text-gray-800 dark:text-white">
-                      Privacy Policy
-                    </span>
+                    <span className="text-foreground">Privacy Policy</span>
                   </p>
                 </div>
                 {/* <!-- Button --> */}
                 <div>
                   <button
-                    className="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 font-medium text-sm text-white shadow-theme-xs transition hover:bg-brand-600"
+                    className="flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-3 font-medium text-sm text-white shadow-gm-card transition hover:bg-brand-600"
                     type="submit"
                   >
                     Sign Up
@@ -185,10 +183,10 @@ export default function SignUpForm() {
             </form>
 
             <div className="mt-5">
-              <p className="text-center font-normal text-gray-700 text-sm sm:text-start dark:text-gray-400">
+              <p className="text-center font-normal text-gray-700 text-sm sm:text-start">
                 Already have an account?
                 <Link
-                  className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                  className="text-brand-500 hover:text-brand-600"
                   href="/signin"
                 >
                   Sign In

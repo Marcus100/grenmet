@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 export default function Profile() {
   return (
     <div>
-      <div className="rounded-2xl border border-gray-200 bg-white p-5 lg:p-6 dark:border-gray-800 dark:bg-white/3">
-        <h3 className="mb-5 font-semibold text-gray-800 text-lg lg:mb-7 dark:text-white/90">
+      <div className="rounded-2xl border border-border bg-background p-5 lg:p-6">
+        <h3 className="mb-5 font-semibold text-foreground text-lg lg:mb-7">
           Profile
         </h3>
         <UserProfileContent />

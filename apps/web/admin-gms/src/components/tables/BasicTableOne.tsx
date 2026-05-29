@@ -134,10 +134,10 @@ const columns = [
             <Image alt={user.name} height={40} src={user.image} width={40} />
           </div>
           <div>
-            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            <span className="block font-medium text-foreground text-theme-sm">
               {user.name}
             </span>
-            <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+            <span className="block text-muted-foreground text-theme-xs">
               {user.role}
             </span>
           </div>
@@ -176,7 +176,7 @@ const columns = [
         <div className="flex -space-x-2">
           {team.images.map((teamImage) => (
             <div
-              className="h-6 w-6 overflow-hidden rounded-full border-2 border-white dark:border-gray-900"
+              className="h-6 w-6 overflow-hidden rounded-full border-2 border-white"
               key={teamImage}
             >
               <Image
@@ -293,9 +293,9 @@ export default function BasicTableOne({
     virtualRows.length > 0 ? totalSize - (virtualRows.at(-1)?.end ?? 0) : 0;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-xl border border-border bg-background">
       {/* Filter Controls */}
-      <div className="flex items-center justify-between border-gray-100 border-b p-4 dark:border-white/[0.05]">
+      <div className="flex items-center justify-between border-gray-100 border-b p-4">
         <div className="relative max-w-sm">
           <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
           <Input
@@ -307,11 +307,11 @@ export default function BasicTableOne({
         </div>
         <div className="flex items-center gap-4">
           {enableVirtualization && (
-            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-600 text-xs dark:bg-brand-500/20 dark:text-brand-400">
+            <span className="rounded-full bg-brand-100 px-2 py-0.5 text-brand-600 text-xs">
               Virtual Scrolling
             </span>
           )}
-          <span className="text-gray-500 text-sm">
+          <span className="text-muted-foreground text-sm">
             {table.getFilteredRowModel().rows.length} results
           </span>
         </div>
@@ -326,12 +326,12 @@ export default function BasicTableOne({
               ref={tableContainerRef}
             >
               <Table>
-                <TableHeader className="sticky top-0 z-10 border-gray-100 border-b bg-white dark:border-white/[0.05] dark:bg-gray-900">
+                <TableHeader className="sticky top-0 z-10 border-gray-100 border-b bg-background">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
                         <TableHead
-                          className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400"
+                          className="px-5 py-3 text-start text-muted-foreground text-theme-xs"
                           key={header.id}
                         >
                           {header.isPlaceholder
@@ -346,7 +346,7 @@ export default function BasicTableOne({
                   ))}
                 </TableHeader>
 
-                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                <TableBody className="divide-y divide-gray-100">
                   {paddingTop > 0 && (
                     <tr>
                       <td style={{ height: `${paddingTop}px` }} />
@@ -362,7 +362,7 @@ export default function BasicTableOne({
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell
-                            className="px-5 py-4 text-start text-gray-500 text-theme-sm dark:text-gray-400"
+                            className="px-5 py-4 text-start text-muted-foreground text-theme-sm"
                             key={cell.id}
                           >
                             {flexRender(
@@ -385,12 +385,12 @@ export default function BasicTableOne({
           ) : (
             // Standard Paginated Table
             <Table>
-              <TableHeader className="border-gray-100 border-b dark:border-white/[0.05]">
+              <TableHeader className="border-gray-100 border-b">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead
-                        className="px-5 py-3 text-start text-gray-500 text-theme-xs dark:text-gray-400"
+                        className="px-5 py-3 text-start text-muted-foreground text-theme-xs"
                         key={header.id}
                       >
                         {header.isPlaceholder
@@ -405,13 +405,13 @@ export default function BasicTableOne({
                 ))}
               </TableHeader>
 
-              <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+              <TableBody className="divide-y divide-gray-100">
                 {table.getRowModel().rows.length ? (
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id}>
                       {row.getVisibleCells().map((cell) => (
                         <TableCell
-                          className="px-5 py-4 text-start text-gray-500 text-theme-sm dark:text-gray-400"
+                          className="px-5 py-4 text-start text-muted-foreground text-theme-sm"
                           key={cell.id}
                         >
                           {flexRender(
@@ -440,8 +440,8 @@ export default function BasicTableOne({
 
       {/* Pagination Controls - Only show when not virtualizing */}
       {!enableVirtualization && (
-        <div className="flex items-center justify-between border-gray-100 border-t p-4 dark:border-white/[0.05]">
-          <div className="text-gray-500 text-sm">
+        <div className="flex items-center justify-between border-gray-100 border-t p-4">
+          <div className="text-muted-foreground text-sm">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>

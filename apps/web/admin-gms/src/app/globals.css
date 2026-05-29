@@ -61,6 +61,23 @@
     --gm-weather-severity-take-action: var(--gm-risk-red);
     --gm-weather-severity-expired: var(--gm-risk-grey);
 
+    /* GrenMet warning pairs (AA contrast when foreground is used on background) */
+    --gm-warning-green-bg: var(--gm-risk-green);
+    --gm-warning-green-fg: var(--gm-text-inverse);
+    --gm-warning-green-border: var(--gm-risk-green);
+    --gm-warning-yellow-bg: var(--gm-risk-yellow);
+    --gm-warning-yellow-fg: var(--gm-text-primary);
+    --gm-warning-yellow-border: var(--gm-risk-yellow);
+    --gm-warning-amber-bg: var(--gm-risk-amber);
+    --gm-warning-amber-fg: var(--gm-text-primary);
+    --gm-warning-amber-border: var(--gm-risk-amber);
+    --gm-warning-red-bg: var(--gm-risk-red);
+    --gm-warning-red-fg: var(--gm-text-inverse);
+    --gm-warning-red-border: var(--gm-risk-red);
+    --gm-warning-grey-bg: var(--gm-risk-grey);
+    --gm-warning-grey-fg: var(--gm-text-primary);
+    --gm-warning-grey-border: var(--gm-risk-grey);
+
     /* GrenMet spacing */
     --gm-spacing-4: 4px;
     --gm-spacing-8: 8px;
@@ -128,6 +145,7 @@
 
     /* Optional app font bridge */
     --gm-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --gm-font-document: var(--font-noto-sans, "Noto Sans", var(--gm-font-sans));
 
     color-scheme: light;
   }
@@ -135,6 +153,7 @@
 
 @theme inline {
   --font-sans: var(--gm-font-sans);
+  --font-gm-document: var(--gm-font-document);
 
   /* shadcn semantic utilities */
   --color-background: var(--background);
@@ -198,6 +217,21 @@
     --gm-weather-severity-take-action
   );
   --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
+  --color-gm-warning-green-bg: var(--gm-warning-green-bg);
+  --color-gm-warning-green-fg: var(--gm-warning-green-fg);
+  --color-gm-warning-green-border: var(--gm-warning-green-border);
+  --color-gm-warning-yellow-bg: var(--gm-warning-yellow-bg);
+  --color-gm-warning-yellow-fg: var(--gm-warning-yellow-fg);
+  --color-gm-warning-yellow-border: var(--gm-warning-yellow-border);
+  --color-gm-warning-amber-bg: var(--gm-warning-amber-bg);
+  --color-gm-warning-amber-fg: var(--gm-warning-amber-fg);
+  --color-gm-warning-amber-border: var(--gm-warning-amber-border);
+  --color-gm-warning-red-bg: var(--gm-warning-red-bg);
+  --color-gm-warning-red-fg: var(--gm-warning-red-fg);
+  --color-gm-warning-red-border: var(--gm-warning-red-border);
+  --color-gm-warning-grey-bg: var(--gm-warning-grey-bg);
+  --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
+  --color-gm-warning-grey-border: var(--gm-warning-grey-border);
   --color-gm-border: var(--gm-border);
   --text-gm-micro: var(--gm-font-size-micro);
   --text-gm-label: var(--gm-font-size-label);
@@ -642,7 +676,7 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-sans z-1 bg-gray-50;
   }
 }
 
@@ -651,23 +685,23 @@
 }
 
 @utility menu-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-brand-50 text-brand-500;
 }
 
 @utility menu-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+  @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700;
 }
 
 @utility menu-item-icon {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+  @apply text-gray-500 group-hover:text-gray-700;
 }
 
 @utility menu-item-icon-active {
-  @apply text-brand-500 dark:text-brand-400;
+  @apply text-brand-500;
 }
 
 @utility menu-item-icon-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-gray-700;
 }
 
 @utility menu-item-arrow {
@@ -675,11 +709,11 @@
 }
 
 @utility menu-item-arrow-active {
-  @apply rotate-180 text-brand-500 dark:text-brand-400;
+  @apply rotate-180 text-brand-500;
 }
 
 @utility menu-item-arrow-inactive {
-  @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+  @apply text-gray-500 group-hover:text-gray-700;
 }
 
 @utility menu-dropdown-item {
@@ -687,23 +721,23 @@
 }
 
 @utility menu-dropdown-item-active {
-  @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+  @apply bg-brand-50 text-brand-500;
 }
 
 @utility menu-dropdown-item-inactive {
-  @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+  @apply text-gray-700 hover:bg-gray-100;
 }
 
 @utility menu-dropdown-badge {
-  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-500 dark:text-brand-400;
+  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-500;
 }
 
 @utility menu-dropdown-badge-active {
-  @apply bg-brand-100 dark:bg-brand-500/20;
+  @apply bg-brand-100;
 }
 
 @utility menu-dropdown-badge-inactive {
-  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+  @apply bg-brand-50 group-hover:bg-brand-100;
 }
 
 @utility no-scrollbar {
@@ -726,12 +760,8 @@
   }
 
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+    @apply bg-gray-200 rounded-full;
   }
-}
-
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #344054;
 }
 
 @layer utilities {
@@ -747,19 +777,19 @@
 
 /* third-party libraries CSS */
 .apexcharts-legend-text {
-  @apply !text-gray-700 dark:!text-gray-400;
+  @apply !text-gray-700;
 }
 
 .apexcharts-text {
-  @apply !fill-gray-700 dark:!fill-gray-400;
+  @apply !fill-gray-700;
 }
 
 .apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm dark:!border-gray-800 dark:!bg-gray-900;
+  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm;
 }
 
 .apexcharts-legend-text {
-  @apply pl-5! !text-gray-700 dark:!text-gray-400;
+  @apply pl-5! !text-gray-700;
 }
 .apexcharts-tooltip-series-group {
   @apply !p-0;
@@ -768,24 +798,24 @@
   @apply !p-0;
 }
 .apexcharts-tooltip-title {
-  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800 dark:!text-white/90;
+  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800;
 }
 .apexcharts-tooltip-text {
-  @apply !text-theme-xs !text-gray-700 dark:!text-white/90;
+  @apply !text-theme-xs !text-gray-700;
 }
 .apexcharts-tooltip-text-y-value {
   @apply !font-medium;
 }
 
 .apexcharts-gridline {
-  @apply !stroke-gray-100 dark:!stroke-gray-800;
+  @apply !stroke-gray-100;
 }
 
 .flatpickr-wrapper {
   @apply w-full;
 }
 .flatpickr-calendar {
-  @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 dark:!border-gray-800 !text-gray-500 dark:!bg-gray-dark dark:!text-gray-400 dark:!shadow-theme-xl 2xsm:!w-auto;
+  @apply mt-2 !bg-white !rounded-xl !p-5 !border !border-gray-200 !text-gray-500 2xsm:!w-auto;
 }
 
 .flatpickr-months .flatpickr-prev-month:hover svg,
@@ -802,7 +832,7 @@
 }
 .flatpickr-current-month .cur-month,
 .flatpickr-current-month input.cur-year {
-  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800 dark:!text-white/90;
+  @apply !h-auto !pt-0 !text-lg !font-medium !text-gray-800;
 }
 
 .flatpickr-prev-month,
@@ -815,11 +845,11 @@
 }
 
 .flatpickr-weekday {
-  @apply !text-theme-sm !font-medium !text-gray-500 dark:!text-gray-400 !bg-transparent;
+  @apply !text-theme-sm !font-medium !text-gray-500 !bg-transparent;
 }
 
 .flatpickr-day {
-  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800 dark:!text-white/90 dark:hover:!border-gray-300 dark:hover:!bg-gray-900;
+  @apply !flex !items-center !text-theme-sm !font-medium !text-gray-800;
 }
 .flatpickr-day.nextMonthDay,
 .flatpickr-day.prevMonthDay {
@@ -843,7 +873,7 @@
 }
 .flatpickr-months .flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month {
-  @apply !top-7 dark:!fill-white dark:!text-white !bg-transparent;
+  @apply !top-7 !bg-transparent;
 }
 .flatpickr-months .flatpickr-prev-month.flatpickr-prev-month,
 .flatpickr-months .flatpickr-next-month.flatpickr-prev-month {
@@ -858,7 +888,7 @@
 }
 span.flatpickr-weekday,
 .flatpickr-months .flatpickr-month {
-  @apply dark:!fill-white dark:!text-white !bg-none;
+  @apply !bg-none;
 }
 .flatpickr-innerContainer {
   @apply !border-b-0;
@@ -868,9 +898,8 @@ span.flatpickr-weekday,
 }
 .flatpickr-day.inRange {
   box-shadow:
-    -5px 0 0 #f9fafb,
-    5px 0 0 #f9fafb !important;
-  @apply dark:!shadow-datepicker;
+    -5px 0 0 var(--color-gm-surface-page),
+    5px 0 0 var(--color-gm-surface-page) !important;
 }
 .flatpickr-day.inRange,
 .flatpickr-day.prevMonthDay.inRange,
@@ -884,13 +913,13 @@ span.flatpickr-weekday,
 .flatpickr-day:focus,
 .flatpickr-day.prevMonthDay:focus,
 .flatpickr-day.nextMonthDay:focus {
-  @apply !border-gray-50 !bg-gray-50 dark:!border-0 dark:!border-white/5 dark:!bg-white/5;
+  @apply !border-gray-50 !bg-gray-50;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
 .flatpickr-day.selected,
 .flatpickr-day.endRange {
-  @apply !text-white dark:!text-white;
+  @apply !text-white;
 }
 .flatpickr-day.selected,
 .flatpickr-day.startRange,
@@ -910,13 +939,12 @@ span.flatpickr-weekday,
 .flatpickr-day.selected.nextMonthDay,
 .flatpickr-day.startRange.nextMonthDay,
 .flatpickr-day.endRange.nextMonthDay {
-  background: #465fff;
   @apply !border-brand-500 !bg-brand-500 hover:!border-brand-50 hover:!bg-brand-500;
 }
 .flatpickr-day.selected.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.startRange.startRange + .endRange:not(:nth-child(7n + 1)),
 .flatpickr-day.endRange.startRange + .endRange:not(:nth-child(7n + 1)) {
-  box-shadow: -10px 0 0 #465fff;
+  box-shadow: -10px 0 0 var(--color-brand-500);
 }
 
 /* biome-ignore lint/style/noDescendingSpecificity: third-party flatpickr CSS */
@@ -957,7 +985,7 @@ span.flatpickr-weekday,
   @apply gap-2;
 }
 .fc-button-group .fc-button {
-  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none dark:border-gray-800 dark:hover:border-gray-800 dark:hover:bg-gray-900 dark:active:border-gray-800!;
+  @apply flex h-10 w-10 items-center justify-center !rounded-lg border border-gray-200 bg-transparent hover:border-gray-200 hover:bg-gray-50 focus:shadow-none active:!border-gray-200 active:!bg-transparent active:!shadow-none;
 }
 
 .fc-button-group .fc-button.fc-prev-button:before {
@@ -968,12 +996,6 @@ span.flatpickr-weekday,
   content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%23344054' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
   @apply inline-block mt-1;
 }
-.dark .fc-button-group .fc-button.fc-prev-button:before {
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M16.0068 6L9.75684 12.25L16.0068 18.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
-.dark .fc-button-group .fc-button.fc-next-button:before {
-  content: url("data:image/svg+xml,%3Csvg width='25' height='24' viewBox='0 0 25 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.50684 19L15.7568 12.75L9.50684 6.5' stroke='%2398A2B3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
-}
 .fc-button-group .fc-button .fc-icon {
   @apply hidden;
 }
@@ -981,25 +1003,25 @@ span.flatpickr-weekday,
   @apply !rounded-lg !border-0 !bg-brand-500 !px-4 !py-2.5 !text-sm !font-medium hover:!bg-brand-600 focus:!shadow-none;
 }
 .fc-toolbar-title {
-  @apply !text-lg !font-medium text-gray-800 dark:text-white/90;
+  @apply !text-lg !font-medium text-gray-800;
 }
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child {
-  @apply rounded-lg bg-gray-100 p-0.5 dark:bg-gray-900;
+  @apply rounded-lg bg-gray-100 p-0.5;
 }
 .fc-header-toolbar.fc-toolbar .fc-toolbar-chunk:last-child .fc-button {
-  @apply !h-auto !w-auto rounded-md !border-0 bg-transparent !px-5 !py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none! dark:text-gray-400;
+  @apply !h-auto !w-auto rounded-md !border-0 bg-transparent !px-5 !py-2 text-sm font-medium text-gray-500 hover:text-gray-700 focus:shadow-none!;
 }
 .fc-header-toolbar.fc-toolbar
   .fc-toolbar-chunk:last-child
   .fc-button.fc-button-active {
-  @apply text-gray-900 bg-white dark:bg-gray-800 dark:text-white;
+  @apply text-gray-900 bg-white;
 }
 .fc-theme-standard th {
-  @apply !border-x-0 border-t !border-gray-200 bg-gray-50 !text-left dark:!border-gray-800 dark:bg-gray-900;
+  @apply !border-x-0 border-t !border-gray-200 bg-gray-50 !text-left;
 }
 .fc-theme-standard td,
 .fc-theme-standard .fc-scrollgrid {
-  @apply !border-gray-200 dark:!border-gray-800;
+  @apply !border-gray-200;
 }
 .fc .fc-col-header-cell-cushion {
   @apply !px-5 !py-4 text-sm font-medium uppercase text-gray-400;
@@ -1011,10 +1033,10 @@ span.flatpickr-weekday,
   @apply p-2;
 }
 .fc .fc-daygrid-day.fc-day-today .fc-scrollgrid-sync-inner {
-  @apply rounded-sm bg-gray-100 dark:bg-white/[0.03];
+  @apply rounded-sm bg-gray-100;
 }
 .fc .fc-daygrid-day-number {
-  @apply !p-3 text-sm font-medium text-gray-700 dark:text-gray-400;
+  @apply !p-3 text-sm font-medium text-gray-700;
 }
 .fc .fc-daygrid-day-top {
   @apply !flex-row;
@@ -1023,7 +1045,7 @@ span.flatpickr-weekday,
   opacity: 1;
 }
 .fc .fc-day-other .fc-daygrid-day-top .fc-daygrid-day-number {
-  @apply text-gray-400 dark:text-white/30;
+  @apply text-gray-400;
 }
 .event-fc-color {
   @apply rounded-lg py-2.5 pl-4 pr-3;
@@ -1065,10 +1087,10 @@ span.flatpickr-weekday,
   @apply bg-orange-500;
 }
 .fc-direction-ltr .fc-timegrid-slot-label-frame {
-  @apply px-3 py-1.5 text-left text-sm font-medium text-gray-500 dark:text-gray-400;
+  @apply px-3 py-1.5 text-left text-sm font-medium text-gray-500;
 }
 .fc .fc-timegrid-axis-cushion {
-  @apply text-sm font-medium text-gray-500 dark:text-gray-400;
+  @apply text-sm font-medium text-gray-500;
 }
 .custom-calendar .fc-h-event {
   color: black;
@@ -1092,12 +1114,12 @@ span.flatpickr-weekday,
 
 .stocks-slider-outer .swiper-button-next,
 .stocks-slider-outer .swiper-button-prev {
-  @apply !static mt-0 h-8 w-9 rounded-full border dark:hover:bg-white/[0.05] border-gray-200 !text-gray-700 transition hover:bg-gray-100 dark:border-white/[0.03] dark:bg-gray-800 dark:!text-gray-400 dark:hover:!text-white/90;
+  @apply !static mt-0 h-8 w-9 rounded-full border border-gray-200 !text-gray-700 transition hover:bg-gray-100;
 }
 
 .stocks-slider-outer .swiper-button-next.swiper-button-disabled,
 .stocks-slider-outer .swiper-button-prev.swiper-button-disabled {
-  @apply bg-white opacity-50 dark:bg-gray-900;
+  @apply bg-white opacity-50;
 }
 
 /* biome-ignore lint/style/noDescendingSpecificity: third-party swiper CSS */
@@ -1160,13 +1182,13 @@ span.flatpickr-weekday,
 }
 
 .jvectormap-container {
-  @apply !bg-gray-50 dark:!bg-gray-900;
+  @apply !bg-gray-50;
 }
 .jvectormap-region.jvectormap-element {
-  @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
+  @apply !fill-gray-300 hover:!fill-brand-500;
 }
 .jvectormap-marker.jvectormap-element {
-  @apply !stroke-gray-200 dark:!stroke-gray-800;
+  @apply !stroke-gray-200;
 }
 .jvectormap-tip {
   @apply !bg-brand-500 !border-none !px-2 !py-1;
@@ -1177,7 +1199,7 @@ span.flatpickr-weekday,
 }
 
 .form-check-input:checked ~ span {
-  @apply border-[6px] border-brand-500 bg-brand-500 dark:border-brand-500;
+  @apply border-[6px] border-brand-500 bg-brand-500;
 }
 
 .taskCheckbox:checked ~ .box span {
@@ -1187,7 +1209,7 @@ span.flatpickr-weekday,
   @apply text-gray-400 line-through;
 }
 .taskCheckbox:checked ~ .box {
-  @apply border-brand-500 bg-brand-500 dark:border-brand-500;
+  @apply border-brand-500 bg-brand-500;
 }
 
 .task {
@@ -1201,146 +1223,4 @@ span.flatpickr-weekday,
     0 1px 3px 0 rgba(16, 24, 40, 0.1),
     0 1px 2px 0 rgba(16, 24, 40, 0.06);
   opacity: 0.8; /* Changes the cursor to indicate dragging */
-}
-
-/*
-  ---break---
-*/
-
-@theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-/*
-  ---break---
-*/
-
-:root {
-  --radius: 0.5rem;
-  --background: var(--gm-surface-page);
-  --foreground: var(--gm-text-primary);
-  --card: var(--gm-surface-page);
-  --card-foreground: var(--gm-text-primary);
-  --popover: var(--gm-surface-page);
-  --popover-foreground: var(--gm-text-primary);
-  --primary: var(--gm-navy);
-  --primary-foreground: var(--gm-text-inverse);
-  --secondary: #eaf2fb;
-  --secondary-foreground: var(--gm-navy);
-  --muted: #e4eef7;
-  --muted-foreground: var(--gm-text-muted);
-  --accent: var(--gm-sky);
-  --accent-foreground: var(--gm-text-inverse);
-  --destructive: var(--gm-risk-red);
-  --border: var(--gm-border);
-  --input: var(--gm-border);
-  --ring: var(--gm-blue);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: var(--gm-surface-page);
-  --sidebar-foreground: var(--gm-text-primary);
-  --sidebar-primary: var(--gm-navy);
-  --sidebar-primary-foreground: var(--gm-text-inverse);
-  --sidebar-accent: #eaf2fb;
-  --sidebar-accent-foreground: var(--gm-navy);
-  --sidebar-border: var(--gm-border);
-  --sidebar-ring: var(--gm-blue);
-}
-
-/*
-  ---break---
-*/
-
-/*
-  MIGRATION DEBT: This .dark {} block is template-origin and violates the V1
-  light-mode-only contract. It is retained because downstream third-party
-  component overrides (flatpickr, FullCalendar, Swiper, ApexCharts) depend on
-  it. Remove as part of the admin-gms migration phase after component-level
-  cleanup is complete. Tracked by the design-system:audit darkMode category.
-*/
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
-
-/*
-  ---break---
-*/
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }

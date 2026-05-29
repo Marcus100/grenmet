@@ -328,7 +328,7 @@ const AppSidebar: React.FC = () => {
   return (
     // biome-ignore lint/a11y/noNoninteractiveElementInteractions: mouse hover events for collapsible sidebar
     <aside
-      className={`fixed top-0 left-0 z-50 mt-16 flex h-screen flex-col border-gray-200 border-r bg-white px-5 text-gray-900 transition-all duration-300 ease-in-out lg:mt-0 dark:border-gray-800 dark:bg-gray-900 ${
+      className={`fixed top-0 left-0 z-50 mt-16 flex h-screen flex-col border-border border-r bg-background px-5 text-foreground transition-all duration-300 ease-in-out lg:mt-0 ${
         isExpanded || isMobileOpen || isHovered ? "w-[290px]" : "w-[90px]"
       }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
@@ -342,22 +342,12 @@ const AppSidebar: React.FC = () => {
       >
         <Link href="/">
           {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <Image
-                alt="Logo"
-                className="dark:hidden"
-                height={10}
-                src="/images/logo/spicewxlogo.svg"
-                width={120}
-              />
-              <Image
-                alt="Logo"
-                className="hidden dark:block"
-                height={10}
-                src="/images/logo/logo-dark.svg"
-                width={120}
-              />
-            </>
+            <Image
+              alt="Logo"
+              height={10}
+              src="/images/logo/spicewxlogo.svg"
+              width={120}
+            />
           ) : (
             <Image
               alt="Logo"
@@ -373,7 +363,7 @@ const AppSidebar: React.FC = () => {
           <div className="flex flex-col gap-4">
             <div>
               <h2
-                className={`mb-4 flex text-gray-400 text-xs uppercase leading-[20px] ${
+                className={`mb-4 flex text-gray-400 text-xs uppercase leading-gm-nav ${
                   isExpanded || isHovered
                     ? "justify-start"
                     : "lg:justify-center"
@@ -390,7 +380,7 @@ const AppSidebar: React.FC = () => {
 
             <div className="">
               <h2
-                className={`mb-4 flex text-gray-400 text-xs uppercase leading-[20px] ${
+                className={`mb-4 flex text-gray-400 text-xs uppercase leading-gm-nav ${
                   isExpanded || isHovered
                     ? "justify-start"
                     : "lg:justify-center"

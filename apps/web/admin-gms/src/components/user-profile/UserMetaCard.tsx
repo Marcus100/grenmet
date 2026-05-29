@@ -22,10 +22,10 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
   const location = profile.employment.work_location || "Grenada";
 
   return (
-    <div className="rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
+    <div className="rounded-2xl border border-border p-5 lg:p-6">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex w-full flex-col items-center gap-6 xl:flex-row">
-          <div className="h-20 w-20 overflow-hidden rounded-full border border-gray-200 dark:border-gray-800">
+          <div className="h-20 w-20 overflow-hidden rounded-full border border-border">
             <Image
               alt={`${fullName} avatar`}
               className="h-full w-full object-cover"
@@ -35,25 +35,19 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
             />
           </div>
           <div className="order-3 xl:order-2">
-            <h4 className="mb-2 text-center font-semibold text-gray-800 text-lg xl:text-left dark:text-white/90">
+            <h4 className="mb-2 text-center font-semibold text-foreground text-lg xl:text-left">
               {fullName}
             </h4>
             <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
-              <p className="text-gray-500 text-sm dark:text-gray-400">
-                {position}
-              </p>
-              <div className="hidden h-3.5 w-px bg-gray-300 xl:block dark:bg-gray-700" />
-              <p className="text-gray-500 text-sm dark:text-gray-400">
-                {department}
-              </p>
-              <div className="hidden h-3.5 w-px bg-gray-300 xl:block dark:bg-gray-700" />
-              <p className="text-gray-500 text-sm dark:text-gray-400">
-                {location}
-              </p>
+              <p className="text-muted-foreground text-sm">{position}</p>
+              <div className="hidden h-3.5 w-px bg-gray-300 xl:block" />
+              <p className="text-muted-foreground text-sm">{department}</p>
+              <div className="hidden h-3.5 w-px bg-gray-300 xl:block" />
+              <p className="text-muted-foreground text-sm">{location}</p>
             </div>
           </div>
         </div>
-        <div className="rounded-full border border-green-200 bg-green-50 px-4 py-2 text-green-700 text-xs uppercase tracking-wide dark:border-green-900 dark:bg-green-950/30 dark:text-green-300">
+        <div className="rounded-full border border-green-200 bg-green-50 px-4 py-2 text-green-700 text-xs uppercase tracking-wide">
           {profile.identity.status}
         </div>
       </div>
