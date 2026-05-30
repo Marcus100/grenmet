@@ -4,18 +4,7 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": [
-        "AUTH_API_URL",
-        "AUTH_APP_URL",
-        "AUTH_API_V1_STR",
-        "SESSION_COOKIE_NAME",
-        "SESSION_COOKIE_DOMAIN",
-        "AUTH_ALLOWED_RETURN_HOSTS",
-        "RESEND_API_KEY",
-        "DATABASE_URL",
-        "NEXT_PUBLIC_API_URL"
-      ]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
     },
     "dev": {
       "cache": false,
@@ -48,8 +37,7 @@
       "inputs": ["**/*.{ts,tsx}", "**/tsconfig*.json"]
     },
     "generate": {
-      "cache": false,
-      "outputs": ["src/gen/**"]
+      "cache": false
     },
     "test": {
       "dependsOn": ["^build"],
