@@ -10,6 +10,13 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
     SESSION_COOKIE_DOMAIN: z.string().optional(),
   },
+  client: {
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional().default(""),
+    NEXT_PUBLIC_POSTHOG_HOST: z
+      .string()
+      .optional()
+      .default("https://us.i.posthog.com"),
+  },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
@@ -17,5 +24,7 @@ export const env = createEnv({
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
 });

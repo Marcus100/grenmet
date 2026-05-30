@@ -1,3 +1,4 @@
+import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
 import glob from "fast-glob";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -5,6 +6,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
 import type { Section } from "@/components/SectionProvider";
+import { env } from "@/lib/env";
 
 import "@/styles/tailwind.css";
 
@@ -45,11 +47,16 @@ export default async function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full bg-white antialiased">
-        <Providers>
-          <div className="w-full">
-            <Layout allSections={allSections}>{children}</Layout>
-          </div>
-        </Providers>
+        <PostHogProvider
+          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
+          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
+        >
+          <Providers>
+            <div className="w-full">
+              <Layout allSections={allSections}>{children}</Layout>
+            </div>
+          </Providers>
+        </PostHogProvider>
       </body>
     </html>
   );

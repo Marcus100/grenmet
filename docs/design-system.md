@@ -6,6 +6,18 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 ---
 
+## Confirmed v1 decisions
+
+- Web UI uses Inter through `--gm-font-sans`.
+- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--gm-font-document` and `font-gm-document`.
+- V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
+- `spicewx` is the public web reference implementation.
+- `admin-gms` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
+- Code Connect files may live locally in the repo, but publishing is deferred until the Figma account has the required Developer, Organization, or Enterprise capability.
+- For v1, the user is the sole approver for public `--gm-*` token additions or value changes.
+
+---
+
 ## How the design system works
 
 The design system has three layers:
@@ -44,6 +56,7 @@ This means you can write `text-gm-blue`, `p-gm-4`, `text-gm-heading-md` etc. as 
 | Standard UI elements | Import from `@grenmet/ui/components/ui/<name>` |
 | Color, spacing, type scale | Use `--gm-*` CSS variables or their Tailwind aliases |
 | Semantic colors (backgrounds, borders) | Use `--background`, `--border`, etc. |
+| Official document typography | Use `font-gm-document`; keep fixed document sizes inside document templates |
 | One-off measurements | Keep inline and treat as migration debt |
 
 Avoid hardcoding values that exist in the token set. Run the audit to find drift:
@@ -58,8 +71,9 @@ pnpm design-system:audit
 
 Keep the design system split clear while it grows:
 
-- **Core UI** is the reusable `@grenmet/ui` component surface, such as `Button`, `Input`, and `Card`.
-- **Product Weather** is the forecast, alert, product-shell, and weather-severity layer owned by weather product code.
+- **Core UI** is the reusable primitive surface in `@grenmet/ui`: `Button`, `Input`, `Badge`, `Card`, `Dialog`, `Select`, `Table`, `Tabs`, `Tooltip`, and similar app-agnostic building blocks.
+- **Public Weather/Product UI** is the public product layer: forecast cards, warning cards, current conditions, navigation, weather news, mobile menus, alert summaries, and product badges.
+- **Document Templates** are fixed-output A4/PDF/bulletin layouts, official forecast templates, HR forms, and official reports. This lane may use Noto Sans and fixed dimensions that normal web components should not inherit.
 
 Visual similarity is not enough to merge the lanes. A Figma component should map to the code component that owns its real API.
 
@@ -90,11 +104,21 @@ The check fails if an app has a stale generated block or declares `--gm-*` token
 
 `spicewx` remains the first app mirror for the v1 GrenMet contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
 
+## Governance
+
+Public `--gm-*` tokens are a contract across Figma, `@grenmet/ui`, and the web apps. During v1, new public tokens and token value changes require user approval before they become part of the contract.
+
+Approved token changes must land in Figma and `packages/ui/src/styles/globals.css` together. After editing the canonical block, run `pnpm design-system:sync` so generated app blocks stay aligned, then verify with `pnpm design-system:check`.
+
+App-local aliases are acceptable during migration only when they resolve back to `--gm-*` or semantic tokens. Do not promote app-specific document, dashboard, or product values into public tokens until they are repeated across apps or approved as a shared pattern.
+
 ## Foundation Compliance
 
 The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
 
 Inter is the GrenMet v1 web UI font and must flow through `--gm-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
+
+Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@grenmet/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
 
 Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the GrenMet foundation.
 
@@ -118,6 +142,27 @@ The v1 type scale as of the current expansion:
 | `text-gm-heading-lg` | 34px | 36px | Large display numbers (date, stats) |
 
 Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[200px]`), the active-state border compensation in `WeatherDateNav` (`px-[1.5px] py-[7.5px]`), the month label tight leading (`leading-[14px]`), and the responsive container pattern (`max-w-7xl px-4 sm:px-6 lg:px-8`).
+
+### App Roles
+
+| App | Design-system role | Direction |
+|---|---|---|
+| `spicewx` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
+| `admin-gms` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to GrenMet tokens. |
+| `wxproducts` | Document-heavy weather product lane | Keep Noto Sans and fixed A4/PDF dimensions inside official product templates. |
+| `hr` | Document-heavy HR operations lane | Keep official forms in the document lane; use Inter for normal web UI. |
+| `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, GrenMet radii, shadows, and semantic colors. |
+| `wxwatch` | Media/gallery cleanup lane | Keep media viewport behavior local while aligning labels, timestamps, and shell styling. |
+| `salesbus` | App-specific operational UI lane | Share foundations without forcing weather-specific product patterns. |
+| `hurricaneplan` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
+
+### Migration Order
+
+1. `spicewx`, because it is the public web reference.
+2. `@grenmet/ui`, because shared primitives must stay token-clean.
+3. `admin-gms`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
+4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
+5. `auth`, `wxwatch`, `salesbus`, and `hurricaneplan`, guided by audit output and app-specific risk.
 
 ### Migration Checklist
 
@@ -148,7 +193,7 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations / Core + Product` is the current v1 contract: one Light mode, scoped variables, and WEB code syntax for every public token. The `12 Design System` page includes a `GrenMet v1 Foundation Contract` reference section for color, spacing, and radius review.
+The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 80 scoped variables, and WEB code syntax for every public token. The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `spicewx` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
 
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
@@ -199,14 +244,15 @@ The first Core UI pilot connects the shared React `Button` to the Figma componen
 
 1. Keep the Figma `Variant` and `Size` options aligned with the React `Button` API.
 2. Use the Button node URL in `packages/ui/src/components/ui/button.figma.tsx`.
-3. Publish the Code Connect file from the repo root:
+3. Keep the local Code Connect file ready in the repo, but do not publish it during v1 until the Figma account is upgraded.
+4. After the account has the required capability, publish from the repo root:
 
    ```bash
    npx figma connect publish --token=PERSONAL_ACCESS_TOKEN
    ```
 
    The `FIGMA_ACCESS_TOKEN` environment variable can replace the `--token` flag.
-4. Inspect a Button instance in Figma Dev Mode and verify the shared React snippet shows `variant` and `size`.
+5. Inspect a Button instance in Figma Dev Mode and verify the shared React snippet shows `variant` and `size`.
 
 The Button Code Connect artifacts are ready in the repo, but publish is currently deferred. The active Education account reached Figma upload and was rejected because the required Code Connect write access is not exposed for that account.
 
@@ -217,8 +263,8 @@ The next Core UI pilot is the shared React `Input` represented in Figma as `Gren
 - Figma states are `Default`, `Disabled`, and `Invalid`.
 - The editable `Text` property supports placeholder or example value content.
 - These Figma states document the current React surface: disabled remains a native input prop, and invalid remains `aria-invalid`.
-- This pass does not add an Input Code Connect mapping while publish remains blocked.
+- Input is the next local Code Connect mapping after Button. Do not publish Input or any broader component mappings while publish remains blocked.
 
 ## Deferred
 
-The v1 bridge does not yet include dark-mode token modes, a separate generated token source package, Code Connect coverage for every shared component, a broader reusable typography and effect-style system, full component-level cross-app migration, or runtime schema reconciliation for the larger GMS service and warning strategy.
+The v1 bridge does not yet include dark-mode token modes, a separate generated token source package, published Code Connect coverage, a broader reusable typography and effect-style system, full component-level cross-app migration, or runtime schema reconciliation for the larger GMS service and warning strategy.
