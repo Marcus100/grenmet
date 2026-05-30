@@ -1,1 +1,10 @@
-{}
+{
+  "permissions": {
+    "allow": [
+      "Bash(python *)",
+      "Bash(curl -s -o /tmp/figma_screenshot.png \"https://www.figma.com/api/mcp/asset/6070e361-739f-47c8-9116-ca801090fd02\")",
+      "Bash(python3)",
+      "Bash(python3 *)"
+    ]
+  }
+}

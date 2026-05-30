@@ -72,7 +72,7 @@ export default function DefaultInputs() {
           <DatePicker
             id="date-picker"
             label="Date Picker Input"
-            onChange={(_dates, _currentDateString) => undefined}
+            onChange={() => undefined}
             placeholder="Select a date"
           />
         </div>

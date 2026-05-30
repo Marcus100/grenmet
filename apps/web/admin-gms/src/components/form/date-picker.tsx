@@ -1,60 +1,65 @@
-import flatpickr from "flatpickr";
-import { useEffect } from "react";
-import "flatpickr/dist/flatpickr.css";
+"use client";
+
+import { format } from "date-fns";
+import { useState } from "react";
+import { DayPicker } from "react-day-picker";
+import "react-day-picker/style.css";
 import { CalenderIcon } from "../../icons";
 import Label from "./Label";
 
-type Hook = flatpickr.Options.Hook;
-type DateOption = flatpickr.Options.DateOption;
-
-interface PropsType {
-  defaultDate?: DateOption;
+interface DatePickerProps {
+  defaultDate?: Date;
   id: string;
   label?: string;
-  mode?: "single" | "multiple" | "range" | "time";
-  onChange?: Hook | Hook[];
+  mode?: "single" | "range" | "multiple";
+  onChange?: (date: Date | undefined) => void;
   placeholder?: string;
 }
 
 export default function DatePicker({
   id,
-  mode,
-  onChange,
   label,
   defaultDate,
   placeholder,
-}: PropsType) {
-  useEffect(() => {
-    const flatPickr = flatpickr(`#${id}`, {
-      mode: mode || "single",
-      static: true,
-      monthSelectorType: "static",
-      dateFormat: "Y-m-d",
-      defaultDate,
-      onChange,
-    });
+  onChange,
+}: DatePickerProps) {
+  const [selected, setSelected] = useState<Date | undefined>(defaultDate);
+  const [open, setOpen] = useState(false);
 
-    return () => {
-      if (!Array.isArray(flatPickr)) {
-        flatPickr.destroy();
-      }
-    };
-  }, [mode, onChange, id, defaultDate]);
+  function handleSelect(date: Date | undefined) {
+    setSelected(date);
+    onChange?.(date);
+    setOpen(false);
+  }
 
   return (
     <div>
       {label && <Label htmlFor={id}>{label}</Label>}
-
       <div className="relative">
-        <input
-          className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20"
+        <button
+          className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-left text-foreground text-sm shadow-gm-card focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20"
           id={id}
-          placeholder={placeholder}
-        />
-
+          onClick={() => setOpen((v) => !v)}
+          type="button"
+        >
+          <span className={selected ? "text-foreground" : "text-gray-400"}>
+            {selected
+              ? format(selected, "yyyy-MM-dd")
+              : (placeholder ?? "Pick a date")}
+          </span>
+        </button>
         <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground">
           <CalenderIcon className="size-6" />
         </span>
+        {open && (
+          <div className="absolute z-50 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg">
+            <DayPicker
+              mode="single"
+              onSelect={handleSelect}
+              selected={selected}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
