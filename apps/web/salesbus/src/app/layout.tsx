@@ -1,8 +1,10 @@
+import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers";
 import { CartProvider } from "@/lib/cart-store";
+import { env } from "@/lib/env";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -50,9 +52,14 @@ export default function RootLayout({
         <meta content="default" name="apple-mobile-web-app-status-bar-style" />
       </head>
       <body className="antialiased">
-        <QueryProvider>
-          <CartProvider>{children}</CartProvider>
-        </QueryProvider>
+        <PostHogProvider
+          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
+          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
+        >
+          <QueryProvider>
+            <CartProvider>{children}</CartProvider>
+          </QueryProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

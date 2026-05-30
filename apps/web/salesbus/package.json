@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@grenmet/api-client": "workspace:*",
+    "@grenmet/ui": "workspace:*",
     "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-query": "catalog:",
     "lucide-react": "catalog:",

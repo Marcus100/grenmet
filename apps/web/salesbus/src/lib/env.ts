@@ -3,7 +3,6 @@ import { z } from "zod";
 
 export const env = createEnv({
   client: {
-    // Public API URL — passed at Docker build time via build-arg
     NEXT_PUBLIC_API_URL: z
       .string()
       .url()
@@ -13,9 +12,16 @@ export const env = createEnv({
       .enum(["local", "staging", "production"])
       .optional()
       .default("local"),
+    NEXT_PUBLIC_POSTHOG_KEY: z.string().optional().default(""),
+    NEXT_PUBLIC_POSTHOG_HOST: z
+      .string()
+      .optional()
+      .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_ENVIRONMENT: process.env.NEXT_PUBLIC_ENVIRONMENT,
+    NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },
 });

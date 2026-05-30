@@ -1,4 +1,4 @@
-import { renderAsync } from "@react-email/render";
+import { render } from "@react-email/render";
 import {
   ResetPasswordEmail,
   type ResetPasswordEmailProps,
@@ -20,14 +20,14 @@ export async function renderTemplate(
     case "reset-password": {
       const p = props as unknown as ResetPasswordEmailProps;
       return {
-        html: await renderAsync(ResetPasswordEmail(p)),
+        html: await render(ResetPasswordEmail(p)),
         subject: `${p.projectName} — Reset your password`,
       };
     }
     case "welcome": {
       const p = props as unknown as WelcomeEmailProps;
       return {
-        html: await renderAsync(WelcomeEmail(p)),
+        html: await render(WelcomeEmail(p)),
         subject: `Welcome to ${p.projectName}`,
       };
     }

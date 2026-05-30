@@ -228,11 +228,12 @@ Separate from the programme phases, the design system has its own compliance tra
 ### Completed
 - ✅ GrenMet v1 foundation block deployed to all 8 web apps
 - ✅ spicewx established as reference implementation
-- ✅ Button and Input Code Connect artifacts ready (publish deferred — Figma account limitation)
+- ✅ Button Code Connect mapping complete locally (publish deferred — Figma account limitation)
 
 ### In Progress
 - 🔄 Foundation compliance audit per app (run `pnpm design-system:audit`)
 - 🔄 Resolving documented exceptions (dark mode in admin-gms, font overrides in auth/wxwatch/wxproducts)
+- 🔄 Input Code Connect mapping next; local mappings only until publish access is upgraded
 
 ### Planned
 - 📋 Promote selected audit rules to blocking CI checks (starting with spicewx)
@@ -240,7 +241,7 @@ Separate from the programme phases, the design system has its own compliance tra
 - 📋 Public Weather design system lane — conditions card, forecast strip, daily summary
 - 📋 Tropical Cyclone design system lane — outlook and advisory shells
 - ⏳ Dark mode token design — deferred; requires dedicated Figma design pass; v1 is light-mode only
-- ⏳ Figma Code Connect publish — deferred; requires Figma account with write access
+- ⏳ Figma Code Connect publish — deferred; requires Figma account with Developer, Organization, or Enterprise capability
 
 ---
 
@@ -296,7 +297,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | Item | Blocker |
 |---|---|
 | Dark mode design tokens | Requires dedicated Figma design pass; v1 is light-mode only |
-| Figma Code Connect publish | Figma Education account lacks write access |
+| Figma Code Connect publish | Figma Education account lacks the required publish capability |
 | Runtime schema reconciliation (wxproducts ↔ GMS product catalogue) | Requires GMS leadership review before runtime interfaces change |
 | Full cross-app component migration to `@grenmet/ui` | Phased; gated on design system component depth |
 | Test suites for non-admin apps | Only admin-gms has Vitest + Playwright today |

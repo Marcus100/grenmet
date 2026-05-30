@@ -26,9 +26,11 @@
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
     "lucide-react": "catalog:",
+    "posthog-js": "catalog:",
     "tailwind-merge": "catalog:"
   },
   "peerDependencies": {
+    "next": "*",
     "react": "*",
     "react-dom": "*",
     "tailwindcss": "*"

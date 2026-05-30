@@ -84,6 +84,8 @@ All apps receive the GrenMet v1 foundation block when they import `@grenmet/ui`.
 
 Use tokens instead of hardcoded values. Run `pnpm design-system:audit` to find drift in your app.
 
+Web UI uses Inter through `--gm-font-sans`. Official PDFs, bulletins, forms, and other fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` utility. Keep A4/PDF sizing and document-specific typography in document templates, not in shared primitives.
+
 Full token reference, the three-layer explanation, and compliance guide: [docs/design-system.md](../../docs/design-system.md).
 
 ---
