@@ -14,6 +14,13 @@ export const metadata: Metadata = {
     template: "%s | Grenada Meteorological Service",
   },
   description: "Your weather dashboard description",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 const inter = Inter({

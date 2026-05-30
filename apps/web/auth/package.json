@@ -12,6 +12,9 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -19,6 +22,7 @@
     "@grenmet/email-templates": "workspace:*",
     "@grenmet/ui": "workspace:*",
     "next": "catalog:",
+    "posthog-node": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:",
@@ -26,12 +30,20 @@
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
+    "@playwright/test": "catalog:",
     "@tailwindcss/postcss": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "catalog:",
+    "msw": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { captureServerEvent } from "@/lib/posthog-server";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import {
   clearSessionCookie,
@@ -56,6 +57,7 @@ export async function signInAction(
       response.session_token,
       response.session_expires_at
     );
+    await captureServerEvent(email, "sign_in", { app_name: appName });
   } catch (error) {
     return {
       error: isAuthApiError(error)
@@ -91,6 +93,7 @@ async function endSession({
     }
   }
 
+  await captureServerEvent(sessionToken ?? "unknown", "sign_out");
   await clearSessionCookie();
   redirect(returnTo ?? "/");
 }
@@ -219,6 +222,7 @@ export async function signUpAction(
       lastName,
       middleName,
     });
+    await captureServerEvent(email, "sign_up");
     return { email, error: null, success: true };
   } catch (error) {
     return {
