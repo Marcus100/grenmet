@@ -18,6 +18,7 @@ import hmac
 import json
 import logging
 import time
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
@@ -117,16 +118,16 @@ async def resend_webhook(request: Request) -> JSONResponse:
 
     # ── Parse event ────────────────────────────────────────────────────────
     try:
-        event: dict = json.loads(raw_body)
+        event: dict[str, Any] = json.loads(raw_body)
     except json.JSONDecodeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON"
         )
 
     event_type: str = event.get("type", "unknown")
-    data: dict = event.get("data", {})
+    data: dict[str, Any] = event.get("data", {})
     email_id: str = data.get("email_id", "")
-    to_address: str | list = data.get("to", "")
+    to_address: str | list[str] = data.get("to", "")
 
     logger.info(
         "Resend webhook received: type=%s email_id=%s to=%s",
