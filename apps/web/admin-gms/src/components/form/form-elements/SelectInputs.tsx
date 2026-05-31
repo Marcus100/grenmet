@@ -1,10 +1,15 @@
 "use client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
 import { useState } from "react";
-import { ChevronDownIcon } from "@/icons";
 import ComponentCard from "../../common/ComponentCard";
 import Label from "../Label";
 import MultiSelect from "../MultiSelect";
-import Select from "../Select";
 
 export default function SelectInputs() {
   const options = [
@@ -14,8 +19,6 @@ export default function SelectInputs() {
   ];
 
   const [selectedValues, setSelectedValues] = useState<string[]>([]);
-
-  const handleSelectChange = (_value: string) => undefined;
 
   const multiOptions = [
     { value: "1", text: "Option 1", selected: false },
@@ -30,17 +33,18 @@ export default function SelectInputs() {
       <div className="space-y-6">
         <div>
           <Label>Select Input</Label>
-          <div className="relative">
-            <Select
-              className="dark:bg-dark-900"
-              onChange={handleSelectChange}
-              options={options}
-              placeholder="Select Option"
-            />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-              <ChevronDownIcon />
-            </span>
-          </div>
+          <Select onValueChange={() => undefined}>
+            <SelectTrigger className="h-11 w-full">
+              <SelectValue>Select Option</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="relative">
           <MultiSelect

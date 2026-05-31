@@ -10,7 +10,7 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-[72px] items-center justify-between border-[#d0d5dd] border-b bg-white pr-[20px] pl-[24px]">
+      <header className="sticky top-0 z-40 flex h-gm-header items-center justify-between border-gm-border border-b bg-background pr-gm-20 pl-gm-24">
         <Image
           alt="Grenada Meteorological Service"
           height={36}
@@ -20,11 +20,11 @@ export function Header() {
         />
         <button
           aria-label="Open navigation"
-          className="flex size-[44px] items-center justify-center"
+          className="flex size-gm-44 items-center justify-center"
           onClick={() => setNavOpen(true)}
           type="button"
         >
-          <Bars2Icon className="size-[24px] text-gray-900" />
+          <Bars2Icon className="size-gm-24 text-gm-text-primary" />
         </button>
       </header>
 

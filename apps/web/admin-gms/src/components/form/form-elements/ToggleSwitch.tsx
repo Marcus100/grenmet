@@ -1,38 +1,32 @@
 "use client";
+import { Switch } from "@grenmet/ui/components/ui/switch";
 import ComponentCard from "../../common/ComponentCard";
-import Switch from "../switch/Switch";
 
 export default function ToggleSwitch() {
-  const handleSwitchChange = (_checked: boolean) => undefined;
   return (
     <ComponentCard title="Toggle switch input">
-      <div className="flex gap-4">
-        <Switch
-          defaultChecked={true}
-          label="Default"
-          onChange={handleSwitchChange}
-        />
-        <Switch
-          defaultChecked={true}
-          label="Checked"
-          onChange={handleSwitchChange}
-        />
-        <Switch disabled={true} label="Disabled" />
-      </div>{" "}
-      <div className="flex gap-4">
-        <Switch
-          color="gray"
-          defaultChecked={true}
-          label="Default"
-          onChange={handleSwitchChange}
-        />
-        <Switch
-          color="gray"
-          defaultChecked={true}
-          label="Checked"
-          onChange={handleSwitchChange}
-        />
-        <Switch color="gray" disabled={true} label="Disabled" />
+      <div className="flex gap-6">
+        <label
+          className="flex cursor-pointer items-center gap-3 font-medium text-gray-700 text-sm"
+          htmlFor="sw-default"
+        >
+          <Switch defaultChecked id="sw-default" />
+          Default
+        </label>
+        <label
+          className="flex cursor-pointer items-center gap-3 font-medium text-gray-700 text-sm"
+          htmlFor="sw-checked"
+        >
+          <Switch defaultChecked id="sw-checked" />
+          Checked
+        </label>
+        <label
+          className="flex cursor-not-allowed items-center gap-3 font-medium text-gray-400 text-sm"
+          htmlFor="sw-disabled"
+        >
+          <Switch disabled id="sw-disabled" />
+          Disabled
+        </label>
       </div>
     </ComponentCard>
   );

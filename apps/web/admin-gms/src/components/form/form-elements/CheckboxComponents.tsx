@@ -1,7 +1,7 @@
 "use client";
+import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
 import { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
-import Checkbox from "../input/Checkbox";
 
 export default function CheckboxComponents() {
   const [isChecked, setIsChecked] = useState(false);
@@ -11,26 +11,37 @@ export default function CheckboxComponents() {
     <ComponentCard title="Checkbox">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3">
-          <Checkbox checked={isChecked} onChange={setIsChecked} />
-          <span className="block font-medium text-gray-700 text-sm dark:text-gray-400">
+          <Checkbox
+            checked={isChecked}
+            onCheckedChange={(v) => setIsChecked(Boolean(v))}
+          />
+          <span className="block font-medium text-gray-700 text-sm">
             Default
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <label
+          className="flex cursor-pointer items-center gap-3"
+          htmlFor="cb-checked"
+        >
           <Checkbox
             checked={isCheckedTwo}
-            label="Checked"
-            onChange={setIsCheckedTwo}
+            id="cb-checked"
+            onCheckedChange={(v) => setIsCheckedTwo(Boolean(v))}
           />
-        </div>
-        <div className="flex items-center gap-3">
+          <span className="font-medium text-gray-700 text-sm">Checked</span>
+        </label>
+        <label
+          className="flex cursor-not-allowed items-center gap-3 opacity-60"
+          htmlFor="cb-disabled"
+        >
           <Checkbox
             checked={isCheckedDisabled}
             disabled
-            label="Disabled"
-            onChange={setIsCheckedDisabled}
+            id="cb-disabled"
+            onCheckedChange={(v) => setIsCheckedDisabled(Boolean(v))}
           />
-        </div>
+          <span className="font-medium text-gray-700 text-sm">Disabled</span>
+        </label>
       </div>
     </ComponentCard>
   );

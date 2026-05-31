@@ -109,7 +109,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center">
       <div className="h-px flex-1 bg-zinc-300" />
-      <h2 className="font-semibold text-[11px] text-zinc-900 uppercase tracking-[0.22em]">
+      <h2 className="font-semibold text-gm-label text-zinc-900 uppercase tracking-widest">
         {children}
       </h2>
       <div className="h-px flex-1 bg-zinc-300" />
@@ -128,7 +128,7 @@ function LabelValue({
 
   return (
     <div>
-      <p className="font-semibold text-[11px] text-zinc-500 uppercase tracking-[0.16em]">
+      <p className="font-semibold text-gm-label text-zinc-500 uppercase tracking-widest">
         {label}
       </p>
       <p className="mt-1 text-sm text-zinc-900">{value}</p>
@@ -163,23 +163,48 @@ function MetricItem({
   );
 }
 
-function ImpactAlert({ item }: { item: ImpactItem }) {
-  const borderColor: Record<string, string> = {
-    "Be Aware": "border-zinc-400",
-    "Be Prepared": "border-amber-500",
-    "Take Action": "border-red-600",
-  };
-  const bgColor: Record<string, string> = {
-    "Be Aware": "bg-zinc-50",
-    "Be Prepared": "bg-amber-50",
-    "Take Action": "bg-red-50",
-  };
+const warningTone = {
+  amber:
+    "border-gm-warning-amber-border bg-gm-warning-amber-bg text-gm-warning-amber-fg",
+  green:
+    "border-gm-warning-green-border bg-gm-warning-green-bg text-gm-warning-green-fg",
+  grey: "border-gm-warning-grey-border bg-gm-warning-grey-bg text-gm-warning-grey-fg",
+  red: "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg",
+  yellow:
+    "border-gm-warning-yellow-border bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
+} as const;
 
-  const border = borderColor[item.responseLevel] ?? "border-zinc-400";
-  const bg = bgColor[item.responseLevel] ?? "bg-zinc-50";
+function warningToneFor(value: string) {
+  switch (value.toLowerCase()) {
+    case "green":
+    case "low":
+      return warningTone.green;
+    case "yellow":
+    case "medium":
+    case "be aware":
+      return warningTone.yellow;
+    case "amber":
+    case "orange":
+    case "high":
+    case "moderate":
+    case "be prepared":
+      return warningTone.amber;
+    case "red":
+    case "very high":
+    case "severe":
+    case "extreme":
+    case "take action":
+      return warningTone.red;
+    default:
+      return warningTone.grey;
+  }
+}
+
+function ImpactAlert({ item }: { item: ImpactItem }) {
+  const tone = warningToneFor(item.responseLevel);
 
   return (
-    <div className={`border-l-4 p-4 ${border} ${bg}`}>
+    <div className={`border-l-4 p-4 ${tone}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold text-sm">{item.hazard}</h3>
         <div className="flex gap-2">
@@ -189,11 +214,11 @@ function ImpactAlert({ item }: { item: ImpactItem }) {
         </div>
       </div>
       {item.assessment && (
-        <p className="mt-2 text-sm text-zinc-600 italic">{item.assessment}</p>
+        <p className="mt-2 text-sm italic opacity-90">{item.assessment}</p>
       )}
       <ul className="mt-2 space-y-1 text-sm">
         {item.impactText.map((p) => (
-          <li key={p}>• {p}</li>
+          <li key={p}>- {p}</li>
         ))}
       </ul>
     </div>
@@ -201,28 +226,11 @@ function ImpactAlert({ item }: { item: ImpactItem }) {
 }
 
 function Badge({ value }: { value: string }) {
-  const styles: Record<string, string> = {
-    "Very Low": "bg-zinc-200 text-zinc-900",
-    Low: "bg-zinc-700 text-white",
-    Medium: "bg-yellow-500 text-zinc-950",
-    High: "bg-orange-600 text-white",
-    "Very High": "bg-red-700 text-white",
-
-    Minor: "bg-zinc-700 text-white",
-    Moderate: "bg-amber-600 text-white",
-    Severe: "bg-red-600 text-white",
-    Extreme: "bg-purple-700 text-white",
-
-    "Be Aware": "bg-zinc-800 text-white",
-    "Be Prepared": "bg-amber-600 text-white",
-    "Take Action": "bg-red-700 text-white",
-  };
+  const tone = warningToneFor(value);
 
   return (
     <span
-      className={`rounded-full px-3 py-1 font-semibold text-[10px] uppercase tracking-[0.14em] ${
-        styles[value] ?? "bg-zinc-700 text-white"
-      }`}
+      className={`rounded-gm-full border px-3 py-1 font-semibold text-gm-micro uppercase tracking-widest ${tone}`}
     >
       {value}
     </span>
@@ -318,7 +326,7 @@ export default function MorningForecast({
   footerNote = "This forecast is issued by the Grenada Meteorological Service and is valid for the State of Grenada and surrounding coastal waters.",
 }: MorningForecastProps) {
   return (
-    <article className="bg-white p-8 shadow-sm ring-1 ring-zinc-200">
+    <article className="bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-200">
       {/* HEADER */}
 
       <header className="-m-8 mb-6 flex items-center justify-between bg-zinc-900 px-8 py-4">
@@ -337,7 +345,7 @@ export default function MorningForecast({
         </div>
       </header>
 
-      <div className="mt-3 grid gap-3 rounded-xl bg-zinc-50 p-4 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 rounded-gm-8 bg-zinc-50 p-4 sm:grid-cols-3">
         <LabelValue label="Date Issued" value={dateIssued} />
         <LabelValue label="Valid From" value={validFrom} />
         <LabelValue label="Valid Until" value={validUntil} />
@@ -345,7 +353,7 @@ export default function MorningForecast({
 
       {/* HEADLINE */}
 
-      <section className="mt-3 rounded-xl bg-zinc-900 p-4 text-white">
+      <section className="mt-3 rounded-gm-8 bg-zinc-900 p-4 text-white">
         <p className="text-xs uppercase tracking-widest">Forecast Headline</p>
         <p className="mt-2 text-base">{headline}</p>
       </section>
@@ -358,7 +366,7 @@ export default function MorningForecast({
 
           <ul className="space-y-2 text-sm">
             {whatToExpect.map((item, i) => (
-              <li key={i}>• {item}</li>
+              <li key={i}>- {item}</li>
             ))}
           </ul>
         </section>
@@ -385,7 +393,7 @@ export default function MorningForecast({
       <section className="mt-4 space-y-4">
         <SectionTitle>Public Forecast</SectionTitle>
 
-        <div className="grid grid-cols-1 gap-x-10 gap-y-3 rounded-xl p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-3 rounded-gm-8 p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
           {/* <MetricItem icon={Cloud} label="Weather" value={weather} />
           <MetricItem icon={Info} label="Details" value={weatherDetails} /> */}
           <MetricItem
@@ -435,8 +443,8 @@ export default function MorningForecast({
           <div className="grid gap-8 sm:grid-cols-2">
             {impacts && (
               <section className="">
-                <div className="border-orange-500 border-l-4 bg-orange-50 px-4 py-2">
-                  <h2 className="font-semibold text-[11px] text-orange-800 uppercase tracking-[0.22em]">
+                <div className="border-gm-warning-amber-border border-l-4 bg-gm-warning-amber-bg px-4 py-2 text-gm-warning-amber-fg">
+                  <h2 className="font-semibold text-gm-label uppercase tracking-widest">
                     Impact
                   </h2>
                 </div>
@@ -449,15 +457,15 @@ export default function MorningForecast({
 
             {recommendedActions && (
               <section className="">
-                <div className="border-blue-500 border-l-4 bg-blue-50 px-4 py-2">
-                  <h2 className="font-semibold text-[11px] text-blue-800 uppercase tracking-[0.22em]">
+                <div className="border-gm-warning-yellow-border border-l-4 bg-gm-warning-yellow-bg px-4 py-2 text-gm-warning-yellow-fg">
+                  <h2 className="font-semibold text-gm-label uppercase tracking-widest">
                     Response
                   </h2>
                 </div>
 
                 <ul className="space-y-2 text-sm">
                   {recommendedActions.map((a) => (
-                    <li key={a}>• {a}</li>
+                    <li key={a}>- {a}</li>
                   ))}
                 </ul>
               </section>

@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Annotated, Any, overload
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
@@ -360,10 +361,11 @@ async def recover_password(
             detail=ERROR_USER_NOT_FOUND,
         )
     password_reset_token = generate_password_reset_token(email=email)
-    email_data = generate_reset_password_email(
+    email_data = await generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token
     )
-    send_email(
+    await run_in_threadpool(
+        send_email,
         email_to=user.email,
         subject=email_data.subject,
         html_content=email_data.html_content,
@@ -420,7 +422,7 @@ async def recover_password_html_content(email: str, session: SessionDep) -> Any:
             detail="The user with this username does not exist in the system.",
         )
     password_reset_token = generate_password_reset_token(email=email)
-    email_data = generate_reset_password_email(
+    email_data = await generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token
     )
 

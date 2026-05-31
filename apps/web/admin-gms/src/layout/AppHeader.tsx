@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
 import NotificationDropdown from "@/components/header/NotificationDropdown";
 import UserDropdown from "@/components/header/UserDropdown";
 import { useSidebar } from "@/context/SidebarContext";
@@ -42,12 +41,12 @@ const AppHeader: React.FC = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-99999 flex w-full border-gray-200 bg-white lg:border-b dark:border-gray-800 dark:bg-gray-900">
+    <header className="sticky top-0 z-99999 flex w-full border-border bg-background lg:border-b">
       <div className="flex grow flex-col items-center justify-between lg:flex-row lg:px-6">
-        <div className="flex w-full items-center justify-between gap-2 border-gray-200 border-b px-3 py-3 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4 dark:border-gray-800">
+        <div className="flex w-full items-center justify-between gap-2 border-border border-b px-3 py-3 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
           <button
             aria-label="Toggle Sidebar"
-            className="z-99999 h-10 w-10 items-center justify-center rounded-lg border-gray-200 text-gray-500 lg:flex lg:h-11 lg:w-11 lg:border dark:border-gray-800 dark:text-gray-400"
+            className="z-99999 h-10 w-10 items-center justify-center rounded-lg border-border text-muted-foreground lg:flex lg:h-11 lg:w-11 lg:border"
             onClick={handleToggle}
             type="button"
           >
@@ -90,22 +89,14 @@ const AppHeader: React.FC = () => {
           <Link className="lg:hidden" href="/">
             <Image
               alt="Logo"
-              className="dark:hidden"
               height={32}
               src="./images/logo/logo.svg"
-              width={154}
-            />
-            <Image
-              alt="Logo"
-              className="hidden dark:block"
-              height={32}
-              src="./images/logo/logo-dark.svg"
               width={154}
             />
           </Link>
 
           <button
-            className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 lg:hidden dark:text-gray-400 dark:hover:bg-gray-800"
+            className="z-99999 flex h-10 w-10 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 lg:hidden"
             onClick={toggleApplicationMenu}
             type="button"
           >
@@ -132,7 +123,7 @@ const AppHeader: React.FC = () => {
                 <span className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2">
                   <svg
                     aria-hidden="true"
-                    className="fill-gray-500 dark:fill-gray-400"
+                    className="fill-muted-foreground"
                     fill="none"
                     height="20"
                     viewBox="0 0 20 20"
@@ -148,14 +139,14 @@ const AppHeader: React.FC = () => {
                   </svg>
                 </span>
                 <input
-                  className="h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pr-14 pl-12 text-gray-800 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 xl:w-[430px] dark:border-gray-800 dark:bg-dark-900 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:focus:border-brand-800 dark:placeholder:text-white/30"
+                  className="h-11 w-full rounded-lg border border-border bg-transparent py-2.5 pr-14 pl-12 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 xl:w-[430px]"
                   placeholder="Search or type command..."
                   ref={inputRef}
                   type="text"
                 />
 
                 <button
-                  className="absolute top-1/2 right-2.5 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-gray-200 bg-gray-50 px-[7px] py-[4.5px] text-gray-500 text-xs -tracking-[0.2px] dark:border-gray-800 dark:bg-white/[0.03] dark:text-gray-400"
+                  className="absolute top-1/2 right-2.5 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-lg border border-border bg-gray-50 px-[7px] py-[4.5px] text-muted-foreground text-xs -tracking-[0.2px]"
                   type="button"
                 >
                   <span> ⌘ </span>
@@ -168,13 +159,9 @@ const AppHeader: React.FC = () => {
         <div
           className={`${
             isApplicationMenuOpen ? "flex" : "hidden"
-          } w-full items-center justify-between gap-4 px-5 py-4 shadow-theme-md lg:flex lg:justify-end lg:px-0 lg:shadow-none`}
+          } w-full items-center justify-between gap-4 px-5 py-4 shadow-gm-card lg:flex lg:justify-end lg:px-0 lg:shadow-none`}
         >
           <div className="flex items-center 2xsm:gap-3 gap-2">
-            {/* <!-- Dark Mode Toggler --> */}
-            <ThemeToggleButton />
-            {/* <!-- Dark Mode Toggler --> */}
-
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}
           </div>

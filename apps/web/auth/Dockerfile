@@ -12,6 +12,7 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
+COPY packages/email-templates/package.json packages/email-templates/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/admin-gms/package.json apps/web/admin-gms/
 COPY apps/web/auth/package.json apps/web/auth/
@@ -26,8 +27,14 @@ RUN pnpm install --frozen-lockfile
 # Optional build-time env vars (unused by this app but harmless)
 ARG NEXT_PUBLIC_API_URL=""
 ARG NEXT_PUBLIC_ENVIRONMENT=""
+ARG NEXT_PUBLIC_SENTRY_DSN=""
+ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
+ARG SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
+ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .

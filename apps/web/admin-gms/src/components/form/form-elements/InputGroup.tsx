@@ -1,8 +1,8 @@
 "use client";
+import { Input } from "@grenmet/ui/components/ui/input";
 import { EnvelopeIcon } from "../../../icons";
 import ComponentCard from "../../common/ComponentCard";
 import PhoneInput from "../group-input/PhoneInput";
-import Input from "../input/InputField";
 import Label from "../Label";
 
 export default function InputGroup() {
@@ -24,7 +24,7 @@ export default function InputGroup() {
               placeholder="info@gmail.com"
               type="text"
             />
-            <span className="absolute top-1/2 left-0 -translate-y-1/2 border-gray-200 border-r px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+            <span className="absolute top-1/2 left-0 -translate-y-1/2 border-border border-r px-3.5 py-3 text-muted-foreground">
               <EnvelopeIcon />
             </span>
           </div>

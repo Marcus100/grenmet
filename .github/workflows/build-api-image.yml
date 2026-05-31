@@ -30,7 +30,6 @@ jobs:
   build-and-push:
     name: Build and Push Images
     runs-on: ubuntu-latest
-    # Run on master push (for staging) or release (for production) or manual dispatch.
     if: |
       (github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch') ||
@@ -58,45 +57,32 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Determine image tags
-        id: tags
+      - name: Resolve effective branch
+        id: ctx
         run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "image=ghcr.io/$REPO_LOWER" >> $GITHUB_OUTPUT
-
-          if [ "${{ github.event_name }}" == "release" ]; then
-            RELEASE_VERSION="${{ github.event.release.tag_name }}"
-            echo "primary_tag=latest" >> $GITHUB_OUTPUT
-            echo "version_tag=$RELEASE_VERSION" >> $GITHUB_OUTPUT
-            echo "Building latest and $RELEASE_VERSION tags for production release"
-          elif [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            TAG="${{ github.event.inputs.tag }}"
-            echo "primary_tag=$TAG" >> $GITHUB_OUTPUT
-            echo "version_tag=" >> $GITHUB_OUTPUT
-            echo "Building $TAG tag (manual trigger)"
-          elif [ "${{ github.event_name }}" == "push" ]; then
-            BRANCH="${{ github.ref_name }}"
-            if [ "$BRANCH" == "staging" ]; then
-              echo "primary_tag=staging" >> $GITHUB_OUTPUT
-              echo "version_tag=" >> $GITHUB_OUTPUT
-              echo "Building staging tag"
-            else
-              echo "primary_tag=latest" >> $GITHUB_OUTPUT
-              echo "version_tag=" >> $GITHUB_OUTPUT
-              echo "Building latest tag for main branch"
-            fi
-          else
+          EVENT="${{ github.event_name }}"
+          if [ "$EVENT" == "workflow_run" ]; then
             BRANCH="${{ github.event.workflow_run.head_branch }}"
-            if [ "$BRANCH" == "staging" ]; then
-              echo "primary_tag=staging" >> $GITHUB_OUTPUT
-              echo "version_tag=" >> $GITHUB_OUTPUT
-              echo "Building staging tag"
-            else
-              echo "primary_tag=latest" >> $GITHUB_OUTPUT
-              echo "version_tag=" >> $GITHUB_OUTPUT
-              echo "Building latest tag for main branch"
-            fi
+          elif [ "$EVENT" == "workflow_dispatch" ]; then
+            BRANCH="${{ github.event.inputs.tag }}"
+          else
+            BRANCH="${{ github.ref_name }}"
           fi
+          if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
+            echo "is_staging=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_staging=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf # v6.0.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=staging,enable=${{ steps.ctx.outputs.is_staging == 'true' }}
+            type=raw,value=latest,enable=${{ steps.ctx.outputs.is_staging == 'false' }}
+            type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
@@ -105,19 +91,14 @@ jobs:
           file: apps/api/fastapi/Dockerfile.prod
           pull: true
           push: true
-          tags: |
-            ${{ steps.tags.outputs.image }}:${{ steps.tags.outputs.primary_tag }}
-            ${{ steps.tags.outputs.version_tag != '' && format('{0}:{1}', steps.tags.outputs.image, steps.tags.outputs.version_tag) || '' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true
           platforms: linux/amd64
 
-      - name: Image digest and tags summary
+      - name: Image digest summary
         run: |
           echo "✅ grenmet-api image built and pushed successfully"
-          echo "Registry: ${{ steps.tags.outputs.image }}"
-          echo "Primary tag: ${{ steps.tags.outputs.primary_tag }}"
-          if [ -n "${{ steps.tags.outputs.version_tag }}" ]; then
-            echo "Version tag: ${{ steps.tags.outputs.version_tag }}"
-          fi
+          echo "Tags: ${{ steps.meta.outputs.tags }}"

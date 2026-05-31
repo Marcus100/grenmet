@@ -6,6 +6,8 @@
     "types": ["node"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
+    "declaration": true,
+    "declarationMap": true,
     "outDir": "./dist"
   },
   "include": ["src/**/*"],
