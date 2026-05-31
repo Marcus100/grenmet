@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
   ...(process.env.NODE_ENV === "production" && {
-    outputFileTracingRoot: fileURLToPath(new URL("../..", import.meta.url)),
+    outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
     outputFileTracingIncludes: {
       "/**/*": ["./src/content/**/*.mdx"],
     },
