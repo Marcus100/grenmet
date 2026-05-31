@@ -11,6 +11,7 @@ serve(
     hostname: env.HOST,
   },
   (info) => {
+    // biome-ignore lint/suspicious/noConsole: server startup message
     console.log(
       `🔥 Hono API running on http://${info.address}:${info.port} [${env.ENVIRONMENT}]`
     );

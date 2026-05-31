@@ -17,6 +17,7 @@ const schema = z.object({
 const parsed = schema.safeParse(process.env);
 
 if (!parsed.success) {
+  // biome-ignore lint/suspicious/noConsole: boot-time validation failure
   console.error(
     "❌ Invalid environment variables:",
     parsed.error.flatten().fieldErrors
