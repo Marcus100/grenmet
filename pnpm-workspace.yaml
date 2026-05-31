@@ -73,6 +73,9 @@ catalog:
   "react-day-picker": "^9.7.0"
   "react-simple-maps": "^3.0.0"
 
+  # Error tracking
+  "@sentry/nextjs": "^9"
+
   # Analytics
   "posthog-js": "^1.273.0"
   "posthog-node": "^4.9.2"
