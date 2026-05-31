@@ -48,14 +48,14 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   return (
     <div className="w-full">
-      <span className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400">
+      <span className="mb-1.5 block font-medium text-gray-700 text-sm">
         {label}
       </span>
 
       <div className="relative z-20 inline-block w-full">
         <div className="relative flex flex-col items-center">
           <div className="w-full">
-            <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pr-3 pl-3 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300">
+            <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pr-3 pl-3 shadow-gm-card outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring">
               <div className="flex flex-auto flex-wrap gap-2">
                 {selectedOptions.length > 0 ? (
                   selectedOptions.map((value) => {
@@ -63,13 +63,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       options.find((o) => o.value === value)?.text || "";
                     return (
                       <div
-                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-gray-800 text-sm hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
+                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-foreground text-sm hover:border-border"
                         key={value}
                       >
                         <span className="max-w-full flex-initial">{text}</span>
                         <div className="flex flex-auto flex-row-reverse">
                           <button
-                            className="cursor-pointer pl-2 text-gray-500 group-hover:text-gray-400 dark:text-gray-400"
+                            className="cursor-pointer pl-2 text-muted-foreground group-hover:text-gray-400"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeOption(0, value);
@@ -97,7 +97,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                   })
                 ) : (
                   <input
-                    className="h-full w-full appearance-none border-0 bg-transparent p-1 pr-2 text-sm outline-hidden placeholder:text-gray-800 focus:border-0 focus:outline-hidden focus:ring-0 dark:placeholder:text-white/90"
+                    className="h-full w-full appearance-none border-0 bg-transparent p-1 pr-2 text-sm outline-hidden placeholder:text-foreground focus:border-0 focus:outline-hidden focus:ring-0"
                     placeholder="Select option"
                     readOnly
                     value="Select option"
@@ -106,7 +106,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               </div>
               <div className="flex w-7 items-center py-1 pr-1 pl-1">
                 <button
-                  className="h-5 w-5 cursor-pointer text-gray-700 outline-hidden focus:outline-hidden dark:text-gray-400"
+                  className="h-5 w-5 cursor-pointer text-gray-700 outline-hidden focus:outline-hidden"
                   onClick={toggleDropdown}
                   type="button"
                 >
@@ -133,14 +133,14 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           </div>
 
           {isOpen && (
-            <div className="absolute top-full left-0 z-40 max-h-select w-full overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-900">
+            <div className="absolute top-full left-0 z-40 max-h-select w-full overflow-y-auto rounded-lg bg-background shadow-sm">
               <div className="flex flex-col">
                 {options.map((option, index) => {
                   return (
                     // biome-ignore lint/suspicious/noArrayIndexKey: static options list, no reordering
                     <div key={index}>
                       <button
-                        className="w-full cursor-pointer rounded-t border-gray-200 border-b text-left hover:bg-primary/5 dark:border-gray-800"
+                        className="w-full cursor-pointer rounded-t border-border border-b text-left hover:bg-primary/5"
                         onClick={() => handleSelect(option.value)}
                         type="button"
                       >
@@ -151,7 +151,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                               : ""
                           }`}
                         >
-                          <div className="mx-2 text-gray-800 leading-6 dark:text-white/90">
+                          <div className="mx-2 text-foreground leading-6">
                             {option.text}
                           </div>
                         </div>

@@ -43,7 +43,7 @@ export default function CartPage() {
 
         {items.length === 0 && (
           <div className="flex flex-1 items-center justify-center">
-            <p className="text-[var(--color-text-secondary)] text-base sm:text-lg">
+            <p className="text-base text-muted-foreground sm:text-lg">
               Your cart is empty
             </p>
           </div>

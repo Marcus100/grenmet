@@ -142,7 +142,7 @@ export default function Hourly({
   title = "Current Conditions",
 }: WeatherDashboardProps) {
   return (
-    <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
+    <div className="rounded-gm-8 bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-900/5">
       {/* Header - size and weight create hierarchy */}
       <h2 className="mb-8 font-semibold text-xl text-zinc-900 tracking-tight">
         {title}

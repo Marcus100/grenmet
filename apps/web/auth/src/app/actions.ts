@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { captureServerEvent } from "@/lib/posthog-server";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import {
   clearSessionCookie,
@@ -10,9 +11,17 @@ import {
   logoutSession,
   readSessionCookie,
   refreshSession,
+  requestPasswordRecovery,
+  resetPassword,
+  signUp,
   writeSessionCookie,
 } from "@/lib/session";
-import type { SignInState } from "./actions-types";
+import type {
+  ForgotPasswordState,
+  ResetPasswordState,
+  SignInState,
+  SignUpState,
+} from "./actions-types";
 
 function readString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -48,6 +57,7 @@ export async function signInAction(
       response.session_token,
       response.session_expires_at
     );
+    await captureServerEvent(email, "sign_in", { app_name: appName });
   } catch (error) {
     return {
       error: isAuthApiError(error)
@@ -83,6 +93,7 @@ async function endSession({
     }
   }
 
+  await captureServerEvent(sessionToken ?? "unknown", "sign_out");
   await clearSessionCookie();
   redirect(returnTo ?? "/");
 }
@@ -115,4 +126,111 @@ export async function signOutEverywhereAction(
   formData: FormData
 ): Promise<never> {
   return await endSession({ allSessions: true, formData });
+}
+
+export async function forgotPasswordAction(
+  _previousState: ForgotPasswordState,
+  formData: FormData
+): Promise<ForgotPasswordState> {
+  const email = readString(formData, "email");
+
+  if (!email) {
+    return { email, error: "Email is required.", success: false };
+  }
+
+  try {
+    await requestPasswordRecovery(email);
+    // Always show success — avoids leaking whether the address is registered.
+    return { email, error: null, success: true };
+  } catch (error) {
+    return {
+      email,
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to reach the auth service.",
+      success: false,
+    };
+  }
+}
+
+export async function resetPasswordAction(
+  _previousState: ResetPasswordState,
+  formData: FormData
+): Promise<ResetPasswordState> {
+  const token = readString(formData, "token");
+  const newPassword = readString(formData, "new_password");
+  const confirmPassword = readString(formData, "confirm_password");
+
+  if (!token) {
+    return {
+      error: "Reset token is missing. Request a new link.",
+      success: false,
+    };
+  }
+
+  if (!newPassword) {
+    return { error: "New password is required.", success: false };
+  }
+
+  if (newPassword !== confirmPassword) {
+    return { error: "Passwords do not match.", success: false };
+  }
+
+  try {
+    await resetPassword({ token, newPassword });
+    return { error: null, success: true };
+  } catch (error) {
+    return {
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to reach the auth service.",
+      success: false,
+    };
+  }
+}
+
+export async function signUpAction(
+  _previousState: SignUpState,
+  formData: FormData
+): Promise<SignUpState> {
+  const email = readString(formData, "email");
+  const username = readString(formData, "username");
+  const password = readString(formData, "password");
+  const confirmPassword = readString(formData, "confirm_password");
+  const firstName = readString(formData, "first_name");
+  const lastName = readString(formData, "last_name");
+  const middleName = readString(formData, "middle_name") || null;
+
+  if (!(email && username && password && firstName && lastName)) {
+    return {
+      email,
+      error: "All required fields must be filled in.",
+      success: false,
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return { email, error: "Passwords do not match.", success: false };
+  }
+
+  try {
+    await signUp({
+      email,
+      username,
+      password,
+      firstName,
+      lastName,
+      middleName,
+    });
+    await captureServerEvent(email, "sign_up");
+    return { email, error: null, success: true };
+  } catch (error) {
+    return {
+      email,
+      error: isAuthApiError(error)
+        ? error.detail
+        : "Unable to reach the auth service.",
+      success: false,
+    };
+  }
 }

@@ -104,7 +104,9 @@ function SynopticImageSlot({
       {/* Time label overlay */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
         <p className="font-medium text-white text-xs">{hour}z</p>
-        <p className="text-[10px] text-white opacity-90">{observationTime}</p>
+        <p className="text-gm-micro text-white leading-gm-micro opacity-90">
+          {observationTime}
+        </p>
       </div>
     </button>
   );

@@ -14,6 +14,7 @@ import uuid
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 
 from src.auth import service
 from src.auth.constants import (
@@ -97,10 +98,13 @@ async def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
         )
     user = await service.create_user(session=session, user_create=user_in)
     if email_settings.EMAILS_ENABLED and user_in.email:
-        email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
+        email_data = await generate_new_account_email(
+            email_to=user_in.email,
+            username=user_in.email,
+            password=user_in.password,
         )
-        send_email(
+        await run_in_threadpool(
+            send_email,
             email_to=user_in.email,
             subject=email_data.subject,
             html_content=email_data.html_content,
@@ -239,7 +243,31 @@ async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     if user:
         raise HTTPException(status_code=400, detail=ERROR_USER_EXISTS)
     user_create = UserCreate.model_validate(user_in)
-    return await service.create_user(session=session, user_create=user_create)
+    created_user = await service.create_user(session=session, user_create=user_create)
+
+    if email_settings.EMAILS_ENABLED:
+        try:
+            email_data = await generate_new_account_email(
+                email_to=user_in.email,
+                username=user_in.username,
+                password=user_in.password,
+                first_name=user_in.first_name,
+            )
+            await run_in_threadpool(
+                send_email,
+                email_to=user_in.email,
+                subject=email_data.subject,
+                html_content=email_data.html_content,
+            )
+        except Exception:
+            # Welcome email failure must not block registration.
+            import logging as _logging
+
+            _logging.getLogger(__name__).exception(
+                "Failed to send welcome email to %s", user_in.email
+            )
+
+    return created_user
 
 
 @router.get(

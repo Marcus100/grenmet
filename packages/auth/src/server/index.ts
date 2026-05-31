@@ -1,5 +1,6 @@
 export {
   authApiFetch,
+  authApiFormFetch,
   clearSessionCookie,
   clearSessionCookieOnResponse,
   readSessionCookie,
@@ -13,7 +14,11 @@ export {
 export {
   createSession,
   exchangeSessionForAccessToken,
+  loginWithPassword,
   logoutAllSessions,
   logoutSession,
   refreshSession,
+  requestPasswordRecovery,
+  resetPassword,
+  signUp,
 } from "./session";

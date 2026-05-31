@@ -5,11 +5,11 @@ import type {
   UserProfileUpdateMe,
 } from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
+import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
+import { Input } from "@grenmet/ui/components/ui/input";
 import { useState } from "react";
 import { useModal } from "../../hooks/useModal";
-import Input from "../form/input/InputField";
 import Label from "../form/Label";
-import { Modal } from "../ui/modal";
 
 interface UserAddressCardProps {
   isSaving: boolean;
@@ -57,64 +57,64 @@ export default function UserAddressCard({
   };
   return (
     <>
-      <div className="rounded-2xl border border-gray-200 p-5 lg:p-6 dark:border-gray-800">
+      <div className="rounded-2xl border border-border p-5 lg:p-6">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <h4 className="font-semibold text-gray-800 text-lg lg:mb-6 dark:text-white/90">
+            <h4 className="font-semibold text-foreground text-lg lg:mb-6">
               Address
             </h4>
 
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   Address Line 1
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.line_1 || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   Address Line 2
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.line_2 || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   City
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.city || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   Parish
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.parish || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   Postal Code
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.postal_code || "-"}
                 </p>
               </div>
 
               <div>
-                <p className="mb-2 text-gray-500 text-xs leading-normal dark:text-gray-400">
+                <p className="mb-2 text-muted-foreground text-xs leading-normal">
                   Country
                 </p>
-                <p className="font-medium text-gray-800 text-sm dark:text-white/90">
+                <p className="font-medium text-foreground text-sm">
                   {profile.address.country || "-"}
                 </p>
               </div>
@@ -122,7 +122,7 @@ export default function UserAddressCard({
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-3 font-medium text-gray-700 text-sm shadow-theme-xs hover:bg-gray-50 hover:text-gray-800 lg:inline-flex lg:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/3 dark:hover:text-gray-200"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-background px-4 py-3 font-medium text-gray-700 text-sm shadow-gm-card hover:bg-gray-50 hover:text-foreground lg:inline-flex lg:w-auto"
             onClick={handleOpen}
             type="button"
           >
@@ -146,101 +146,108 @@ export default function UserAddressCard({
           </button>
         </div>
       </div>
-      <Modal className="m-4 max-w-[700px]" isOpen={isOpen} onClose={closeModal}>
-        <div className="no-scrollbar relative w-full overflow-y-auto rounded-3xl bg-white p-4 lg:p-11 dark:bg-gray-900">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 font-semibold text-2xl text-gray-800 dark:text-white/90">
-              Edit Address
-            </h4>
-            <p className="mb-6 text-gray-500 text-sm lg:mb-7 dark:text-gray-400">
-              Update your details to keep your profile up-to-date.
-            </p>
-          </div>
-          <form className="flex flex-col">
-            <div className="custom-scrollbar overflow-y-auto px-2">
-              <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
-                <div>
-                  <Label>Address Line 1</Label>
-                  <Input
-                    defaultValue={line1}
-                    key={`line1-${line1}`}
-                    onChange={(event) => setLine1(event.target.value)}
-                    type="text"
-                  />
-                </div>
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+        open={isOpen}
+      >
+        <DialogContent className="m-4 max-w-[700px]">
+          <div className="no-scrollbar relative w-full overflow-y-auto rounded-3xl bg-background p-4 lg:p-11">
+            <div className="px-2 pr-14">
+              <h4 className="mb-2 font-semibold text-2xl text-foreground">
+                Edit Address
+              </h4>
+              <p className="mb-6 text-muted-foreground text-sm lg:mb-7">
+                Update your details to keep your profile up-to-date.
+              </p>
+            </div>
+            <form className="flex flex-col">
+              <div className="custom-scrollbar overflow-y-auto px-2">
+                <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+                  <div>
+                    <Label>Address Line 1</Label>
+                    <Input
+                      defaultValue={line1}
+                      key={`line1-${line1}`}
+                      onChange={(event) => setLine1(event.target.value)}
+                      type="text"
+                    />
+                  </div>
 
-                <div>
-                  <Label>Address Line 2</Label>
-                  <Input
-                    defaultValue={line2}
-                    key={`line2-${line2}`}
-                    onChange={(event) => setLine2(event.target.value)}
-                    type="text"
-                  />
-                </div>
+                  <div>
+                    <Label>Address Line 2</Label>
+                    <Input
+                      defaultValue={line2}
+                      key={`line2-${line2}`}
+                      onChange={(event) => setLine2(event.target.value)}
+                      type="text"
+                    />
+                  </div>
 
-                <div>
-                  <Label>City</Label>
-                  <Input
-                    defaultValue={city}
-                    key={`city-${city}`}
-                    onChange={(event) => setCity(event.target.value)}
-                    type="text"
-                  />
-                </div>
+                  <div>
+                    <Label>City</Label>
+                    <Input
+                      defaultValue={city}
+                      key={`city-${city}`}
+                      onChange={(event) => setCity(event.target.value)}
+                      type="text"
+                    />
+                  </div>
 
-                <div>
-                  <Label>Parish</Label>
-                  <Input
-                    defaultValue={parish}
-                    key={`parish-${parish}`}
-                    onChange={(event) => setParish(event.target.value)}
-                    type="text"
-                  />
-                </div>
+                  <div>
+                    <Label>Parish</Label>
+                    <Input
+                      defaultValue={parish}
+                      key={`parish-${parish}`}
+                      onChange={(event) => setParish(event.target.value)}
+                      type="text"
+                    />
+                  </div>
 
-                <div>
-                  <Label>Postal Code</Label>
-                  <Input
-                    defaultValue={postalCode}
-                    key={`postal-code-${postalCode}`}
-                    onChange={(event) => setPostalCode(event.target.value)}
-                    type="text"
-                  />
-                </div>
+                  <div>
+                    <Label>Postal Code</Label>
+                    <Input
+                      defaultValue={postalCode}
+                      key={`postal-code-${postalCode}`}
+                      onChange={(event) => setPostalCode(event.target.value)}
+                      type="text"
+                    />
+                  </div>
 
-                <div>
-                  <Label>Country</Label>
-                  <Input
-                    defaultValue={country}
-                    key={`country-${country}`}
-                    onChange={(event) => setCountry(event.target.value)}
-                    type="text"
-                  />
+                  <div>
+                    <Label>Country</Label>
+                    <Input
+                      defaultValue={country}
+                      key={`country-${country}`}
+                      onChange={(event) => setCountry(event.target.value)}
+                      type="text"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
-            <div className="mt-6 flex items-center gap-3 px-2 lg:justify-end">
-              <Button
-                onClick={closeModal}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Close
-              </Button>
-              <Button
-                disabled={isSaving}
-                onClick={handleSave}
-                size="sm"
-                type="button"
-              >
-                {isSaving ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </div>
-      </Modal>
+              <div className="mt-6 flex items-center gap-3 px-2 lg:justify-end">
+                <Button
+                  onClick={closeModal}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Close
+                </Button>
+                <Button
+                  disabled={isSaving}
+                  onClick={handleSave}
+                  size="sm"
+                  type="button"
+                >
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

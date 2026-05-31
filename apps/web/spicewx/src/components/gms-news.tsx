@@ -45,36 +45,39 @@ const posts = [
 
 function PostCard({ post }: { post: (typeof posts)[number] }) {
   return (
-    <div className="flex flex-col gap-[12px] rounded-[12px] border border-[#d0d5dd] bg-white p-[17px] shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]">
+    <div className="flex flex-col gap-gm-12 rounded-gm-8 border border-gm-border bg-background p-gm-16 shadow-gm-card">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-[12px]">
-          <div className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-[#39a5f5] font-bold text-[14px] text-white">
+        <div className="flex items-center gap-gm-12">
+          <div className="flex size-gm-40 shrink-0 items-center justify-center rounded-full bg-gm-sky font-bold text-gm-body text-gm-text-inverse">
             G
           </div>
           <div className="flex flex-col">
-            <p className="font-semibold text-[#150068] text-[13px] leading-[18px]">
+            <p className="font-semibold text-gm-body-sm text-gm-navy leading-gm-body-sm">
               GMS
             </p>
-            <p className="text-[#99a1af] text-[11px] leading-[16px]">
+            <p className="text-gm-label text-gm-text-muted leading-gm-label">
               {post.time}
             </p>
           </div>
         </div>
-        <p className="text-[#99a1af] text-[16px] leading-[24px]">•••</p>
+        <p className="text-base text-gm-text-muted leading-6">•••</p>
       </div>
 
       {/* Body */}
-      <div className="flex flex-col gap-[8px]">
+      <div className="flex flex-col gap-gm-8">
         {post.paragraphs.map((p) => (
-          <p className="text-[#364153] text-[13px] leading-[20px]" key={p}>
+          <p
+            className="text-gm-body-sm text-gm-text-secondary leading-gm-body-sm"
+            key={p}
+          >
             {p}
           </p>
         ))}
       </div>
 
       {/* Image */}
-      <div className="overflow-hidden rounded-[8px] bg-[#f3f4f6]">
+      <div className="overflow-hidden rounded-gm-8 bg-gm-surface">
         <Image
           alt=""
           className="h-[200px] w-full object-cover"
@@ -90,19 +93,19 @@ function PostCard({ post }: { post: (typeof posts)[number] }) {
 export function GmsNews() {
   return (
     <section className="mb-4">
-      <div className="mb-[10px] flex items-center justify-between">
-        <h2 className="font-bold text-[#150068] text-[18px] leading-[24px]">
+      <div className="mb-2.5 flex items-center justify-between">
+        <h2 className="font-bold text-gm-heading-sm text-gm-navy leading-gm-heading-sm">
           Latest from us
         </h2>
         <a
-          className="font-medium text-[#2478f2] text-[14px] leading-[20px]"
+          className="font-medium text-gm-blue text-gm-body leading-gm-body"
           href="/news"
         >
           See more
         </a>
       </div>
 
-      <div className="flex gap-[12px] overflow-x-auto [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:overflow-visible">
+      <div className="flex gap-gm-12 overflow-x-auto [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:overflow-visible">
         {posts.map((post) => (
           <div className="w-75 shrink-0 lg:w-auto" key={post.id}>
             <PostCard post={post} />

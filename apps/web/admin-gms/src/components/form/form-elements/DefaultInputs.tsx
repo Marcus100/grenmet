@@ -1,16 +1,17 @@
 "use client";
+import { Input } from "@grenmet/ui/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
 import { useState } from "react";
 import DatePicker from "@/components/form/date-picker";
-import {
-  ChevronDownIcon,
-  EyeCloseIcon,
-  EyeIcon,
-  TimeIcon,
-} from "../../../icons";
+import { EyeCloseIcon, EyeIcon, TimeIcon } from "../../../icons";
 import ComponentCard from "../../common/ComponentCard";
-import Input from "../input/InputField";
 import Label from "../Label";
-import Select from "../Select";
 
 export default function DefaultInputs() {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,7 +20,7 @@ export default function DefaultInputs() {
     { value: "template", label: "Template" },
     { value: "development", label: "Development" },
   ];
-  const handleSelectChange = (_value: string) => undefined;
+
   return (
     <ComponentCard title="Default Inputs">
       <div className="space-y-6">
@@ -33,17 +34,18 @@ export default function DefaultInputs() {
         </div>
         <div>
           <Label>Select Input</Label>
-          <div className="relative">
-            <Select
-              className="dark:bg-dark-900"
-              onChange={handleSelectChange}
-              options={options}
-              placeholder="Select an option"
-            />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
-              <ChevronDownIcon />
-            </span>
-          </div>
+          <Select onValueChange={() => undefined}>
+            <SelectTrigger className="h-11 w-full">
+              <SelectValue>Select an option</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {options.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Password Input</Label>
@@ -58,9 +60,9 @@ export default function DefaultInputs() {
               type="button"
             >
               {showPassword ? (
-                <EyeIcon className="fill-gray-500 dark:fill-gray-400" />
+                <EyeIcon className="fill-muted-foreground" />
               ) : (
-                <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400" />
+                <EyeCloseIcon className="fill-muted-foreground" />
               )}
             </button>
           </div>
@@ -70,7 +72,7 @@ export default function DefaultInputs() {
           <DatePicker
             id="date-picker"
             label="Date Picker Input"
-            onChange={(_dates, _currentDateString) => undefined}
+            onChange={() => undefined}
             placeholder="Select a date"
           />
         </div>
@@ -79,7 +81,7 @@ export default function DefaultInputs() {
           <Label htmlFor="tm">Time Picker Input</Label>
           <div className="relative">
             <Input id="tm" name="tm" onChange={() => undefined} type="time" />
-            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 dark:text-gray-400">
+            <span className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground">
               <TimeIcon />
             </span>
           </div>
@@ -92,7 +94,7 @@ export default function DefaultInputs() {
               placeholder="Card number"
               type="text"
             />
-            <span className="absolute top-1/2 left-0 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-gray-200 border-r dark:border-gray-800">
+            <span className="absolute top-1/2 left-0 flex h-11 w-[46px] -translate-y-1/2 items-center justify-center border-border border-r">
               <svg
                 aria-hidden="true"
                 fill="none"

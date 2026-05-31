@@ -52,7 +52,7 @@ export default function CategoryDetailPage() {
         <div key={catId}>
           {/* Section header with line */}
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-[var(--color-text-secondary)] text-sm lowercase sm:text-base">
+            <span className="text-muted-foreground text-sm lowercase sm:text-base">
               {category?.name ?? catId}
             </span>
             <div className="h-px flex-1 bg-gray-300" />
@@ -68,7 +68,7 @@ export default function CategoryDetailPage() {
       ))}
 
       {filteredProducts.length === 0 && (
-        <div className="py-12 text-center text-[var(--color-text-secondary)]">
+        <div className="py-12 text-center text-muted-foreground">
           <p className="text-base sm:text-lg">No products found</p>
         </div>
       )}

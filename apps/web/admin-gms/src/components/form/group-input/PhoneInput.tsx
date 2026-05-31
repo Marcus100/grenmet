@@ -51,13 +51,13 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       {selectPosition === "start" && (
         <div className="absolute">
           <select
-            className="appearance-none rounded-l-lg border-0 border-gray-200 border-r bg-none bg-transparent py-3 pr-8 pl-3.5 text-gray-700 leading-tight focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-gray-400"
+            className="appearance-none rounded-l-lg border-0 border-border border-r bg-none bg-transparent py-3 pr-8 pl-3.5 text-gray-700 leading-tight focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
             onChange={handleCountryChange}
             value={selectedCountry}
           >
             {countries.map((country) => (
               <option
-                className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                className="text-gray-700"
                 key={country.code}
                 value={country.code}
               >
@@ -65,7 +65,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center bg-none text-gray-700 dark:text-gray-400">
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center bg-none text-gray-700">
             <svg
               aria-hidden="true"
               className="stroke-current"
@@ -89,9 +89,9 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
 
       {/* Input field */}
       <input
-        className={`h-11 w-full dark:bg-dark-900 ${
+        className={`h-11 w-full ${
           selectPosition === "start" ? "pl-[84px]" : "pr-[84px]"
-        } rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-gray-800 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800 dark:placeholder:text-white/30`}
+        } rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10`}
         onChange={handlePhoneNumberChange}
         placeholder={placeholder}
         type="tel"
@@ -102,13 +102,13 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
       {selectPosition === "end" && (
         <div className="absolute right-0">
           <select
-            className="appearance-none rounded-r-lg border-0 border-gray-200 border-l bg-none bg-transparent py-3 pr-8 pl-3.5 text-gray-700 leading-tight focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-gray-400"
+            className="appearance-none rounded-r-lg border-0 border-border border-l bg-none bg-transparent py-3 pr-8 pl-3.5 text-gray-700 leading-tight focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
             onChange={handleCountryChange}
             value={selectedCountry}
           >
             {countries.map((country) => (
               <option
-                className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
+                className="text-gray-700"
                 key={country.code}
                 value={country.code}
               >
@@ -116,7 +116,7 @@ const PhoneInput: React.FC<PhoneInputProps> = ({
               </option>
             ))}
           </select>
-          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-700 dark:text-gray-400">
+          <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-700">
             <svg
               aria-hidden="true"
               className="stroke-current"

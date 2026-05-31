@@ -6,7 +6,12 @@
     "ultracite/biome/next"
   ],
   "files": {
-    "includes": ["**", "!.claude", "!apps/api/fastapi"]
+    "includes": [
+      "**",
+      "!.claude",
+      "!apps/api/fastapi",
+      "!**/.content-collections"
+    ]
   },
   "linter": {
     "rules": {
@@ -14,7 +19,8 @@
         "useFilenamingConvention": "off",
         "useBlockStatements": "off",
         "useTemplate": "warn",
-        "noNestedTernary": "warn"
+        "noNestedTernary": "warn",
+        "noProcessEnv": "error"
       },
       "performance": {
         "noBarrelFile": "off"
@@ -38,7 +44,8 @@
       "includes": ["**/scripts/**", "*.mjs", "*.cjs"],
       "linter": {
         "rules": {
-          "suspicious": { "noConsole": "off" }
+          "suspicious": { "noConsole": "off" },
+          "style": { "noProcessEnv": "off" }
         }
       }
     },
@@ -46,6 +53,25 @@
       "includes": ["packages/api-client/src/gen/**"],
       "linter": {
         "enabled": false
+      }
+    },
+    {
+      "includes": [
+        "**/env.ts",
+        "**/env.*.ts",
+        "**/instrumentation.ts",
+        "**/instrumentation-client.ts",
+        "**/sentry.server.config.ts",
+        "**/sentry.edge.config.ts",
+        "**/drizzle.config.ts",
+        "**/next.config.ts",
+        "**/next.config.mjs",
+        "**/playwright.config.ts"
+      ],
+      "linter": {
+        "rules": {
+          "style": { "noProcessEnv": "off" }
+        }
       }
     }
   ]

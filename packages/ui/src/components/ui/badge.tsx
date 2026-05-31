@@ -4,7 +4,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 const badgeVariants = cva(
-  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-full border px-2.5 py-0.5 font-medium text-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3",
+  "inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden whitespace-nowrap rounded-gm-full border px-2.5 py-0.5 font-medium text-xs transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 [&>svg]:pointer-events-none [&>svg]:size-3",
   {
     variants: {
       variant: {
@@ -13,39 +13,34 @@ const badgeVariants = cva(
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
-          "border-transparent bg-destructive text-white focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90",
+          "border-transparent bg-gm-warning-red-bg text-gm-warning-red-fg focus-visible:ring-destructive/20 [a&]:hover:bg-gm-warning-red-bg/90",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         // Light variants
-        "light-primary":
-          "border-transparent bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400",
+        "light-primary": "border-transparent bg-gm-surface-panel text-gm-navy",
         "light-success":
-          "border-transparent bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500",
+          "border-transparent bg-gm-warning-green-bg text-gm-warning-green-fg",
         "light-error":
-          "border-transparent bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500",
+          "border-transparent bg-gm-warning-red-bg text-gm-warning-red-fg",
         "light-warning":
-          "border-transparent bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400",
-        "light-info":
-          "border-transparent bg-blue-light-50 text-blue-light-500 dark:bg-blue-light-500/15 dark:text-blue-light-500",
+          "border-transparent bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
+        "light-info": "border-transparent bg-gm-sky text-gm-text-primary",
         "light-light":
-          "border-transparent bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-white/80",
-        "light-dark":
-          "border-transparent bg-gray-500 text-white dark:bg-white/5 dark:text-white",
+          "border-transparent bg-gm-surface-muted text-gm-text-primary",
+        "light-dark": "border-transparent bg-gm-navy text-gm-text-inverse",
         // Solid variants
         "solid-primary":
-          "border-transparent bg-brand-500 text-white dark:text-white",
+          "border-transparent bg-primary text-primary-foreground",
         "solid-success":
-          "border-transparent bg-success-500 text-white dark:text-white",
+          "border-transparent bg-gm-warning-green-bg text-gm-warning-green-fg",
         "solid-error":
-          "border-transparent bg-error-500 text-white dark:text-white",
+          "border-transparent bg-gm-warning-red-bg text-gm-warning-red-fg",
         "solid-warning":
-          "border-transparent bg-warning-500 text-white dark:text-white",
-        "solid-info":
-          "border-transparent bg-blue-light-500 text-white dark:text-white",
+          "border-transparent bg-gm-warning-amber-bg text-gm-warning-amber-fg",
+        "solid-info": "border-transparent bg-gm-blue text-gm-text-inverse",
         "solid-light":
-          "border-transparent bg-gray-400 text-white dark:bg-white/5 dark:text-white/80",
-        "solid-dark":
-          "border-transparent bg-gray-700 text-white dark:text-white",
+          "border-transparent bg-gm-surface-muted text-gm-text-primary",
+        "solid-dark": "border-transparent bg-gm-navy text-gm-text-inverse",
       },
     },
     defaultVariants: {

@@ -18,6 +18,7 @@ function buildCookieOptions(config: AuthConfig, expires?: Date) {
     httpOnly: true,
     path: "/",
     sameSite: "lax" as const,
+    // biome-ignore lint/style/noProcessEnv: shared package, no app env.ts available
     secure: process.env.NODE_ENV === "production",
   };
 }
@@ -113,6 +114,39 @@ async function readErrorDetail(
 
   const detail = await clonedResponse.text();
   return detail || fallbackMessage;
+}
+
+/**
+ * Like authApiFetch but sends application/x-www-form-urlencoded body.
+ * Used for OAuth2 /login/access-token which requires form encoding.
+ */
+export async function authApiFormFetch<T>(
+  config: AuthConfig,
+  path: string,
+  formFields: Record<string, string>,
+  init: Omit<RequestInit, "body" | "headers" | "method"> = {}
+): Promise<T> {
+  const requestHeaders = await getForwardHeaders();
+  requestHeaders.set("content-type", "application/x-www-form-urlencoded");
+
+  const response = await fetch(
+    `${config.authApiBaseUrl}${config.authApiPrefix}${path}`,
+    {
+      ...init,
+      method: "POST",
+      body: new URLSearchParams(formFields).toString(),
+      cache: "no-store",
+      headers: requestHeaders,
+    }
+  );
+
+  if (!response.ok) {
+    const fallbackMessage = `Auth request failed (${response.status})`;
+    const detail = await readErrorDetail(response, fallbackMessage);
+    throw new AuthApiError(response.status, detail);
+  }
+
+  return (await response.json()) as T;
 }
 
 export async function authApiFetch<T>(

@@ -98,9 +98,11 @@ jobs:
           if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
             echo "environment=staging" >> $GITHUB_OUTPUT
             echo "api_url=https://api.staging.barrels.gd" >> $GITHUB_OUTPUT
+            echo "sentry_project=grenmet-staging" >> $GITHUB_OUTPUT
           else
             echo "environment=production" >> $GITHUB_OUTPUT
             echo "api_url=https://api.barrels.gd" >> $GITHUB_OUTPUT
+            echo "sentry_project=grenmet-production" >> $GITHUB_OUTPUT
           fi
 
       - name: Docker metadata
@@ -122,6 +124,9 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
             NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || secrets.SENTRY_DSN_PRODUCTION }}
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.app }}

@@ -11,7 +11,6 @@ import {
   useMobileNavigationStore,
 } from "@/components/MobileNavigation";
 import { MobileSearch, Search } from "@/components/Search";
-import { ThemeToggle } from "@/components/ThemeToggle";
 
 function TopLevelNavItem({
   href,
@@ -41,7 +40,6 @@ export const Header = forwardRef<
 
   const { scrollY } = useScroll();
   const bgOpacityLight = useTransform(scrollY, [0, 72], ["50%", "90%"]);
-  const bgOpacityDark = useTransform(scrollY, [0, 72], ["20%", "80%"]);
 
   return (
     <motion.div
@@ -49,17 +47,13 @@ export const Header = forwardRef<
       className={clsx(
         className,
         "fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between gap-12 px-4 transition sm:px-6 lg:left-72 lg:z-30 lg:px-8 xl:left-80",
-        !isInsideMobileNavigation &&
-          "backdrop-blur-xs lg:left-72 xl:left-80 dark:backdrop-blur-sm",
-        isInsideMobileNavigation
-          ? "bg-white dark:bg-zinc-900"
-          : "bg-white/(--bg-opacity-light) dark:bg-zinc-900/(--bg-opacity-dark)"
+        !isInsideMobileNavigation && "backdrop-blur-xs lg:left-72 xl:left-80",
+        isInsideMobileNavigation ? "bg-white" : "bg-white/(--bg-opacity-light)"
       )}
       ref={ref}
       style={
         {
           "--bg-opacity-light": bgOpacityLight,
-          "--bg-opacity-dark": bgOpacityDark,
         } as React.CSSProperties
       }
     >
@@ -90,10 +84,7 @@ export const Header = forwardRef<
           </ul>
         </nav>
         <div className="hidden md:block md:h-5 md:w-px md:bg-zinc-900/10 md:dark:bg-white/15" />
-        <div className="flex gap-4">
-          <MobileSearch />
-          <ThemeToggle />
-        </div>
+        <MobileSearch />
         <div className="hidden min-[416px]:contents">
           <Button href="/appendix/emergency-personnel">
             Emergency contacts

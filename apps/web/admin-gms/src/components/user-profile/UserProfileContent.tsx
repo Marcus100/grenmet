@@ -30,7 +30,7 @@ export default function UserProfileContent() {
 
   if (profileQuery.isLoading) {
     return (
-      <div className="rounded-2xl border border-gray-200 p-6 text-gray-500 text-sm dark:border-gray-800 dark:text-gray-400">
+      <div className="rounded-2xl border border-border p-6 text-muted-foreground text-sm">
         Loading profile...
       </div>
     );
@@ -38,7 +38,7 @@ export default function UserProfileContent() {
 
   if (profileQuery.isError || !profileQuery.data) {
     return (
-      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 text-sm dark:border-red-900 dark:bg-red-950/20 dark:text-red-300">
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-red-700 text-sm">
         Unable to load profile data. Please refresh and try again.
       </div>
     );

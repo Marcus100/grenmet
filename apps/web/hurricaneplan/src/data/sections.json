@@ -1,0 +1,820 @@
+{
+  "/after-hurricane-storm": {
+    "pageTitle": "Actions after the hurricane or storm",
+    "sections": [
+      {
+        "id": "title-actions-after-the-hurricane-or-storm-description-post-storm-recovery-and-restoration-actions-after-event-passage",
+        "title": "title: 'Actions after the hurricane or storm'\ndescription: 'Post-storm recovery and restoration actions after event passage.'"
+      },
+      {
+        "id": "source-note",
+        "title": "Source note"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/attachments": {
+    "pageTitle": "Attachments",
+    "sections": [
+      {
+        "id": "title-attachments-description-on-this-page-we-ll-dive-into-the-different-attachment-endpoints-you-can-use-to-manage-attachments-programmatically",
+        "title": "title: 'Attachments'\r\ndescription: 'On this page, we’ll dive into the different attachment endpoints you can use to manage attachments programmatically.'"
+      },
+      {
+        "id": "the-attachment-model",
+        "title": "The attachment model"
+      },
+      {
+        "id": "list-all-attachments",
+        "title": "List all attachments"
+      },
+      {
+        "id": "create-an-attachment",
+        "title": "Create an attachment"
+      },
+      {
+        "id": "retrieve-an-attachment",
+        "title": "Retrieve an attachment"
+      },
+      {
+        "id": "update-an-attachment",
+        "title": "Update an attachment"
+      },
+      {
+        "id": "delete-an-attachment",
+        "title": "Delete an attachment"
+      }
+    ]
+  },
+  "/authentication": {
+    "pageTitle": "Authentication",
+    "sections": [
+      {
+        "id": "title-authentication-description-in-this-guide-we-ll-look-at-how-authentication-works-protocol-offers-two-ways-to-authenticate-your-api-requests-basic-authentication-and-o-auth2-with-a-token",
+        "title": "title: 'Authentication'\r\ndescription: 'In this guide, we’ll look at how authentication works. Protocol offers two ways to authenticate your API requests: Basic authentication and OAuth2 with a token.'"
+      },
+      {
+        "id": "basic-authentication",
+        "title": "Basic authentication"
+      },
+      {
+        "id": "o-auth2-with-bearer-token",
+        "title": "OAuth2 with bearer token"
+      },
+      {
+        "id": "using-an-sdk",
+        "title": "Using an SDK"
+      }
+    ]
+  },
+  "/contacts": {
+    "pageTitle": "Contacts",
+    "sections": [
+      {
+        "id": "title-contacts-description-on-this-page-we-ll-dive-into-the-different-contact-endpoints-you-can-use-to-manage-contacts-programmatically",
+        "title": "title: 'Contacts'\r\ndescription: 'On this page, we’ll dive into the different contact endpoints you can use to manage contacts programmatically.'"
+      },
+      {
+        "id": "the-contact-model",
+        "title": "The contact model"
+      },
+      {
+        "id": "list-all-contacts",
+        "title": "List all contacts"
+      },
+      {
+        "id": "create-a-contact",
+        "title": "Create a contact"
+      },
+      {
+        "id": "retrieve-a-contact",
+        "title": "Retrieve a contact"
+      },
+      {
+        "id": "update-a-contact",
+        "title": "Update a contact"
+      },
+      {
+        "id": "delete-a-contact",
+        "title": "Delete a contact"
+      }
+    ]
+  },
+  "/conversations": {
+    "pageTitle": "Conversations",
+    "sections": [
+      {
+        "id": "title-conversations-description-on-this-page-we-ll-dive-into-the-different-conversation-endpoints-you-can-use-to-manage-conversations-programmatically",
+        "title": "title: 'Conversations'\r\ndescription: 'On this page, we’ll dive into the different conversation endpoints you can use to manage conversations programmatically.'"
+      },
+      {
+        "id": "the-conversation-model",
+        "title": "The conversation model"
+      },
+      {
+        "id": "list-all-conversations",
+        "title": "List all conversations"
+      },
+      {
+        "id": "create-a-conversation",
+        "title": "Create a conversation"
+      },
+      {
+        "id": "retrieve-a-conversation",
+        "title": "Retrieve a conversation"
+      },
+      {
+        "id": "update-a-conversation",
+        "title": "Update a conversation"
+      },
+      {
+        "id": "delete-a-conversation",
+        "title": "Delete a conversation"
+      }
+    ]
+  },
+  "/during-hurricane-storm": {
+    "pageTitle": "Actions during the hurricane or storm",
+    "sections": [
+      {
+        "id": "title-actions-during-the-hurricane-or-storm-description-actions-to-be-taken-while-hurricane-or-storm-conditions-are-in-effect",
+        "title": "title: 'Actions during the hurricane or storm'\ndescription: 'Actions to be taken while hurricane or storm conditions are in effect.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/errors": {
+    "pageTitle": "Errors",
+    "sections": [
+      {
+        "id": "title-errors-description-in-this-guide-we-will-talk-about-what-happens-when-something-goes-wrong-while-you-work-with-the-api",
+        "title": "title: 'Errors'\r\ndescription: 'In this guide, we will talk about what happens when something goes wrong while you work with the API.'"
+      },
+      {
+        "id": "status-codes",
+        "title": "Status codes"
+      },
+      {
+        "id": "error-types",
+        "title": "Error types"
+      }
+    ]
+  },
+  "/forecast-for-season": {
+    "pageTitle": "Forecast for Season",
+    "sections": [
+      {
+        "id": "title-forecast-for-season-description-forecast-context-for-the-2024-atlantic-hurricane-season",
+        "title": "title: 'Forecast for Season'\ndescription: 'Forecast context for the 2024 Atlantic hurricane season.'"
+      },
+      {
+        "id": "2024-outlook",
+        "title": "2024 outlook"
+      },
+      {
+        "id": "be-prepared-regardless-of-forecast",
+        "title": "Be prepared regardless of forecast"
+      },
+      {
+        "id": "2024-storm-names",
+        "title": "2024 storm names"
+      },
+      {
+        "id": "supplemental-names-list",
+        "title": "Supplemental names list"
+      }
+    ]
+  },
+  "/groups": {
+    "pageTitle": "Groups",
+    "sections": [
+      {
+        "id": "title-groups-description-on-this-page-we-ll-dive-into-the-different-group-endpoints-you-can-use-to-manage-groups-programmatically",
+        "title": "title: 'Groups'\r\ndescription: 'On this page, we’ll dive into the different group endpoints you can use to manage groups programmatically.'"
+      },
+      {
+        "id": "the-group-model",
+        "title": "The group model"
+      },
+      {
+        "id": "list-all-groups",
+        "title": "List all groups"
+      },
+      {
+        "id": "create-a-group",
+        "title": "Create a group"
+      },
+      {
+        "id": "retrieve-a-group",
+        "title": "Retrieve a group"
+      },
+      {
+        "id": "update-a-group",
+        "title": "Update a group"
+      },
+      {
+        "id": "delete-a-group",
+        "title": "Delete a group"
+      }
+    ]
+  },
+  "/": {
+    "pageTitle": "Introduction",
+    "sections": [
+      {
+        "id": "title-introduction-description-introduction-to-the-grenada-airports-authority-tropical-cyclone-emergency-plan-2024",
+        "title": "title: 'Introduction'\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
+      },
+      {
+        "id": "coverage",
+        "title": "Coverage"
+      },
+      {
+        "id": "purpose",
+        "title": "Purpose"
+      },
+      {
+        "id": "departments-covered",
+        "title": "Departments covered"
+      }
+    ]
+  },
+  "/messages": {
+    "pageTitle": "Messages",
+    "sections": [
+      {
+        "id": "title-messages-description-on-this-page-we-ll-dive-into-the-different-message-endpoints-you-can-use-to-manage-messages-programmatically",
+        "title": "title: 'Messages'\r\ndescription: 'On this page, we’ll dive into the different message endpoints you can use to manage messages programmatically.'"
+      },
+      {
+        "id": "the-message-model",
+        "title": "The message model"
+      },
+      {
+        "id": "list-all-messages",
+        "title": "List all messages"
+      },
+      {
+        "id": "send-a-message",
+        "title": "Send a message"
+      },
+      {
+        "id": "retrieve-a-message",
+        "title": "Retrieve a message"
+      },
+      {
+        "id": "update-a-message",
+        "title": "Update a message"
+      },
+      {
+        "id": "delete-a-message",
+        "title": "Delete a message"
+      }
+    ]
+  },
+  "/objectives": {
+    "pageTitle": "Objectives",
+    "sections": [
+      {
+        "id": "title-objectives-description-objectives-of-the-gaa-tropical-cyclone-emergency-plan",
+        "title": "title: 'Objectives'\ndescription: 'Objectives of the GAA Tropical Cyclone Emergency Plan.'"
+      },
+      {
+        "id": "plan-objectives",
+        "title": "Plan objectives"
+      },
+      {
+        "id": "expected-result",
+        "title": "Expected result"
+      }
+    ]
+  },
+  "/pagination": {
+    "pageTitle": "Pagination",
+    "sections": [
+      {
+        "id": "title-pagination-description-in-this-guide-we-will-look-at-how-to-work-with-paginated-responses-when-querying-the-protocol-api",
+        "title": "title: 'Pagination'\r\ndescription: 'In this guide, we will look at how to work with paginated responses when querying the Protocol API'"
+      },
+      {
+        "id": "example-using-cursors",
+        "title": "Example using cursors"
+      }
+    ]
+  },
+  "/quickstart": {
+    "pageTitle": "Quickstart",
+    "sections": [
+      {
+        "id": "title-quickstart-description-this-guide-will-get-you-all-set-up-and-ready-to-use-the-protocol-api-we-ll-cover-how-to-get-started-an-api-client-and-how-to-make-your-first-api-request",
+        "title": "title: 'Quickstart'\r\ndescription: 'This guide will get you all set up and ready to use the Protocol API. We’ll cover how to get started an API client and how to make your first API request.'"
+      },
+      {
+        "id": "choose-your-client",
+        "title": "Choose your client"
+      },
+      {
+        "id": "making-your-first-api-request",
+        "title": "Making your first API request"
+      },
+      {
+        "id": "whats-next",
+        "title": "What's next?"
+      }
+    ]
+  },
+  "/representation": {
+    "pageTitle": "Representation",
+    "sections": [
+      {
+        "id": "title-representation-description-eoc-representation-and-leadership-roles-under-the-hurricane-plan",
+        "title": "title: 'Representation'\ndescription: 'EOC representation and leadership roles under the Hurricane Plan.'"
+      },
+      {
+        "id": "eoc-representation",
+        "title": "EOC representation"
+      },
+      {
+        "id": "eoc-coordination",
+        "title": "EOC coordination"
+      }
+    ]
+  },
+  "/sdks": {
+    "pageTitle": "Protocol SDKs",
+    "sections": [
+      {
+        "id": "title-protocol-sdks-description-protocol-offers-fine-tuned-java-script-ruby-php-python-and-go-libraries-to-make-your-life-easier-and-give-you-the-best-experience-when-consuming-the-api",
+        "title": "title: 'Protocol SDKs'\r\ndescription: 'Protocol offers fine-tuned JavaScript, Ruby, PHP, Python, and Go libraries to make your life easier and give you the best experience when consuming the API.'"
+      }
+    ]
+  },
+  "/useful-terms-definitions": {
+    "pageTitle": "Useful terms and definitions",
+    "sections": [
+      {
+        "id": "title-useful-terms-and-definitions-description-operational-storm-terminology-used-in-this-plan",
+        "title": "title: 'Useful terms and definitions'\ndescription: 'Operational storm terminology used in this plan.'"
+      },
+      {
+        "id": "advisory",
+        "title": "Advisory"
+      },
+      {
+        "id": "tropical-wave",
+        "title": "Tropical Wave"
+      },
+      {
+        "id": "tropical-disturbance",
+        "title": "Tropical Disturbance"
+      },
+      {
+        "id": "potential-tropical-cyclone",
+        "title": "Potential Tropical Cyclone"
+      },
+      {
+        "id": "tropical-depression",
+        "title": "Tropical Depression"
+      },
+      {
+        "id": "tropical-cyclone",
+        "title": "Tropical Cyclone"
+      },
+      {
+        "id": "tropical-storm",
+        "title": "Tropical Storm"
+      },
+      {
+        "id": "hurricane",
+        "title": "Hurricane"
+      },
+      {
+        "id": "tropical-storm-watch",
+        "title": "Tropical Storm Watch"
+      },
+      {
+        "id": "tropical-storm-warning",
+        "title": "Tropical Storm Warning"
+      },
+      {
+        "id": "hurricane-watch",
+        "title": "Hurricane Watch"
+      },
+      {
+        "id": "hurricane-warning",
+        "title": "Hurricane Warning"
+      },
+      {
+        "id": "hurricane-centre-or-eye",
+        "title": "Hurricane Centre or Eye"
+      }
+    ]
+  },
+  "/webhooks": {
+    "pageTitle": "Webhooks",
+    "sections": [
+      {
+        "id": "title-webhooks-description-in-this-guide-we-will-look-at-how-to-register-and-consume-webhooks-to-integrate-your-app-with-protocol",
+        "title": "title: 'Webhooks'\r\ndescription: 'In this guide, we will look at how to register and consume webhooks to integrate your app with Protocol.'"
+      },
+      {
+        "id": "registering-webhooks",
+        "title": "Registering webhooks"
+      },
+      {
+        "id": "consuming-webhooks",
+        "title": "Consuming webhooks"
+      },
+      {
+        "id": "event-types",
+        "title": "Event types"
+      },
+      {
+        "id": "security",
+        "title": "Security"
+      }
+    ]
+  },
+  "/appendix/emergency-personnel": {
+    "pageTitle": "Appendix A: List of Emergency Personnel",
+    "sections": [
+      {
+        "id": "title-appendix-a-list-of-emergency-personnel-description-emergency-personnel-contacts-for-cyclone-operations-as-listed-in-appendix-a",
+        "title": "title: 'Appendix A: List of Emergency Personnel'\ndescription: 'Emergency personnel contacts for cyclone operations as listed in Appendix A.'"
+      },
+      {
+        "id": "meteorologists-and-forecasters",
+        "title": "Meteorologists and forecasters"
+      },
+      {
+        "id": "duty-managers",
+        "title": "Duty managers"
+      },
+      {
+        "id": "management",
+        "title": "Management"
+      },
+      {
+        "id": "maintenance-contacts",
+        "title": "Maintenance contacts"
+      },
+      {
+        "id": "stores",
+        "title": "Stores"
+      },
+      {
+        "id": "ais",
+        "title": "AIS"
+      },
+      {
+        "id": "carriacou",
+        "title": "Carriacou"
+      },
+      {
+        "id": "security-supervisors",
+        "title": "Security supervisors"
+      },
+      {
+        "id": "notes",
+        "title": "Notes"
+      }
+    ]
+  },
+  "/appendix/mbia-vehicles": {
+    "pageTitle": "Appendix B: List of MBIA Vehicles",
+    "sections": [
+      {
+        "id": "title-appendix-b-list-of-mbia-vehicles-description-mbia-vehicle-inventory-referenced-in-appendix-b-of-the-2024-plan",
+        "title": "title: 'Appendix B: List of MBIA Vehicles'\ndescription: 'MBIA vehicle inventory referenced in Appendix B of the 2024 plan.'"
+      },
+      {
+        "id": "vehicle-list",
+        "title": "Vehicle list"
+      },
+      {
+        "id": "notes",
+        "title": "Notes"
+      }
+    ]
+  },
+  "/pre-season/administration": {
+    "pageTitle": "Pre-season actions: Administration",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-administration-description-pre-season-preparedness-actions-for-administration",
+        "title": "title: 'Pre-season actions: Administration'\ndescription: 'Pre-season preparedness actions for Administration.'"
+      },
+      {
+        "id": "information-technology",
+        "title": "Information Technology"
+      },
+      {
+        "id": "marketing-and-properties",
+        "title": "Marketing and Properties"
+      }
+    ]
+  },
+  "/pre-season/air-traffic": {
+    "pageTitle": "Pre-season actions: Air Traffic",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-air-traffic-description-pre-season-preparedness-actions-for-air-traffic-services",
+        "title": "title: 'Pre-season actions: Air Traffic'\ndescription: 'Pre-season preparedness actions for Air Traffic Services.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/pre-season/cfr": {
+    "pageTitle": "Pre-season actions: CFR",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-cfr-description-pre-season-preparedness-actions-for-crash-fire-rescue-cfr",
+        "title": "title: 'Pre-season actions: CFR'\ndescription: 'Pre-season preparedness actions for Crash Fire Rescue (CFR).'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/pre-season/general": {
+    "pageTitle": "Pre-season actions: General",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-general-description-general-readiness-actions-required-before-hurricane-season",
+        "title": "title: 'Pre-season actions: General'\ndescription: 'General readiness actions required before hurricane season.'"
+      },
+      {
+        "id": "annual-planning-and-readiness",
+        "title": "Annual planning and readiness"
+      },
+      {
+        "id": "damage-and-needs-assessment-dana-team",
+        "title": "Damage and Needs Assessment (DANA) team"
+      },
+      {
+        "id": "administrative-and-logistics-arrangements",
+        "title": "Administrative and logistics arrangements"
+      },
+      {
+        "id": "triggered-briefing-requirement",
+        "title": "Triggered briefing requirement"
+      }
+    ]
+  },
+  "/pre-season/maintenance": {
+    "pageTitle": "Pre-season actions: Maintenance",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-maintenance-description-pre-season-readiness-actions-for-the-maintenance-department",
+        "title": "title: 'Pre-season actions: Maintenance'\ndescription: 'Pre-season readiness actions for the Maintenance Department.'"
+      },
+      {
+        "id": "electrical",
+        "title": "Electrical"
+      },
+      {
+        "id": "mechanical",
+        "title": "Mechanical"
+      },
+      {
+        "id": "plumbing",
+        "title": "Plumbing"
+      },
+      {
+        "id": "building-and-structures",
+        "title": "Building and structures"
+      }
+    ]
+  },
+  "/pre-season/met-department": {
+    "pageTitle": "Pre-season actions: Met Department",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-met-department-description-pre-season-preparedness-actions-for-the-meteorological-department",
+        "title": "title: 'Pre-season actions: Met Department'\ndescription: 'Pre-season preparedness actions for the Meteorological Department.'"
+      },
+      {
+        "id": "consumables-and-equipment",
+        "title": "Consumables and equipment"
+      },
+      {
+        "id": "coordination-and-contact-readiness",
+        "title": "Coordination and contact readiness"
+      },
+      {
+        "id": "staff-preparation",
+        "title": "Staff preparation"
+      }
+    ]
+  },
+  "/pre-season/security": {
+    "pageTitle": "Pre-season actions: Security",
+    "sections": [
+      {
+        "id": "title-pre-season-actions-security-description-pre-season-preparedness-actions-for-security-and-emergency-services",
+        "title": "title: 'Pre-season actions: Security'\ndescription: 'Pre-season preparedness actions for Security and Emergency Services.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/special-operating-procedures/met-department": {
+    "pageTitle": "Special operating procedures of Met Department",
+    "sections": [
+      {
+        "id": "title-special-operating-procedures-of-met-department-description-special-operating-procedures-for-meteorological-department-during-the-hurricane-season",
+        "title": "title: 'Special operating procedures of Met Department'\ndescription: 'Special operating procedures for Meteorological Department during the hurricane season.'"
+      },
+      {
+        "id": "routine-monitoring-during-hurricane-season",
+        "title": "Routine monitoring during hurricane season"
+      },
+      {
+        "id": "alert-phase",
+        "title": "Alert phase"
+      },
+      {
+        "id": "watch-phase",
+        "title": "Watch phase"
+      },
+      {
+        "id": "warning-phase",
+        "title": "Warning phase"
+      },
+      {
+        "id": "shift-relieving-and-continuity-of-service",
+        "title": "Shift relieving and continuity of service"
+      }
+    ]
+  },
+  "/warning-issued/administration": {
+    "pageTitle": "Warning issued actions: Administration",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-administration-description-administration-actions-when-a-storm-or-hurricane-warning-is-issued",
+        "title": "title: 'Warning issued actions: Administration'\ndescription: 'Administration actions when a storm or hurricane warning is issued.'"
+      },
+      {
+        "id": "information-technology-centre",
+        "title": "Information Technology Centre"
+      },
+      {
+        "id": "pabx-operators",
+        "title": "PABX operators"
+      }
+    ]
+  },
+  "/warning-issued/air-traffic": {
+    "pageTitle": "Warning issued actions: Air Traffic",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-air-traffic-description-air-traffic-services-actions-when-a-storm-or-hurricane-warning-is-issued",
+        "title": "title: 'Warning issued actions: Air Traffic'\ndescription: 'Air Traffic Services actions when a storm or hurricane warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/warning-issued/airport-tenants": {
+    "pageTitle": "Warning issued actions: Airport Tenants",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-airport-tenants-description-airport-tenant-responsibilities-under-storm-hurricane-watch-and-warning",
+        "title": "title: 'Warning issued actions: Airport Tenants'\ndescription: 'Airport tenant responsibilities under storm/hurricane watch and warning.'"
+      },
+      {
+        "id": "actions-when-watch-is-issued",
+        "title": "Actions when watch is issued"
+      },
+      {
+        "id": "actions-when-warning-is-issued",
+        "title": "Actions when warning is issued"
+      }
+    ]
+  },
+  "/warning-issued/carriacou": {
+    "pageTitle": "Warning issued actions: Carriacou",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-carriacou-description-carriacou-airport-actions-when-warning-is-issued",
+        "title": "title: 'Warning issued actions: Carriacou'\ndescription: 'Carriacou airport actions when warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/warning-issued/cfr": {
+    "pageTitle": "Warning issued actions: CFR",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-cfr-description-crash-fire-rescue-actions-when-warning-is-issued",
+        "title": "title: 'Warning issued actions: CFR'\ndescription: 'Crash Fire Rescue actions when warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/warning-issued/eccaa": {
+    "pageTitle": "Warning issued actions: ECCAA",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-eccaa-description-eccaa-technical-actions-when-a-storm-or-hurricane-warning-is-issued",
+        "title": "title: 'Warning issued actions: ECCAA'\ndescription: 'ECCAA technical actions when a storm or hurricane warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/warning-issued/maintenance": {
+    "pageTitle": "Warning issued actions: Maintenance",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-maintenance-description-maintenance-actions-when-a-storm-or-hurricane-warning-is-issued",
+        "title": "title: 'Warning issued actions: Maintenance'\ndescription: 'Maintenance actions when a storm or hurricane warning is issued.'"
+      },
+      {
+        "id": "electrical",
+        "title": "Electrical"
+      },
+      {
+        "id": "air-conditioning",
+        "title": "Air Conditioning"
+      },
+      {
+        "id": "plumbing",
+        "title": "Plumbing"
+      },
+      {
+        "id": "mechanical",
+        "title": "Mechanical"
+      },
+      {
+        "id": "building-and-structures",
+        "title": "Building and structures"
+      }
+    ]
+  },
+  "/warning-issued/met-department": {
+    "pageTitle": "Warning issued actions: Met Department",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-met-department-description-meteorological-office-actions-when-storm-or-hurricane-watch-warning-is-issued",
+        "title": "title: 'Warning issued actions: Met Department'\ndescription: 'Meteorological Office actions when storm or hurricane watch/warning is issued.'"
+      },
+      {
+        "id": "forecaster-officer-in-charge",
+        "title": "Forecaster / Officer-in-Charge"
+      },
+      {
+        "id": "manager-of-meteorology",
+        "title": "Manager of Meteorology"
+      }
+    ]
+  },
+  "/warning-issued/operation": {
+    "pageTitle": "Warning issued actions: Operation",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-operation-description-operations-team-actions-when-a-storm-or-hurricane-warning-is-issued",
+        "title": "title: 'Warning issued actions: Operation'\ndescription: 'Operations team actions when a storm or hurricane warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  },
+  "/warning-issued/security": {
+    "pageTitle": "Warning issued actions: Security",
+    "sections": [
+      {
+        "id": "title-warning-issued-actions-security-description-security-and-emergency-services-actions-when-warning-is-issued",
+        "title": "title: 'Warning issued actions: Security'\ndescription: 'Security and Emergency Services actions when warning is issued.'"
+      },
+      {
+        "id": "action-checklist",
+        "title": "Action checklist"
+      }
+    ]
+  }
+}

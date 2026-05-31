@@ -266,25 +266,6 @@ services:
     networks:
       - grenmet
 
-  # ── Database UI ──────────────────────────────────────────────────────────────
-  adminer:
-    image: adminer:latest
-    restart: always
-    environment:
-      ADMINER_DESIGN: pepa-linha-dark
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.adminer.rule=Host(`adminer.barrels.gd`)"
-      - "traefik.http.routers.adminer.entrypoints=websecure"
-      - "traefik.http.routers.adminer.tls.certresolver=letsencrypt"
-      - "traefik.http.services.adminer.loadbalancer.server.port=8080"
-      - "traefik.http.routers.adminer.middlewares=adminer-auth"
-      - "traefik.http.middlewares.adminer-auth.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-    depends_on:
-      - db
-    networks:
-      - grenmet
-
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
     image: traefik:v3

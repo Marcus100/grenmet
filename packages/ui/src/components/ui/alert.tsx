@@ -3,20 +3,20 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 
 const alertVariants = cva(
-  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-xl border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3 [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current",
+  "relative grid w-full grid-cols-[0_1fr] items-start gap-y-0.5 rounded-gm-8 border px-4 py-3 text-sm has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] has-[>svg]:gap-x-3 [&>svg]:size-5 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default: "border-border bg-card text-card-foreground",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 [&>svg]:text-current",
+          "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg *:data-[slot=alert-description]:text-current [&>svg]:text-current",
         success:
-          "border-success-500 bg-success-50 text-success-500 dark:border-success-500/30 dark:bg-success-500/15",
+          "border-gm-warning-green-border bg-gm-warning-green-bg text-gm-warning-green-fg *:data-[slot=alert-description]:text-current [&>svg]:text-current",
         warning:
-          "border-warning-500 bg-warning-50 text-warning-500 dark:border-warning-500/30 dark:bg-warning-500/15",
+          "border-gm-warning-amber-border bg-gm-warning-amber-bg text-gm-warning-amber-fg *:data-[slot=alert-description]:text-current [&>svg]:text-current",
         error:
-          "border-error-500 bg-error-50 text-error-500 dark:border-error-500/30 dark:bg-error-500/15",
-        info: "border-blue-light-500 bg-blue-light-50 text-blue-light-500 dark:border-blue-light-500/30 dark:bg-blue-light-500/15",
+          "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg *:data-[slot=alert-description]:text-current [&>svg]:text-current",
+        info: "border-gm-blue bg-gm-surface text-gm-navy *:data-[slot=alert-description]:text-gm-text-secondary [&>svg]:text-gm-blue",
       },
     },
     defaultVariants: {

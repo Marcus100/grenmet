@@ -27,8 +27,8 @@ export function SegmentedControl({
             <button
               className={`min-h-12 touch-manipulation rounded-full px-5 py-3 font-semibold text-sm transition-colors ${
                 isSelected
-                  ? "bg-[var(--color-text-primary)] text-white"
-                  : "border border-gray-300 bg-transparent text-[var(--color-text-secondary)] hover:border-gray-400 active:bg-gray-100"
+                  ? "bg-foreground text-background"
+                  : "border border-gray-300 bg-transparent text-muted-foreground hover:border-gray-400 active:bg-gray-100"
               }
               `}
               key={option.value}
@@ -51,8 +51,8 @@ export function SegmentedControl({
           <button
             className={`min-h-12 flex-1 touch-manipulation rounded-md px-4 py-3.5 font-semibold text-sm uppercase tracking-wide transition-colors ${
               isSelected
-                ? "bg-[var(--color-text-primary)] text-white"
-                : "bg-transparent text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] active:bg-gray-300"
+                ? "bg-foreground text-background"
+                : "bg-transparent text-muted-foreground hover:text-foreground active:bg-gray-300"
             }
             `}
             key={option.value}

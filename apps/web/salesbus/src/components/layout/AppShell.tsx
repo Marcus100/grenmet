@@ -15,7 +15,7 @@ export function AppShell({ children, cartItemCount = 0 }: AppShellProps) {
   const isTabletLandscape = useIsTabletLandscape();
 
   return (
-    <div className="flex min-h-dvh min-h-screen flex-col bg-[var(--color-background)]">
+    <div className="flex min-h-dvh min-h-screen flex-col bg-gm-surface">
       <Header cartItemCount={cartItemCount} />
 
       <div className="flex flex-1 overflow-hidden">

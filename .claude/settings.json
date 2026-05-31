@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:next-forge.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(pnpm dlx:*)",
+      "Bash(pnpm fix:*)",
+      "Bash(pnpm check:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm build:*)",
+      "Bash(pnpm biome:*)",
+      "Bash(pnpm turbo:*)",
+      "Bash(turbo run:*)",
+      "Bash(gh pr *)",
+      "Bash(gh run *)",
+      "mcp__figma__generate_figma_design",
+      "mcp__figma__use_figma",
+      "mcp__figma__get_design_context",
+      "mcp__figma__get_screenshot",
+      "mcp__figma__get_metadata",
+      "mcp__figma__get_libraries",
+      "mcp__figma__whoami",
+      "mcp__figma__create_new_file"
+    ]
+  }
+}

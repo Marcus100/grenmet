@@ -1,21 +1,26 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { Inter } from "next/font/google";
+import { env } from "@/lib/env";
+import { Providers } from "./providers";
 import "./globals.css";
 
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: "--font-ibm-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
   title: "Grenmet Auth",
   description: "Shared sign-in and session management for Grenmet apps.",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -24,9 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`}>
-        {children}
+    <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
+      <body>
+        <Providers
+          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
+          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
+        >
+          {children}
+        </Providers>
       </body>
     </html>
   );

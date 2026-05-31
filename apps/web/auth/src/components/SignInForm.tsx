@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signInAction } from "@/app/actions";
 import { initialSignInState } from "@/app/actions-types";
@@ -22,14 +23,14 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
 
       <div className="space-y-2">
         <label
-          className="block font-medium text-[13px] text-foreground"
+          className="block font-medium text-foreground text-gm-body-sm"
           htmlFor="email"
         >
           Email address
         </label>
         <input
           autoComplete="username"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--accent) focus:ring-(--accent-soft) focus:ring-4"
+          className="w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           defaultValue={state.email}
           id="email"
           name="email"
@@ -40,15 +41,24 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label
-          className="block font-medium text-[13px] text-foreground"
-          htmlFor="password"
-        >
-          Password
-        </label>
+        <div className="flex items-center justify-between">
+          <label
+            className="block font-medium text-foreground text-gm-body-sm"
+            htmlFor="password"
+          >
+            Password
+          </label>
+          <Link
+            className="text-(--auth-accent) text-gm-body-sm underline-offset-4 hover:underline"
+            href="/forgot-password"
+            tabIndex={-1}
+          >
+            Forgot password?
+          </Link>
+        </div>
         <input
           autoComplete="current-password"
-          className="w-full rounded-[1.1rem] border border-(--line) bg-white/80 px-4 py-3 text-[15px] text-foreground outline-none transition placeholder:text-(--muted) focus:border-(--accent) focus:ring-(--accent-soft) focus:ring-4"
+          className="w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4"
           id="password"
           name="password"
           placeholder="Enter your password"
@@ -64,12 +74,22 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       ) : null}
 
       <button
-        className="w-full rounded-full bg-(--accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--accent-strong) disabled:opacity-60"
+        className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong) disabled:opacity-60"
         disabled={pending}
         type="submit"
       >
         {pending ? "Signing in..." : "Sign in"}
       </button>
+
+      <p className="text-center text-(--muted) text-gm-body-sm">
+        No account?{" "}
+        <Link
+          className="text-(--auth-accent) underline-offset-4 hover:underline"
+          href="/signup"
+        >
+          Create one
+        </Link>
+      </p>
     </form>
   );
 }

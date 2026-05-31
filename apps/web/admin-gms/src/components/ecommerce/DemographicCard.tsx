@@ -1,63 +1,38 @@
 "use client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@grenmet/ui/components/ui/dropdown-menu";
 import Image from "next/image";
-import { useState } from "react";
 import { MoreDotIcon } from "@/icons";
-import { Dropdown } from "../ui/dropdown/Dropdown";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import CountryMap from "./CountryMap";
 
 export default function DemographicCard() {
-  const [isOpen, setIsOpen] = useState(false);
-
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
-
-  function closeDropdown() {
-    setIsOpen(false);
-  }
-
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="rounded-2xl border border-border bg-background p-5 sm:p-6">
       <div className="flex justify-between">
         <div>
-          <h3 className="font-semibold text-gray-800 text-lg dark:text-white/90">
+          <h3 className="font-semibold text-foreground text-lg">
             Customers Demographic
           </h3>
-          <p className="mt-1 text-gray-500 text-theme-sm dark:text-gray-400">
+          <p className="mt-1 text-muted-foreground text-theme-sm">
             Number of customer based on country
           </p>
         </div>
 
-        <div className="relative inline-block">
-          <button
-            className="dropdown-toggle"
-            onClick={toggleDropdown}
-            type="button"
-          >
-            <MoreDotIcon className="text-gray-400 hover:text-gray-700 dark:hover:text-gray-300" />
-          </button>
-          <Dropdown
-            className="w-40 p-2"
-            isOpen={isOpen}
-            onClose={closeDropdown}
-          >
-            <DropdownItem
-              className="flex w-full rounded-lg text-left font-normal text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              onItemClick={closeDropdown}
-            >
-              View More
-            </DropdownItem>
-            <DropdownItem
-              className="flex w-full rounded-lg text-left font-normal text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
-              onItemClick={closeDropdown}
-            >
-              Delete
-            </DropdownItem>
-          </Dropdown>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger type="button">
+            <MoreDotIcon className="text-gray-400 hover:text-gray-700" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-40">
+            <DropdownMenuItem>View More</DropdownMenuItem>
+            <DropdownMenuItem>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      <div className="my-6 overflow-hidden rounded-2xl border border-gary-200 bg-gray-50 px-4 py-6 sm:px-6 dark:border-gray-800 dark:bg-gray-900">
+      <div className="my-6 overflow-hidden rounded-2xl border border-gary-200 bg-gray-50 px-4 py-6 sm:px-6">
         <div
           className="mapOne map-btn -mx-4 -my-6 h-[212px] 2xsm:w-[307px] w-[252px] xsm:w-[358px] sm:-mx-6 md:w-[668px] lg:w-[634px] xl:w-[393px] 2xl:w-[554px]"
           id="mapOne"
@@ -79,22 +54,18 @@ export default function DemographicCard() {
               />
             </div>
             <div>
-              <p className="font-semibold text-gray-800 text-theme-sm dark:text-white/90">
-                USA
-              </p>
-              <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+              <p className="font-semibold text-foreground text-theme-sm">USA</p>
+              <span className="block text-muted-foreground text-theme-xs">
                 2,379 Customers
               </span>
             </div>
           </div>
 
           <div className="flex w-full max-w-[140px] items-center gap-3">
-            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200 dark:bg-gray-800">
+            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200">
               <div className="absolute top-0 left-0 flex h-full w-[79%] items-center justify-center rounded-sm bg-brand-500 font-medium text-white text-xs" />
             </div>
-            <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-              79%
-            </p>
+            <p className="font-medium text-foreground text-theme-sm">79%</p>
           </div>
         </div>
 
@@ -110,22 +81,20 @@ export default function DemographicCard() {
               />
             </div>
             <div>
-              <p className="font-semibold text-gray-800 text-theme-sm dark:text-white/90">
+              <p className="font-semibold text-foreground text-theme-sm">
                 France
               </p>
-              <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+              <span className="block text-muted-foreground text-theme-xs">
                 589 Customers
               </span>
             </div>
           </div>
 
           <div className="flex w-full max-w-[140px] items-center gap-3">
-            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200 dark:bg-gray-800">
+            <div className="relative block h-2 w-full max-w-[100px] rounded-sm bg-gray-200">
               <div className="absolute top-0 left-0 flex h-full w-[23%] items-center justify-center rounded-sm bg-brand-500 font-medium text-white text-xs" />
             </div>
-            <p className="font-medium text-gray-800 text-theme-sm dark:text-white/90">
-              23%
-            </p>
+            <p className="font-medium text-foreground text-theme-sm">23%</p>
           </div>
         </div>
       </div>
