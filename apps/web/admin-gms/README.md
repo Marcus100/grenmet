@@ -1,193 +1,119 @@
-# TailAdmin Next.js - Free Next.js Tailwind Admin Dashboard Template
+# admin-gms (`@grenmet/web-admin`)
 
-Part of the Grenmet monorepo. From the repo root, run this app with: **`pnpm dev:web:admin`**.
+Internal GMS operations dashboard. Port **3001**.
 
-TailAdmin is a free and open-source admin dashboard template built on **Next.js and Tailwind CSS** providing developers with everything they need to create a feature-rich and data-driven: back-end, dashboard, or admin panel solution for any sort of web project.
+The heaviest and most complex app in the monorepo. Covers HR management (timesheets, rosters, shifts, leave, shift swaps), staff profiles, calendars, and charts. Integrates auth directly with FastAPI rather than delegating to `web-auth`.
 
-![TailAdmin - Next.js Dashboard Preview](./banner.png)
+Part of the Grenmet monorepo — run from the repo root.
 
-With TailAdmin Next.js, you get access to all the necessary dashboard UI components, elements, and pages required to build a high-quality and complete dashboard or admin panel. Whether you're building a dashboard or admin panel for a complex web application or a simple website.
-
-TailAdmin utilizes the powerful features of **Next.js 16** and common features of Next.js such as server-side rendering (SSR), static site generation (SSG), and seamless API route integration. Combined with the advancements of **React 19** and the robustness of **TypeScript**, TailAdmin is the perfect solution to help get your project up and running quickly.
-
-## Overview
-
-TailAdmin provides essential UI components and layouts for building feature-rich, data-driven admin dashboards and control panels. It's built on:
-
-* Next.js 16.x
-* React 19
-* TypeScript
-* Tailwind CSS V4
-
-### Quick Links
-
-* [✨ Visit Website](https://tailadmin.com)
-* [📄 Documentation](https://tailadmin.com/docs)
-* [⬇️ Download](https://tailadmin.com/download)
-* [🖌️ Figma Design File (Community Edition)](https://www.figma.com/community/file/1463141366275764364)
-* [⚡ Get PRO Version](https://tailadmin.com/pricing)
-
-### Demos
-
-* [Free Version](https://nextjs-free-demo.tailadmin.com)
-* [Pro Version](https://nextjs-demo.tailadmin.com)
-
-### Other Versions
-
-- [Next.js Version](https://github.com/TailAdmin/free-nextjs-admin-dashboard)
-- [React.js Version](https://github.com/TailAdmin/free-react-tailwind-admin-dashboard)
-- [Vue.js Version](https://github.com/TailAdmin/vue-tailwind-admin-dashboard)
-- [Angular Version](https://github.com/TailAdmin/free-angular-tailwind-dashboard)
-- [Laravel Version](https://github.com/TailAdmin/tailadmin-laravel)
-
-## Installation
-
-### Prerequisites
-
-To get started with TailAdmin, ensure you have the following prerequisites installed and set up:
-
-* Node.js 22+ (per monorepo root)
-
-### Cloning the Repository
-
-Clone the repository using the following command:
+## Development
 
 ```bash
-git clone https://github.com/TailAdmin/free-nextjs-admin-dashboard.git
+pnpm install
+cp apps/web/admin-gms/.env.local.example apps/web/admin-gms/.env.local
+pnpm dev:web:admin
 ```
 
-> Windows Users: place the repository near the root of your drive if you face issues while cloning.
+The app runs on `http://localhost:3001`.
 
-1. Install dependencies:
+## Run from app directory
 
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
+```bash
+cd apps/web/admin-gms
+pnpm dev
+```
 
-   > Use `--legacy-peer-deps` flag if you face peer-dependency error during installation.
+## Environment Variables
 
-2. Start the development server:
+See `.env.local.example`. Required:
 
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+- `AUTH_APP_URL` — URL of the `web-auth` app (used for sign-out redirects)
+- `AUTH_API_URL` — Base URL of the FastAPI backend
+- `AUTH_API_V1_STR` — API prefix, e.g. `/api/v1`
+- `SESSION_COOKIE_NAME` — Cookie name, e.g. `grenmet_session`
+- `NEXT_PUBLIC_API_URL` — Public-facing URL for the API proxy (used by the client-side React Query layer)
+- `RESEND_API_KEY` — Resend API key for server-side email sending
 
-## Components
+## Auth model
 
-TailAdmin is a pre-designed starting point for building a web-based dashboard using Next.js and Tailwind CSS. The template includes:
+`admin-gms` integrates auth directly — it does **not** redirect to `web-auth` for sign-in. It manages the full sign-in flow internally.
 
-* Sophisticated and accessible sidebar
-* Data visualization components
-* Profile management and custom 404 page
-* Tables and Charts(Line and Bar)
-* Authentication forms and input elements
-* Alerts, Dropdowns, Modals, Buttons and more
-* Can't forget Dark Mode 🕶️
+Key files:
 
-All components are built with React and styled using Tailwind CSS for easy customization.
+| File | Purpose |
+|---|---|
+| `src/lib/auth-config.ts` | `AuthConfig` object passed to all `@grenmet/auth/server` calls |
+| `src/lib/server-session.ts` | Server-side session helpers (read cookie, exchange for access token) |
+| `src/lib/auth.ts` | Auth utilities used across Server Components and Route Handlers |
+| `src/lib/auth-redirect.ts` | Redirect helpers for unauthenticated requests |
+| `src/app/api/[...path]/route.ts` | API proxy — forwards requests to FastAPI with the access token |
+| `src/proxy.ts` | Proxy implementation used by the catch-all Route Handler |
+| `src/app/auth/logout/route.ts` | `POST /auth/logout` — revokes current session |
+| `src/app/auth/logout-all/route.ts` | `POST /auth/logout-all` — revokes all sessions |
 
-## Feature Comparison
+The API proxy pattern means client components call `/api/*` (same origin), the Route Handler exchanges the session cookie for an access token, and forwards the request to FastAPI. This avoids exposing the access token to the browser.
 
-### Free Version
+## Route groups
 
-* 1 Unique Dashboard
-* 30+ dashboard components
-* 50+ UI elements
-* Basic Figma design files
-* Community support
+```
+src/app/
+  (admin)/                  ← main authenticated layout (sidebar + header)
+    page.tsx                ← dashboard
+    (others-pages)/         ← calendar, charts, forms, tables, profile
+    (ui-elements)/          ← alerts, avatars, badges, buttons, modals
+  (full-width-pages)/
+    (auth)/                 ← signin, signup (no sidebar)
+    (error-pages)/          ← 404
+```
 
-### Pro Version
+## Key dependencies
 
-* 7 Unique Dashboards: Analytics, Ecommerce, Marketing, CRM, SaaS, Stocks, Logistics (more coming soon)
-* 500+ dashboard components and UI elements
-* Complete Figma design file
-* Email support
+| Package | Purpose |
+|---|---|
+| `@fullcalendar/*` | Calendar views — daygrid, timegrid, list, interaction |
+| `apexcharts` + `react-apexcharts` | Charts (bar, line, statistics cards) |
+| `@tanstack/react-form` + `zod-form-adapter` | Forms with Zod validation |
+| `@tanstack/react-query` | Server state — initialised in `src/providers/QueryProvider.tsx` |
+| `@tanstack/react-table` | Data tables |
+| `@tanstack/react-virtual` | Virtualised lists |
+| `react-dropzone` | File upload |
+| `react-error-boundary` | Error boundaries around data-heavy sections |
+| `sonner` | Toast notifications |
+| `flatpickr` | Date pickers |
+| `resend` | Server-side email sending |
+| `msw` + `@faker-js/faker` | API mocking and test data generation |
 
-To learn more about pro version features and pricing, visit our [pricing page](https://tailadmin.com/pricing).
+## Testing
 
-## Changelog
+This is the **only web app with a test suite** — Vitest unit tests and Playwright e2e.
 
-### Version 2.1.0 - [November 15, 2025]
+```bash
+# From repo root
+turbo run test --filter=@grenmet/web-admin
 
-* Updated to Next.js 16.x
-* Fixed all reported minor bugs
+# Unit tests (from app directory)
+pnpm vitest run
+pnpm vitest run src/path/to/test.test.ts
 
-### Version 2.0.2 - [March 25, 2025]
+# Coverage
+pnpm test:coverage
 
-* Upgraded to Next.js 16.x for [CVE-2025-29927](https://nextjs.org/blog/cve-2025-29927) concerns
-* Included overrides vectormap for packages to prevent peer dependency errors during installation.
-* Migrated from react-flatpickr to flatpickr package for React 19 support
+# Playwright e2e (requires running dev server)
+pnpm test:e2e
+```
 
-### Version 2.0.1 - [February 27, 2025]
+Test setup: `src/test/setup.ts`. Uses jsdom, `@testing-library/react`, and MSW for API mocking.
 
-#### Update Overview
+## Quality Commands
 
-* Upgraded to Tailwind CSS v4 for better performance and efficiency.
-* Updated class usage to match the latest syntax and features.
-* Replaced deprecated class and optimized styles.
+```bash
+pnpm check
+pnpm check:ci
+pnpm type-check
+```
 
-#### Next Steps
+## Notes
 
-* Run npm install or yarn install to update dependencies.
-* Check for any style changes or compatibility issues.
-* Refer to the Tailwind CSS v4 [Migration Guide](https://tailwindcss.com/docs/upgrade-guide) on this release. if needed.
-* This update keeps the project up to date with the latest Tailwind improvements. 🚀
-
-### v2.0.0 (February 2025)
-
-A major update focused on Next.js 16 implementation and comprehensive redesign.
-
-#### Major Improvements
-
-* Complete redesign using Next.js 16 App Router and React Server Components
-* Enhanced user interface with Next.js-optimized components
-* Improved responsiveness and accessibility
-* New features including collapsible sidebar, chat screens, and calendar
-* Redesigned authentication using Next.js App Router and server actions
-* Updated data visualization using ApexCharts for React
-
-#### Breaking Changes
-
-* Migrated from Next.js 14 to Next.js 16
-* Chart components now use ApexCharts for React
-* Authentication flow updated to use Server Actions and middleware
-
-[Read more](https://tailadmin.com/docs/update-logs/nextjs) on this release.
-
-### v1.3.4 (July 01, 2024)
-
-* Fixed JSvectormap rendering issues
-
-### v1.3.3 (June 20, 2024)
-
-* Fixed build error related to Loader component
-
-### v1.3.2 (June 19, 2024)
-
-* Added ClickOutside component for dropdown menus
-* Refactored sidebar components
-* Updated Jsvectormap package
-
-### v1.3.1 (Feb 12, 2024)
-
-* Fixed layout naming consistency
-* Updated styles
-
-### v1.3.0 (Feb 05, 2024)
-
-* Upgraded to Next.js 14
-* Added Flatpickr integration
-* Improved form elements
-* Enhanced multiselect functionality
-* Added default layout component
-
-## License
-
-TailAdmin Next.js Free Version is released under the MIT License.
-
-## Support
-If you find this project helpful, please consider giving it a star on GitHub. Your support helps us continue developing and maintaining this template.
+- Based on the [TailAdmin](https://tailadmin.com) Next.js template (MIT licensed).
+- React Query client config: `src/lib/query-client.ts` — do not create additional instances.
+- Consumes FastAPI HR and Auth endpoints via `@grenmet/api-client`.

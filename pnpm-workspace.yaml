@@ -2,7 +2,6 @@ packages:
   # Apps
   - "apps/web/*"
   - "apps/api/honoapi"
-  # Note: mobile app uses npm, not pnpm (excluded from workspace)
   # Note: fastapi is Python, not managed by pnpm
 
   # Shared packages
@@ -56,13 +55,39 @@ catalog:
   # Themes
   next-themes: "^0.4.6"
 
-  # Headless UI
-  "@headlessui/react": "^2.2.9"
-
   # Database (pg) — used in wxwatch and wxproducts
   pg: "^8.17.1"
   "@types/pg": "^8.16.0"
   dotenv-cli: "^11.0.0"
 
+  # Headless UI — used in spicewx and hurricaneplan (migrate to Base UI eventually)
+  "@headlessui/react": "^2.2.9"
+
   # MDX — keep in sync with next catalog version
   "@next/mdx": "16.1.1"
+
+  # TypeScript safety utilities
+  "@total-typescript/ts-reset": "^0.6.1"
+
+  # Admin-gms map/date
+  "react-day-picker": "^9.7.0"
+  "react-simple-maps": "^3.0.0"
+
+  # Error tracking
+  "@sentry/nextjs": "^9"
+
+  # Analytics
+  "posthog-js": "^1.273.0"
+  "posthog-node": "^4.9.2"
+
+  # Testing
+  vitest: "^4.0.17"
+  "@vitest/coverage-v8": "^4.0.17"
+  msw: "^2.12.7"
+  "@testing-library/react": "^16.3.1"
+  "@testing-library/user-event": "^14.6.1"
+  "@testing-library/jest-dom": "^6.9.1"
+  "@testing-library/dom": "^10.4.1"
+  jsdom: "^27.4.0"
+  "@playwright/test": "^1.57.0"
+  "@faker-js/faker": "^10.2.0"

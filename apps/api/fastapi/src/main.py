@@ -40,6 +40,7 @@ from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
+from src.webhooks.router import router as webhooks_router
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -141,8 +142,8 @@ app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
 
 # Other routers
-
 app.include_router(utils_router, prefix="/api/v1")
+app.include_router(webhooks_router, prefix="/api/v1")
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

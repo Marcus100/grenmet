@@ -33,7 +33,7 @@ export default function MiddayFcst({
   const marineWarning = "Marine advisory may remain in effect.";
 
   return (
-    <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
+    <div className="rounded-gm-8 bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-900/5">
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">

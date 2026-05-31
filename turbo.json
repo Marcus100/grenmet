@@ -37,8 +37,7 @@
       "inputs": ["**/*.{ts,tsx}", "**/tsconfig*.json"]
     },
     "generate": {
-      "cache": false,
-      "outputs": ["src/gen/**"]
+      "cache": false
     },
     "test": {
       "dependsOn": ["^build"],

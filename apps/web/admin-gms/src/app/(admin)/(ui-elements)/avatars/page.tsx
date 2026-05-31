@@ -56,7 +56,7 @@ function AvatarWithStatus({
       </Avatar>
       {status && status !== "none" && (
         <span
-          className={`absolute right-0 bottom-0 rounded-full border-[1.5px] border-white dark:border-gray-900 ${statusSizeClasses[size]} ${statusColorClasses[status]}`}
+          className={`absolute right-0 bottom-0 rounded-full border-[1.5px] border-white ${statusSizeClasses[size]} ${statusColorClasses[status]}`}
         />
       )}
     </div>

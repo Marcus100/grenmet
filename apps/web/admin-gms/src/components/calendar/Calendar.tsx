@@ -9,9 +9,9 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import FullCalendar from "@fullcalendar/react";
 import timeGridPlugin from "@fullcalendar/timegrid";
+import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Modal } from "@/components/ui/modal";
 import { useModal } from "@/hooks/useModal";
 
 interface CalendarEvent extends EventInput {
@@ -122,7 +122,7 @@ const Calendar: React.FC = () => {
   };
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+    <div className="rounded-2xl border border-border bg-background">
       <div className="custom-calendar">
         <FullCalendar
           customButtons={{
@@ -146,133 +146,136 @@ const Calendar: React.FC = () => {
           selectable={true}
         />
       </div>
-      <Modal
-        className="max-w-[700px] p-6 lg:p-10"
-        isOpen={isOpen}
-        onClose={closeModal}
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) closeModal();
+        }}
+        open={isOpen}
       >
-        <div className="custom-scrollbar flex flex-col overflow-y-auto px-2">
-          <div>
-            <h5 className="modal-title mb-2 font-semibold text-gray-800 text-theme-xl lg:text-2xl dark:text-white/90">
-              {selectedEvent ? "Edit Event" : "Add Event"}
-            </h5>
-            <p className="text-gray-500 text-sm dark:text-gray-400">
-              Plan your next big moment: schedule or edit an event to stay on
-              track
-            </p>
-          </div>
-          <div className="mt-8">
+        <DialogContent className="max-w-[700px] p-6 lg:p-10">
+          <div className="custom-scrollbar flex flex-col overflow-y-auto px-2">
             <div>
+              <h5 className="modal-title mb-2 font-semibold text-foreground text-theme-xl lg:text-2xl">
+                {selectedEvent ? "Edit Event" : "Add Event"}
+              </h5>
+              <p className="text-muted-foreground text-sm">
+                Plan your next big moment: schedule or edit an event to stay on
+                track
+              </p>
+            </div>
+            <div className="mt-8">
               <div>
-                <label
-                  className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
-                  htmlFor="event-title"
-                >
-                  Event Title
-                </label>
-                <input
-                  className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-gray-800 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-dark-900 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800 dark:placeholder:text-white/30"
-                  id="event-title"
-                  onChange={(e) => setEventTitle(e.target.value)}
-                  type="text"
-                  value={eventTitle}
-                />
+                <div>
+                  <label
+                    className="mb-1.5 block font-medium text-gray-700 text-sm"
+                    htmlFor="event-title"
+                  >
+                    Event Title
+                  </label>
+                  <input
+                    className="h-11 w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    id="event-title"
+                    onChange={(e) => setEventTitle(e.target.value)}
+                    type="text"
+                    value={eventTitle}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="mt-6">
-              <span className="mb-4 block font-medium text-gray-700 text-sm dark:text-gray-400">
-                Event Color
-              </span>
-              <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-                {Object.entries(calendarsEvents).map(([key, value]) => (
-                  <div className="n-chk" key={key}>
-                    <div
-                      className={`form-check form-check-${value} form-check-inline`}
-                    >
-                      <label
-                        className="form-check-label flex items-center text-gray-700 text-sm dark:text-gray-400"
-                        htmlFor={`modal${key}`}
+              <div className="mt-6">
+                <span className="mb-4 block font-medium text-gray-700 text-sm">
+                  Event Color
+                </span>
+                <div className="flex flex-wrap items-center gap-4 sm:gap-5">
+                  {Object.entries(calendarsEvents).map(([key, value]) => (
+                    <div className="n-chk" key={key}>
+                      <div
+                        className={`form-check form-check-${value} form-check-inline`}
                       >
-                        <span className="relative">
-                          <input
-                            checked={eventLevel === key}
-                            className="form-check-input sr-only"
-                            id={`modal${key}`}
-                            name="event-level"
-                            onChange={() => setEventLevel(key)}
-                            type="radio"
-                            value={key}
-                          />
-                          <span className="box mr-2 flex h-5 w-5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-700">
-                            <span
-                              className={`h-2 w-2 rounded-full bg-white ${
-                                eventLevel === key ? "block" : "hidden"
-                              }`}
+                        <label
+                          className="form-check-label flex items-center text-gray-700 text-sm"
+                          htmlFor={`modal${key}`}
+                        >
+                          <span className="relative">
+                            <input
+                              checked={eventLevel === key}
+                              className="form-check-input sr-only"
+                              id={`modal${key}`}
+                              name="event-level"
+                              onChange={() => setEventLevel(key)}
+                              type="radio"
+                              value={key}
                             />
+                            <span className="box mr-2 flex h-5 w-5 items-center justify-center rounded-full border border-gray-300">
+                              <span
+                                className={`h-2 w-2 rounded-full bg-background ${
+                                  eventLevel === key ? "block" : "hidden"
+                                }`}
+                              />
+                            </span>
                           </span>
-                        </span>
-                        {key}
-                      </label>
+                          {key}
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label
+                  className="mb-1.5 block font-medium text-gray-700 text-sm"
+                  htmlFor="event-start-date"
+                >
+                  Enter Start Date
+                </label>
+                <div className="relative">
+                  <input
+                    className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-none bg-transparent px-4 py-2.5 pr-11 pl-4 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    id="event-start-date"
+                    onChange={(e) => setEventStartDate(e.target.value)}
+                    type="date"
+                    value={eventStartDate}
+                  />
+                </div>
+              </div>
+
+              <div className="mt-6">
+                <label
+                  className="mb-1.5 block font-medium text-gray-700 text-sm"
+                  htmlFor="event-end-date"
+                >
+                  Enter End Date
+                </label>
+                <div className="relative">
+                  <input
+                    className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-none bg-transparent px-4 py-2.5 pr-11 pl-4 text-foreground text-sm shadow-gm-card placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    id="event-end-date"
+                    onChange={(e) => setEventEndDate(e.target.value)}
+                    type="date"
+                    value={eventEndDate}
+                  />
+                </div>
               </div>
             </div>
-
-            <div className="mt-6">
-              <label
-                className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
-                htmlFor="event-start-date"
+            <div className="modal-footer mt-6 flex items-center gap-3 sm:justify-end">
+              <button
+                className="flex w-full justify-center rounded-lg border border-gray-300 bg-background px-4 py-2.5 font-medium text-gray-700 text-sm hover:bg-gray-50 sm:w-auto"
+                onClick={closeModal}
+                type="button"
               >
-                Enter Start Date
-              </label>
-              <div className="relative">
-                <input
-                  className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-none bg-transparent px-4 py-2.5 pr-11 pl-4 text-gray-800 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-dark-900 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800 dark:placeholder:text-white/30"
-                  id="event-start-date"
-                  onChange={(e) => setEventStartDate(e.target.value)}
-                  type="date"
-                  value={eventStartDate}
-                />
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <label
-                className="mb-1.5 block font-medium text-gray-700 text-sm dark:text-gray-400"
-                htmlFor="event-end-date"
+                Close
+              </button>
+              <button
+                className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 font-medium text-sm text-white hover:bg-brand-600 sm:w-auto"
+                onClick={handleAddOrUpdateEvent}
+                type="button"
               >
-                Enter End Date
-              </label>
-              <div className="relative">
-                <input
-                  className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-none bg-transparent px-4 py-2.5 pr-11 pl-4 text-gray-800 text-sm shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-dark-900 dark:bg-gray-900 dark:text-white/90 dark:focus:border-brand-800 dark:placeholder:text-white/30"
-                  id="event-end-date"
-                  onChange={(e) => setEventEndDate(e.target.value)}
-                  type="date"
-                  value={eventEndDate}
-                />
-              </div>
+                {selectedEvent ? "Update Changes" : "Add Event"}
+              </button>
             </div>
           </div>
-          <div className="modal-footer mt-6 flex items-center gap-3 sm:justify-end">
-            <button
-              className="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 font-medium text-gray-700 text-sm hover:bg-gray-50 sm:w-auto dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
-              onClick={closeModal}
-              type="button"
-            >
-              Close
-            </button>
-            <button
-              className="btn btn-success btn-update-event flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 font-medium text-sm text-white hover:bg-brand-600 sm:w-auto"
-              onClick={handleAddOrUpdateEvent}
-              type="button"
-            >
-              {selectedEvent ? "Update Changes" : "Add Event"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

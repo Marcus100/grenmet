@@ -2,6 +2,43 @@ import { gmsMarineBulletinExample } from "@/data/gms-marine-bulletin.example";
 import type { MarineBulletinProduct } from "@/db/schema";
 import { adaptMarineBulletin } from "@/lib/adapters";
 
+const warningTone = {
+  amber:
+    "border-gm-warning-amber-border bg-gm-warning-amber-bg text-gm-warning-amber-fg",
+  green:
+    "border-gm-warning-green-border bg-gm-warning-green-bg text-gm-warning-green-fg",
+  grey: "border-gm-warning-grey-border bg-gm-warning-grey-bg text-gm-warning-grey-fg",
+  red: "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg",
+  yellow:
+    "border-gm-warning-yellow-border bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
+} as const;
+
+function warningToneFor(value: string) {
+  switch (value.toLowerCase()) {
+    case "green":
+    case "low":
+      return warningTone.green;
+    case "yellow":
+    case "medium":
+    case "be aware":
+      return warningTone.yellow;
+    case "amber":
+    case "orange":
+    case "high":
+    case "moderate":
+    case "be prepared":
+      return warningTone.amber;
+    case "red":
+    case "very high":
+    case "severe":
+    case "extreme":
+    case "take action":
+      return warningTone.red;
+    default:
+      return warningTone.grey;
+  }
+}
+
 export default function MarineBulletin({
   product = gmsMarineBulletinExample,
 }: {
@@ -48,8 +85,13 @@ export default function MarineBulletin({
     "Secure loose objects",
     "Proceed with caution",
   ];
+  const impactTone = warningToneFor(impact);
+  const likelihoodTone = warningToneFor(likelihood);
+  const responseTone = warningToneFor(response);
+  const warningLevelTone = warningToneFor(warningLevel);
+
   return (
-    <div className="rounded-xl bg-white p-8 shadow-sm ring-1 ring-zinc-900/5">
+    <div className="rounded-gm-8 bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-900/5">
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
@@ -76,8 +118,10 @@ export default function MarineBulletin({
 
       {/* Warning Level and Synopsis Section */}
       <div className="mb-6 flex gap-4">
-        <div className="flex h-20 w-24 shrink-0 items-center justify-center rounded-lg bg-zinc-200 ring-1 ring-zinc-300">
-          <span className="font-bold text-lg text-zinc-900 uppercase tracking-tight">
+        <div
+          className={`flex h-20 w-24 shrink-0 items-center justify-center rounded-gm-8 border ${warningLevelTone}`}
+        >
+          <span className="font-bold text-lg uppercase tracking-tight">
             {warningLevel}
           </span>
         </div>
@@ -123,7 +167,9 @@ export default function MarineBulletin({
           <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
             LIKELIHOOD
           </span>
-          <span className="rounded-full bg-zinc-900 px-2.5 py-0.5 font-bold text-white text-xs">
+          <span
+            className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${likelihoodTone}`}
+          >
             {likelihood}
           </span>
         </div>
@@ -164,7 +210,9 @@ export default function MarineBulletin({
             <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
               IMPACT
             </span>
-            <span className="rounded-full bg-zinc-700 px-2.5 py-0.5 font-bold text-white text-xs">
+            <span
+              className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${impactTone}`}
+            >
               {impact}
             </span>
           </div>
@@ -179,7 +227,9 @@ export default function MarineBulletin({
             <span className="font-bold text-xs text-zinc-900 uppercase tracking-wide">
               RESPONSE
             </span>
-            <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 font-bold text-white text-xs">
+            <span
+              className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${responseTone}`}
+            >
               {response}
             </span>
           </div>

@@ -10,7 +10,7 @@ interface CartItemProps {
 
 export function CartItemCard({ item }: CartItemProps) {
   return (
-    <div className="flex items-center gap-4 rounded-xl bg-[var(--color-surface)] p-4 sm:p-5">
+    <div className="flex items-center gap-4 rounded-xl bg-card p-4 sm:p-5">
       <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 sm:h-24 sm:w-20">
         <Image
           alt={item.product.name}
@@ -22,15 +22,15 @@ export function CartItemCard({ item }: CartItemProps) {
       </div>
 
       <div className="min-w-0 flex-1">
-        <h3 className="truncate font-bold text-[var(--color-text-primary)] text-base tracking-wide sm:text-lg">
+        <h3 className="truncate font-bold text-base text-foreground tracking-wide sm:text-lg">
           {item.product.name}
         </h3>
-        <p className="mt-1 text-[var(--color-text-secondary)] text-sm sm:text-base">
+        <p className="mt-1 text-muted-foreground text-sm sm:text-base">
           {item.quantity} {formatCaseType(item.caseType)}
         </p>
       </div>
 
-      <span className="flex-shrink-0 font-bold text-[var(--color-text-primary)] text-lg sm:text-xl">
+      <span className="flex-shrink-0 font-bold text-foreground text-lg sm:text-xl">
         {formatPrice(item.price)}
       </span>
     </div>

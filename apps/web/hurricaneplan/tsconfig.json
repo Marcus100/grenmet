@@ -1,7 +1,10 @@
 {
   "extends": "@grenmet/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
-    "paths": { "@/*": ["./src/*"] }
+    "paths": {
+      "@/*": ["./src/*"],
+      "content-collections": ["./.content-collections/generated"]
+    }
   },
   "include": [
     "next-env.d.ts",
@@ -9,6 +12,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
+    ".content-collections/**/*.ts",
     "**/*.mts"
   ],
   "exclude": ["node_modules"]

@@ -24,10 +24,10 @@ export default function Alerts() {
         <ComponentCard title="Success Alert">
           <Alert variant="success">
             <CheckCircle2 className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Success Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
               <Link
                 className="mt-3 inline-block font-medium underline"
@@ -39,10 +39,10 @@ export default function Alerts() {
           </Alert>
           <Alert variant="success">
             <CheckCircle2 className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Success Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
             </AlertDescription>
           </Alert>
@@ -50,10 +50,10 @@ export default function Alerts() {
         <ComponentCard title="Warning Alert">
           <Alert variant="warning">
             <AlertTriangle className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Warning Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
               <Link
                 className="mt-3 inline-block font-medium underline"
@@ -65,10 +65,10 @@ export default function Alerts() {
           </Alert>
           <Alert variant="warning">
             <AlertTriangle className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Warning Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
             </AlertDescription>
           </Alert>
@@ -76,10 +76,10 @@ export default function Alerts() {
         <ComponentCard title="Error Alert">
           <Alert variant="error">
             <XCircle className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Error Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
               <Link
                 className="mt-3 inline-block font-medium underline"
@@ -91,10 +91,10 @@ export default function Alerts() {
           </Alert>
           <Alert variant="error">
             <XCircle className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Error Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
             </AlertDescription>
           </Alert>
@@ -102,10 +102,10 @@ export default function Alerts() {
         <ComponentCard title="Info Alert">
           <Alert variant="info">
             <Info className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Info Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
               <Link
                 className="mt-3 inline-block font-medium underline"
@@ -117,10 +117,10 @@ export default function Alerts() {
           </Alert>
           <Alert variant="info">
             <Info className="size-5" />
-            <AlertTitle className="font-semibold text-gray-800 dark:text-white/90">
+            <AlertTitle className="font-semibold text-foreground">
               Info Message
             </AlertTitle>
-            <AlertDescription className="text-gray-500 dark:text-gray-400">
+            <AlertDescription className="text-muted-foreground">
               Be cautious when performing this action.
             </AlertDescription>
           </Alert>

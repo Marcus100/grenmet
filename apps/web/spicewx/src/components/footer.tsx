@@ -21,31 +21,31 @@ const SOCIAL = [
     label: "X / Twitter",
     abbr: "X",
     href: "https://x.com",
-    size: "text-[15px]",
+    size: "text-gm-body",
   },
   {
     label: "Facebook",
     abbr: "f",
     href: "https://facebook.com",
-    size: "text-[18px]",
+    size: "text-gm-heading-sm",
   },
   {
     label: "Instagram",
     abbr: "ig",
     href: "https://instagram.com",
-    size: "text-[12px]",
+    size: "text-gm-caption",
   },
   {
     label: "YouTube",
     abbr: "yt",
     href: "https://youtube.com",
-    size: "text-[12px]",
+    size: "text-gm-caption",
   },
   {
     label: "LinkedIn",
     abbr: "in",
     href: "https://linkedin.com",
-    size: "text-[13px]",
+    size: "text-gm-body-sm",
   },
 ];
 
@@ -56,23 +56,23 @@ const LEGAL_LINKS = [
   { label: "Accessibility", href: "/accessibility" },
 ];
 
-const DIVIDER = <div className="h-px w-full bg-[#d0d5dd]" />;
+const DIVIDER = <div className="h-px w-full bg-gm-border" />;
 
 export function Footer() {
   return (
-    <footer className="flex flex-col bg-white">
+    <footer className="flex flex-col bg-background">
       {DIVIDER}
 
       {/* Links */}
-      <div className="flex flex-col gap-[4px] px-[24px] py-[8px]">
+      <div className="flex flex-col gap-gm-4 px-gm-24 py-gm-8">
         {LINK_ROWS.map((row) => (
           <div
-            className="flex gap-[16px] py-[6px]"
+            className="flex gap-gm-16 py-1.5"
             key={row.map((l) => l.label).join()}
           >
             {row.map((link) => (
               <a
-                className="flex-1 text-[#101828] text-[19px] underline"
+                className="flex-1 text-gm-heading-sm text-gm-text-primary underline"
                 href={link.href}
                 key={link.label}
               >
@@ -86,11 +86,11 @@ export function Footer() {
       {DIVIDER}
 
       {/* Social */}
-      <div className="flex gap-[12px] px-[24px] py-[28px]">
+      <div className="flex gap-gm-12 px-gm-24 py-gm-28">
         {SOCIAL.map((s) => (
           <a
             aria-label={s.label}
-            className={`flex size-[44px] items-center justify-center rounded-[22px] bg-[#1a2a6b] font-semibold text-white ${s.size}`}
+            className={`flex size-gm-44 items-center justify-center rounded-full bg-gm-navy font-semibold text-gm-text-inverse ${s.size}`}
             href={s.href}
             key={s.label}
             rel="noopener noreferrer"
@@ -104,17 +104,17 @@ export function Footer() {
       {DIVIDER}
 
       {/* Institutional lockup */}
-      <div className="flex flex-col gap-[10px] px-[24px] py-[28px]">
+      <div className="flex flex-col gap-2.5 px-gm-24 py-gm-28">
         <Image
           alt="Grenada Meteorological Service"
           height={43}
           src="/gmslogos/logo-primary-navy.png"
           width={180}
         />
-        <p className="font-semibold text-[#101828] text-[13px]">
+        <p className="font-semibold text-gm-body-sm text-gm-text-primary">
           Grenada Airports Authority
         </p>
-        <p className="text-[#71717b] text-[12px]">
+        <p className="text-gm-caption text-gm-text-muted">
           Grenada Meteorological Service
         </p>
       </div>
@@ -122,10 +122,10 @@ export function Footer() {
       {DIVIDER}
 
       {/* Legal links */}
-      <div className="flex gap-[20px] px-[24px] py-[20px]">
+      <div className="flex gap-gm-20 px-gm-24 py-gm-20">
         {LEGAL_LINKS.map((link) => (
           <a
-            className="shrink-0 text-[#71717b] text-[12px] underline"
+            className="shrink-0 text-gm-caption text-gm-text-muted underline"
             href={link.href}
             key={link.label}
           >
@@ -137,8 +137,8 @@ export function Footer() {
       {DIVIDER}
 
       {/* Copyright */}
-      <div className="px-[24px] pt-[20px] pb-[28px]">
-        <p className="text-[#71717b] text-[11px]">
+      <div className="px-gm-24 pt-gm-20 pb-gm-28">
+        <p className="text-gm-label text-gm-text-muted">
           Copyright &copy; Grenada Airports Authority {new Date().getFullYear()}
           , Grenada Meteorological Service
         </p>

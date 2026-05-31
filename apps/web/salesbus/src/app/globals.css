@@ -1,39 +1,283 @@
 @import "tailwindcss";
 
+/* BEGIN GRENMET DESIGN SYSTEM V1 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* GrenMet brand */
+    --gm-blue: #2478f2;
+    --gm-navy: #15006b;
+    --gm-sky: #39a9f5;
+    --gm-sun: #ff981e;
+
+    /* GrenMet surfaces */
+    --gm-surface-page: #ffffff;
+    --gm-surface: #f3f8fc;
+    --gm-surface-panel: #eaf3fb;
+    --gm-surface-secondary: #eaf2fb;
+    --gm-surface-muted: #e4eef7;
+
+    /* GrenMet text */
+    --gm-text-primary: #111827;
+    --gm-text-secondary: #4b5563;
+    --gm-text-muted: #6b7280;
+    --gm-text-inverse: #ffffff;
+
+    /* GrenMet typography */
+    --gm-font-size-micro: 10px;
+    --gm-font-size-label: 11px;
+    --gm-font-size-caption: 12px;
+    --gm-font-size-body-sm: 13px;
+    --gm-font-size-body: 14px;
+    --gm-font-size-body-base: 16px;
+    --gm-font-size-nav: 20px;
+    --gm-font-size-heading-sm: 18px;
+    --gm-font-size-heading-md: 30px;
+    --gm-font-size-heading-lg: 34px;
+    --gm-line-height-micro: 16px;
+    --gm-line-height-label: 16px;
+    --gm-line-height-caption: 16px;
+    --gm-line-height-body-sm: 20px;
+    --gm-line-height-body: 20px;
+    --gm-line-height-body-base: 24px;
+    --gm-line-height-nav: 28px;
+    --gm-line-height-heading-sm: 24px;
+    --gm-line-height-heading-md: 36px;
+    --gm-line-height-heading-lg: 36px;
+
+    /* GrenMet risk */
+    --gm-risk-green: #00843d;
+    --gm-risk-yellow: #ffe923;
+    --gm-risk-amber: #ff9900;
+    --gm-risk-red: #cc0033;
+    --gm-risk-grey: #dcdcdc;
+
+    /* GrenMet weather severity */
+    --gm-weather-severity-low: var(--gm-risk-green);
+    --gm-weather-severity-be-aware: var(--gm-risk-yellow);
+    --gm-weather-severity-be-prepared: var(--gm-risk-amber);
+    --gm-weather-severity-take-action: var(--gm-risk-red);
+    --gm-weather-severity-expired: var(--gm-risk-grey);
+
+    /* GrenMet warning pairs (AA contrast when foreground is used on background) */
+    --gm-warning-green-bg: var(--gm-risk-green);
+    --gm-warning-green-fg: var(--gm-text-inverse);
+    --gm-warning-green-border: var(--gm-risk-green);
+    --gm-warning-yellow-bg: var(--gm-risk-yellow);
+    --gm-warning-yellow-fg: var(--gm-text-primary);
+    --gm-warning-yellow-border: var(--gm-risk-yellow);
+    --gm-warning-amber-bg: var(--gm-risk-amber);
+    --gm-warning-amber-fg: var(--gm-text-primary);
+    --gm-warning-amber-border: var(--gm-risk-amber);
+    --gm-warning-red-bg: var(--gm-risk-red);
+    --gm-warning-red-fg: var(--gm-text-inverse);
+    --gm-warning-red-border: var(--gm-risk-red);
+    --gm-warning-grey-bg: var(--gm-risk-grey);
+    --gm-warning-grey-fg: var(--gm-text-primary);
+    --gm-warning-grey-border: var(--gm-risk-grey);
+
+    /* GrenMet spacing */
+    --gm-spacing-4: 4px;
+    --gm-spacing-8: 8px;
+    --gm-spacing-12: 12px;
+    --gm-spacing-16: 16px;
+    --gm-spacing-20: 20px;
+    --gm-spacing-24: 24px;
+    --gm-spacing-28: 28px;
+    --gm-spacing-32: 32px;
+    --gm-spacing-36: 36px;
+    --gm-spacing-40: 40px;
+    --gm-spacing-44: 44px;
+    --gm-spacing-72: 72px;
+
+    /* GrenMet fixed dimensions (heights — not general spacing) */
+    --gm-height-header: 72px;
+
+    /* GrenMet radius */
+    --gm-radius-2: 2px;
+    --gm-radius-5: 5px;
+    --gm-radius-6: 6px;
+    --gm-radius-8: 8px;
+    --gm-radius-full: 999px;
+
+    /* GrenMet borders */
+    --gm-border: #d0d5dd;
+
+    /* GrenMet shadows */
+    --gm-shadow-card:
+      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --gm-shadow-focus: 0 0 0 3px
+      color-mix(in srgb, var(--gm-blue) 24%, transparent);
+
+    /* shadcn-compatible semantics mapped to GrenMet */
+    --background: var(--gm-surface-page);
+    --foreground: var(--gm-text-primary);
+    --card: var(--gm-surface-page);
+    --card-foreground: var(--gm-text-primary);
+    --popover: var(--gm-surface-page);
+    --popover-foreground: var(--gm-text-primary);
+    --primary: var(--gm-navy);
+    --primary-foreground: var(--gm-text-inverse);
+    --secondary: var(--gm-surface-secondary);
+    --secondary-foreground: var(--gm-navy);
+    --muted: var(--gm-surface-muted);
+    --muted-foreground: var(--gm-text-muted);
+    --accent: var(--gm-sky);
+    --accent-foreground: var(--gm-text-inverse);
+    --destructive: var(--gm-risk-red);
+    --destructive-foreground: var(--gm-text-inverse);
+    --border: var(--gm-border);
+    --input: var(--gm-border);
+    --ring: var(--gm-blue);
+    --radius: 0.5rem;
+
+    /* Sidebar semantics used by shared/admin UI */
+    --sidebar: var(--gm-surface-page);
+    --sidebar-foreground: var(--gm-text-primary);
+    --sidebar-primary: var(--gm-navy);
+    --sidebar-primary-foreground: var(--gm-text-inverse);
+    --sidebar-accent: var(--gm-surface-secondary);
+    --sidebar-accent-foreground: var(--gm-navy);
+    --sidebar-border: var(--gm-border);
+    --sidebar-ring: var(--gm-blue);
+
+    /* Optional app font bridge */
+    --gm-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --gm-font-document: var(--font-noto-sans, "Noto Sans", var(--gm-font-sans));
+
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--gm-font-sans);
+  --font-gm-document: var(--gm-font-document);
+
+  /* shadcn semantic utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* GrenMet brand utilities */
+  --color-gm-blue: var(--gm-blue);
+  --color-gm-navy: var(--gm-navy);
+  --color-gm-sky: var(--gm-sky);
+  --color-gm-sun: var(--gm-sun);
+  --color-gm-surface-page: var(--gm-surface-page);
+  --color-gm-surface: var(--gm-surface);
+  --color-gm-surface-panel: var(--gm-surface-panel);
+  --color-gm-surface-secondary: var(--gm-surface-secondary);
+  --color-gm-surface-muted: var(--gm-surface-muted);
+  --color-gm-text-primary: var(--gm-text-primary);
+  --color-gm-text-secondary: var(--gm-text-secondary);
+  --color-gm-text-muted: var(--gm-text-muted);
+  --color-gm-text-inverse: var(--gm-text-inverse);
+  --color-gm-risk-green: var(--gm-risk-green);
+  --color-gm-risk-yellow: var(--gm-risk-yellow);
+  --color-gm-risk-amber: var(--gm-risk-amber);
+  --color-gm-risk-red: var(--gm-risk-red);
+  --color-gm-risk-grey: var(--gm-risk-grey);
+  --color-gm-weather-severity-low: var(--gm-weather-severity-low);
+  --color-gm-weather-severity-be-aware: var(--gm-weather-severity-be-aware);
+  --color-gm-weather-severity-be-prepared: var(
+    --gm-weather-severity-be-prepared
+  );
+  --color-gm-weather-severity-take-action: var(
+    --gm-weather-severity-take-action
+  );
+  --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
+  --color-gm-warning-green-bg: var(--gm-warning-green-bg);
+  --color-gm-warning-green-fg: var(--gm-warning-green-fg);
+  --color-gm-warning-green-border: var(--gm-warning-green-border);
+  --color-gm-warning-yellow-bg: var(--gm-warning-yellow-bg);
+  --color-gm-warning-yellow-fg: var(--gm-warning-yellow-fg);
+  --color-gm-warning-yellow-border: var(--gm-warning-yellow-border);
+  --color-gm-warning-amber-bg: var(--gm-warning-amber-bg);
+  --color-gm-warning-amber-fg: var(--gm-warning-amber-fg);
+  --color-gm-warning-amber-border: var(--gm-warning-amber-border);
+  --color-gm-warning-red-bg: var(--gm-warning-red-bg);
+  --color-gm-warning-red-fg: var(--gm-warning-red-fg);
+  --color-gm-warning-red-border: var(--gm-warning-red-border);
+  --color-gm-warning-grey-bg: var(--gm-warning-grey-bg);
+  --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
+  --color-gm-warning-grey-border: var(--gm-warning-grey-border);
+  --color-gm-border: var(--gm-border);
+  --text-gm-micro: var(--gm-font-size-micro);
+  --text-gm-label: var(--gm-font-size-label);
+  --text-gm-caption: var(--gm-font-size-caption);
+  --text-gm-body-sm: var(--gm-font-size-body-sm);
+  --text-gm-body: var(--gm-font-size-body);
+  --text-gm-body-base: var(--gm-font-size-body-base);
+  --text-gm-nav: var(--gm-font-size-nav);
+  --text-gm-heading-sm: var(--gm-font-size-heading-sm);
+  --text-gm-heading-md: var(--gm-font-size-heading-md);
+  --text-gm-heading-lg: var(--gm-font-size-heading-lg);
+  --leading-gm-micro: var(--gm-line-height-micro);
+  --leading-gm-label: var(--gm-line-height-label);
+  --leading-gm-caption: var(--gm-line-height-caption);
+  --leading-gm-body-sm: var(--gm-line-height-body-sm);
+  --leading-gm-body: var(--gm-line-height-body);
+  --leading-gm-body-base: var(--gm-line-height-body-base);
+  --leading-gm-nav: var(--gm-line-height-nav);
+  --leading-gm-heading-sm: var(--gm-line-height-heading-sm);
+  --leading-gm-heading-md: var(--gm-line-height-heading-md);
+  --leading-gm-heading-lg: var(--gm-line-height-heading-lg);
+  --spacing-gm-4: var(--gm-spacing-4);
+  --spacing-gm-8: var(--gm-spacing-8);
+  --spacing-gm-12: var(--gm-spacing-12);
+  --spacing-gm-16: var(--gm-spacing-16);
+  --spacing-gm-20: var(--gm-spacing-20);
+  --spacing-gm-24: var(--gm-spacing-24);
+  --spacing-gm-28: var(--gm-spacing-28);
+  --spacing-gm-32: var(--gm-spacing-32);
+  --spacing-gm-36: var(--gm-spacing-36);
+  --spacing-gm-40: var(--gm-spacing-40);
+  --spacing-gm-44: var(--gm-spacing-44);
+  --spacing-gm-72: var(--gm-spacing-72);
+  --radius-gm-2: var(--gm-radius-2);
+  --radius-gm-5: var(--gm-radius-5);
+  --radius-gm-6: var(--gm-radius-6);
+  --radius-gm-8: var(--gm-radius-8);
+  --radius-gm-full: var(--gm-radius-full);
+  --shadow-gm-card: var(--gm-shadow-card);
+  --shadow-gm-focus: var(--gm-shadow-focus);
+  --height-gm-header: var(--gm-height-header);
+}
+/* END GRENMET DESIGN SYSTEM V1 */
+
 :root {
-  /* Primary Colors */
-  --color-primary: #4a7fc1;
-  --color-primary-dark: #3a6ba8;
-  --color-primary-light: #5b9bd5;
-
-  /* Background Colors */
-  --color-background: #e8edf2;
-  --color-surface: #ffffff;
-  --color-surface-elevated: #ffffff;
-
-  /* Text Colors */
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
-
-  /* Semantic Colors */
-  --color-success: #22c55e;
-  --color-error: #dc2626;
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg:
-    0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-
   /* Spacing - responsive */
   --spacing-page: 1rem;
-
-  /* Border Radius */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
 
   /* Safe areas for PWA */
   --safe-area-inset-top: env(safe-area-inset-top, 0px);
@@ -49,43 +293,6 @@
   }
 }
 
-/* Dark theme ready - uncomment when needed */
-/*
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary: #5B9BD5;
-    --color-primary-dark: #4A7FC1;
-    --color-primary-light: #7AB8E8;
-    
-    --color-background: #0F1419;
-    --color-surface: #1A1F26;
-    --color-surface-elevated: #242A33;
-    
-    --color-text-primary: #F3F4F6;
-    --color-text-secondary: #9CA3AF;
-    --color-text-muted: #6B7280;
-    
-    --color-success: #34D399;
-    --color-error: #F87171;
-  }
-}
-*/
-
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-primary-dark: var(--color-primary-dark);
-  --color-primary-light: var(--color-primary-light);
-  --color-background: var(--color-background);
-  --color-surface: var(--color-surface);
-  --color-surface-elevated: var(--color-surface-elevated);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-success: var(--color-success);
-  --color-error: var(--color-error);
-  --font-sans: var(--font-inter);
-}
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -98,9 +305,9 @@ html {
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  font-family: var(--font-inter), system-ui, sans-serif;
+  background: var(--gm-surface);
+  color: var(--foreground);
+  font-family: var(--gm-font-sans);
   min-height: 100dvh;
   /* Prevent overscroll bounce on iOS */
   overscroll-behavior: none;
@@ -113,62 +320,49 @@ body {
 
 /* Typography scale - responsive */
 .text-heading-1 {
-  font-size: 1.5rem;
+  font-size: var(--gm-font-size-heading-sm);
   font-weight: 700;
-  line-height: 2rem;
+  line-height: var(--gm-line-height-heading-sm);
 }
 
 .text-heading-2 {
-  font-size: 1.25rem;
+  font-size: var(--gm-font-size-body-base);
   font-weight: 700;
-  line-height: 1.75rem;
+  line-height: var(--gm-line-height-body-base);
 }
 
 .text-heading-3 {
-  font-size: 1.125rem;
+  font-size: var(--gm-font-size-body);
   font-weight: 600;
-  line-height: 1.5rem;
+  line-height: var(--gm-line-height-body);
 }
 
 .text-body {
-  font-size: 1rem;
-  line-height: 1.5rem;
+  font-size: var(--gm-font-size-body-base);
+  line-height: var(--gm-line-height-body-base);
 }
 
 .text-body-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: var(--gm-font-size-body-sm);
+  line-height: var(--gm-line-height-body-sm);
 }
 
 /* Tablet typography scale */
 @media (min-width: 640px) {
   .text-heading-1 {
-    font-size: 1.875rem;
-    line-height: 2.25rem;
+    font-size: var(--gm-font-size-heading-md);
+    line-height: var(--gm-line-height-heading-md);
   }
 
   .text-heading-2 {
-    font-size: 1.5rem;
-    line-height: 2rem;
+    font-size: var(--gm-font-size-heading-sm);
+    line-height: var(--gm-line-height-heading-sm);
   }
 
   .text-heading-3 {
-    font-size: 1.25rem;
-    line-height: 1.75rem;
+    font-size: var(--gm-font-size-body-base);
+    line-height: var(--gm-line-height-body-base);
   }
-}
-
-/* Utility classes for common patterns */
-.card {
-  background: var(--color-surface);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.card-elevated {
-  background: var(--color-surface-elevated);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
 }
 
 /* Safe area padding for PWA */
@@ -216,7 +410,7 @@ body {
   }
 
   .landscape\:gap-6 {
-    gap: 1.5rem;
+    gap: var(--gm-spacing-24);
   }
 }
 
@@ -263,7 +457,7 @@ body {
 
 /* Focus visible styles for accessibility */
 :focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
 

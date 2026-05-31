@@ -1,0 +1,14 @@
+{
+  "$schema": "https://v2-9-14.turborepo.dev/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "generate": {
+      "inputs": [
+        "../../apps/api/fastapi/openapi.json",
+        "kubb.config.ts",
+        "package.json"
+      ],
+      "outputs": ["src/gen/**"]
+    }
+  }
+}

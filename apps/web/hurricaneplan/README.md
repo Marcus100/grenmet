@@ -1,46 +1,50 @@
-# Protocol
+# hurricaneplan (`@grenmet/web-hurricaneplan`)
 
-Protocol is a [Tailwind Plus](https://tailwindcss.com/plus) site template built using [Tailwind CSS](https://tailwindcss.com) and [Next.js](https://nextjs.org).
+Hurricane planning and documentation site for GMS. Port **3003**.
 
-## Getting started
+MDX-based content site with Algolia search, Shiki syntax highlighting, Zustand, and framer-motion animations.
 
-To get started with this template, first install the npm dependencies:
+## Development
 
-```bash
-npm install
-```
-
-Next, run the development server:
+From repo root:
 
 ```bash
-npm run dev
+pnpm install
+cp apps/web/hurricaneplan/.env.local.example apps/web/hurricaneplan/.env.local
+pnpm dev:web:hurricane
 ```
 
-Finally, open [http://localhost:3000](http://localhost:3000) in your browser to view the website.
+The app runs on `http://localhost:3003`.
 
-## Customizing
+## Run from app directory
 
-You can start editing this template by modifying the files in the `/src` folder. The site will auto-update as you edit these files.
+```bash
+cd apps/web/hurricaneplan
+pnpm dev
+```
 
-## Global search
+## Environment Variables
 
-This template includes a global search that's powered by the [FlexSearch](https://github.com/nextapps-de/flexsearch) library. It's available by clicking the search input or by using the `⌘K` shortcut.
+See `.env.local.example`. Required:
 
-This feature requires no configuration, and works out of the box by automatically scanning your documentation pages to build its index. You can adjust the search parameters by editing the `/src/mdx/search.mjs` file.
+```
+AUTH_API_URL
+AUTH_API_V1_STR
+SESSION_COOKIE_NAME
+AUTH_ALLOWED_RETURN_HOSTS
+```
 
-## License
+## Quality Commands
 
-This site template is a commercial product and is licensed under the [Tailwind Plus license](https://tailwindcss.com/plus/license).
+```bash
+pnpm check
+pnpm check:ci
+pnpm type-check
+```
 
-## Learn more
+## Notes
 
-To learn more about the technologies used in this site template, see the following resources:
-
-- [Tailwind CSS](https://tailwindcss.com/docs) - the official Tailwind CSS documentation
-- [Next.js](https://nextjs.org/docs) - the official Next.js documentation
-- [Headless UI](https://headlessui.dev) - the official Headless UI documentation
-- [Framer Motion](https://www.framer.com/docs/) - the official Framer Motion documentation
-- [MDX](https://mdxjs.com/) - the official MDX documentation
-- [Algolia Autocomplete](https://www.algolia.com/doc/ui-libraries/autocomplete/introduction/what-is-autocomplete/) - the official Algolia Autocomplete documentation
-- [FlexSearch](https://github.com/nextapps-de/flexsearch) - the official FlexSearch documentation
-- [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) - the official Zustand documentation
+- Uses `--webpack` (not Turbopack) for both dev and build — required for MDX compatibility.
+- Config is `next.config.mjs` (not `.ts`).
+- Auth-delegating: redirects to `web-auth` for sign-in.
+- Based on the [Protocol](https://tailwindcss.com/plus) Tailwind Plus template.

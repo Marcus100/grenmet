@@ -37,10 +37,10 @@ const posts = [
 function NewsCard({ post }: { post: (typeof posts)[number] }) {
   return (
     <a
-      className="flex flex-col overflow-clip rounded-[4px] border border-[#d0d5dd] bg-white p-px shadow-[0px_1px_3px_0px_rgba(0,0,0,0.1),0px_1px_2px_-1px_rgba(0,0,0,0.1)]"
+      className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-gm-card"
       href={post.href}
     >
-      <div className="relative h-[254px] w-full shrink-0 overflow-clip bg-[#f3f4f6]">
+      <div className="relative h-[254px] w-full shrink-0 overflow-clip bg-gm-surface">
         <Image
           alt=""
           className="object-cover"
@@ -49,14 +49,14 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
           src={post.imageUrl}
         />
       </div>
-      <div className="flex flex-col gap-[8px] p-[16px]">
-        <p className="font-bold text-[#150068] text-[15px] leading-[21px]">
+      <div className="flex flex-col gap-gm-8 p-gm-16">
+        <p className="font-bold text-base text-gm-navy leading-6">
           {post.title}
         </p>
-        <p className="text-[#4a5565] text-[13px] leading-[20px]">
+        <p className="text-gm-body-sm text-gm-text-secondary leading-gm-body-sm">
           {post.summary}
         </p>
-        <p className="text-[#2478f2] text-[11px] leading-[16px]">
+        <p className="text-gm-blue text-gm-label leading-gm-label">
           Published {post.published}
         </p>
       </div>
@@ -66,20 +66,20 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
 
 export function News() {
   return (
-    <section className="mb-4 flex flex-col gap-[16px]">
-      <div className="flex h-[28px] items-center justify-between">
-        <p className="font-bold text-[#150068] text-[18px] leading-[24px]">
+    <section className="mb-4 flex flex-col gap-gm-16">
+      <div className="flex h-gm-28 items-center justify-between">
+        <p className="font-bold text-gm-heading-sm text-gm-navy leading-gm-heading-sm">
           Weather news
         </p>
         <a
-          className="font-medium text-[#2478f2] text-[14px] leading-[20px]"
+          className="font-medium text-gm-blue text-gm-body leading-gm-body"
           href="/news"
         >
           See more
         </a>
       </div>
 
-      <div className="flex flex-col gap-[16px] lg:grid lg:grid-cols-3">
+      <div className="flex flex-col gap-gm-16 lg:grid lg:grid-cols-3">
         {posts.map((post) => (
           <NewsCard key={post.id} post={post} />
         ))}

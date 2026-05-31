@@ -43,7 +43,7 @@ export default function SalesPage() {
       </div>
 
       {filteredProducts.length === 0 && (
-        <div className="py-12 text-center text-[var(--color-text-secondary)]">
+        <div className="py-12 text-center text-muted-foreground">
           <p className="text-base sm:text-lg">
             No products found matching &quot;{searchQuery}&quot;
           </p>

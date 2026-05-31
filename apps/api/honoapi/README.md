@@ -1,17 +1,18 @@
 # Hono API (`@grenmet/api-hono`)
 
-Simple Hono service in the Grenmet monorepo.
+Hono Node.js service in the Grenmet monorepo. Currently a stub — planned as a weather data proxy layer.
 
-## Run (recommended)
+**Status:** stub (`GET /` → "Hello Hono!"). Not yet consumed by any web app.
 
-From repo root:
+> **Port note:** The stub defaults to port 3000, which conflicts with the auth app when running
+> the full monorepo. Update the `port` in `src/index.ts` before running alongside other apps.
+
+## Run (from repo root)
 
 ```bash
 pnpm install
 pnpm dev:honoapi
 ```
-
-The service listens on `http://localhost:3000`.
 
 ## Run from app directory
 
@@ -20,7 +21,7 @@ cd apps/api/honoapi
 pnpm dev
 ```
 
-## Other scripts
+## Other commands
 
 ```bash
 pnpm build
