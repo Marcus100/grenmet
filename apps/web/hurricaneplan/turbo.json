@@ -4,10 +4,10 @@
   "tasks": {
     "build": {
       "env": [
-        "AUTH_APP_URL",
         "AUTH_API_URL",
         "AUTH_API_V1_STR",
         "SESSION_COOKIE_NAME",
+        "SESSION_COOKIE_DOMAIN",
         "AUTH_ALLOWED_RETURN_HOSTS"
       ]
     }

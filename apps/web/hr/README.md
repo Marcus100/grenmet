@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HR (`@grenmet/web-hr`)
 
-## Getting Started
+HR document printing app for GMS staff. Port **3006**.
 
-First, run the development server:
+Renders print-ready A4 forms: leave of absence applications, official timesheets, duty rosters, shift exchange requisitions, and daily airport status reports.
+
+## Development
+
+From repo root:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp apps/web/hr/.env.local.example apps/web/hr/.env.local
+pnpm dev:web:hr
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app runs on `http://localhost:3006`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Run from app directory
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cd apps/web/hr
+pnpm dev
+```
 
-## Learn More
+## Environment Variables
 
-To learn more about Next.js, take a look at the following resources:
+See `.env.local.example` for required values:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `AUTH_APP_URL` — URL of the auth app (e.g. `http://localhost:3000`)
+- `AUTH_API_URL` — FastAPI base URL
+- `AUTH_API_V1_STR` — API version prefix
+- `SESSION_COOKIE_NAME` — shared session cookie name
+- `AUTH_ALLOWED_RETURN_HOSTS` — allowlist for post-login redirects (e.g. `localhost:3006`)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Quality Commands
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+pnpm check
+pnpm check:ci
+pnpm type-check
+```

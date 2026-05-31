@@ -54,13 +54,13 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
       <div
         aria-labelledby={title ? "modal-title" : undefined}
         aria-modal="true"
-        className="relative z-10 max-h-[85vh] w-full max-w-lg animate-[slideUp_0.3s_ease-out] overflow-y-auto rounded-t-2xl bg-[var(--color-surface)] shadow-lg sm:max-h-[80vh] sm:max-w-xl sm:rounded-2xl"
+        className="relative z-10 max-h-[85vh] w-full max-w-lg animate-[slideUp_0.3s_ease-out] overflow-y-auto rounded-t-2xl bg-card shadow-gm-card sm:max-h-[80vh] sm:max-w-xl sm:rounded-2xl"
         role="dialog"
       >
         {/* Close button - 48px touch target */}
         <button
           aria-label="Close"
-          className="absolute top-3 right-3 z-10 flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-gray-100 text-[var(--color-text-secondary)] transition-colors hover:bg-gray-200 hover:text-[var(--color-text-primary)] active:bg-gray-300"
+          className="absolute top-3 right-3 z-10 flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-gray-100 text-muted-foreground transition-colors hover:bg-gray-200 hover:text-foreground active:bg-gray-300"
           onClick={onClose}
           type="button"
         >
@@ -69,7 +69,7 @@ export function Modal({ isOpen, onClose, children, title }: ModalProps) {
 
         {title && (
           <h2
-            className="px-5 pt-5 font-semibold text-[var(--color-text-primary)] text-lg sm:px-6 sm:pt-6 sm:text-xl"
+            className="px-5 pt-5 font-semibold text-foreground text-lg sm:px-6 sm:pt-6 sm:text-xl"
             id="modal-title"
           >
             {title}

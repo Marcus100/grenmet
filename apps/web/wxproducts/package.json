@@ -13,8 +13,8 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "tsc --noEmit",
-    "db:generate": "dotenv -e .env -- drizzle-kit generate",
-    "db:migrate": "dotenv -e .env -- drizzle-kit migrate",
+    "db:generate": "dotenv -e .env.local -- drizzle-kit generate",
+    "db:migrate": "dotenv -e .env.local -- drizzle-kit migrate",
     "pdf:morning": "node scripts/export-pdf.mjs /pdf/morning artifacts/pdf/morning.pdf"
   },
   "dependencies": {
@@ -26,16 +26,17 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "zod": "catalog:",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "babel-plugin-react-compiler": "catalog:",
     "dotenv-cli": "catalog:",
     "drizzle-kit": "catalog:",
     "playwright": "^1.58.2",

@@ -17,7 +17,7 @@ const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className="flex items-center">
       <button
-        className="mr-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 text-sm shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        className="mr-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-background px-3.5 py-2.5 text-gray-700 text-sm shadow-gm-card hover:bg-gray-50 disabled:opacity-50"
         disabled={currentPage === 1}
         onClick={() => onPageChange(currentPage - 1)}
         type="button"
@@ -29,10 +29,8 @@ const Pagination: React.FC<PaginationProps> = ({
         {pagesAroundCurrent.map((page) => (
           <button
             className={`rounded px-4 py-2 ${
-              currentPage === page
-                ? "bg-brand-500 text-white"
-                : "text-gray-700 dark:text-gray-400"
-            } flex h-10 w-10 items-center justify-center rounded-lg font-medium text-sm hover:bg-blue-500/[0.08] hover:text-brand-500 dark:hover:text-brand-500`}
+              currentPage === page ? "bg-brand-500 text-white" : "text-gray-700"
+            } flex h-10 w-10 items-center justify-center rounded-lg font-medium text-sm hover:bg-blue-500/[0.08] hover:text-brand-500`}
             key={page}
             onClick={() => onPageChange(page)}
             type="button"
@@ -43,7 +41,7 @@ const Pagination: React.FC<PaginationProps> = ({
         {currentPage < totalPages - 2 && <span className="px-2">...</span>}
       </div>
       <button
-        className="ml-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3.5 py-2.5 text-gray-700 text-sm shadow-theme-xs hover:bg-gray-50 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+        className="ml-2.5 flex h-10 items-center justify-center rounded-lg border border-gray-300 bg-background px-3.5 py-2.5 text-gray-700 text-sm shadow-gm-card hover:bg-gray-50 disabled:opacity-50"
         disabled={currentPage === totalPages}
         onClick={() => onPageChange(currentPage + 1)}
         type="button"

@@ -8,25 +8,28 @@ A monorepo containing Grenmet applications, shared packages, and deployment infr
 grenmet/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   ├── fastapi/            # FastAPI backend (Python)
-│   │   └── honoapi/            # Hono API
-│   ├── mobile/                 # Mobile app(s)
+│   │   ├── fastapi/            # FastAPI backend (Python) — auth + HR domains
+│   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
-│       ├── admin-gms/          # Admin dashboard
-│       ├── auth/               # Shared auth gateway
-│       ├── hurricaneplan/      # Hurricane planning site
-│       ├── spicewx/            # SpiceWx app
-│       ├── templates-draft/    # Templates prototype app
-│       ├── wxproducts/         # WxProducts app
-│       ├── wxwatch/            # WxWatch app
+│       ├── admin-gms/          # Internal GMS operations dashboard
+│       ├── auth/               # Shared sign-in/sign-up gateway for all apps
+│       ├── hr/                 # HR management — timesheets, rosters, shifts, leave
+│       ├── hurricaneplan/      # Public hurricane preparedness content site (MDX)
+│       ├── salesbus/           # Sales and inventory management
+│       ├── spicewx/            # Public GMS weather website (design system reference app)
+│       ├── wxproducts/         # Structured forecast products platform + PDF export
+│       └── wxwatch/            # Weather image archive (automated scraping + browseable)
 ├── packages/
-│   ├── api-client/             # Shared API client (generated from OpenAPI)
-│   ├── auth/                   # Shared auth package
+│   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
+│   ├── auth/                   # Shared auth/session package (@grenmet/auth)
 │   ├── tsconfig/               # Shared TypeScript config
-│   └── ui/                     # Shared UI package(s)
+│   └── ui/                     # Shared UI component library (@grenmet/ui) + GrenMet design system
 ├── docs/
-│   ├── api/                    # API-specific docs
-│   └── deployment.md           # Monorepo deployment overview
+│   ├── api/                    # API development, testing, and deployment guides
+│   ├── architecture.md         # GMS service architecture and strategic product catalogue
+│   ├── design-system.md        # GrenMet v1 design system — tokens, Figma bridge, compliance
+│   ├── deployment.md           # Deployment entry points summary
+│   └── env.md                  # Environment variable reference for all apps
 ├── infra/
 │   └── docker/                 # Shared infrastructure (Postgres, Adminer, Mailcatcher)
 ├── scripts/
@@ -46,7 +49,7 @@ grenmet/
 pnpm install
 
 # Create API env file (first time)
-cp apps/api/fastapi/.env.example apps/api/fastapi/.env
+cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 
 # Start shared infra + FastAPI
 pnpm start
@@ -57,6 +60,7 @@ pnpm dev
 
 - **API Swagger**: http://localhost:8000/swagger
 - **API ReDoc**: http://localhost:8000/redoc
+- **API Scalar**: http://localhost:8000/scalar
 - **OpenAPI JSON**: http://localhost:8000/api/v1/openapi.json
 - **Health Check**: http://localhost:8000/api/v1/utils/health-check/
 - **Adminer**: http://localhost:8080
@@ -74,7 +78,7 @@ docker compose -f infra/docker/docker-compose.yml --profile tools up -d
 
 # then
 cd apps/api/fastapi
-cp .env.example .env
+cp .env.local.example .env.local
 docker compose watch
 ```
 
@@ -86,12 +90,12 @@ From repo root:
 
 - [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
+- [hr](apps/web/hr/README.md) – `pnpm dev:web:hr`
 - [hurricaneplan](apps/web/hurricaneplan/README.md) – `pnpm dev:web:hurricane`
+- [salesbus](apps/web/salesbus/README.md) – `pnpm dev:web:salesbus`
 - [spicewx](apps/web/spicewx/README.md) – `pnpm dev:web:spicewx`
-- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
-- [templates-draft](apps/web/templates-draft/README.md) – `pnpm dev:web:templates-draft`
 - [wxproducts](apps/web/wxproducts/README.md) – `pnpm dev:web:wxproducts`
-- [hr](apps/web/hr) – `pnpm dev:web:hr`
+- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
 
 ## Scripts
 
@@ -110,16 +114,16 @@ All commands are run from the monorepo root.
 
 | Script                         | App / scope                                 |
 | ------------------------------ | ------------------------------------------- |
-| `pnpm dev`                     | All apps (Turbo dev in parallel)            |
-| `pnpm dev:web:admin`           | [admin-gms](apps/web/admin-gms)             |
-| `pnpm dev:web:auth`            | [auth](apps/web/auth)                       |
-| `pnpm dev:web:hurricane`       | [hurricaneplan](apps/web/hurricaneplan)     |
-| `pnpm dev:web:spicewx`         | [spicewx](apps/web/spicewx)                 |
-| `pnpm dev:web:wxwatch`         | [wxwatch](apps/web/wxwatch)                 |
-| `pnpm dev:web:templates-draft` | [templates-draft](apps/web/templates-draft) |
-| `pnpm dev:web:wxproducts`      | [wxproducts](apps/web/wxproducts)           |
-| `pnpm dev:web:hr`              | [hr](apps/web/hr)                           |
-| `pnpm dev:honoapi`             | [Hono API](apps/api/honoapi)                |
+| `pnpm dev`                | All apps (Turbo dev in parallel)        |
+| `pnpm dev:web:admin`      | [admin-gms](apps/web/admin-gms)         |
+| `pnpm dev:web:auth`       | [auth](apps/web/auth)                   |
+| `pnpm dev:web:hr`         | [hr](apps/web/hr)                       |
+| `pnpm dev:web:hurricane`  | [hurricaneplan](apps/web/hurricaneplan) |
+| `pnpm dev:web:salesbus`   | [salesbus](apps/web/salesbus)           |
+| `pnpm dev:web:spicewx`    | [spicewx](apps/web/spicewx)             |
+| `pnpm dev:web:wxproducts` | [wxproducts](apps/web/wxproducts)       |
+| `pnpm dev:web:wxwatch`    | [wxwatch](apps/web/wxwatch)             |
+| `pnpm dev:honoapi`        | [Hono API](apps/api/honoapi)            |
 
 API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && docker compose watch` for API-only.
 
@@ -143,10 +147,36 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 ## Documentation
 
-| App | Development                                                                                                                                                                                                                                    | Testing                        |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| API | [Development](docs/api/development.md)                                                                                                                                                                                                         | [Testing](docs/api/testing.md) |
-| Web | [admin-gms](apps/web/admin-gms/README.md), [wxwatch](apps/web/wxwatch/README.md), [templates-draft](apps/web/templates-draft/README.md), [wxproducts](apps/web/wxproducts/README.md), [spicewx](apps/web/spicewx/README.md), [hr](apps/web/hr) | See app README                 |
+### Reference guides
+
+| Document | Description |
+| --- | --- |
+| [Technical Overview](docs/technical-overview.md) | How the codebase fits together — monorepo structure, auth flow, shared packages, databases |
+| [Contributing](CONTRIBUTING.md) | Branching strategy, commit conventions, pre-commit checklist, PR process, code conventions |
+| [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
+| [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
+| [Troubleshooting](docs/troubleshooting.md) | Common dev issues — auth loops, stale types, Turbo cache, port conflicts, DB migrations |
+| [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
+| [Service and Product Catalogue](docs/internal/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
+| [Design System](docs/design-system.md) | GrenMet v1 tokens, current Figma file map, component handoff, compliance guide, audit commands |
+| [API Development](docs/api/development.md) | FastAPI local development guide |
+| [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
+| [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |
+| [Programme docs](docs/internal/) | Roadmap, DTO Terms of Reference, end-of-period report template |
+
+### App READMEs
+
+| App | README |
+| --- | --- |
+| admin-gms | [apps/web/admin-gms/README.md](apps/web/admin-gms/README.md) |
+| auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
+| hr | [apps/web/hr/README.md](apps/web/hr/README.md) |
+| hurricaneplan | [apps/web/hurricaneplan/README.md](apps/web/hurricaneplan/README.md) |
+| salesbus | [apps/web/salesbus/README.md](apps/web/salesbus/README.md) |
+| spicewx | [apps/web/spicewx/README.md](apps/web/spicewx/README.md) |
+| wxproducts | [apps/web/wxproducts/README.md](apps/web/wxproducts/README.md) |
+| wxwatch | [apps/web/wxwatch/README.md](apps/web/wxwatch/README.md) |
+| FastAPI | [apps/api/fastapi/README.md](apps/api/fastapi/README.md) |
 
 ## Development
 
@@ -193,18 +223,21 @@ See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
 
 ### Environment files
 
-- API: `apps/api/fastapi/.env.example` — copy to `.env` and set values as needed.
+- API: `apps/api/fastapi/.env.local.example` — copy to `.env.local` and set values as needed.
 
 ## Contributing
 
-1. Create a feature branch from `dev`
-2. Make your changes
-3. Ensure all tests pass
-4. Submit a PR to `dev`
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide: branching strategy, commit conventions, pre-commit checklist, PR process, and code conventions.
+
+Quick reference:
+
+1. Branch from `dev` → `feature/your-feature-name`
+2. Make changes; run `pnpm fix && pnpm type-check` before committing
+3. Open a PR against `dev` with a [Conventional Commits](https://www.conventionalcommits.org/) title
 
 ## License
 
-Proprietary - Grenmet
+Proprietary — Grenada Airports Authority (GAA) / Grenada Meteorological Service (GMS)
 
 ### Shared dependency versions
 

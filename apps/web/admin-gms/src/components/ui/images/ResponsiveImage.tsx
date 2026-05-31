@@ -6,7 +6,7 @@ export default function ResponsiveImage() {
       <div className="overflow-hidden">
         <Image
           alt="Cover"
-          className="w-full rounded-xl border border-gray-200 dark:border-gray-800"
+          className="w-full rounded-xl border border-border"
           height={600}
           src="/images/grid-image/image-01.png"
           width={1054}

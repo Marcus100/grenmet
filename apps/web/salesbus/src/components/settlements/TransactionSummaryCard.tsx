@@ -41,7 +41,7 @@ export function TransactionSummaryCard({
   }
 
   return (
-    <div className="rounded-2xl bg-gradient-to-br from-[#5B9BD5] to-[#3A6BA8] p-5 text-white sm:p-6">
+    <div className="rounded-2xl bg-gradient-to-br from-gm-blue to-gm-navy p-5 text-white sm:p-6">
       <div className="mb-2 flex items-start justify-between">
         <h3 className="font-bold text-base uppercase tracking-wide sm:text-lg">
           {title}

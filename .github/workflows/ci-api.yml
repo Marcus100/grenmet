@@ -55,6 +55,7 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
+          cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
         run: uv sync
@@ -92,6 +93,7 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
@@ -146,6 +148,7 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
+          cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
         run: uv sync
@@ -168,7 +171,7 @@ jobs:
           retention-days: 30
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
+        uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6.0.1
         with:
           file: apps/api/fastapi/coverage.xml
           fail_ci_if_error: false
@@ -191,6 +194,7 @@ jobs:
 
       - name: Build Docker image (test)
         uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
+
         with:
           context: apps/api/fastapi
           file: apps/api/fastapi/Dockerfile.prod
@@ -219,6 +223,7 @@ jobs:
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+
         if: always()
         with:
           sarif_file: "trivy-results.sarif"
@@ -277,6 +282,7 @@ jobs:
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
+          cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
         run: uv sync

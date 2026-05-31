@@ -1,5 +1,7 @@
+import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { env } from "@/lib/env";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -7,6 +9,13 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Weather Image Archive",
   description: "Browse weather images from multiple sources",
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
@@ -15,8 +24,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" style={{ colorScheme: "light" }}>
+      <body className={inter.className}>
+        <PostHogProvider
+          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
+          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
+        >
+          {children}
+        </PostHogProvider>
+      </body>
     </html>
   );
 }

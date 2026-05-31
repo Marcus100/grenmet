@@ -4,12 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit",
     "type-check": "tsc --noEmit",
     "lint": "biome lint .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "check:ci": "biome ci ."
+    "check:ci": "biome ci .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "exports": {
     ".": {
@@ -27,9 +28,10 @@
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
+    "@types/react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
-    "@types/react": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

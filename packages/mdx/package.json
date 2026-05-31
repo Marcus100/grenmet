@@ -1,0 +1,14 @@
+{
+  "name": "@grenmet/mdx",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./remark": "./remark.js",
+    "./rehype": "./rehype.js",
+    "./recma": "./recma.js"
+  },
+  "dependencies": {
+    "mdx-annotations": "^0.1.4"
+  }
+}

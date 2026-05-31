@@ -75,21 +75,21 @@ async function loadSessionState(): Promise<SessionState> {
 
 function MarketingPanel() {
   return (
-    <section className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-[0_24px_80px_rgba(24,32,28,0.08)] backdrop-blur md:p-10">
+    <section className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-gm-card backdrop-blur md:p-10">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium font-mono text-(--muted) text-[11px] uppercase tracking-[0.24em]">
+        <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium font-mono text-(--muted) text-gm-label uppercase tracking-widest">
           Grenmet Shared Auth
         </span>
-        <span className="rounded-full bg-(--accent-soft) px-3 py-1 font-medium text-(--accent-strong) text-[13px]">
+        <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-gm-body-sm">
           FastAPI session-backed
         </span>
       </div>
 
       <div className="mt-8 max-w-2xl space-y-5">
-        <h1 className="max-w-xl font-semibold text-4xl text-foreground tracking-[-0.05em] md:text-6xl">
+        <h1 className="max-w-xl font-semibold text-4xl text-foreground tracking-normal md:text-6xl">
           One login surface for every Grenmet web app.
         </h1>
-        <p className="max-w-xl text-(--muted) text-[15px] leading-7 md:text-[17px]">
+        <p className="max-w-xl text-(--muted) text-gm-body leading-7 md:text-gm-body-base">
           The browser only keeps an opaque session secret in an HttpOnly cookie.
           FastAPI stays authoritative for sign-in, token exchange, rotation, and
           logout.
@@ -97,8 +97,8 @@ function MarketingPanel() {
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
-        <div className="rounded-[1.4rem] border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.22em]">
+        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
             Cookie Model
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -106,8 +106,8 @@ function MarketingPanel() {
             JWT.
           </p>
         </div>
-        <div className="rounded-[1.4rem] border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.22em]">
+        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
             Authority
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -115,8 +115,8 @@ function MarketingPanel() {
             tokens on demand.
           </p>
         </div>
-        <div className="rounded-[1.4rem] border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.22em]">
+        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
             Flow
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -137,10 +137,10 @@ function AuthenticatedPanel({
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <div className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.24em]">
+        <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
           Active session
         </div>
-        <h2 className="font-semibold text-3xl text-foreground tracking-[-0.04em]">
+        <h2 className="font-semibold text-3xl text-foreground tracking-normal">
           {sessionData.user.full_name || sessionData.user.email}
         </h2>
         <p className="text-(--muted) text-sm leading-6">
@@ -153,16 +153,16 @@ function AuthenticatedPanel({
       </div>
 
       <dl className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-[1.25rem] border border-(--line) bg-white/70 p-4">
-          <dt className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.2em]">
+        <div className="rounded-gm-8 border border-(--line) bg-white/70 p-4">
+          <dt className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
             Session expires
           </dt>
           <dd className="mt-2 text-foreground text-sm">
             {formatTimestamp(sessionData.session_expires_at)}
           </dd>
         </div>
-        <div className="rounded-[1.25rem] border border-(--line) bg-white/70 p-4">
-          <dt className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.2em]">
+        <div className="rounded-gm-8 border border-(--line) bg-white/70 p-4">
+          <dt className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
             Last used
           </dt>
           <dd className="mt-2 text-foreground text-sm">
@@ -171,7 +171,7 @@ function AuthenticatedPanel({
         </div>
       </dl>
 
-      <div className="rounded-[1.25rem] border border-(--line) bg-(--accent-soft) p-4 text-(--accent-strong) text-sm leading-6">
+      <div className="rounded-gm-8 border border-(--line) bg-(--auth-accent-soft) p-4 text-(--auth-accent-strong) text-sm leading-6">
         This app validated your cookie through /login/session/access-token. Use
         the controls below to rotate the session or revoke it in FastAPI.
       </div>
@@ -179,7 +179,7 @@ function AuthenticatedPanel({
       <div className="grid gap-3 sm:grid-cols-3">
         <form action={refreshSessionAction}>
           <button
-            className="w-full rounded-full bg-(--accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--accent-strong)"
+            className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
             type="submit"
           >
             Extend session
@@ -220,10 +220,10 @@ function SignedOutPanel({
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <div className="font-mono text-(--muted) text-[11px] uppercase tracking-[0.24em]">
+        <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
           {requestedApp ? `Sign in for ${requestedApp}` : "Sign in"}
         </div>
-        <h2 className="font-semibold text-3xl text-foreground tracking-[-0.04em]">
+        <h2 className="font-semibold text-3xl text-foreground tracking-normal">
           Authenticate once, then move back into the app.
         </h2>
         <p className="text-(--muted) text-sm leading-6">
@@ -234,14 +234,14 @@ function SignedOutPanel({
       </div>
 
       {pageError ? (
-        <div className="rounded-[1.25rem] border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
+        <div className="rounded-gm-8 border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
           {pageError}
         </div>
       ) : null}
 
       <SignInForm appName={requestedApp} returnTo={returnTo} />
 
-      <p className="text-(--muted) text-[13px] leading-6">
+      <p className="text-(--muted) text-gm-body-sm leading-6">
         Allowed absolute return destinations are controlled by the
         AUTH_ALLOWED_RETURN_HOSTS env var. Relative paths are always allowed.
       </p>
@@ -271,7 +271,7 @@ export default async function Home({ searchParams }: PageProps) {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <MarketingPanel />
 
-        <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-[0_24px_80px_rgba(24,32,28,0.08)] md:p-8">
+        <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-gm-card md:p-8">
           {sessionData ? (
             <AuthenticatedPanel sessionData={sessionData} />
           ) : (

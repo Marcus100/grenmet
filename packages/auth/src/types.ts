@@ -7,12 +7,39 @@ export interface AuthConfig {
   sessionCookieName: string;
 }
 
+// Returned inside session/access-token responses (trimmed subset).
 export interface SessionUserPublic {
   email: string;
   full_name: string | null;
   id: string;
   is_active: boolean;
   is_superuser: boolean;
+}
+
+// Full user profile returned by /auth/users/* and /auth/users/signup.
+export interface UserPublic {
+  created_at: string;
+  email: string;
+  first_name: string;
+  full_name: string;
+  id: string;
+  is_active: boolean;
+  is_superuser: boolean;
+  last_name: string;
+  middle_name: string | null;
+  updated_at: string;
+  username: string;
+}
+
+// Short-lived bearer token returned by POST /login/access-token.
+export interface Token {
+  access_token: string;
+  token_type: string;
+}
+
+// Generic success envelope returned by password-recovery and reset-password.
+export interface MessageResponse {
+  message: string;
 }
 
 export interface SessionPublic {

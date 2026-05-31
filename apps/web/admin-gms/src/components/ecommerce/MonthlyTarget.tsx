@@ -13,9 +13,9 @@ const _ReactApexChart = dynamic(() => import("react-apexcharts"), {
 export default function MonthlyTarget() {
   const _series = [75.55];
   const _options: ApexOptions = {
-    colors: ["#465FFF"],
+    colors: ["#2478f2"],
     chart: {
-      fontFamily: "Outfit, sans-serif",
+      fontFamily: "Inter, sans-serif",
       type: "radialBar",
       height: 330,
       sparkline: {
@@ -52,7 +52,7 @@ export default function MonthlyTarget() {
     },
     fill: {
       type: "solid",
-      colors: ["#465FFF"],
+      colors: ["#2478f2"],
     },
     stroke: {
       lineCap: "round",
@@ -71,8 +71,8 @@ export default function MonthlyTarget() {
   }
 
   return (
-    <div className="rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-800 dark:bg-white/[0.03]">
-      <div className="rounded-2xl bg-white px-5 pt-5 pb-11 shadow-default sm:px-6 sm:pt-6 dark:bg-gray-900">
+    <div className="rounded-2xl border border-border bg-gray-100">
+      <div className="rounded-2xl bg-background px-5 pt-5 pb-11 shadow-default sm:px-6 sm:pt-6">
         <p>PUBLIC FORECAST GOES HERE</p>
       </div>
     </div>

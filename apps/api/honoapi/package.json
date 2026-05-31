@@ -13,16 +13,23 @@
     "format": "biome format --write .",
     "check": "biome check .",
     "check:fix": "biome check --write .",
-    "check:ci": "biome ci ."
+    "check:ci": "biome ci .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.9",
-    "hono": "^4.11.5"
+    "hono": "^4.11.5",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@grenmet/tsconfig": "workspace:*",
+    "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
+    "@vitest/coverage-v8": "^4.0.17",
     "tsx": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "^4.0.17"
   }
 }
