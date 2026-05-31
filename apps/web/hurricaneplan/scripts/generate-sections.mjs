@@ -64,7 +64,7 @@ for (const file of files) {
 }
 
 mkdirSync(outDir, { recursive: true });
-writeFileSync(outFile, JSON.stringify(allSections, null, 2));
+writeFileSync(outFile, `${JSON.stringify(allSections, null, 2)}\n`);
 
 const totalSections = Object.values(allSections).reduce(
   (sum, page) => sum + page.sections.length,
