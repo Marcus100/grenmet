@@ -39,7 +39,7 @@
     "@types/react-dom": "catalog:",
     "dotenv-cli": "catalog:",
     "drizzle-kit": "catalog:",
-    "playwright": "^1.58.2",
+    "playwright": "^1.60.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }
