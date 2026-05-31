@@ -262,6 +262,7 @@ async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
         except Exception:
             # Welcome email failure must not block registration.
             import logging as _logging
+
             _logging.getLogger(__name__).exception(
                 "Failed to send welcome email to %s", user_in.email
             )
