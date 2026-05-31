@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@grenmet/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

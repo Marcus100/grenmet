@@ -25,18 +25,19 @@
     "dev:web:hr": "turbo run dev --filter=@grenmet/web-hr",
     "dev:web:salesbus": "turbo run dev --filter=@grenmet/web-salesbus",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
-    "design-system:sync": "node scripts/design-system-sync.mjs --write",
-    "design-system:check": "node scripts/design-system-sync.mjs --check",
-    "design-system:contrast": "node scripts/design-system-contrast.mjs",
-    "design-system:audit": "node scripts/design-system-audit.mjs",
-    "design-system:audit:full": "node scripts/design-system-audit.mjs --all",
+    "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
+    "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",
+    "design-system:contrast": "node scripts/design-system/design-system-contrast.mjs",
+    "design-system:audit": "node scripts/design-system/design-system-audit.mjs",
+    "design-system:audit:full": "node scripts/design-system/design-system-audit.mjs --all",
     "lint": "turbo run lint",
     "check": "turbo run check",
     "check:fix": "turbo run check:fix",
     "check:ci": "turbo run check:ci",
     "type-check": "turbo run type-check",
     "fix": "ultracite fix",
-    "generate:api-client": "turbo run generate --filter=@grenmet/api-client"
+    "generate:api-client": "turbo run generate --filter=@grenmet/api-client",
+    "check:drift": "node scripts/check-api-drift.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
@@ -55,10 +56,12 @@
         "@react-jvectormap/world>react": "^19",
         "@react-jvectormap/world>react-dom": "^19",
         "@tanstack/zod-form-adapter>zod": "^4",
-        "@kubb/react-fabric": "0.13.1"
+        "@kubb/react-fabric": "0.13.1",
+        "@sentry/nextjs>next": "^16"
       }
     },
     "onlyBuiltDependencies": [
+      "@sentry/cli",
       "esbuild",
       "msw"
     ]

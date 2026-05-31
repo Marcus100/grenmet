@@ -11,6 +11,11 @@ export const env = createEnv({
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
   },
   client: {
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
+      .string()
+      .optional()
+      .default("development"),
     NEXT_PUBLIC_POSTHOG_KEY: z.string().optional().default(""),
     NEXT_PUBLIC_POSTHOG_HOST: z
       .string()
@@ -23,6 +28,8 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,
     NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
   },

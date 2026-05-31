@@ -17,6 +17,7 @@
   "dependencies": {
     "@grenmet/api-client": "workspace:*",
     "@grenmet/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-query": "catalog:",
     "lucide-react": "catalog:",

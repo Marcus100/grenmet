@@ -25,6 +25,7 @@
     "@fullcalendar/list": "^6.1.19",
     "@fullcalendar/react": "^6.1.19",
     "@fullcalendar/timegrid": "^6.1.19",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "@tanstack/react-form": "^1.27.7",
     "@tanstack/react-query": "catalog:",

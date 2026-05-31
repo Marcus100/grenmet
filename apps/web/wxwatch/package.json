@@ -19,6 +19,7 @@
   "dependencies": {
     "@grenmet/auth": "workspace:*",
     "@grenmet/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "drizzle-orm": "catalog:",
     "next": "catalog:",

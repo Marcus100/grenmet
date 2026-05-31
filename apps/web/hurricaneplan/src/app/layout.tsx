@@ -1,5 +1,5 @@
 import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
-import glob from "fast-glob";
+import { allHurricanepages } from "content-collections";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -9,8 +9,6 @@ import type { Section } from "@/components/SectionProvider";
 import { env } from "@/lib/env";
 
 import "@/styles/tailwind.css";
-
-const PAGE_PATH_REGEX = /(^|\/)page\.mdx$/;
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,19 +30,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pages = await glob("**/*.mdx", { cwd: "src/app" });
-  const allSectionsEntries = (await Promise.all(
-    pages.map(async (filename) => [
-      `/${filename.replace(PAGE_PATH_REGEX, "")}`,
-      (await import(`./${filename}`)).sections,
-    ])
-  )) as [string, Section[]][];
-  const allSections = Object.fromEntries(allSectionsEntries);
+  const allSections: Record<string, Section[]> = Object.fromEntries(
+    allHurricanepages.map((page) => {
+      const path = page._meta.path.replaceAll("\\", "/");
+      const pathname = path === "index" ? "/" : `/${path}`;
+      return [pathname, page.sections];
+    })
+  );
 
   return (
     <html

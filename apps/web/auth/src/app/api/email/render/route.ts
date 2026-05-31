@@ -1,4 +1,5 @@
 import { renderTemplate, type TemplateName } from "@grenmet/email-templates";
+import { captureException } from "@sentry/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
@@ -46,11 +47,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const result = await renderTemplate(template as TemplateName, props);
     return NextResponse.json(result);
   } catch (error) {
-    console.error(
-      "[email/render] Failed to render template %s:",
-      template,
-      error
-    );
+    captureException(error, {
+      extra: { template },
+    });
     return NextResponse.json({ error: "Render failed" }, { status: 500 });
   }
 }

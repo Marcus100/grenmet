@@ -24,7 +24,7 @@ import {
 import Highlighter from "react-highlight-words";
 
 import { navigation } from "@/components/Navigation";
-import type { Result } from "@/mdx/search.mjs";
+import type { Result } from "@/mdx/search";
 import { useMobileNavigationStore } from "./MobileNavigation";
 
 type EmptyObject = Record<string, never>;
@@ -71,7 +71,7 @@ function useAutocomplete({ onNavigate }: { onNavigate: () => void }) {
         navigate,
       },
       getSources({ query }) {
-        return import("@/mdx/search.mjs").then(({ search }) => [
+        return import("@/mdx/search").then(({ search }) => [
           {
             sourceId: "documentation",
             getItems() {
