@@ -15,11 +15,13 @@ const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "ts", "tsx"],
 };
 
-export default withSentryConfig(withContentCollections(nextConfig), {
-  org: "grenmet",
-  project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
-  disableLogger: true,
-  automaticVercelMonitors: false,
-});
+export default withContentCollections(nextConfig).then((config) =>
+  withSentryConfig(config as NextConfig, {
+    org: "grenmet",
+    project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
+    silent: !process.env.CI,
+    widenClientFileUpload: true,
+    disableLogger: true,
+    automaticVercelMonitors: false,
+  })
+);
