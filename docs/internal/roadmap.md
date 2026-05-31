@@ -228,12 +228,13 @@ Separate from the programme phases, the design system has its own compliance tra
 ### Completed
 - ✅ GrenMet v1 foundation block deployed to all 8 web apps
 - ✅ spicewx established as reference implementation
+- ✅ Figma `GrenMet v1` file consolidated into current `00 Overview` and `13 Components` handoff map
 - ✅ Button Code Connect mapping complete locally (publish deferred — Figma account limitation)
 
 ### In Progress
 - 🔄 Foundation compliance audit per app (run `pnpm design-system:audit`)
-- 🔄 Resolving documented exceptions (dark mode in admin-gms, font overrides in auth/wxwatch/wxproducts)
-- 🔄 Input Code Connect mapping next; local mappings only until publish access is upgraded
+- 🔄 Resolving documented exceptions: admin-gms TailAdmin drift, hurricaneplan template drift, document-lane fixed A4 dimensions, and accepted media/layout exceptions
+- 🔄 Input component set exists in Figma and code; local Code Connect mapping is next while publish access remains blocked
 
 ### Planned
 - 📋 Promote selected audit rules to blocking CI checks (starting with spicewx)

@@ -2,8 +2,8 @@ import { render } from "@react-email/render";
 import {
   ResetPasswordEmail,
   type ResetPasswordEmailProps,
-} from "./reset-password.js";
-import { WelcomeEmail, type WelcomeEmailProps } from "./welcome.js";
+} from "./reset-password";
+import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
 export type TemplateName = "reset-password" | "welcome";
 

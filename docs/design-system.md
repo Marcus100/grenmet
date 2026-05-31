@@ -18,6 +18,49 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 ---
 
+## Current Figma File Map
+
+Canonical design source: [GrenMet v1](https://www.figma.com/design/kfVRAcgxzhs4Sj6aCRyOz4/GrenMet-v1?m=auto&t=86C75Bo0qLxDz03f-6).
+
+As of 2026-05-31, the MCP-visible Figma file structure has two top-level pages:
+
+| Page | Role |
+|---|---|
+| `00 Overview` | File cover, file guide, changelog, and GMS Digital Service Architecture board. |
+| `13 Components` | Active component library, component rules, drift snapshot, production component sections, guidance, deprecated components, and archive. |
+
+The `00 Overview` page is documentation-oriented. It contains:
+
+- `01 File Cover`
+- `02 File Guide`
+- `03 Changelog`
+- `04 GMS Digital Service Architecture`
+
+The Figma changelog records `v1.2` on 2026-05-30: file simplification, page split into brand/foundation areas, PDS section cleanup, deprecated component archival, and Website namespace unification. The current MCP-visible structure exposes the consolidated overview/components handoff; if extra library pages are visible in the Figma UI but not through MCP metadata, treat the Figma UI as the source for those pages and update this section.
+
+The `13 Components` page is the repo handoff map for v1:
+
+| Section | Handoff role | Repo direction |
+|---|---|---|
+| `00 Guide / Component Rules` | Component operating rules and 2026-05-31 drift snapshot. | Keep this aligned with the audit summary below. |
+| `01 Core UI` | Production core primitives. Figma currently documents `Button` and `Input` with 39 variants across 2 component sets. | `Button` has local Code Connect. `Input` exists in Figma and code; local Code Connect remains next. |
+| `02 Weather Domain` | Alert cards, compact alert cards, forecast headline, metrics, metric grid, and IBF matrix. | Weather warning and IBF components should graduate through `@grenmet/ui` only after APIs are stable. |
+| `03 Product PDF` | A4 report shell/body/header/footer, product badges, alert grid, alert section, and forecast details with IBF. | Keep fixed A4 dimensions and Noto Sans in the Document Templates lane. |
+| `04 Website / Shared` | Shared public website components: logo, accent line, social button, footer link, author row, section header, warning rows/accordion, summary/news cards, and 44px icon buttons. | Public website patterns should be validated in `spicewx` before broad reuse. |
+| `05 Website / Desktop` | Desktop site header, desktop navigation menu, forecast date rail, and forecast date tab. | Desktop navigation should stay public-weather-specific unless reused outside the website lane. |
+| `06 Website / Mobile` | Mobile header, mobile navigation row, warning shortcut, subnav link, nav drawer, and mobile footer. | Mobile shell work should preserve the light-only v1 contract and `--gm-height-header`. |
+| `07 Website / Composition Patterns` | Latest updates and weather news sections, including mobile compositions. | Promote only repeated composition patterns; keep content-specific layout local. |
+| `08 Icon Usage / Link to Icon Library` | Link/reference point for icon usage. | Prefer existing icon libraries in code; avoid creating one-off SVG systems unless a product requires them. |
+| `10 PDS / Weather Severity` | Guidance for severity ladder and severity token usage. | Keep severity tokens aliased to risk tokens and pair color with text labels. |
+| `11 PDS / Accessibility` | Contrast, focus, warning, and light-mode guidance. | Keep warning contrast checks passing and avoid active dark-mode behavior in v1. |
+| `12 Documentation Components` | Internal documentation components, including cover hero, guide card, status chip, metadata row, accent bar, and architecture board. | These are Figma documentation components, not default web app primitives. |
+| `98 Deprecated / Legacy Website Components` | Deprecated legacy website components. | Do not map new code to deprecated Figma components. |
+| `99 Archive / Pre-restructure Backup - 2026-05-31` | Pre-restructure checkpoint. | Reference only for recovery or comparison. |
+
+This section is the v1 handoff document for now. Create a separate `docs/figma-design-handoff.md` only when individual Figma components need implementation owners, acceptance criteria, node-by-node mapping, or release tracking that would make this guide too noisy.
+
+---
+
 ## How the design system works
 
 The design system has three layers:
@@ -199,6 +242,26 @@ Audit Figma before changing token values in code. Every public Figma variable sh
 
 The current audit verified the collection includes the v1 color, spacing, radius, typography, line-height, and shadow code-contract variables with valid `var(--gm-...)` WEB code syntax.
 
+Repo-side audit status as of 2026-05-31:
+
+- `pnpm design-system:check` passes. Generated app foundation blocks match `@grenmet/ui`.
+- `pnpm design-system:contrast` passes for all warning foreground/background pairs.
+- `pnpm design-system:audit` remains warning-only. It reports expected migration debt, not CI failures.
+
+Current audit summary:
+
+| App/package | Audit status |
+|---|---|
+| `auth` | No findings. |
+| `spicewx` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
+| `wxwatch` | Small fixed-media/gallery viewport exceptions. |
+| `salesbus` | Small product-specific sizing exceptions. |
+| `wxproducts` | Fixed A4/PDF dimensions in the document lane. |
+| `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
+| `@grenmet/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
+| `admin-gms` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
+| `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches, and template spacing. |
+
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `admin-gms`; retained as migration debt because downstream third-party overrides depend on it.
 - **typography** — detects font imports and `--font-sans` overrides that bypass the GrenMet font bridge. V1 apps should resolve web UI typography back to `--gm-font-sans`; official document templates may use `--gm-font-document`.
@@ -263,7 +326,7 @@ The next Core UI pilot is the shared React `Input` represented in Figma as `Gren
 - Figma states are `Default`, `Disabled`, and `Invalid`.
 - The editable `Text` property supports placeholder or example value content.
 - These Figma states document the current React surface: disabled remains a native input prop, and invalid remains `aria-invalid`.
-- Input is the next local Code Connect mapping after Button. Do not publish Input or any broader component mappings while publish remains blocked.
+- Input is present in Figma and code, but it does not yet have a local `.figma.tsx` Code Connect mapping. It remains the next mapping after Button. Do not publish Input or any broader component mappings while publish remains blocked.
 
 ## Deferred
 

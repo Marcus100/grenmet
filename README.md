@@ -157,8 +157,8 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
 | [Troubleshooting](docs/troubleshooting.md) | Common dev issues — auth loops, stale types, Turbo cache, port conflicts, DB migrations |
 | [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
-| [Service and Product Catalogue](docs/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
-| [Design System](docs/design-system.md) | GrenMet v1 tokens, Figma bridge, compliance guide, audit commands |
+| [Service and Product Catalogue](docs/internal/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
+| [Design System](docs/design-system.md) | GrenMet v1 tokens, current Figma file map, component handoff, compliance guide, audit commands |
 | [API Development](docs/api/development.md) | FastAPI local development guide |
 | [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
 | [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |
