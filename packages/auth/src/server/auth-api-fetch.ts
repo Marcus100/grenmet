@@ -18,6 +18,7 @@ function buildCookieOptions(config: AuthConfig, expires?: Date) {
     httpOnly: true,
     path: "/",
     sameSite: "lax" as const,
+    // biome-ignore lint/style/noProcessEnv: shared package, no app env.ts available
     secure: process.env.NODE_ENV === "production",
   };
 }

@@ -28,6 +28,7 @@ export function createApp(): Hono {
 
   // ── Global error handler ─────────────────────────────────────────────────────
   app.onError((err, c) => {
+    // biome-ignore lint/suspicious/noConsole: server error handler
     console.error("[hono] Unhandled error:", err);
     return c.json({ error: "Internal server error" }, 500);
   });

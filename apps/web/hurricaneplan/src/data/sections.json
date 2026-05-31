@@ -21,7 +21,7 @@
     "sections": [
       {
         "id": "title-attachments-description-on-this-page-we-ll-dive-into-the-different-attachment-endpoints-you-can-use-to-manage-attachments-programmatically",
-        "title": "title: 'Attachments'\ndescription: 'On this page, we’ll dive into the different attachment endpoints you can use to manage attachments programmatically.'"
+        "title": "title: 'Attachments'\r\ndescription: 'On this page, we’ll dive into the different attachment endpoints you can use to manage attachments programmatically.'"
       },
       {
         "id": "the-attachment-model",
@@ -54,7 +54,7 @@
     "sections": [
       {
         "id": "title-authentication-description-in-this-guide-we-ll-look-at-how-authentication-works-protocol-offers-two-ways-to-authenticate-your-api-requests-basic-authentication-and-o-auth2-with-a-token",
-        "title": "title: 'Authentication'\ndescription: 'In this guide, we’ll look at how authentication works. Protocol offers two ways to authenticate your API requests: Basic authentication and OAuth2 with a token.'"
+        "title": "title: 'Authentication'\r\ndescription: 'In this guide, we’ll look at how authentication works. Protocol offers two ways to authenticate your API requests: Basic authentication and OAuth2 with a token.'"
       },
       {
         "id": "basic-authentication",
@@ -75,7 +75,7 @@
     "sections": [
       {
         "id": "title-contacts-description-on-this-page-we-ll-dive-into-the-different-contact-endpoints-you-can-use-to-manage-contacts-programmatically",
-        "title": "title: 'Contacts'\ndescription: 'On this page, we’ll dive into the different contact endpoints you can use to manage contacts programmatically.'"
+        "title": "title: 'Contacts'\r\ndescription: 'On this page, we’ll dive into the different contact endpoints you can use to manage contacts programmatically.'"
       },
       {
         "id": "the-contact-model",
@@ -108,7 +108,7 @@
     "sections": [
       {
         "id": "title-conversations-description-on-this-page-we-ll-dive-into-the-different-conversation-endpoints-you-can-use-to-manage-conversations-programmatically",
-        "title": "title: 'Conversations'\ndescription: 'On this page, we’ll dive into the different conversation endpoints you can use to manage conversations programmatically.'"
+        "title": "title: 'Conversations'\r\ndescription: 'On this page, we’ll dive into the different conversation endpoints you can use to manage conversations programmatically.'"
       },
       {
         "id": "the-conversation-model",
@@ -154,7 +154,7 @@
     "sections": [
       {
         "id": "title-errors-description-in-this-guide-we-will-talk-about-what-happens-when-something-goes-wrong-while-you-work-with-the-api",
-        "title": "title: 'Errors'\ndescription: 'In this guide, we will talk about what happens when something goes wrong while you work with the API.'"
+        "title": "title: 'Errors'\r\ndescription: 'In this guide, we will talk about what happens when something goes wrong while you work with the API.'"
       },
       {
         "id": "status-codes",
@@ -196,7 +196,7 @@
     "sections": [
       {
         "id": "title-groups-description-on-this-page-we-ll-dive-into-the-different-group-endpoints-you-can-use-to-manage-groups-programmatically",
-        "title": "title: 'Groups'\ndescription: 'On this page, we’ll dive into the different group endpoints you can use to manage groups programmatically.'"
+        "title": "title: 'Groups'\r\ndescription: 'On this page, we’ll dive into the different group endpoints you can use to manage groups programmatically.'"
       },
       {
         "id": "the-group-model",
@@ -250,7 +250,7 @@
     "sections": [
       {
         "id": "title-messages-description-on-this-page-we-ll-dive-into-the-different-message-endpoints-you-can-use-to-manage-messages-programmatically",
-        "title": "title: 'Messages'\ndescription: 'On this page, we’ll dive into the different message endpoints you can use to manage messages programmatically.'"
+        "title": "title: 'Messages'\r\ndescription: 'On this page, we’ll dive into the different message endpoints you can use to manage messages programmatically.'"
       },
       {
         "id": "the-message-model",
@@ -300,7 +300,7 @@
     "sections": [
       {
         "id": "title-pagination-description-in-this-guide-we-will-look-at-how-to-work-with-paginated-responses-when-querying-the-protocol-api",
-        "title": "title: 'Pagination'\ndescription: 'In this guide, we will look at how to work with paginated responses when querying the Protocol API'"
+        "title": "title: 'Pagination'\r\ndescription: 'In this guide, we will look at how to work with paginated responses when querying the Protocol API'"
       },
       {
         "id": "example-using-cursors",
@@ -313,7 +313,7 @@
     "sections": [
       {
         "id": "title-quickstart-description-this-guide-will-get-you-all-set-up-and-ready-to-use-the-protocol-api-we-ll-cover-how-to-get-started-an-api-client-and-how-to-make-your-first-api-request",
-        "title": "title: 'Quickstart'\ndescription: 'This guide will get you all set up and ready to use the Protocol API. We’ll cover how to get started an API client and how to make your first API request.'"
+        "title": "title: 'Quickstart'\r\ndescription: 'This guide will get you all set up and ready to use the Protocol API. We’ll cover how to get started an API client and how to make your first API request.'"
       },
       {
         "id": "choose-your-client",
@@ -351,7 +351,7 @@
     "sections": [
       {
         "id": "title-protocol-sdks-description-protocol-offers-fine-tuned-java-script-ruby-php-python-and-go-libraries-to-make-your-life-easier-and-give-you-the-best-experience-when-consuming-the-api",
-        "title": "title: 'Protocol SDKs'\ndescription: 'Protocol offers fine-tuned JavaScript, Ruby, PHP, Python, and Go libraries to make your life easier and give you the best experience when consuming the API.'"
+        "title": "title: 'Protocol SDKs'\r\ndescription: 'Protocol offers fine-tuned JavaScript, Ruby, PHP, Python, and Go libraries to make your life easier and give you the best experience when consuming the API.'"
       }
     ]
   },
@@ -421,7 +421,7 @@
     "sections": [
       {
         "id": "title-webhooks-description-in-this-guide-we-will-look-at-how-to-register-and-consume-webhooks-to-integrate-your-app-with-protocol",
-        "title": "title: 'Webhooks'\ndescription: 'In this guide, we will look at how to register and consume webhooks to integrate your app with Protocol.'"
+        "title": "title: 'Webhooks'\r\ndescription: 'In this guide, we will look at how to register and consume webhooks to integrate your app with Protocol.'"
       },
       {
         "id": "registering-webhooks",
