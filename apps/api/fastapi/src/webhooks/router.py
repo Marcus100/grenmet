@@ -100,7 +100,10 @@ async def resend_webhook(request: Request) -> JSONResponse:
             )
 
         if not _verify_svix_signature(
-            raw_body, svix_id, svix_timestamp, svix_signature,
+            raw_body,
+            svix_id,
+            svix_timestamp,
+            svix_signature,
             email_settings.RESEND_WEBHOOK_SECRET,
         ):
             raise HTTPException(
@@ -116,7 +119,9 @@ async def resend_webhook(request: Request) -> JSONResponse:
     try:
         event: dict = json.loads(raw_body)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON"
+        )
 
     event_type: str = event.get("type", "unknown")
     data: dict = event.get("data", {})
@@ -125,7 +130,9 @@ async def resend_webhook(request: Request) -> JSONResponse:
 
     logger.info(
         "Resend webhook received: type=%s email_id=%s to=%s",
-        event_type, email_id, to_address,
+        event_type,
+        email_id,
+        to_address,
     )
 
     # ── Handle specific events ─────────────────────────────────────────────
@@ -133,14 +140,17 @@ async def resend_webhook(request: Request) -> JSONResponse:
         case "email.bounced":
             logger.warning(
                 "Email bounced: email_id=%s to=%s bounce_type=%s",
-                email_id, to_address, data.get("bounce", {}).get("type"),
+                email_id,
+                to_address,
+                data.get("bounce", {}).get("type"),
             )
             # TODO: add to suppression list / flag user
 
         case "email.complained":
             logger.warning(
                 "Spam complaint: email_id=%s to=%s",
-                email_id, to_address,
+                email_id,
+                to_address,
             )
             # TODO: unsubscribe user from non-transactional emails
 

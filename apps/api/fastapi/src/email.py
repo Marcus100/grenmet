@@ -63,7 +63,9 @@ def send_email(
 
     # ── SMTP fallback (local dev / Mailpit) ────────────────────────────────────
     if not email_settings.SMTP_HOST or not email_settings.SMTP_PORT:
-        raise ValueError("No email provider configured: set RESEND_API_KEY or SMTP_HOST")
+        raise ValueError(
+            "No email provider configured: set RESEND_API_KEY or SMTP_HOST"
+        )
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
