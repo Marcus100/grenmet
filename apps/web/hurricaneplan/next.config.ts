@@ -15,7 +15,9 @@ const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "ts", "tsx"],
 };
 
-export default withSentryConfig(withContentCollections(nextConfig), {
+const configWithCollections = await withContentCollections(nextConfig);
+
+export default withSentryConfig(configWithCollections, {
   org: "grenmet",
   project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
   silent: !process.env.CI,
