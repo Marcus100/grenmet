@@ -49,6 +49,7 @@ jobs:
 
           docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
           docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
 
           [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
           echo "app_prod: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
@@ -89,6 +90,7 @@ jobs:
 
           docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
           docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
 
           [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
           echo "wxwatch: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
@@ -129,6 +131,7 @@ jobs:
 
           docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
           docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
 
           [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
           echo "wxproducts: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
@@ -151,6 +154,53 @@ jobs:
           docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
           [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
           echo "wxproducts integrity OK ($TABLE_COUNT tables)"
+
+      # ── Offsite upload ───────────────────────────────────────────────────────────
+
+      - name: Upload backups to DigitalOcean Spaces
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
+          AWS_EC2_METADATA_DISABLED: "true"
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+        run: |
+          set -euo pipefail
+          command -v aws >/dev/null || { echo "aws CLI is required for Spaces uploads" && exit 1; }
+          : "${AWS_ACCESS_KEY_ID:?DO_SPACES_ACCESS_KEY_ID is required}"
+          : "${AWS_SECRET_ACCESS_KEY:?DO_SPACES_SECRET_ACCESS_KEY is required}"
+          : "${AWS_DEFAULT_REGION:?DO_SPACES_REGION is required}"
+          : "${DO_SPACES_BUCKET:?DO_SPACES_BUCKET is required}"
+          : "${DO_SPACES_ENDPOINT:?DO_SPACES_ENDPOINT is required}"
+
+          UPLOAD_DATE=$(date -u +%Y/%m/%d)
+
+          upload_backup() {
+            local backup_path="$1"
+            local filename
+            local object_key
+
+            filename=$(basename "$backup_path")
+            object_key="production/$UPLOAD_DATE/$filename"
+
+            [ -f "$backup_path" ] && [ -s "$backup_path" ] || { echo "$filename missing or empty" && exit 1; }
+
+            aws s3 cp "$backup_path" "s3://$DO_SPACES_BUCKET/$object_key" \
+              --endpoint-url "$DO_SPACES_ENDPOINT" \
+              --only-show-errors
+
+            aws s3api head-object \
+              --bucket "$DO_SPACES_BUCKET" \
+              --key "$object_key" \
+              --endpoint-url "$DO_SPACES_ENDPOINT" >/dev/null
+
+            echo "Uploaded $filename to s3://$DO_SPACES_BUCKET/$object_key"
+          }
+
+          upload_backup "$APP_BACKUP_PATH"
+          upload_backup "$WXWATCH_BACKUP_PATH"
+          upload_backup "$WXPRODUCTS_BACKUP_PATH"
 
       # ── Retention & summary ──────────────────────────────────────────────────────
 
