@@ -12,12 +12,12 @@ jobs:
     runs-on: [self-hosted, production]
     timeout-minutes: 30
     environment:
-      name: production
+      name: production-backup
     permissions:
       contents: read
     env:
       BACKUP_RETENTION_DAYS: 30
-      BACKUP_DIR: /home/github/backups
+      BACKUP_DIR: /var/backups/grenmet
 
     steps:
       - name: Verify database connectivity
