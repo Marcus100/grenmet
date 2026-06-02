@@ -1,6 +1,7 @@
 import uuid
 from typing import Any, cast
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, delete, select
@@ -100,17 +101,24 @@ async def _get_or_create_profile(session: AsyncSession, user: User) -> UserProfi
     profile = result.scalars().first()
     if profile:
         return profile
-    profile = UserProfile(
-        user_id=user.id,
-        phone=None,
-        avatar_url=None,
-        status=UserStatus.ACTIVE,
-        created_by=str(user.id),
-    )
-    session.add(profile)
-    await session.commit()
-    await session.refresh(profile)
-    return profile
+    try:
+        profile = UserProfile(
+            user_id=user.id,
+            phone=None,
+            avatar_url=None,
+            status=UserStatus.ACTIVE,
+            created_by=str(user.id),
+        )
+        session.add(profile)
+        await session.commit()
+        await session.refresh(profile)
+        return profile
+    except IntegrityError:
+        await session.rollback()
+        result = await session.execute(
+            select(UserProfile).where(UserProfile.user_id == user.id)
+        )
+        return result.scalars().first()  # type: ignore[return-value]
 
 
 async def _get_or_create_address(
@@ -122,11 +130,18 @@ async def _get_or_create_address(
     address = result.scalars().first()
     if address:
         return address
-    address = UserAddress(user_id=user_id)
-    session.add(address)
-    await session.commit()
-    await session.refresh(address)
-    return address
+    try:
+        address = UserAddress(user_id=user_id)
+        session.add(address)
+        await session.commit()
+        await session.refresh(address)
+        return address
+    except IntegrityError:
+        await session.rollback()
+        result = await session.execute(
+            select(UserAddress).where(UserAddress.user_id == user_id)
+        )
+        return result.scalars().first()  # type: ignore[return-value]
 
 
 async def _get_or_create_roster_preference(
@@ -138,11 +153,18 @@ async def _get_or_create_roster_preference(
     preference = result.scalars().first()
     if preference:
         return preference
-    preference = RosterPreference(user_id=user_id)
-    session.add(preference)
-    await session.commit()
-    await session.refresh(preference)
-    return preference
+    try:
+        preference = RosterPreference(user_id=user_id)
+        session.add(preference)
+        await session.commit()
+        await session.refresh(preference)
+        return preference
+    except IntegrityError:
+        await session.rollback()
+        result = await session.execute(
+            select(RosterPreference).where(RosterPreference.user_id == user_id)
+        )
+        return result.scalars().first()  # type: ignore[return-value]
 
 
 async def _get_or_create_approval_authority(
@@ -154,11 +176,18 @@ async def _get_or_create_approval_authority(
     authority = result.scalars().first()
     if authority:
         return authority
-    authority = ApprovalAuthority(user_id=user_id)
-    session.add(authority)
-    await session.commit()
-    await session.refresh(authority)
-    return authority
+    try:
+        authority = ApprovalAuthority(user_id=user_id)
+        session.add(authority)
+        await session.commit()
+        await session.refresh(authority)
+        return authority
+    except IntegrityError:
+        await session.rollback()
+        result = await session.execute(
+            select(ApprovalAuthority).where(ApprovalAuthority.user_id == user_id)
+        )
+        return result.scalars().first()  # type: ignore[return-value]
 
 
 async def _get_employment_record(

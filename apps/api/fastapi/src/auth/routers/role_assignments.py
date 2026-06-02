@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import service
+from src.auth.constants import ERROR_ROLE_ASSIGNMENT_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import (
     UserRoleAssignmentCreate,
@@ -37,8 +38,8 @@ async def read_role_assignments(
     )
     return UserRoleAssignmentsPublic(
         data=[
-            UserRoleAssignmentPublic.model_validate(assignment, from_attributes=True)
-            for assignment in assignments
+            UserRoleAssignmentPublic.model_validate(a, from_attributes=True)
+            for a in assignments
         ],
         count=len(assignments),
     )
@@ -59,16 +60,17 @@ async def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) ->
         session=session, assignment_id=assignment_id
     )
     if not assignment:
-        raise HTTPException(status_code=404, detail="Role assignment not found")
+        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     return assignment
 
 
 @router.post(
     "/",
     response_model=UserRoleAssignmentPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create role assignment",
     description="Create a user-role assignment (superuser only).",
-    responses={status.HTTP_200_OK: {"description": "Role assignment created"}},
+    responses={status.HTTP_201_CREATED: {"description": "Role assignment created"}},
 )
 async def create_role_assignment(
     *, session: SessionDep, assignment_in: UserRoleAssignmentCreate
@@ -98,7 +100,7 @@ async def update_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not db_assignment:
-        raise HTTPException(status_code=404, detail="Role assignment not found")
+        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     return await service.update_user_role_assignment(
         session=session,
         db_assignment=db_assignment,

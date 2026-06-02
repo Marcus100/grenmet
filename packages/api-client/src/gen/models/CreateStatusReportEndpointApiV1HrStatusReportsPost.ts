@@ -10,7 +10,12 @@ import type { StatusReportDetails } from "./StatusReportDetails.js";
 /**
  * @description Status report created
  */
-export type CreateStatusReportEndpointApiV1HrStatusReportsPost200 =
+export type CreateStatusReportEndpointApiV1HrStatusReportsPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateStatusReportEndpointApiV1HrStatusReportsPost201 =
   StatusReportDetails;
 
 /**
@@ -32,10 +37,13 @@ export type CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest =
   StatusReportCreate;
 
 export type CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse =
-  CreateStatusReportEndpointApiV1HrStatusReportsPost200;
+  | CreateStatusReportEndpointApiV1HrStatusReportsPost200
+  | CreateStatusReportEndpointApiV1HrStatusReportsPost201;
 
 export type CreateStatusReportEndpointApiV1HrStatusReportsPostMutation = {
-  Response: CreateStatusReportEndpointApiV1HrStatusReportsPost200;
+  Response:
+    | CreateStatusReportEndpointApiV1HrStatusReportsPost200
+    | CreateStatusReportEndpointApiV1HrStatusReportsPost201;
   Request: CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest;
   Errors:
     | CreateStatusReportEndpointApiV1HrStatusReportsPost403

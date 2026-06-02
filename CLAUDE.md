@@ -105,4 +105,5 @@ before writing anything to project files or memory.
 | Troubleshooting                  | `docs/troubleshooting.md`    |
 | Design system tokens             | `docs/design-system.md`      |
 | A specific app                   | `apps/web/<app>/CLAUDE.md`   |
+| FastAPI conventions              | `apps/api/fastapi/CLAUDE.md` |
 | Dev commands                     | `AGENTS.md`                  |

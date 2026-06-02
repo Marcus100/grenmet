@@ -441,6 +441,61 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@opentelemetry/api@1.9.1)(@types/node@22.19.11)(jiti@2.7.0)(jsdom@27.4.0)(lightningcss@1.30.2)(msw@2.12.10(@types/node@22.19.11)(typescript@5.9.3))(terser@5.48.0)(tsx@4.21.0)(yaml@2.8.3)
 
+  apps/web/cap:
+    dependencies:
+      '@grenmet/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
+      '@grenmet/auth':
+        specifier: workspace:*
+        version: link:../../../packages/auth
+      '@grenmet/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      '@t3-oss/env-nextjs':
+        specifier: 'catalog:'
+        version: 0.13.10(typescript@5.9.3)(zod@4.3.6)
+      lucide-react:
+        specifier: 'catalog:'
+        version: 0.562.0(react@19.2.3)
+      next:
+        specifier: 'catalog:'
+        version: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.3
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.3(react@19.2.3)
+      zod:
+        specifier: 'catalog:'
+        version: 4.3.6
+    devDependencies:
+      '@grenmet/tsconfig':
+        specifier: workspace:*
+        version: link:../../../packages/tsconfig
+      '@tailwindcss/postcss':
+        specifier: 'catalog:'
+        version: 4.1.18
+      '@total-typescript/ts-reset':
+        specifier: 'catalog:'
+        version: 0.6.1
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.11
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.9
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.9)
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.1.18
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
   apps/web/hr:
     dependencies:
       '@grenmet/ui':
@@ -11019,7 +11074,7 @@ snapshots:
 
   '@types/connect@3.4.38':
     dependencies:
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
 
   '@types/debug@4.1.12':
     dependencies:
@@ -11051,7 +11106,7 @@ snapshots:
 
   '@types/mysql@2.15.26':
     dependencies:
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
 
   '@types/node@22.19.11':
     dependencies:
@@ -11067,13 +11122,13 @@ snapshots:
 
   '@types/pg@8.16.0':
     dependencies:
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
       pg-protocol: 1.11.0
       pg-types: 2.2.0
 
   '@types/pg@8.6.1':
     dependencies:
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
       pg-protocol: 1.11.0
       pg-types: 2.2.0
 
@@ -11097,7 +11152,7 @@ snapshots:
 
   '@types/tedious@4.0.14':
     dependencies:
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
 
   '@types/trusted-types@2.0.7':
     optional: true
@@ -13745,7 +13800,7 @@ snapshots:
       '@protobufjs/path': 1.1.2
       '@protobufjs/pool': 1.1.0
       '@protobufjs/utf8': 1.1.1
-      '@types/node': 22.19.11
+      '@types/node': 25.9.1
       long: 5.3.2
 
   proxy-from-env@1.1.0: {}

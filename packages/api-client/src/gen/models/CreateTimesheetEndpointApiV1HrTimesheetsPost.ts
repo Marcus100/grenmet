@@ -10,7 +10,12 @@ import type { TimesheetDetails } from "./TimesheetDetails.js";
 /**
  * @description Timesheet and entries created
  */
-export type CreateTimesheetEndpointApiV1HrTimesheetsPost200 = TimesheetDetails;
+export type CreateTimesheetEndpointApiV1HrTimesheetsPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateTimesheetEndpointApiV1HrTimesheetsPost201 = TimesheetDetails;
 
 /**
  * @description Self/proxy submission disabled or not allowed for user
@@ -31,10 +36,13 @@ export type CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest =
   TimesheetCreate;
 
 export type CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse =
-  CreateTimesheetEndpointApiV1HrTimesheetsPost200;
+  | CreateTimesheetEndpointApiV1HrTimesheetsPost200
+  | CreateTimesheetEndpointApiV1HrTimesheetsPost201;
 
 export type CreateTimesheetEndpointApiV1HrTimesheetsPostMutation = {
-  Response: CreateTimesheetEndpointApiV1HrTimesheetsPost200;
+  Response:
+    | CreateTimesheetEndpointApiV1HrTimesheetsPost200
+    | CreateTimesheetEndpointApiV1HrTimesheetsPost201;
   Request: CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest;
   Errors:
     | CreateTimesheetEndpointApiV1HrTimesheetsPost403

@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
 
+from . import service
 from .schemas import (
     PublicHolidayCreate,
     PublicHolidayPublic,
@@ -22,20 +23,6 @@ from .schemas import (
     ShiftCatalogPublic,
     ShiftCatalogsPublic,
 )
-from .service import (
-    bulk_upsert_roster_assignments,
-    close_roster_period,
-    create_public_holiday,
-    create_roster_period,
-    delete_public_holiday,
-    import_roster_csv,
-    list_public_holidays,
-    list_roster_revisions,
-    publish_roster_period,
-    read_roster_period_details,
-    read_shift_catalog,
-    validate_roster_csv,
-)
 
 router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
 
@@ -51,7 +38,7 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
     },
 )
 async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
-    shifts = await read_shift_catalog(session=session, current_user=current_user)
+    shifts = await service.read_shift_catalog(session=session, current_user=current_user)
     return ShiftCatalogsPublic(
         data=[
             ShiftCatalogPublic.model_validate(shift, from_attributes=True)
@@ -78,7 +65,7 @@ async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> 
 async def create_period(
     *, session: SessionDep, current_user: CurrentUser, payload: RosterPeriodCreate
 ) -> Any:
-    return await create_roster_period(
+    return await service.create_roster_period(
         session=session, current_user=current_user, period_in=payload
     )
 
@@ -100,7 +87,7 @@ async def bulk_assignments(
     current_user: CurrentUser,
     payload: RosterAssignmentBulkCreate,
 ) -> Any:
-    assignments = await bulk_upsert_roster_assignments(
+    assignments = await service.bulk_upsert_roster_assignments(
         session=session, current_user=current_user, payload=payload
     )
     return [
@@ -125,7 +112,7 @@ async def get_period(
     current_user: CurrentUser,
     period: RosterPeriodDep,
 ) -> Any:
-    period_data, assignments = await read_roster_period_details(
+    period_data, assignments = await service.read_roster_period_details(
         session=session, current_user=current_user, period_id=period.id
     )
     return RosterPeriodDetails(
@@ -156,7 +143,7 @@ async def validate_csv(
     current_user: CurrentUser,
     payload: RosterCsvValidationRequest,
 ) -> Any:
-    return await validate_roster_csv(
+    return await service.validate_roster_csv(
         session=session, current_user=current_user, payload=payload
     )
 
@@ -178,7 +165,7 @@ async def import_csv(
     current_user: CurrentUser,
     payload: RosterCsvValidationRequest,
 ) -> Any:
-    job = await import_roster_csv(
+    job = await service.import_roster_csv(
         session=session, current_user=current_user, payload=payload
     )
     return RosterCsvImportResponse(
@@ -212,7 +199,7 @@ async def import_csv(
 async def publish_period(
     *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return await publish_roster_period(
+    return await service.publish_roster_period(
         session=session, current_user=current_user, period_id=period.id
     )
 
@@ -234,7 +221,7 @@ async def publish_period(
 async def close_period(
     *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return await close_roster_period(
+    return await service.close_roster_period(
         session=session, current_user=current_user, period_id=period.id
     )
 
@@ -255,7 +242,7 @@ async def get_period_revisions(
     current_user: CurrentUser,
     period: RosterPeriodDep,
 ) -> Any:
-    revisions = await list_roster_revisions(
+    revisions = await service.list_roster_revisions(
         session=session, current_user=current_user, period_id=period.id
     )
     return RosterRevisionsPublic(
@@ -287,7 +274,7 @@ async def get_period_revisions(
 async def create_holiday(
     *, session: SessionDep, current_user: CurrentUser, payload: PublicHolidayCreate
 ) -> Any:
-    return await create_public_holiday(
+    return await service.create_public_holiday(
         session=session, current_user=current_user, payload=payload
     )
 
@@ -305,7 +292,7 @@ async def create_holiday(
 async def list_holidays(
     session: SessionDep, current_user: CurrentUser, year: int | None = None
 ) -> Any:
-    holidays = await list_public_holidays(
+    holidays = await service.list_public_holidays(
         session=session, current_user=current_user, year=year
     )
     return PublicHolidaysPublic(
@@ -331,6 +318,6 @@ async def list_holidays(
 async def remove_holiday(
     *, session: SessionDep, current_user: CurrentUser, holiday: PublicHolidayDep
 ) -> None:
-    await delete_public_holiday(
+    await service.delete_public_holiday(
         session=session, current_user=current_user, holiday_id=holiday.id
     )

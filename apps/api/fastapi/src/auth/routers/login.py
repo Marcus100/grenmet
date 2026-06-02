@@ -39,7 +39,6 @@ from src.auth.schemas import (
     SessionTokenRequest,
     UserPublic,
 )
-from src.auth.utils import get_password_hash
 from src.dependencies import CurrentUser, SessionDep
 from src.email import (
     generate_password_reset_token,
@@ -354,22 +353,17 @@ async def recover_password(
     """
     _ = request
     user = await service.get_user_by_email(session=session, email=email)
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=ERROR_USER_NOT_FOUND,
+    if user:
+        password_reset_token = generate_password_reset_token(email=email)
+        email_data = await generate_reset_password_email(
+            email_to=user.email, email=email, token=password_reset_token
         )
-    password_reset_token = generate_password_reset_token(email=email)
-    email_data = await generate_reset_password_email(
-        email_to=user.email, email=email, token=password_reset_token
-    )
-    await run_in_threadpool(
-        send_email,
-        email_to=user.email,
-        subject=email_data.subject,
-        html_content=email_data.html_content,
-    )
+        await run_in_threadpool(
+            send_email,
+            email_to=user.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
     return Message(message=SUCCESS_PASSWORD_RECOVERY_SENT)
 
 
@@ -399,9 +393,7 @@ async def reset_password(
         )
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
-    user.hashed_password = get_password_hash(password=body.new_password)
-    session.add(user)
-    await session.commit()
+    await service.set_password(session=session, user=user, new_password=body.new_password)
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 
@@ -417,10 +409,7 @@ async def recover_password_html_content(email: str, session: SessionDep) -> Any:
     user = await service.get_user_by_email(session=session, email=email)
 
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
-        )
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     password_reset_token = generate_password_reset_token(email=email)
     email_data = await generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token

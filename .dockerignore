@@ -52,5 +52,19 @@ yarn-error.log*
 .github/
 docs/
 
+# Unrelated services / data (not part of web builds)
+notebooks/
+scripts/scrapy-wxwatch/
+artifacts/
+
+# Security
+secrets/
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+
 # Turbo cache
 .turbo/

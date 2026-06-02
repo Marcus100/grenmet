@@ -1,10 +1,11 @@
+import logging
 import uuid
 from datetime import timedelta
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session as SQLModelSession
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from src.auth.config import auth_settings
 from src.auth.models import Permission, Role, User, UserRoleAssignment
@@ -18,6 +19,7 @@ from src.auth.schemas import (
     UserRoleAssignmentCreate,
     UserRoleAssignmentUpdate,
     UserUpdate,
+    UserUpdateMe,
 )
 from src.auth.utils import (
     create_access_token,
@@ -26,7 +28,10 @@ from src.auth.utils import (
     hash_session_token,
     verify_password,
 )
+from src.exceptions import AppException
 from src.utils.datetime import utc_now
+
+logger = logging.getLogger(__name__)
 
 
 def create_user_sync(*, session: SQLModelSession, user_create: UserCreate) -> User:
@@ -48,6 +53,7 @@ async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User
     session.add(db_obj)
     await session.commit()
     await session.refresh(db_obj)
+    logger.info("User created", extra={"user_id": str(db_obj.id), "email": db_obj.email})
     return db_obj
 
 
@@ -68,6 +74,45 @@ async def update_user(
     return db_user
 
 
+async def update_user_me(
+    *, session: AsyncSession, current_user: User, user_in: UserUpdateMe
+) -> User:
+    if user_in.email:
+        existing = await get_user_by_email(session=session, email=user_in.email)
+        if existing and existing.id != current_user.id:
+            raise AppException("User with this email already exists", 409)
+    user_data = user_in.model_dump(exclude_unset=True)
+    current_user.sqlmodel_update(user_data)
+    session.add(current_user)
+    await session.commit()
+    await session.refresh(current_user)
+    return current_user
+
+
+async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
+    user.hashed_password = get_password_hash(new_password)
+    session.add(user)
+    await session.commit()
+    logger.info("Password changed", extra={"user_id": str(user.id)})
+
+
+async def update_password(
+    *, session: AsyncSession, user: User, current_password: str, new_password: str
+) -> None:
+    if not verify_password(current_password, user.hashed_password):
+        raise AppException("Incorrect password", 400)
+    if current_password == new_password:
+        raise AppException("New password must be different from current password", 400)
+    await set_password(session=session, user=user, new_password=new_password)
+
+
+async def delete_user(*, session: AsyncSession, user: User) -> None:
+    user_id = str(user.id)
+    await session.delete(user)
+    await session.commit()
+    logger.info("User deleted", extra={"user_id": user_id})
+
+
 async def get_user_by_email(*, session: AsyncSession, email: str) -> User | None:
     """Get user by email address."""
     statement = select(User).where(User.email == email)
@@ -86,8 +131,6 @@ async def get_users(
     *, session: AsyncSession, skip: int = 0, limit: int = 100
 ) -> tuple[list[User], int]:
     """Get users with total count. Returns (list of users, total count)."""
-    from sqlmodel import func
-
     count_stmt = select(func.count()).select_from(User)
     count_result = await session.execute(count_stmt)
     total = count_result.scalar() or 0
@@ -237,7 +280,7 @@ async def revoke_user_sessions(
     statement = select(AuthSession).where(
         AuthSession.user_id == user_id,
         col(AuthSession.revoked_at).is_(None),
-    )
+    ).limit(500)  # a user shouldn't have more active sessions than this
     result = await session.execute(statement)
     sessions = list(result.scalars().all())
     if not sessions:
@@ -324,21 +367,10 @@ async def get_role(*, session: AsyncSession, role_id: uuid.UUID) -> Role | None:
     return result.scalars().first()
 
 
-async def get_roles(
-    *, session: AsyncSession, skip: int = 0, limit: int = 100
-) -> list[Role]:
-    """Get all roles."""
-    statement = select(Role).offset(skip).limit(limit)
-    result = await session.execute(statement)
-    return list(result.scalars().all())
-
-
 async def get_roles_with_count(
     *, session: AsyncSession, skip: int = 0, limit: int = 100
 ) -> tuple[list[Role], int]:
     """Get roles with total count. Returns (list of roles, total count)."""
-    from sqlmodel import func
-
     count_stmt = select(func.count()).select_from(Role)
     count_result = await session.execute(count_stmt)
     total = count_result.scalar() or 0
@@ -393,21 +425,10 @@ async def get_permission(
     return result.scalars().first()
 
 
-async def get_permissions(
-    *, session: AsyncSession, skip: int = 0, limit: int = 100
-) -> list[Permission]:
-    """Get all permissions."""
-    statement = select(Permission).offset(skip).limit(limit)
-    result = await session.execute(statement)
-    return list(result.scalars().all())
-
-
 async def get_permissions_with_count(
     *, session: AsyncSession, skip: int = 0, limit: int = 100
 ) -> tuple[list[Permission], int]:
     """Get permissions with total count. Returns (list of permissions, total count)."""
-    from sqlmodel import func
-
     count_stmt = select(func.count()).select_from(Permission)
     count_result = await session.execute(count_stmt)
     total = count_result.scalar() or 0
@@ -455,44 +476,7 @@ async def get_user_role_assignments(
     statement = select(UserRoleAssignment)
     if user_id:
         statement = statement.where(UserRoleAssignment.user_id == user_id)
-    result = await session.execute(statement)
+    result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
 
-__all__ = [
-    "create_user",
-    "update_user",
-    "get_user_by_email",
-    "get_user_by_id",
-    "authenticate",
-    "get_password_hash",
-    "verify_password",
-    "create_access_token",
-    "create_session",
-    "exchange_session_for_access_token",
-    "get_active_session_by_secret",
-    "get_legacy_access_token_expires_delta",
-    "get_session_access_token_expires_delta",
-    "get_session_by_secret",
-    "get_session_expires_delta",
-    "is_session_active",
-    "issue_access_token_for_user",
-    "revoke_session",
-    "revoke_user_sessions",
-    "rotate_session",
-    "touch_session",
-    "create_role",
-    "get_role",
-    "get_roles",
-    "create_permission",
-    "update_permission",
-    "get_permission",
-    "get_permissions",
-    "create_user_role_assignment",
-    "update_user_role_assignment",
-    "get_user_role_assignment",
-    "get_user_role_assignments",
-    "Role",
-    "Permission",
-    "UserRoleAssignment",
-]

@@ -11,7 +11,13 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 /**
  * @description Absentee report created
  */
-export const createAbsenteeEndpointApiV1HrAbsenteeReportsPost200Schema = z.lazy(
+export const createAbsenteeEndpointApiV1HrAbsenteeReportsPost200Schema =
+  z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createAbsenteeEndpointApiV1HrAbsenteeReportsPost201Schema = z.lazy(
   () => absenteeReportPublicSchema
 );
 
@@ -32,4 +38,7 @@ export const createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequestSche
   z.lazy(() => absenteeReportCreateSchema);
 
 export const createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponseSchema =
-  z.lazy(() => createAbsenteeEndpointApiV1HrAbsenteeReportsPost200Schema);
+  z.union([
+    z.lazy(() => createAbsenteeEndpointApiV1HrAbsenteeReportsPost200Schema),
+    z.lazy(() => createAbsenteeEndpointApiV1HrAbsenteeReportsPost201Schema),
+  ]);

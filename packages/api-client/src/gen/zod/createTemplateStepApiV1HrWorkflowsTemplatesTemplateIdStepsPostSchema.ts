@@ -17,6 +17,12 @@ export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathP
  * @description Step created
  */
 export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200Schema =
+  z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201Schema =
   z.lazy(() => workflowStepTemplatePublicSchema);
 
 /**
@@ -41,7 +47,13 @@ export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutat
   z.lazy(() => workflowStepTemplateCreateSchema);
 
 export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponseSchema =
-  z.lazy(
-    () =>
-      createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200Schema
-  );
+  z.union([
+    z.lazy(
+      () =>
+        createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200Schema
+    ),
+    z.lazy(
+      () =>
+        createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201Schema
+    ),
+  ]);

@@ -5,16 +5,12 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
 
+from . import service
 from .schemas import (
     LeaveRequestAction,
     LeaveRequestCreate,
     LeaveRequestListPublic,
     LeaveRequestPublic,
-)
-from .service import (
-    action_leave_request,
-    create_leave_request,
-    list_leave_requests,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-leave"])
@@ -31,10 +27,10 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def create_leave_request_endpoint(
+async def create_leave_request(
     *, session: SessionDep, current_user: CurrentUser, payload: LeaveRequestCreate
 ) -> Any:
-    return await create_leave_request(
+    return await service.create_leave_request(
         session=session, current_user=current_user, payload=payload
     )
 
@@ -52,14 +48,14 @@ async def create_leave_request_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
     },
 )
-async def action_leave_request_endpoint(
+async def action_leave_request(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     leave_request: LeaveRequestDep,
     payload: LeaveRequestAction,
 ) -> Any:
-    return await action_leave_request(
+    return await service.action_leave_request(
         session=session,
         current_user=current_user,
         leave_request_id=leave_request.id,
@@ -75,7 +71,7 @@ async def action_leave_request_endpoint(
     responses={status.HTTP_200_OK: {"description": "Leave requests returned"}},
 )
 async def read_my_leave_requests(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = await list_leave_requests(session=session, current_user=current_user)
+    rows = await service.list_leave_requests(session=session, current_user=current_user)
     return LeaveRequestListPublic(
         data=[
             LeaveRequestPublic.model_validate(item, from_attributes=True)

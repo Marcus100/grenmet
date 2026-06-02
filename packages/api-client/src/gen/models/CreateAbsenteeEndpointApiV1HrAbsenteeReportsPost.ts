@@ -10,7 +10,12 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 /**
  * @description Absentee report created
  */
-export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200 =
+export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost201 =
   AbsenteeReportPublic;
 
 /**
@@ -32,10 +37,13 @@ export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest =
   AbsenteeReportCreate;
 
 export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse =
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200;
+  | CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200
+  | CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost201;
 
 export type CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutation = {
-  Response: CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200;
+  Response:
+    | CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200
+    | CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost201;
   Request: CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest;
   Errors:
     | CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost403

@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "sender": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Sender"
+    },
+    "identifier": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Identifier"
+    },
+    "sent": { "type": "string", "format": "date-time", "title": "Sent" }
+  },
+  "type": "object",
+  "required": ["sender", "identifier", "sent"],
+  "title": "CapReferenceCreate",
+  "x-readme-ref-name": "CapReferenceCreate"
+}

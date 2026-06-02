@@ -18,6 +18,7 @@ import fetch from "../../client.js";
 import { resetPasswordApiV1ResetPasswordPost } from "../clients/resetPasswordApiV1ResetPasswordPost.js";
 import type {
   ResetPasswordApiV1ResetPasswordPost422,
+  ResetPasswordApiV1ResetPasswordPost429,
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
@@ -39,7 +40,10 @@ export function resetPasswordApiV1ResetPasswordPostMutationOptions<
   const mutationKey = resetPasswordApiV1ResetPasswordPostMutationKey();
   return mutationOptions<
     ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+    ResponseErrorConfig<
+      | ResetPasswordApiV1ResetPasswordPost422
+      | ResetPasswordApiV1ResetPasswordPost429
+    >,
     { data: ResetPasswordApiV1ResetPasswordPostMutationRequest },
     TContext
   >({
@@ -59,7 +63,10 @@ export function useResetPasswordApiV1ResetPasswordPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
       ResetPasswordApiV1ResetPasswordPostMutationResponse,
-      ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+      ResponseErrorConfig<
+        | ResetPasswordApiV1ResetPasswordPost422
+        | ResetPasswordApiV1ResetPasswordPost429
+      >,
       { data: ResetPasswordApiV1ResetPasswordPostMutationRequest },
       TContext
     > & { client?: QueryClient };
@@ -78,14 +85,20 @@ export function useResetPasswordApiV1ResetPasswordPost<TContext>(
     config
   ) as UseMutationOptions<
     ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+    ResponseErrorConfig<
+      | ResetPasswordApiV1ResetPasswordPost422
+      | ResetPasswordApiV1ResetPasswordPost429
+    >,
     { data: ResetPasswordApiV1ResetPasswordPostMutationRequest },
     TContext
   >;
 
   return useMutation<
     ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+    ResponseErrorConfig<
+      | ResetPasswordApiV1ResetPasswordPost422
+      | ResetPasswordApiV1ResetPasswordPost429
+    >,
     { data: ResetPasswordApiV1ResetPasswordPostMutationRequest },
     TContext
   >(
@@ -97,7 +110,10 @@ export function useResetPasswordApiV1ResetPasswordPost<TContext>(
     queryClient
   ) as UseMutationResult<
     ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+    ResponseErrorConfig<
+      | ResetPasswordApiV1ResetPasswordPost422
+      | ResetPasswordApiV1ResetPasswordPost429
+    >,
     { data: ResetPasswordApiV1ResetPasswordPostMutationRequest },
     TContext
   >;

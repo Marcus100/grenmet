@@ -27,7 +27,7 @@ If you are deploying into the local shared Docker network (`grenmet`):
 ```bash
 docker run --rm \
 	--network grenmet \
-	--env-file apps/api/fastapi/.env \
+	--env-file apps/api/fastapi/.env.local \
 	-e POSTGRES_SERVER=grenmet-postgres \
 	grenmet-api:prod \
 	uv run alembic upgrade head
@@ -39,7 +39,7 @@ docker run --rm \
 docker run --rm \
 	--name grenmet-api \
 	--network grenmet \
-	--env-file apps/api/fastapi/.env \
+	--env-file apps/api/fastapi/.env.local \
 	-e POSTGRES_SERVER=grenmet-postgres \
 	-e SMTP_HOST=grenmet-mailcatcher \
 	-e SMTP_PORT=1025 \
@@ -72,4 +72,4 @@ Rollback strategy is image-tag based:
 ## Notes
 
 - Shared infra compose files are in `infra/docker/`.
-- CI validation for API, quality checks, and OpenAPI export runs in `.github/workflows/ci.yml`.
+- CI validation for API, quality checks, and OpenAPI export runs in `.github/workflows/ci-api.yml`.

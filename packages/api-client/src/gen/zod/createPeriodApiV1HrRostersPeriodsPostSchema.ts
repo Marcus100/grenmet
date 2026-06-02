@@ -9,16 +9,11 @@ import { rosterPeriodCreateSchema } from "./rosterPeriodCreateSchema.js";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
 /**
- * @description Successful Response
- */
-export const createPeriodApiV1HrRostersPeriodsPost200Schema = z.lazy(
-  () => rosterPeriodPublicSchema
-);
-
-/**
  * @description Roster period created
  */
-export const createPeriodApiV1HrRostersPeriodsPost201Schema = z.any();
+export const createPeriodApiV1HrRostersPeriodsPost201Schema = z.lazy(
+  () => rosterPeriodPublicSchema
+);
 
 /**
  * @description Validation error (e.g. period_end before period_start)
@@ -41,7 +36,4 @@ export const createPeriodApiV1HrRostersPeriodsPostMutationRequestSchema =
   z.lazy(() => rosterPeriodCreateSchema);
 
 export const createPeriodApiV1HrRostersPeriodsPostMutationResponseSchema =
-  z.union([
-    z.lazy(() => createPeriodApiV1HrRostersPeriodsPost200Schema),
-    z.lazy(() => createPeriodApiV1HrRostersPeriodsPost201Schema),
-  ]);
+  z.lazy(() => createPeriodApiV1HrRostersPeriodsPost201Schema);

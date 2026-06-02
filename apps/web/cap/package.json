@@ -1,0 +1,38 @@
+{
+  "name": "@grenmet/web-cap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3008",
+    "build": "next build",
+    "start": "next start --port 3008",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "check:ci": "biome ci .",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@grenmet/api-client": "workspace:*",
+    "@grenmet/auth": "workspace:*",
+    "@grenmet/ui": "workspace:*",
+    "@t3-oss/env-nextjs": "catalog:",
+    "lucide-react": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@grenmet/tsconfig": "workspace:*",
+    "@tailwindcss/postcss": "catalog:",
+    "@total-typescript/ts-reset": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:"
+  }
+}

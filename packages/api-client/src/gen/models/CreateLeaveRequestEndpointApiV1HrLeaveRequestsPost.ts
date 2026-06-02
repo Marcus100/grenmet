@@ -10,7 +10,12 @@ import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 /**
  * @description Leave request created
  */
-export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200 =
+export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost201 =
   LeaveRequestPublic;
 
 /**
@@ -32,10 +37,13 @@ export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest =
   LeaveRequestCreate;
 
 export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse =
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200;
+  | CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200
+  | CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost201;
 
 export type CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutation = {
-  Response: CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200;
+  Response:
+    | CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200
+    | CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost201;
   Request: CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest;
   Errors:
     | CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost403

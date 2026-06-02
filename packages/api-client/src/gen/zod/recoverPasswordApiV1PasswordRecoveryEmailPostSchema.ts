@@ -26,5 +26,10 @@ export const recoverPasswordApiV1PasswordRecoveryEmailPost422Schema = z.lazy(
   () => HTTPValidationErrorSchema
 );
 
+/**
+ * @description Rate limit exceeded
+ */
+export const recoverPasswordApiV1PasswordRecoveryEmailPost429Schema = z.any();
+
 export const recoverPasswordApiV1PasswordRecoveryEmailPostMutationResponseSchema =
   z.lazy(() => recoverPasswordApiV1PasswordRecoveryEmailPost200Schema);

@@ -1,13 +1,15 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Grenmet",
+    "title": "Grenmet API",
     "version": "1.0.0"
   },
   "paths": {
     "/api/v1/login/access-token": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Login with OAuth2",
         "description": "OAuth2 compatible token login. Returns an access token for future requests.",
         "operationId": "login_access_token_api_v1_login_access_token_post",
@@ -35,6 +37,9 @@
           "400": {
             "description": "Incorrect email/password or inactive user"
           },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
           "422": {
             "description": "Validation Error",
             "content": {
@@ -48,55 +53,79 @@
         }
       }
     },
-    "/api/v1/login/test-token": {
+    "/api/v1/login/session": {
       "post": {
-        "tags": ["login"],
-        "summary": "Test Token",
-        "description": "Test access token.",
-        "operationId": "test_token_api_v1_login_test_token_post",
+        "tags": [
+          "login"
+        ],
+        "summary": "Create a persisted web session",
+        "description": "Authenticate a user, create an opaque persisted session, and mint a short-lived access token.",
+        "operationId": "login_session_api_v1_login_session_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Session created successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UserPublic"
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Incorrect email/password or inactive user"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
-    "/api/v1/password-recovery/{email}": {
+    "/api/v1/login/session/access-token": {
       "post": {
-        "tags": ["login"],
-        "summary": "Recover Password",
-        "description": "Password Recovery.",
-        "operationId": "recover_password_api_v1_password_recovery__email__post",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Email"
-            }
-          }
+        "tags": [
+          "login"
         ],
+        "summary": "Exchange a session secret for a short-lived access token",
+        "description": "Validate a persisted session and mint a fresh access token for server-side API calls.",
+        "operationId": "exchange_session_for_access_token_api_v1_login_session_access_token_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Message"
+                  "$ref": "#/components/schemas/SessionAccessTokenResponse"
                 }
               }
             }
@@ -114,17 +143,61 @@
         }
       }
     },
-    "/api/v1/reset-password/": {
+    "/api/v1/login/session/refresh": {
       "post": {
-        "tags": ["login"],
-        "summary": "Reset Password",
-        "description": "Reset password.",
-        "operationId": "reset_password_api_v1_reset_password__post",
+        "tags": [
+          "login"
+        ],
+        "summary": "Rotate a persisted session",
+        "description": "Rotate a valid session secret and mint a fresh short-lived access token.",
+        "operationId": "refresh_session_api_v1_login_session_refresh_post",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPassword"
+                "$ref": "#/components/schemas/SessionTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/login/session/logout": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Revoke a persisted session",
+        "description": "Revoke the current persisted session. This endpoint is idempotent.",
+        "operationId": "logout_session_api_v1_login_session_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionTokenRequest"
               }
             }
           },
@@ -154,9 +227,171 @@
         }
       }
     },
+    "/api/v1/login/session/logout-all": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Revoke every session for the current user",
+        "description": "Invalidate all persisted sessions belonging to the current user.",
+        "operationId": "logout_all_sessions_api_v1_login_session_logout_all_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SessionTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/login/test-token": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Test Token",
+        "description": "Test access token.",
+        "operationId": "test_token_api_v1_login_test_token_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/password-recovery/{email}": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Recover Password",
+        "description": "Password Recovery.",
+        "operationId": "recover_password_api_v1_password_recovery__email__post",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Email"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/reset-password/": {
+      "post": {
+        "tags": [
+          "login"
+        ],
+        "summary": "Reset Password",
+        "description": "Reset password.",
+        "operationId": "reset_password_api_v1_reset_password__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewPassword"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/password-recovery-html-content/{email}": {
       "post": {
-        "tags": ["login"],
+        "tags": [
+          "login"
+        ],
         "summary": "Recover Password Html Content",
         "description": "HTML Content for Password Recovery.",
         "operationId": "recover_password_html_content_api_v1_password_recovery_html_content__email__post",
@@ -202,9 +437,11 @@
     },
     "/api/v1/auth/users/": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "List users",
-        "description": "Return users (superuser only).",
+        "description": "Return users (superuser only). Uses standard pagination (page, size, total_pages).",
         "operationId": "read_users_api_v1_auth_users__get",
         "security": [
           {
@@ -213,24 +450,31 @@
         ],
         "parameters": [
           {
-            "name": "skip",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
           },
           {
-            "name": "limit",
+            "name": "size",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
               "default": 100,
-              "title": "Limit"
-            }
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -239,7 +483,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UsersPublic"
+                  "$ref": "#/components/schemas/PaginatedResponse_UserPublic_"
                 }
               }
             }
@@ -257,7 +501,9 @@
         }
       },
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Create user",
         "description": "Create a user (superuser only).",
         "operationId": "create_user_api_v1_auth_users__post",
@@ -305,7 +551,9 @@
     },
     "/api/v1/auth/users/me": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get current user",
         "description": "Return the currently authenticated user.",
         "operationId": "read_user_me_api_v1_auth_users_me_get",
@@ -328,7 +576,9 @@
         ]
       },
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Delete current user",
         "description": "Delete currently authenticated user account.",
         "operationId": "delete_user_me_api_v1_auth_users_me_delete",
@@ -354,7 +604,9 @@
         ]
       },
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update current user",
         "description": "Update profile fields for the currently authenticated user.",
         "operationId": "update_user_me_api_v1_auth_users_me_patch",
@@ -402,7 +654,9 @@
     },
     "/api/v1/auth/users/me/password": {
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Change current user password",
         "description": "Change password for the currently authenticated user.",
         "operationId": "update_password_me_api_v1_auth_users_me_password_patch",
@@ -450,7 +704,9 @@
     },
     "/api/v1/auth/users/signup": {
       "post": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Register new user",
         "description": "Create a new user account without authentication. Public endpoint for user registration.",
         "operationId": "register_user_api_v1_auth_users_signup_post",
@@ -493,7 +749,9 @@
     },
     "/api/v1/auth/users/{user_id}": {
       "get": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get user by ID",
         "description": "Return user by ID. Non-superusers can only fetch themselves.",
         "operationId": "read_user_by_id_api_v1_auth_users__user_id__get",
@@ -541,7 +799,9 @@
         }
       },
       "patch": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update user by ID",
         "description": "Update a user by ID (superuser only).",
         "operationId": "update_user_api_v1_auth_users__user_id__patch",
@@ -602,7 +862,9 @@
         }
       },
       "delete": {
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Delete user by ID",
         "description": "Delete a user by ID (superuser only).",
         "operationId": "delete_user_api_v1_auth_users__user_id__delete",
@@ -655,7 +917,9 @@
     },
     "/api/v1/auth/roles/": {
       "get": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "List roles",
         "description": "Return roles (superuser only).",
         "operationId": "read_roles_api_v1_auth_roles__get",
@@ -710,7 +974,9 @@
         }
       },
       "post": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "Create role",
         "description": "Create a role (superuser only).",
         "operationId": "create_role_api_v1_auth_roles__post",
@@ -755,7 +1021,9 @@
     },
     "/api/v1/auth/roles/{role_id}": {
       "get": {
-        "tags": ["roles"],
+        "tags": [
+          "roles"
+        ],
         "summary": "Get role by ID",
         "description": "Return a role by ID (superuser only).",
         "operationId": "read_role_api_v1_auth_roles__role_id__get",
@@ -805,7 +1073,9 @@
     },
     "/api/v1/auth/permissions/": {
       "get": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "List permissions",
         "description": "Return permissions (superuser only).",
         "operationId": "read_permissions_api_v1_auth_permissions__get",
@@ -860,7 +1130,9 @@
         }
       },
       "post": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "Create permission",
         "description": "Create a permission (superuser only).",
         "operationId": "create_permission_api_v1_auth_permissions__post",
@@ -905,7 +1177,9 @@
     },
     "/api/v1/auth/permissions/{permission_id}": {
       "get": {
-        "tags": ["permissions"],
+        "tags": [
+          "permissions"
+        ],
         "summary": "Get permission by ID",
         "description": "Return a permission by ID (superuser only).",
         "operationId": "read_permission_api_v1_auth_permissions__permission_id__get",
@@ -955,7 +1229,9 @@
     },
     "/api/v1/auth/role-assignments/": {
       "get": {
-        "tags": ["role-assignments"],
+        "tags": [
+          "role-assignments"
+        ],
         "summary": "List role assignments",
         "description": "Return role assignments, optionally filtered by user_id (superuser only).",
         "operationId": "read_role_assignments_api_v1_auth_role_assignments__get",
@@ -1007,7 +1283,9 @@
         }
       },
       "post": {
-        "tags": ["role-assignments"],
+        "tags": [
+          "role-assignments"
+        ],
         "summary": "Create role assignment",
         "description": "Create a user-role assignment (superuser only).",
         "operationId": "create_role_assignment_api_v1_auth_role_assignments__post",
@@ -1052,7 +1330,9 @@
     },
     "/api/v1/auth/role-assignments/{assignment_id}": {
       "get": {
-        "tags": ["role-assignments"],
+        "tags": [
+          "role-assignments"
+        ],
         "summary": "Get role assignment by ID",
         "description": "Return a role assignment by ID (superuser only).",
         "operationId": "read_role_assignment_api_v1_auth_role_assignments__assignment_id__get",
@@ -1100,7 +1380,9 @@
         }
       },
       "patch": {
-        "tags": ["role-assignments"],
+        "tags": [
+          "role-assignments"
+        ],
         "summary": "Update role assignment",
         "description": "Update a user-role assignment (superuser only).",
         "operationId": "update_role_assignment_api_v1_auth_role_assignments__assignment_id__patch",
@@ -1160,7 +1442,9 @@
     },
     "/api/v1/hr/profile/me": {
       "get": {
-        "tags": ["hr"],
+        "tags": [
+          "hr"
+        ],
         "summary": "Get my HR profile",
         "description": "Return the current user's HR profile (identity, employment, address, preferences).",
         "operationId": "read_hr_profile_me_api_v1_hr_profile_me_get",
@@ -1186,7 +1470,9 @@
         ]
       },
       "patch": {
-        "tags": ["hr"],
+        "tags": [
+          "hr"
+        ],
         "summary": "Update my HR profile",
         "description": "Update the current user's HR profile (identity, address, preferences).",
         "operationId": "update_hr_profile_me_api_v1_hr_profile_me_patch",
@@ -1234,7 +1520,9 @@
     },
     "/api/v1/hr/employment/{user_id}": {
       "patch": {
-        "tags": ["hr"],
+        "tags": [
+          "hr"
+        ],
         "summary": "Update employment (admin)",
         "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
         "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
@@ -1297,7 +1585,9 @@
     },
     "/api/v1/hr/workflows/templates": {
       "post": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "Create workflow template",
         "description": "Create a new workflow template. Requires workflow.template.manage permission.",
         "operationId": "create_template_api_v1_hr_workflows_templates_post",
@@ -1317,8 +1607,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Template created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -1326,6 +1616,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Template created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -1343,7 +1636,9 @@
         }
       },
       "get": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "List workflow templates",
         "description": "List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.",
         "operationId": "read_templates_api_v1_hr_workflows_templates_get",
@@ -1399,7 +1694,9 @@
     },
     "/api/v1/hr/workflows/templates/{template_id}/steps": {
       "post": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "Add step to workflow template",
         "description": "Create a step template for a workflow template. Requires workflow.template.manage permission.",
         "operationId": "create_template_step_api_v1_hr_workflows_templates__template_id__steps_post",
@@ -1431,8 +1728,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Step created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -1440,6 +1737,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Step created"
           },
           "404": {
             "description": "Workflow template not found"
@@ -1462,7 +1762,9 @@
     },
     "/api/v1/hr/workflows/instances": {
       "post": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "Create workflow instance",
         "description": "Create a new workflow instance from a template. Template must exist.",
         "operationId": "create_instance_api_v1_hr_workflows_instances_post",
@@ -1477,8 +1779,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Instance created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -1486,6 +1788,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Instance created"
           },
           "404": {
             "description": "Workflow template not found"
@@ -1513,7 +1818,9 @@
     },
     "/api/v1/hr/workflows/instances/{instance_id}": {
       "get": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "Get workflow instance details",
         "description": "Return a workflow instance and its step instances. Requires workflow.instance.view permission.",
         "operationId": "read_instance_api_v1_hr_workflows_instances__instance_id__get",
@@ -1566,7 +1873,9 @@
     },
     "/api/v1/hr/workflows/instances/{instance_id}/actions": {
       "post": {
-        "tags": ["hr-workflows"],
+        "tags": [
+          "hr-workflows"
+        ],
         "summary": "Perform workflow action",
         "description": "Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.",
         "operationId": "take_action_api_v1_hr_workflows_instances__instance_id__actions_post",
@@ -1632,7 +1941,9 @@
     },
     "/api/v1/hr/rosters/shifts": {
       "get": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "List shift catalog",
         "description": "Return the active shift catalog for roster assignment.",
         "operationId": "list_shift_catalog_api_v1_hr_rosters_shifts_get",
@@ -1660,7 +1971,9 @@
     },
     "/api/v1/hr/rosters/periods": {
       "post": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Create roster period",
         "description": "Create a new roster period. Requires roster.manage permission.",
         "operationId": "create_period_api_v1_hr_rosters_periods_post",
@@ -1675,8 +1988,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Successful Response",
+          "201": {
+            "description": "Roster period created",
             "content": {
               "application/json": {
                 "schema": {
@@ -1684,9 +1997,6 @@
                 }
               }
             }
-          },
-          "201": {
-            "description": "Roster period created"
           },
           "400": {
             "description": "Validation error (e.g. period_end before period_start)"
@@ -1714,7 +2024,9 @@
     },
     "/api/v1/hr/rosters/assignments/bulk": {
       "post": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Bulk upsert roster assignments",
         "description": "Create or replace roster assignments for a period. Requires roster.manage permission.",
         "operationId": "bulk_assignments_api_v1_hr_rosters_assignments_bulk_post",
@@ -1769,7 +2081,9 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}": {
       "get": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Get roster period details",
         "description": "Return a roster period and its assignments. Requires roster.view permission.",
         "operationId": "get_period_api_v1_hr_rosters_periods__period_id__get",
@@ -1822,7 +2136,9 @@
     },
     "/api/v1/hr/rosters/import-csv/validate": {
       "post": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Validate roster CSV",
         "description": "Validate CSV content for roster import. Requires roster.import permission.",
         "operationId": "validate_csv_api_v1_hr_rosters_import_csv_validate_post",
@@ -1873,7 +2189,9 @@
     },
     "/api/v1/hr/rosters/import-csv": {
       "post": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Import roster from CSV",
         "description": "Create roster import job and optionally apply valid rows. Requires roster.import permission.",
         "operationId": "import_csv_api_v1_hr_rosters_import_csv_post",
@@ -1924,7 +2242,9 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/publish": {
       "patch": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Publish roster period",
         "description": "Transition a draft roster period to published. Requires roster.manage permission.",
         "operationId": "publish_period_api_v1_hr_rosters_periods__period_id__publish_patch",
@@ -1980,7 +2300,9 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/close": {
       "patch": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Close roster period",
         "description": "Close a published roster period. Requires roster.manage permission.",
         "operationId": "close_period_api_v1_hr_rosters_periods__period_id__close_patch",
@@ -2036,7 +2358,9 @@
     },
     "/api/v1/hr/rosters/periods/{period_id}/revisions": {
       "get": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "List roster period revisions",
         "description": "Return the revision history for a roster period. Requires roster.view permission.",
         "operationId": "get_period_revisions_api_v1_hr_rosters_periods__period_id__revisions_get",
@@ -2089,7 +2413,9 @@
     },
     "/api/v1/hr/rosters/public-holidays": {
       "post": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Create public holiday",
         "description": "Add a public holiday. Requires roster.manage permission.",
         "operationId": "create_holiday_api_v1_hr_rosters_public_holidays_post",
@@ -2109,8 +2435,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Public holiday created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2118,6 +2444,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Public holiday created"
           },
           "400": {
             "description": "Duplicate date"
@@ -2138,7 +2467,9 @@
         }
       },
       "get": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "List public holidays",
         "description": "Return public holidays, optionally filtered by year. Requires roster.view permission.",
         "operationId": "list_holidays_api_v1_hr_rosters_public_holidays_get",
@@ -2194,7 +2525,9 @@
     },
     "/api/v1/hr/rosters/public-holidays/{holiday_id}": {
       "delete": {
-        "tags": ["hr-rosters"],
+        "tags": [
+          "hr-rosters"
+        ],
         "summary": "Delete public holiday",
         "description": "Remove a public holiday. Requires roster.manage permission.",
         "operationId": "remove_holiday_api_v1_hr_rosters_public_holidays__holiday_id__delete",
@@ -2240,7 +2573,9 @@
     },
     "/api/v1/hr/timesheets/": {
       "post": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "Create timesheet",
         "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
         "operationId": "create_timesheet_endpoint_api_v1_hr_timesheets__post",
@@ -2255,8 +2590,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Timesheet and entries created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2264,6 +2599,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Timesheet and entries created"
           },
           "403": {
             "description": "Self/proxy submission disabled or not allowed for user"
@@ -2288,7 +2626,9 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/submit": {
       "patch": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "Submit timesheet",
         "description": "Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
         "operationId": "submit_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__submit_patch",
@@ -2354,7 +2694,9 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/approve": {
       "patch": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "Approve timesheet",
         "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
         "operationId": "approve_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__approve_patch",
@@ -2410,7 +2752,9 @@
     },
     "/api/v1/hr/timesheets/me": {
       "get": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "List my timesheets",
         "description": "Return timesheets for the current user.",
         "operationId": "read_my_timesheets_api_v1_hr_timesheets_me_get",
@@ -2435,7 +2779,9 @@
     },
     "/api/v1/hr/timesheets/department": {
       "get": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "List department timesheets",
         "description": "Return timesheets for a department. Requires timesheet.read.department permission.",
         "operationId": "read_department_timesheets_api_v1_hr_timesheets_department_get",
@@ -2484,7 +2830,9 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}/summary": {
       "get": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "Get timesheet summary by shift",
         "description": "Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
         "operationId": "read_timesheet_summary_api_v1_hr_timesheets__timesheet_id__summary_get",
@@ -2537,7 +2885,9 @@
     },
     "/api/v1/hr/timesheets/{timesheet_id}": {
       "get": {
-        "tags": ["hr-timesheets"],
+        "tags": [
+          "hr-timesheets"
+        ],
         "summary": "Get timesheet details",
         "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
         "operationId": "read_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__get",
@@ -2590,7 +2940,9 @@
     },
     "/api/v1/hr/leave-requests": {
       "post": {
-        "tags": ["hr-leave"],
+        "tags": [
+          "hr-leave"
+        ],
         "summary": "Create leave request",
         "description": "Create a leave request for the current user. Requires leave.request.create.self permission.",
         "operationId": "create_leave_request_endpoint_api_v1_hr_leave_requests_post",
@@ -2605,8 +2957,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Leave request created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2614,6 +2966,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Leave request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -2638,7 +2993,9 @@
     },
     "/api/v1/hr/leave-requests/{leave_request_id}/action": {
       "patch": {
-        "tags": ["hr-leave"],
+        "tags": [
+          "hr-leave"
+        ],
         "summary": "Action leave request",
         "description": "Approve or update a leave request. Requires leave.request.action and scope over the user.",
         "operationId": "action_leave_request_endpoint_api_v1_hr_leave_requests__leave_request_id__action_patch",
@@ -2701,7 +3058,9 @@
     },
     "/api/v1/hr/leave-requests/me": {
       "get": {
-        "tags": ["hr-leave"],
+        "tags": [
+          "hr-leave"
+        ],
         "summary": "List my leave requests",
         "description": "Return leave requests for the current user.",
         "operationId": "read_my_leave_requests_api_v1_hr_leave_requests_me_get",
@@ -2726,7 +3085,9 @@
     },
     "/api/v1/hr/absentee-reports": {
       "post": {
-        "tags": ["hr-absentee"],
+        "tags": [
+          "hr-absentee"
+        ],
         "summary": "Create absentee report",
         "description": "Create an absentee report. Requires absentee.report.create permission.",
         "operationId": "create_absentee_endpoint_api_v1_hr_absentee_reports_post",
@@ -2746,8 +3107,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Absentee report created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2755,6 +3116,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Absentee report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -2772,7 +3136,9 @@
         }
       },
       "get": {
-        "tags": ["hr-absentee"],
+        "tags": [
+          "hr-absentee"
+        ],
         "summary": "List absentee reports",
         "description": "List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
         "operationId": "read_absentee_reports_api_v1_hr_absentee_reports_get",
@@ -2828,7 +3194,9 @@
     },
     "/api/v1/hr/shift-swaps": {
       "post": {
-        "tags": ["hr-exchange"],
+        "tags": [
+          "hr-exchange"
+        ],
         "summary": "Create shift swap request",
         "description": "Create a shift swap request. Requires shift_swap.request.create.self permission.",
         "operationId": "create_shift_swap_endpoint_api_v1_hr_shift_swaps_post",
@@ -2843,8 +3211,8 @@
           "required": true
         },
         "responses": {
-          "200": {
-            "description": "Shift swap request created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2852,6 +3220,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Shift swap request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -2876,7 +3247,9 @@
     },
     "/api/v1/hr/shift-swaps/{shift_swap_id}/action": {
       "patch": {
-        "tags": ["hr-exchange"],
+        "tags": [
+          "hr-exchange"
+        ],
         "summary": "Action shift swap request",
         "description": "Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
         "operationId": "action_shift_swap_endpoint_api_v1_hr_shift_swaps__shift_swap_id__action_patch",
@@ -2939,7 +3312,9 @@
     },
     "/api/v1/hr/status-reports": {
       "post": {
-        "tags": ["hr-dailystatus"],
+        "tags": [
+          "hr-dailystatus"
+        ],
         "summary": "Create status report",
         "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
         "operationId": "create_status_report_endpoint_api_v1_hr_status_reports_post",
@@ -2959,8 +3334,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Status report created",
+          "201": {
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -2968,6 +3343,9 @@
                 }
               }
             }
+          },
+          "200": {
+            "description": "Status report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -2985,7 +3363,9 @@
         }
       },
       "get": {
-        "tags": ["hr-dailystatus"],
+        "tags": [
+          "hr-dailystatus"
+        ],
         "summary": "List status reports",
         "description": "List status reports. Requires status.report.read permission. Optionally filter by department_id.",
         "operationId": "read_status_reports_api_v1_hr_status_reports_get",
@@ -3041,7 +3421,9 @@
     },
     "/api/v1/hr/status-reports/{report_id}": {
       "get": {
-        "tags": ["hr-dailystatus"],
+        "tags": [
+          "hr-dailystatus"
+        ],
         "summary": "Get status report details",
         "description": "Return a status report with its personnel entries. Requires status.report.read permission.",
         "operationId": "read_status_report_endpoint_api_v1_hr_status_reports__report_id__get",
@@ -3092,9 +3474,1067 @@
         }
       }
     },
+    "/api/v1/cap/alerts": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Alerts",
+        "operationId": "read_alerts_api_v1_cap_alerts_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lifecycle_state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/CapLifecycleState"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lifecycle State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Create Alert Endpoint",
+        "operationId": "create_alert_endpoint_api_v1_cap_alerts_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Alert",
+        "operationId": "read_alert_api_v1_cap_alerts__alert_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Update Alert Endpoint",
+        "operationId": "update_alert_endpoint_api_v1_cap_alerts__alert_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/duplicate": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Duplicate Alert Endpoint",
+        "operationId": "duplicate_alert_endpoint_api_v1_cap_alerts__alert_id__duplicate_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/validate": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Validate Alert Endpoint",
+        "operationId": "validate_alert_endpoint_api_v1_cap_alerts__alert_id__validate_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapValidationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/submit": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Submit Alert Endpoint",
+        "operationId": "submit_alert_endpoint_api_v1_cap_alerts__alert_id__submit_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/approve": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Approve Alert Endpoint",
+        "operationId": "approve_alert_endpoint_api_v1_cap_alerts__alert_id__approve_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/publish": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Publish Alert Endpoint",
+        "operationId": "publish_alert_endpoint_api_v1_cap_alerts__alert_id__publish_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapPublishPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/cancel": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Cancel Alert Endpoint",
+        "operationId": "cancel_alert_endpoint_api_v1_cap_alerts__alert_id__cancel_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/alerts/{alert_id}/expire": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Expire Alert Endpoint",
+        "operationId": "expire_alert_endpoint_api_v1_cap_alerts__alert_id__expire_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertAction"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/settings": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Cap Settings",
+        "operationId": "read_cap_settings_api_v1_cap_settings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapSettingsPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Update Cap Settings",
+        "operationId": "update_cap_settings_api_v1_cap_settings_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapSettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapSettingsPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/catalogs": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Catalogs",
+        "operationId": "read_catalogs_api_v1_cap_catalogs_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapCatalogsPublic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/areas/predefined": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Predefined Areas",
+        "operationId": "read_predefined_areas_api_v1_cap_areas_predefined_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapPredefinedAreaPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Predefined Areas Api V1 Cap Areas Predefined Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Create Predefined Area Endpoint",
+        "operationId": "create_predefined_area_endpoint_api_v1_cap_areas_predefined_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapPredefinedAreaCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapPredefinedAreaPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/integrations": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Integrations",
+        "operationId": "read_integrations_api_v1_cap_integrations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "items": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "type": "object",
+                  "title": "Response Read Integrations Api V1 Cap Integrations Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/audit": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Audit",
+        "operationId": "read_audit_api_v1_cap_audit_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "alert_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Alert Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CapAuditEventPublic"
+                  },
+                  "title": "Response Read Audit Api V1 Cap Audit Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/latest-active": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Public Latest Active",
+        "operationId": "read_public_latest_active_api_cap_latest_active_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertListPublic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/alerts": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Public Alerts",
+        "operationId": "read_public_alerts_api_cap_alerts_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertListPublic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/past": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Public Past Alerts",
+        "operationId": "read_public_past_alerts_api_cap_past_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertListPublic"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/alerts/{identifier}": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Public Alert",
+        "operationId": "read_public_alert_api_cap_alerts__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/alerts.geojson": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Alerts Geojson",
+        "operationId": "read_alerts_geojson_api_cap_alerts_geojson_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Read Alerts Geojson Api Cap Alerts Geojson Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/active-map": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Active Map",
+        "operationId": "read_active_map_api_cap_active_map_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Read Active Map Api Cap Active Map Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/rss.xml": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Rss",
+        "operationId": "read_rss_api_cap_rss_xml_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/cap/{identifier}.xml": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Cap Xml",
+        "operationId": "read_cap_xml_api_cap__identifier__xml_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/utils/test-email/": {
       "post": {
-        "tags": ["utils"],
+        "tags": [
+          "utils"
+        ],
         "summary": "Test Email",
         "description": "Test emails.",
         "operationId": "test_email_api_v1_utils_test_email__post",
@@ -3141,7 +4581,9 @@
     },
     "/api/v1/utils/health-check/": {
       "get": {
-        "tags": ["utils"],
+        "tags": [
+          "utils"
+        ],
         "summary": "Liveness",
         "description": "Simple liveness probe; returns 200 if the process is running.",
         "operationId": "health_check_api_v1_utils_health_check__get",
@@ -3162,7 +4604,9 @@
     },
     "/api/v1/utils/ready/": {
       "get": {
-        "tags": ["utils"],
+        "tags": [
+          "utils"
+        ],
         "summary": "Readiness",
         "description": "Readiness probe; returns 200 if the app can reach the database, 503 otherwise.",
         "operationId": "ready_api_v1_utils_ready__get",
@@ -3172,7 +4616,9 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
+                  "additionalProperties": {
+                    "type": "string"
+                  },
                   "type": "object",
                   "title": "Response Ready Api V1 Utils Ready  Get"
                 }
@@ -3287,7 +4733,12 @@
           }
         },
         "type": "object",
-        "required": ["user_id", "department_id", "report_date", "reason_code"],
+        "required": [
+          "user_id",
+          "department_id",
+          "report_date",
+          "reason_code"
+        ],
         "title": "AbsenteeReportCreate"
       },
       "AbsenteeReportListPublic": {},
@@ -3473,9 +4924,1053 @@
           }
         },
         "type": "object",
-        "required": ["username", "password"],
+        "required": [
+          "username",
+          "password"
+        ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
       },
+      "CapAlertAction": {
+        "properties": {
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "title": "CapAlertAction"
+      },
+      "CapAlertCreate": {
+        "properties": {
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "sender": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender"
+          },
+          "sent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapStatus",
+            "default": "Draft"
+          },
+          "msg_type": {
+            "$ref": "#/components/schemas/CapMessageType",
+            "default": "Alert"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/CapScope",
+            "default": "Public"
+          },
+          "restriction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restriction"
+          },
+          "addresses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Addresses"
+          },
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Codes"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "references": {
+            "items": {
+              "$ref": "#/components/schemas/CapReferenceCreate"
+            },
+            "type": "array",
+            "title": "References"
+          },
+          "incidents": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Incidents"
+          },
+          "info": {
+            "items": {
+              "$ref": "#/components/schemas/CapInfoCreate"
+            },
+            "type": "array",
+            "title": "Info"
+          }
+        },
+        "type": "object",
+        "title": "CapAlertCreate"
+      },
+      "CapAlertListPublic": {},
+      "CapAlertPublic": {},
+      "CapAlertUpdate": {
+        "properties": {
+          "identifier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Identifier"
+          },
+          "sender": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender"
+          },
+          "sent": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sent"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "msg_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapMessageType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "scope": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapScope"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "restriction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Restriction"
+          },
+          "addresses": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Addresses"
+          },
+          "codes": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codes"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "references": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CapReferenceCreate"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "References"
+          },
+          "incidents": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incidents"
+          },
+          "info": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CapInfoCreate"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Info"
+          }
+        },
+        "type": "object",
+        "title": "CapAlertUpdate"
+      },
+      "CapAreaCreate": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/CapAreaKind",
+            "default": "AREA"
+          },
+          "area_desc": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Area Desc"
+          },
+          "predefined_area_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Predefined Area Id"
+          },
+          "polygons": {
+            "items": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Polygons"
+          },
+          "multipolygons": {
+            "items": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Multipolygons"
+          },
+          "circles": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Circles"
+          },
+          "geocodes": {
+            "items": {
+              "$ref": "#/components/schemas/CapNameValue-Input"
+            },
+            "type": "array",
+            "title": "Geocodes"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "altitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Altitude"
+          },
+          "ceiling": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ceiling"
+          }
+        },
+        "type": "object",
+        "required": [
+          "area_desc"
+        ],
+        "title": "CapAreaCreate"
+      },
+      "CapAreaKind": {
+        "type": "string",
+        "enum": [
+          "AREA",
+          "PREDEFINED",
+          "POLYGON",
+          "MULTIPOLYGON",
+          "CIRCLE",
+          "GEOCODE"
+        ],
+        "title": "CapAreaKind"
+      },
+      "CapAuditEventPublic": {},
+      "CapCatalogsPublic": {},
+      "CapCategory": {
+        "type": "string",
+        "enum": [
+          "Geo",
+          "Met",
+          "Safety",
+          "Security",
+          "Rescue",
+          "Fire",
+          "Health",
+          "Env",
+          "Transport",
+          "Infra",
+          "CBRNE",
+          "Other"
+        ],
+        "title": "CapCategory"
+      },
+      "CapCertainty": {
+        "type": "string",
+        "enum": [
+          "Observed",
+          "Likely",
+          "Possible",
+          "Unlikely",
+          "Unknown"
+        ],
+        "title": "CapCertainty"
+      },
+      "CapInfoCreate": {
+        "properties": {
+          "language": {
+            "type": "string",
+            "maxLength": 35,
+            "minLength": 2,
+            "title": "Language",
+            "default": "en"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "title": "Categories"
+          },
+          "event": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Event"
+          },
+          "event_codes": {
+            "items": {
+              "$ref": "#/components/schemas/CapNameValue-Input"
+            },
+            "type": "array",
+            "title": "Event Codes"
+          },
+          "response_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Response Types"
+          },
+          "urgency": {
+            "$ref": "#/components/schemas/CapUrgency",
+            "default": "Expected"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity",
+            "default": "Moderate"
+          },
+          "certainty": {
+            "$ref": "#/components/schemas/CapCertainty",
+            "default": "Likely"
+          },
+          "audience": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audience"
+          },
+          "effective": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective"
+          },
+          "onset": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Onset"
+          },
+          "expires": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires"
+          },
+          "sender_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Name"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Headline"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "instruction": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instruction"
+          },
+          "web": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/CapNameValue-Input"
+            },
+            "type": "array",
+            "title": "Parameters"
+          },
+          "resources": {
+            "items": {
+              "$ref": "#/components/schemas/CapResourceCreate"
+            },
+            "type": "array",
+            "title": "Resources"
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/CapAreaCreate"
+            },
+            "type": "array",
+            "title": "Areas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "event",
+          "headline",
+          "description"
+        ],
+        "title": "CapInfoCreate"
+      },
+      "CapLifecycleState": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "SUBMITTED",
+          "APPROVED",
+          "PUBLISHED",
+          "EXPIRED",
+          "CANCELLED"
+        ],
+        "title": "CapLifecycleState"
+      },
+      "CapMessageType": {
+        "type": "string",
+        "enum": [
+          "Alert",
+          "Update",
+          "Cancel",
+          "Ack",
+          "Error"
+        ],
+        "title": "CapMessageType"
+      },
+      "CapNameValue-Input": {
+        "properties": {
+          "value_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Value Name"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value_name",
+          "value"
+        ],
+        "title": "CapNameValue"
+      },
+      "CapNameValue-Output": {},
+      "CapPredefinedAreaCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "area_desc": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Area Desc"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "polygons": {
+            "items": {
+              "items": {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Polygons"
+          },
+          "multipolygons": {
+            "items": {
+              "items": {
+                "items": {
+                  "items": {
+                    "type": "number"
+                  },
+                  "type": "array"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Multipolygons"
+          },
+          "circles": {
+            "items": {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Circles"
+          },
+          "geocodes": {
+            "items": {
+              "$ref": "#/components/schemas/CapNameValue-Input"
+            },
+            "type": "array",
+            "title": "Geocodes"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "area_desc"
+        ],
+        "title": "CapPredefinedAreaCreate"
+      },
+      "CapPredefinedAreaPublic": {},
+      "CapPublishPublic": {},
+      "CapReferenceCreate": {
+        "properties": {
+          "sender": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Sender"
+          },
+          "identifier": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Identifier"
+          },
+          "sent": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sender",
+          "identifier",
+          "sent"
+        ],
+        "title": "CapReferenceCreate"
+      },
+      "CapResourceCreate": {
+        "properties": {
+          "resource_desc": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Resource Desc"
+          },
+          "mime_type": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Mime Type"
+          },
+          "size": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Size"
+          },
+          "uri": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uri"
+          },
+          "deref_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deref Uri"
+          },
+          "digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Digest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "resource_desc",
+          "mime_type"
+        ],
+        "title": "CapResourceCreate"
+      },
+      "CapScope": {
+        "type": "string",
+        "enum": [
+          "Public",
+          "Restricted",
+          "Private"
+        ],
+        "title": "CapScope"
+      },
+      "CapSettingsPublic": {},
+      "CapSettingsUpdate": {
+        "properties": {
+          "sender": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender"
+          },
+          "sender_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Name"
+          },
+          "wmo_oid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wmo Oid"
+          },
+          "web": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Web"
+          },
+          "contact": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contact"
+          },
+          "feed_limit": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 500.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Feed Limit"
+          },
+          "signing_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signing Enabled"
+          },
+          "signing_certificate_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signing Certificate Ref"
+          }
+        },
+        "type": "object",
+        "title": "CapSettingsUpdate"
+      },
+      "CapSeverity": {
+        "type": "string",
+        "enum": [
+          "Extreme",
+          "Severe",
+          "Moderate",
+          "Minor",
+          "Unknown"
+        ],
+        "title": "CapSeverity"
+      },
+      "CapStatus": {
+        "type": "string",
+        "enum": [
+          "Actual",
+          "Exercise",
+          "System",
+          "Test",
+          "Draft"
+        ],
+        "title": "CapStatus"
+      },
+      "CapUrgency": {
+        "type": "string",
+        "enum": [
+          "Immediate",
+          "Expected",
+          "Future",
+          "Past",
+          "Unknown"
+        ],
+        "title": "CapUrgency"
+      },
+      "CapValidationResult": {},
       "EmploymentAdminUpdate": {
         "properties": {
           "employment": {
@@ -3504,12 +5999,21 @@
       },
       "EmploymentStatus": {
         "type": "string",
-        "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "TERMINATED"
+        ],
         "title": "EmploymentStatus"
       },
       "EmploymentType": {
         "type": "string",
-        "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+        "enum": [
+          "FULL_TIME",
+          "PART_TIME",
+          "CONTRACT",
+          "TEMPORARY"
+        ],
         "title": "EmploymentType"
       },
       "EmploymentUpdate": {
@@ -3653,7 +6157,9 @@
           }
         },
         "type": "object",
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "title": "LeaveRequestAction"
       },
       "LeaveRequestCreate": {
@@ -3761,7 +6267,12 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "leave_type", "start_date", "end_date"],
+        "required": [
+          "department_id",
+          "leave_type",
+          "start_date",
+          "end_date"
+        ],
         "title": "LeaveRequestCreate"
       },
       "LeaveRequestListPublic": {},
@@ -3794,8 +6305,47 @@
           }
         },
         "type": "object",
-        "required": ["token", "new_password"],
+        "required": [
+          "token",
+          "new_password"
+        ],
         "title": "NewPassword"
+      },
+      "PaginatedResponse_UserPublic_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/UserPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[UserPublic]"
       },
       "PermissionCreate": {
         "properties": {
@@ -3829,14 +6379,24 @@
           }
         },
         "type": "object",
-        "required": ["action", "entity", "access"],
+        "required": [
+          "action",
+          "entity",
+          "access"
+        ],
         "title": "PermissionCreate"
       },
       "PermissionPublic": {},
       "PermissionsPublic": {},
       "PersonnelStatus": {
         "type": "string",
-        "enum": ["PRESENT", "ABSENT", "LATE", "ON_LEAVE", "EXCUSED"],
+        "enum": [
+          "PRESENT",
+          "ABSENT",
+          "LATE",
+          "ON_LEAVE",
+          "EXCUSED"
+        ],
         "title": "PersonnelStatus"
       },
       "ProfileDetailsUpdate": {
@@ -3878,18 +6438,6 @@
               }
             ],
             "title": "Last Name"
-          },
-          "display_name": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 150
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Display Name"
           },
           "date_of_birth": {
             "anyOf": [
@@ -3988,19 +6536,32 @@
           }
         },
         "type": "object",
-        "required": ["name", "holiday_date"],
+        "required": [
+          "name",
+          "holiday_date"
+        ],
         "title": "PublicHolidayCreate"
       },
       "PublicHolidayPublic": {},
       "PublicHolidaysPublic": {},
       "RequestStatus": {
         "type": "string",
-        "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+        "enum": [
+          "DRAFT",
+          "SUBMITTED",
+          "APPROVED",
+          "REJECTED",
+          "CANCELLED"
+        ],
         "title": "RequestStatus"
       },
       "RoleAssignmentScope": {
         "type": "string",
-        "enum": ["SELF", "DEPARTMENT", "ALL"],
+        "enum": [
+          "SELF",
+          "DEPARTMENT",
+          "ALL"
+        ],
         "title": "RoleAssignmentScope"
       },
       "RoleCreate": {
@@ -4016,7 +6577,9 @@
           }
         },
         "type": "object",
-        "required": ["name"],
+        "required": [
+          "name"
+        ],
         "title": "RoleCreate"
       },
       "RolePublic": {},
@@ -4037,7 +6600,9 @@
           }
         },
         "type": "object",
-        "required": ["roster_period_id"],
+        "required": [
+          "roster_period_id"
+        ],
         "title": "RosterAssignmentBulkCreate"
       },
       "RosterAssignmentInput": {
@@ -4069,7 +6634,11 @@
           }
         },
         "type": "object",
-        "required": ["user_id", "assignment_date", "shift_code"],
+        "required": [
+          "user_id",
+          "assignment_date",
+          "shift_code"
+        ],
         "title": "RosterAssignmentInput"
       },
       "RosterAssignmentPublic": {},
@@ -4103,7 +6672,10 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "csv_text"],
+        "required": [
+          "department_id",
+          "csv_text"
+        ],
         "title": "RosterCsvValidationRequest"
       },
       "RosterCsvValidationResponse": {},
@@ -4125,7 +6697,11 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "period_start", "period_end"],
+        "required": [
+          "department_id",
+          "period_start",
+          "period_end"
+        ],
         "title": "RosterPeriodCreate"
       },
       "RosterPeriodDetails": {},
@@ -4188,10 +6764,71 @@
         "title": "RosterPreferencesUpdate"
       },
       "RosterRevisionsPublic": {},
+      "SessionAccessTokenResponse": {},
+      "SessionLoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "client_type": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Client Type",
+            "default": "web"
+          },
+          "app_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "SessionLoginRequest"
+      },
+      "SessionLoginResponse": {},
+      "SessionTokenRequest": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 32,
+            "title": "Session Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token"
+        ],
+        "title": "SessionTokenRequest"
+      },
       "ShiftCatalogsPublic": {},
       "ShiftPattern": {
         "type": "string",
-        "enum": ["ROTATION", "FIXED", "FLEX"],
+        "enum": [
+          "ROTATION",
+          "FIXED",
+          "FLEX"
+        ],
         "title": "ShiftPattern"
       },
       "ShiftSwapAction": {
@@ -4212,7 +6849,9 @@
           }
         },
         "type": "object",
-        "required": ["status"],
+        "required": [
+          "status"
+        ],
         "title": "ShiftSwapAction"
       },
       "ShiftSwapRequestCreate": {
@@ -4397,7 +7036,11 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "report_date", "shift_code"],
+        "required": [
+          "department_id",
+          "report_date",
+          "shift_code"
+        ],
         "title": "StatusReportCreate"
       },
       "StatusReportDetails": {},
@@ -4446,18 +7089,27 @@
           }
         },
         "type": "object",
-        "required": ["user_id", "personnel_status"],
+        "required": [
+          "user_id",
+          "personnel_status"
+        ],
         "title": "StatusReportEntryInput"
       },
       "StatusReportListPublic": {},
       "SubmissionMode": {
         "type": "string",
-        "enum": ["SELF", "PROXY"],
+        "enum": [
+          "SELF",
+          "PROXY"
+        ],
         "title": "SubmissionMode"
       },
       "SwapType": {
         "type": "string",
-        "enum": ["TEMPORARY", "PERMANENT"],
+        "enum": [
+          "TEMPORARY",
+          "PERMANENT"
+        ],
         "title": "SwapType"
       },
       "TimesheetCreate": {
@@ -4497,7 +7149,11 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "period_start", "period_end"],
+        "required": [
+          "department_id",
+          "period_start",
+          "period_end"
+        ],
         "title": "TimesheetCreate"
       },
       "TimesheetDetails": {},
@@ -4584,7 +7240,9 @@
           }
         },
         "type": "object",
-        "required": ["entry_date"],
+        "required": [
+          "entry_date"
+        ],
         "title": "TimesheetEntryInput"
       },
       "TimesheetListPublic": {},
@@ -4613,7 +7271,10 @@
           }
         },
         "type": "object",
-        "required": ["current_password", "new_password"],
+        "required": [
+          "current_password",
+          "new_password"
+        ],
         "title": "UpdatePassword"
       },
       "UserCreate": {
@@ -4887,7 +7548,10 @@
           }
         },
         "type": "object",
-        "required": ["user_id", "role_id"],
+        "required": [
+          "user_id",
+          "role_id"
+        ],
         "title": "UserRoleAssignmentCreate"
       },
       "UserRoleAssignmentPublic": {},
@@ -4933,7 +7597,10 @@
       "UserRoleAssignmentsPublic": {},
       "UserStatus": {
         "type": "string",
-        "enum": ["ACTIVE", "INACTIVE"],
+        "enum": [
+          "ACTIVE",
+          "INACTIVE"
+        ],
         "title": "UserStatus"
       },
       "UserUpdate": {
@@ -5107,7 +7774,6 @@
         "type": "object",
         "title": "UserUpdateMe"
       },
-      "UsersPublic": {},
       "ValidationError": {
         "properties": {
           "loc": {
@@ -5134,12 +7800,22 @@
           }
         },
         "type": "object",
-        "required": ["loc", "msg", "type"],
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
         "title": "ValidationError"
       },
       "WorkflowAction": {
         "type": "string",
-        "enum": ["SUBMIT", "APPROVE", "REJECT", "RETURN", "CANCEL"],
+        "enum": [
+          "SUBMIT",
+          "APPROVE",
+          "REJECT",
+          "RETURN",
+          "CANCEL"
+        ],
         "title": "WorkflowAction"
       },
       "WorkflowActionRequest": {
@@ -5161,7 +7837,9 @@
           }
         },
         "type": "object",
-        "required": ["action"],
+        "required": [
+          "action"
+        ],
         "title": "WorkflowActionRequest"
       },
       "WorkflowInstanceCreate": {
@@ -5184,7 +7862,11 @@
           }
         },
         "type": "object",
-        "required": ["workflow_template_id", "entity_type", "entity_id"],
+        "required": [
+          "workflow_template_id",
+          "entity_type",
+          "entity_id"
+        ],
         "title": "WorkflowInstanceCreate"
       },
       "WorkflowInstanceDetails": {},
@@ -5212,7 +7894,10 @@
           }
         },
         "type": "object",
-        "required": ["step_order", "required_role_id"],
+        "required": [
+          "step_order",
+          "required_role_id"
+        ],
         "title": "WorkflowStepTemplateCreate"
       },
       "WorkflowStepTemplatePublic": {},
@@ -5233,7 +7918,11 @@
           }
         },
         "type": "object",
-        "required": ["department_id", "workflow_type", "name"],
+        "required": [
+          "department_id",
+          "workflow_type",
+          "name"
+        ],
         "title": "WorkflowTemplateCreate"
       },
       "WorkflowTemplatePublic": {},

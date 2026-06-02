@@ -11,7 +11,12 @@ import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 /**
  * @description Public holiday created
  */
-export const createHolidayApiV1HrRostersPublicHolidaysPost200Schema = z.lazy(
+export const createHolidayApiV1HrRostersPublicHolidaysPost200Schema = z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createHolidayApiV1HrRostersPublicHolidaysPost201Schema = z.lazy(
   () => publicHolidayPublicSchema
 );
 
@@ -36,4 +41,7 @@ export const createHolidayApiV1HrRostersPublicHolidaysPostMutationRequestSchema 
   z.lazy(() => publicHolidayCreateSchema);
 
 export const createHolidayApiV1HrRostersPublicHolidaysPostMutationResponseSchema =
-  z.lazy(() => createHolidayApiV1HrRostersPublicHolidaysPost200Schema);
+  z.union([
+    z.lazy(() => createHolidayApiV1HrRostersPublicHolidaysPost200Schema),
+    z.lazy(() => createHolidayApiV1HrRostersPublicHolidaysPost201Schema),
+  ]);

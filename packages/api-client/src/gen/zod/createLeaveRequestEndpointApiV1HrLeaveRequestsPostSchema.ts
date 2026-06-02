@@ -12,6 +12,12 @@ import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
  * @description Leave request created
  */
 export const createLeaveRequestEndpointApiV1HrLeaveRequestsPost200Schema =
+  z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createLeaveRequestEndpointApiV1HrLeaveRequestsPost201Schema =
   z.lazy(() => leaveRequestPublicSchema);
 
 /**
@@ -30,4 +36,7 @@ export const createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequestSc
   z.lazy(() => leaveRequestCreateSchema);
 
 export const createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponseSchema =
-  z.lazy(() => createLeaveRequestEndpointApiV1HrLeaveRequestsPost200Schema);
+  z.union([
+    z.lazy(() => createLeaveRequestEndpointApiV1HrLeaveRequestsPost200Schema),
+    z.lazy(() => createLeaveRequestEndpointApiV1HrLeaveRequestsPost201Schema),
+  ]);

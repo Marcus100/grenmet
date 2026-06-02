@@ -5,18 +5,29 @@
 
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { usersPublicSchema } from "./usersPublicSchema.js";
+import { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
 
 export const readUsersApiV1AuthUsersGetQueryParamsSchema = z.object({
-  skip: z.coerce.number().int().default(0),
-  limit: z.coerce.number().int().default(100),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(100)
+    .describe("Items per page"),
 });
 
 /**
  * @description Users returned
  */
 export const readUsersApiV1AuthUsersGet200Schema = z.lazy(
-  () => usersPublicSchema
+  () => paginatedResponseUserPublicSchema
 );
 
 /**

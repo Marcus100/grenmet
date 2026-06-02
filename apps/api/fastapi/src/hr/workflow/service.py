@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,6 +37,7 @@ from .schemas import (
     WorkflowTemplateCreate,
 )
 
+logger = logging.getLogger(__name__)
 
 async def create_workflow_template(
     *, session: AsyncSession, current_user: User, template_in: WorkflowTemplateCreate
@@ -88,7 +90,7 @@ async def read_workflow_templates(
         statement = statement.where(
             col(WorkflowTemplate.department_id) == department_id
         )
-    result = await session.execute(statement)
+    result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
 
@@ -283,6 +285,15 @@ async def apply_workflow_action(
     session.add(workflow_instance)
     await session.commit()
     await session.refresh(workflow_instance)
+    logger.info(
+        "Workflow action taken",
+        extra={
+            "instance_id": str(workflow_instance.id),
+            "action": action_in.action.value,
+            "status": workflow_instance.status.value,
+            "actor_id": str(current_user.id),
+        },
+    )
     return workflow_instance
 
 

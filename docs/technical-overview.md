@@ -129,7 +129,7 @@ There are **three separate PostgreSQL databases**. They share the same Postgres 
 
 | Database | Managed by | Used by | ORM |
 |---|---|---|---|
-| FastAPI DB (`app_db`) | FastAPI / Alembic | `admin-gms`, `hr` (via API) | SQLModel + asyncpg |
+| FastAPI DB (`app_db`) | FastAPI / Alembic | `admin-gms`, `hr`, CAP management and public CAP feeds (via API) | SQLModel + asyncpg |
 | wxwatch DB | Drizzle Kit | `wxwatch`, scrapy-wxwatch pipeline | Drizzle ORM |
 | wxproducts DB | Drizzle Kit | `wxproducts` | Drizzle ORM |
 

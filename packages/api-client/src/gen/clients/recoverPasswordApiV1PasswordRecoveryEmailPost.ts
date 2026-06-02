@@ -11,6 +11,7 @@ import type {
 import fetch from "../../client.js";
 import type {
   RecoverPasswordApiV1PasswordRecoveryEmailPost422,
+  RecoverPasswordApiV1PasswordRecoveryEmailPost429,
   RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
   RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams,
 } from "../models/RecoverPasswordApiV1PasswordRecoveryEmailPost.js";
@@ -38,7 +39,10 @@ export async function recoverPasswordApiV1PasswordRecoveryEmailPost(
 
   const res = await request<
     RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
-    ResponseErrorConfig<RecoverPasswordApiV1PasswordRecoveryEmailPost422>,
+    ResponseErrorConfig<
+      | RecoverPasswordApiV1PasswordRecoveryEmailPost422
+      | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+    >,
     unknown
   >({
     method: "POST",

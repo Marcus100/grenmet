@@ -1,0 +1,19 @@
+{
+  "type": "string",
+  "enum": [
+    "Geo",
+    "Met",
+    "Safety",
+    "Security",
+    "Rescue",
+    "Fire",
+    "Health",
+    "Env",
+    "Transport",
+    "Infra",
+    "CBRNE",
+    "Other"
+  ],
+  "title": "CapCategory",
+  "x-readme-ref-name": "CapCategory"
+}

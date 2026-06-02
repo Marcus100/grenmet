@@ -8,7 +8,9 @@ import * as z from "zod";
 /**
  * @description Database reachable
  */
-export const readyApiV1UtilsReadyGet200Schema = z.object({}).catchall(z.any());
+export const readyApiV1UtilsReadyGet200Schema = z
+  .object({})
+  .catchall(z.string());
 
 /**
  * @description Database unreachable

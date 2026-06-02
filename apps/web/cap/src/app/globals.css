@@ -1,0 +1,17 @@
+@import "tailwindcss";
+@import "@grenmet/ui/styles/globals";
+
+:root {
+  --background: var(--gm-surface-page);
+  --foreground: var(--gm-text-primary);
+}
+
+body {
+  font-family: var(--gm-font-sans);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+a {
+  text-decoration: none;
+}

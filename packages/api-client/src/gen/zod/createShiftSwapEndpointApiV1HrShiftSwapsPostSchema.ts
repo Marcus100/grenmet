@@ -11,7 +11,12 @@ import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js"
 /**
  * @description Shift swap request created
  */
-export const createShiftSwapEndpointApiV1HrShiftSwapsPost200Schema = z.lazy(
+export const createShiftSwapEndpointApiV1HrShiftSwapsPost200Schema = z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createShiftSwapEndpointApiV1HrShiftSwapsPost201Schema = z.lazy(
   () => shiftSwapRequestPublicSchema
 );
 
@@ -31,4 +36,7 @@ export const createShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequestSchema =
   z.lazy(() => shiftSwapRequestCreateSchema);
 
 export const createShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponseSchema =
-  z.lazy(() => createShiftSwapEndpointApiV1HrShiftSwapsPost200Schema);
+  z.union([
+    z.lazy(() => createShiftSwapEndpointApiV1HrShiftSwapsPost200Schema),
+    z.lazy(() => createShiftSwapEndpointApiV1HrShiftSwapsPost201Schema),
+  ]);

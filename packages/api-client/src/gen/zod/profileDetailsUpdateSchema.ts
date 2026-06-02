@@ -10,7 +10,6 @@ export const profileDetailsUpdateSchema = z.object({
   first_name: z.optional(z.union([z.string(), z.null()])),
   middle_name: z.optional(z.union([z.string(), z.null()])),
   last_name: z.optional(z.union([z.string(), z.null()])),
-  display_name: z.optional(z.union([z.string(), z.null()])),
   date_of_birth: z.optional(z.union([z.string().date(), z.null()])),
   nationality: z.optional(z.union([z.string(), z.null()])),
   gender: z.optional(z.union([z.string(), z.null()])),

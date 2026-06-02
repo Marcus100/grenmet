@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["Alert", "Update", "Cancel", "Ack", "Error"],
+  "title": "CapMessageType",
+  "x-readme-ref-name": "CapMessageType"
+}

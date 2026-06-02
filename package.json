@@ -24,6 +24,7 @@
     "dev:web:spicewx": "turbo run dev --filter=@grenmet/web-spicewx",
     "dev:web:hr": "turbo run dev --filter=@grenmet/web-hr",
     "dev:web:salesbus": "turbo run dev --filter=@grenmet/web-salesbus",
+    "dev:web:cap": "turbo run dev --filter=@grenmet/web-cap",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",
@@ -37,7 +38,7 @@
     "type-check": "turbo run type-check",
     "fix": "ultracite fix",
     "generate:api-client": "turbo run generate --filter=@grenmet/api-client",
-    "check:drift": "node scripts/check-api-drift.mjs"
+    "check:drift": "node scripts/api/check-api-drift.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

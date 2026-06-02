@@ -1,18 +1,19 @@
-"""
-Permission management endpoints.
+"""Permission management endpoints.
 
-This router handles permission CRUD operations. All endpoints require superuser privileges.
+All endpoints require superuser privileges.
 """
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import service
+from src.auth.constants import ERROR_PERMISSION_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
-from src.auth.schemas import PermissionCreate, PermissionPublic, PermissionsPublic
+from src.auth.schemas import PermissionCreate, PermissionPublic
 from src.dependencies import SessionDep
+from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
 router = APIRouter(
     prefix="/auth/permissions",
@@ -23,24 +24,23 @@ router = APIRouter(
 
 @router.get(
     "/",
-    response_model=PermissionsPublic,
+    response_model=PaginatedResponse[PermissionPublic],
     summary="List permissions",
     description="Return permissions (superuser only).",
     responses={status.HTTP_200_OK: {"description": "Permissions returned"}},
 )
-async def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
-    """
-    Retrieve permissions (superuser only).
-    """
+async def read_permissions(
+    session: SessionDep,
+    pagination: Annotated[PaginationParams, Depends(get_pagination_params)],
+) -> Any:
     permissions, count = await service.get_permissions_with_count(
-        session=session, skip=skip, limit=limit
+        session=session, skip=pagination.skip, limit=pagination.limit
     )
-    return PermissionsPublic(
-        data=[
-            PermissionPublic.model_validate(perm, from_attributes=True)
-            for perm in permissions
-        ],
+    return PaginatedResponse(
+        data=[PermissionPublic.model_validate(p, from_attributes=True) for p in permissions],
         count=count,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 
@@ -55,28 +55,21 @@ async def read_permissions(session: SessionDep, skip: int = 0, limit: int = 100)
     },
 )
 async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
-    """
-    Get permission by ID (superuser only).
-    """
-    permission = await service.get_permission(
-        session=session, permission_id=permission_id
-    )
+    permission = await service.get_permission(session=session, permission_id=permission_id)
     if not permission:
-        raise HTTPException(status_code=404, detail="Permission not found")
+        raise HTTPException(status_code=404, detail=ERROR_PERMISSION_NOT_FOUND)
     return permission
 
 
 @router.post(
     "/",
     response_model=PermissionPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create permission",
     description="Create a permission (superuser only).",
-    responses={status.HTTP_200_OK: {"description": "Permission created"}},
+    responses={status.HTTP_201_CREATED: {"description": "Permission created"}},
 )
 async def create_permission(
     *, session: SessionDep, permission_in: PermissionCreate
 ) -> Any:
-    """
-    Create new permission (superuser only).
-    """
     return await service.create_permission(session=session, permission_in=permission_in)

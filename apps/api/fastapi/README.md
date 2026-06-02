@@ -1,9 +1,11 @@
 # FastAPI Backend (`grenmet-api`)
 
-FastAPI backend for the GMS platform. Covers the Auth and HR domains.
+FastAPI backend for the GMS platform. Covers the Auth, HR, CAP, utilities, and webhook domains.
 
 - **Auth** (`/api/v1/auth/`, `/api/v1/login/`) — users, roles, permissions, sessions, password recovery
 - **HR** (`/api/v1/hr/`) — timesheets, rosters, shifts, leave requests, shift swaps, employment profiles, workflows
+- **CAP** (`/api/v1/cap/`, `/api/cap/`) — CAP alert lifecycle, public feeds, XML snapshots, and audit events
+- **Webhooks** (`/api/v1/webhooks/`) — Resend delivery events
 
 Runs in Docker only — not managed by pnpm. Part of the Grenmet monorepo.
 
@@ -61,6 +63,8 @@ apps/api/fastapi/
 │   │   ├── models.py             # HR models
 │   │   ├── schemas.py            # Pydantic schemas
 │   │   └── service.py            # Business logic
+│   ├── cap/                      # CAP alert lifecycle, feeds, XML, audit
+│   ├── webhooks/                 # Webhook receivers
 │   ├── utils/                    # Utilities
 │   │   └── router.py             # Health check, test email
 │   ├── config.py                 # Settings (Pydantic)

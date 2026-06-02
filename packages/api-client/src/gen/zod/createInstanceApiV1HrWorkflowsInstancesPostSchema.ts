@@ -11,7 +11,12 @@ import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js"
 /**
  * @description Instance created
  */
-export const createInstanceApiV1HrWorkflowsInstancesPost200Schema = z.lazy(
+export const createInstanceApiV1HrWorkflowsInstancesPost200Schema = z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createInstanceApiV1HrWorkflowsInstancesPost201Schema = z.lazy(
   () => workflowInstancePublicSchema
 );
 
@@ -36,4 +41,7 @@ export const createInstanceApiV1HrWorkflowsInstancesPostMutationRequestSchema =
   z.lazy(() => workflowInstanceCreateSchema);
 
 export const createInstanceApiV1HrWorkflowsInstancesPostMutationResponseSchema =
-  z.lazy(() => createInstanceApiV1HrWorkflowsInstancesPost200Schema);
+  z.union([
+    z.lazy(() => createInstanceApiV1HrWorkflowsInstancesPost200Schema),
+    z.lazy(() => createInstanceApiV1HrWorkflowsInstancesPost201Schema),
+  ]);

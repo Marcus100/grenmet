@@ -10,7 +10,12 @@ import type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 /**
  * @description Public holiday created
  */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost200 =
+export type CreateHolidayApiV1HrRostersPublicHolidaysPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateHolidayApiV1HrRostersPublicHolidaysPost201 =
   PublicHolidayPublic;
 
 /**
@@ -37,10 +42,13 @@ export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest =
   PublicHolidayCreate;
 
 export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse =
-  CreateHolidayApiV1HrRostersPublicHolidaysPost200;
+  | CreateHolidayApiV1HrRostersPublicHolidaysPost200
+  | CreateHolidayApiV1HrRostersPublicHolidaysPost201;
 
 export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutation = {
-  Response: CreateHolidayApiV1HrRostersPublicHolidaysPost200;
+  Response:
+    | CreateHolidayApiV1HrRostersPublicHolidaysPost200
+    | CreateHolidayApiV1HrRostersPublicHolidaysPost201;
   Request: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest;
   Errors:
     | CreateHolidayApiV1HrRostersPublicHolidaysPost400

@@ -24,6 +24,11 @@ export type LoginAccessTokenApiV1LoginAccessTokenPost400 = any;
 export type LoginAccessTokenApiV1LoginAccessTokenPost422 = HTTPValidationError;
 
 /**
+ * @description Rate limit exceeded
+ */
+export type LoginAccessTokenApiV1LoginAccessTokenPost429 = any;
+
+/**
  * Body_login_access_token_api_v1_login_access_token_post
  */
 export type LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest =
@@ -37,5 +42,6 @@ export type LoginAccessTokenApiV1LoginAccessTokenPostMutation = {
   Request: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
   Errors:
     | LoginAccessTokenApiV1LoginAccessTokenPost400
-    | LoginAccessTokenApiV1LoginAccessTokenPost422;
+    | LoginAccessTokenApiV1LoginAccessTokenPost422
+    | LoginAccessTokenApiV1LoginAccessTokenPost429;
 };
