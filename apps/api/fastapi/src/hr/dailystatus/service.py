@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,7 @@ from src.hr.workflow.service import start_workflow_for_entity
 from .models import StatusReport, StatusReportEntry
 from .schemas import StatusReportCreate
 
+logger = logging.getLogger(__name__)
 
 async def create_status_report(
     *, session: AsyncSession, current_user: User, payload: StatusReportCreate
@@ -62,6 +64,10 @@ async def create_status_report(
     session.add(report)
     await session.commit()
     await session.refresh(report)
+    logger.info(
+        "Status report created",
+        extra={"report_id": str(report.id), "user_id": str(current_user.id)},
+    )
     return report, entries
 
 
@@ -90,6 +96,6 @@ async def list_status_reports(
     if department_id:
         statement = statement.where(col(StatusReport.department_id) == department_id)
     result = await session.execute(
-        statement.order_by(col(StatusReport.created_at).desc())
+        statement.order_by(col(StatusReport.created_at).desc()).limit(100)
     )
     return list(result.scalars().all())

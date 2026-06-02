@@ -35,9 +35,22 @@
 *.tsx text eol=lf
 *.js text eol=lf
 *.jsx text eol=lf
+*.mjs text eol=lf
+*.cjs text eol=lf
 
 # Force LF for CSS
 *.css text eol=lf
+
+# Force LF for MDX
+*.mdx text eol=lf
+
+# Force LF for Docker files
+Dockerfile text eol=lf
+Dockerfile.* text eol=lf
+.dockerignore text eol=lf
+
+# Force LF for SQL
+*.sql text eol=lf
 
 # Binary files
 *.png binary

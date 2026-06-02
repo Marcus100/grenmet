@@ -7,6 +7,23 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
+from src.cap.models import (  # noqa: F401
+    CapAlert,
+    CapArea,
+    CapAuditEvent,
+    CapFeedImport,
+    CapHazardType,
+    CapIncident,
+    CapInfo,
+    CapJobEvent,
+    CapMqttBroker,
+    CapPredefinedArea,
+    CapReference,
+    CapResource,
+    CapSettings,
+    CapSnapshot,
+    CapWebhook,
+)
 from src.config import settings
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401

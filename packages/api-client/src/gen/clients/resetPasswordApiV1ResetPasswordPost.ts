@@ -11,6 +11,7 @@ import type {
 import fetch from "../../client.js";
 import type {
   ResetPasswordApiV1ResetPasswordPost422,
+  ResetPasswordApiV1ResetPasswordPost429,
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
@@ -37,7 +38,10 @@ export async function resetPasswordApiV1ResetPasswordPost(
 
   const res = await request<
     ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<ResetPasswordApiV1ResetPasswordPost422>,
+    ResponseErrorConfig<
+      | ResetPasswordApiV1ResetPasswordPost422
+      | ResetPasswordApiV1ResetPasswordPost429
+    >,
     ResetPasswordApiV1ResetPasswordPostMutationRequest
   >({
     method: "POST",

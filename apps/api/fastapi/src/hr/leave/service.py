@@ -1,3 +1,4 @@
+import logging
 import uuid
 from decimal import Decimal
 
@@ -21,6 +22,7 @@ from src.utils.datetime import utc_now
 from .models import LeaveBalanceEvent, LeaveRequest
 from .schemas import LeaveRequestAction, LeaveRequestCreate
 
+logger = logging.getLogger(__name__)
 
 async def create_leave_request(
     *, session: AsyncSession, current_user: User, payload: LeaveRequestCreate
@@ -59,6 +61,10 @@ async def create_leave_request(
         session.add(leave_request)
         await session.commit()
         await session.refresh(leave_request)
+    logger.info(
+        "Leave request created",
+        extra={"leave_request_id": str(leave_request.id), "user_id": str(current_user.id)},
+    )
     return leave_request
 
 
@@ -114,6 +120,14 @@ async def action_leave_request(
         )
     await session.commit()
     await session.refresh(leave_request)
+    logger.info(
+        "Leave request actioned",
+        extra={
+            "leave_request_id": str(leave_request.id),
+            "status": leave_request.status.value,
+            "actor_id": str(current_user.id),
+        },
+    )
     return leave_request
 
 
@@ -124,5 +138,6 @@ async def list_leave_requests(
         select(LeaveRequest)
         .where(col(LeaveRequest.user_id) == current_user.id)
         .order_by(col(LeaveRequest.created_at).desc())
+        .limit(100)
     )
     return list(result.scalars().all())

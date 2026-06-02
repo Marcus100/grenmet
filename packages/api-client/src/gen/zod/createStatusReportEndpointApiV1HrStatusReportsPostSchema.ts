@@ -12,6 +12,12 @@ import { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
  * @description Status report created
  */
 export const createStatusReportEndpointApiV1HrStatusReportsPost200Schema =
+  z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createStatusReportEndpointApiV1HrStatusReportsPost201Schema =
   z.lazy(() => statusReportDetailsSchema);
 
 /**
@@ -30,4 +36,7 @@ export const createStatusReportEndpointApiV1HrStatusReportsPostMutationRequestSc
   z.lazy(() => statusReportCreateSchema);
 
 export const createStatusReportEndpointApiV1HrStatusReportsPostMutationResponseSchema =
-  z.lazy(() => createStatusReportEndpointApiV1HrStatusReportsPost200Schema);
+  z.union([
+    z.lazy(() => createStatusReportEndpointApiV1HrStatusReportsPost200Schema),
+    z.lazy(() => createStatusReportEndpointApiV1HrStatusReportsPost201Schema),
+  ]);

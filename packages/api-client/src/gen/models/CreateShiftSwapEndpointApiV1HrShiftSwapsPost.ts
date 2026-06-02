@@ -10,7 +10,12 @@ import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 /**
  * @description Shift swap request created
  */
-export type CreateShiftSwapEndpointApiV1HrShiftSwapsPost200 =
+export type CreateShiftSwapEndpointApiV1HrShiftSwapsPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateShiftSwapEndpointApiV1HrShiftSwapsPost201 =
   ShiftSwapRequestPublic;
 
 /**
@@ -32,10 +37,13 @@ export type CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest =
   ShiftSwapRequestCreate;
 
 export type CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse =
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPost200;
+  | CreateShiftSwapEndpointApiV1HrShiftSwapsPost200
+  | CreateShiftSwapEndpointApiV1HrShiftSwapsPost201;
 
 export type CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutation = {
-  Response: CreateShiftSwapEndpointApiV1HrShiftSwapsPost200;
+  Response:
+    | CreateShiftSwapEndpointApiV1HrShiftSwapsPost200
+    | CreateShiftSwapEndpointApiV1HrShiftSwapsPost201;
   Request: CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest;
   Errors:
     | CreateShiftSwapEndpointApiV1HrShiftSwapsPost403

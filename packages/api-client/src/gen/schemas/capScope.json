@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["Public", "Restricted", "Private"],
+  "title": "CapScope",
+  "x-readme-ref-name": "CapScope"
+}

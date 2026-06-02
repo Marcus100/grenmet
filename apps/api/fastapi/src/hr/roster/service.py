@@ -92,7 +92,7 @@ async def list_public_holidays(
         statement = statement.where(
             sa_filter.extract("year", col(PublicHoliday.holiday_date)) == year
         )
-    result = await session.execute(statement)
+    result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
 
@@ -147,6 +147,7 @@ async def list_roster_revisions(
         select(RosterRevision)
         .where(col(RosterRevision.roster_period_id) == period_id)
         .order_by(col(RosterRevision.revision_number))
+        .limit(100)
     )
     return list(result.scalars().all())
 

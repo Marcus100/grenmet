@@ -1,0 +1,26 @@
+{
+  "properties": {
+    "email": { "type": "string", "format": "email", "title": "Email" },
+    "password": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 8,
+      "title": "Password"
+    },
+    "client_type": {
+      "type": "string",
+      "maxLength": 50,
+      "minLength": 1,
+      "title": "Client Type",
+      "default": "web"
+    },
+    "app_name": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "App Name"
+    }
+  },
+  "type": "object",
+  "required": ["email", "password"],
+  "title": "SessionLoginRequest",
+  "x-readme-ref-name": "SessionLoginRequest"
+}

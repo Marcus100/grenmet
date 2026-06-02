@@ -12,7 +12,6 @@ export type ProfileDetailsUpdate = {
   first_name?: string | null;
   middle_name?: string | null;
   last_name?: string | null;
-  display_name?: string | null;
   date_of_birth?: string | null;
   nationality?: string | null;
   gender?: string | null;

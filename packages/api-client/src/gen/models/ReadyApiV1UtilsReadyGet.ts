@@ -8,7 +8,7 @@
  * @description Database reachable
  */
 export type ReadyApiV1UtilsReadyGet200 = {
-  [key: string]: any;
+  [key: string]: string;
 };
 
 /**

@@ -5,17 +5,13 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import StatusReportDep
 
+from . import service
 from .schemas import (
     StatusReportCreate,
     StatusReportDetails,
     StatusReportEntryPublic,
     StatusReportListPublic,
     StatusReportPublic,
-)
-from .service import (
-    create_status_report,
-    list_status_reports,
-    read_status_report_details,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
@@ -32,10 +28,10 @@ router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def create_status_report_endpoint(
+async def create_status_report(
     *, session: SessionDep, current_user: CurrentUser, payload: StatusReportCreate
 ) -> Any:
-    report, entries = await create_status_report(
+    report, entries = await service.create_status_report(
         session=session, current_user=current_user, payload=payload
     )
     return StatusReportDetails(
@@ -62,7 +58,7 @@ async def read_status_reports(
     current_user: CurrentUser,
     department_id: str | None = None,
 ) -> Any:
-    rows = await list_status_reports(
+    rows = await service.list_status_reports(
         session=session, current_user=current_user, department_id=department_id
     )
     return StatusReportListPublic(
@@ -85,12 +81,12 @@ async def read_status_reports(
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def read_status_report_endpoint(
+async def read_status_report(
     session: SessionDep,
     current_user: CurrentUser,
     report: StatusReportDep,
 ) -> Any:
-    report_data, entries = await read_status_report_details(
+    report_data, entries = await service.read_status_report_details(
         session=session, current_user=current_user, report_id=report.id
     )
     return StatusReportDetails(

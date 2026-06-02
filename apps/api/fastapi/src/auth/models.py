@@ -110,10 +110,6 @@ class Permission(PermissionBase, table=True):
         sa_relationship_kwargs={"secondary": "role_permission"},
     )
 
-    class Config:
-        # Unique constraint on action, entity, access combination
-        table_args = ({"sqlite_autoincrement": True},)
-
 
 # Session model for user sessions
 class SessionBase(SQLModel):

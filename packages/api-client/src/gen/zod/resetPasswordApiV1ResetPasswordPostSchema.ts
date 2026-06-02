@@ -22,6 +22,11 @@ export const resetPasswordApiV1ResetPasswordPost422Schema = z.lazy(
   () => HTTPValidationErrorSchema
 );
 
+/**
+ * @description Rate limit exceeded
+ */
+export const resetPasswordApiV1ResetPasswordPost429Schema = z.any();
+
 export const resetPasswordApiV1ResetPasswordPostMutationRequestSchema = z.lazy(
   () => newPasswordSchema
 );

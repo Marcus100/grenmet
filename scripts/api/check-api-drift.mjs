@@ -10,7 +10,7 @@
 import { statSync } from "node:fs";
 import { resolve } from "node:path";
 
-const root = resolve(import.meta.dirname, "..");
+const root = resolve(import.meta.dirname, "../..");
 
 const openapiPath = resolve(root, "apps/api/fastapi/openapi.json");
 const genCanaryPath = resolve(root, "packages/api-client/src/gen/index.ts");

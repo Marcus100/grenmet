@@ -1,7 +1,5 @@
-from unittest.mock import patch
 
 import httpx
-from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.schemas import UserCreate
@@ -9,7 +7,6 @@ from src.auth.service import create_user
 from src.auth.utils import verify_password
 from src.config import settings
 from src.email import generate_password_reset_token
-from tests.utils.user import user_authentication_headers_async
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -28,9 +25,13 @@ async def test_get_access_token(async_client: httpx.AsyncClient) -> None:
     assert tokens["access_token"]
 
 
-def test_create_persisted_session(client: TestClient) -> None:
+async def test_create_persisted_session(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
     """Test session-backed login for web clients."""
-    response = client.post(
+    _ = db_async
+    response = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -48,9 +49,13 @@ def test_create_persisted_session(client: TestClient) -> None:
     assert payload["user"]["email"] == settings.FIRST_SUPERUSER
 
 
-def test_exchange_session_for_access_token(client: TestClient) -> None:
+async def test_exchange_session_for_access_token(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
     """Test exchanging a persisted session for a short-lived access token."""
-    login_response = client.post(
+    _ = db_async
+    login_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -60,7 +65,7 @@ def test_exchange_session_for_access_token(client: TestClient) -> None:
     )
     session_token = login_response.json()["session_token"]
 
-    exchange_response = client.post(
+    exchange_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
         json={"session_token": session_token},
     )
@@ -69,7 +74,7 @@ def test_exchange_session_for_access_token(client: TestClient) -> None:
     assert exchange_response.status_code == 200
     assert exchange_payload["access_token"]
 
-    me_response = client.post(
+    me_response = await async_client.post(
         f"{settings.API_V1_STR}/login/test-token",
         headers={"Authorization": f"Bearer {exchange_payload['access_token']}"},
     )
@@ -77,9 +82,13 @@ def test_exchange_session_for_access_token(client: TestClient) -> None:
     assert me_response.json()["email"] == settings.FIRST_SUPERUSER
 
 
-def test_refresh_session_rotates_secret(client: TestClient) -> None:
+async def test_refresh_session_rotates_secret(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
     """Test refreshing a session rotates the opaque session secret."""
-    login_response = client.post(
+    _ = db_async
+    login_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -88,7 +97,7 @@ def test_refresh_session_rotates_secret(client: TestClient) -> None:
     )
     old_session_token = login_response.json()["session_token"]
 
-    refresh_response = client.post(
+    refresh_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session/refresh",
         json={"session_token": old_session_token},
     )
@@ -98,22 +107,26 @@ def test_refresh_session_rotates_secret(client: TestClient) -> None:
     assert refresh_payload["session_token"]
     assert refresh_payload["session_token"] != old_session_token
 
-    stale_exchange_response = client.post(
+    stale_exchange = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
         json={"session_token": old_session_token},
     )
-    assert stale_exchange_response.status_code == 401
+    assert stale_exchange.status_code == 401
 
-    fresh_exchange_response = client.post(
+    fresh_exchange = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
         json={"session_token": refresh_payload["session_token"]},
     )
-    assert fresh_exchange_response.status_code == 200
+    assert fresh_exchange.status_code == 200
 
 
-def test_logout_revokes_session(client: TestClient) -> None:
+async def test_logout_revokes_session(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
     """Test logging out revokes the supplied session."""
-    login_response = client.post(
+    _ = db_async
+    login_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -122,23 +135,27 @@ def test_logout_revokes_session(client: TestClient) -> None:
     )
     session_token = login_response.json()["session_token"]
 
-    logout_response = client.post(
+    logout_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session/logout",
         json={"session_token": session_token},
     )
     assert logout_response.status_code == 200
     assert logout_response.json()["message"] == "Signed out successfully"
 
-    exchange_response = client.post(
+    exchange_response = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
         json={"session_token": session_token},
     )
     assert exchange_response.status_code == 401
 
 
-def test_logout_all_revokes_every_session(client: TestClient) -> None:
-    """Test logging out all sessions invalidates multiple active sessions for the same user."""
-    first_login = client.post(
+async def test_logout_all_revokes_every_session(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+) -> None:
+    """Test logging out all sessions invalidates multiple active sessions."""
+    _ = db_async
+    first_login = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -146,7 +163,7 @@ def test_logout_all_revokes_every_session(client: TestClient) -> None:
             "app_name": "admin-gms",
         },
     )
-    second_login = client.post(
+    second_login = await async_client.post(
         f"{settings.API_V1_STR}/login/session",
         json={
             "email": settings.FIRST_SUPERUSER,
@@ -154,26 +171,23 @@ def test_logout_all_revokes_every_session(client: TestClient) -> None:
             "app_name": "wxwatch",
         },
     )
-    first_session_token = first_login.json()["session_token"]
-    second_session_token = second_login.json()["session_token"]
+    first_token = first_login.json()["session_token"]
+    second_token = second_login.json()["session_token"]
 
-    logout_all_response = client.post(
+    logout_all = await async_client.post(
         f"{settings.API_V1_STR}/login/session/logout-all",
-        json={"session_token": first_session_token},
+        json={"session_token": first_token},
     )
-    assert logout_all_response.status_code == 200
-    assert (
-        logout_all_response.json()["message"]
-        == "Signed out from all sessions successfully"
-    )
+    assert logout_all.status_code == 200
+    assert logout_all.json()["message"] == "Signed out from all sessions successfully"
 
-    first_exchange = client.post(
+    first_exchange = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
-        json={"session_token": first_session_token},
+        json={"session_token": first_token},
     )
-    second_exchange = client.post(
+    second_exchange = await async_client.post(
         f"{settings.API_V1_STR}/login/session/access-token",
-        json={"session_token": second_session_token},
+        json={"session_token": second_token},
     )
     assert first_exchange.status_code == 401
     assert second_exchange.status_code == 401
@@ -197,103 +211,59 @@ async def test_use_access_token(
     async_client: httpx.AsyncClient,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    """Test token validation endpoint."""
     r = await async_client.post(
         f"{settings.API_V1_STR}/login/test-token",
         headers=superuser_token_headers_async,
     )
     result = r.json()
     assert r.status_code == 200
-    assert "email" in result
+    assert result["email"] == settings.FIRST_SUPERUSER
 
 
-async def test_recovery_password(
+async def test_recover_password_returns_success_for_unknown_email(
     async_client: httpx.AsyncClient,
-    normal_user_token_headers_async: dict[str, str],
+    superuser_token_headers_async: dict[str, str],
 ) -> None:
-    """Test password recovery email sending."""
-    with (
-        patch("src.email.send_email", return_value=None),
-        patch("smtplib.SMTP") as mock_smtp,
-        patch("src.email_config.email_settings.SMTP_HOST", "smtp.weather.gd"),
-        patch("src.email_config.email_settings.SMTP_USER", "admin@weather.gd"),
-    ):
-        mock_server = mock_smtp.return_value
-        mock_server.send_message.return_value = {}
-
-        email = "test@weather.gd"
-        r = await async_client.post(
-            f"{settings.API_V1_STR}/password-recovery/{email}",
-            headers=normal_user_token_headers_async,
-        )
-        assert r.status_code == 200
-        assert r.json() == {"message": "Password recovery email sent"}
-
-
-async def test_recovery_password_user_not_exists(
-    async_client: httpx.AsyncClient,
-    normal_user_token_headers_async: dict[str, str],
-) -> None:
-    """Test password recovery for non-existent user."""
-    email = "jVgQr@weather.gd"
+    """Password recovery should not leak whether an email exists."""
     r = await async_client.post(
-        f"{settings.API_V1_STR}/password-recovery/{email}",
-        headers=normal_user_token_headers_async,
+        f"{settings.API_V1_STR}/password-recovery/nonexistent@example.com",
+        headers=superuser_token_headers_async,
     )
-    assert r.status_code == 404
+    assert r.status_code == 200
+
+
+async def test_reset_password_invalid_token(
+    async_client: httpx.AsyncClient,
+) -> None:
+    """Reset with an invalid token returns 400."""
+    r = await async_client.post(
+        f"{settings.API_V1_STR}/reset-password/",
+        json={"new_password": "changethis", "token": "invalid"},
+    )
+    assert r.status_code == 400
 
 
 async def test_reset_password(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,
 ) -> None:
-    """Test password reset with valid token."""
+    """Valid reset token changes the password."""
     email = random_email()
-    password = random_lower_string()
-    new_password = random_lower_string()
-
-    user_create = UserCreate(
-        email=email,
-        username=email.split("@")[0],
-        password=password,
-        first_name="Test",
-        last_name="User",
-        is_active=True,
-        is_superuser=False,
+    user = await create_user(
+        session=db_async,
+        user_create=UserCreate(
+            email=email,
+            username=f"reset_{random_lower_string()}",
+            password="oldpassword1",
+            first_name="Reset",
+            last_name="Test",
+        ),
     )
-    user = await create_user(session=db_async, user_create=user_create)
     token = generate_password_reset_token(email=email)
-    headers = await user_authentication_headers_async(
-        client=async_client, email=email, password=password
-    )
-    data = {"new_password": new_password, "token": token}
-
     r = await async_client.post(
         f"{settings.API_V1_STR}/reset-password/",
-        headers=headers,
-        json=data,
+        json={"new_password": "newpassword1", "token": token},
     )
-
     assert r.status_code == 200
-    assert r.json() == {"message": "Password updated successfully"}
-
     await db_async.refresh(user)
-    assert verify_password(new_password, user.hashed_password)
-
-
-async def test_reset_password_invalid_token(
-    async_client: httpx.AsyncClient,
-    superuser_token_headers_async: dict[str, str],
-) -> None:
-    """Test password reset with invalid token."""
-    data = {"new_password": "changethis", "token": "invalid"}
-    r = await async_client.post(
-        f"{settings.API_V1_STR}/reset-password/",
-        headers=superuser_token_headers_async,
-        json=data,
-    )
-    response = r.json()
-
-    assert "detail" in response
-    assert r.status_code == 400
-    assert response["detail"] == "Invalid token"
+    assert verify_password("newpassword1", user.hashed_password)

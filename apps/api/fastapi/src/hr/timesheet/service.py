@@ -1,3 +1,4 @@
+import logging
 import uuid
 from collections import defaultdict
 from decimal import Decimal
@@ -39,6 +40,7 @@ from .models import (
 )
 from .schemas import ShiftHoursSummary, TimesheetCreate, TimesheetSummaryByShift
 
+logger = logging.getLogger(__name__)
 
 async def _get_or_create_policy(
     *, session: AsyncSession, department_id: str
@@ -174,6 +176,14 @@ async def submit_timesheet(
     )
     await session.commit()
     await session.refresh(timesheet)
+    logger.info(
+        "Timesheet submitted",
+        extra={
+            "timesheet_id": str(timesheet.id),
+            "mode": submission_mode.value,
+            "actor_id": str(current_user.id),
+        },
+    )
     return timesheet
 
 
@@ -199,6 +209,10 @@ async def approve_timesheet(
     session.add(timesheet)
     await session.commit()
     await session.refresh(timesheet)
+    logger.info(
+        "Timesheet approved",
+        extra={"timesheet_id": str(timesheet.id), "actor_id": str(current_user.id)},
+    )
     return timesheet
 
 
@@ -209,6 +223,7 @@ async def list_my_timesheets(
         select(Timesheet)
         .where(col(Timesheet.user_id) == current_user.id)
         .order_by(col(Timesheet.created_at).desc())
+        .limit(100)
     )
     return list(result.scalars().all())
 
@@ -223,6 +238,7 @@ async def list_department_timesheets(
         select(Timesheet)
         .where(col(Timesheet.department_id) == department_id)
         .order_by(col(Timesheet.created_at).desc())
+        .limit(100)
     )
     return list(result.scalars().all())
 

@@ -1,0 +1,48 @@
+{
+  "properties": {
+    "sender": {
+      "anyOf": [
+        { "type": "string", "maxLength": 255, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Sender"
+    },
+    "sender_name": {
+      "anyOf": [
+        { "type": "string", "maxLength": 255, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Sender Name"
+    },
+    "wmo_oid": {
+      "anyOf": [{ "type": "string", "maxLength": 120 }, { "type": "null" }],
+      "title": "Wmo Oid"
+    },
+    "web": {
+      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+      "title": "Web"
+    },
+    "contact": {
+      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+      "title": "Contact"
+    },
+    "feed_limit": {
+      "anyOf": [
+        { "type": "integer", "maximum": 500, "minimum": 1 },
+        { "type": "null" }
+      ],
+      "title": "Feed Limit"
+    },
+    "signing_enabled": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Signing Enabled"
+    },
+    "signing_certificate_ref": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Signing Certificate Ref"
+    }
+  },
+  "type": "object",
+  "title": "CapSettingsUpdate",
+  "x-readme-ref-name": "CapSettingsUpdate"
+}

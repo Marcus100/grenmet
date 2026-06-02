@@ -21,6 +21,8 @@ from src.auth.routers.permissions import router as permissions_router
 from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.users import router as users_router
+from src.cap.router import public_router as cap_public_router
+from src.cap.router import router as cap_router
 from src.config import settings
 from src.exceptions import (
     AppException,
@@ -36,11 +38,14 @@ from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.workflow.router import router as hr_workflow_router
+from src.logging_config import configure_logging
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
+
+configure_logging()
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -140,6 +145,8 @@ app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
+app.include_router(cap_router, prefix="/api/v1")
+app.include_router(cap_public_router)
 
 # Other routers
 app.include_router(utils_router, prefix="/api/v1")

@@ -5,7 +5,9 @@ Each environment runs on its own dedicated Digital Ocean droplet.
 
 ## Pipeline overview
 
-Every push to `staging` or `main` triggers this chain automatically:
+Every push to `staging` triggers the staging chain automatically. Pushes to `main`
+build `latest` images, but the current production deploy workflow runs only from a
+published GitHub Release or manual workflow dispatch.
 
 ```
 Push to branch
@@ -16,16 +18,21 @@ Push to branch
          ├─ Build and Push Docker Images    → ghcr.io/marcus100/grenmet:<tag>
          └─ Build Web App Images            → ghcr.io/marcus100/grenmet-web-*:<tag>
                   │
-                  └─ Deploy to Staging / Deploy to Production
-                     (runs on your self-hosted runner, on the droplet)
+                  └─ Deploy to Staging
+                     (runs on the self-hosted staging runner)
 ```
 
 - `staging` branch → deploys with tag `staging` to `*.staging.barrels.gd`
-- `main` branch → deploys with tag `latest` to `*.barrels.gd`
-- Publishing a GitHub Release → deploys with `latest` + version tag to production
+- `main` branch → builds images tagged `latest`
+- Publishing a GitHub Release → deploys to production
+- Manual production workflow dispatch → deploys to production with the workflow defaults
 
 The deploy workflow generates a `.env` file from GitHub Secrets on the runner, runs
 `docker compose up -d`, then deletes the `.env` file. No secrets are stored on the server.
+
+Current production tag behavior: the API service uses the release tag when a release
+trigger is present; web app services use `WEB_TAG=latest` in
+`.github/workflows/deploy-prod.yml`.
 
 ---
 
@@ -272,7 +279,8 @@ Total: roughly 30–45 minutes end-to-end.
 Once the deploy workflow completes:
 
 ```
-https://api.staging.barrels.gd/api/v1/utils/health-check/   → {"status":"ok"}
+https://api.staging.barrels.gd/api/v1/utils/health-check/   → true
+https://api.staging.barrels.gd/api/v1/utils/ready/          → {"status":"ready"}
 https://auth.staging.barrels.gd/
 https://adminer.staging.barrels.gd/                           → prompted for USERNAME/PASSWORD
 ```
@@ -296,7 +304,7 @@ Use the DNS records for `*.barrels.gd` (no `staging.` prefix).
 
 ### 4.2 Deploy
 
-**Option A — Continuous deploy (merge to main):**
+**Option A — Versioned release (recommended):**
 
 ```bash
 git checkout main
@@ -304,17 +312,20 @@ git merge staging
 git push origin main
 ```
 
-This deploys images tagged `latest`.
+Then:
 
-**Option B — Versioned release (recommended):**
-
-1. Merge `staging` → `main` and push.
-2. On GitHub → **Releases → Draft a new release**.
-3. Tag: `v0.1.0`, target: `main`.
-4. Click **Publish release**.
+1. On GitHub → **Releases → Draft a new release**.
+2. Tag: `v0.1.0`, target: `main`.
+3. Click **Publish release**.
 
 This tags the API image as both `latest` and `v0.1.0`, giving you a clear version history
-and the ability to roll back by re-deploying a previous release tag.
+and the ability to roll back the API by re-deploying a previous release tag. The current
+production compose environment still uses `WEB_TAG=latest` for web apps.
+
+**Option B — Manual workflow dispatch:**
+
+Use **Actions → Deploy to Production → Run workflow** when you need to rerun the
+production deploy workflow without publishing a new release.
 
 ---
 
@@ -433,6 +444,6 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | HR                | `https://hr.barrels.gd`          |
 | Salesbus          | `https://sales.barrels.gd`       |
 | FastAPI backend   | `https://api.barrels.gd`         |
-| API docs          | `https://api.barrels.gd/swagger` |
-| Adminer (DB UI)   | `https://adminer.barrels.gd`     |
+| API docs          | Disabled in production           |
+| Adminer (DB UI)   | Not in current production compose |
 | Traefik dashboard | `https://traefik.barrels.gd`     |

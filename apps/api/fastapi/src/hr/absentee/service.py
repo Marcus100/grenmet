@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
@@ -9,6 +11,7 @@ from src.hr.workflow.service import start_workflow_for_entity
 from .models import AbsenteeReport
 from .schemas import AbsenteeReportCreate
 
+logger = logging.getLogger(__name__)
 
 async def create_absentee_report(
     *, session: AsyncSession, current_user: User, payload: AbsenteeReportCreate
@@ -45,6 +48,10 @@ async def create_absentee_report(
     session.add(report)
     await session.commit()
     await session.refresh(report)
+    logger.info(
+        "Absentee report created",
+        extra={"report_id": str(report.id), "user_id": str(current_user.id)},
+    )
     return report
 
 
@@ -61,6 +68,6 @@ async def list_absentee_reports(
     else:
         statement = statement.where(col(AbsenteeReport.user_id) == current_user.id)
     result = await session.execute(
-        statement.order_by(col(AbsenteeReport.created_at).desc())
+        statement.order_by(col(AbsenteeReport.created_at).desc()).limit(100)
     )
     return list(result.scalars().all())

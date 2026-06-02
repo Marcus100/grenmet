@@ -11,7 +11,12 @@ import { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 /**
  * @description Timesheet and entries created
  */
-export const createTimesheetEndpointApiV1HrTimesheetsPost200Schema = z.lazy(
+export const createTimesheetEndpointApiV1HrTimesheetsPost200Schema = z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createTimesheetEndpointApiV1HrTimesheetsPost201Schema = z.lazy(
   () => timesheetDetailsSchema
 );
 
@@ -31,4 +36,7 @@ export const createTimesheetEndpointApiV1HrTimesheetsPostMutationRequestSchema =
   z.lazy(() => timesheetCreateSchema);
 
 export const createTimesheetEndpointApiV1HrTimesheetsPostMutationResponseSchema =
-  z.lazy(() => createTimesheetEndpointApiV1HrTimesheetsPost200Schema);
+  z.union([
+    z.lazy(() => createTimesheetEndpointApiV1HrTimesheetsPost200Schema),
+    z.lazy(() => createTimesheetEndpointApiV1HrTimesheetsPost201Schema),
+  ]);

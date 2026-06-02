@@ -119,7 +119,7 @@ class PermissionBase(BaseModel):
 
 
 class PermissionCreate(PermissionBase):
-    key: str | None = None
+    pass
 
 
 class PermissionUpdate(BaseModel):
