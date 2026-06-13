@@ -35,10 +35,9 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
         </div>
 
         <Button
-          fullWidth
+          className="w-full bg-gm-blue hover:bg-gm-navy"
           onClick={() => onAdd(product)}
-          size="md"
-          variant="primary"
+          size="touch"
         >
           Add
         </Button>

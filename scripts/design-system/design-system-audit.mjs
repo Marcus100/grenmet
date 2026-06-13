@@ -4,7 +4,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { dirname, extname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const webApps = [
   {
@@ -18,6 +18,7 @@ const webApps = [
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
   },
   { name: "auth", root: "apps/web/auth" },
+  { name: "cap", root: "apps/web/cap" },
   {
     name: "hr",
     root: "apps/web/hr",

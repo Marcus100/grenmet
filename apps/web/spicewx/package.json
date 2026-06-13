@@ -17,8 +17,6 @@
   "dependencies": {
     "@base-ui-components/react": "catalog:",
     "@grenmet/ui": "workspace:*",
-    "@headlessui/react": "catalog:",
-    "@heroicons/react": "^2.2.0",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",

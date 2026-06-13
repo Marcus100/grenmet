@@ -4,13 +4,12 @@ Port **3002**. Weather image scraper viewer — displays satellite and radar ima
 
 ## Auth pattern
 
-Deep integration — uses `@grenmet/auth/server` directly (same pattern as admin-gms, not a redirect-delegating app).
+Delegates to `web-auth` for sign-in — unauthenticated users are redirected to the auth app and returned with a shared session cookie.
 
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
 - Middleware proxy: `src/proxy.ts`
 - Logout routes: `src/app/auth/logout/route.ts`, `src/app/auth/logout-all/route.ts`
-- Sign-in page: `src/app/signin/page.tsx`
 
 ## Database
 

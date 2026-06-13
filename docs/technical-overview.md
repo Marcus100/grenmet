@@ -149,7 +149,6 @@ All web apps have React Compiler enabled via `babel-plugin-react-compiler` in th
 
 - **Don't wrap things in `useMemo`/`useCallback` for performance** — the compiler handles it
 - **Do ensure your components follow the Rules of Hooks** — the compiler enforces them more strictly
-- **`hurricaneplan` uses `--webpack`** (not Turbopack) due to MDX compatibility — React Compiler still applies
 
 ---
 
@@ -200,7 +199,7 @@ Full reference: [docs/env.md](./env.md).
 | I want to… | Read… |
 |---|---|
 | Run or build the project | [root README — Scripts](../README.md#scripts) |
-| Understand a specific app | That app's `README.md` in `apps/web/<app>/` |
+| Work on a specific app | That app's `CLAUDE.md` in `apps/web/<app>/` |
 | Use the shared auth package | [`packages/auth/README.md`](../packages/auth/README.md) |
 | Use the shared UI components | [`packages/ui/README.md`](../packages/ui/README.md) |
 | Set up environment variables | [`docs/env.md`](./env.md) |

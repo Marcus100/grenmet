@@ -100,7 +100,11 @@ export function ProductDetailModal({
         </div>
 
         {/* Add to Cart Button */}
-        <Button fullWidth onClick={handleAddToCart} size="lg" variant="primary">
+        <Button
+          className="w-full bg-gm-blue hover:bg-gm-navy"
+          onClick={handleAddToCart}
+          size="touch"
+        >
           ADD TO CART
         </Button>
       </div>

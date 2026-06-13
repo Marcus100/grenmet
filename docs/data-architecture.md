@@ -70,7 +70,7 @@ Production backup automation covers all three production databases:
 - `wxwatch`
 - `wxproducts`
 
-The workflow uses custom-format `pg_dump`, verifies each dump by restoring into a temporary database, uploads to DigitalOcean Spaces, and keeps local files for 30 days. See [operations.md](operations.md#backups-and-restore).
+The workflow uses custom-format `pg_dump`, verifies each dump by restoring into a temporary database, uploads to DigitalOcean Spaces, and keeps local files for 30 days. See [infrastructure.md](infrastructure.md#backups-and-restore).
 
 ## Data Governance Rules
 
@@ -91,4 +91,133 @@ The workflow uses custom-format `pg_dump`, verifies each dump by restoring into 
 - No general audit table outside the CAP domain.
 
 These are governance and operations gaps, not hidden implementation details.
+
+---
+
+## Data Governance and Interoperability Strategy
+
+This section defines how GMS manages data as an institutional asset and how it enables interoperability with regional and international partners.
+
+### Data Ownership
+
+| Data domain | Owner | Classification |
+| --- | --- | --- |
+| Observations (AWS, manual) | Observations Unit | Public (aggregated); Restricted (raw / unaggregated) |
+| Forecasts and warnings | Forecasting Unit | Public |
+| Aviation products (METAR, SPECI, TAF) | Aviation MET Unit | Public / AFTN |
+| HR and identity | HR / Admin | Confidential |
+| CAP alerts and audit events | Warning Lead / DTO | Public (published alerts); Internal (audit trail) |
+| Archive | DTO | Public (products); Internal (audit) |
+| System logs | DTO | Internal |
+
+### Metadata Requirements
+
+Every dataset and product must carry the following minimum metadata:
+
+| Field | Requirement |
+| --- | --- |
+| `productCode` | Unique identifier from the product catalogue |
+| `issuedAt` | UTC timestamp |
+| `issuedBy` | Forecaster user ID |
+| `approvedBy` | Reviewer user ID |
+| `validFrom` / `validTo` | UTC timestamps |
+| `disseminationChannels` | Which channels received the product |
+| `archiveStatus` | Confirmed archive location |
+| `dataSource` | Input datasets (observations, NWP, satellite) |
+
+### Data Quality
+
+| Scenario | Handling rule |
+| --- | --- |
+| Missing observation data | Display gap explicitly — never interpolate silently |
+| Suspect / flagged observation | Flag visible in dashboard; exclude from automated products until reviewed |
+| Late data arrival | Accept and store with original observation timestamp; flag latency |
+| Corrected product | Correction linked to original; original not deleted; reason recorded |
+| Duplicate record | Deduplicate on CAP `identifier` and product code + issue time |
+
+### Data Access Tiers
+
+| Tier | Description | Authentication |
+| --- | --- | --- |
+| Public | Published forecasts, warnings, CAP feed, observations summary | None |
+| Partner | Detailed observation data, structured API, agency dashboard | API key (planned) |
+| Internal | Forecaster workbench, approval workflow, HR, full archive | Staff account + MFA |
+| Restricted | Raw logs, security audit trail, system config | DTO / ISDS only |
+
+### Data Formats for Interoperability
+
+| Format | Use case | Status |
+| --- | --- | --- |
+| JSON / REST | Public API and internal API | Active |
+| CAP 1.2 (XML) | Warnings — multi-channel dissemination | Active |
+| GeoJSON | Warning polygons; mapping | Active |
+| RSS 2.0 | Alert syndication feed | Active |
+| BUFR | Observation exchange (WMO standard) | Schema exists; encoding pipeline gap |
+| IWXXM | Aviation MET exchange (ICAO standard) | Schema foundations; encoding gap |
+| WCMP2 metadata | WIS2 dataset discovery records | Not yet authored |
+| GRIB / NetCDF | NWP model data | Not yet in scope |
+
+### Retention Policy
+
+| Data type | Retention | Basis |
+| --- | --- | --- |
+| Aviation products (METAR, SPECI, TAF, warnings) | Permanent | ICAO Annex 3 QMS requirement |
+| Public warnings and CAP snapshots | Permanent | Official record |
+| Public forecasts and bulletins | 10 years minimum | Archive and verification |
+| Observation data | 30 years minimum | Climate record |
+| Audit events | 10 years minimum | Accountability |
+| HR data | Per employment law | Legal requirement |
+| System logs | 1 year | Operational need |
+
+Formal retention rules are not yet encoded in database cleanup jobs — this is a documented gap. No data within retention period should be deleted until formal retention policies are implemented and approved.
+
+### WMO WIS 2.0 Readiness
+
+WIS 2.0 is the WMO's next-generation information system for global meteorological data exchange. GMS's path toward WIS 2.0 compliance:
+
+| Step | Status | Target |
+| --- | --- | --- |
+| CAP alerts available via public HTTPS endpoint | Implemented | — |
+| WIGOS station identifiers registered for AWS stations | Gap | Q4 2026 |
+| WCMP2 metadata records authored for core datasets | Gap | Year 2 |
+| WIS2Box worker deployed for automated publication | Gap | Year 2 |
+| Core observation data published to Global Cache | Gap | Year 2 |
+
+### Licensing
+
+| Data type | Default licence | Notes |
+| --- | --- | --- |
+| Published forecasts and warnings | Open — attribution required | GMS as source must be cited |
+| CAP alerts | Open — attribution required | Standard CAP terms |
+| Observation data | Open — attribution required | Review with WMO data policy |
+| Aviation products | Restricted to aviation use | ICAO-governed dissemination |
+| Historical climate data | Open on request — review for commercial use | Pending formal policy |
+
+A formal data licence and terms of use policy document has not yet been produced. This is required before the public API is officially launched.
+
+### Auditability
+
+The principle is: for any official product, GMS must be able to answer — who issued it, when, what did it say, who approved it, and how was it disseminated.
+
+| Domain | Audit coverage | Gaps |
+| --- | --- | --- |
+| CAP warnings | Full — create, edit, submit, approve, publish, cancel, expire | None |
+| Aviation products | Partial — schema records author; no full lifecycle audit yet | Full audit trail gap |
+| Public forecasts | Partial — timestamp and author on product records | No formal approval audit |
+| HR | Partial — workflow and timesheet records | No general audit table |
+| System configuration | None | Gap — no config change log |
+
+The CAP domain audit model should be extended to all official product domains as they are built out.
+
+---
+
+### Related Documents
+
+| Document | Relationship |
+| --- | --- |
+| [Compliance Traceability Matrix](./internal/compliance-traceability.md) | WIS 2.0, WIGOS, BUFR, IWXXM obligations |
+| [Aviation Compliance Plan](./operations/aviation-compliance-plan.md) | Aviation data requirements and retention |
+| [Cybersecurity and Continuity Plan](./operations/cybersecurity-continuity.md) | Data access controls and backup |
+| [Warning Operations](./internal/warning-operations.md) | CAP audit trail implementation |
+| [Infrastructure](./infrastructure.md) | Backup commands and restore procedures |
 

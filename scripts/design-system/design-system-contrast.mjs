@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sourcePath = join(rootDir, "packages/ui/src/styles/globals.css");
 const minimumNormalTextContrast = 4.5;
 const warningLevels = ["green", "yellow", "amber", "red", "grey"];

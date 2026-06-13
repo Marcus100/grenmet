@@ -55,12 +55,10 @@ export default function CartPage() {
         className={`sticky ${isTabletLandscape ? "bottom-4" : "bottom-20"} mx-auto w-full max-w-3xl p-4 sm:p-5`}
       >
         <Button
-          className="flex justify-between"
+          className="flex w-full justify-between bg-gm-blue hover:bg-gm-navy"
           disabled={items.length === 0}
-          fullWidth
           onClick={handleDone}
-          size="lg"
-          variant="primary"
+          size="touch"
         >
           <span className="text-base sm:text-lg">DONE</span>
           <span className="text-base sm:text-lg">

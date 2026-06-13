@@ -1,6 +1,6 @@
 # Warning Operations
 
-This document maps the GMS warning workflow to the current codebase. The strategic warning model lives in [../architecture.md](../architecture.md). This file is the operational contract for what is implemented now.
+This document maps the GMS warning workflow to the current codebase. The strategic warning framework — lifecycle, severity levels, IBF matrix, and content contract — lives in [../operations/warning-ibf-framework.md](../operations/warning-ibf-framework.md). This file is the engineering contract for what is implemented now.
 
 ## Implemented Surface
 
@@ -74,18 +74,7 @@ Use `GET /api/v1/cap/audit` with optional `alert_id` to inspect events. This req
 
 ## Public Dissemination Feeds
 
-The public API exposes:
-
-| Endpoint | Description |
-| --- | --- |
-| `/api/cap/latest-active` | Active published alerts |
-| `/api/cap/alerts` | Published, expired, and cancelled alerts |
-| `/api/cap/past` | Expired and cancelled alerts |
-| `/api/cap/alerts/{identifier}` | Alert by CAP identifier |
-| `/api/cap/alerts.geojson` | Active alerts as GeoJSON |
-| `/api/cap/active-map` | Active alerts as GeoJSON |
-| `/api/cap/rss.xml` | Active alerts RSS feed |
-| `/api/cap/{identifier}.xml` | Latest XML snapshot |
+Public endpoint definitions are the API contract — see [docs/api/contracts.md — Public CAP Feed Contract](../api/contracts.md#public-cap-feed-contract).
 
 An alert is active when it is `PUBLISHED` and has no expired info block, or at least one info block with an expiry after the current UTC time.
 
@@ -117,5 +106,5 @@ The current code records these jobs in Postgres. A worker is not enabled in the 
 - No multi-channel dissemination execution beyond public feed/XML snapshot generation.
 - No automated stale-alert expiry job.
 - No alert consistency check across website, XML, RSS, and future channels.
-- No formal SOP acceptance record in the repo.
+- Individual SOPs pending formal approval — index and status at [docs/operations/sop-index.md](../operations/sop-index.md).
 

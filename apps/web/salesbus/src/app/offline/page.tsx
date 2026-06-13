@@ -24,7 +24,11 @@ export default function OfflinePage() {
           your network and try again.
         </p>
 
-        <Button onClick={handleRetry} size="lg" variant="primary">
+        <Button
+          className="bg-gm-blue hover:bg-gm-navy"
+          onClick={handleRetry}
+          size="touch"
+        >
           Try Again
         </Button>
       </div>
