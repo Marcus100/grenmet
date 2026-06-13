@@ -87,10 +87,8 @@ export default function CustomerDetailPage() {
 
       {/* Add Payment button */}
       <Button
-        className="flex items-center justify-center gap-2"
-        fullWidth
-        size="lg"
-        variant="primary"
+        className="flex w-full items-center justify-center gap-2 bg-gm-blue hover:bg-gm-navy"
+        size="touch"
       >
         <DollarSign className="h-5 w-5" />
         ADD PAYMENT

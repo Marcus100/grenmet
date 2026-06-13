@@ -1,0 +1,1 @@
+forfiles /p "C:\incoming" /s /m *.* /d -3 /c "cmd /c del /q @file"

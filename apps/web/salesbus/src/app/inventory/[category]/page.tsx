@@ -37,10 +37,7 @@ export default function CategoryDetailPage() {
           placeholder="Search items..."
           value={searchQuery}
         />
-        <Button
-          className="flex items-center gap-2 whitespace-nowrap"
-          variant="primary"
-        >
+        <Button className="flex items-center gap-2 whitespace-nowrap bg-gm-blue hover:bg-gm-navy">
           <Plus className="h-5 w-5" />
           <span className="hidden sm:inline">Add Item</span>
           <span className="sm:hidden">Add</span>

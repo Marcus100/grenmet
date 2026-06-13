@@ -36,26 +36,24 @@ export function AlertMapPreview({
             width="48"
           >
             <path
+              className="stroke-gm-border"
               d="M 48 0 L 0 0 0 48"
               fill="none"
-              stroke="#d0d5dd"
               strokeWidth="1"
             />
           </pattern>
         </defs>
         <rect fill="url(#map-grid)" height="420" width="720" />
         <path
+          className="fill-gm-surface-panel stroke-gm-blue"
           d="M120 92 C210 36 340 54 465 96 C560 128 640 210 602 288 C558 382 390 390 245 348 C106 308 58 168 120 92Z"
-          fill="#eaf3fb"
-          stroke="#2478f2"
           strokeWidth="2"
         />
         {paths.map((path) => (
           <path
+            className="fill-gm-risk-red/[0.32] stroke-gm-risk-red"
             d={path}
-            fill="rgba(204, 0, 51, 0.32)"
             key={path}
-            stroke="#cc0033"
             strokeWidth="3"
           />
         ))}

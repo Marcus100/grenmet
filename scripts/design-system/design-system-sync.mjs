@@ -4,11 +4,12 @@ import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationPath = join(rootDir, "packages/ui/src/styles/globals.css");
 const targetPaths = [
   "apps/web/admin-gms/src/app/globals.css",
   "apps/web/auth/src/app/globals.css",
+  "apps/web/cap/src/app/globals.css",
   "apps/web/hr/src/app/globals.css",
   "apps/web/hurricaneplan/src/styles/tailwind.css",
   "apps/web/salesbus/src/app/globals.css",

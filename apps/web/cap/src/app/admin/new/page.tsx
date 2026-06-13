@@ -16,8 +16,8 @@ import Link from "next/link";
 import { useState } from "react";
 
 interface AreaRow {
-  id: string;
   desc: string;
+  id: string;
 }
 
 function Field({
@@ -52,10 +52,7 @@ export default function NewAlertPage() {
   const [areas, setAreas] = useState<AreaRow[]>([{ id: "1", desc: "" }]);
 
   function addArea() {
-    setAreas((prev) => [
-      ...prev,
-      { id: String(Date.now()), desc: "" },
-    ]);
+    setAreas((prev) => [...prev, { id: String(Date.now()), desc: "" }]);
   }
 
   function removeArea(id: string) {
@@ -63,9 +60,7 @@ export default function NewAlertPage() {
   }
 
   function updateArea(id: string, desc: string) {
-    setAreas((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, desc } : a))
-    );
+    setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, desc } : a)));
   }
 
   return (
@@ -240,7 +235,12 @@ export default function NewAlertPage() {
           <section className="space-y-4 border border-gm-border bg-white p-6 shadow-gm-card">
             <div className="flex items-center justify-between">
               <SectionHeading>Affected areas</SectionHeading>
-              <Button onClick={addArea} size="sm" type="button" variant="outline">
+              <Button
+                onClick={addArea}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
                 <Plus aria-hidden="true" />
                 Add area
               </Button>
@@ -261,7 +261,10 @@ export default function NewAlertPage() {
                     type="button"
                     variant="ghost"
                   >
-                    <Trash2 aria-hidden="true" className="size-4 text-gm-text-muted" />
+                    <Trash2
+                      aria-hidden="true"
+                      className="size-4 text-gm-text-muted"
+                    />
                     <span className="sr-only">Remove area</span>
                   </Button>
                 )}
@@ -309,7 +312,7 @@ export default function NewAlertPage() {
       </div>
 
       {/* Bottom actions */}
-      <div className="mt-6 flex justify-end gap-2 border-t border-gm-border pt-6">
+      <div className="mt-6 flex justify-end gap-2 border-gm-border border-t pt-6">
         <Button asChild variant="outline">
           <Link href="/admin">Cancel</Link>
         </Button>

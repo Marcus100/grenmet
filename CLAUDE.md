@@ -18,6 +18,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 - Creating new files in `packages/` (shared — affects all apps)
 - Modifying `turbo.json`, `biome.jsonc`, or any `tsconfig*.json`
 - Modifying any Drizzle schema file or creating a migration
+- Adding or modifying FastAPI routes that are public or change the OpenAPI contract — update `docs/api/contracts.md` and regenerate the client
 - Introducing a new pattern, abstraction, or design approach
 
 ### Never
@@ -46,6 +47,14 @@ flag it and ask.
 ### Correction Handling
 When a correction is given mid-session, ask: "Should I add this to CLAUDE.md?"
 before writing anything to project files or memory.
+
+### CLAUDE.md Update Protocol
+When adding to this file, follow this structure:
+- **Behavioral rule** → add to the appropriate tier (Always / Ask First / Never) or create a named rule under Behavioral Rules
+- **Code convention** → add a bullet to Code Conventions; lead with `**Name**` and state what to do and what not to do
+- **CI/CD fact** → add to CI/CD Conventions
+- **Lookup pointer** → add a row to the Where to Look table
+- Keep each entry to one line or two where an example is essential. Do not add narrative prose — this file is machine-read first.
 
 ## Tool Usage
 
@@ -95,15 +104,24 @@ before writing anything to project files or memory.
 
 ## Where to Look
 
-| I need to understand…            | Read…                        |
-|----------------------------------|------------------------------|
-| Monorepo structure and auth flow | `docs/technical-overview.md` |
-| Service architecture             | `docs/architecture.md`       |
-| Auth package API                 | `packages/auth/README.md`    |
-| Environment variables            | `docs/env.md`                |
-| Deployment                       | `docs/deployment.md`         |
-| Troubleshooting                  | `docs/troubleshooting.md`    |
-| Design system tokens             | `docs/design-system.md`      |
-| A specific app                   | `apps/web/<app>/CLAUDE.md`   |
-| FastAPI conventions              | `apps/api/fastapi/CLAUDE.md` |
-| Dev commands                     | `AGENTS.md`                  |
+| I need to understand…              | Read…                              |
+|------------------------------------|------------------------------------|
+| Monorepo structure and auth flow   | `docs/technical-overview.md`       |
+| Service architecture               | `docs/architecture.md`             |
+| Auth package API                   | `packages/auth/README.md`          |
+| Auth package rules (agent)         | `packages/auth/CLAUDE.md`          |
+| UI package rules (agent)           | `packages/ui/CLAUDE.md`            |
+| API contracts and public endpoints | `docs/api/contracts.md`            |
+| Environment variables              | `docs/env.md`                      |
+| Deployment                         | `docs/deployment.md`               |
+| Infrastructure, backups, incidents | `docs/infrastructure.md`           |
+| Security baseline                  | `docs/security.md`                 |
+| Troubleshooting                    | `docs/troubleshooting.md`          |
+| Design system tokens               | `docs/design-system.md`            |
+| Data architecture and governance   | `docs/data-architecture.md`        |
+| GMS programme and strategy         | `docs/internal/`                   |
+| GMS operational procedures / SOPs  | `docs/operations/`                 |
+| A specific web app                 | `apps/web/<app>/CLAUDE.md`         |
+| FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
+| FastAPI dev workflow               | `docs/api/development.md`          |
+| Dev commands                       | `AGENTS.md`                        |

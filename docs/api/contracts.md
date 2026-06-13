@@ -2,6 +2,17 @@
 
 This guide documents the current FastAPI contract conventions. It complements the generated OpenAPI schema at `apps/api/fastapi/openapi.json` and the generated TypeScript client in `packages/api-client`.
 
+## When to update this document
+
+Update this document whenever you:
+- Add or remove a public or CAP endpoint
+- Change authentication requirements on an existing endpoint
+- Change the error shape or add a new error category
+- Change pagination defaults or response structure
+- Add a webhook endpoint or change its verification behaviour
+
+This document must stay in sync with the code. Do not mark a gap as resolved until the implementation exists.
+
 ## Base URLs
 
 | Environment | API base URL |

@@ -43,7 +43,7 @@ export function BottomNav() {
 
           return (
             <Link
-              className={`relative flex h-full min-w-[72px] touch-manipulation flex-col items-center justify-center gap-1 px-4 transition-colors sm:px-6 ${
+              className={`relative flex h-full min-w-gm-72 touch-manipulation flex-col items-center justify-center gap-1 px-4 transition-colors sm:px-6 ${
                 active
                   ? "text-gm-blue"
                   : "text-muted-foreground hover:text-foreground active:bg-gray-100"
