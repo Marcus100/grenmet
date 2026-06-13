@@ -21,21 +21,26 @@ interface CountryMapProps {
   mapColor?: string;
 }
 
-export default function CountryMap({ mapColor = "#D0D5DD" }: CountryMapProps) {
+export default function CountryMap({
+  mapColor = "var(--gm-border)",
+}: CountryMapProps) {
   return (
     <ComposableMap>
       <Geographies geography={GEO_URL}>
         {({ geographies }) =>
           geographies.map((geo) => (
             <Geography
-              fill={mapColor}
               geography={geo}
               key={geo.rsmKey}
               stroke="none"
               style={{
-                default: { outline: "none" },
-                hover: { fill: "#2478f2", outline: "none", cursor: "pointer" },
-                pressed: { fill: "#2478f2", outline: "none" },
+                default: { fill: mapColor, outline: "none" },
+                hover: {
+                  fill: "var(--gm-blue)",
+                  outline: "none",
+                  cursor: "pointer",
+                },
+                pressed: { fill: "var(--gm-blue)", outline: "none" },
               }}
             />
           ))
@@ -43,7 +48,7 @@ export default function CountryMap({ mapColor = "#D0D5DD" }: CountryMapProps) {
       </Geographies>
       {MARKERS.map(({ name, coords }) => (
         <Marker coordinates={coords} key={name}>
-          <circle fill="#2478f2" r={4} />
+          <circle r={4} style={{ fill: "var(--gm-blue)" }} />
         </Marker>
       ))}
     </ComposableMap>
