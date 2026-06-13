@@ -2,6 +2,7 @@
 // import Chart from "react-apexcharts";
 import type { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
+import { gmColor } from "@/lib/gm-color";
 import ChartTab from "../common/ChartTab";
 
 // Dynamically import the ReactApexChart component
@@ -16,7 +17,7 @@ export default function StatisticsChart() {
       position: "top",
       horizontalAlign: "left",
     },
-    colors: ["#2478f2", "#39a9f5"], // Define line colors
+    colors: [gmColor("--gm-blue"), gmColor("--gm-sky")], // Define line colors
     chart: {
       fontFamily: "Inter, sans-serif",
       height: 310,
@@ -39,7 +40,7 @@ export default function StatisticsChart() {
     },
     markers: {
       size: 0, // Size of the marker points
-      strokeColors: "#fff", // Marker border color
+      strokeColors: gmColor("--gm-surface-page"), // Marker border color
       strokeWidth: 2,
       hover: {
         size: 6, // Marker size on hover
@@ -96,7 +97,7 @@ export default function StatisticsChart() {
       labels: {
         style: {
           fontSize: "12px", // Adjust font size for y-axis labels
-          colors: ["#6B7280"], // Color of the labels
+          colors: [gmColor("--gm-text-muted")], // Color of the labels
         },
       },
       title: {

@@ -300,8 +300,8 @@
   --text-title-sm--line-height: 38px;
   --text-theme-xl: 20px;
   --text-theme-xl--line-height: 30px;
-  --text-theme-sm: 14px;
-  --text-theme-sm--line-height: 20px;
+  --text-theme-sm: var(--gm-font-size-body);
+  --text-theme-sm--line-height: var(--gm-line-height-body);
   --text-theme-xs: 12px;
   --text-theme-xs--line-height: 18px;
 
@@ -1219,8 +1219,6 @@ span.flatpickr-weekday,
 .task {
   cursor: grabbing; /* Changes the cursor to indicate dragging */
   border-radius: 0.75rem;
-  box-shadow:
-    0 1px 3px 0 rgba(16, 24, 40, 0.1),
-    0 1px 2px 0 rgba(16, 24, 40, 0.06);
+  box-shadow: var(--gm-shadow-card);
   opacity: 0.8; /* Changes the cursor to indicate dragging */
 }

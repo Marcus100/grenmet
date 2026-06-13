@@ -12,7 +12,11 @@
       "Bash(node -p \"require\\('./apps/web/cap/package.json'\\).name\")",
       "Bash(pnpm design-system:check)",
       "Bash(npx ultracite *)",
-      "Bash(awk '/^## salesbus/{f=1} f&&/^## /&&!/^## salesbus/{exit} f{print}')"
+      "Bash(awk '/^## salesbus/{f=1} f&&/^## /&&!/^## salesbus/{exit} f{print}')",
+      "Bash(awk '/^## admin-gms/{f=1} f&&/^## /&&!/^## admin-gms/{exit} f{print}')",
+      "Bash(awk '/Hard-coded colors/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/Hard-coded colors/{c=0} c')",
+      "Bash(awk '/Local theme tokens/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/Local theme tokens/{c=0} c')",
+      "Bash(awk '/App-local shadows/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/App-local shadows/{c=0} c')"
     ]
   }
 }

@@ -4,6 +4,7 @@ import type { ApexOptions } from "apexcharts";
 
 import dynamic from "next/dynamic";
 import { useState } from "react";
+import { gmColor } from "@/lib/gm-color";
 
 // Dynamically import the ReactApexChart component
 const _ReactApexChart = dynamic(() => import("react-apexcharts"), {
@@ -13,7 +14,7 @@ const _ReactApexChart = dynamic(() => import("react-apexcharts"), {
 export default function MonthlyTarget() {
   const _series = [75.55];
   const _options: ApexOptions = {
-    colors: ["#2478f2"],
+    colors: [gmColor("--gm-blue")],
     chart: {
       fontFamily: "Inter, sans-serif",
       type: "radialBar",
@@ -42,7 +43,7 @@ export default function MonthlyTarget() {
             fontSize: "36px",
             fontWeight: "600",
             offsetY: -40,
-            color: "#1D2939",
+            color: gmColor("--gm-text-primary"),
             formatter(val) {
               return `${val}%`;
             },
@@ -52,7 +53,7 @@ export default function MonthlyTarget() {
     },
     fill: {
       type: "solid",
-      colors: ["#2478f2"],
+      colors: [gmColor("--gm-blue")],
     },
     stroke: {
       lineCap: "round",
