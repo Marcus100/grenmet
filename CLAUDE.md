@@ -95,12 +95,14 @@ When adding to this file, follow this structure:
 
 ## Figma / Design
 
+- Full Figma→code→verify→token-guard loop: `docs/design-workflow.md`. Token contract and governance: `docs/design-system.md`.
 - Always load the `/figma-use` skill before calling `use_figma` — it is mandatory.
-- Use `/figma-generate-design` for translating a page or layout into Figma.
-- Do not move pages between Figma files programmatically — instruct the user to
-  do it in the Figma UI.
-- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright)
-  when the dev server is running.
+- Use `/figma-generate-design` to translate a page or layout into code; `/analyse-grenmet` to audit Figma structure/drift.
+- Use `/ui-check` to implement or refine a component against its Figma node.
+- Do not move pages between Figma files programmatically — instruct the user to do it in the Figma UI.
+- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright) when the dev server is running.
+- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius and never add design values to Tailwind config. Adding or changing a `--gm-*` token needs user approval, landed in Figma and `packages/ui/src/styles/globals.css` together.
+- Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full` (warning-only drift), `:contrast` (warning pairs), `:sync` (regenerate app blocks after editing the canonical block). V1 is light-mode only — no `dark:` branches in shared primitives.
 
 ## Where to Look
 
@@ -118,6 +120,7 @@ When adding to this file, follow this structure:
 | Security baseline                  | `docs/security.md`                 |
 | Troubleshooting                    | `docs/troubleshooting.md`          |
 | Design system tokens               | `docs/design-system.md`            |
+| Design workflow (Figma→code→verify)| `docs/design-workflow.md`          |
 | Data architecture and governance   | `docs/data-architecture.md`        |
 | GMS programme and strategy         | `docs/internal/`                   |
 | GMS operational procedures / SOPs  | `docs/operations/`                 |

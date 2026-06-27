@@ -9,6 +9,6 @@
     "./recma": "./recma.js"
   },
   "dependencies": {
-    "mdx-annotations": "^0.1.4"
+    "mdx-annotations": "catalog:"
   }
 }

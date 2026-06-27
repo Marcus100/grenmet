@@ -2,6 +2,8 @@
 
 Port **3004**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
 
+**Design-system role: public web reference app.** Lowest-drift baseline — prototype and validate new public-facing patterns here first before reusing them elsewhere. See `docs/design-workflow.md`.
+
 ## Auth pattern
 
 Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itself.

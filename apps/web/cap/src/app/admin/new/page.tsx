@@ -160,7 +160,7 @@ export default function NewAlertPage() {
               <Field label="Severity" required>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select…" />
+                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Extreme">Extreme</SelectItem>
@@ -175,7 +175,7 @@ export default function NewAlertPage() {
               <Field label="Urgency" required>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select…" />
+                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Immediate">Immediate</SelectItem>
@@ -190,7 +190,7 @@ export default function NewAlertPage() {
               <Field label="Certainty" required>
                 <Select>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select…" />
+                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Observed">Observed</SelectItem>

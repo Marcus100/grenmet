@@ -19,17 +19,18 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@content-collections/core": "^0.10.0",
-    "@content-collections/mdx": "^0.2.2",
-    "@content-collections/next": "^0.2.8",
+    "@content-collections/core": "catalog:",
+    "@content-collections/mdx": "catalog:",
+    "@content-collections/next": "catalog:",
     "@grenmet/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
-    "@tailwindcss/typography": "^0.5.16",
+    "@tailwindcss/typography": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "remark-gfm": "^4.0.1",
+    "remark-gfm": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

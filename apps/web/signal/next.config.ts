@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { withContentCollections } from "@content-collections/next";
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -13,4 +14,14 @@ const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "ts", "tsx"],
 };
 
-export default withContentCollections(nextConfig);
+export default withSentryConfig(withContentCollections(nextConfig), {
+  org: "grenmet",
+  project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+
+  webpack: {
+    treeshake: { removeDebugLogging: true },
+    automaticVercelMonitors: false,
+  },
+});
