@@ -15,6 +15,7 @@ from .schemas import StatusReportCreate
 
 logger = logging.getLogger(__name__)
 
+
 async def create_status_report(
     *, session: AsyncSession, current_user: User, payload: StatusReportCreate
 ) -> tuple[StatusReport, list[StatusReportEntry]]:

@@ -24,7 +24,9 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     },
 )
 async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    return await service.read_profile_for_user(session=session, current_user=current_user)
+    return await service.read_profile_for_user(
+        session=session, current_user=current_user
+    )
 
 
 @router.patch(

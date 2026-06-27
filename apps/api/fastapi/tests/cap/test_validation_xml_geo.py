@@ -103,4 +103,3 @@ def _alert(msg_type: CapMessageType = CapMessageType.ALERT) -> CapAlertPublic:
         info=[info],
         xml_url="/api/cap/test-alert.xml",
     )
-

@@ -21,6 +21,7 @@ from .schemas import ShiftSwapAction, ShiftSwapRequestCreate
 
 logger = logging.getLogger(__name__)
 
+
 async def create_shift_swap_request(
     *, session: AsyncSession, current_user: User, payload: ShiftSwapRequestCreate
 ) -> ShiftSwapRequest:

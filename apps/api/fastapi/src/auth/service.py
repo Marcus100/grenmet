@@ -53,7 +53,9 @@ async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User
     session.add(db_obj)
     await session.commit()
     await session.refresh(db_obj)
-    logger.info("User created", extra={"user_id": str(db_obj.id), "email": db_obj.email})
+    logger.info(
+        "User created", extra={"user_id": str(db_obj.id), "email": db_obj.email}
+    )
     return db_obj
 
 
@@ -277,10 +279,14 @@ async def revoke_user_sessions(
     user_id: uuid.UUID,
 ) -> int:
     """Revoke every active session owned by a user."""
-    statement = select(AuthSession).where(
-        AuthSession.user_id == user_id,
-        col(AuthSession.revoked_at).is_(None),
-    ).limit(500)  # a user shouldn't have more active sessions than this
+    statement = (
+        select(AuthSession)
+        .where(
+            AuthSession.user_id == user_id,
+            col(AuthSession.revoked_at).is_(None),
+        )
+        .limit(500)
+    )  # a user shouldn't have more active sessions than this
     result = await session.execute(statement)
     sessions = list(result.scalars().all())
     if not sessions:
@@ -478,5 +484,3 @@ async def get_user_role_assignments(
         statement = statement.where(UserRoleAssignment.user_id == user_id)
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
-
-

@@ -15,3 +15,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+
+# capcomposer parity reference — kept locally during the CAP→FastAPI migration,
+# not tracked. Delete the folder once the migration is complete.
+/cap/

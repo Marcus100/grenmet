@@ -21,7 +21,8 @@ async def _active_assignments(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
             col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None) | (col(UserRoleAssignment.effective_to) >= now),
+            col(UserRoleAssignment.effective_to).is_(None)
+            | (col(UserRoleAssignment.effective_to) >= now),
         )
     )
     return list(result.scalars().all())

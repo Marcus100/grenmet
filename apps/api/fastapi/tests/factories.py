@@ -93,7 +93,9 @@ async def make_role_with_permission(
     return role, perms
 
 
-async def make_department(session: AsyncSession, department_id: str | None = None) -> Department:
+async def make_department(
+    session: AsyncSession, department_id: str | None = None
+) -> Department:
     """Find or create a department."""
     dept_id = department_id or f"dept_{uuid.uuid4().hex[:8]}"
     existing = await session.get(Department, dept_id)
@@ -168,8 +170,12 @@ async def make_supervised_pair(
 
     role, _ = await make_role_with_permission(session, *permission_keys)
 
-    await make_employee(session, user=supervisor, department_id=dept.id, position="Supervisor")
-    await make_employee(session, user=employee, department_id=dept.id, position="Officer")
+    await make_employee(
+        session, user=supervisor, department_id=dept.id, position="Supervisor"
+    )
+    await make_employee(
+        session, user=employee, department_id=dept.id, position="Officer"
+    )
 
     await assign_role(
         session,

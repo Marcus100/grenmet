@@ -393,7 +393,9 @@ async def reset_password(
         )
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
-    await service.set_password(session=session, user=user, new_password=body.new_password)
+    await service.set_password(
+        session=session, user=user, new_password=body.new_password
+    )
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 

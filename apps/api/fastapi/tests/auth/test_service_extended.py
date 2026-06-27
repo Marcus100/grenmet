@@ -11,7 +11,9 @@ from src.exceptions import AppException
 from tests.utils.utils import random_email, random_lower_string
 
 
-async def _make_user(session: AsyncSession, password: str = "initialPass1") -> service.User:
+async def _make_user(
+    session: AsyncSession, password: str = "initialPass1"
+) -> service.User:
     return await create_user(
         session=session,
         user_create=UserCreate(

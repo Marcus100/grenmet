@@ -24,6 +24,7 @@ from .schemas import LeaveRequestAction, LeaveRequestCreate
 
 logger = logging.getLogger(__name__)
 
+
 async def create_leave_request(
     *, session: AsyncSession, current_user: User, payload: LeaveRequestCreate
 ) -> LeaveRequest:
@@ -63,7 +64,10 @@ async def create_leave_request(
         await session.refresh(leave_request)
     logger.info(
         "Leave request created",
-        extra={"leave_request_id": str(leave_request.id), "user_id": str(current_user.id)},
+        extra={
+            "leave_request_id": str(leave_request.id),
+            "user_id": str(current_user.id),
+        },
     )
     return leave_request
 

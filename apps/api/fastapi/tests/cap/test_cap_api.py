@@ -68,7 +68,9 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
 
     geojson_response = await async_client.get("/api/cap/alerts.geojson")
     assert geojson_response.status_code == 200
-    assert geojson_response.json()["features"][0]["properties"]["identifier"] == identifier
+    assert (
+        geojson_response.json()["features"][0]["properties"]["identifier"] == identifier
+    )
 
     integrations_response = await async_client.get(
         "/api/v1/cap/integrations",

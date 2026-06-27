@@ -42,6 +42,7 @@ from .schemas import ShiftHoursSummary, TimesheetCreate, TimesheetSummaryByShift
 
 logger = logging.getLogger(__name__)
 
+
 async def _get_or_create_policy(
     *, session: AsyncSession, department_id: str
 ) -> DepartmentPolicy:

@@ -38,7 +38,9 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
     },
 )
 async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
-    shifts = await service.read_shift_catalog(session=session, current_user=current_user)
+    shifts = await service.read_shift_catalog(
+        session=session, current_user=current_user
+    )
     return ShiftCatalogsPublic(
         data=[
             ShiftCatalogPublic.model_validate(shift, from_attributes=True)
