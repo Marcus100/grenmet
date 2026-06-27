@@ -25,7 +25,7 @@ src/app/
 ## Key dependencies (unique to this app)
 
 - `@headlessui/react` — nav drawer and accordion. **Migration target:** move to `@base-ui-components/react` (already in `@grenmet/ui`) when refactoring. Do not add new `@headlessui/react` usage.
-- `@heroicons/react` — icons (not Lucide — this app predates the Lucide migration)
+- `lucide-react` — icons (migrated off `@heroicons/react`)
 
 ## Special conventions
 

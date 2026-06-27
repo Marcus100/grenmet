@@ -1,132 +1,97 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
-import dynamic from "next/dynamic";
-import { gmColor } from "@/lib/gm-color";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-// Dynamically import the ReactApexChart component
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
+// Recharts renders real SVG in the DOM, so chart colors can reference the
+// GrenMet design tokens directly via `var(--gm-*)` — no runtime resolution
+// (the former `gmColor` helper) and no `ssr: false` dynamic import needed.
+const data = [
+  { month: "Jan", sales: 180, revenue: 40 },
+  { month: "Feb", sales: 190, revenue: 30 },
+  { month: "Mar", sales: 170, revenue: 50 },
+  { month: "Apr", sales: 160, revenue: 40 },
+  { month: "May", sales: 175, revenue: 55 },
+  { month: "Jun", sales: 165, revenue: 40 },
+  { month: "Jul", sales: 170, revenue: 70 },
+  { month: "Aug", sales: 205, revenue: 100 },
+  { month: "Sep", sales: 230, revenue: 110 },
+  { month: "Oct", sales: 210, revenue: 120 },
+  { month: "Nov", sales: 240, revenue: 150 },
+  { month: "Dec", sales: 235, revenue: 140 },
+];
 
 export default function LineChartOne() {
-  const options: ApexOptions = {
-    legend: {
-      show: false, // Hide legend
-      position: "top",
-      horizontalAlign: "left",
-    },
-    colors: [gmColor("--gm-blue"), gmColor("--gm-sky")], // Define line colors
-    chart: {
-      fontFamily: "Inter, sans-serif",
-      height: 310,
-      type: "line", // Set the chart type to 'line'
-      toolbar: {
-        show: false, // Hide chart toolbar
-      },
-    },
-    stroke: {
-      curve: "straight", // Define the line style (straight, smooth, or step)
-      width: [2, 2], // Line width for each dataset
-    },
-
-    fill: {
-      type: "gradient",
-      gradient: {
-        opacityFrom: 0.55,
-        opacityTo: 0,
-      },
-    },
-    markers: {
-      size: 0, // Size of the marker points
-      strokeColors: gmColor("--gm-surface-page"), // Marker border color
-      strokeWidth: 2,
-      hover: {
-        size: 6, // Marker size on hover
-      },
-    },
-    grid: {
-      xaxis: {
-        lines: {
-          show: false, // Hide grid lines on x-axis
-        },
-      },
-      yaxis: {
-        lines: {
-          show: true, // Show grid lines on y-axis
-        },
-      },
-    },
-    dataLabels: {
-      enabled: false, // Disable data labels
-    },
-    tooltip: {
-      enabled: true, // Enable tooltip
-      x: {
-        format: "dd MMM yyyy", // Format for x-axis tooltip
-      },
-    },
-    xaxis: {
-      type: "category", // Category-based x-axis
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      axisBorder: {
-        show: false, // Hide x-axis border
-      },
-      axisTicks: {
-        show: false, // Hide x-axis ticks
-      },
-      tooltip: {
-        enabled: false, // Disable tooltip for x-axis points
-      },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          fontSize: "12px", // Adjust font size for y-axis labels
-          colors: [gmColor("--gm-text-muted")], // Color of the labels
-        },
-      },
-      title: {
-        text: "", // Remove y-axis title
-        style: {
-          fontSize: "0px",
-        },
-      },
-    },
-  };
-
-  const series = [
-    {
-      name: "Sales",
-      data: [180, 190, 170, 160, 175, 165, 170, 205, 230, 210, 240, 235],
-    },
-    {
-      name: "Revenue",
-      data: [40, 30, 50, 40, 55, 40, 70, 100, 110, 120, 150, 140],
-    },
-  ];
   return (
     <div className="custom-scrollbar max-w-full overflow-x-auto">
       <div className="min-w-[1000px]" id="chartEight">
-        <ReactApexChart
-          height={310}
-          options={options}
-          series={series}
-          type="area"
-        />
+        <ResponsiveContainer height={310} width="100%">
+          <AreaChart
+            data={data}
+            margin={{ top: 10, right: 10, bottom: 0, left: 0 }}
+          >
+            <defs>
+              <linearGradient id="lineAreaBlue" x1="0" x2="0" y1="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor="var(--gm-blue)"
+                  stopOpacity={0.55}
+                />
+                <stop
+                  offset="100%"
+                  stopColor="var(--gm-blue)"
+                  stopOpacity={0}
+                />
+              </linearGradient>
+              <linearGradient id="lineAreaSky" x1="0" x2="0" y1="0" y2="1">
+                <stop
+                  offset="0%"
+                  stopColor="var(--gm-sky)"
+                  stopOpacity={0.55}
+                />
+                <stop offset="100%" stopColor="var(--gm-sky)" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              stroke="var(--gm-gridline, #f1f5f9)"
+              vertical={false}
+            />
+            <XAxis
+              axisLine={false}
+              dataKey="month"
+              tick={{ fontSize: 12, fill: "var(--gm-text-muted)" }}
+              tickLine={false}
+            />
+            <YAxis
+              axisLine={false}
+              tick={{ fontSize: 12, fill: "var(--gm-text-muted)" }}
+              tickLine={false}
+              width={40}
+            />
+            <Tooltip />
+            <Area
+              dataKey="sales"
+              fill="url(#lineAreaBlue)"
+              stroke="var(--gm-blue)"
+              strokeWidth={2}
+              type="linear"
+            />
+            <Area
+              dataKey="revenue"
+              fill="url(#lineAreaSky)"
+              stroke="var(--gm-sky)"
+              strokeWidth={2}
+              type="linear"
+            />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

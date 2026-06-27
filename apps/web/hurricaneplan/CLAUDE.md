@@ -62,7 +62,7 @@ node scripts/generate-sections.mjs
 - `mdx-annotations` — `{{ className: 'lead' }}` annotation syntax in MDX
 - `@algolia/autocomplete-core` — search autocomplete
 - `flexsearch` — client-side full-text search
-- `framer-motion` — page transitions and animations
+- `motion` — page transitions and animations (import from `motion/react`)
 - `zustand` — state management
 - `@tailwindcss/typography` — prose styling for MDX content
 - `shiki@0.14` — syntax highlighting (old API)

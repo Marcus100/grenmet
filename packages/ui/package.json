@@ -12,6 +12,10 @@
       "types": "./src/lib/*.ts",
       "import": "./src/lib/*.ts"
     },
+    "./hooks/*": {
+      "types": "./src/hooks/*.ts",
+      "import": "./src/hooks/*.ts"
+    },
     "./styles/*": "./src/styles/*.css"
   },
   "scripts": {

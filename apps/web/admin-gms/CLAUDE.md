@@ -7,7 +7,7 @@ Port **3001**. The heaviest app in the monorepo.
 | Package | Purpose |
 | --- | --- |
 | `@fullcalendar/*` (6 packages) | Calendar views — daygrid, timegrid, list, interaction |
-| `apexcharts` + `react-apexcharts` | Charts (bar, line, statistics) |
+| `recharts` | Charts (bar, area, statistics) — colors via `var(--gm-*)` tokens directly |
 | `@tanstack/react-form` + `zod-form-adapter` | Forms with Zod validation |
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |
 | `@tanstack/react-table` | Data tables with `Pagination` component |
