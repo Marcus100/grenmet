@@ -25,7 +25,9 @@ def _required(**overrides: Any) -> dict[str, Any]:
 def test_wildcard_cors_rejected_in_production() -> None:
     """FRONTEND_HOST is a raw str, so a wildcard reaches all_cors_origins -> reject."""
     with pytest.raises(ValidationError, match="Wildcard CORS"):
-        Settings(ENVIRONMENT="production", FRONTEND_HOST="*", _env_file=None, **_required())
+        Settings(
+            ENVIRONMENT="production", FRONTEND_HOST="*", _env_file=None, **_required()
+        )
 
 
 def test_explicit_cors_allowed_in_production() -> None:

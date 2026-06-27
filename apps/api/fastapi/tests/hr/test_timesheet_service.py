@@ -93,7 +93,9 @@ async def test_proxy_submit_disabled_raises(db_async: AsyncSession) -> None:
         )
 
 
-async def test_submit_timesheet_already_submitted_raises(db_async: AsyncSession) -> None:
+async def test_submit_timesheet_already_submitted_raises(
+    db_async: AsyncSession,
+) -> None:
     """submit_timesheet raises HRValidationError when timesheet is not in DRAFT status."""
     dept = await make_department(db_async, "dept_ts_double_submit")
     user = await make_user(db_async)

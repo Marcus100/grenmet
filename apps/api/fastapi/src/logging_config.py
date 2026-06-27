@@ -16,10 +16,21 @@ from pythonjsonlogger.json import JsonFormatter
 class _DatadogFormatter(JsonFormatter):
     """JSON formatter that includes ddtrace context fields when present."""
 
-    def add_fields(self, log_record: dict[str, object], record: logging.LogRecord, message_dict: dict[str, object]) -> None:
+    def add_fields(
+        self,
+        log_record: dict[str, object],
+        record: logging.LogRecord,
+        message_dict: dict[str, object],
+    ) -> None:
         super().add_fields(log_record, record, message_dict)
         # ddtrace injects these onto the LogRecord when DD_LOGS_INJECTION=true
-        for field in ("dd.trace_id", "dd.span_id", "dd.service", "dd.env", "dd.version"):
+        for field in (
+            "dd.trace_id",
+            "dd.span_id",
+            "dd.service",
+            "dd.env",
+            "dd.version",
+        ):
             value = record.__dict__.get(field)
             if value:
                 log_record[field] = value

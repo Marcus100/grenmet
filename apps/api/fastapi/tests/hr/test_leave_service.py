@@ -63,7 +63,9 @@ async def test_action_leave_request_requires_permission(db_async: AsyncSession) 
     actor = await make_user(db_async)
     dept = await make_department(db_async, "dept_leave_action")
 
-    creator_role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
+    creator_role, _ = await make_role_with_permission(
+        db_async, "leave.request.create.self"
+    )
     await assign_role(db_async, user=creator, role=creator_role)
 
     leave_request = await create_leave_request(
@@ -87,7 +89,9 @@ async def test_action_leave_request_requires_permission(db_async: AsyncSession) 
         )
 
 
-async def test_action_leave_request_approved_writes_balance_event(db_async: AsyncSession) -> None:
+async def test_action_leave_request_approved_writes_balance_event(
+    db_async: AsyncSession,
+) -> None:
     """Approving a leave request writes a balance event (factory-assisted version)."""
     from sqlmodel import select
 
@@ -102,6 +106,7 @@ async def test_action_leave_request_approved_writes_balance_event(db_async: Asyn
     # Give the employee the create permission via the role already attached by the factory
     # (the factory attaches the permission to the supervisor's role; employee needs their own)
     from tests.factories import assign_role, make_role_with_permission
+
     emp_role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
     await assign_role(db_async, user=employee, role=emp_role)
 

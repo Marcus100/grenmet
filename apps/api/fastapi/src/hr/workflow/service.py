@@ -39,6 +39,7 @@ from .schemas import (
 
 logger = logging.getLogger(__name__)
 
+
 async def create_workflow_template(
     *, session: AsyncSession, current_user: User, template_in: WorkflowTemplateCreate
 ) -> WorkflowTemplate:

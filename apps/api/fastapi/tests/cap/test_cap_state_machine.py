@@ -63,17 +63,27 @@ async def test_submit_from_draft_succeeds(db_async: AsyncSession) -> None:
 async def test_approve_from_submitted_succeeds(db_async: AsyncSession) -> None:
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    approved = await approve_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    approved = await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
     assert approved.lifecycle_state == CapLifecycleState.APPROVED
 
 
 async def test_publish_from_approved_succeeds(db_async: AsyncSession) -> None:
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    await approve_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    result, snapshot = await publish_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    result, snapshot = await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
     assert result.lifecycle_state == CapLifecycleState.PUBLISHED
     assert snapshot.content_hash
 
@@ -82,10 +92,17 @@ async def test_submit_from_non_draft_raises(db_async: AsyncSession) -> None:
     """Submitting an already-submitted alert raises CapStateError."""
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
 
     with pytest.raises(CapStateError):
-        await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+        await submit_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(),
+        )
 
 
 async def test_approve_from_draft_raises(db_async: AsyncSession) -> None:
@@ -94,27 +111,47 @@ async def test_approve_from_draft_raises(db_async: AsyncSession) -> None:
     alert = await _create_alert_for_test(db_async, user)
 
     with pytest.raises(CapStateError):
-        await approve_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+        await approve_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(),
+        )
 
 
 async def test_publish_from_submitted_raises(db_async: AsyncSession) -> None:
     """Publishing without approval raises CapStateError."""
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
 
     with pytest.raises(CapStateError):
-        await publish_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+        await publish_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(),
+        )
 
 
 async def test_cancel_from_published_succeeds(db_async: AsyncSession) -> None:
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    await approve_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    await publish_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
 
-    cancelled = await cancel_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    cancelled = await cancel_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
     assert cancelled.lifecycle_state == CapLifecycleState.CANCELLED
 
 
@@ -124,7 +161,12 @@ async def test_cancel_from_draft_raises(db_async: AsyncSession) -> None:
     alert = await _create_alert_for_test(db_async, user)
 
     with pytest.raises(CapStateError):
-        await cancel_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+        await cancel_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(),
+        )
 
 
 async def test_update_draft_alert_succeeds(db_async: AsyncSession) -> None:
@@ -149,9 +191,15 @@ async def test_update_published_alert_raises(db_async: AsyncSession) -> None:
 
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
-    await submit_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    await approve_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
-    await publish_alert(session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction())
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
 
     with pytest.raises(CapStateError):
         await update_alert(

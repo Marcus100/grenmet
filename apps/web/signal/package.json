@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack --port 3009",
-    "build": "next build",
+    "build": "content-collections build && next build",
     "start": "next start --port 3009",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -13,12 +13,13 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "tsc --noEmit",
+    "type-check": "content-collections build && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@content-collections/cli": "catalog:",
     "@content-collections/core": "catalog:",
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",

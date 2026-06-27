@@ -37,7 +37,10 @@ async def read_permissions(
         session=session, skip=pagination.skip, limit=pagination.limit
     )
     return PaginatedResponse(
-        data=[PermissionPublic.model_validate(p, from_attributes=True) for p in permissions],
+        data=[
+            PermissionPublic.model_validate(p, from_attributes=True)
+            for p in permissions
+        ],
         count=count,
         page=pagination.page,
         size=pagination.size,
@@ -55,7 +58,9 @@ async def read_permissions(
     },
 )
 async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
-    permission = await service.get_permission(session=session, permission_id=permission_id)
+    permission = await service.get_permission(
+        session=session, permission_id=permission_id
+    )
     if not permission:
         raise HTTPException(status_code=404, detail=ERROR_PERMISSION_NOT_FOUND)
     return permission

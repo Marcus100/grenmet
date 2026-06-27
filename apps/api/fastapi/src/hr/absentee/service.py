@@ -13,6 +13,7 @@ from .schemas import AbsenteeReportCreate
 
 logger = logging.getLogger(__name__)
 
+
 async def create_absentee_report(
     *, session: AsyncSession, current_user: User, payload: AbsenteeReportCreate
 ) -> AbsenteeReport:

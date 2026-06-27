@@ -7,4 +7,3 @@ import pytest
 def db() -> Generator[None, None, None]:
     """CAP unit tests do not need the legacy sync database fixture."""
     yield
-
