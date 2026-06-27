@@ -18,6 +18,7 @@
     "@grenmet/api-client": "workspace:*",
     "@grenmet/auth": "workspace:*",
     "@grenmet/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",

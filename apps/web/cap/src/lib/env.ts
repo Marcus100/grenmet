@@ -11,7 +11,13 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
     SESSION_COOKIE_DOMAIN: z.string().optional(),
   },
-  client: {},
+  client: {
+    NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
+      .string()
+      .optional()
+      .default("development"),
+  },
   runtimeEnv: {
     APP_BASE_URL: process.env.APP_BASE_URL,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
@@ -20,5 +26,7 @@ export const env = createEnv({
     CAP_API_URL: process.env.CAP_API_URL,
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
   },
 });

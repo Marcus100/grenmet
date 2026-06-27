@@ -31,7 +31,8 @@
       "Bash(node scripts/api/check-api-drift.mjs)",
       "Bash(echo \"EXIT=$?\")",
       "PowerShell(npm view *)",
-      "PowerShell(Remove-Item *)"
+      "PowerShell(Remove-Item *)",
+      "PowerShell(pnpm turbo *)"
     ]
   }
 }

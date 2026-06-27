@@ -2,6 +2,8 @@
 
 Port **3001**. The heaviest app in the monorepo.
 
+**Design-system role: internal dashboard lane.** Preserve operational density; map TailAdmin aliases back to GrenMet `--gm-*` tokens (highest migration debt). Charts use `var(--gm-*)` directly. See `docs/design-workflow.md`.
+
 ## Key dependencies
 
 | Package | Purpose |
