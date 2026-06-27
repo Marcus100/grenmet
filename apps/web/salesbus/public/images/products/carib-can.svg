@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="120" viewBox="0 0 100 120">
-  <title>Carib Can</title>
-  <rect width="100" height="120" fill="#f5f5f5"/>
-  <rect x="25" y="20" width="50" height="80" rx="5" fill="#FFD700"/>
-  <rect x="25" y="20" width="50" height="15" fill="#C0C0C0"/>
-  <ellipse cx="50" cy="20" rx="25" ry="5" fill="#A9A9A9"/>
-  <text x="50" y="65" font-family="Arial" font-size="8" font-weight="bold" fill="#0000CD" text-anchor="middle">CARIB</text>
-</svg>

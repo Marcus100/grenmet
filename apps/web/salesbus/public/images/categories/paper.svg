@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="96" viewBox="0 0 128 96">
-  <title>Paper Category</title>
-  <rect width="128" height="96" fill="#C0C0C0"/>
-  <rect x="30" y="20" width="68" height="55" rx="5" fill="#8B0000"/>
-  <circle cx="64" cy="47" r="20" fill="#CD5C5C"/>
-  <text x="64" y="85" font-family="Arial" font-size="8" fill="#333" text-anchor="middle">PAPER</text>
-</svg>

@@ -80,8 +80,7 @@ jobs:
 
       - name: Build all web apps
         env:
-          # wxproducts + wxwatch validate DATABASE_URL at build time via @t3-oss/env-nextjs
-          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
-          # admin-gms validates RESEND_API_KEY at build time via @t3-oss/env-nextjs
+          # admin-gms validates RESEND_API_KEY at build time via @t3-oss/env-nextjs.
+          # Its WXWATCH/WXPRODUCTS_DATABASE_URL are optional, so no DB URL is needed here.
           RESEND_API_KEY: re_placeholder
         run: pnpm build

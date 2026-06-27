@@ -74,7 +74,7 @@ jobs:
           HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=${SENTRY_DSN:-}
           PROJECT_NAME=Grenmet API
-          BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://wxwatch.barrels.gd,https://wxproducts.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd,https://hr.barrels.gd,https://sales.barrels.gd
+          BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd
           SESSION_COOKIE_DOMAIN=.barrels.gd
           EMAILS_FROM_EMAIL=noreply@weather.gd
           EOF
@@ -95,8 +95,7 @@ jobs:
           docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull api db proxy prestart || true
           # Pull web app images (may not exist yet on first deploy — ignore failures)
           docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull \
-            web-auth web-admin web-wxwatch web-hurricaneplan web-spicewx \
-            web-wxproducts web-hr web-salesbus 2>/dev/null || true
+            web-auth web-admin web-migrate web-hurricaneplan web-spicewx 2>/dev/null || true
 
       - name: Start database
         run: |

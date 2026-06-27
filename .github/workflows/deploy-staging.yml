@@ -116,7 +116,7 @@ jobs:
           HASHED_PASSWORD=${HASHED_PASSWORD}
           SENTRY_DSN=${SENTRY_DSN:-}
           PROJECT_NAME=Grenmet API
-          BACKEND_CORS_ORIGINS=https://auth.staging.barrels.gd,https://admin.staging.barrels.gd,https://wxwatch.staging.barrels.gd,https://wxproducts.staging.barrels.gd,https://hurricane.staging.barrels.gd,https://spice.staging.barrels.gd,https://hr.staging.barrels.gd,https://sales.staging.barrels.gd
+          BACKEND_CORS_ORIGINS=https://auth.staging.barrels.gd,https://admin.staging.barrels.gd,https://hurricane.staging.barrels.gd,https://spice.staging.barrels.gd
           SESSION_COOKIE_DOMAIN=.staging.barrels.gd
           EMAILS_FROM_EMAIL=noreply@weather.gd
           EOF
@@ -140,8 +140,7 @@ jobs:
           docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
             api db proxy prestart adminer || true
           docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
-            web-auth web-admin web-wxwatch web-hurricaneplan web-spicewx \
-            web-wxproducts web-hr web-salesbus 2>/dev/null || true
+            web-auth web-admin web-migrate web-hurricaneplan web-spicewx 2>/dev/null || true
 
       - name: Deploy full staging stack
         run: |

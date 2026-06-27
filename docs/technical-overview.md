@@ -16,20 +16,25 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 
 ---
 
-## The 8 web apps at a glance
+## The web apps at a glance
 
 | App | Package | Port | Auth model | Database |
 |---|---|---|---|---|
 | `auth` | `@grenmet/web-auth` | 3000 | Owns sign-in/sign-up | — |
-| `admin-gms` | `@grenmet/web-admin` | 3001 | Deep integration | — (uses FastAPI DB via API) |
-| `wxwatch` | `@grenmet/web-wxwatch` | 3002 | Delegates to auth | Own Drizzle DB |
+| `admin-gms` | `@grenmet/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
 | `hurricaneplan` | `@grenmet/web-hurricaneplan` | 3003 | Delegates to auth | — |
 | `spicewx` | `@grenmet/web-spicewx` | 3004 | Delegates to auth | — |
-| `wxproducts` | `@grenmet/web-wxproducts` | 3005 | None | Own Drizzle DB |
-| `hr` | `@grenmet/web-hr` | 3006 | Delegates to auth | — (uses FastAPI DB via API) |
-| `salesbus` | `@grenmet/web-salesbus` | 3007 | Not yet wired | — |
+| `signal` | `@grenmet/web-signal` | 3009 | None (static MDX) | — |
 
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
+
+> **Consolidated (2026-06):** the former `cap`, `hr`, `wxwatch`, `wxproducts`, and
+> `salesbus` apps were folded into `admin-gms` as path-prefixed, auth-gated routes
+> (`/cap`, `/hr`, `/wxwatch`, `/wxproducts`, `/salesbus`). Their dedicated Postgres
+> databases (wxwatch, wxproducts) are unchanged and are now consumed by `admin-gms`;
+> migrations run from the `web-admin-migrate` image. The old subdomains
+> (`wxwatch.barrels.gd`, `hr.barrels.gd`, `sales.barrels.gd`, `wxproducts.barrels.gd`)
+> are retired — point them at `admin.barrels.gd/<app>` at the DNS layer.
 
 ---
 
@@ -129,17 +134,17 @@ There are **three separate PostgreSQL databases**. They share the same Postgres 
 
 | Database | Managed by | Used by | ORM |
 |---|---|---|---|
-| FastAPI DB (`app_db`) | FastAPI / Alembic | `admin-gms`, `hr`, CAP management and public CAP feeds (via API) | SQLModel + asyncpg |
-| wxwatch DB | Drizzle Kit | `wxwatch`, scrapy-wxwatch pipeline | Drizzle ORM |
-| wxproducts DB | Drizzle Kit | `wxproducts` | Drizzle ORM |
+| FastAPI DB (`app_db`) | FastAPI / Alembic | `admin-gms` (HR + CAP management and public CAP feeds, via API) | SQLModel + asyncpg |
+| wxwatch DB | Drizzle Kit | `admin-gms` (`/wxwatch`), scrapy-wxwatch pipeline | Drizzle ORM |
+| wxproducts DB | Drizzle Kit | `admin-gms` (`/wxproducts`) | Drizzle ORM |
 
-**Why separate?** Domain isolation — forecast products, weather images, and HR/auth data have nothing in common. Each app owns its schema entirely and can evolve it independently.
+**Why separate?** Domain isolation — forecast products, weather images, and HR/auth data have nothing in common. Each schema evolves independently. Since the 2026-06 consolidation, `admin-gms` consumes all three (the wxwatch/wxproducts Drizzle clients live at `apps/web/admin-gms/src/db/{wxwatch,wxproducts}/` via `WXWATCH_DATABASE_URL` / `WXPRODUCTS_DATABASE_URL`).
 
 The `infra/docker/docker-compose.yml` provisions all three databases (and their users) on startup via init scripts.
 
 ### Drizzle workflow (wxwatch / wxproducts)
 
-After every schema change: run `pnpm db:generate` to create a migration file, then `pnpm db:migrate` to apply it. Never skip `db:generate` — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-wxproducts--wxwatch) for the rule on committing migrations.
+Run from `apps/web/admin-gms`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-wxproducts--wxwatch) for the rule on committing migrations.
 
 ---
 
