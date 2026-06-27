@@ -61,6 +61,15 @@ class AuthConfig(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_auth_secrets(self) -> Self:
+        # Outside local, refuse the generated ephemeral default. The default is
+        # cryptographically strong, so it passes every check below — which would
+        # silently hide a missing SECRET_KEY env var. An ephemeral key differs
+        # per worker and per restart, invalidating all tokens. Require it explicitly.
+        if self.ENVIRONMENT != "local" and "SECRET_KEY" not in self.model_fields_set:
+            raise ValueError(
+                f"SECRET_KEY must be set explicitly in the {self.ENVIRONMENT} "
+                "environment; refusing to fall back to the generated ephemeral default."
+            )
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._validate_secret_strength("SECRET_KEY", self.SECRET_KEY)
         return self

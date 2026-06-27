@@ -776,41 +776,6 @@
 }
 
 /* third-party libraries CSS */
-.apexcharts-legend-text {
-  @apply !text-gray-700;
-}
-
-.apexcharts-text {
-  @apply !fill-gray-700;
-}
-
-.apexcharts-tooltip.apexcharts-theme-light {
-  @apply gap-1 !rounded-lg !border-gray-200 p-3 !shadow-theme-sm;
-}
-
-.apexcharts-legend-text {
-  @apply pl-5! !text-gray-700;
-}
-.apexcharts-tooltip-series-group {
-  @apply !p-0;
-}
-.apexcharts-tooltip-y-group {
-  @apply !p-0;
-}
-.apexcharts-tooltip-title {
-  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800;
-}
-.apexcharts-tooltip-text {
-  @apply !text-theme-xs !text-gray-700;
-}
-.apexcharts-tooltip-text-y-value {
-  @apply !font-medium;
-}
-
-.apexcharts-gridline {
-  @apply !stroke-gray-100;
-}
-
 .flatpickr-wrapper {
   @apply w-full;
 }

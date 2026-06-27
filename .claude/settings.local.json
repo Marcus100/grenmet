@@ -16,7 +16,22 @@
       "Bash(awk '/^## admin-gms/{f=1} f&&/^## /&&!/^## admin-gms/{exit} f{print}')",
       "Bash(awk '/Hard-coded colors/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/Hard-coded colors/{c=0} c')",
       "Bash(awk '/Local theme tokens/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/Local theme tokens/{c=0} c')",
-      "Bash(awk '/App-local shadows/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/App-local shadows/{c=0} c')"
+      "Bash(awk '/App-local shadows/{c=1} /^[A-Z].*\\\\\\([0-9]+\\\\\\)$/&&!/App-local shadows/{c=0} c')",
+      "Read(//tmp/**)",
+      "Bash(awk '/Arbitrary spacing/{c=1;next} /^[A-Za-z].*\\\\\\([0-9]+\\\\\\)$/{c=0} c&&/^- /' /tmp/ag.txt)",
+      "Bash(awk '{print $NF}')",
+      "Bash(awk '/^## @grenmet\\\\/ui/{f=1} f&&/^## /&&!/@grenmet\\\\/ui/{exit} f{print}')",
+      "Bash(awk '/^## hr/{f=1} f&&/^## /&&!/^## hr$/{exit} f{print}')",
+      "Bash(awk '/Font and typography/{c=1;next} /^[A-Za-z].*\\\\\\([0-9]+\\\\\\)$/{c=0} c&&/^- /' /tmp/hr.txt)",
+      "Bash(awk '/Arbitrary spacing/{c=1;next} /^[A-Za-z].*\\\\\\([0-9]+\\\\\\)$/{c=0} c&&/^- /' /tmp/hr.txt)",
+      "Bash(awk '/^## wxproducts/{f=1} f&&/^## /&&!/wxproducts/{exit} f{print}')",
+      "Bash(awk '/Arbitrary spacing/{c=1;next} /^[A-Za-z].*\\\\\\([0-9]+\\\\\\)$/{c=0} c&&/^- /')",
+      "Bash(grep -E \"\\\\\\([0-9]+\\\\\\)$\")",
+      "Bash(awk '/^## hurricaneplan/{f=1} f&&/^## /&&!/hurricaneplan/{exit} f{print}')",
+      "Bash(node scripts/api/check-api-drift.mjs)",
+      "Bash(echo \"EXIT=$?\")",
+      "PowerShell(npm view *)",
+      "PowerShell(Remove-Item *)"
     ]
   }
 }

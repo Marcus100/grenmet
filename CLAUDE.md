@@ -125,3 +125,17 @@ When adding to this file, follow this structure:
 | FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
 | FastAPI dev workflow               | `docs/api/development.md`          |
 | Dev commands                       | `AGENTS.md`                        |
+
+## Agent skills
+
+### Issue tracker
+
+Issues tracked in GitHub Issues for `Marcus100/grenmet` via the `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default kebab-case state labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`wontfix` already exists; the other four are created on first use). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `CONTEXT.md` (created lazily by `/domain-modeling`) plus the existing `docs/adr/`. See `docs/agents/domain.md`.

@@ -166,20 +166,7 @@ export default [
       "path": "index"
     },
     "body": "var Component=(()=>{var f=Object.create;var a=Object.defineProperty;var m=Object.getOwnPropertyDescriptor;var y=Object.getOwnPropertyNames;var g=Object.getPrototypeOf,v=Object.prototype.hasOwnProperty;var x=(n,e)=>()=>(e||n((e={exports:{}}).exports,e),e.exports),b=(n,e)=>{for(var t in e)a(n,t,{get:e[t],enumerable:!0})},d=(n,e,t,o)=>{if(e&&typeof e==\"object\"||typeof e==\"function\")for(let i of y(e))!v.call(n,i)&&i!==t&&a(n,i,{get:()=>e[i],enumerable:!(o=m(e,i))||o.enumerable});return n};var w=(n,e,t)=>(t=n!=null?f(g(n)):{},d(e||!n||!n.__esModule?a(t,\"default\",{value:n,enumerable:!0}):t,n)),A=n=>d(a({},\"__esModule\",{value:!0}),n);var h=x((M,l)=>{l.exports=_jsx_runtime});var j={};b(j,{default:()=>u});var r=w(h());function p(n){let e={h1:\"h1\",h2:\"h2\",li:\"li\",p:\"p\",ul:\"ul\",...n.components},{Button:t,Guides:o,HeroPattern:i,Resources:c}=e;return t||s(\"Button\",!0),o||s(\"Guides\",!0),i||s(\"HeroPattern\",!0),c||s(\"Resources\",!0),(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(i,{}),`\n`,(0,r.jsx)(e.h1,{children:\"Introduction\"}),`\n`,(0,r.jsx)(e.p,{annotation:\"{ className: 'lead' }\",children:\"The Maurice Bishop International Airport (MBIA) and Lauriston Airport are Grenada's gateway to the world through air transportation. Keeping both airports operational is critical, and this Tropical Cyclone Emergency Plan outlines how the Grenada Airports Authority (GAA) prepares for, responds to, and recovers from tropical cyclone impacts.\"}),`\n`,(0,r.jsx)(e.h2,{id:\"coverage\",children:\"Coverage\"}),`\n`,(0,r.jsx)(e.p,{children:\"GAA is a statutory body empowered by the laws of Grenada and is responsible for ensuring airport accessibility. Because Grenada lies on the southern end of the Atlantic hurricane belt, a tropical cyclone can interrupt access and normal operations.\"}),`\n`,(0,r.jsx)(e.p,{children:\"This plan provides coordinated actions before, during, and after a tropical cyclone to support an efficient and swift return to operations at both airports.\"}),`\n`,(0,r.jsx)(e.h2,{id:\"purpose\",children:\"Purpose\"}),`\n`,(0,r.jsx)(e.p,{children:\"Staff are expected to familiarize themselves with these procedures and execute them as outlined. Proper execution is intended to secure airport property and restore services with minimum delay.\"}),`\n`,(0,r.jsxs)(\"div\",{className:\"not-prose mt-6 mb-10 flex gap-3\",children:[(0,r.jsx)(t,{href:\"/objectives\",arrow:\"right\",children:(0,r.jsx)(r.Fragment,{children:\"Read objectives\"})}),(0,r.jsx)(t,{href:\"/pre-season/general\",variant:\"outline\",children:(0,r.jsx)(r.Fragment,{children:\"Start pre-season actions\"})})]}),`\n`,(0,r.jsx)(e.h2,{id:\"departments-covered\",children:\"Departments covered\"}),`\n`,(0,r.jsx)(e.p,{children:\"The primary departments and units referenced in this plan are:\"}),`\n`,(0,r.jsxs)(e.ul,{children:[`\n`,(0,r.jsx)(e.li,{children:\"Meteorology\"}),`\n`,(0,r.jsx)(e.li,{children:\"Air Traffic Services\"}),`\n`,(0,r.jsx)(e.li,{children:\"Maintenance\"}),`\n`,(0,r.jsx)(e.li,{children:\"Crash Fire and Rescue (CFR)\"}),`\n`,(0,r.jsx)(e.li,{children:\"Administration\"}),`\n`,(0,r.jsx)(e.li,{children:\"Security\"}),`\n`,(0,r.jsx)(e.li,{children:\"Lauriston operations\"}),`\n`]}),`\n`,(0,r.jsx)(o,{}),`\n`,(0,r.jsx)(c,{})]})}function u(n={}){let{wrapper:e}=n.components||{};return e?(0,r.jsx)(e,{...n,children:(0,r.jsx)(p,{...n})}):p(n)}function s(n,e){throw new Error(\"Expected \"+(e?\"component\":\"object\")+\" `\"+n+\"` to be defined: you likely forgot to import, pass, or provide it.\")}return A(j);})();\n;return Component;",
-    "sections": [
-      {
-        "id": "coverage",
-        "title": "Coverage"
-      },
-      {
-        "id": "purpose",
-        "title": "Purpose"
-      },
-      {
-        "id": "departments-covered",
-        "title": "Departments covered"
-      }
-    ]
+    "sections": []
   },
   {
     "title": "Messages",

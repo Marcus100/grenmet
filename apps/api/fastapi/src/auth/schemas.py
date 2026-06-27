@@ -45,7 +45,7 @@ class UserUpdateMe(BaseModel):
 
 class UpdatePassword(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=40)
 
 
 # Properties to return via API, id is always required
@@ -198,7 +198,7 @@ class SessionAccessTokenResponse(SessionAuthenticationBase):
 
 class NewPassword(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=40)
 
 
 class UserRoleAssignmentBase(BaseModel):
