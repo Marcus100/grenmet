@@ -95,27 +95,18 @@ services:
       - grenmet
 
   # ── Drizzle migrations ───────────────────────────────────────────────────────
-  wxwatch-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
+  # The wxwatch + wxproducts databases are now consumed by web-admin. Their
+  # Drizzle migrations run from the admin-migrate image (built target=migrate),
+  # which carries both schema folders and runs both migration scripts.
+  web-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG:-latest}
     restart: "no"
-    command: ["node", "apps/web/wxwatch/scripts/migrate.mjs"]
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${WXWATCH_DB_URL}
-    networks:
-      - grenmet
-
-  wxproducts-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-latest}
-    restart: "no"
-    command: ["node", "apps/web/wxproducts/scripts/migrate.mjs"]
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
     networks:
       - grenmet
 
@@ -141,6 +132,9 @@ services:
   web-admin:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-latest}
     restart: always
+    depends_on:
+      web-migrate:
+        condition: service_completed_successfully
     environment:
       AUTH_APP_URL: https://auth.barrels.gd
       AUTH_API_URL: https://api.barrels.gd
@@ -149,34 +143,16 @@ services:
       SESSION_COOKIE_DOMAIN: .barrels.gd
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.barrels.gd
+      # Consolidated apps' dedicated Postgres databases.
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      CAP_API_URL: https://api.barrels.gd
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-admin.rule=Host(`admin.barrels.gd`)"
       - "traefik.http.routers.web-admin.entrypoints=websecure"
       - "traefik.http.routers.web-admin.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin.loadbalancer.server.port=3001"
-    networks:
-      - grenmet
-
-  web-wxwatch:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-latest}
-    restart: always
-    depends_on:
-      wxwatch-migrate:
-        condition: service_completed_successfully
-    environment:
-      AUTH_APP_URL: https://auth.barrels.gd
-      AUTH_API_URL: https://api.barrels.gd
-      AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .barrels.gd
-      DATABASE_URL: ${WXWATCH_DB_URL}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-wxwatch.rule=Host(`wxwatch.barrels.gd`)"
-      - "traefik.http.routers.web-wxwatch.entrypoints=websecure"
-      - "traefik.http.routers.web-wxwatch.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-wxwatch.loadbalancer.server.port=3002"
     networks:
       - grenmet
 
@@ -213,56 +189,6 @@ services:
       - "traefik.http.routers.web-spicewx.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx.loadbalancer.server.port=3004"
-    networks:
-      - grenmet
-
-  web-wxproducts:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-latest}
-    restart: always
-    depends_on:
-      wxproducts-migrate:
-        condition: service_completed_successfully
-    environment:
-      DATABASE_URL: ${WXPRODUCTS_DB_URL}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-wxproducts.rule=Host(`wxproducts.barrels.gd`)"
-      - "traefik.http.routers.web-wxproducts.entrypoints=websecure"
-      - "traefik.http.routers.web-wxproducts.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-wxproducts.loadbalancer.server.port=3005"
-    networks:
-      - grenmet
-
-  web-hr:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-latest}
-    restart: always
-    environment:
-      AUTH_API_URL: https://api.barrels.gd
-      AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .barrels.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-hr.rule=Host(`hr.barrels.gd`)"
-      - "traefik.http.routers.web-hr.entrypoints=websecure"
-      - "traefik.http.routers.web-hr.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hr.loadbalancer.server.port=3006"
-    networks:
-      - grenmet
-
-  web-salesbus:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-latest}
-    restart: always
-    environment:
-      NEXT_PUBLIC_API_URL: https://api.barrels.gd
-      NEXT_PUBLIC_ENVIRONMENT: production
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-salesbus.rule=Host(`sales.barrels.gd`)"
-      - "traefik.http.routers.web-salesbus.entrypoints=websecure"
-      - "traefik.http.routers.web-salesbus.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-salesbus.loadbalancer.server.port=3007"
     networks:
       - grenmet
 

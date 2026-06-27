@@ -48,24 +48,17 @@ jobs:
           - app: web-admin
             path: apps/web/admin-gms
             port: 3001
-          - app: web-wxwatch
-            path: apps/web/wxwatch
-            port: 3002
+          # Migration runner image — folds the former wxwatch/wxproducts apps'
+          # Drizzle migrations into a one-off image driven from admin's Dockerfile.
+          - app: web-admin-migrate
+            path: apps/web/admin-gms
+            target: migrate
           - app: web-hurricaneplan
             path: apps/web/hurricaneplan
             port: 3003
           - app: web-spicewx
             path: apps/web/spicewx
             port: 3004
-          - app: web-wxproducts
-            path: apps/web/wxproducts
-            port: 3005
-          - app: web-hr
-            path: apps/web/hr
-            port: 3006
-          - app: web-salesbus
-            path: apps/web/salesbus
-            port: 3007
 
     steps:
       - name: Checkout
@@ -120,6 +113,7 @@ jobs:
         with:
           context: .
           file: ${{ matrix.path }}/Dockerfile
+          target: ${{ matrix.target }}
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}

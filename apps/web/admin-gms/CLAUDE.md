@@ -52,6 +52,28 @@ src/app/
     (error-pages)/   ← 404
 ```
 
+## Consolidated apps (folded in 2026-06)
+
+The former `cap`, `hr`, `wxwatch`, `wxproducts`, and `salesbus` apps now live here as
+path-prefixed, auth-gated routes under `(admin)/`. All are gated by
+`(admin)/layout.tsx` — no per-page auth code.
+
+| Prefix | Source app | Data | Notes |
+|---|---|---|---|
+| `/hr` | hr | FastAPI HR API (via api-client) | Print forms; components in `components/hr/` |
+| `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
+| `/salesbus` | salesbus | mock data (api-client planned) | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
+| `/wxwatch` | wxwatch | wxwatch Postgres (`WXWATCH_DATABASE_URL`) | client `src/db/wxwatch/` → `wxwatchDb`; `getImageUrl` serves `/wxwatch/<path>` assets |
+| `/wxproducts` | wxproducts | wxproducts Postgres (`WXPRODUCTS_DATABASE_URL`) | client `src/db/wxproducts/` → `wxproductsDb`; PDF via `scripts/wxproducts-export-pdf.mjs` (auth-gated; pass `PDF_SESSION_COOKIE`) |
+
+- **DB conventions:** two separate Drizzle clients (never merged). Configs
+  `drizzle.{wxwatch,wxproducts}.config.ts`, output `drizzle/{wxwatch,wxproducts}/`,
+  scripts `db:{wxwatch,wxproducts}:{generate,migrate}`. Production migrations run from
+  the `migrate` Dockerfile stage (image `grenmet-web-admin-migrate`, compose service
+  `web-migrate`) via `scripts/migrate-{wxwatch,wxproducts}.mjs`.
+- **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--gm-font-document`
+  token used by wxproducts forecast/bulletin documents.
+
 ## Testing
 
 This is the **only app with tests**. Run from the app directory or via turbo filter.
