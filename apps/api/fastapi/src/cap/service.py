@@ -53,6 +53,7 @@ from src.cap.schemas import (
     CapCatalogsPublic,
     CapInfoCreate,
     CapInfoPublic,
+    CapNameValue,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
     CapReferenceCreate,
@@ -71,6 +72,17 @@ from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
 
+
+def _as_categories(values: list[str]) -> list[CapCategory]:
+    """Coerce JSON-stored category strings into the typed CapCategory enum."""
+    return [CapCategory(value) for value in values]
+
+
+def _as_name_values(values: list[dict[str, str]]) -> list[CapNameValue]:
+    """Coerce JSON-stored name/value dicts into typed CapNameValue models."""
+    return [CapNameValue.model_validate(value) for value in values]
+
+
 EDITABLE_STATES = {
     CapLifecycleState.DRAFT,
     CapLifecycleState.SUBMITTED,
@@ -86,9 +98,9 @@ def _info_to_public_from_loaded(info: CapInfo) -> CapInfoPublic:
         id=info.id,
         sequence=info.sequence,
         language=info.language,
-        categories=info.categories or [],
+        categories=_as_categories(info.categories or []),
         event=info.event,
-        event_codes=info.event_codes or [],
+        event_codes=_as_name_values(info.event_codes or []),
         response_types=info.response_types or [],
         urgency=info.urgency,
         severity=info.severity,
@@ -103,7 +115,7 @@ def _info_to_public_from_loaded(info: CapInfo) -> CapInfoPublic:
         instruction=info.instruction,
         web=info.web,
         contact=info.contact,
-        parameters=info.parameters or [],
+        parameters=_as_name_values(info.parameters or []),
         resources=[
             CapResourcePublic.model_validate(r, from_attributes=True)
             for r in resource_rows
@@ -542,7 +554,9 @@ async def expire_alert(
 
 
 async def get_or_create_settings(*, session: AsyncSession) -> CapSettings:
-    result = await session.execute(select(CapSettings).order_by(CapSettings.created_at))
+    result = await session.execute(
+        select(CapSettings).order_by(col(CapSettings.created_at))
+    )
     settings = result.scalars().first()
     if settings:
         return settings
@@ -888,9 +902,9 @@ async def _info_to_public(*, session: AsyncSession, info: CapInfo) -> CapInfoPub
         id=info.id,
         sequence=info.sequence,
         language=info.language,
-        categories=info.categories or [],
+        categories=_as_categories(info.categories or []),
         event=info.event,
-        event_codes=info.event_codes or [],
+        event_codes=_as_name_values(info.event_codes or []),
         response_types=info.response_types or [],
         urgency=info.urgency,
         severity=info.severity,
@@ -905,7 +919,7 @@ async def _info_to_public(*, session: AsyncSession, info: CapInfo) -> CapInfoPub
         instruction=info.instruction,
         web=info.web,
         contact=info.contact,
-        parameters=info.parameters or [],
+        parameters=_as_name_values(info.parameters or []),
         resources=[
             CapResourcePublic.model_validate(resource, from_attributes=True)
             for resource in resource_rows
@@ -924,7 +938,7 @@ def _area_to_public(area: CapArea) -> CapAreaPublic:
         polygons=area.polygons or [],
         multipolygons=area.multipolygons or [],
         circles=area.circles or [],
-        geocodes=area.geocodes or [],
+        geocodes=_as_name_values(area.geocodes or []),
         geometry=area.geometry,
         altitude=area.altitude,
         ceiling=area.ceiling,
@@ -940,7 +954,7 @@ def _predefined_area_to_public(area: CapPredefinedArea) -> CapPredefinedAreaPubl
         polygons=area.polygons or [],
         multipolygons=area.multipolygons or [],
         circles=area.circles or [],
-        geocodes=area.geocodes or [],
+        geocodes=_as_name_values(area.geocodes or []),
         is_active=area.is_active,
         created_at=area.created_at,
         updated_at=area.updated_at,
@@ -974,7 +988,7 @@ async def _replace_children(
 ) -> None:
     if references is not None:
         await session.execute(
-            sa.delete(CapReference).where(CapReference.alert_id == alert_id)
+            sa.delete(CapReference).where(col(CapReference.alert_id) == alert_id)
         )
         for index, reference in enumerate(references):
             session.add(
@@ -984,7 +998,7 @@ async def _replace_children(
             )
     if incidents is not None:
         await session.execute(
-            sa.delete(CapIncident).where(CapIncident.alert_id == alert_id)
+            sa.delete(CapIncident).where(col(CapIncident.alert_id) == alert_id)
         )
         for index, incident in enumerate(incidents):
             session.add(CapIncident(alert_id=alert_id, sequence=index, value=incident))
@@ -998,7 +1012,9 @@ async def _replace_children(
             await session.execute(
                 sa.delete(CapResource).where(col(CapResource.info_id).in_(info_ids))
             )
-        await session.execute(sa.delete(CapInfo).where(CapInfo.alert_id == alert_id))
+        await session.execute(
+            sa.delete(CapInfo).where(col(CapInfo.alert_id) == alert_id)
+        )
         for index, info_payload in enumerate(info):
             await _create_info(
                 session=session, alert_id=alert_id, sequence=index, payload=info_payload
@@ -1089,7 +1105,9 @@ def _area_from_payload(
 
 async def _info_rows(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapInfo]:
     result = await session.execute(
-        select(CapInfo).where(CapInfo.alert_id == alert_id).order_by(CapInfo.sequence)
+        select(CapInfo)
+        .where(CapInfo.alert_id == alert_id)
+        .order_by(col(CapInfo.sequence))
     )
     return list(result.scalars())
 
@@ -1100,7 +1118,7 @@ async def _reference_rows(
     result = await session.execute(
         select(CapReference)
         .where(CapReference.alert_id == alert_id)
-        .order_by(CapReference.sequence)
+        .order_by(col(CapReference.sequence))
     )
     return list(result.scalars())
 
@@ -1111,7 +1129,7 @@ async def _incident_rows(
     result = await session.execute(
         select(CapIncident)
         .where(CapIncident.alert_id == alert_id)
-        .order_by(CapIncident.sequence)
+        .order_by(col(CapIncident.sequence))
     )
     return list(result.scalars())
 
@@ -1122,14 +1140,16 @@ async def _resource_rows(
     result = await session.execute(
         select(CapResource)
         .where(CapResource.info_id == info_id)
-        .order_by(CapResource.sequence)
+        .order_by(col(CapResource.sequence))
     )
     return list(result.scalars())
 
 
 async def _area_rows(*, session: AsyncSession, info_id: uuid.UUID) -> list[CapArea]:
     result = await session.execute(
-        select(CapArea).where(CapArea.info_id == info_id).order_by(CapArea.sequence)
+        select(CapArea)
+        .where(CapArea.info_id == info_id)
+        .order_by(col(CapArea.sequence))
     )
     return list(result.scalars())
 
