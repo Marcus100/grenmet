@@ -7,9 +7,7 @@
  * Response Read Alerts Geojson Api Cap Alerts Geojson Get
  * @description Successful Response
  */
-export type ReadAlertsGeojsonApiCapAlertsGeojsonGet200 = {
-  [key: string]: any;
-};
+export type ReadAlertsGeojsonApiCapAlertsGeojsonGet200 = any;
 
 export type ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse =
   ReadAlertsGeojsonApiCapAlertsGeojsonGet200;

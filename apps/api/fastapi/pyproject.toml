@@ -26,6 +26,9 @@ dependencies = [
     "redis>=5.3.1",
     "fpdf2>=2.8.7",
     "pyotp>=2.10.0",
+    "shapely>=2.1.2",
+    "feedparser>=6.0.12",
+    "signxml>=5.0.1",
 ]
 
 [dependency-groups]

@@ -3909,6 +3909,52 @@
         }
       }
     },
+    "/api/v1/cap/alerts/import": {
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Import a CAP alert from a URL or pasted XML",
+        "operationId": "import_alert_api_v1_cap_alerts_import_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapAlertImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/cap/alerts/{alert_id}": {
       "get": {
         "tags": [
@@ -4658,6 +4704,177 @@
         }
       }
     },
+    "/api/v1/cap/feeds": {
+      "get": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Read Feeds",
+        "operationId": "read_feeds_api_v1_cap_feeds_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapFeedImportPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Feeds Api V1 Cap Feeds Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Register an external CAP feed source",
+        "operationId": "create_feed_api_v1_cap_feeds_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapFeedImportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapFeedImportPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/feeds/{feed_id}": {
+      "patch": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Update Feed",
+        "operationId": "update_feed_api_v1_cap_feeds__feed_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Feed Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapFeedImportUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapFeedImportPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "cap"
+        ],
+        "summary": "Delete an external CAP feed source",
+        "operationId": "delete_feed_api_v1_cap_feeds__feed_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "feed_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Feed Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/cap/latest-active": {
       "get": {
         "tags": [
@@ -4776,8 +4993,6 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "type": "object",
                   "title": "Response Read Alerts Geojson Api Cap Alerts Geojson Get"
                 }
               }
@@ -5420,6 +5635,29 @@
         "type": "object",
         "title": "CapAlertCreate"
       },
+      "CapAlertImportRequest": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "url",
+              "xml"
+            ],
+            "title": "Source",
+            "default": "xml"
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "value"
+        ],
+        "title": "CapAlertImportRequest"
+      },
       "CapAlertListPublic": {},
       "CapAlertPublic": {},
       "CapAlertUpdate": {
@@ -5754,6 +5992,71 @@
         ],
         "title": "CapCertainty"
       },
+      "CapFeedImportCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "url"
+        ],
+        "title": "CapFeedImportCreate"
+      },
+      "CapFeedImportPublic": {},
+      "CapFeedImportUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapIntegrationStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "CapFeedImportUpdate"
+      },
       "CapInfoCreate": {
         "properties": {
           "language": {
@@ -5939,6 +6242,15 @@
           "description"
         ],
         "title": "CapInfoCreate"
+      },
+      "CapIntegrationStatus": {
+        "type": "string",
+        "enum": [
+          "ACTIVE",
+          "INACTIVE",
+          "FAILED"
+        ],
+        "title": "CapIntegrationStatus"
       },
       "CapLifecycleState": {
         "type": "string",

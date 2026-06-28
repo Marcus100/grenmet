@@ -1,4 +1,8 @@
 from datetime import datetime, timezone
+from typing import Any
+
+from shapely.geometry import shape  # type: ignore[import-untyped]
+from shapely.validation import explain_validity  # type: ignore[import-untyped]
 
 from src.cap.models import CapMessageType, CapScope
 from src.cap.schemas import CapAlertPublic, CapValidationResult
@@ -54,8 +58,24 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
             if area.altitude is not None and area.ceiling is not None:
                 if area.ceiling < area.altitude:
                     errors.append(f"{area_prefix}.ceiling must be above altitude")
+            geom_error = _validate_geometry(area.geometry)
+            if geom_error:
+                errors.append(f"{area_prefix}.geometry {geom_error}")
 
     return CapValidationResult(is_valid=not errors, errors=errors, warnings=warnings)
+
+
+def _validate_geometry(geojson: dict[str, Any] | None) -> str | None:
+    """Validate a GeoJSON geometry with shapely; None if absent or valid."""
+    if not geojson:
+        return None
+    try:
+        geom = shape(geojson)
+    except Exception as exc:  # noqa: BLE001 - malformed GeoJSON of any shape
+        return f"is malformed: {exc}"
+    if not geom.is_valid:
+        return f"is invalid: {explain_validity(geom)}"
+    return None
 
 
 def _as_naive_utc(value: datetime) -> datetime:

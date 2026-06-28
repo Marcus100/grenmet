@@ -25,7 +25,9 @@ async def test_enrollment_flow(db_async: AsyncSession) -> None:
     assert user.totp_enabled is False
 
     # Wrong code does not activate.
-    assert await service.activate_totp(session=db_async, user=user, code="000000") is False
+    assert (
+        await service.activate_totp(session=db_async, user=user, code="000000") is False
+    )
     assert user.totp_enabled is False
 
     # Correct code activates.

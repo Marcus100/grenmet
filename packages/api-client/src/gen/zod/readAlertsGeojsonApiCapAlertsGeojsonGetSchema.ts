@@ -8,9 +8,7 @@ import * as z from "zod";
 /**
  * @description Successful Response
  */
-export const readAlertsGeojsonApiCapAlertsGeojsonGet200Schema = z
-  .object({})
-  .catchall(z.any());
+export const readAlertsGeojsonApiCapAlertsGeojsonGet200Schema = z.any();
 
 export const readAlertsGeojsonApiCapAlertsGeojsonGetQueryResponseSchema =
   z.lazy(() => readAlertsGeojsonApiCapAlertsGeojsonGet200Schema);

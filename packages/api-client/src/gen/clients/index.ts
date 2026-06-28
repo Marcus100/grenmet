@@ -7,6 +7,7 @@ export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./cancelAlertApiV1Ca
 export { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "./closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export { createAbsenteeReportApiV1HrAbsenteeReportsPost } from "./createAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 export { createAlertApiV1CapAlertsPost } from "./createAlertApiV1CapAlertsPost.js";
+export { createFeedApiV1CapFeedsPost } from "./createFeedApiV1CapFeedsPost.js";
 export { createHolidayApiV1HrRostersPublicHolidaysPost } from "./createHolidayApiV1HrRostersPublicHolidaysPost.js";
 export { createInstanceApiV1HrWorkflowsInstancesPost } from "./createInstanceApiV1HrWorkflowsInstancesPost.js";
 export { createLeaveRequestApiV1HrLeaveRequestsPost } from "./createLeaveRequestApiV1HrLeaveRequestsPost.js";
@@ -22,6 +23,7 @@ export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./createTemplateApi
 export { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "./createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 export { createTimesheetApiV1HrTimesheetsPost } from "./createTimesheetApiV1HrTimesheetsPost.js";
 export { createUserApiV1AuthUsersPost } from "./createUserApiV1AuthUsersPost.js";
+export { deleteFeedApiV1CapFeedsFeedIdDelete } from "./deleteFeedApiV1CapFeedsFeedIdDelete.js";
 export { deleteUserApiV1AuthUsersUserIdDelete } from "./deleteUserApiV1AuthUsersUserIdDelete.js";
 export { deleteUserMeApiV1AuthUsersMeDelete } from "./deleteUserMeApiV1AuthUsersMeDelete.js";
 export { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "./duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
@@ -30,6 +32,7 @@ export { expireAlertApiV1CapAlertsAlertIdExpirePost } from "./expireAlertApiV1Ca
 export { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "./getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./healthCheckApiV1UtilsHealthCheckGet.js";
+export { importAlertApiV1CapAlertsImportPost } from "./importAlertApiV1CapAlertsImportPost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./importCsvApiV1HrRostersImportCsvPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listHolidaysApiV1HrRostersPublicHolidaysGet } from "./listHolidaysApiV1HrRostersPublicHolidaysGet.js";
@@ -50,6 +53,7 @@ export { readCapSettingsApiV1CapSettingsGet } from "./readCapSettingsApiV1CapSet
 export { readCapXmlApiCapIdentifierXmlGet } from "./readCapXmlApiCapIdentifierXmlGet.js";
 export { readCatalogsApiV1CapCatalogsGet } from "./readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export { readFeedsApiV1CapFeedsGet } from "./readFeedsApiV1CapFeedsGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./readHrProfileMeApiV1HrProfileMeGet.js";
 export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 export { readIntegrationsApiV1CapIntegrationsGet } from "./readIntegrationsApiV1CapIntegrationsGet.js";
@@ -94,6 +98,7 @@ export { twofaSetupApiV12FaSetupPost } from "./twofaSetupApiV12FaSetupPost.js";
 export { twofaStatusApiV12FaStatusGet } from "./twofaStatusApiV12FaStatusGet.js";
 export { updateAlertApiV1CapAlertsAlertIdPatch } from "./updateAlertApiV1CapAlertsAlertIdPatch.js";
 export { updateCapSettingsApiV1CapSettingsPatch } from "./updateCapSettingsApiV1CapSettingsPatch.js";
+export { updateFeedApiV1CapFeedsFeedIdPatch } from "./updateFeedApiV1CapFeedsFeedIdPatch.js";
 export { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 export { updateHrProfileMeApiV1HrProfileMePatch } from "./updateHrProfileMeApiV1HrProfileMePatch.js";
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./updatePasswordMeApiV1AuthUsersMePasswordPatch.js";

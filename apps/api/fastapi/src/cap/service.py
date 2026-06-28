@@ -4,15 +4,21 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+import feedparser  # type: ignore[import-untyped]
+import httpx
 import sqlalchemy as sa
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
+from src.cap.cache import PUBLIC_FEED_KEYS, invalidate, public_xml_key
 from src.cap.exceptions import (
     CapAlertNotFoundError,
+    CapFeedNotFoundError,
+    CapImportError,
     CapSnapshotNotFoundError,
     CapStateError,
     CapValidationFailedError,
@@ -23,8 +29,10 @@ from src.cap.models import (
     CapAuditEvent,
     CapCategory,
     CapCertainty,
+    CapFeedImport,
     CapIncident,
     CapInfo,
+    CapIntegrationStatus,
     CapJobEvent,
     CapLifecycleState,
     CapMessageType,
@@ -51,6 +59,8 @@ from src.cap.schemas import (
     CapAreaPublic,
     CapAuditEventPublic,
     CapCatalogsPublic,
+    CapFeedImportCreate,
+    CapFeedImportUpdate,
     CapInfoCreate,
     CapInfoPublic,
     CapNameValue,
@@ -65,9 +75,11 @@ from src.cap.schemas import (
     CapSnapshotPublic,
     CapValidationResult,
 )
+from src.cap.sign import is_signing_enabled, sign_xml, signing_key_ref
 from src.cap.tasks import enqueue_publish_side_effects
 from src.cap.validation import validate_cap_alert
-from src.cap.xml import alert_to_cap_xml
+from src.cap.xml import alert_to_cap_xml, xml_to_alert_data
+from src.config import settings as app_config
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
@@ -198,6 +210,43 @@ async def get_alert(
     return await _to_public(
         session=session,
         alert=await get_alert_or_404(session=session, alert_id=alert_id),
+    )
+
+
+async def import_alert(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    source: str,
+    value: str,
+    http_client: httpx.AsyncClient | None = None,
+) -> CapAlertPublic:
+    """Import a CAP alert from a source URL or pasted XML. Reuses create_alert."""
+    require_permission(current_user=current_user, permission_key="cap.alert.create")
+    if source == "url":
+        owns_client = http_client is None
+        client = http_client or httpx.AsyncClient()
+        try:
+            response = await client.get(value, timeout=15.0, follow_redirects=True)
+            response.raise_for_status()
+            raw_xml: str | bytes = response.content
+        except httpx.HTTPError as exc:
+            raise CapImportError(f"could not fetch {value}: {exc}") from exc
+        finally:
+            if owns_client:
+                await client.aclose()
+    else:
+        raw_xml = value
+
+    payload = xml_to_alert_data(raw_xml)  # raises CapImportError on bad XML
+    if payload.identifier:
+        existing = await session.execute(
+            select(CapAlert).where(col(CapAlert.identifier) == payload.identifier)
+        )
+        if existing.scalars().first() is not None:
+            raise CapImportError(f"alert {payload.identifier} already exists")
+    return await create_alert(
+        session=session, current_user=current_user, payload=payload
     )
 
 
@@ -476,6 +525,7 @@ async def publish_alert(
             "user_id": str(current_user.id),
         },
     )
+    await invalidate(*PUBLIC_FEED_KEYS, public_xml_key(alert.identifier))
     return await _to_public(
         session=session, alert=alert
     ), CapSnapshotPublic.model_validate(snapshot, from_attributes=True)
@@ -529,6 +579,7 @@ async def cancel_alert(
     )
     await session.commit()
     await session.refresh(alert)
+    await invalidate(*PUBLIC_FEED_KEYS, public_xml_key(alert.identifier))
     return await _to_public(session=session, alert=alert)
 
 
@@ -1155,12 +1206,15 @@ async def _area_rows(*, session: AsyncSession, info_id: uuid.UUID) -> list[CapAr
 
 
 def _snapshot_from_xml(*, alert: CapAlert, xml: str) -> CapSnapshot:
+    signed_xml = sign_xml(xml)  # no-op unless signing is configured
     return CapSnapshot(
         alert_id=alert.id,
         identifier=alert.identifier,
-        xml=xml,
-        content_hash=hashlib.sha256(xml.encode("utf-8")).hexdigest(),
+        xml=signed_xml,
+        content_hash=hashlib.sha256(signed_xml.encode("utf-8")).hexdigest(),
         generated_at=utc_now(),
+        signed_at=utc_now() if is_signing_enabled() else None,
+        signing_key_ref=signing_key_ref(),
     )
 
 
@@ -1206,3 +1260,152 @@ def _db_datetime(value: datetime | None) -> datetime | None:
     if value.tzinfo is None:
         return value
     return value.astimezone(timezone.utc).replace(tzinfo=None)
+
+
+# --------------------------------------------------------------------------- #
+# External CAP feed ingestion
+# --------------------------------------------------------------------------- #
+
+
+async def list_feeds(
+    *, session: AsyncSession, current_user: User
+) -> list[CapFeedImport]:
+    require_permission(current_user=current_user, permission_key="cap.feed.manage")
+    result = await session.execute(
+        select(CapFeedImport).order_by(col(CapFeedImport.created_at).desc())
+    )
+    return list(result.scalars().all())
+
+
+async def create_feed(
+    *, session: AsyncSession, current_user: User, payload: CapFeedImportCreate
+) -> CapFeedImport:
+    require_permission(current_user=current_user, permission_key="cap.feed.manage")
+    feed = CapFeedImport(name=payload.name, url=payload.url)
+    session.add(feed)
+    await session.commit()
+    await session.refresh(feed)
+    return feed
+
+
+async def update_feed(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    feed_id: uuid.UUID,
+    payload: CapFeedImportUpdate,
+) -> CapFeedImport:
+    require_permission(current_user=current_user, permission_key="cap.feed.manage")
+    feed = await session.get(CapFeedImport, feed_id)
+    if feed is None:
+        raise CapFeedNotFoundError()
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(feed, field, value)
+    feed.updated_at = utc_now()
+    session.add(feed)
+    await session.commit()
+    await session.refresh(feed)
+    return feed
+
+
+async def delete_feed(
+    *, session: AsyncSession, current_user: User, feed_id: uuid.UUID
+) -> None:
+    require_permission(current_user=current_user, permission_key="cap.feed.manage")
+    feed = await session.get(CapFeedImport, feed_id)
+    if feed is None:
+        raise CapFeedNotFoundError()
+    await session.delete(feed)
+    await session.commit()
+
+
+async def _system_user(*, session: AsyncSession) -> User | None:
+    """The actor for automated ingestion (first superuser; bypasses permissions)."""
+    result = await session.execute(
+        select(User)
+        .where(col(User.email) == app_config.FIRST_SUPERUSER)
+        .options(selectinload(User.roles))  # type: ignore[arg-type]
+    )
+    return result.scalars().first()
+
+
+async def ingest_feed(
+    *,
+    session: AsyncSession,
+    feed: CapFeedImport,
+    system_user: User,
+    http_client: httpx.AsyncClient,
+) -> dict[str, int]:
+    """Fetch a feed, import each entry's CAP XML (dedup by identifier)."""
+    parsed = await run_in_threadpool(
+        feedparser.parse, feed.url, etag=feed.last_etag or None
+    )
+    if getattr(parsed, "status", None) == 304:
+        feed.last_checked_at = utc_now()
+        session.add(feed)
+        await session.commit()
+        return {"created": 0, "skipped": 0}
+
+    created = 0
+    skipped = 0
+    for entry in getattr(parsed, "entries", []):
+        link = entry.get("link")
+        if not link:
+            continue
+        try:
+            await import_alert(
+                session=session,
+                current_user=system_user,
+                source="url",
+                value=link,
+                http_client=http_client,
+            )
+            created += 1
+        except CapImportError:  # malformed or duplicate — skip, keep going
+            skipped += 1
+
+    feed.last_checked_at = utc_now()
+    feed.last_error = None
+    feed.last_etag = getattr(parsed, "etag", None) or feed.last_etag
+    session.add(feed)
+    await session.commit()
+    return {"created": created, "skipped": skipped}
+
+
+async def ingest_all_active_feeds(
+    *, session: AsyncSession, http_client: httpx.AsyncClient | None = None
+) -> int:
+    """Worker entrypoint: ingest every ACTIVE feed. Returns count processed."""
+    system_user = await _system_user(session=session)
+    if system_user is None:
+        logger.warning("CAP feed ingestion skipped: no superuser seeded")
+        return 0
+    result = await session.execute(
+        select(CapFeedImport).where(
+            col(CapFeedImport.status) == CapIntegrationStatus.ACTIVE
+        )
+    )
+    feeds = list(result.scalars().all())
+    owns_client = http_client is None
+    client = http_client or httpx.AsyncClient()
+    try:
+        for feed in feeds:
+            try:
+                await ingest_feed(
+                    session=session,
+                    feed=feed,
+                    system_user=system_user,
+                    http_client=client,
+                )
+            except Exception as exc:  # noqa: BLE001 - record + continue to next feed
+                feed.last_error = str(exc)
+                feed.last_checked_at = utc_now()
+                session.add(feed)
+                await session.commit()
+                logger.warning(
+                    "CAP feed ingest failed", extra={"feed_id": str(feed.id)}
+                )
+    finally:
+        if owns_client:
+            await client.aclose()
+    return len(feeds)

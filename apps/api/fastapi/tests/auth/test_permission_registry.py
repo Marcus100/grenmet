@@ -42,13 +42,17 @@ def test_every_used_permission_key_is_registered() -> None:
 
 def test_at_least_the_known_keys_are_used() -> None:
     # Sanity: the scan actually finds keys (guards against a broken regex/path).
-    assert _permission_keys_used_in_code(), "No permission_key= usages found — scan broken?"
+    assert _permission_keys_used_in_code(), (
+        "No permission_key= usages found — scan broken?"
+    )
 
 
 def test_default_role_bundles_reference_known_keys() -> None:
     for role_name, (_description, keys) in DEFAULT_ROLES.items():
         unknown = set(keys) - ALL_PERMISSION_KEYS
-        assert not unknown, f"Role '{role_name}' references unknown keys: {sorted(unknown)}"
+        assert not unknown, (
+            f"Role '{role_name}' references unknown keys: {sorted(unknown)}"
+        )
 
 
 async def test_catalog_is_seeded(db_async: AsyncSession) -> None:

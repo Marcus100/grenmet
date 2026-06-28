@@ -39,16 +39,10 @@ CAP_PERMISSIONS = [
 
 def upgrade() -> None:
     op.execute("CREATE SCHEMA IF NOT EXISTS cap")
-    op.execute(
-        """
-        DO $$
-        BEGIN
-            CREATE EXTENSION IF NOT EXISTS postgis;
-        EXCEPTION WHEN undefined_file OR feature_not_supported THEN
-            RAISE NOTICE 'PostGIS extension is not available in this database image.';
-        END $$;
-        """
-    )
+    # NOTE: PostGIS intentionally NOT created. CAP geometry is stored as GeoJSON
+    # (sa.JSON); no spatial SQL is used, so the extension (and its superuser
+    # requirement + spatial_ref_sys table) is unnecessary. Removed during the
+    # GeoDjango -> FastAPI port.
 
     cap_lifecycle_state = sa.Enum(
         "DRAFT",

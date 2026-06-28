@@ -7,6 +7,7 @@ from __future__ import annotations
 import io
 
 from PIL import Image, ImageDraw, ImageFont
+from shapely.geometry import MultiPoint  # type: ignore[import-untyped]
 
 _SEVERITY_BG: dict[str, tuple[int, int, int]] = {
     "Extreme": (153, 0, 0),
@@ -69,10 +70,10 @@ def render_area_map(
         return None
 
     width, height, pad = 1000, 1000, 60
-    lons = [p[0] for p in points]
-    lats = [p[1] for p in points]
-    min_lon, max_lon = min(lons), max(lons)
-    min_lat, max_lat = min(lats), max(lats)
+    # bbox via shapely (minx, miny, maxx, maxy) over all geometry points
+    min_lon, min_lat, max_lon, max_lat = MultiPoint(
+        [(p[0], p[1]) for p in points]
+    ).bounds
     span_lon = (max_lon - min_lon) or 1e-6
     span_lat = (max_lat - min_lat) or 1e-6
 
