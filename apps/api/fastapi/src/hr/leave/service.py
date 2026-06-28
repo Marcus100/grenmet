@@ -40,10 +40,16 @@ async def create_leave_request(
         days_requested=payload.days_requested,
         days_with_pay=payload.days_with_pay,
         days_without_pay=payload.days_without_pay,
+        professional_appointment_subtype=payload.professional_appointment_subtype,
         reason=payload.reason,
         contact_phone=payload.contact_phone,
         leave_address=payload.leave_address,
+        travel_from_date=payload.travel_from_date,
+        travel_to_date=payload.travel_to_date,
+        salary_in_advance=payload.salary_in_advance,
+        requires_acting_appointment=payload.requires_acting_appointment,
         acting_officer_id=payload.acting_officer_id,
+        expected_return_date=payload.expected_return_date,
     )
     session.add(leave_request)
     await session.commit()

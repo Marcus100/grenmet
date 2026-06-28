@@ -1,10 +1,26 @@
 import uuid
 from datetime import date, datetime
+from enum import Enum
 
 from sqlmodel import Field, SQLModel
 
 from src.hr.models import RequestStatus
 from src.utils.datetime import utc_now
+
+
+class AbsenceReason(str, Enum):
+    UNCERTIFIED_SICK = "UNCERTIFIED_SICK"
+    ILLNESS_FAMILY_MEMBER = "ILLNESS_FAMILY_MEMBER"
+    ILLNESS_ON_JOB = "ILLNESS_ON_JOB"
+    TIME_OFF = "TIME_OFF"
+    OTHER = "OTHER"
+
+
+# Reasons for which the form mandates a written explanation in `notes`.
+ABSENCE_REASONS_REQUIRING_NOTES = {
+    AbsenceReason.UNCERTIFIED_SICK,
+    AbsenceReason.ILLNESS_ON_JOB,
+}
 
 
 class AbsenteeReport(SQLModel, table=True):
@@ -18,7 +34,7 @@ class AbsenteeReport(SQLModel, table=True):
     expected_shift_code: str | None = Field(default=None, max_length=10)
     absence_start_time: str | None = Field(default=None, max_length=5)
     absence_end_time: str | None = Field(default=None, max_length=5)
-    reason_code: str = Field(max_length=60)
+    reason: AbsenceReason = Field(default=AbsenceReason.OTHER)
     notes: str | None = Field(default=None, max_length=1000)
     contact_attempted: bool = Field(default=False)
     contact_method: str | None = Field(default=None, max_length=50)

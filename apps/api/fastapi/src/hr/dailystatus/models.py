@@ -16,6 +16,11 @@ class PersonnelStatus(str, Enum):
     EXCUSED = "EXCUSED"
 
 
+class ShiftPeriod(str, Enum):
+    AM = "AM"
+    PM = "PM"
+
+
 class StatusReport(SQLModel, table=True):
     __tablename__ = "status_report"
     __table_args__ = {"schema": "hr"}
@@ -24,7 +29,18 @@ class StatusReport(SQLModel, table=True):
     department_id: str = Field(foreign_key="hr.department.id", index=True)
     report_date: date
     shift_code: str = Field(max_length=10)
+    shift_period: ShiftPeriod | None = Field(default=None)
     submitted_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    # Structured Yes/No + explain pairs mirroring the paper form.
+    all_personnel_reported_on_time: bool | None = Field(default=None)
+    personnel_explanation: str | None = Field(default=None, max_length=1000)
+    affected_operations: bool | None = Field(default=None)
+    affected_operations_explanation: str | None = Field(default=None, max_length=1000)
+    all_equipment_operational: bool | None = Field(default=None)
+    equipment_issue_reason: str | None = Field(default=None, max_length=1000)
+    equipment_remedy_action: str | None = Field(default=None, max_length=1000)
+    incident_reports_submitted: bool | None = Field(default=None)
+    incident_explanation: str | None = Field(default=None, max_length=1000)
     weather_summary: str | None = Field(default=None, max_length=1000)
     equipment_summary: str | None = Field(default=None, max_length=1000)
     personnel_summary: str | None = Field(default=None, max_length=1000)

@@ -17,8 +17,17 @@ class LeaveType(str, Enum):
     PATERNITY = "PATERNITY"
     STUDY = "STUDY"
     COMPASSIONATE = "COMPASSIONATE"
+    PROFESSIONAL_APPOINTMENT = "PROFESSIONAL_APPOINTMENT"
+    BEREAVEMENT = "BEREAVEMENT"
     WITHOUT_PAY = "WITHOUT_PAY"
     OTHER = "OTHER"
+
+
+class ProfAppointmentType(str, Enum):
+    BANK = "BANK"
+    MEDICAL = "MEDICAL"
+    LEGAL = "LEGAL"
+    DENTAL = "DENTAL"
 
 
 class LeaveRequest(SQLModel, table=True):
@@ -40,12 +49,18 @@ class LeaveRequest(SQLModel, table=True):
     days_without_pay: Decimal = Field(
         default=Decimal("0.0"), decimal_places=2, max_digits=6
     )
+    professional_appointment_subtype: ProfAppointmentType | None = Field(default=None)
     reason: str | None = Field(default=None, max_length=1000)
     contact_phone: str | None = Field(default=None, max_length=30)
     leave_address: str | None = Field(default=None, max_length=500)
+    travel_from_date: date | None = Field(default=None)
+    travel_to_date: date | None = Field(default=None)
+    salary_in_advance: bool = Field(default=False)
+    requires_acting_appointment: bool = Field(default=False)
     acting_officer_id: uuid.UUID | None = Field(
         default=None, foreign_key="user.id", ondelete="SET NULL"
     )
+    expected_return_date: date | None = Field(default=None)
     head_of_dept_comments: str | None = Field(default=None, max_length=1000)
     status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
     workflow_instance_id: uuid.UUID | None = Field(

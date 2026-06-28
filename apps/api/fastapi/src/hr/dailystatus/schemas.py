@@ -6,7 +6,7 @@ from pydantic import Field
 from src.hr.models import RequestStatus
 from src.models import BaseModel
 
-from .models import PersonnelStatus
+from .models import PersonnelStatus, ShiftPeriod
 
 
 class StatusReportEntryInput(BaseModel):
@@ -21,6 +21,16 @@ class StatusReportCreate(BaseModel):
     department_id: str
     report_date: date
     shift_code: str
+    shift_period: ShiftPeriod | None = None
+    all_personnel_reported_on_time: bool | None = None
+    personnel_explanation: str | None = None
+    affected_operations: bool | None = None
+    affected_operations_explanation: str | None = None
+    all_equipment_operational: bool | None = None
+    equipment_issue_reason: str | None = None
+    equipment_remedy_action: str | None = None
+    incident_reports_submitted: bool | None = None
+    incident_explanation: str | None = None
     weather_summary: str | None = None
     equipment_summary: str | None = None
     personnel_summary: str | None = None
@@ -46,7 +56,17 @@ class StatusReportPublic(BaseModel):
     department_id: str
     report_date: date
     shift_code: str
+    shift_period: ShiftPeriod | None = None
     submitted_by_user_id: uuid.UUID
+    all_personnel_reported_on_time: bool | None = None
+    personnel_explanation: str | None = None
+    affected_operations: bool | None = None
+    affected_operations_explanation: str | None = None
+    all_equipment_operational: bool | None = None
+    equipment_issue_reason: str | None = None
+    equipment_remedy_action: str | None = None
+    incident_reports_submitted: bool | None = None
+    incident_explanation: str | None = None
     weather_summary: str | None = None
     equipment_summary: str | None = None
     personnel_summary: str | None = None

@@ -2,6 +2,9 @@
 
 Guidance for Claude Code working in `apps/api/fastapi/`.
 
+To add a new HR form module, follow `docs/hr/adding-a-form-module.md` (recipe) and
+`docs/hr/forms-inventory.md` (form→model field mapping).
+
 ## Project Layout
 
 ```

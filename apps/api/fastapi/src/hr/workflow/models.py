@@ -14,6 +14,7 @@ class WorkflowType(str, Enum):
     ABSENTEE_REPORT = "ABSENTEE_REPORT"
     STATUS_REPORT = "STATUS_REPORT"
     TIMESHEET = "TIMESHEET"
+    PARKING_PERMIT = "PARKING_PERMIT"
 
 
 class WorkflowStatus(str, Enum):
@@ -73,7 +74,7 @@ class WorkflowInstance(SQLModel, table=True):
     )
     department_id: str = Field(foreign_key="hr.department.id", index=True)
     workflow_type: WorkflowType
-    entity_type: str = Field(max_length=100)
+    entity_type: str = Field(max_length=100)  # e.g. "parking_permit", "leave_request"
     entity_id: uuid.UUID = Field(index=True)
     requested_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     status: WorkflowStatus = Field(default=WorkflowStatus.DRAFT)

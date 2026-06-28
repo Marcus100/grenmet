@@ -40,7 +40,7 @@ async def test_create_permission(
         headers=superuser_token_headers_async,
         json=data,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     content = response.json()
     assert content["action"] == "read"
     assert content["entity"] == "user"

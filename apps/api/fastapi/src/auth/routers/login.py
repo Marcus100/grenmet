@@ -30,6 +30,7 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
 )
 from src.auth.dependencies import get_current_active_superuser
+from src.auth.lockout import login_lockout
 from src.auth.schemas import (
     NewPassword,
     SessionAccessTokenResponse,
@@ -132,13 +133,20 @@ async def login_access_token(
     OAuth2 compatible token login, get an access token for future requests.
     """
     _ = request
+    if await login_lockout.is_locked(form_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Account temporarily locked due to repeated failed logins",
+        )
     user = await service.authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
+        await login_lockout.record_failure(form_data.username)
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    await login_lockout.reset(form_data.username)
     access_token_expires = service.get_legacy_access_token_expires_delta()
     return Token(
         access_token=create_access_token(user.id, expires_delta=access_token_expires)
@@ -168,15 +176,22 @@ async def login_session(
     body: SessionLoginRequest,
 ) -> SessionLoginResponse:
     """Create a long-lived session plus a short-lived access token for web clients."""
+    if await login_lockout.is_locked(body.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Account temporarily locked due to repeated failed logins",
+        )
     user = await service.authenticate(
         session=session,
         email=body.email,
         password=body.password,
     )
     if not user:
+        await login_lockout.record_failure(body.email)
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)
     db_session, session_token = await service.create_session(

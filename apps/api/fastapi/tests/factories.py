@@ -12,6 +12,7 @@ Usage:
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from src.auth.models import (
@@ -27,6 +28,22 @@ from src.hr.models import Department, EmploymentRecord
 from tests.utils.utils import random_email, random_lower_string
 
 
+async def _load_user_with_roles(session: AsyncSession, user_id: uuid.UUID) -> User:
+    """Re-fetch a user with roles+permissions eager-loaded.
+
+    Mirrors ``src/dependencies.py:get_current_user`` so permission checks
+    (``has_permission``) don't trigger a lazy-load under the async engine,
+    which raises ``MissingGreenlet``.
+    """
+    result = await session.execute(
+        select(User)
+        .where(User.id == user_id)
+        .options(selectinload(User.roles).selectinload(Role.permissions))
+    )
+    user = result.scalars().unique().one()
+    return user
+
+
 async def make_user(
     session: AsyncSession,
     *,
@@ -34,8 +51,8 @@ async def make_user(
     email: str | None = None,
     password: str = "password123",
 ) -> User:
-    """Create a user with random credentials."""
-    return await create_user(
+    """Create a user with random credentials (roles+permissions eager-loaded)."""
+    user = await create_user(
         session=session,
         user_create=UserCreate(
             email=email or random_email(),
@@ -46,6 +63,7 @@ async def make_user(
             is_superuser=superuser,
         ),
     )
+    return await _load_user_with_roles(session, user.id)
 
 
 async def make_permission(session: AsyncSession, key: str) -> Permission:
@@ -150,6 +168,9 @@ async def assign_role(
     session.add(user)
     await session.commit()
     await session.refresh(user, attribute_names=["roles"])
+    # Eager-load each role's permissions so has_permission() doesn't lazy-load.
+    for assigned_role in user.roles:
+        await session.refresh(assigned_role, attribute_names=["permissions"])
     return assignment
 
 

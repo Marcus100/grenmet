@@ -1,37 +1,24 @@
-source_image,row_index,report_type,day,time_utc,station_id,wind_indicator,precip_indicator,station_wx_indicator,cloud_base,visibility,total_cloud,wind_dir,wind_speed,air_temp,dew_point,station_pressure,msl_pressure,pressure_tendency,pressure_change,precip_amount,precip_period,present_wx,past_wx_1,past_wx_2,low_cloud_amount,low_cloud_type,mid_cloud_type,high_cloud_type,notes
-wxregister1.png,1,AAXX,04,00,78758,4,,,,,,260,20,26.7,24.6,1014.5,1015.2,,,,,,,,,,,,"Handwritten register, low confidence. Middle humidity columns read approx 24.6/24.8/14.2; coded pressure cells approx 0142/0152; cloud/visibility columns illegible."
-wxregister1.png,2,,04,01,78758,4,,,,,,260,20,22.6,20.9,1015.1,1013.3,,,,,,,,,,,,Station id dittoed; extra middle figures approx 72/24.7/14.8 uncertain; cloud/vis columns illegible.
-wxregister1.png,3,,04,02,78758,4,,,,,,260,20,20.9,,1015.5,1016.1,,,,,,,,7,80,,,Right-side group read as '7 80 11' uncertain; dew/wetbulb columns illegible (approx 73).
-wxregister1.png,4,AAXX,04,03,78758,4,,,,,,260,20,23.1,27.0,1014.9,1015.7,,,,,,,,,,,,temp/dew columns uncertain (read 22.5/23.1/27.0/14.6); present-wx group approx 'JP 7P 72'.
-wxregister1.png,5,,04,04,78758,4,,,,,,247,20,24.6,26.0,1014.6,,,,,,,,,,,,,temp triple approx 24.6/26.0/13.7; second pressure cell read 0146; present-wx group approx '7P 75 81'.
-wxregister1.png,6,,04,05,78758,4,,,,,,255,20,22.1,27.0,1013.3,1014.1,,,,,,,,7,80,,,temp/dew columns uncertain (22.1/27.0/13.0); 'Pcc' annotation; cloud group '7 80 81'.
-wxregister1.png,7,AAXX,06,07,78758,4,,,,,,233,,24.4,24.6,,1013.7,,,,,,,,7,80,,,time read as 07; temps approx 24.4/24.6/12.4; first pressure cell illegible (approx 1023).
-wxregister1.png,8,AAXX,06,08,78758,4,,,,,,233,,23.9,25.6,1013.4,1012.2,,,,,,,,7,02,,,temps approx 23.9/25.6/13.1 uncertain; cloud group '7 02 51'.
-wxregister1.png,9,,06,10,78758,4,,,,,,245,,24.0,26.6,1012.2,1015.0,,,,,,,,7,15,,,temps approx 24.0/26.6/13.4 uncertain; cloud group '7 15'.
-wxregister1.png,10,,06,11,78758,4,,,,,,247,,24.1,25.4,1019,1014.9,,,,,,,,7,15,,,temps approx 24.1/25.4 uncertain; first pressure cell read 1019; cloud group '7 15'.
-wxregister3.png,1,AAXX,04,,98588,4,,,01,70,4,21,10,295,295,1014.8,1015.6,3,4,,,255,51,,,,,,Sheet handwritten and faint; many values uncertain
-wxregister3.png,2,,04,,99155,4,,,4,50,0,,,295,294,1015.4,1016.1,3,,,,50,51,,,,,,values uncertain
-wxregister3.png,3,,04,,98758,4,,,,12,,21,,294,294,1015.7,1016.7,,,,,15,,,,,,,values uncertain
-wxregister3.png,4,AAXX,04,,98758,4,,,70,20,0,29,00,281,68,1015.9,1016.3,,,,,325,51,,,,,,values uncertain
-wxregister3.png,5,,04,,98758,4,,,40,19,0,24,00,266,244,1014.9,1015.8,,,,,265,00,,,,,,values uncertain
-wxregister3.png,6,,04,,98768,4,,,40,10,0,27,00,260,214,1013.9,1014.9,,,,,265,00,,,,,,values uncertain
-wxregister3.png,7,AAXX,04,,98798,4,,,57,,,,,234,,1013.6,1014.1,03,,,,05,51,,,,,,values uncertain
-wxregister3.png,8,,04,,78758,4,5,,70,21,10,23,00,210,62,1013.7,1013.7,,,,,705,00,,,,,,values uncertain
-wxregister3.png,9,,04,,78758,4,5,,70,10,10,28,5,237,229,1012.2,1013.7,,,,,705,11,,,,,,values uncertain
-wxregister3.png,10,AAXX,04,,78758,4,5,,68,47,10,27,,234,246,1012.7,1014.2,,,,,205,,,,,,,values uncertain
-wxregister3.png,11,,04,,78758,4,5,,65,12,10,26,30,221,77,1013.3,1015.3,,,,,702,80,,,,,,values uncertain; Daily rainfall 12h-12h noted at bottom
-wxregister4.png,1,333,33,,,,,,,,,36,20,+09.7,,25.1,0051,7,005,,,,,,,,,,"Top row largely illegible handwriting; values approximate. Remark '60H+2=46' with figures 300/220, '70+PR-SMAA'."
-wxregister4.png,2,333,,,,,,,,,8,,,,,,,,,,,,,,5,5,,18,Cloud group '8 5 5 18'; remark 'TR 13-11-46; 70=55' uncertain.
-wxregister4.png,3,,,,,,,,,,8,,,,,,,,,,,,,,5,5,,15,Cloud group '8 5 5 15'; remark '71=14660 Ag=15 70.74' uncertain.
-wxregister4.png,4,,,,,,,,,,8,,,,,,,,,,,,,,5,4,,15,Cloud group '8 5 4 15'; remark 'POOR 40 70+AC -SMAA' uncertain.
-wxregister4.png,5,,,,,,,,,,8,,,,,,,,,,,,,,3,4,,15,Cloud group '8 3 4 15'; remark 'STORE'.
-wxregister4.png,6,,,,,,,,,,8,,,,,,58005,,,,,,,,5,5,,15,"Cloud group '8 5 5 15'; remark 'R=15=5, 6-15' uncertain."
-wxregister4.png,7,,,,,,,,,,8,,,,,,,,,,,,,,3,8,,15,Cloud group '8 3 8 15'; remark '#8'.
-wxregister4.png,8,,,,,,,,,,8,,,,,,,,,,,,,,5,5,,15,Cloud group '8 5 5 15'; remark '#8'.
-wxregister4.png,9,,,,,,,,,,,36,20,-05,,10305,005,5,,,,,,,0,0,,00,"Cloud group '8 0 0 00'; remark '#15'; row values approximate, colours mixed; figures 302/247."
-wxregister4.png,10,,,,,,,,,,8,,,,,,,,,,,,,,1,8,,00,Cloud group '8 1 8 00'.
-wxregister4.png,11,,,,,,,,,,8,,,,,,,,,,,,,,5,8,,21,"Cloud group '8 5 8 21'; remark 'TT=4280', 'H2.'."
-wxregister4.png,12,,,,,,,,,,8,,,,,,,,,,,,,,5,8,,20,Cloud group '8 5 8 20'; remark '11'.
-wxregister4.png,13,,,,,,,,,,8,,,,,,59007,,,,,,,,5,5,,20,Cloud group '8 5 5 20'; remark '01' and '59007' uncertain.
-wxregister4.png,14,,,,,,,,,,8,,,,,,,,,,,,,,3,8,,20,"Cloud group '8 3 8 20'; remark 'RC 280', 'PNO 91:50-54' uncertain."
-wxregister4.png,15,,,,,,,,,,8,,,,,,,,,,,,,,3,,,20,Cloud group '8 3 20'; remark 'TR.4=180 P=22-7-48; H2' uncertain. Overall sheet heavily handwritten; most numeric reads approximate.
+source_image,row_index,report_type,day,time_utc,station_id,wind_indicator,precip_indicator,station_wx_indicator,cloud_base,visibility,total_cloud,wind_dir,wind_speed,air_temp,dew_point,station_pressure,msl_pressure,pressure_tendency,pressure_change,precip_amount,precip_period,present_wx,past_wx_1,past_wx_2,low_cloud_amount,low_cloud_type,mid_cloud_type,high_cloud_type,s3_state_of_sky,s3_cloud_dir_low,s3_cloud_dir_mid,s3_cloud_dir_high,s3_max_temp,s3_min_temp,s3_baro_change_24h,s3_rainfall_24h,s3_layer1_amount,s3_layer1_form,s3_layer1_height,s3_layer2_amount,s3_layer2_form,s3_layer2_height,s3_layer3_amount,s3_layer3_form,s3_layer3_height,s3_layer4_amount,s3_layer4_form,s3_layer4_height,s3_special_phenomena,s3_remarks,notes
+synop_day1_combined.png,1,AAXX,04,00,78758,4,,1,2,5,78,208,10,260,207,,,,,,,,,,6,000,1,,0,,,,,,,,,,,,,,,,,,,,,31.2 25.8,Row largely illegible; values approximate. Right side shows 31.2 / 25.8.
+synop_day1_combined.png,2,,04,01,78758,4,2,5,78,4,07,10,260,209,72,1014.2,1015.2,4,0152,,,,8,4,8,0,1,,,,,,,,,,,,,,,,,,,,,,,2.61,Approximate; many cells faint.
+synop_day1_combined.png,3,,04,02,78758,4,,,78,,5,10,260,209,73,1015.2,1016.1,,,,,,8,4,8,0,,,,,,,,,15.000,,,,,,,,,,,,,,,2.62,Approximate.
+synop_day1_combined.png,4,AAXX,04,03,78758,4,1,4,67,3,10,260,10,229,71,0180,4,0160,,,,7,80,,8,4,,,,,,,,,,,8,,,,,,,,,,,,,"JP-NEE,S",555 line; approximate.
+synop_day1_combined.png,5,,04,04,78758,4,2,4,65,6,07,00,10,247,30,223,87,,,,,,7,7,8,5,,,,,,,,,,,,,,,,,,,,,,,,"JP-NES,EN",Approximate.
+synop_day1_combined.png,6,,04,03,78758,4,1,4,60,05,10,255,10,227,72,0157,4,0157,,,,,5,8,8,4,,,,,,,,,,,,,,,,,,,,,,,,"JP-NE,E",Approximate.
+synop_day1_combined.png,7,AAXX,04,06,78758,4,1,4,56,,07,10,255,233,70,1013.3,1014.1,4,0140,,,,,,,,,,,316,227,,0006,,,285,8,,,,,,,,,,,,,"JP-0516-12, JP-CM,W, JP-W 22-48 264 23.4",555 line; remarks heavy; approximate.
+synop_day1_combined.png,8,,04,02,78758,4,,,63,,05,00,337,244,126,3013.6,,4,0158,,,7,80,,,,,,,,,,,,,,,,,,,,,,,,,,,MN 0644-35,Approximate.
+synop_day1_combined.png,9,,00,04,78758,4,1,4,65,08,00,10,033,234,86,3013.6,,4,0153,,,305,,,8,5,8,,,,,,,,234.000,,,,,,,,,,,,,,,,Day reads 00 uncertainty; approximate.
+synop_day1_combined.png,10,AAXX,04,05,78758,4,,,40,,266,10,233,219,,1013.4,,4,0162,,,7,02,,5,4,,,,,,,,,,,,,,,,,,,,,,,,MN-22.8,Approximate.
+synop_day1_combined.png,11,,04,06,78754,4,1,4,62,08,10,245,20,220,57,1013.8,,,,,,7,15,,8,5,3,,,,,,,,,,,,,,,,,,,,,,,JP-NW MN-3.3,Approximate.
+synop_day1_combined.png,12,,06,41,78754,4,,,62,3,08,10,249,230,54,0139,4,0149,,,,7,15,,8,3,5,,,,,,,,,,,,,,,,,,,,,,,JP-NW,Approximate; final row.
+synop_day2_combined.png,1,AAXX,,0300,99858,4,,,,16,4,,,,,1014.8,1015.6,3,4,,,25,81,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sheet largely faint/handwritten; values low confidence
+synop_day2_combined.png,2,CRB,,0443,39155,4,1,5,,57,10,,,,,1057,1016.0,,,,,50,51,,,,,,,,,,,,,,,,,,,,,,,,,,,6042-46,low confidence
+synop_day2_combined.png,3,CRB,,,,,,,,31,,,,,,1057,1016.7,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"row partly blank, low confidence"
+synop_day2_combined.png,4,AAXX,,0445,99155,4,1,4,70,20,20,20,,,,1045,1063,,,,,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,5,,,0446,99155,4,,,40,26,15,10,,,,1042,1050,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,6,AAXX,,0448,99858,4,,,,,,,,,,1031,1041,,,0.3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,7,,,0419,78758,4,1,5,70,21,11,20,23,,,1037,4137,,,,,05,00,,8,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,8,,,0420,78758,4,1,5,70,10,10,20,14,,,1037,4137,,,,,05,00,,8,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,9,AAXX,,0421,78958,4,1,5,68,70,10,277,20,,,1035,4143,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,10,,,0422,2858,4,,,,25,,20,70,,,1032,4042,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence; station id uncertain
+synop_day2_combined.png,11,,,0423,78758,4,1,5,65,30,12,10,26,,,1033,4143,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
