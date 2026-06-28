@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 async def create_parking_permit(
     *, session: AsyncSession, current_user: User, payload: ParkingPermitCreate
 ) -> ParkingPermit:
-    require_permission(current_user=current_user, permission_key="parking.permit.create")
+    require_permission(
+        current_user=current_user, permission_key="parking.permit.create"
+    )
     permit = ParkingPermit(
         user_id=payload.user_id,
         department_id=payload.department_id,

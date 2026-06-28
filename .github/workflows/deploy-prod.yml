@@ -38,6 +38,12 @@ jobs:
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL }}
+          STORAGE_REGION: ${{ secrets.STORAGE_REGION }}
+          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
+          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
+          STORAGE_PUBLIC_BASE_URL: ${{ secrets.STORAGE_PUBLIC_BASE_URL }}
         run: |
           set -euo pipefail
           RELEASE_TAG="${{ github.event.release.tag_name }}"
@@ -77,6 +83,13 @@ jobs:
           BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd
           SESSION_COOKIE_DOMAIN=.barrels.gd
           EMAILS_FROM_EMAIL=noreply@weather.gd
+          REDIS_URL=redis://redis:6379/0
+          STORAGE_ENDPOINT_URL=${STORAGE_ENDPOINT_URL:-}
+          STORAGE_REGION=${STORAGE_REGION:-}
+          STORAGE_BUCKET=${STORAGE_BUCKET:-}
+          STORAGE_ACCESS_KEY_ID=${STORAGE_ACCESS_KEY_ID:-}
+          STORAGE_SECRET_ACCESS_KEY=${STORAGE_SECRET_ACCESS_KEY:-}
+          STORAGE_PUBLIC_BASE_URL=${STORAGE_PUBLIC_BASE_URL:-}
           EOF
 
           sed -i 's/^[[:space:]]*//' .env

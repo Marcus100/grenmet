@@ -60,7 +60,11 @@ class StorageService:
         return expires_in or self._config.STORAGE_PRESIGN_EXPIRY_SECONDS
 
     def presigned_upload_url(
-        self, key: str, *, content_type: str | None = None, expires_in: int | None = None
+        self,
+        key: str,
+        *,
+        content_type: str | None = None,
+        expires_in: int | None = None,
     ) -> str:
         """Presigned PUT URL for a client to upload directly to storage (local signing)."""
         params: dict[str, Any] = {"Bucket": self.bucket, "Key": key}
