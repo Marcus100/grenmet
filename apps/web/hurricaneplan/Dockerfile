@@ -14,12 +14,8 @@ COPY packages/api-client/package.json packages/api-client/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/admin-gms/package.json apps/web/admin-gms/
 COPY apps/web/auth/package.json apps/web/auth/
-COPY apps/web/hr/package.json apps/web/hr/
 COPY apps/web/hurricaneplan/package.json apps/web/hurricaneplan/
 COPY apps/web/spicewx/package.json apps/web/spicewx/
-COPY apps/web/wxproducts/package.json apps/web/wxproducts/
-COPY apps/web/wxwatch/package.json apps/web/wxwatch/
-COPY apps/web/salesbus/package.json apps/web/salesbus/
 RUN pnpm install --frozen-lockfile
 
 ARG NEXT_PUBLIC_API_URL=""
