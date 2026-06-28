@@ -11,7 +11,7 @@ This router handles:
 """
 
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
@@ -19,8 +19,6 @@ from fastapi.concurrency import run_in_threadpool
 from src.auth import service
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
-    ERROR_PASSWORD_INCORRECT,
-    ERROR_PASSWORD_SAME,
     ERROR_SUPERUSER_DELETE_SELF,
     ERROR_USER_EXISTS,
     ERROR_USER_NOT_FOUND,
@@ -37,7 +35,6 @@ from src.auth.schemas import (
     UserUpdate,
     UserUpdateMe,
 )
-from src.auth.utils import get_password_hash, verify_password
 from src.dependencies import CurrentUser, SessionDep
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
@@ -57,7 +54,7 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
 )
 async def read_users(
     session: SessionDep,
-    pagination: PaginationParams = Depends(get_pagination_params),
+    pagination: Annotated[PaginationParams, Depends(get_pagination_params)],
 ) -> Any:
     """
     Retrieve users.
@@ -66,7 +63,7 @@ async def read_users(
         session=session, skip=pagination.skip, limit=pagination.limit
     )
     return PaginatedResponse(
-        data=[UserPublic.model_validate(user) for user in users],
+        data=[UserPublic.model_validate(user, from_attributes=True) for user in users],
         count=count,
         page=pagination.page,
         size=pagination.size,
@@ -77,10 +74,11 @@ async def read_users(
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
+    status_code=status.HTTP_201_CREATED,
     summary="Create user",
     description="Create a user (superuser only).",
     responses={
-        status.HTTP_200_OK: {"description": "User created"},
+        status.HTTP_201_CREATED: {"description": "User created"},
         status.HTTP_400_BAD_REQUEST: {
             "description": "User with this email already exists"
         },
@@ -139,24 +137,9 @@ async def read_user_me(current_user: CurrentUser) -> Any:
 async def update_user_me(
     *, session: SessionDep, user_in: UserUpdateMe, current_user: CurrentUser
 ) -> Any:
-    """
-    Update own user.
-    """
-    if user_in.email:
-        existing_user = await service.get_user_by_email(
-            session=session, email=user_in.email
-        )
-        if existing_user and existing_user.id != current_user.id:
-            raise HTTPException(status_code=409, detail=ERROR_USER_EXISTS)
-    user = await session.get(User, current_user.id)
-    if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
-    user_data = user_in.model_dump(exclude_unset=True)
-    user.sqlmodel_update(user_data)
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return user
+    return await service.update_user_me(
+        session=session, current_user=current_user, user_in=user_in
+    )
 
 
 @router.patch(
@@ -174,21 +157,12 @@ async def update_user_me(
 async def update_password_me(
     *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
 ) -> Any:
-    """
-    Update own password.
-    """
-    if not verify_password(body.current_password, current_user.hashed_password):
-        raise HTTPException(status_code=400, detail=ERROR_PASSWORD_INCORRECT)
-    if body.current_password == body.new_password:
-        raise HTTPException(status_code=400, detail=ERROR_PASSWORD_SAME)
-    hashed_password = get_password_hash(body.new_password)
-
-    user = await session.get(User, current_user.id)
-    if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
-    user.hashed_password = hashed_password
-    session.add(user)
-    await session.commit()
+    await service.update_password(
+        session=session,
+        user=current_user,
+        current_password=body.current_password,
+        new_password=body.new_password,
+    )
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 
@@ -205,17 +179,9 @@ async def update_password_me(
     },
 )
 async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    """
-    Delete own user.
-    """
     if current_user.is_superuser:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
-
-    user = await session.get(User, current_user.id)
-    if not user:
-        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
-    await session.delete(user)
-    await session.commit()
+    await service.delete_user(session=session, user=current_user)
     return Message(message=SUCCESS_USER_DELETED)
 
 
@@ -323,10 +289,7 @@ async def update_user(
 
     db_user = await session.get(User, user_id)
     if not db_user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this id does not exist in the system",
-        )
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user_in.email:
         existing_user = await service.get_user_by_email(
             session=session, email=user_in.email
@@ -352,15 +315,10 @@ async def update_user(
 async def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
-    """
-    Delete a user.
-    """
-
     user = await session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user.id == current_user.id:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
-    await session.delete(user)
-    await session.commit()
+    await service.delete_user(session=session, user=user)
     return Message(message=SUCCESS_USER_DELETED)

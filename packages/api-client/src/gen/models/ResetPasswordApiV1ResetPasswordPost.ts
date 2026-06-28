@@ -19,6 +19,11 @@ export type ResetPasswordApiV1ResetPasswordPost200 = Message;
 export type ResetPasswordApiV1ResetPasswordPost422 = HTTPValidationError;
 
 /**
+ * @description Rate limit exceeded
+ */
+export type ResetPasswordApiV1ResetPasswordPost429 = any;
+
+/**
  * NewPassword
  */
 export type ResetPasswordApiV1ResetPasswordPostMutationRequest = NewPassword;
@@ -29,5 +34,7 @@ export type ResetPasswordApiV1ResetPasswordPostMutationResponse =
 export type ResetPasswordApiV1ResetPasswordPostMutation = {
   Response: ResetPasswordApiV1ResetPasswordPost200;
   Request: ResetPasswordApiV1ResetPasswordPostMutationRequest;
-  Errors: ResetPasswordApiV1ResetPasswordPost422;
+  Errors:
+    | ResetPasswordApiV1ResetPasswordPost422
+    | ResetPasswordApiV1ResetPasswordPost429;
 };

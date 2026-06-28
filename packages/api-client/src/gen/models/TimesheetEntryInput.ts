@@ -20,6 +20,7 @@ export type TimesheetEntryInput = {
    * @default "0.0"
    */
   actual_hours?: number | string;
+  total_hours?: number | string | null;
   /**
    * @default "0.0"
    */
@@ -28,5 +29,11 @@ export type TimesheetEntryInput = {
    * @default "0.0"
    */
   break_hours?: number | string;
+  hours_worked?: number | string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  medical_certificate_attached?: boolean;
   comments?: string | null;
 };

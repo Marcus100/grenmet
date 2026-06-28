@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "decal_number": { "type": "string", "title": "Decal Number" },
+    "valid_from": { "type": "string", "format": "date", "title": "Valid From" },
+    "valid_to": { "type": "string", "format": "date", "title": "Valid To" },
+    "received_by": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Received By"
+    }
+  },
+  "type": "object",
+  "required": ["decal_number", "valid_from", "valid_to"],
+  "title": "ParkingPermitIssue",
+  "x-readme-ref-name": "ParkingPermitIssue"
+}

@@ -10,7 +10,12 @@ import type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 /**
  * @description Template created
  */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPost200 =
+export type CreateTemplateApiV1HrWorkflowsTemplatesPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateTemplateApiV1HrWorkflowsTemplatesPost201 =
   WorkflowTemplatePublic;
 
 /**
@@ -32,10 +37,13 @@ export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest =
   WorkflowTemplateCreate;
 
 export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse =
-  CreateTemplateApiV1HrWorkflowsTemplatesPost200;
+  | CreateTemplateApiV1HrWorkflowsTemplatesPost200
+  | CreateTemplateApiV1HrWorkflowsTemplatesPost201;
 
 export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutation = {
-  Response: CreateTemplateApiV1HrWorkflowsTemplatesPost200;
+  Response:
+    | CreateTemplateApiV1HrWorkflowsTemplatesPost200
+    | CreateTemplateApiV1HrWorkflowsTemplatesPost201;
   Request: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest;
   Errors:
     | CreateTemplateApiV1HrWorkflowsTemplatesPost403

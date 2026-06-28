@@ -1,11 +1,7 @@
 "use client";
 
-import {
-  Disclosure,
-  DisclosureButton,
-  DisclosurePanel,
-} from "@headlessui/react";
-import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { Accordion } from "@base-ui-components/react/accordion";
+import { ChevronDownIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -123,7 +119,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
           onClick={onClose}
           type="button"
         >
-          <XMarkIcon className="size-gm-24 text-gm-text-primary" />
+          <XIcon className="size-gm-24 text-gm-text-primary" />
         </button>
       </div>
 
@@ -136,56 +132,48 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
 
       {/* Nav body */}
       <nav className="flex-1 overflow-y-auto pb-gm-36">
-        {NAV_SECTIONS.map((section, i) => (
-          <Disclosure key={section.label}>
-            {({ open: sectionOpen }) => (
-              <>
-                <DisclosureButton
+        <Accordion.Root multiple>
+          {NAV_SECTIONS.map((section, i) => (
+            <Accordion.Item key={section.label} value={section.label}>
+              <Accordion.Header className="flex">
+                <Accordion.Trigger
                   className={cn(
-                    "flex h-gm-header w-full items-center justify-between pr-gm-20 pl-gm-24",
+                    "group flex h-gm-header w-full items-center justify-between pr-gm-20 pl-gm-24",
                     i > 0 && "border-gm-border border-t"
                   )}
                 >
-                  <span
-                    className={cn(
-                      "text-gm-heading-md leading-gm-heading-md",
-                      sectionOpen
-                        ? "font-semibold text-gm-navy"
-                        : "font-normal text-gm-text-primary"
-                    )}
-                  >
+                  <span className="font-normal text-gm-heading-md text-gm-text-primary leading-gm-heading-md group-data-[open]:font-semibold group-data-[open]:text-gm-navy">
                     {section.label}
                   </span>
                   <div className="flex size-gm-44 items-center justify-center">
-                    <ChevronDownIcon
-                      className={cn(
-                        "size-gm-24 transition-transform duration-150",
-                        sectionOpen
-                          ? "rotate-180 text-gm-navy"
-                          : "text-gm-text-muted"
-                      )}
-                    />
+                    <ChevronDownIcon className="size-gm-24 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-gm-navy" />
                   </div>
-                </DisclosureButton>
-
-                {section.links.length > 0 && (
-                  <DisclosurePanel>
-                    {section.links.map((link) => (
-                      <a
-                        className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-nav text-gm-text-primary leading-gm-nav hover:text-gm-navy"
-                        href={link.href}
-                        key={link.name}
-                        onClick={onClose}
-                      >
-                        {link.name}
-                      </a>
-                    ))}
-                  </DisclosurePanel>
-                )}
-              </>
-            )}
-          </Disclosure>
-        ))}
+                </Accordion.Trigger>
+              </Accordion.Header>
+              {section.links.length > 0 && (
+                <Accordion.Panel
+                  className="overflow-hidden transition-[height] duration-200 ease-out"
+                  style={
+                    {
+                      height: "var(--accordion-panel-height, 0)",
+                    } as React.CSSProperties
+                  }
+                >
+                  {section.links.map((link) => (
+                    <a
+                      className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-nav text-gm-text-primary leading-gm-nav hover:text-gm-navy"
+                      href={link.href}
+                      key={link.name}
+                      onClick={onClose}
+                    >
+                      {link.name}
+                    </a>
+                  ))}
+                </Accordion.Panel>
+              )}
+            </Accordion.Item>
+          ))}
+        </Accordion.Root>
       </nav>
     </div>
   );

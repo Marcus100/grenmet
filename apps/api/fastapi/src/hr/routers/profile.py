@@ -5,12 +5,8 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 
+from .. import service
 from ..schemas import EmploymentAdminUpdate, UserProfilePublic, UserProfileUpdateMe
-from ..service import (
-    read_profile_for_user,
-    update_employment_for_user,
-    update_profile_for_current_user,
-)
 
 router = APIRouter(prefix="/hr", tags=["hr"])
 
@@ -28,7 +24,9 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     },
 )
 async def read_hr_profile_me(session: SessionDep, current_user: CurrentUser) -> Any:
-    return await read_profile_for_user(session=session, current_user=current_user)
+    return await service.read_profile_for_user(
+        session=session, current_user=current_user
+    )
 
 
 @router.patch(
@@ -50,7 +48,7 @@ async def update_hr_profile_me(
     payload: UserProfileUpdateMe,
 ) -> Any:
     update_payload = payload.model_dump(exclude_unset=True)
-    return await update_profile_for_current_user(
+    return await service.update_profile_for_current_user(
         session=session,
         current_user=current_user,
         payload=update_payload,
@@ -77,7 +75,7 @@ async def update_hr_employment(
     user_id: uuid.UUID,
     payload: EmploymentAdminUpdate,
 ) -> Any:
-    return await update_employment_for_user(
+    return await service.update_employment_for_user(
         session=session,
         current_user=current_user,
         target_user_id=user_id,

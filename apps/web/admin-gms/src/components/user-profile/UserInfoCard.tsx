@@ -28,9 +28,6 @@ export default function UserInfoCard({
     profile.profile.middle_name || ""
   );
   const [lastName, setLastName] = useState(profile.profile.last_name);
-  const [displayName, setDisplayName] = useState(
-    profile.profile.display_name || ""
-  );
   const [phone, setPhone] = useState(profile.identity.phone || "");
   const [nationality, setNationality] = useState(
     profile.profile.nationality || ""
@@ -41,7 +38,6 @@ export default function UserInfoCard({
     setFirstName(profile.profile.first_name);
     setMiddleName(profile.profile.middle_name || "");
     setLastName(profile.profile.last_name);
-    setDisplayName(profile.profile.display_name || "");
     setPhone(profile.identity.phone || "");
     setNationality(profile.profile.nationality || "");
     setGender(profile.profile.gender || "");
@@ -54,7 +50,6 @@ export default function UserInfoCard({
         first_name: firstName,
         middle_name: middleName || null,
         last_name: lastName,
-        display_name: displayName || null,
         phone: phone || null,
         nationality: nationality || null,
         gender: gender || null,
@@ -278,16 +273,6 @@ export default function UserInfoCard({
                         defaultValue={phone}
                         key={`phone-${phone}`}
                         onChange={(event) => setPhone(event.target.value)}
-                        type="text"
-                      />
-                    </div>
-
-                    <div className="col-span-2 lg:col-span-1">
-                      <Label>Display Name</Label>
-                      <Input
-                        defaultValue={displayName}
-                        key={`display-name-${displayName}`}
-                        onChange={(event) => setDisplayName(event.target.value)}
                         type="text"
                       />
                     </div>

@@ -1,19 +1,16 @@
 # dev
-.yarn/
-!.yarn/releases
 .vscode/*
 !.vscode/launch.json
 !.vscode/*.code-snippets
-.idea/workspace.xml
-.idea/usage.statistics.xml
-.idea/shelf
 
 # deps
 node_modules/
 
 # env
 .env
-.env.production
+.env.*
+!.env.example
+!.env.*.example
 
 # logs
 logs/

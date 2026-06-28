@@ -39,9 +39,11 @@ function SheetContent({
   className,
   children,
   side = "right",
+  showCloseButton = true,
   ...props
 }: React.ComponentProps<typeof Dialog.Popup> & {
   side?: "top" | "right" | "bottom" | "left";
+  showCloseButton?: boolean;
 }) {
   return (
     <Dialog.Portal>
@@ -63,10 +65,12 @@ function SheetContent({
         {...props}
       >
         {children}
-        <Dialog.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-open:bg-secondary">
-          <XIcon className="size-4" />
-          <span className="sr-only">Close</span>
-        </Dialog.Close>
+        {showCloseButton && (
+          <Dialog.Close className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-open:bg-secondary">
+            <XIcon className="size-4" />
+            <span className="sr-only">Close</span>
+          </Dialog.Close>
+        )}
       </Dialog.Popup>
     </Dialog.Portal>
   );

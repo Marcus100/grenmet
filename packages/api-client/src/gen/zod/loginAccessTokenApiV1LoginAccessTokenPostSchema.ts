@@ -27,6 +27,11 @@ export const loginAccessTokenApiV1LoginAccessTokenPost422Schema = z.lazy(
   () => HTTPValidationErrorSchema
 );
 
+/**
+ * @description Rate limit exceeded
+ */
+export const loginAccessTokenApiV1LoginAccessTokenPost429Schema = z.any();
+
 export const loginAccessTokenApiV1LoginAccessTokenPostMutationRequestSchema =
   z.lazy(() => bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema);
 

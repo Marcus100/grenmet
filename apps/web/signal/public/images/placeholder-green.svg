@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" role="img" aria-label="Grenada Signal">
+  <rect width="1600" height="1000" fill="#1a7a3d"/>
+  <circle cx="1400" cy="180" r="280" fill="#136030"/>
+  <g fill="none" stroke="#f5c518" stroke-width="14" stroke-linecap="round">
+    <path d="M620 560 q180 -180 360 0"/>
+    <path d="M560 620 q240 -240 480 0"/>
+    <path d="M500 680 q300 -300 600 0"/>
+  </g>
+  <circle cx="800" cy="560" r="26" fill="#f5c518"/>
+  <text x="800" y="800" fill="#ffffff" font-family="Georgia, serif" font-size="78" font-weight="700" text-anchor="middle">Grenada Signal</text>
+</svg>

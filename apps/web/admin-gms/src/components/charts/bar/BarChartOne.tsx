@@ -1,108 +1,61 @@
 "use client";
 
-import type { ApexOptions } from "apexcharts";
-import dynamic from "next/dynamic";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-// Dynamically import the ReactApexChart component
-const ReactApexChart = dynamic(() => import("react-apexcharts"), {
-  ssr: false,
-});
+// Bar color references the GrenMet design token directly via `var(--gm-blue)`.
+const data = [
+  { month: "Jan", sales: 168 },
+  { month: "Feb", sales: 385 },
+  { month: "Mar", sales: 201 },
+  { month: "Apr", sales: 298 },
+  { month: "May", sales: 187 },
+  { month: "Jun", sales: 195 },
+  { month: "Jul", sales: 291 },
+  { month: "Aug", sales: 110 },
+  { month: "Sep", sales: 215 },
+  { month: "Oct", sales: 390 },
+  { month: "Nov", sales: 280 },
+  { month: "Dec", sales: 112 },
+];
 
 export default function BarChartOne() {
-  const options: ApexOptions = {
-    colors: ["#2478f2"],
-    chart: {
-      fontFamily: "Inter, sans-serif",
-      type: "bar",
-      height: 180,
-      toolbar: {
-        show: false,
-      },
-    },
-    plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: "39%",
-        borderRadius: 5,
-        borderRadiusApplication: "end",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 4,
-      colors: ["transparent"],
-    },
-    xaxis: {
-      categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ],
-      axisBorder: {
-        show: false,
-      },
-      axisTicks: {
-        show: false,
-      },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "left",
-      fontFamily: "Inter",
-    },
-    yaxis: {
-      title: {
-        text: undefined,
-      },
-    },
-    grid: {
-      yaxis: {
-        lines: {
-          show: true,
-        },
-      },
-    },
-    fill: {
-      opacity: 1,
-    },
-
-    tooltip: {
-      x: {
-        show: false,
-      },
-      y: {
-        formatter: (val: number) => `${val}`,
-      },
-    },
-  };
-  const series = [
-    {
-      name: "Sales",
-      data: [168, 385, 201, 298, 187, 195, 291, 110, 215, 390, 280, 112],
-    },
-  ];
   return (
     <div className="custom-scrollbar max-w-full overflow-x-auto">
       <div className="min-w-[1000px]" id="chartOne">
-        <ReactApexChart
-          height={180}
-          options={options}
-          series={series}
-          type="bar"
-        />
+        <ResponsiveContainer height={180} width="100%">
+          <BarChart
+            barCategoryGap="35%"
+            data={data}
+            margin={{ top: 10, right: 10, bottom: 0, left: 0 }}
+          >
+            <CartesianGrid
+              stroke="var(--gm-gridline, #f1f5f9)"
+              vertical={false}
+            />
+            <XAxis
+              axisLine={false}
+              dataKey="month"
+              tick={{ fontSize: 12, fill: "var(--gm-text-muted)" }}
+              tickLine={false}
+            />
+            <YAxis
+              axisLine={false}
+              tick={{ fontSize: 12, fill: "var(--gm-text-muted)" }}
+              tickLine={false}
+              width={40}
+            />
+            <Tooltip cursor={{ fill: "transparent" }} />
+            <Bar dataKey="sales" fill="var(--gm-blue)" radius={[5, 5, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

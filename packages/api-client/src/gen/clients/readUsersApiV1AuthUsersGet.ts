@@ -21,7 +21,7 @@ function getReadUsersApiV1AuthUsersGetUrl() {
 }
 
 /**
- * @description Return users (superuser only).
+ * @description Return users (superuser only). Uses standard pagination (page, size, total_pages).
  * @summary List users
  * {@link /api/v1/auth/users/}
  */

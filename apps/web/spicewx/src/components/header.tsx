@@ -1,6 +1,6 @@
 "use client";
 
-import { Bars2Icon } from "@heroicons/react/24/outline";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import { NavDrawer } from "@/components/nav-drawer";
@@ -24,7 +24,7 @@ export function Header() {
           onClick={() => setNavOpen(true)}
           type="button"
         >
-          <Bars2Icon className="size-gm-24 text-gm-text-primary" />
+          <Menu className="size-gm-24 text-gm-text-primary" />
         </button>
       </header>
 

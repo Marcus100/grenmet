@@ -126,10 +126,7 @@ async def get_absentee_report_or_404(
 
 
 async def _timesheet_dep(session: SessionDep, timesheet_id: uuid.UUID) -> Timesheet:
-    timesheet = await session.get(Timesheet, timesheet_id)
-    if not timesheet:
-        raise TimesheetNotFoundError()
-    return timesheet
+    return await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
 
 
 async def _leave_request_dep(

@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "session_token": {
+      "type": "string",
+      "maxLength": 500,
+      "minLength": 32,
+      "title": "Session Token"
+    }
+  },
+  "type": "object",
+  "required": ["session_token"],
+  "title": "SessionTokenRequest",
+  "x-readme-ref-name": "SessionTokenRequest"
+}

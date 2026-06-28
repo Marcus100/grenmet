@@ -8,14 +8,9 @@ import type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
 /**
- * @description Successful Response
- */
-export type CreatePeriodApiV1HrRostersPeriodsPost200 = RosterPeriodPublic;
-
-/**
  * @description Roster period created
  */
-export type CreatePeriodApiV1HrRostersPeriodsPost201 = any;
+export type CreatePeriodApiV1HrRostersPeriodsPost201 = RosterPeriodPublic;
 
 /**
  * @description Validation error (e.g. period_end before period_start)
@@ -40,13 +35,10 @@ export type CreatePeriodApiV1HrRostersPeriodsPostMutationRequest =
   RosterPeriodCreate;
 
 export type CreatePeriodApiV1HrRostersPeriodsPostMutationResponse =
-  | CreatePeriodApiV1HrRostersPeriodsPost200
-  | CreatePeriodApiV1HrRostersPeriodsPost201;
+  CreatePeriodApiV1HrRostersPeriodsPost201;
 
 export type CreatePeriodApiV1HrRostersPeriodsPostMutation = {
-  Response:
-    | CreatePeriodApiV1HrRostersPeriodsPost200
-    | CreatePeriodApiV1HrRostersPeriodsPost201;
+  Response: CreatePeriodApiV1HrRostersPeriodsPost201;
   Request: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest;
   Errors:
     | CreatePeriodApiV1HrRostersPeriodsPost400

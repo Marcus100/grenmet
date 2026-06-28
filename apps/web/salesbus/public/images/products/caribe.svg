@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="100" height="120" viewBox="0 0 100 120">
-  <title>Caribé Beer Bottle</title>
-  <rect width="100" height="120" fill="#f5f5f5"/>
-  <rect x="35" y="5" width="30" height="15" rx="3" fill="#8B4513"/>
-  <rect x="30" y="20" width="40" height="85" rx="8" fill="#DAA520"/>
-  <rect x="35" y="30" width="30" height="50" fill="#FFFACD"/>
-  <text x="50" y="55" font-family="Arial" font-size="7" font-weight="bold" fill="#8B4513" text-anchor="middle">CARIBÉ</text>
-  <text x="50" y="65" font-family="Arial" font-size="5" fill="#8B4513" text-anchor="middle">BRUT</text>
-</svg>

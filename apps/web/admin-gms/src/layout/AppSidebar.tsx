@@ -60,12 +60,15 @@ const navItems: NavItem[] = [
   {
     name: "Human Resource",
     icon: <ListIcon />,
+    path: "/hr",
+  },
+  {
+    name: "SalesBus",
+    icon: <GridIcon />,
     subItems: [
-      { name: "Daily Status Report", path: "/signin", pro: false },
-      { name: "Timesheet", path: "/signin", pro: false },
-      { name: "Absentee Report", path: "/signup", pro: false },
-      { name: "Leave of Absence", path: "/signup", pro: false },
-      { name: "Shift Exchange", path: "/signup", pro: false },
+      { name: "Sales", path: "/salesbus/sales", pro: false },
+      { name: "Inventory", path: "/salesbus/inventory", pro: false },
+      { name: "Settlements", path: "/salesbus/settlements", pro: false },
     ],
   },
   // {
@@ -85,12 +88,19 @@ const navItems: NavItem[] = [
 
 const othersItems: NavItem[] = [
   {
+    icon: <ListIcon />,
+    name: "CAP Alerts",
+    subItems: [
+      { name: "Alerts", path: "/cap", pro: false },
+      { name: "Alert Map", path: "/cap/map", pro: false },
+      { name: "Feeds", path: "/cap/integrations", pro: false },
+      { name: "Editor", path: "/cap/admin", pro: false },
+    ],
+  },
+  {
     icon: <PieChartIcon />,
     name: "WxWatch",
-    subItems: [
-      { name: "Observations", path: "/line-chart", pro: false },
-      { name: "Models", path: "/bar-chart", pro: false },
-    ],
+    path: "/wxwatch",
   },
   // {
   //   icon: <BoxCubeIcon />,
@@ -108,18 +118,21 @@ const othersItems: NavItem[] = [
     icon: <PlugInIcon />,
     name: "Public Forecasts",
     subItems: [
-      { name: "Hourly", path: "/signin", pro: false },
-      { name: "Morning", path: "/signin", pro: false },
-      { name: "Midday", path: "/signup", pro: false },
-      { name: "Evening", path: "/signup", pro: false },
+      { name: "Hourly", path: "/wxproducts/hourly", pro: false },
+      { name: "Morning", path: "/wxproducts/fcsts/morning", pro: false },
+      { name: "Midday", path: "/wxproducts/fcsts/midday", pro: false },
+      { name: "Evening", path: "/wxproducts/fcsts/evening", pro: false },
     ],
   },
   {
     icon: <PlugInIcon />,
     name: "Bulletins",
     subItems: [
-      { name: "Marine Bulletin", path: "/signin", pro: false },
-      { name: "Climate Bulletin", path: "/signup", pro: false },
+      {
+        name: "Marine Bulletin",
+        path: "/wxproducts/bulletins/marine",
+        pro: false,
+      },
     ],
   },
 ];

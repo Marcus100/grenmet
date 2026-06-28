@@ -4,25 +4,32 @@
  */
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
-import type { PermissionsPublic } from "./PermissionsPublic.js";
+import type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 
 export type ReadPermissionsApiV1AuthPermissionsGetQueryParams = {
   /**
-   * @default 0
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
    * @type integer | undefined
    */
-  skip?: number;
+  page?: number;
   /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
    * @default 100
    * @type integer | undefined
    */
-  limit?: number;
+  size?: number;
 };
 
 /**
+ * PaginatedResponse[PermissionPublic]
  * @description Permissions returned
  */
-export type ReadPermissionsApiV1AuthPermissionsGet200 = PermissionsPublic;
+export type ReadPermissionsApiV1AuthPermissionsGet200 =
+  PaginatedResponsePermissionPublic;
 
 /**
  * HTTPValidationError
