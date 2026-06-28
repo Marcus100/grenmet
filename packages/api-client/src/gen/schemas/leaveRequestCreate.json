@@ -11,6 +11,8 @@
         "PATERNITY",
         "STUDY",
         "COMPASSIONATE",
+        "PROFESSIONAL_APPOINTMENT",
+        "BEREAVEMENT",
         "WITHOUT_PAY",
         "OTHER"
       ],
@@ -43,6 +45,17 @@
       "title": "Days Without Pay",
       "default": "0.0"
     },
+    "professional_appointment_subtype": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["BANK", "MEDICAL", "LEGAL", "DENTAL"],
+          "title": "ProfAppointmentType",
+          "x-readme-ref-name": "ProfAppointmentType"
+        },
+        { "type": "null" }
+      ]
+    },
     "reason": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Reason"
@@ -55,9 +68,31 @@
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Leave Address"
     },
+    "travel_from_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Travel From Date"
+    },
+    "travel_to_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Travel To Date"
+    },
+    "salary_in_advance": {
+      "type": "boolean",
+      "title": "Salary In Advance",
+      "default": false
+    },
+    "requires_acting_appointment": {
+      "type": "boolean",
+      "title": "Requires Acting Appointment",
+      "default": false
+    },
     "acting_officer_id": {
       "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
       "title": "Acting Officer Id"
+    },
+    "expected_return_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Expected Return Date"
     }
   },
   "type": "object",

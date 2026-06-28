@@ -11,7 +11,12 @@ import { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js"
 /**
  * @description Template created
  */
-export const createTemplateApiV1HrWorkflowsTemplatesPost200Schema = z.lazy(
+export const createTemplateApiV1HrWorkflowsTemplatesPost200Schema = z.any();
+
+/**
+ * @description Successful Response
+ */
+export const createTemplateApiV1HrWorkflowsTemplatesPost201Schema = z.lazy(
   () => workflowTemplatePublicSchema
 );
 
@@ -31,4 +36,7 @@ export const createTemplateApiV1HrWorkflowsTemplatesPostMutationRequestSchema =
   z.lazy(() => workflowTemplateCreateSchema);
 
 export const createTemplateApiV1HrWorkflowsTemplatesPostMutationResponseSchema =
-  z.lazy(() => createTemplateApiV1HrWorkflowsTemplatesPost200Schema);
+  z.union([
+    z.lazy(() => createTemplateApiV1HrWorkflowsTemplatesPost200Schema),
+    z.lazy(() => createTemplateApiV1HrWorkflowsTemplatesPost201Schema),
+  ]);

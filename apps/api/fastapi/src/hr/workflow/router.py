@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
 
+from . import service
 from .schemas import (
     WorkflowActionRequest,
     WorkflowInstanceCreate,
@@ -16,14 +17,6 @@ from .schemas import (
     WorkflowTemplateCreate,
     WorkflowTemplatePublic,
     WorkflowTemplatesPublic,
-)
-from .service import (
-    apply_workflow_action,
-    create_workflow_instance,
-    create_workflow_step_template,
-    create_workflow_template,
-    read_workflow_instance_details,
-    read_workflow_templates,
 )
 
 router = APIRouter(prefix="/hr/workflows", tags=["hr-workflows"])
@@ -46,7 +39,7 @@ async def create_template(
     current_user: CurrentUser,
     template_in: WorkflowTemplateCreate,
 ) -> Any:
-    return await create_workflow_template(
+    return await service.create_workflow_template(
         session=session, current_user=current_user, template_in=template_in
     )
 
@@ -64,7 +57,7 @@ async def create_template(
 async def read_templates(
     session: SessionDep, current_user: CurrentUser, department_id: str | None = None
 ) -> Any:
-    templates = await read_workflow_templates(
+    templates = await service.read_workflow_templates(
         session=session, current_user=current_user, department_id=department_id
     )
     return WorkflowTemplatesPublic(
@@ -95,7 +88,7 @@ async def create_template_step(
     _template: WorkflowTemplateDep,
     step_in: WorkflowStepTemplateCreate,
 ) -> Any:
-    return await create_workflow_step_template(
+    return await service.create_workflow_step_template(
         session=session,
         current_user=current_user,
         workflow_template_id=_template.id,
@@ -121,7 +114,7 @@ async def create_instance(
     current_user: CurrentUser,
     instance_in: WorkflowInstanceCreate,
 ) -> Any:
-    return await create_workflow_instance(
+    return await service.create_workflow_instance(
         session=session, current_user=current_user, instance_in=instance_in
     )
 
@@ -142,7 +135,7 @@ async def read_instance(
     current_user: CurrentUser,
     workflow_instance: WorkflowInstanceDep,
 ) -> Any:
-    instance, steps = await read_workflow_instance_details(
+    instance, steps = await service.read_workflow_instance_details(
         session=session,
         current_user=current_user,
         workflow_instance_id=workflow_instance.id,
@@ -181,7 +174,7 @@ async def take_action(
     workflow_instance: WorkflowInstanceDep,
     action_in: WorkflowActionRequest,
 ) -> Any:
-    return await apply_workflow_action(
+    return await service.apply_workflow_action(
         session=session,
         current_user=current_user,
         workflow_instance_id=workflow_instance.id,

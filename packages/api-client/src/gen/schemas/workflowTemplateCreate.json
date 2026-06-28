@@ -8,7 +8,8 @@
         "SHIFT_SWAP",
         "ABSENTEE_REPORT",
         "STATUS_REPORT",
-        "TIMESHEET"
+        "TIMESHEET",
+        "PARKING_PERMIT"
       ],
       "title": "WorkflowType",
       "x-readme-ref-name": "WorkflowType"

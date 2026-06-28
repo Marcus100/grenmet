@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "source": {
+      "type": "string",
+      "enum": ["url", "xml"],
+      "title": "Source",
+      "default": "xml"
+    },
+    "value": { "type": "string", "minLength": 1, "title": "Value" }
+  },
+  "type": "object",
+  "required": ["value"],
+  "title": "CapAlertImportRequest",
+  "x-readme-ref-name": "CapAlertImportRequest"
+}

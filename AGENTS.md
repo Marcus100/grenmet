@@ -41,6 +41,28 @@ turbo run test --filter=@grenmet/web-admin        # Unit tests (admin-gms)
 pnpm vitest run src/path/to/test.test.ts          # Single file (from app dir)
 ```
 
+### FastAPI (run from `apps/api/fastapi`)
+
+```bash
+pnpm start                                                    # Start shared infra + FastAPI (from repo root)
+docker compose exec api uv run pytest                        # Full test suite
+docker compose exec api uv run pytest tests/auth/            # Single domain
+docker compose exec api uv run pytest --cov=src --cov-report=term  # With coverage
+docker compose exec api uv run alembic upgrade head          # Apply migrations
+docker compose exec api uv run alembic revision --autogenerate -m "message"  # New migration
+docker compose exec api python scripts/seed_data.py --reset  # Seed data
+docker compose exec api uv run mypy src                      # Type-check
+./scripts/lint.sh                                            # Ruff lint + format check
+./scripts/format.sh                                          # Ruff fix + format
+```
+
+Regenerate `openapi.json` before running `pnpm generate:api-client`:
+
+```bash
+cd apps/api/fastapi
+uv run python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+```
+
 ### Build & Generate
 
 ```bash
@@ -72,8 +94,12 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 | Monorepo structure and auth flow | `docs/technical-overview.md` |
 | Service architecture             | `docs/architecture.md`       |
 | Auth package API                 | `packages/auth/README.md`    |
+| Auth package rules (agent)       | `packages/auth/CLAUDE.md`    |
+| UI package rules (agent)         | `packages/ui/CLAUDE.md`      |
+| API contracts and public routes  | `docs/api/contracts.md`      |
 | Environment variables            | `docs/env.md`                |
 | Deployment                       | `docs/deployment.md`         |
-| A specific app                   | `apps/web/<app>/README.md`   |
+| A specific app                   | `apps/web/<app>/CLAUDE.md`   |
+| FastAPI conventions              | `apps/api/fastapi/CLAUDE.md` |
 | Design system tokens             | `docs/design-system.md`      |
 | Troubleshooting                  | `docs/troubleshooting.md`    |

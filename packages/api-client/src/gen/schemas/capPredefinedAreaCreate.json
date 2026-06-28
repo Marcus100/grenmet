@@ -1,0 +1,79 @@
+{
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Name"
+    },
+    "area_desc": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Area Desc"
+    },
+    "geometry": {
+      "anyOf": [
+        { "additionalProperties": true, "type": "object" },
+        { "type": "null" }
+      ],
+      "title": "Geometry"
+    },
+    "polygons": {
+      "items": {
+        "items": { "items": { "type": "number" }, "type": "array" },
+        "type": "array"
+      },
+      "type": "array",
+      "title": "Polygons"
+    },
+    "multipolygons": {
+      "items": {
+        "items": {
+          "items": { "items": { "type": "number" }, "type": "array" },
+          "type": "array"
+        },
+        "type": "array"
+      },
+      "type": "array",
+      "title": "Multipolygons"
+    },
+    "circles": {
+      "items": {
+        "additionalProperties": { "type": "number" },
+        "type": "object"
+      },
+      "type": "array",
+      "title": "Circles"
+    },
+    "geocodes": {
+      "items": {
+        "properties": {
+          "value_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Value Name"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": ["value_name", "value"],
+        "title": "CapNameValue",
+        "x-readme-ref-name": "CapNameValue-Input"
+      },
+      "type": "array",
+      "title": "Geocodes"
+    },
+    "is_active": { "type": "boolean", "title": "Is Active", "default": true }
+  },
+  "type": "object",
+  "required": ["name", "area_desc"],
+  "title": "CapPredefinedAreaCreate",
+  "x-readme-ref-name": "CapPredefinedAreaCreate"
+}

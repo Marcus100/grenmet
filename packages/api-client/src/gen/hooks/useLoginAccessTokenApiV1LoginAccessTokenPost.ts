@@ -19,6 +19,7 @@ import { loginAccessTokenApiV1LoginAccessTokenPost } from "../clients/loginAcces
 import type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
+  LoginAccessTokenApiV1LoginAccessTokenPost429,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -43,6 +44,7 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
     ResponseErrorConfig<
       | LoginAccessTokenApiV1LoginAccessTokenPost400
       | LoginAccessTokenApiV1LoginAccessTokenPost422
+      | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
     { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
@@ -66,6 +68,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
       ResponseErrorConfig<
         | LoginAccessTokenApiV1LoginAccessTokenPost400
         | LoginAccessTokenApiV1LoginAccessTokenPost422
+        | LoginAccessTokenApiV1LoginAccessTokenPost429
       >,
       { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
       TContext
@@ -88,6 +91,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
     ResponseErrorConfig<
       | LoginAccessTokenApiV1LoginAccessTokenPost400
       | LoginAccessTokenApiV1LoginAccessTokenPost422
+      | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
     { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
@@ -98,6 +102,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
     ResponseErrorConfig<
       | LoginAccessTokenApiV1LoginAccessTokenPost400
       | LoginAccessTokenApiV1LoginAccessTokenPost422
+      | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
     { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
@@ -113,6 +118,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
     ResponseErrorConfig<
       | LoginAccessTokenApiV1LoginAccessTokenPost400
       | LoginAccessTokenApiV1LoginAccessTokenPost422
+      | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
     { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext

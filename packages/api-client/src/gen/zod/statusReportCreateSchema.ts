@@ -4,12 +4,25 @@
  */
 
 import * as z from "zod";
+import { shiftPeriodSchema } from "./shiftPeriodSchema.js";
 import { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
 
 export const statusReportCreateSchema = z.object({
   department_id: z.string(),
   report_date: z.string().date(),
   shift_code: z.string(),
+  shift_period: z.optional(
+    z.union([z.lazy(() => shiftPeriodSchema), z.null()])
+  ),
+  all_personnel_reported_on_time: z.optional(z.union([z.boolean(), z.null()])),
+  personnel_explanation: z.optional(z.union([z.string(), z.null()])),
+  affected_operations: z.optional(z.union([z.boolean(), z.null()])),
+  affected_operations_explanation: z.optional(z.union([z.string(), z.null()])),
+  all_equipment_operational: z.optional(z.union([z.boolean(), z.null()])),
+  equipment_issue_reason: z.optional(z.union([z.string(), z.null()])),
+  equipment_remedy_action: z.optional(z.union([z.string(), z.null()])),
+  incident_reports_submitted: z.optional(z.union([z.boolean(), z.null()])),
+  incident_explanation: z.optional(z.union([z.string(), z.null()])),
   weather_summary: z.optional(z.union([z.string(), z.null()])),
   equipment_summary: z.optional(z.union([z.string(), z.null()])),
   personnel_summary: z.optional(z.union([z.string(), z.null()])),

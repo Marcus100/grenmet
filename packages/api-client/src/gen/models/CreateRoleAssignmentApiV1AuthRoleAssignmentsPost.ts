@@ -10,7 +10,7 @@ import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 /**
  * @description Role assignment created
  */
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPost200 =
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201 =
   UserRoleAssignmentPublic;
 
 /**
@@ -27,10 +27,10 @@ export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest =
   UserRoleAssignmentCreate;
 
 export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse =
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost200;
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201;
 
 export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutation = {
-  Response: CreateRoleAssignmentApiV1AuthRoleAssignmentsPost200;
+  Response: CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201;
   Request: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest;
   Errors: CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422;
 };

@@ -133,6 +133,17 @@ class Settings(BaseSettings):
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
 
+        # Reject wildcard / overly-broad CORS origins outside local. The CORS
+        # middleware runs with allow_credentials=True, so a "*" origin would
+        # expose credentialed cross-origin access.
+        if self.ENVIRONMENT != "local":
+            for origin in self.all_cors_origins:
+                if origin == "*" or origin.startswith("*"):
+                    raise ValueError(
+                        "Wildcard CORS origins are not allowed in the "
+                        f"{self.ENVIRONMENT} environment (allow_credentials is enabled)."
+                    )
+
         return self
 
 

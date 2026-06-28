@@ -69,10 +69,15 @@ class TimesheetEntry(SQLModel, table=True):
     actual_hours: Decimal = Field(
         default=Decimal("0.0"), decimal_places=2, max_digits=5
     )
+    total_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     overtime_hours: Decimal = Field(
         default=Decimal("0.0"), decimal_places=2, max_digits=5
     )
     break_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
+    hours_worked: Decimal = Field(
+        default=Decimal("0.0"), decimal_places=2, max_digits=5
+    )
+    medical_certificate_attached: bool = Field(default=False)
     comments: str | None = Field(default=None, max_length=500)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

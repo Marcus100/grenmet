@@ -89,7 +89,10 @@ Read by `infra/docker/docker-compose.yml` only. FastAPI variables do **not** bel
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
 | `SMTP_HOST` / `SMTP_PORT` / etc. | Fallback email via SMTP (MailCatcher in local dev) |
 | `EMAILS_FROM_EMAIL` | Sender address for outgoing emails |
+| `EMAIL_RENDER_URL` | Optional web-auth render endpoint for React Email templates |
+| `EMAIL_RENDER_SECRET` | Optional shared secret sent to the email render endpoint |
 | `EMAIL_RESET_TOKEN_EXPIRE_HOURS` | Password reset link lifetime |
+| `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
 | `SENTRY_DSN` | Sentry error tracking DSN (leave empty to disable) |
 | `DOCKER_IMAGE_BACKEND` | Image name used by CI/CD (default: `backend`) |
 
@@ -206,18 +209,18 @@ Salesbus is not yet integrated with the shared auth system. It uses only client-
 
 Turbo hashes env var **values** (not just names) when deciding whether to use a cached build. Only variables declared in `turbo.json` participate in this hash.
 
-The `build` task declares all server-side vars that affect Next.js build output:
+Current `turbo.json` declares only global env values:
 
 ```json
-"env": [
-  "AUTH_API_URL", "AUTH_APP_URL", "AUTH_API_V1_STR",
-  "SESSION_COOKIE_NAME", "SESSION_COOKIE_DOMAIN", "AUTH_ALLOWED_RETURN_HOSTS",
-  "RESEND_API_KEY", "DATABASE_URL",
-  "NEXT_PUBLIC_API_URL"
-]
+"globalEnv": ["NODE_ENV", "NEXT_PUBLIC_*"]
 ```
 
-`NEXT_PUBLIC_*` is also in `globalEnv` for runtime access, but declaring them in `env` ensures a staging build with different `NEXT_PUBLIC_API_URL` is never served from a local cache.
+Server-side env vars such as `AUTH_API_URL`, `AUTH_APP_URL`, `SESSION_COOKIE_NAME`,
+`SESSION_COOKIE_DOMAIN`, `AUTH_ALLOWED_RETURN_HOSTS`, `RESEND_API_KEY`, and
+`DATABASE_URL` are validated by each app's typed env module, but they are not currently
+listed as Turbo task env inputs. If a build-time server variable starts affecting a
+Next.js build artifact, add it to `turbo.json` before relying on cached builds across
+environments.
 
 ---
 

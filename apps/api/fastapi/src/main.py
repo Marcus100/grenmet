@@ -20,7 +20,10 @@ from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
 from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
+from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
+from src.cap.router import public_router as cap_public_router
+from src.cap.router import router as cap_router
 from src.config import settings
 from src.exceptions import (
     AppException,
@@ -32,15 +35,19 @@ from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
+from src.hr.parking.router import router as hr_parking_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.workflow.router import router as hr_workflow_router
+from src.logging_config import configure_logging
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
+
+configure_logging()
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -129,6 +136,7 @@ app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Auth-related routers (split for better organization)
 app.include_router(login_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(twofa_router, prefix="/api/v1")
 app.include_router(roles_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
@@ -140,6 +148,9 @@ app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
+app.include_router(hr_parking_router, prefix="/api/v1")
+app.include_router(cap_router, prefix="/api/v1")
+app.include_router(cap_public_router)
 
 # Other routers
 app.include_router(utils_router, prefix="/api/v1")

@@ -19,7 +19,18 @@
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Absence End Time"
     },
-    "reason_code": { "type": "string", "title": "Reason Code" },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "UNCERTIFIED_SICK",
+        "ILLNESS_FAMILY_MEMBER",
+        "ILLNESS_ON_JOB",
+        "TIME_OFF",
+        "OTHER"
+      ],
+      "title": "AbsenceReason",
+      "x-readme-ref-name": "AbsenceReason"
+    },
     "notes": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Notes"
@@ -44,7 +55,7 @@
     }
   },
   "type": "object",
-  "required": ["user_id", "department_id", "report_date", "reason_code"],
+  "required": ["user_id", "department_id", "report_date", "reason"],
   "title": "AbsenteeReportCreate",
   "x-readme-ref-name": "AbsenteeReportCreate"
 }

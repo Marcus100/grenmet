@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { AbsenceReason } from "./AbsenceReason.js";
+
 /**
  * AbsenteeReportCreate
  */
@@ -25,7 +27,7 @@ export type AbsenteeReportCreate = {
   /**
    * @type string
    */
-  reason_code: string;
+  reason: AbsenceReason;
   notes?: string | null;
   /**
    * @default false

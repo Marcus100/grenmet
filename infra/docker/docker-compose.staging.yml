@@ -85,6 +85,13 @@ services:
       SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
       RESEND_API_KEY: ${RESEND_API_KEY}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      REDIS_URL: ${REDIS_URL:-}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grenmet-api-staging.rule=Host(`api.staging.barrels.gd`)"
@@ -94,28 +101,64 @@ services:
     networks:
       - grenmet-staging
 
-  # ── Drizzle migrations ───────────────────────────────────────────────────────
-  wxwatch-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-staging}
-    restart: "no"
-    command: ["node", "apps/web/wxwatch/scripts/migrate.mjs"]
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: ${WXWATCH_DB_URL}
+  # ── Redis + Background worker (CAP outbox) ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data-staging:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
     networks:
       - grenmet-staging
 
-  wxproducts-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-staging}
+  worker:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: uv run arq src.worker.main.WorkerSettings
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
+    networks:
+      - grenmet-staging
+
+  # ── Drizzle migrations ───────────────────────────────────────────────────────
+  # The wxwatch + wxproducts databases are now consumed by web-admin. Their
+  # Drizzle migrations run from the admin-migrate image (built target=migrate),
+  # which carries both schema folders and runs both migration scripts.
+  web-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG:-staging}
     restart: "no"
-    command: ["node", "apps/web/wxproducts/scripts/migrate.mjs"]
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
     networks:
       - grenmet-staging
 
@@ -141,6 +184,9 @@ services:
   web-admin:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-staging}
     restart: always
+    depends_on:
+      web-migrate:
+        condition: service_completed_successfully
     environment:
       AUTH_APP_URL: https://auth.staging.barrels.gd
       AUTH_API_URL: https://api.staging.barrels.gd
@@ -149,34 +195,16 @@ services:
       SESSION_COOKIE_DOMAIN: .staging.barrels.gd
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
+      # Consolidated apps' dedicated Postgres databases.
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      CAP_API_URL: https://api.staging.barrels.gd
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-admin-staging.rule=Host(`admin.staging.barrels.gd`)"
       - "traefik.http.routers.web-admin-staging.entrypoints=websecure"
       - "traefik.http.routers.web-admin-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin-staging.loadbalancer.server.port=3001"
-    networks:
-      - grenmet-staging
-
-  web-wxwatch:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxwatch:${WEB_TAG:-staging}
-    restart: always
-    depends_on:
-      wxwatch-migrate:
-        condition: service_completed_successfully
-    environment:
-      AUTH_APP_URL: https://auth.staging.barrels.gd
-      AUTH_API_URL: https://api.staging.barrels.gd
-      AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
-      DATABASE_URL: ${WXWATCH_DB_URL}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-wxwatch-staging.rule=Host(`wxwatch.staging.barrels.gd`)"
-      - "traefik.http.routers.web-wxwatch-staging.entrypoints=websecure"
-      - "traefik.http.routers.web-wxwatch-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-wxwatch-staging.loadbalancer.server.port=3002"
     networks:
       - grenmet-staging
 
@@ -213,56 +241,6 @@ services:
       - "traefik.http.routers.web-spicewx-staging.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3004"
-    networks:
-      - grenmet-staging
-
-  web-wxproducts:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-wxproducts:${WEB_TAG:-staging}
-    restart: always
-    depends_on:
-      wxproducts-migrate:
-        condition: service_completed_successfully
-    environment:
-      DATABASE_URL: ${WXPRODUCTS_DB_URL}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-wxproducts-staging.rule=Host(`wxproducts.staging.barrels.gd`)"
-      - "traefik.http.routers.web-wxproducts-staging.entrypoints=websecure"
-      - "traefik.http.routers.web-wxproducts-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-wxproducts-staging.loadbalancer.server.port=3005"
-    networks:
-      - grenmet-staging
-
-  web-hr:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hr:${WEB_TAG:-staging}
-    restart: always
-    environment:
-      AUTH_API_URL: https://api.staging.barrels.gd
-      AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .staging.barrels.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .staging.barrels.gd
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-hr-staging.rule=Host(`hr.staging.barrels.gd`)"
-      - "traefik.http.routers.web-hr-staging.entrypoints=websecure"
-      - "traefik.http.routers.web-hr-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hr-staging.loadbalancer.server.port=3006"
-    networks:
-      - grenmet-staging
-
-  web-salesbus:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-salesbus:${WEB_TAG:-staging}
-    restart: always
-    environment:
-      NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
-      NEXT_PUBLIC_ENVIRONMENT: staging
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.web-salesbus-staging.rule=Host(`sales.staging.barrels.gd`)"
-      - "traefik.http.routers.web-salesbus-staging.entrypoints=websecure"
-      - "traefik.http.routers.web-salesbus-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-salesbus-staging.loadbalancer.server.port=3007"
     networks:
       - grenmet-staging
 
@@ -329,3 +307,4 @@ networks:
 volumes:
   pgdata-staging:
   traefik-certificates-staging:
+  redis-data-staging:

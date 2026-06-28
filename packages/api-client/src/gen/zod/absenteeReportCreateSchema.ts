@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { absenceReasonSchema } from "./absenceReasonSchema.js";
 
 export const absenteeReportCreateSchema = z.object({
   user_id: z.string().uuid(),
@@ -12,7 +13,7 @@ export const absenteeReportCreateSchema = z.object({
   expected_shift_code: z.optional(z.union([z.string(), z.null()])),
   absence_start_time: z.optional(z.union([z.string(), z.null()])),
   absence_end_time: z.optional(z.union([z.string(), z.null()])),
-  reason_code: z.string(),
+  reason: z.lazy(() => absenceReasonSchema),
   notes: z.optional(z.union([z.string(), z.null()])),
   contact_attempted: z.optional(z.boolean().default(false)),
   contact_method: z.optional(z.union([z.string(), z.null()])),

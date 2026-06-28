@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { leaveTypeSchema } from "./leaveTypeSchema.js";
+import { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 
 export const leaveRequestCreateSchema = z.object({
   department_id: z.string(),
@@ -26,8 +27,16 @@ export const leaveRequestCreateSchema = z.object({
       .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
       .default("0.0")
   ),
+  professional_appointment_subtype: z.optional(
+    z.union([z.lazy(() => profAppointmentTypeSchema), z.null()])
+  ),
   reason: z.optional(z.union([z.string(), z.null()])),
   contact_phone: z.optional(z.union([z.string(), z.null()])),
   leave_address: z.optional(z.union([z.string(), z.null()])),
+  travel_from_date: z.optional(z.union([z.string().date(), z.null()])),
+  travel_to_date: z.optional(z.union([z.string().date(), z.null()])),
+  salary_in_advance: z.optional(z.boolean().default(false)),
+  requires_acting_appointment: z.optional(z.boolean().default(false)),
   acting_officer_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  expected_return_date: z.optional(z.union([z.string().date(), z.null()])),
 });

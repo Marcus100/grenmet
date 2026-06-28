@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "password": {
+      "type": "string",
+      "maxLength": 40,
+      "minLength": 8,
+      "title": "Password"
+    }
+  },
+  "type": "object",
+  "required": ["password"],
+  "title": "TwoFactorDisableRequest",
+  "x-readme-ref-name": "TwoFactorDisableRequest"
+}

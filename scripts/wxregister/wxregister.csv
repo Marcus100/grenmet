@@ -1,0 +1,24 @@
+source_image,row_index,report_type,day,time_utc,station_id,wind_indicator,precip_indicator,station_wx_indicator,cloud_base,visibility,total_cloud,wind_dir,wind_speed,air_temp,dew_point,station_pressure,msl_pressure,pressure_tendency,pressure_change,precip_amount,precip_period,present_wx,past_wx_1,past_wx_2,low_cloud_amount,low_cloud_type,mid_cloud_type,high_cloud_type,s3_state_of_sky,s3_cloud_dir_low,s3_cloud_dir_mid,s3_cloud_dir_high,s3_max_temp,s3_min_temp,s3_baro_change_24h,s3_rainfall_24h,s3_layer1_amount,s3_layer1_form,s3_layer1_height,s3_layer2_amount,s3_layer2_form,s3_layer2_height,s3_layer3_amount,s3_layer3_form,s3_layer3_height,s3_layer4_amount,s3_layer4_form,s3_layer4_height,s3_special_phenomena,s3_remarks,notes
+synop_day1_combined.png,1,AAXX,04,00,78758,4,,1,2,5,78,208,10,260,207,,,,,,,,,,6,000,1,,0,,,,,,,,,,,,,,,,,,,,,31.2 25.8,Row largely illegible; values approximate. Right side shows 31.2 / 25.8.
+synop_day1_combined.png,2,,04,01,78758,4,2,5,78,4,07,10,260,209,72,1014.2,1015.2,4,0152,,,,8,4,8,0,1,,,,,,,,,,,,,,,,,,,,,,,2.61,Approximate; many cells faint.
+synop_day1_combined.png,3,,04,02,78758,4,,,78,,5,10,260,209,73,1015.2,1016.1,,,,,,8,4,8,0,,,,,,,,,15.000,,,,,,,,,,,,,,,2.62,Approximate.
+synop_day1_combined.png,4,AAXX,04,03,78758,4,1,4,67,3,10,260,10,229,71,0180,4,0160,,,,7,80,,8,4,,,,,,,,,,,8,,,,,,,,,,,,,"JP-NEE,S",555 line; approximate.
+synop_day1_combined.png,5,,04,04,78758,4,2,4,65,6,07,00,10,247,30,223,87,,,,,,7,7,8,5,,,,,,,,,,,,,,,,,,,,,,,,"JP-NES,EN",Approximate.
+synop_day1_combined.png,6,,04,03,78758,4,1,4,60,05,10,255,10,227,72,0157,4,0157,,,,,5,8,8,4,,,,,,,,,,,,,,,,,,,,,,,,"JP-NE,E",Approximate.
+synop_day1_combined.png,7,AAXX,04,06,78758,4,1,4,56,,07,10,255,233,70,1013.3,1014.1,4,0140,,,,,,,,,,,316,227,,0006,,,285,8,,,,,,,,,,,,,"JP-0516-12, JP-CM,W, JP-W 22-48 264 23.4",555 line; remarks heavy; approximate.
+synop_day1_combined.png,8,,04,02,78758,4,,,63,,05,00,337,244,126,3013.6,,4,0158,,,7,80,,,,,,,,,,,,,,,,,,,,,,,,,,,MN 0644-35,Approximate.
+synop_day1_combined.png,9,,00,04,78758,4,1,4,65,08,00,10,033,234,86,3013.6,,4,0153,,,305,,,8,5,8,,,,,,,,234.000,,,,,,,,,,,,,,,,Day reads 00 uncertainty; approximate.
+synop_day1_combined.png,10,AAXX,04,05,78758,4,,,40,,266,10,233,219,,1013.4,,4,0162,,,7,02,,5,4,,,,,,,,,,,,,,,,,,,,,,,,MN-22.8,Approximate.
+synop_day1_combined.png,11,,04,06,78754,4,1,4,62,08,10,245,20,220,57,1013.8,,,,,,7,15,,8,5,3,,,,,,,,,,,,,,,,,,,,,,,JP-NW MN-3.3,Approximate.
+synop_day1_combined.png,12,,06,41,78754,4,,,62,3,08,10,249,230,54,0139,4,0149,,,,7,15,,8,3,5,,,,,,,,,,,,,,,,,,,,,,,JP-NW,Approximate; final row.
+synop_day2_combined.png,1,AAXX,,0300,99858,4,,,,16,4,,,,,1014.8,1015.6,3,4,,,25,81,,,,,,,,,,,,,,,,,,,,,,,,,,,,Sheet largely faint/handwritten; values low confidence
+synop_day2_combined.png,2,CRB,,0443,39155,4,1,5,,57,10,,,,,1057,1016.0,,,,,50,51,,,,,,,,,,,,,,,,,,,,,,,,,,,6042-46,low confidence
+synop_day2_combined.png,3,CRB,,,,,,,,31,,,,,,1057,1016.7,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,"row partly blank, low confidence"
+synop_day2_combined.png,4,AAXX,,0445,99155,4,1,4,70,20,20,20,,,,1045,1063,,,,,25,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,5,,,0446,99155,4,,,40,26,15,10,,,,1042,1050,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,6,AAXX,,0448,99858,4,,,,,,,,,,1031,1041,,,0.3,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,7,,,0419,78758,4,1,5,70,21,11,20,23,,,1037,4137,,,,,05,00,,8,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,8,,,0420,78758,4,1,5,70,10,10,20,14,,,1037,4137,,,,,05,00,,8,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,9,AAXX,,0421,78958,4,1,5,68,70,10,277,20,,,1035,4143,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence
+synop_day2_combined.png,10,,,0422,2858,4,,,,25,,20,70,,,1032,4042,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence; station id uncertain
+synop_day2_combined.png,11,,,0423,78758,4,1,5,65,30,12,10,26,,,1033,4143,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,low confidence

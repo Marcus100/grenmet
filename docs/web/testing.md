@@ -17,7 +17,7 @@ pnpm vitest run src/path/to/test.test.ts
 pnpm vitest
 ```
 
-Apps with Vitest configured: `admin-gms`, `auth`, `salesbus`.
+Only `admin-gms` has actual test files. `auth` and `salesbus` have a `vitest.config.ts` in place but no tests yet.
 See [`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md) for
 the full unit test conventions.
 

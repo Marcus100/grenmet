@@ -22,28 +22,29 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 Canonical design source: [GrenMet v1](https://www.figma.com/design/kfVRAcgxzhs4Sj6aCRyOz4/GrenMet-v1?m=auto&t=86C75Bo0qLxDz03f-6).
 
-As of 2026-05-31, the MCP-visible Figma file structure has two top-level pages:
+As of 2026-06-13, the file has ten top-level pages. Query pages by node ID — the MCP page listing for this file is stale and returns only a subset.
 
-| Page | Role |
-|---|---|
-| `00 Overview` | File cover, file guide, changelog, and GMS Digital Service Architecture board. |
-| `13 Components` | Active component library, component rules, drift snapshot, production component sections, guidance, deprecated components, and archive. |
+| Page | Node ID | Role |
+|---|---|---|
+| `00 Overview` | `92:2` | File cover, file guide, changelog, and GMS Digital Service Architecture board. |
+| `01 Process` | `61:615` | Working page: decision log, roadmap, open questions, collected and superseded references. |
+| `10 Brand` | `167:13414` | Logo artwork and variants, logo usage rules, brand color source notes. |
+| `11 Foundations` | `815:98` | Canonical v1 token reference: color, typography, spacing, radius, shadow, height, token registry, and `--gm-*` code contract. |
+| `12 Design System` | `92:3` | Usage guidance: workflow, applying foundations, pattern guidance, accessibility/QA, handoff, governance, drift snapshot. |
+| `13 Components` | `92:4` | Active component library, component rules, drift snapshot, production sections, deprecated components, and archive. |
+| `14 Icon Library` | `785:72` | Meteocons, Lucide, and weather/astronomy icon sets (2,213 components). |
+| `20 Products` | `274:21783` | Report production workflow: current report, review, final, export specs, handoff, archive. |
+| `30 Website` | `275:21785` | Desktop and mobile homepage screens, built entirely from `13 Components` instances. |
+| `99 Archive` | `92:7` | Superseded documentation (archived PDS handoff/code contract). Reference only. |
 
-The `00 Overview` page is documentation-oriented. It contains:
-
-- `01 File Cover`
-- `02 File Guide`
-- `03 Changelog`
-- `04 GMS Digital Service Architecture`
-
-The Figma changelog records `v1.2` on 2026-05-30: file simplification, page split into brand/foundation areas, PDS section cleanup, deprecated component archival, and Website namespace unification. The current MCP-visible structure exposes the consolidated overview/components handoff; if extra library pages are visible in the Figma UI but not through MCP metadata, treat the Figma UI as the source for those pages and update this section.
+The Figma changelog records `v1.3` on 2026-06-13: Input `invalid` promoted to a component-set state, Button `size=touch` added, the `font-sans` variable added (81 variables), the repo bridge repaired (scripts, cap app, docs), and Process/Brand cleanup.
 
 The `13 Components` page is the repo handoff map for v1:
 
 | Section | Handoff role | Repo direction |
 |---|---|---|
 | `00 Guide / Component Rules` | Component operating rules and 2026-05-31 drift snapshot. | Keep this aligned with the audit summary below. |
-| `01 Core UI` | Production core primitives. Figma currently documents `Button` and `Input` with 39 variants across 2 component sets. | `Button` has local Code Connect. `Input` exists in Figma and code; local Code Connect remains next. |
+| `01 Core UI` | Production core primitives. Figma documents `Button` (42 variants, including `size=touch`) and `Input` (3 states, including `invalid`) — 45 variants across 2 component sets. | `Button` has local Code Connect. `Input` exists in Figma and code; local Code Connect remains next. |
 | `02 Weather Domain` | Alert cards, compact alert cards, forecast headline, metrics, metric grid, and IBF matrix. | Weather warning and IBF components should graduate through `@grenmet/ui` only after APIs are stable. |
 | `03 Product PDF` | A4 report shell/body/header/footer, product badges, alert grid, alert section, and forecast details with IBF. | Keep fixed A4 dimensions and Noto Sans in the Document Templates lane. |
 | `04 Website / Shared` | Shared public website components: logo, accent line, social button, footer link, author row, section header, warning rows/accordion, summary/news cards, and 44px icon buttons. | Public website patterns should be validated in `spicewx` before broad reuse. |
@@ -70,10 +71,10 @@ The design system has three layers:
 Defined in `packages/ui/src/styles/globals.css`. These are the canonical values — colors, spacing steps, radius values, type sizes. Every app receives this block automatically when it imports `@grenmet/ui`.
 
 ```css
---gm-blue: #0057A3;
+--gm-blue: #2478f2;
 --gm-spacing-4: 4px;
---gm-radius-md: 8px;
---gm-weather-severity-take-action: #D00000;
+--gm-radius-8: 8px;
+--gm-weather-severity-take-action: var(--gm-risk-red);
 ```
 
 **2. Tailwind v4 utility aliases (`@theme`)**
@@ -198,6 +199,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `wxwatch` | Media/gallery cleanup lane | Keep media viewport behavior local while aligning labels, timestamps, and shell styling. |
 | `salesbus` | App-specific operational UI lane | Share foundations without forcing weather-specific product patterns. |
 | `hurricaneplan` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
+| `cap` | Public alert-viewer lane | Bridged 2026-06-13; map the initial hard-coded colors back to GrenMet tokens as the UI settles. |
 
 ### Migration Order
 
@@ -219,6 +221,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with GrenMet tokens. |
 | `hurricaneplan` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
 | `admin-gms` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
+| `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with GrenMet tokens. |
 
 Run the warning-only audit command to find foundation drift:
 
@@ -236,16 +239,16 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 80 scoped variables, and WEB code syntax for every public token. The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `spicewx` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
+The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `spicewx` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
 
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
 The current audit verified the collection includes the v1 color, spacing, radius, typography, line-height, and shadow code-contract variables with valid `var(--gm-...)` WEB code syntax.
 
-Repo-side audit status as of 2026-05-31:
+Repo-side audit status as of 2026-06-13 (the `design-system:*` scripts were broken from 2026-05-31 until 2026-06-13 by a `rootDir` path bug after they moved under `scripts/design-system/`; fixed, and `cap` added to sync and audit coverage):
 
-- `pnpm design-system:check` passes. Generated app foundation blocks match `@grenmet/ui`.
-- `pnpm design-system:contrast` passes for all warning foreground/background pairs.
+- `pnpm design-system:check` passes. Generated app foundation blocks match `@grenmet/ui` across all nine web apps, including `cap`.
+- `pnpm design-system:contrast` passes for all five warning foreground/background pairs.
 - `pnpm design-system:audit` remains warning-only. It reports expected migration debt, not CI failures.
 
 Current audit summary:
@@ -253,6 +256,7 @@ Current audit summary:
 | App/package | Audit status |
 |---|---|
 | `auth` | No findings. |
+| `cap` | Small set of hard-coded colors (5) from the initial build. |
 | `spicewx` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
 | `wxwatch` | Small fixed-media/gallery viewport exceptions. |
 | `salesbus` | Small product-specific sizing exceptions. |
@@ -260,7 +264,7 @@ Current audit summary:
 | `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
 | `@grenmet/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
 | `admin-gms` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
-| `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches, and template spacing. |
+| `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
 
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `admin-gms`; retained as migration debt because downstream third-party overrides depend on it.
@@ -303,7 +307,7 @@ Warning color must always be paired with visible text. A yellow, amber, red, gre
 
 ## Button Pilot
 
-The first Core UI pilot connects the shared React `Button` to the Figma component set named `GrenMet / Core Button` on the `13 Components` page.
+The first Core UI pilot connects the shared React `Button` to the Figma component set named `GrenMet / Core / Button` on the `13 Components` page. The set covers the full React API: 6 variants × 7 sizes (`default`, `sm`, `lg`, `touch`, `icon`, `icon-sm`, `icon-lg`) — 42 variants. `size=touch` (min-height 48px) was added 2026-06-13 for touch-target products such as `salesbus`.
 
 1. Keep the Figma `Variant` and `Size` options aligned with the React `Button` API.
 2. Use the Button node URL in `packages/ui/src/components/ui/button.figma.tsx`.
@@ -321,9 +325,9 @@ The Button Code Connect artifacts are ready in the repo, but publish is currentl
 
 ## Input Pilot
 
-The next Core UI pilot is the shared React `Input` represented in Figma as `GrenMet / Core Input` on the `13 Components` page.
+The next Core UI pilot is the shared React `Input` represented in Figma as `GrenMet / Core / Input` on the `13 Components` page.
 
-- Figma states are `Default`, `Disabled`, and `Invalid`.
+- Figma states are `default`, `disabled`, and `invalid` — all three are proper states in the component set (`invalid` was promoted from a loose component into the set on 2026-06-13).
 - The editable `Text` property supports placeholder or example value content.
 - These Figma states document the current React surface: disabled remains a native input prop, and invalid remains `aria-invalid`.
 - Input is present in Figma and code, but it does not yet have a local `.figma.tsx` Code Connect mapping. It remains the next mapping after Button. Do not publish Input or any broader component mappings while publish remains blocked.

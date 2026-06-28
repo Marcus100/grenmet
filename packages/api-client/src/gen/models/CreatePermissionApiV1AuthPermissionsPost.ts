@@ -10,7 +10,7 @@ import type { PermissionPublic } from "./PermissionPublic.js";
 /**
  * @description Permission created
  */
-export type CreatePermissionApiV1AuthPermissionsPost200 = PermissionPublic;
+export type CreatePermissionApiV1AuthPermissionsPost201 = PermissionPublic;
 
 /**
  * HTTPValidationError
@@ -25,10 +25,10 @@ export type CreatePermissionApiV1AuthPermissionsPostMutationRequest =
   PermissionCreate;
 
 export type CreatePermissionApiV1AuthPermissionsPostMutationResponse =
-  CreatePermissionApiV1AuthPermissionsPost200;
+  CreatePermissionApiV1AuthPermissionsPost201;
 
 export type CreatePermissionApiV1AuthPermissionsPostMutation = {
-  Response: CreatePermissionApiV1AuthPermissionsPost200;
+  Response: CreatePermissionApiV1AuthPermissionsPost201;
   Request: CreatePermissionApiV1AuthPermissionsPostMutationRequest;
   Errors: CreatePermissionApiV1AuthPermissionsPost422;
 };

@@ -1,0 +1,55 @@
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "company_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Company Name"
+    },
+    "phone": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Phone"
+    },
+    "vehicle_registration_no": {
+      "type": "string",
+      "title": "Vehicle Registration No"
+    },
+    "vehicle_insurance_issue_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Vehicle Insurance Issue Date"
+    },
+    "vehicle_insurance_expiry_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Vehicle Insurance Expiry Date"
+    },
+    "action_requested": {
+      "default": "NEW_PERMIT",
+      "type": "string",
+      "enum": [
+        "NEW_PERMIT",
+        "ANNUAL_RENEWAL",
+        "REPLACEMENT_LOST_STOLEN",
+        "INFORMATION_CHANGE",
+        "OTHER"
+      ],
+      "title": "ParkingAction",
+      "x-readme-ref-name": "ParkingAction"
+    },
+    "action_other_detail": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Action Other Detail"
+    },
+    "fee_amount": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" }
+      ],
+      "title": "Fee Amount",
+      "default": "40.00"
+    }
+  },
+  "type": "object",
+  "required": ["user_id", "department_id", "vehicle_registration_no"],
+  "title": "ParkingPermitCreate",
+  "x-readme-ref-name": "ParkingPermitCreate"
+}

@@ -11,7 +11,7 @@ import { userPublicSchema } from "./userPublicSchema.js";
 /**
  * @description User created
  */
-export const createUserApiV1AuthUsersPost200Schema = z.lazy(
+export const createUserApiV1AuthUsersPost201Schema = z.lazy(
   () => userPublicSchema
 );
 
@@ -32,5 +32,5 @@ export const createUserApiV1AuthUsersPostMutationRequestSchema = z.lazy(
 );
 
 export const createUserApiV1AuthUsersPostMutationResponseSchema = z.lazy(
-  () => createUserApiV1AuthUsersPost200Schema
+  () => createUserApiV1AuthUsersPost201Schema
 );

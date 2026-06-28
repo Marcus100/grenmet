@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["ACTIVE", "INACTIVE", "FAILED"],
+  "title": "CapIntegrationStatus",
+  "x-readme-ref-name": "CapIntegrationStatus"
+}

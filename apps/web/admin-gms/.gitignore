@@ -1,11 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
-/.idea
 /node_modules
-/.pnp
-.pnp.js
-.yarn/install-state.gz
 
 # testing
 /coverage
@@ -17,10 +13,8 @@
 # production
 /build
 !lib/
-!.env.ts
 
 # misc
-.DS_Store
 *.pem
 
 # debug
@@ -29,9 +23,10 @@ yarn-debug.log*
 yarn-error.log*
 
 # env files
-.env*.local
+.env*
 !.env.example
 !.env.*.example
+!.env.ts
 
 # vercel
 .vercel
