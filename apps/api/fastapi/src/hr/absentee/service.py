@@ -5,10 +5,12 @@ from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
+from src.hr.constants import ERROR_ABSENTEE_REASON_REQUIRES_NOTES
+from src.hr.exceptions import HRValidationError
 from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity
 
-from .models import AbsenteeReport
+from .models import ABSENCE_REASONS_REQUIRING_NOTES, AbsenteeReport
 from .schemas import AbsenteeReportCreate
 
 logger = logging.getLogger(__name__)
@@ -20,6 +22,10 @@ async def create_absentee_report(
     require_permission(
         current_user=current_user, permission_key="absentee.report.create"
     )
+    if payload.reason in ABSENCE_REASONS_REQUIRING_NOTES and not (
+        payload.notes and payload.notes.strip()
+    ):
+        raise HRValidationError(ERROR_ABSENTEE_REASON_REQUIRES_NOTES)
     report = AbsenteeReport(
         user_id=payload.user_id,
         department_id=payload.department_id,
@@ -27,7 +33,7 @@ async def create_absentee_report(
         expected_shift_code=payload.expected_shift_code,
         absence_start_time=payload.absence_start_time,
         absence_end_time=payload.absence_end_time,
-        reason_code=payload.reason_code,
+        reason=payload.reason,
         notes=payload.notes,
         contact_attempted=payload.contact_attempted,
         contact_method=payload.contact_method,

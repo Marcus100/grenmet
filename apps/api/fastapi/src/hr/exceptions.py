@@ -72,6 +72,11 @@ class AbsenteeReportNotFoundError(NotFoundError):
         super().__init__(hr_constants.ERROR_ABSENTEE_REPORT_NOT_FOUND)
 
 
+class ParkingPermitNotFoundError(NotFoundError):
+    def __init__(self) -> None:
+        super().__init__(hr_constants.ERROR_PARKING_PERMIT_NOT_FOUND)
+
+
 # --- 403 Forbidden (AuthorizationError with message from constants) ---
 
 

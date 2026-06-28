@@ -21,6 +21,10 @@ dependencies = [
     "slowapi>=0.1.9",
     "ddtrace>=2.0.0",
     "python-json-logger>=2.0.0",
+    "boto3>=1.43.36",
+    "arq>=0.28.0",
+    "redis>=5.3.1",
+    "fpdf2>=2.8.7",
 ]
 
 [dependency-groups]
@@ -32,6 +36,7 @@ dev = [
     "ruff>=0.6.0",
     "pre-commit>=3.6.2",
     "coverage>=7.4.3",
+    "fakeredis>=2.36.2",
 ]
 
 [build-system]

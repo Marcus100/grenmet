@@ -59,3 +59,9 @@ ERROR_SHIFT_SWAP_NOT_FOUND = "Shift swap request not found"
 ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED = "Not allowed to action this shift swap"
 ERROR_STATUS_REPORT_NOT_FOUND = "Status report not found"
 ERROR_ABSENTEE_REPORT_NOT_FOUND = "Absentee report not found"
+
+# --- Parking (hr/parking/service.py) ---
+ERROR_PARKING_PERMIT_NOT_FOUND = "Parking permit not found"
+ERROR_ABSENTEE_REASON_REQUIRES_NOTES = (
+    "A written reason is required for uncertified sick or illness on the job"
+)

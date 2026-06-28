@@ -210,5 +210,6 @@ class ApprovalAuthority(SQLModel, table=True):
     can_approve_shift_swap: bool = False
     can_approve_timesheets: bool = False
     can_approve_absentee_reports: bool = False
+    can_approve_parking: bool = False
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)

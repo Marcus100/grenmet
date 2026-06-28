@@ -122,8 +122,15 @@ async def create_timesheet(
             roster_assignment_id=linked_ra.id if linked_ra else None,
             roster_hours=entry.roster_hours,
             actual_hours=entry.actual_hours,
+            total_hours=entry.total_hours
+            if entry.total_hours is not None
+            else entry.actual_hours,
             overtime_hours=entry.overtime_hours,
             break_hours=entry.break_hours,
+            hours_worked=entry.hours_worked
+            if entry.hours_worked is not None
+            else entry.actual_hours - entry.break_hours,
+            medical_certificate_attached=entry.medical_certificate_attached,
             comments=entry.comments,
         )
         session.add(db_entry)
@@ -145,13 +152,21 @@ async def submit_timesheet(
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
+    policy = await _get_or_create_policy(
+        session=session, department_id=timesheet.department_id
+    )
+
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:
         raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
     if submission_mode == SubmissionMode.SELF:
+        if not policy.allow_employee_self_submit:
+            raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
         require_permission(
             current_user=current_user, permission_key="timesheet.submit.self"
         )
     if submission_mode == SubmissionMode.PROXY:
+        if not policy.allow_supervisor_proxy_submit:
+            raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
         require_permission(
             current_user=current_user, permission_key="timesheet.submit.proxy"
         )

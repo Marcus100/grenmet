@@ -1,6 +1,7 @@
 import uuid
 from datetime import date, datetime
 
+from src.hr.absentee.models import AbsenceReason
 from src.hr.models import RequestStatus
 from src.models import BaseModel
 
@@ -12,7 +13,7 @@ class AbsenteeReportCreate(BaseModel):
     expected_shift_code: str | None = None
     absence_start_time: str | None = None
     absence_end_time: str | None = None
-    reason_code: str
+    reason: AbsenceReason
     notes: str | None = None
     contact_attempted: bool = False
     contact_method: str | None = None
@@ -28,7 +29,7 @@ class AbsenteeReportPublic(BaseModel):
     expected_shift_code: str | None = None
     absence_start_time: str | None = None
     absence_end_time: str | None = None
-    reason_code: str
+    reason: AbsenceReason
     notes: str | None = None
     contact_attempted: bool
     contact_method: str | None = None

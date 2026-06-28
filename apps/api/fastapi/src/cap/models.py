@@ -151,7 +151,9 @@ class CapInfo(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    alert_id: uuid.UUID = Field(foreign_key="cap.alert.id", index=True)
+    alert_id: uuid.UUID = Field(
+        foreign_key="cap.alert.id", index=True, ondelete="CASCADE"
+    )
     sequence: int = Field(default=0, ge=0)
     language: str = Field(default="en", max_length=35)
     categories: list[str] = Field(default_factory=list, sa_column=sa.Column(sa.JSON))
@@ -191,7 +193,9 @@ class CapArea(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    info_id: uuid.UUID = Field(foreign_key="cap.info.id", index=True)
+    info_id: uuid.UUID = Field(
+        foreign_key="cap.info.id", index=True, ondelete="CASCADE"
+    )
     predefined_area_id: uuid.UUID | None = Field(
         default=None, foreign_key="cap.predefined_area.id"
     )
@@ -224,13 +228,15 @@ class CapResource(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    info_id: uuid.UUID = Field(foreign_key="cap.info.id", index=True)
+    info_id: uuid.UUID = Field(
+        foreign_key="cap.info.id", index=True, ondelete="CASCADE"
+    )
     sequence: int = Field(default=0, ge=0)
     resource_desc: str = Field(max_length=255)
     mime_type: str = Field(max_length=120)
     size: int | None = Field(default=None, ge=0)
     uri: str | None = Field(default=None, max_length=1000)
-    deref_uri: str | None = Field(default=None)
+    deref_uri: str | None = Field(default=None, sa_type=sa.Text)
     digest: str | None = Field(default=None, max_length=255)
 
     info: "CapInfo" = Relationship(back_populates="resources")
@@ -241,7 +247,9 @@ class CapReference(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    alert_id: uuid.UUID = Field(foreign_key="cap.alert.id", index=True)
+    alert_id: uuid.UUID = Field(
+        foreign_key="cap.alert.id", index=True, ondelete="CASCADE"
+    )
     sequence: int = Field(default=0, ge=0)
     sender: str = Field(max_length=255)
     identifier: str = Field(max_length=255)
@@ -255,7 +263,9 @@ class CapIncident(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    alert_id: uuid.UUID = Field(foreign_key="cap.alert.id", index=True)
+    alert_id: uuid.UUID = Field(
+        foreign_key="cap.alert.id", index=True, ondelete="CASCADE"
+    )
     sequence: int = Field(default=0, ge=0)
     value: str = Field(max_length=255)
 
@@ -267,9 +277,11 @@ class CapSnapshot(SQLModel, table=True):
     __table_args__ = {"schema": "cap"}
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    alert_id: uuid.UUID = Field(foreign_key="cap.alert.id", index=True)
+    alert_id: uuid.UUID = Field(
+        foreign_key="cap.alert.id", index=True, ondelete="CASCADE"
+    )
     identifier: str = Field(index=True, max_length=255)
-    xml: str
+    xml: str = Field(sa_type=sa.Text)
     content_hash: str = Field(max_length=64, index=True)
     generated_at: datetime = Field(default_factory=utc_now, index=True)
     signed_at: datetime | None = Field(default=None)

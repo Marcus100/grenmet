@@ -10,4 +10,11 @@ Rate limiting for auth and sensitive endpoints.
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-limiter = Limiter(key_func=get_remote_address)
+from src.worker.config import worker_settings
+
+# Use a shared Redis store when REDIS_URL is configured (required for correct
+# rate limiting across multiple app instances); otherwise fall back to in-memory.
+limiter = Limiter(
+    key_func=get_remote_address,
+    storage_uri=worker_settings.REDIS_URL,
+)

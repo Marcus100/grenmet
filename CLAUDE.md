@@ -125,6 +125,8 @@ When adding to this file, follow this structure:
 | GMS programme and strategy         | `docs/internal/`                   |
 | GMS operational procedures / SOPs  | `docs/operations/`                 |
 | A specific web app                 | `apps/web/<app>/CLAUDE.md`         |
+| HR forms → model field mapping     | `docs/hr/forms-inventory.md`       |
+| Adding a new HR form module        | `docs/hr/adding-a-form-module.md`  |
 | FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
 | FastAPI dev workflow               | `docs/api/development.md`          |
 | Dev commands                       | `AGENTS.md`                        |

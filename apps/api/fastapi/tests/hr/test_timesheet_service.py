@@ -5,9 +5,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AuthorizationError
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
-from src.hr.timesheet.models import DepartmentPolicy, SubmissionMode, TimesheetStatus
+from src.hr.timesheet.models import SubmissionMode, TimesheetStatus
 from src.hr.timesheet.schemas import TimesheetCreate
 from src.hr.timesheet.service import (
+    _get_or_create_policy,
     approve_timesheet,
     create_timesheet,
     submit_timesheet,
@@ -49,15 +50,14 @@ async def test_self_submit_disabled_raises(db_async: AsyncSession) -> None:
     )
     await assign_role(db_async, user=user, role=role)
 
-    policy = DepartmentPolicy(
-        department_id=dept.id,
-        allow_employee_self_submit=False,
-        allow_supervisor_proxy_submit=True,
-    )
+    # Create the draft while self-submit is still allowed (default policy),
+    # then disable self-submit before attempting to submit.
+    timesheet = await _make_timesheet(db_async, user, dept.id)
+
+    policy = await _get_or_create_policy(session=db_async, department_id=dept.id)
+    policy.allow_employee_self_submit = False
     db_async.add(policy)
     await db_async.commit()
-
-    timesheet = await _make_timesheet(db_async, user, dept.id)
 
     with pytest.raises(HRPermissionDeniedError):
         await submit_timesheet(
@@ -74,15 +74,24 @@ async def test_proxy_submit_disabled_raises(db_async: AsyncSession) -> None:
         db_async, "timesheet.approve", "timesheet.submit.proxy"
     )
 
-    policy = DepartmentPolicy(
-        department_id=dept.id,
-        allow_employee_self_submit=True,
-        allow_supervisor_proxy_submit=False,
+    # Create the draft via proxy while proxy-submit is still allowed (default
+    # policy), then disable proxy-submit before attempting to submit.
+    timesheet, _ = await create_timesheet(
+        session=db_async,
+        current_user=supervisor,
+        payload=TimesheetCreate(
+            user_id=employee.id,
+            department_id=dept.id,
+            period_start="2026-06-01",
+            period_end="2026-06-15",
+            entries=[],
+        ),
     )
+
+    policy = await _get_or_create_policy(session=db_async, department_id=dept.id)
+    policy.allow_supervisor_proxy_submit = False
     db_async.add(policy)
     await db_async.commit()
-
-    timesheet = await _make_timesheet(db_async, employee, dept.id)
 
     with pytest.raises(HRPermissionDeniedError):
         await submit_timesheet(

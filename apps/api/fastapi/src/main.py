@@ -34,6 +34,7 @@ from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
+from src.hr.parking.router import router as hr_parking_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
 from src.hr.timesheet.router import router as hr_timesheet_router
@@ -145,6 +146,7 @@ app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
+app.include_router(hr_parking_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")
 app.include_router(cap_public_router)
 

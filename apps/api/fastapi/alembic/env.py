@@ -40,6 +40,7 @@ from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
 from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
+from src.hr.parking.models import ParkingPermit  # noqa: F401
 from src.hr.models import (  # noqa: F401
     ApprovalAuthority,
     Department,

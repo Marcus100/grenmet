@@ -24,6 +24,10 @@ class AuthConfig(BaseSettings):
     SESSION_EXPIRE_DAYS: int = 30
     SESSION_COOKIE_NAME: str = "grenmet_session"
     SESSION_COOKIE_DOMAIN: str | None = None
+    # Account lockout (Redis-backed; disabled when REDIS_URL is unset — fail-open).
+    LOGIN_MAX_FAILED_ATTEMPTS: int = 10
+    LOGIN_LOCKOUT_SECONDS: int = 900
+    LOGIN_FAILURE_WINDOW_SECONDS: int = 900
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:

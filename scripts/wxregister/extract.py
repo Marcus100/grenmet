@@ -15,11 +15,16 @@ Column meaning follows the two WMO source summaries used as guidance:
   - wmo-306-i1-codes-2019.md  (code construction: how each group is built)
   - wmo-49-ii-aviation-met-2018.md  (service rules for METAR/SPECI/TAF)
 
+Input: COMBINED sheets (left = Section 0/1, right = Section 3, rows aligned),
+produced by align_combine.py as `synop_day*_combined.png`. Each row is read
+straight across both halves so one CSV row holds the whole observation. To
+transcribe a single half instead, pass it explicitly as an argument.
+
 Usage (uv resolves the anthropic dependency from the inline metadata above):
     export ANTHROPIC_API_KEY=sk-ant-...
-    uv run extract.py                       # all *.png here -> wxregister.csv
+    uv run extract.py                       # synop_day*_combined.png -> wxregister.csv
     uv run extract.py --out data.csv img1.png img2.png
-    uv run extract.py --model claude-opus-4-8 --glob 'wxregister*.png'
+    uv run extract.py --model claude-opus-4-8 --glob 'synop_day*_combined.png'
 
 Designed so higher-resolution rescans drop in unchanged: point --glob at the new
 files (or pass them as arguments) and rerun. Accuracy at the current ~624px
@@ -77,6 +82,30 @@ COLUMNS: list[tuple[str, str, str]] = [
     ("low_cloud_type", "8CL", "Low cloud genus CL"),
     ("mid_cloud_type", "8CM", "Middle cloud genus CM"),
     ("high_cloud_type", "8CH", "High cloud genus CH"),
+    # --- Section 3: regional / national data (back page; the RIGHT half of a
+    #     combined sheet, under the printed "SECTION 3 / 333" header) ---
+    ("s3_state_of_sky", "0", "Section 3: state-of-sky / cloud-development indicator group"),
+    ("s3_cloud_dir_low", "DL", "Section 3: direction of low-cloud movement"),
+    ("s3_cloud_dir_mid", "DM", "Section 3: direction of middle-cloud movement"),
+    ("s3_cloud_dir_high", "DH", "Section 3: direction of high-cloud movement"),
+    ("s3_max_temp", "1snTxTxTx", "Section 3: maximum temperature with sign"),
+    ("s3_min_temp", "2snTnTnTn", "Section 3: minimum temperature with sign"),
+    ("s3_baro_change_24h", "5appp", "Section 3: 24-hour barometric change group as written"),
+    ("s3_rainfall_24h", "7RRR", "Section 3: 24-hour rainfall (00/06/12/18Z cells) as written"),
+    ("s3_layer1_amount", "8Ns", "Section 3 cloud layer 1: amount of layer Ns"),
+    ("s3_layer1_form", "C", "Section 3 cloud layer 1: genus/form C"),
+    ("s3_layer1_height", "hshs", "Section 3 cloud layer 1: height of base hshs"),
+    ("s3_layer2_amount", "8Ns", "Section 3 cloud layer 2: amount of layer Ns"),
+    ("s3_layer2_form", "C", "Section 3 cloud layer 2: genus/form C"),
+    ("s3_layer2_height", "hshs", "Section 3 cloud layer 2: height of base hshs"),
+    ("s3_layer3_amount", "8Ns", "Section 3 cloud layer 3: amount of layer Ns"),
+    ("s3_layer3_form", "C", "Section 3 cloud layer 3: genus/form C"),
+    ("s3_layer3_height", "hshs", "Section 3 cloud layer 3: height of base hshs"),
+    ("s3_layer4_amount", "8Ns", "Section 3 cloud layer 4: amount of layer Ns"),
+    ("s3_layer4_form", "C", "Section 3 cloud layer 4: genus/form C"),
+    ("s3_layer4_height", "hshs", "Section 3 cloud layer 4: height of base hshs"),
+    ("s3_special_phenomena", "95SpSpspsp", "Section 3: special-phenomena group(s) as written"),
+    ("s3_remarks", "-", "Section 3: remarks / plain-language additions / regional & national groups (right-most columns)"),
     # --- provenance ---
     ("notes", "-", "Transcription notes: illegible cells, ambiguities, extra columns"),
 ]
@@ -116,12 +145,24 @@ def build_prompt() -> str:
     lines = [
         "You are transcribing a scanned/photographed WMO SYNOP surface-observation",
         "register sheet (FM 12 SYNOP, per WMO-306 Vol I.1). It is a dense grid of",
-        "handwritten, multi-coloured numeric data. The printed header shows SECTION 0",
-        "(identification) and SECTION 1 (core data), with the columns laid out as the",
-        "SYNOP code groups.",
+        "handwritten, multi-coloured numeric data.",
         "",
-        "Transcribe EVERY data row, top to bottom, into the fields below. Map each cell",
-        "to the matching field by its column position / printed header.",
+        "The image is a COMBINED two-section sheet placed side by side, with the data",
+        "rows aligned across the join:",
+        "  - LEFT half  = SECTION 0 (identification) + SECTION 1 (core data), columns",
+        "    laid out as the SYNOP code groups (report type, day, hour, station, wind,",
+        "    temps, pressure, present/past weather, the 8NhCLCMCH cloud group).",
+        "  - RIGHT half = SECTION 3 (regional / national), under the printed",
+        "    'SECTION 3 / 333' header: state of sky and cloud-direction columns,",
+        "    Maximum and Minimum temperature, 24-hour barometric change, 24-hour",
+        "    rainfall, up to FOUR supplementary cloud-layer groups (each 8 Ns C hshs:",
+        "    amount / form / height), a 95SpSpspsp special-phenomena group, and a wide",
+        "    REMARKS column of plain-language / regional / national groups.",
+        "",
+        "Each observation is ONE row that runs straight across both halves: read the",
+        "left-half cells and the right-half cells at the SAME vertical position into the",
+        "same output row. Transcribe EVERY data row, top to bottom. Map each cell to the",
+        "matching field by its column position / printed header.",
         "",
         "Rules:",
         "- Transcribe digits and signs EXACTLY as written. Do not 'correct' values.",
@@ -130,6 +171,9 @@ def build_prompt() -> str:
         "- Keep numbers as plain strings (e.g. '27.4', '-2.3', '1013', '08'). Do not add",
         "  units. Preserve leading zeros.",
         "- Temperatures: include the sign and decimal if shown.",
+        "- Section 3 cloud layers are filled lowest-first: put the lowest layer in",
+        "  s3_layer1_*, the next higher in s3_layer2_*, and so on. Leave unused layers empty.",
+        "- The right-half REMARKS column is free text; copy it verbatim into s3_remarks.",
         "- If a row spans the page but some groups are empty, still emit the row with the",
         "  present fields filled and the rest as empty strings.",
         "- Use the `notes` field for anything uncertain: illegible cells, smudges,",
@@ -219,7 +263,7 @@ def resolve_inputs(args: argparse.Namespace) -> list[Path]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("images", nargs="*", help="Image files to process (default: --glob in this dir)")
-    parser.add_argument("--glob", default="wxregister*.png", help="Glob for input images when none are given (default: wxregister*.png)")
+    parser.add_argument("--glob", default="synop_day*_combined.png", help="Glob for input images when none are given (default: synop_day*_combined.png)")
     parser.add_argument("--out", default=None, help="Output CSV path (default: wxregister.csv beside this script)")
     parser.add_argument("--model", default=MODEL, help=f"Claude model id (default: {MODEL})")
     args = parser.parse_args(argv)
