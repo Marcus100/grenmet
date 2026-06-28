@@ -153,12 +153,14 @@ jobs:
           docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
             api db proxy prestart adminer || true
           docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" pull \
-            web-auth web-admin web-migrate web-hurricaneplan web-spicewx 2>/dev/null || true
+            web-auth web-admin web-migrate web-hurricaneplan web-spicewx || true
 
       - name: Deploy full staging stack
         run: |
           set -euo pipefail
-          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" up -d
+          # --pull always: never reuse a stale cached image (e.g. web-admin); always
+          # fetch the freshly-built tag so the droplet runs the latest code.
+          docker compose --env-file .env -f docker-compose.staging.yml -p "grenmet-staging" up -d --pull always --remove-orphans
           echo "=== Service status ===" ; docker compose -p "grenmet-staging" ps || true
 
       - name: Health checks

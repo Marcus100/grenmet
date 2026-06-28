@@ -108,7 +108,7 @@ jobs:
           docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull api db proxy prestart || true
           # Pull web app images (may not exist yet on first deploy — ignore failures)
           docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" pull \
-            web-auth web-admin web-migrate web-hurricaneplan web-spicewx 2>/dev/null || true
+            web-auth web-admin web-migrate web-hurricaneplan web-spicewx || true
 
       - name: Start database
         run: |
@@ -126,7 +126,9 @@ jobs:
       - name: Deploy full stack
         run: |
           set -euxo pipefail
-          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" up -d --remove-orphans
+          # --pull always: never reuse a stale cached image; always fetch the
+          # freshly-built tag so the droplet runs the latest code.
+          docker compose --env-file .env -f docker-compose.prod.yml -p "grenmet" up -d --pull always --remove-orphans
           echo "=== Service status ===" ; docker compose -p "grenmet" ps || true
 
       - name: Health checks
