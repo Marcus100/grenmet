@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,8 @@ from src.utils.datetime import utc_now
 
 from .models import ShiftSwapRequest
 from .schemas import ShiftSwapAction, ShiftSwapRequestCreate
+
+logger = logging.getLogger(__name__)
 
 
 async def create_shift_swap_request(
@@ -81,4 +84,12 @@ async def action_shift_swap_request(
     session.add(request)
     await session.commit()
     await session.refresh(request)
+    logger.info(
+        "Shift swap actioned",
+        extra={
+            "shift_swap_id": str(request.id),
+            "status": payload.status.value,
+            "actor_id": str(current_user.id),
+        },
+    )
     return request

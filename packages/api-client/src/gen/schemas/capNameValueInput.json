@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "value_name": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Value Name"
+    },
+    "value": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Value"
+    }
+  },
+  "type": "object",
+  "required": ["value_name", "value"],
+  "title": "CapNameValue",
+  "x-readme-ref-name": "CapNameValue-Input"
+}

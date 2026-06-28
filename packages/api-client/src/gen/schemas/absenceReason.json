@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "enum": [
+    "UNCERTIFIED_SICK",
+    "ILLNESS_FAMILY_MEMBER",
+    "ILLNESS_ON_JOB",
+    "TIME_OFF",
+    "OTHER"
+  ],
+  "title": "AbsenceReason",
+  "x-readme-ref-name": "AbsenceReason"
+}

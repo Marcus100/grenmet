@@ -21,7 +21,9 @@ export default withContentCollections(nextConfig).then((config) =>
     project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
     silent: !process.env.CI,
     widenClientFileUpload: true,
-    disableLogger: true,
-    automaticVercelMonitors: false,
+    webpack: {
+      treeshake: { removeDebugLogging: true },
+      automaticVercelMonitors: false,
+    },
   })
 );

@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +13,8 @@ from src.hr.workflow.service import start_workflow_for_entity
 from .models import StatusReport, StatusReportEntry
 from .schemas import StatusReportCreate
 
+logger = logging.getLogger(__name__)
+
 
 async def create_status_report(
     *, session: AsyncSession, current_user: User, payload: StatusReportCreate
@@ -21,7 +24,17 @@ async def create_status_report(
         department_id=payload.department_id,
         report_date=payload.report_date,
         shift_code=payload.shift_code,
+        shift_period=payload.shift_period,
         submitted_by_user_id=current_user.id,
+        all_personnel_reported_on_time=payload.all_personnel_reported_on_time,
+        personnel_explanation=payload.personnel_explanation,
+        affected_operations=payload.affected_operations,
+        affected_operations_explanation=payload.affected_operations_explanation,
+        all_equipment_operational=payload.all_equipment_operational,
+        equipment_issue_reason=payload.equipment_issue_reason,
+        equipment_remedy_action=payload.equipment_remedy_action,
+        incident_reports_submitted=payload.incident_reports_submitted,
+        incident_explanation=payload.incident_explanation,
         weather_summary=payload.weather_summary,
         equipment_summary=payload.equipment_summary,
         personnel_summary=payload.personnel_summary,
@@ -62,6 +75,10 @@ async def create_status_report(
     session.add(report)
     await session.commit()
     await session.refresh(report)
+    logger.info(
+        "Status report created",
+        extra={"report_id": str(report.id), "user_id": str(current_user.id)},
+    )
     return report, entries
 
 
@@ -90,6 +107,6 @@ async def list_status_reports(
     if department_id:
         statement = statement.where(col(StatusReport.department_id) == department_id)
     result = await session.execute(
-        statement.order_by(col(StatusReport.created_at).desc())
+        statement.order_by(col(StatusReport.created_at).desc()).limit(100)
     )
     return list(result.scalars().all())

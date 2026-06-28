@@ -1,39 +1,8 @@
-# Auth Web App (`@grenmet/web-auth`)
+# auth (`@grenmet/web-auth`)
 
-Shared sign-in gateway for Grenmet web applications.
+Shared sign-in gateway for all Grenmet web apps. Port **3000**. No database. No `pnpm start` required.
 
-## Development
+Every other app redirects here for authentication. Does not handle any domain logic — auth flows only.
 
-From repo root:
-
-```bash
-pnpm install
-cp apps/web/auth/.env.local.example apps/web/auth/.env.local
-pnpm dev:web:auth
-```
-
-The app runs on `http://localhost:3000`.
-
-## Run from app directory
-
-```bash
-cd apps/web/auth
-pnpm dev
-```
-
-## Environment Variables
-
-Primary variables (see `.env.local.example`):
-
-- `AUTH_API_URL`
-- `AUTH_API_V1_STR`
-- `SESSION_COOKIE_NAME`
-- `AUTH_ALLOWED_RETURN_HOSTS`
-
-## Quality Commands
-
-```bash
-pnpm check
-pnpm check:ci
-pnpm type-check
-```
+See [CLAUDE.md](./CLAUDE.md) for session model, route structure, and key conventions.
+See [docs/web/development.md](../../../docs/web/development.md) for startup commands.

@@ -11,7 +11,7 @@ import { permissionPublicSchema } from "./permissionPublicSchema.js";
 /**
  * @description Permission created
  */
-export const createPermissionApiV1AuthPermissionsPost200Schema = z.lazy(
+export const createPermissionApiV1AuthPermissionsPost201Schema = z.lazy(
   () => permissionPublicSchema
 );
 
@@ -26,4 +26,4 @@ export const createPermissionApiV1AuthPermissionsPostMutationRequestSchema =
   z.lazy(() => permissionCreateSchema);
 
 export const createPermissionApiV1AuthPermissionsPostMutationResponseSchema =
-  z.lazy(() => createPermissionApiV1AuthPermissionsPost200Schema);
+  z.lazy(() => createPermissionApiV1AuthPermissionsPost201Schema);

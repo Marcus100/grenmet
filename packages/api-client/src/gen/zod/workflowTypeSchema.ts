@@ -11,4 +11,5 @@ export const workflowTypeSchema = z.enum([
   "ABSENTEE_REPORT",
   "STATUS_REPORT",
   "TIMESHEET",
+  "PARKING_PERMIT",
 ]);

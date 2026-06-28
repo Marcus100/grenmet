@@ -8,7 +8,7 @@ A monorepo containing Grenmet applications, shared packages, and deployment infr
 grenmet/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   ├── fastapi/            # FastAPI backend (Python) — auth + HR domains
+│   │   ├── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, webhooks
 │   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
 │       ├── admin-gms/          # Internal GMS operations dashboard
@@ -137,6 +137,7 @@ API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && dock
 | `pnpm type-check`                       | Type-check all                                                     |
 | `pnpm fix`                              | Run ultracite fix                                                  |
 | `pnpm generate:api-client`              | Generate API client (uses current `apps/api/fastapi/openapi.json`) |
+| `pnpm check:drift`                      | Verify generated API client is not older than `openapi.json`       |
 | `pnpm clean`                            | Remove node_modules (git clean)                                    |
 
 Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: see each app's README).
@@ -154,10 +155,16 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | [Technical Overview](docs/technical-overview.md) | How the codebase fits together — monorepo structure, auth flow, shared packages, databases |
 | [Contributing](CONTRIBUTING.md) | Branching strategy, commit conventions, pre-commit checklist, PR process, code conventions |
 | [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
+| [Operations](docs/operations.md) | Runtime topology, health checks, incident triage, backups, restore, access review |
+| [Security Baseline](docs/security.md) | Implemented controls, security rules, authz model, and known gaps |
+| [API Contracts](docs/api/contracts.md) | API conventions, generated client policy, errors, pagination, health, public CAP feeds |
+| [Data Architecture](docs/data-architecture.md) | Database ownership, migrations, backups, and data-governance rules |
 | [Environment variables](docs/env.md) | All env vars for every app — what they do, which file, which service |
 | [Troubleshooting](docs/troubleshooting.md) | Common dev issues — auth loops, stale types, Turbo cache, port conflicts, DB migrations |
 | [GMS Service Architecture](docs/architecture.md) | GMS service strategy, product catalogue, warning model, design system lanes |
 | [Service and Product Catalogue](docs/internal/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
+| [Warning Operations](docs/internal/warning-operations.md) | Implemented CAP lifecycle, permissions, audit events, public feeds, and gaps |
+| [Architecture Decisions](docs/adr/) | ADRs for monorepo, auth, database ownership, generated client, deployment, design system, CAP lifecycle |
 | [Design System](docs/design-system.md) | GrenMet v1 tokens, current Figma file map, component handoff, compliance guide, audit commands |
 | [API Development](docs/api/development.md) | FastAPI local development guide |
 | [API Testing](docs/api/testing.md) | FastAPI test and validation commands |

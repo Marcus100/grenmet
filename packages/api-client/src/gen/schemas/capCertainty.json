@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["Observed", "Likely", "Possible", "Unlikely", "Unknown"],
+  "title": "CapCertainty",
+  "x-readme-ref-name": "CapCertainty"
+}

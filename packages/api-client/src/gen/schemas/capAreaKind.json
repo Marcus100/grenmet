@@ -1,0 +1,13 @@
+{
+  "type": "string",
+  "enum": [
+    "AREA",
+    "PREDEFINED",
+    "POLYGON",
+    "MULTIPOLYGON",
+    "CIRCLE",
+    "GEOCODE"
+  ],
+  "title": "CapAreaKind",
+  "x-readme-ref-name": "CapAreaKind"
+}

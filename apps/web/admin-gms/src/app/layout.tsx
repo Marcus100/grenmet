@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans } from "next/font/google";
 import "./globals.css";
 
 import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
@@ -28,13 +28,24 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Powers the --gm-font-document token used by wxproducts forecast/bulletin documents.
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-noto-sans",
+  display: "swap",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
+    <html
+      className={`${inter.variable} ${notoSans.variable}`}
+      lang="en"
+      style={{ colorScheme: "light" }}
+    >
       <body>
         <PostHogProvider
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}

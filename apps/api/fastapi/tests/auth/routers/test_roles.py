@@ -39,7 +39,7 @@ async def test_create_role(
         headers=superuser_token_headers_async,
         json=data,
     )
-    assert response.status_code == 200
+    assert response.status_code == 201
     content = response.json()
     assert content["name"] == unique_name
     assert content["description"] == "Test role for testing"

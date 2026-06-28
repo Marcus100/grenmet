@@ -5,6 +5,7 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import TimesheetDep
 
+from . import service
 from .schemas import (
     TimesheetCreate,
     TimesheetDetails,
@@ -13,15 +14,6 @@ from .schemas import (
     TimesheetPublic,
     TimesheetSubmitRequest,
     TimesheetSummaryByShift,
-)
-from .service import (
-    approve_timesheet,
-    create_timesheet,
-    get_timesheet_summary,
-    list_department_timesheets,
-    list_my_timesheets,
-    read_timesheet_details,
-    submit_timesheet,
 )
 
 router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
@@ -40,10 +32,10 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
         },
     },
 )
-async def create_timesheet_endpoint(
+async def create_timesheet(
     *, session: SessionDep, current_user: CurrentUser, payload: TimesheetCreate
 ) -> Any:
-    timesheet, entries = await create_timesheet(
+    timesheet, entries = await service.create_timesheet(
         session=session, current_user=current_user, payload=payload
     )
     return TimesheetDetails(
@@ -69,14 +61,14 @@ async def create_timesheet_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-async def submit_timesheet_endpoint(
+async def submit_timesheet(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     timesheet: TimesheetDep,
     payload: TimesheetSubmitRequest,
 ) -> Any:
-    return await submit_timesheet(
+    return await service.submit_timesheet(
         session=session,
         current_user=current_user,
         timesheet_id=timesheet.id,
@@ -98,10 +90,10 @@ async def submit_timesheet_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-async def approve_timesheet_endpoint(
+async def approve_timesheet(
     *, session: SessionDep, current_user: CurrentUser, timesheet: TimesheetDep
 ) -> Any:
-    return await approve_timesheet(
+    return await service.approve_timesheet(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
 
@@ -114,7 +106,7 @@ async def approve_timesheet_endpoint(
     responses={status.HTTP_200_OK: {"description": "Timesheets returned"}},
 )
 async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = await list_my_timesheets(session=session, current_user=current_user)
+    rows = await service.list_my_timesheets(session=session, current_user=current_user)
     return TimesheetListPublic(
         data=[
             TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
@@ -136,7 +128,7 @@ async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> 
 async def read_department_timesheets(
     session: SessionDep, current_user: CurrentUser, department_id: str
 ) -> Any:
-    rows = await list_department_timesheets(
+    rows = await service.list_department_timesheets(
         session=session, current_user=current_user, department_id=department_id
     )
     return TimesheetListPublic(
@@ -165,7 +157,7 @@ async def read_timesheet_summary(
     current_user: CurrentUser,
     timesheet: TimesheetDep,
 ) -> Any:
-    return await get_timesheet_summary(
+    return await service.get_timesheet_summary(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
 
@@ -183,12 +175,12 @@ async def read_timesheet_summary(
         status.HTTP_404_NOT_FOUND: {"description": "Timesheet not found"},
     },
 )
-async def read_timesheet_endpoint(
+async def read_timesheet(
     session: SessionDep,
     current_user: CurrentUser,
     timesheet: TimesheetDep,
 ) -> Any:
-    timesheet_data, entries = await read_timesheet_details(
+    timesheet_data, entries = await service.read_timesheet_details(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
     return TimesheetDetails(

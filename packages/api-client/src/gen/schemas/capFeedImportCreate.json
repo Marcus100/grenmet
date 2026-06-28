@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "name": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Name"
+    },
+    "url": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Url"
+    }
+  },
+  "type": "object",
+  "required": ["name", "url"],
+  "title": "CapFeedImportCreate",
+  "x-readme-ref-name": "CapFeedImportCreate"
+}

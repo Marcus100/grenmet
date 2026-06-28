@@ -25,13 +25,6 @@
               ],
               "title": "Last Name"
             },
-            "display_name": {
-              "anyOf": [
-                { "type": "string", "maxLength": 150 },
-                { "type": "null" }
-              ],
-              "title": "Display Name"
-            },
             "date_of_birth": {
               "anyOf": [
                 { "type": "string", "format": "date" },

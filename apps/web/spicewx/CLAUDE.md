@@ -2,6 +2,8 @@
 
 Port **3004**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
 
+**Design-system role: public web reference app.** Lowest-drift baseline — prototype and validate new public-facing patterns here first before reusing them elsewhere. See `docs/design-workflow.md`.
+
 ## Auth pattern
 
 Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itself.
@@ -25,7 +27,7 @@ src/app/
 ## Key dependencies (unique to this app)
 
 - `@headlessui/react` — nav drawer and accordion. **Migration target:** move to `@base-ui-components/react` (already in `@grenmet/ui`) when refactoring. Do not add new `@headlessui/react` usage.
-- `@heroicons/react` — icons (not Lucide — this app predates the Lucide migration)
+- `lucide-react` — icons (migrated off `@heroicons/react`)
 
 ## Special conventions
 

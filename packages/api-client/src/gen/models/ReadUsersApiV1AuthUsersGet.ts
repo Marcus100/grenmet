@@ -4,25 +4,31 @@
  */
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
-import type { UsersPublic } from "./UsersPublic.js";
+import type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
 
 export type ReadUsersApiV1AuthUsersGetQueryParams = {
   /**
-   * @default 0
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
    * @type integer | undefined
    */
-  skip?: number;
+  page?: number;
   /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
    * @default 100
    * @type integer | undefined
    */
-  limit?: number;
+  size?: number;
 };
 
 /**
+ * PaginatedResponse[UserPublic]
  * @description Users returned
  */
-export type ReadUsersApiV1AuthUsersGet200 = UsersPublic;
+export type ReadUsersApiV1AuthUsersGet200 = PaginatedResponseUserPublic;
 
 /**
  * HTTPValidationError

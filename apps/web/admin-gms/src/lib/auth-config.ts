@@ -13,6 +13,10 @@ export function getAuthApiBaseUrl(): string {
   return normalizeUrlSegment(env.AUTH_API_URL || env.NEXT_PUBLIC_API_URL);
 }
 
+export function getCapApiBaseUrl(): string {
+  return normalizeUrlSegment(env.CAP_API_URL ?? env.AUTH_API_URL);
+}
+
 export function getAuthApiPrefix(): string {
   const configuredPrefix = env.AUTH_API_V1_STR.trim() || "/api/v1";
   return configuredPrefix.startsWith("/")

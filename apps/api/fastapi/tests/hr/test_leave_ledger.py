@@ -87,7 +87,9 @@ async def test_leave_approval_writes_balance_event(
     db_async.add(employee_role)
     db_async.add(leave_create_permission)
     db_async.add(canonical_leave_create_permission)
-    await db_async.flush()  # employee_role must exist before UserRoleAssignment FK references it
+    await (
+        db_async.flush()
+    )  # employee_role must exist before UserRoleAssignment FK references it
     if not await db_async.get(Department, "dept_leave"):
         db_async.add(Department(id="dept_leave", name="Dept Leave"))
     db_async.add(

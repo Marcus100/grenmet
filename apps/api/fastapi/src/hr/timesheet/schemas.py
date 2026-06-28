@@ -20,8 +20,11 @@ class TimesheetEntryInput(BaseModel):
     shift_code: str | None = None
     roster_hours: Decimal = Field(default=Decimal("0.0"))
     actual_hours: Decimal = Field(default=Decimal("0.0"))
+    total_hours: Decimal | None = None
     overtime_hours: Decimal = Field(default=Decimal("0.0"))
     break_hours: Decimal = Field(default=Decimal("0.0"))
+    hours_worked: Decimal | None = None
+    medical_certificate_attached: bool = False
     comments: str | None = None
 
 
@@ -56,8 +59,11 @@ class TimesheetEntryPublic(BaseModel):
     roster_assignment_id: uuid.UUID | None = None
     roster_hours: Decimal
     actual_hours: Decimal
+    total_hours: Decimal
     overtime_hours: Decimal
     break_hours: Decimal
+    hours_worked: Decimal
+    medical_certificate_attached: bool
     comments: str | None = None
 
 

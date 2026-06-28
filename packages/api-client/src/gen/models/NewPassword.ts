@@ -12,6 +12,8 @@ export type NewPassword = {
    */
   token: string;
   /**
+   * @minLength 8
+   * @maxLength 40
    * @type string
    */
   new_password: string;

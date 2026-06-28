@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["Actual", "Exercise", "System", "Test", "Draft"],
+  "title": "CapStatus",
+  "x-readme-ref-name": "CapStatus"
+}

@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.concurrency import run_in_threadpool
 from pydantic.networks import EmailStr
 from sqlalchemy import text
 
@@ -13,14 +14,12 @@ router = APIRouter(prefix="/utils", tags=["utils"])
 @router.post(
     "/test-email/",
     dependencies=[Depends(get_current_active_superuser)],
-    status_code=201,
+    status_code=status.HTTP_201_CREATED,
 )
 async def test_email(email_to: EmailStr) -> Message:
-    """
-    Test emails.
-    """
     email_data = generate_test_email(email_to=email_to)
-    send_email(
+    await run_in_threadpool(
+        send_email,
         email_to=email_to,
         subject=email_data.subject,
         html_content=email_data.html_content,
@@ -34,7 +33,6 @@ async def test_email(email_to: EmailStr) -> Message:
     description="Simple liveness probe; returns 200 if the process is running.",
 )
 async def health_check() -> bool:
-    """Liveness: process is up. Use /ready/ for DB readiness."""
     return True
 
 
@@ -48,7 +46,6 @@ async def health_check() -> bool:
     },
 )
 async def ready(session: SessionDep) -> dict[str, str]:
-    """Readiness: check DB connectivity. Returns 503 on failure."""
     try:
         await session.execute(text("SELECT 1"))
         return {"status": "ready"}

@@ -1,39 +1,63 @@
-export type { ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey } from "./useActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
+export type { ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey } from "./useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export {
-  actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey,
-  actionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationOptions,
-  useActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch,
-} from "./useActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
-export type { ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey } from "./useActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
+  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey,
+  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationOptions,
+  useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch,
+} from "./useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
+export type { ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey } from "./useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export {
-  actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey,
-  actionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationOptions,
-  useActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch,
-} from "./useActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
-export type { ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey } from "./useApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey,
+  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationOptions,
+  useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch,
+} from "./useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
+export type { ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationKey } from "./useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export {
-  approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey,
-  approveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationOptions,
-  useApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch,
-} from "./useApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+  approveAlertApiV1CapAlertsAlertIdApprovePostMutationKey,
+  approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions,
+  useApproveAlertApiV1CapAlertsAlertIdApprovePost,
+} from "./useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export type { ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey } from "./useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+export {
+  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey,
+  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationOptions,
+  useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch,
+} from "./useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export type { BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey } from "./useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions,
   useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost,
 } from "./useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
+export type { CancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey } from "./useCancelAlertApiV1CapAlertsAlertIdCancelPost.js";
+export {
+  cancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey,
+  cancelAlertApiV1CapAlertsAlertIdCancelPostMutationOptions,
+  useCancelAlertApiV1CapAlertsAlertIdCancelPost,
+} from "./useCancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export type { ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey } from "./useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export {
   closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey,
   closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOptions,
   useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch,
 } from "./useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
-export type { CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationKey } from "./useCreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
+export type { CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey } from "./useCreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 export {
-  createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationKey,
-  createAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationOptions,
-  useCreateAbsenteeEndpointApiV1HrAbsenteeReportsPost,
-} from "./useCreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
+  createAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey,
+  createAbsenteeReportApiV1HrAbsenteeReportsPostMutationOptions,
+  useCreateAbsenteeReportApiV1HrAbsenteeReportsPost,
+} from "./useCreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
+export type { CreateAlertApiV1CapAlertsPostMutationKey } from "./useCreateAlertApiV1CapAlertsPost.js";
+export {
+  createAlertApiV1CapAlertsPostMutationKey,
+  createAlertApiV1CapAlertsPostMutationOptions,
+  useCreateAlertApiV1CapAlertsPost,
+} from "./useCreateAlertApiV1CapAlertsPost.js";
+export type { CreateFeedApiV1CapFeedsPostMutationKey } from "./useCreateFeedApiV1CapFeedsPost.js";
+export {
+  createFeedApiV1CapFeedsPostMutationKey,
+  createFeedApiV1CapFeedsPostMutationOptions,
+  useCreateFeedApiV1CapFeedsPost,
+} from "./useCreateFeedApiV1CapFeedsPost.js";
 export type { CreateHolidayApiV1HrRostersPublicHolidaysPostMutationKey } from "./useCreateHolidayApiV1HrRostersPublicHolidaysPost.js";
 export {
   createHolidayApiV1HrRostersPublicHolidaysPostMutationKey,
@@ -46,12 +70,18 @@ export {
   createInstanceApiV1HrWorkflowsInstancesPostMutationOptions,
   useCreateInstanceApiV1HrWorkflowsInstancesPost,
 } from "./useCreateInstanceApiV1HrWorkflowsInstancesPost.js";
-export type { CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationKey } from "./useCreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
+export type { CreateLeaveRequestApiV1HrLeaveRequestsPostMutationKey } from "./useCreateLeaveRequestApiV1HrLeaveRequestsPost.js";
 export {
-  createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationKey,
-  createLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationOptions,
-  useCreateLeaveRequestEndpointApiV1HrLeaveRequestsPost,
-} from "./useCreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
+  createLeaveRequestApiV1HrLeaveRequestsPostMutationKey,
+  createLeaveRequestApiV1HrLeaveRequestsPostMutationOptions,
+  useCreateLeaveRequestApiV1HrLeaveRequestsPost,
+} from "./useCreateLeaveRequestApiV1HrLeaveRequestsPost.js";
+export type { CreateParkingPermitApiV1HrParkingPermitsPostMutationKey } from "./useCreateParkingPermitApiV1HrParkingPermitsPost.js";
+export {
+  createParkingPermitApiV1HrParkingPermitsPostMutationKey,
+  createParkingPermitApiV1HrParkingPermitsPostMutationOptions,
+  useCreateParkingPermitApiV1HrParkingPermitsPost,
+} from "./useCreateParkingPermitApiV1HrParkingPermitsPost.js";
 export type { CreatePeriodApiV1HrRostersPeriodsPostMutationKey } from "./useCreatePeriodApiV1HrRostersPeriodsPost.js";
 export {
   createPeriodApiV1HrRostersPeriodsPostMutationKey,
@@ -64,6 +94,12 @@ export {
   createPermissionApiV1AuthPermissionsPostMutationOptions,
   useCreatePermissionApiV1AuthPermissionsPost,
 } from "./useCreatePermissionApiV1AuthPermissionsPost.js";
+export type { CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationKey } from "./useCreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
+export {
+  createPredefinedAreaApiV1CapAreasPredefinedPostMutationKey,
+  createPredefinedAreaApiV1CapAreasPredefinedPostMutationOptions,
+  useCreatePredefinedAreaApiV1CapAreasPredefinedPost,
+} from "./useCreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
 export type { CreateRoleApiV1AuthRolesPostMutationKey } from "./useCreateRoleApiV1AuthRolesPost.js";
 export {
   createRoleApiV1AuthRolesPostMutationKey,
@@ -76,18 +112,18 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
 } from "./useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
-export type { CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationKey } from "./useCreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
+export type { CreateShiftSwapApiV1HrShiftSwapsPostMutationKey } from "./useCreateShiftSwapApiV1HrShiftSwapsPost.js";
 export {
-  createShiftSwapEndpointApiV1HrShiftSwapsPostMutationKey,
-  createShiftSwapEndpointApiV1HrShiftSwapsPostMutationOptions,
-  useCreateShiftSwapEndpointApiV1HrShiftSwapsPost,
-} from "./useCreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
-export type { CreateStatusReportEndpointApiV1HrStatusReportsPostMutationKey } from "./useCreateStatusReportEndpointApiV1HrStatusReportsPost.js";
+  createShiftSwapApiV1HrShiftSwapsPostMutationKey,
+  createShiftSwapApiV1HrShiftSwapsPostMutationOptions,
+  useCreateShiftSwapApiV1HrShiftSwapsPost,
+} from "./useCreateShiftSwapApiV1HrShiftSwapsPost.js";
+export type { CreateStatusReportApiV1HrStatusReportsPostMutationKey } from "./useCreateStatusReportApiV1HrStatusReportsPost.js";
 export {
-  createStatusReportEndpointApiV1HrStatusReportsPostMutationKey,
-  createStatusReportEndpointApiV1HrStatusReportsPostMutationOptions,
-  useCreateStatusReportEndpointApiV1HrStatusReportsPost,
-} from "./useCreateStatusReportEndpointApiV1HrStatusReportsPost.js";
+  createStatusReportApiV1HrStatusReportsPostMutationKey,
+  createStatusReportApiV1HrStatusReportsPostMutationOptions,
+  useCreateStatusReportApiV1HrStatusReportsPost,
+} from "./useCreateStatusReportApiV1HrStatusReportsPost.js";
 export type { CreateTemplateApiV1HrWorkflowsTemplatesPostMutationKey } from "./useCreateTemplateApiV1HrWorkflowsTemplatesPost.js";
 export {
   createTemplateApiV1HrWorkflowsTemplatesPostMutationKey,
@@ -100,18 +136,24 @@ export {
   createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationOptions,
   useCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost,
 } from "./useCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
-export type { CreateTimesheetEndpointApiV1HrTimesheetsPostMutationKey } from "./useCreateTimesheetEndpointApiV1HrTimesheetsPost.js";
+export type { CreateTimesheetApiV1HrTimesheetsPostMutationKey } from "./useCreateTimesheetApiV1HrTimesheetsPost.js";
 export {
-  createTimesheetEndpointApiV1HrTimesheetsPostMutationKey,
-  createTimesheetEndpointApiV1HrTimesheetsPostMutationOptions,
-  useCreateTimesheetEndpointApiV1HrTimesheetsPost,
-} from "./useCreateTimesheetEndpointApiV1HrTimesheetsPost.js";
+  createTimesheetApiV1HrTimesheetsPostMutationKey,
+  createTimesheetApiV1HrTimesheetsPostMutationOptions,
+  useCreateTimesheetApiV1HrTimesheetsPost,
+} from "./useCreateTimesheetApiV1HrTimesheetsPost.js";
 export type { CreateUserApiV1AuthUsersPostMutationKey } from "./useCreateUserApiV1AuthUsersPost.js";
 export {
   createUserApiV1AuthUsersPostMutationKey,
   createUserApiV1AuthUsersPostMutationOptions,
   useCreateUserApiV1AuthUsersPost,
 } from "./useCreateUserApiV1AuthUsersPost.js";
+export type { DeleteFeedApiV1CapFeedsFeedIdDeleteMutationKey } from "./useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export {
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey,
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions,
+  useDeleteFeedApiV1CapFeedsFeedIdDelete,
+} from "./useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
 export type { DeleteUserApiV1AuthUsersUserIdDeleteMutationKey } from "./useDeleteUserApiV1AuthUsersUserIdDelete.js";
 export {
   deleteUserApiV1AuthUsersUserIdDeleteMutationKey,
@@ -124,6 +166,24 @@ export {
   deleteUserMeApiV1AuthUsersMeDeleteMutationOptions,
   useDeleteUserMeApiV1AuthUsersMeDelete,
 } from "./useDeleteUserMeApiV1AuthUsersMeDelete.js";
+export type { DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey } from "./useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export {
+  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey,
+  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions,
+  useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost,
+} from "./useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey } from "./useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
+export {
+  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey,
+  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationOptions,
+  useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost,
+} from "./useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
+export type { ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationKey } from "./useExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export {
+  expireAlertApiV1CapAlertsAlertIdExpirePostMutationKey,
+  expireAlertApiV1CapAlertsAlertIdExpirePostMutationOptions,
+  useExpireAlertApiV1CapAlertsAlertIdExpirePost,
+} from "./useExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
 export type { GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey } from "./useGetPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 export {
   getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
@@ -160,12 +220,24 @@ export {
   healthCheckApiV1UtilsHealthCheckGetSuspenseQueryOptions,
   useHealthCheckApiV1UtilsHealthCheckGetSuspense,
 } from "./useHealthCheckApiV1UtilsHealthCheckGetSuspense.js";
+export type { ImportAlertApiV1CapAlertsImportPostMutationKey } from "./useImportAlertApiV1CapAlertsImportPost.js";
+export {
+  importAlertApiV1CapAlertsImportPostMutationKey,
+  importAlertApiV1CapAlertsImportPostMutationOptions,
+  useImportAlertApiV1CapAlertsImportPost,
+} from "./useImportAlertApiV1CapAlertsImportPost.js";
 export type { ImportCsvApiV1HrRostersImportCsvPostMutationKey } from "./useImportCsvApiV1HrRostersImportCsvPost.js";
 export {
   importCsvApiV1HrRostersImportCsvPostMutationKey,
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
 } from "./useImportCsvApiV1HrRostersImportCsvPost.js";
+export type { IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey } from "./useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
+export {
+  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey,
+  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationOptions,
+  useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost,
+} from "./useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export type { ListHolidaysApiV1HrRostersPublicHolidaysGetQueryKey } from "./useListHolidaysApiV1HrRostersPublicHolidaysGet.js";
 export {
   listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey,
@@ -196,6 +268,30 @@ export {
   loginAccessTokenApiV1LoginAccessTokenPostMutationOptions,
   useLoginAccessTokenApiV1LoginAccessTokenPost,
 } from "./useLoginAccessTokenApiV1LoginAccessTokenPost.js";
+export type { LoginSessionApiV1LoginSessionPostMutationKey } from "./useLoginSessionApiV1LoginSessionPost.js";
+export {
+  loginSessionApiV1LoginSessionPostMutationKey,
+  loginSessionApiV1LoginSessionPostMutationOptions,
+  useLoginSessionApiV1LoginSessionPost,
+} from "./useLoginSessionApiV1LoginSessionPost.js";
+export type { LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationKey } from "./useLogoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
+export {
+  logoutAllSessionsApiV1LoginSessionLogoutAllPostMutationKey,
+  logoutAllSessionsApiV1LoginSessionLogoutAllPostMutationOptions,
+  useLogoutAllSessionsApiV1LoginSessionLogoutAllPost,
+} from "./useLogoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
+export type { LogoutSessionApiV1LoginSessionLogoutPostMutationKey } from "./useLogoutSessionApiV1LoginSessionLogoutPost.js";
+export {
+  logoutSessionApiV1LoginSessionLogoutPostMutationKey,
+  logoutSessionApiV1LoginSessionLogoutPostMutationOptions,
+  useLogoutSessionApiV1LoginSessionLogoutPost,
+} from "./useLogoutSessionApiV1LoginSessionLogoutPost.js";
+export type { PublishAlertApiV1CapAlertsAlertIdPublishPostMutationKey } from "./usePublishAlertApiV1CapAlertsAlertIdPublishPost.js";
+export {
+  publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey,
+  publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions,
+  usePublishAlertApiV1CapAlertsAlertIdPublishPost,
+} from "./usePublishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export type { PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey } from "./usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export {
   publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey,
@@ -214,6 +310,102 @@ export {
   readAbsenteeReportsApiV1HrAbsenteeReportsGetSuspenseQueryOptions,
   useReadAbsenteeReportsApiV1HrAbsenteeReportsGetSuspense,
 } from "./useReadAbsenteeReportsApiV1HrAbsenteeReportsGetSuspense.js";
+export type { ReadActiveMapApiCapActiveMapGetQueryKey } from "./useReadActiveMapApiCapActiveMapGet.js";
+export {
+  readActiveMapApiCapActiveMapGetQueryKey,
+  readActiveMapApiCapActiveMapGetQueryOptions,
+  useReadActiveMapApiCapActiveMapGet,
+} from "./useReadActiveMapApiCapActiveMapGet.js";
+export type { ReadActiveMapApiCapActiveMapGetSuspenseQueryKey } from "./useReadActiveMapApiCapActiveMapGetSuspense.js";
+export {
+  readActiveMapApiCapActiveMapGetSuspenseQueryKey,
+  readActiveMapApiCapActiveMapGetSuspenseQueryOptions,
+  useReadActiveMapApiCapActiveMapGetSuspense,
+} from "./useReadActiveMapApiCapActiveMapGetSuspense.js";
+export type { ReadAlertApiV1CapAlertsAlertIdGetQueryKey } from "./useReadAlertApiV1CapAlertsAlertIdGet.js";
+export {
+  readAlertApiV1CapAlertsAlertIdGetQueryKey,
+  readAlertApiV1CapAlertsAlertIdGetQueryOptions,
+  useReadAlertApiV1CapAlertsAlertIdGet,
+} from "./useReadAlertApiV1CapAlertsAlertIdGet.js";
+export type { ReadAlertApiV1CapAlertsAlertIdGetSuspenseQueryKey } from "./useReadAlertApiV1CapAlertsAlertIdGetSuspense.js";
+export {
+  readAlertApiV1CapAlertsAlertIdGetSuspenseQueryKey,
+  readAlertApiV1CapAlertsAlertIdGetSuspenseQueryOptions,
+  useReadAlertApiV1CapAlertsAlertIdGetSuspense,
+} from "./useReadAlertApiV1CapAlertsAlertIdGetSuspense.js";
+export type { ReadAlertsApiV1CapAlertsGetQueryKey } from "./useReadAlertsApiV1CapAlertsGet.js";
+export {
+  readAlertsApiV1CapAlertsGetQueryKey,
+  readAlertsApiV1CapAlertsGetQueryOptions,
+  useReadAlertsApiV1CapAlertsGet,
+} from "./useReadAlertsApiV1CapAlertsGet.js";
+export type { ReadAlertsApiV1CapAlertsGetSuspenseQueryKey } from "./useReadAlertsApiV1CapAlertsGetSuspense.js";
+export {
+  readAlertsApiV1CapAlertsGetSuspenseQueryKey,
+  readAlertsApiV1CapAlertsGetSuspenseQueryOptions,
+  useReadAlertsApiV1CapAlertsGetSuspense,
+} from "./useReadAlertsApiV1CapAlertsGetSuspense.js";
+export type { ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryKey } from "./useReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
+export {
+  readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey,
+  readAlertsGeojsonApiCapAlertsGeojsonGetQueryOptions,
+  useReadAlertsGeojsonApiCapAlertsGeojsonGet,
+} from "./useReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
+export type { ReadAlertsGeojsonApiCapAlertsGeojsonGetSuspenseQueryKey } from "./useReadAlertsGeojsonApiCapAlertsGeojsonGetSuspense.js";
+export {
+  readAlertsGeojsonApiCapAlertsGeojsonGetSuspenseQueryKey,
+  readAlertsGeojsonApiCapAlertsGeojsonGetSuspenseQueryOptions,
+  useReadAlertsGeojsonApiCapAlertsGeojsonGetSuspense,
+} from "./useReadAlertsGeojsonApiCapAlertsGeojsonGetSuspense.js";
+export type { ReadAuditApiV1CapAuditGetQueryKey } from "./useReadAuditApiV1CapAuditGet.js";
+export {
+  readAuditApiV1CapAuditGetQueryKey,
+  readAuditApiV1CapAuditGetQueryOptions,
+  useReadAuditApiV1CapAuditGet,
+} from "./useReadAuditApiV1CapAuditGet.js";
+export type { ReadAuditApiV1CapAuditGetSuspenseQueryKey } from "./useReadAuditApiV1CapAuditGetSuspense.js";
+export {
+  readAuditApiV1CapAuditGetSuspenseQueryKey,
+  readAuditApiV1CapAuditGetSuspenseQueryOptions,
+  useReadAuditApiV1CapAuditGetSuspense,
+} from "./useReadAuditApiV1CapAuditGetSuspense.js";
+export type { ReadCapSettingsApiV1CapSettingsGetQueryKey } from "./useReadCapSettingsApiV1CapSettingsGet.js";
+export {
+  readCapSettingsApiV1CapSettingsGetQueryKey,
+  readCapSettingsApiV1CapSettingsGetQueryOptions,
+  useReadCapSettingsApiV1CapSettingsGet,
+} from "./useReadCapSettingsApiV1CapSettingsGet.js";
+export type { ReadCapSettingsApiV1CapSettingsGetSuspenseQueryKey } from "./useReadCapSettingsApiV1CapSettingsGetSuspense.js";
+export {
+  readCapSettingsApiV1CapSettingsGetSuspenseQueryKey,
+  readCapSettingsApiV1CapSettingsGetSuspenseQueryOptions,
+  useReadCapSettingsApiV1CapSettingsGetSuspense,
+} from "./useReadCapSettingsApiV1CapSettingsGetSuspense.js";
+export type { ReadCapXmlApiCapIdentifierXmlGetQueryKey } from "./useReadCapXmlApiCapIdentifierXmlGet.js";
+export {
+  readCapXmlApiCapIdentifierXmlGetQueryKey,
+  readCapXmlApiCapIdentifierXmlGetQueryOptions,
+  useReadCapXmlApiCapIdentifierXmlGet,
+} from "./useReadCapXmlApiCapIdentifierXmlGet.js";
+export type { ReadCapXmlApiCapIdentifierXmlGetSuspenseQueryKey } from "./useReadCapXmlApiCapIdentifierXmlGetSuspense.js";
+export {
+  readCapXmlApiCapIdentifierXmlGetSuspenseQueryKey,
+  readCapXmlApiCapIdentifierXmlGetSuspenseQueryOptions,
+  useReadCapXmlApiCapIdentifierXmlGetSuspense,
+} from "./useReadCapXmlApiCapIdentifierXmlGetSuspense.js";
+export type { ReadCatalogsApiV1CapCatalogsGetQueryKey } from "./useReadCatalogsApiV1CapCatalogsGet.js";
+export {
+  readCatalogsApiV1CapCatalogsGetQueryKey,
+  readCatalogsApiV1CapCatalogsGetQueryOptions,
+  useReadCatalogsApiV1CapCatalogsGet,
+} from "./useReadCatalogsApiV1CapCatalogsGet.js";
+export type { ReadCatalogsApiV1CapCatalogsGetSuspenseQueryKey } from "./useReadCatalogsApiV1CapCatalogsGetSuspense.js";
+export {
+  readCatalogsApiV1CapCatalogsGetSuspenseQueryKey,
+  readCatalogsApiV1CapCatalogsGetSuspenseQueryOptions,
+  useReadCatalogsApiV1CapCatalogsGetSuspense,
+} from "./useReadCatalogsApiV1CapCatalogsGetSuspense.js";
 export type { ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey } from "./useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export {
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey,
@@ -226,6 +418,18 @@ export {
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspenseQueryOptions,
   useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspense,
 } from "./useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspense.js";
+export type { ReadFeedsApiV1CapFeedsGetQueryKey } from "./useReadFeedsApiV1CapFeedsGet.js";
+export {
+  readFeedsApiV1CapFeedsGetQueryKey,
+  readFeedsApiV1CapFeedsGetQueryOptions,
+  useReadFeedsApiV1CapFeedsGet,
+} from "./useReadFeedsApiV1CapFeedsGet.js";
+export type { ReadFeedsApiV1CapFeedsGetSuspenseQueryKey } from "./useReadFeedsApiV1CapFeedsGetSuspense.js";
+export {
+  readFeedsApiV1CapFeedsGetSuspenseQueryKey,
+  readFeedsApiV1CapFeedsGetSuspenseQueryOptions,
+  useReadFeedsApiV1CapFeedsGetSuspense,
+} from "./useReadFeedsApiV1CapFeedsGetSuspense.js";
 export type { ReadHrProfileMeApiV1HrProfileMeGetQueryKey } from "./useReadHrProfileMeApiV1HrProfileMeGet.js";
 export {
   readHrProfileMeApiV1HrProfileMeGetQueryKey,
@@ -250,6 +454,18 @@ export {
   readInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspenseQueryOptions,
   useReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspense,
 } from "./useReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetSuspense.js";
+export type { ReadIntegrationsApiV1CapIntegrationsGetQueryKey } from "./useReadIntegrationsApiV1CapIntegrationsGet.js";
+export {
+  readIntegrationsApiV1CapIntegrationsGetQueryKey,
+  readIntegrationsApiV1CapIntegrationsGetQueryOptions,
+  useReadIntegrationsApiV1CapIntegrationsGet,
+} from "./useReadIntegrationsApiV1CapIntegrationsGet.js";
+export type { ReadIntegrationsApiV1CapIntegrationsGetSuspenseQueryKey } from "./useReadIntegrationsApiV1CapIntegrationsGetSuspense.js";
+export {
+  readIntegrationsApiV1CapIntegrationsGetSuspenseQueryKey,
+  readIntegrationsApiV1CapIntegrationsGetSuspenseQueryOptions,
+  useReadIntegrationsApiV1CapIntegrationsGetSuspense,
+} from "./useReadIntegrationsApiV1CapIntegrationsGetSuspense.js";
 export type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey } from "./useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export {
   readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
@@ -274,6 +490,18 @@ export {
   readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryOptions,
   useReadMyTimesheetsApiV1HrTimesheetsMeGetSuspense,
 } from "./useReadMyTimesheetsApiV1HrTimesheetsMeGetSuspense.js";
+export type { ReadParkingPermitsApiV1HrParkingPermitsGetQueryKey } from "./useReadParkingPermitsApiV1HrParkingPermitsGet.js";
+export {
+  readParkingPermitsApiV1HrParkingPermitsGetQueryKey,
+  readParkingPermitsApiV1HrParkingPermitsGetQueryOptions,
+  useReadParkingPermitsApiV1HrParkingPermitsGet,
+} from "./useReadParkingPermitsApiV1HrParkingPermitsGet.js";
+export type { ReadParkingPermitsApiV1HrParkingPermitsGetSuspenseQueryKey } from "./useReadParkingPermitsApiV1HrParkingPermitsGetSuspense.js";
+export {
+  readParkingPermitsApiV1HrParkingPermitsGetSuspenseQueryKey,
+  readParkingPermitsApiV1HrParkingPermitsGetSuspenseQueryOptions,
+  useReadParkingPermitsApiV1HrParkingPermitsGetSuspense,
+} from "./useReadParkingPermitsApiV1HrParkingPermitsGetSuspense.js";
 export type { ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryKey } from "./useReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 export {
   readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey,
@@ -298,6 +526,66 @@ export {
   readPermissionsApiV1AuthPermissionsGetSuspenseQueryOptions,
   useReadPermissionsApiV1AuthPermissionsGetSuspense,
 } from "./useReadPermissionsApiV1AuthPermissionsGetSuspense.js";
+export type { ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryKey } from "./useReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
+export {
+  readPredefinedAreasApiV1CapAreasPredefinedGetQueryKey,
+  readPredefinedAreasApiV1CapAreasPredefinedGetQueryOptions,
+  useReadPredefinedAreasApiV1CapAreasPredefinedGet,
+} from "./useReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
+export type { ReadPredefinedAreasApiV1CapAreasPredefinedGetSuspenseQueryKey } from "./useReadPredefinedAreasApiV1CapAreasPredefinedGetSuspense.js";
+export {
+  readPredefinedAreasApiV1CapAreasPredefinedGetSuspenseQueryKey,
+  readPredefinedAreasApiV1CapAreasPredefinedGetSuspenseQueryOptions,
+  useReadPredefinedAreasApiV1CapAreasPredefinedGetSuspense,
+} from "./useReadPredefinedAreasApiV1CapAreasPredefinedGetSuspense.js";
+export type { ReadPublicAlertApiCapAlertsIdentifierGetQueryKey } from "./useReadPublicAlertApiCapAlertsIdentifierGet.js";
+export {
+  readPublicAlertApiCapAlertsIdentifierGetQueryKey,
+  readPublicAlertApiCapAlertsIdentifierGetQueryOptions,
+  useReadPublicAlertApiCapAlertsIdentifierGet,
+} from "./useReadPublicAlertApiCapAlertsIdentifierGet.js";
+export type { ReadPublicAlertApiCapAlertsIdentifierGetSuspenseQueryKey } from "./useReadPublicAlertApiCapAlertsIdentifierGetSuspense.js";
+export {
+  readPublicAlertApiCapAlertsIdentifierGetSuspenseQueryKey,
+  readPublicAlertApiCapAlertsIdentifierGetSuspenseQueryOptions,
+  useReadPublicAlertApiCapAlertsIdentifierGetSuspense,
+} from "./useReadPublicAlertApiCapAlertsIdentifierGetSuspense.js";
+export type { ReadPublicAlertsApiCapAlertsGetQueryKey } from "./useReadPublicAlertsApiCapAlertsGet.js";
+export {
+  readPublicAlertsApiCapAlertsGetQueryKey,
+  readPublicAlertsApiCapAlertsGetQueryOptions,
+  useReadPublicAlertsApiCapAlertsGet,
+} from "./useReadPublicAlertsApiCapAlertsGet.js";
+export type { ReadPublicAlertsApiCapAlertsGetSuspenseQueryKey } from "./useReadPublicAlertsApiCapAlertsGetSuspense.js";
+export {
+  readPublicAlertsApiCapAlertsGetSuspenseQueryKey,
+  readPublicAlertsApiCapAlertsGetSuspenseQueryOptions,
+  useReadPublicAlertsApiCapAlertsGetSuspense,
+} from "./useReadPublicAlertsApiCapAlertsGetSuspense.js";
+export type { ReadPublicLatestActiveApiCapLatestActiveGetQueryKey } from "./useReadPublicLatestActiveApiCapLatestActiveGet.js";
+export {
+  readPublicLatestActiveApiCapLatestActiveGetQueryKey,
+  readPublicLatestActiveApiCapLatestActiveGetQueryOptions,
+  useReadPublicLatestActiveApiCapLatestActiveGet,
+} from "./useReadPublicLatestActiveApiCapLatestActiveGet.js";
+export type { ReadPublicLatestActiveApiCapLatestActiveGetSuspenseQueryKey } from "./useReadPublicLatestActiveApiCapLatestActiveGetSuspense.js";
+export {
+  readPublicLatestActiveApiCapLatestActiveGetSuspenseQueryKey,
+  readPublicLatestActiveApiCapLatestActiveGetSuspenseQueryOptions,
+  useReadPublicLatestActiveApiCapLatestActiveGetSuspense,
+} from "./useReadPublicLatestActiveApiCapLatestActiveGetSuspense.js";
+export type { ReadPublicPastAlertsApiCapPastGetQueryKey } from "./useReadPublicPastAlertsApiCapPastGet.js";
+export {
+  readPublicPastAlertsApiCapPastGetQueryKey,
+  readPublicPastAlertsApiCapPastGetQueryOptions,
+  useReadPublicPastAlertsApiCapPastGet,
+} from "./useReadPublicPastAlertsApiCapPastGet.js";
+export type { ReadPublicPastAlertsApiCapPastGetSuspenseQueryKey } from "./useReadPublicPastAlertsApiCapPastGetSuspense.js";
+export {
+  readPublicPastAlertsApiCapPastGetSuspenseQueryKey,
+  readPublicPastAlertsApiCapPastGetSuspenseQueryOptions,
+  useReadPublicPastAlertsApiCapPastGetSuspense,
+} from "./useReadPublicPastAlertsApiCapPastGetSuspense.js";
 export type { ReadRoleApiV1AuthRolesRoleIdGetQueryKey } from "./useReadRoleApiV1AuthRolesRoleIdGet.js";
 export {
   readRoleApiV1AuthRolesRoleIdGetQueryKey,
@@ -346,18 +634,30 @@ export {
   readRolesApiV1AuthRolesGetSuspenseQueryOptions,
   useReadRolesApiV1AuthRolesGetSuspense,
 } from "./useReadRolesApiV1AuthRolesGetSuspense.js";
-export type { ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryKey } from "./useReadStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
+export type { ReadRssApiCapRssXmlGetQueryKey } from "./useReadRssApiCapRssXmlGet.js";
 export {
-  readStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryKey,
-  readStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryOptions,
-  useReadStatusReportEndpointApiV1HrStatusReportsReportIdGet,
-} from "./useReadStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
-export type { ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspenseQueryKey } from "./useReadStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspense.js";
+  readRssApiCapRssXmlGetQueryKey,
+  readRssApiCapRssXmlGetQueryOptions,
+  useReadRssApiCapRssXmlGet,
+} from "./useReadRssApiCapRssXmlGet.js";
+export type { ReadRssApiCapRssXmlGetSuspenseQueryKey } from "./useReadRssApiCapRssXmlGetSuspense.js";
 export {
-  readStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspenseQueryKey,
-  readStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspenseQueryOptions,
-  useReadStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspense,
-} from "./useReadStatusReportEndpointApiV1HrStatusReportsReportIdGetSuspense.js";
+  readRssApiCapRssXmlGetSuspenseQueryKey,
+  readRssApiCapRssXmlGetSuspenseQueryOptions,
+  useReadRssApiCapRssXmlGetSuspense,
+} from "./useReadRssApiCapRssXmlGetSuspense.js";
+export type { ReadStatusReportApiV1HrStatusReportsReportIdGetQueryKey } from "./useReadStatusReportApiV1HrStatusReportsReportIdGet.js";
+export {
+  readStatusReportApiV1HrStatusReportsReportIdGetQueryKey,
+  readStatusReportApiV1HrStatusReportsReportIdGetQueryOptions,
+  useReadStatusReportApiV1HrStatusReportsReportIdGet,
+} from "./useReadStatusReportApiV1HrStatusReportsReportIdGet.js";
+export type { ReadStatusReportApiV1HrStatusReportsReportIdGetSuspenseQueryKey } from "./useReadStatusReportApiV1HrStatusReportsReportIdGetSuspense.js";
+export {
+  readStatusReportApiV1HrStatusReportsReportIdGetSuspenseQueryKey,
+  readStatusReportApiV1HrStatusReportsReportIdGetSuspenseQueryOptions,
+  useReadStatusReportApiV1HrStatusReportsReportIdGetSuspense,
+} from "./useReadStatusReportApiV1HrStatusReportsReportIdGetSuspense.js";
 export type { ReadStatusReportsApiV1HrStatusReportsGetQueryKey } from "./useReadStatusReportsApiV1HrStatusReportsGet.js";
 export {
   readStatusReportsApiV1HrStatusReportsGetQueryKey,
@@ -382,18 +682,18 @@ export {
   readTemplatesApiV1HrWorkflowsTemplatesGetSuspenseQueryOptions,
   useReadTemplatesApiV1HrWorkflowsTemplatesGetSuspense,
 } from "./useReadTemplatesApiV1HrWorkflowsTemplatesGetSuspense.js";
-export type { ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryKey } from "./useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
+export type { ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryKey } from "./useReadTimesheetApiV1HrTimesheetsTimesheetIdGet.js";
 export {
-  readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryKey,
-  readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryOptions,
-  useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet,
-} from "./useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
-export type { ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspenseQueryKey } from "./useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspense.js";
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetQueryKey,
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetQueryOptions,
+  useReadTimesheetApiV1HrTimesheetsTimesheetIdGet,
+} from "./useReadTimesheetApiV1HrTimesheetsTimesheetIdGet.js";
+export type { ReadTimesheetApiV1HrTimesheetsTimesheetIdGetSuspenseQueryKey } from "./useReadTimesheetApiV1HrTimesheetsTimesheetIdGetSuspense.js";
 export {
-  readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspenseQueryKey,
-  readTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspenseQueryOptions,
-  useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspense,
-} from "./useReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetSuspense.js";
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetSuspenseQueryKey,
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetSuspenseQueryOptions,
+  useReadTimesheetApiV1HrTimesheetsTimesheetIdGetSuspense,
+} from "./useReadTimesheetApiV1HrTimesheetsTimesheetIdGetSuspense.js";
 export type { ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey } from "./useReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 export {
   readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey,
@@ -466,6 +766,12 @@ export {
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationOptions,
   useRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost,
 } from "./useRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
+export type { RefreshSessionApiV1LoginSessionRefreshPostMutationKey } from "./useRefreshSessionApiV1LoginSessionRefreshPost.js";
+export {
+  refreshSessionApiV1LoginSessionRefreshPostMutationKey,
+  refreshSessionApiV1LoginSessionRefreshPostMutationOptions,
+  useRefreshSessionApiV1LoginSessionRefreshPost,
+} from "./useRefreshSessionApiV1LoginSessionRefreshPost.js";
 export type { RegisterUserApiV1AuthUsersSignupPostMutationKey } from "./useRegisterUserApiV1AuthUsersSignupPost.js";
 export {
   registerUserApiV1AuthUsersSignupPostMutationKey,
@@ -484,12 +790,18 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationOptions,
   useResetPasswordApiV1ResetPasswordPost,
 } from "./useResetPasswordApiV1ResetPasswordPost.js";
-export type { SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey } from "./useSubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
+export type { SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey } from "./useSubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export {
-  submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey,
-  submitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationOptions,
-  useSubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch,
-} from "./useSubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
+  submitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey,
+  submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions,
+  useSubmitAlertApiV1CapAlertsAlertIdSubmitPost,
+} from "./useSubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export type { SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey } from "./useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
+export {
+  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey,
+  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationOptions,
+  useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch,
+} from "./useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export type { TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey } from "./useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 export {
   takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey,
@@ -508,6 +820,54 @@ export {
   testTokenApiV1LoginTestTokenPostMutationOptions,
   useTestTokenApiV1LoginTestTokenPost,
 } from "./useTestTokenApiV1LoginTestTokenPost.js";
+export type { TwofaActivateApiV12FaActivatePostMutationKey } from "./useTwofaActivateApiV12FaActivatePost.js";
+export {
+  twofaActivateApiV12FaActivatePostMutationKey,
+  twofaActivateApiV12FaActivatePostMutationOptions,
+  useTwofaActivateApiV12FaActivatePost,
+} from "./useTwofaActivateApiV12FaActivatePost.js";
+export type { TwofaDisableApiV12FaDisablePostMutationKey } from "./useTwofaDisableApiV12FaDisablePost.js";
+export {
+  twofaDisableApiV12FaDisablePostMutationKey,
+  twofaDisableApiV12FaDisablePostMutationOptions,
+  useTwofaDisableApiV12FaDisablePost,
+} from "./useTwofaDisableApiV12FaDisablePost.js";
+export type { TwofaSetupApiV12FaSetupPostMutationKey } from "./useTwofaSetupApiV12FaSetupPost.js";
+export {
+  twofaSetupApiV12FaSetupPostMutationKey,
+  twofaSetupApiV12FaSetupPostMutationOptions,
+  useTwofaSetupApiV12FaSetupPost,
+} from "./useTwofaSetupApiV12FaSetupPost.js";
+export type { TwofaStatusApiV12FaStatusGetQueryKey } from "./useTwofaStatusApiV12FaStatusGet.js";
+export {
+  twofaStatusApiV12FaStatusGetQueryKey,
+  twofaStatusApiV12FaStatusGetQueryOptions,
+  useTwofaStatusApiV12FaStatusGet,
+} from "./useTwofaStatusApiV12FaStatusGet.js";
+export type { TwofaStatusApiV12FaStatusGetSuspenseQueryKey } from "./useTwofaStatusApiV12FaStatusGetSuspense.js";
+export {
+  twofaStatusApiV12FaStatusGetSuspenseQueryKey,
+  twofaStatusApiV12FaStatusGetSuspenseQueryOptions,
+  useTwofaStatusApiV12FaStatusGetSuspense,
+} from "./useTwofaStatusApiV12FaStatusGetSuspense.js";
+export type { UpdateAlertApiV1CapAlertsAlertIdPatchMutationKey } from "./useUpdateAlertApiV1CapAlertsAlertIdPatch.js";
+export {
+  updateAlertApiV1CapAlertsAlertIdPatchMutationKey,
+  updateAlertApiV1CapAlertsAlertIdPatchMutationOptions,
+  useUpdateAlertApiV1CapAlertsAlertIdPatch,
+} from "./useUpdateAlertApiV1CapAlertsAlertIdPatch.js";
+export type { UpdateCapSettingsApiV1CapSettingsPatchMutationKey } from "./useUpdateCapSettingsApiV1CapSettingsPatch.js";
+export {
+  updateCapSettingsApiV1CapSettingsPatchMutationKey,
+  updateCapSettingsApiV1CapSettingsPatchMutationOptions,
+  useUpdateCapSettingsApiV1CapSettingsPatch,
+} from "./useUpdateCapSettingsApiV1CapSettingsPatch.js";
+export type { UpdateFeedApiV1CapFeedsFeedIdPatchMutationKey } from "./useUpdateFeedApiV1CapFeedsFeedIdPatch.js";
+export {
+  updateFeedApiV1CapFeedsFeedIdPatchMutationKey,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationOptions,
+  useUpdateFeedApiV1CapFeedsFeedIdPatch,
+} from "./useUpdateFeedApiV1CapFeedsFeedIdPatch.js";
 export type { UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey } from "./useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 export {
   updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey,
@@ -544,6 +904,12 @@ export {
   updateUserMeApiV1AuthUsersMePatchMutationOptions,
   useUpdateUserMeApiV1AuthUsersMePatch,
 } from "./useUpdateUserMeApiV1AuthUsersMePatch.js";
+export type { ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationKey } from "./useValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
+export {
+  useValidateAlertApiV1CapAlertsAlertIdValidatePost,
+  validateAlertApiV1CapAlertsAlertIdValidatePostMutationKey,
+  validateAlertApiV1CapAlertsAlertIdValidatePostMutationOptions,
+} from "./useValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export type { ValidateCsvApiV1HrRostersImportCsvValidatePostMutationKey } from "./useValidateCsvApiV1HrRostersImportCsvValidatePost.js";
 export {
   useValidateCsvApiV1HrRostersImportCsvValidatePost,

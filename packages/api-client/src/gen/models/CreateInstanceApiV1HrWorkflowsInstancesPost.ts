@@ -10,7 +10,12 @@ import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
 /**
  * @description Instance created
  */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost200 =
+export type CreateInstanceApiV1HrWorkflowsInstancesPost200 = any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateInstanceApiV1HrWorkflowsInstancesPost201 =
   WorkflowInstancePublic;
 
 /**
@@ -37,10 +42,13 @@ export type CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest =
   WorkflowInstanceCreate;
 
 export type CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse =
-  CreateInstanceApiV1HrWorkflowsInstancesPost200;
+  | CreateInstanceApiV1HrWorkflowsInstancesPost200
+  | CreateInstanceApiV1HrWorkflowsInstancesPost201;
 
 export type CreateInstanceApiV1HrWorkflowsInstancesPostMutation = {
-  Response: CreateInstanceApiV1HrWorkflowsInstancesPost200;
+  Response:
+    | CreateInstanceApiV1HrWorkflowsInstancesPost200
+    | CreateInstanceApiV1HrWorkflowsInstancesPost201;
   Request: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest;
   Errors:
     | CreateInstanceApiV1HrWorkflowsInstancesPost403
