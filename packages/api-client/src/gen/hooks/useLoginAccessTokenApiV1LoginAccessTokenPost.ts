@@ -20,7 +20,6 @@ import type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
   LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -47,15 +46,12 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
       | LoginAccessTokenApiV1LoginAccessTokenPost422
       | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
-    {
-      data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-      headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
-    },
+    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data, headers }) => {
-      return loginAccessTokenApiV1LoginAccessTokenPost(data, headers, config);
+    mutationFn: async ({ data }) => {
+      return loginAccessTokenApiV1LoginAccessTokenPost(data, config);
     },
   });
 }
@@ -74,10 +70,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
         | LoginAccessTokenApiV1LoginAccessTokenPost422
         | LoginAccessTokenApiV1LoginAccessTokenPost429
       >,
-      {
-        data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-        headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
-      },
+      { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
       TContext
     > & { client?: QueryClient };
     client?: Partial<
@@ -100,10 +93,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
       | LoginAccessTokenApiV1LoginAccessTokenPost422
       | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
-    {
-      data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-      headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
-    },
+    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
   >;
 
@@ -114,10 +104,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
       | LoginAccessTokenApiV1LoginAccessTokenPost422
       | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
-    {
-      data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-      headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
-    },
+    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
   >(
     {
@@ -133,10 +120,7 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
       | LoginAccessTokenApiV1LoginAccessTokenPost422
       | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
-    {
-      data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-      headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
-    },
+    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
     TContext
   >;
 }

@@ -1386,7 +1386,6 @@ export type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
   LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   LoginAccessTokenApiV1LoginAccessTokenPostMutation,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
@@ -2327,7 +2326,6 @@ export {
   loginAccessTokenApiV1LoginAccessTokenPost400Schema,
   loginAccessTokenApiV1LoginAccessTokenPost422Schema,
   loginAccessTokenApiV1LoginAccessTokenPost429Schema,
-  loginAccessTokenApiV1LoginAccessTokenPostHeaderParamsSchema,
   loginAccessTokenApiV1LoginAccessTokenPostMutationRequestSchema,
   loginAccessTokenApiV1LoginAccessTokenPostMutationResponseSchema,
 } from "./zod/loginAccessTokenApiV1LoginAccessTokenPostSchema.js";

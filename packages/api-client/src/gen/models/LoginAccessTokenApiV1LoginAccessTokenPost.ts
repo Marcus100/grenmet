@@ -7,10 +7,6 @@ import type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginA
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Token } from "./Token.js";
 
-export type LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams = {
-  "x-totp-code"?: string | null;
-};
-
 /**
  * @description Login successful, access token returned
  */
@@ -44,7 +40,6 @@ export type LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse =
 export type LoginAccessTokenApiV1LoginAccessTokenPostMutation = {
   Response: LoginAccessTokenApiV1LoginAccessTokenPost200;
   Request: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-  HeaderParams: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams;
   Errors:
     | LoginAccessTokenApiV1LoginAccessTokenPost400
     | LoginAccessTokenApiV1LoginAccessTokenPost422

@@ -13,7 +13,6 @@ import type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
   LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -30,7 +29,6 @@ function getLoginAccessTokenApiV1LoginAccessTokenPostUrl() {
  */
 export async function loginAccessTokenApiV1LoginAccessTokenPost(
   data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  headers?: LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   config: Partial<
     RequestConfig<LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest>
   > & { client?: Client } = {}
@@ -54,7 +52,6 @@ export async function loginAccessTokenApiV1LoginAccessTokenPost(
     ...requestConfig,
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
-      ...headers,
       ...requestConfig.headers,
     },
   });

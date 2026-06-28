@@ -8,12 +8,6 @@ import { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLogin
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { tokenSchema } from "./tokenSchema.js";
 
-export const loginAccessTokenApiV1LoginAccessTokenPostHeaderParamsSchema = z
-  .object({
-    "x-totp-code": z.optional(z.union([z.string(), z.null()])),
-  })
-  .optional();
-
 /**
  * @description Login successful, access token returned
  */

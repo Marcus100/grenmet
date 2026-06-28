@@ -315,7 +315,6 @@ export {
   loginAccessTokenApiV1LoginAccessTokenPost400Schema,
   loginAccessTokenApiV1LoginAccessTokenPost422Schema,
   loginAccessTokenApiV1LoginAccessTokenPost429Schema,
-  loginAccessTokenApiV1LoginAccessTokenPostHeaderParamsSchema,
   loginAccessTokenApiV1LoginAccessTokenPostMutationRequestSchema,
   loginAccessTokenApiV1LoginAccessTokenPostMutationResponseSchema,
 } from "./loginAccessTokenApiV1LoginAccessTokenPostSchema.js";
