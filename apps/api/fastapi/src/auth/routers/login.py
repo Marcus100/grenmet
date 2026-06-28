@@ -16,7 +16,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from starlette.requests import Request
 
-from src.auth import service
+from src.auth import service, totp
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
     ERROR_INCORRECT_CREDENTIALS,
@@ -30,6 +30,7 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
 )
 from src.auth.dependencies import get_current_active_superuser
+from src.auth.lockout import login_lockout
 from src.auth.schemas import (
     NewPassword,
     SessionAccessTokenResponse,
@@ -39,7 +40,6 @@ from src.auth.schemas import (
     SessionTokenRequest,
     UserPublic,
 )
-from src.auth.utils import get_password_hash
 from src.dependencies import CurrentUser, SessionDep
 from src.email import (
     generate_password_reset_token,
@@ -131,15 +131,30 @@ async def login_access_token(
 ) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
+
+    Accounts with 2FA enabled must use /login/session (which carries the TOTP code);
+    this legacy OAuth2 endpoint rejects them rather than bypassing 2FA.
     """
     _ = request
+    if await login_lockout.is_locked(form_data.username):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Account temporarily locked due to repeated failed logins",
+        )
     user = await service.authenticate(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
+        await login_lockout.record_failure(form_data.username)
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    if user.totp_enabled:
+        raise HTTPException(
+            status_code=400,
+            detail="This account uses two-factor authentication; sign in via /login/session",
+        )
+    await login_lockout.reset(form_data.username)
     access_token_expires = service.get_legacy_access_token_expires_delta()
     return Token(
         access_token=create_access_token(user.id, expires_delta=access_token_expires)
@@ -169,15 +184,28 @@ async def login_session(
     body: SessionLoginRequest,
 ) -> SessionLoginResponse:
     """Create a long-lived session plus a short-lived access token for web clients."""
+    if await login_lockout.is_locked(body.email):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Account temporarily locked due to repeated failed logins",
+        )
     user = await service.authenticate(
         session=session,
         email=body.email,
         password=body.password,
     )
     if not user:
+        await login_lockout.record_failure(body.email)
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    if user.totp_enabled and not totp.verify_code(
+        secret=user.totp_secret or "", code=body.totp_code or ""
+    ):
+        raise HTTPException(
+            status_code=400, detail="Two-factor authentication code required or invalid"
+        )
+    await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)
     db_session, session_token = await service.create_session(
@@ -354,22 +382,17 @@ async def recover_password(
     """
     _ = request
     user = await service.get_user_by_email(session=session, email=email)
-
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=ERROR_USER_NOT_FOUND,
+    if user:
+        password_reset_token = generate_password_reset_token(email=email)
+        email_data = await generate_reset_password_email(
+            email_to=user.email, email=email, token=password_reset_token
         )
-    password_reset_token = generate_password_reset_token(email=email)
-    email_data = await generate_reset_password_email(
-        email_to=user.email, email=email, token=password_reset_token
-    )
-    await run_in_threadpool(
-        send_email,
-        email_to=user.email,
-        subject=email_data.subject,
-        html_content=email_data.html_content,
-    )
+        await run_in_threadpool(
+            send_email,
+            email_to=user.email,
+            subject=email_data.subject,
+            html_content=email_data.html_content,
+        )
     return Message(message=SUCCESS_PASSWORD_RECOVERY_SENT)
 
 
@@ -399,9 +422,9 @@ async def reset_password(
         )
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
-    user.hashed_password = get_password_hash(password=body.new_password)
-    session.add(user)
-    await session.commit()
+    await service.set_password(
+        session=session, user=user, new_password=body.new_password
+    )
     return Message(message=SUCCESS_PASSWORD_UPDATED)
 
 
@@ -417,10 +440,7 @@ async def recover_password_html_content(email: str, session: SessionDep) -> Any:
     user = await service.get_user_by_email(session=session, email=email)
 
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail="The user with this username does not exist in the system.",
-        )
+        raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     password_reset_token = generate_password_reset_token(email=email)
     email_data = await generate_reset_password_email(
         email_to=user.email, email=email, token=password_reset_token

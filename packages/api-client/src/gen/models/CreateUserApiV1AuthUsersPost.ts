@@ -11,7 +11,7 @@ import type { UserPublic } from "./UserPublic.js";
  * UserPublic
  * @description User created
  */
-export type CreateUserApiV1AuthUsersPost200 = UserPublic;
+export type CreateUserApiV1AuthUsersPost201 = UserPublic;
 
 /**
  * @description User with this email already exists
@@ -30,10 +30,10 @@ export type CreateUserApiV1AuthUsersPost422 = HTTPValidationError;
 export type CreateUserApiV1AuthUsersPostMutationRequest = UserCreate;
 
 export type CreateUserApiV1AuthUsersPostMutationResponse =
-  CreateUserApiV1AuthUsersPost200;
+  CreateUserApiV1AuthUsersPost201;
 
 export type CreateUserApiV1AuthUsersPostMutation = {
-  Response: CreateUserApiV1AuthUsersPost200;
+  Response: CreateUserApiV1AuthUsersPost201;
   Request: CreateUserApiV1AuthUsersPostMutationRequest;
   Errors: CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422;
 };

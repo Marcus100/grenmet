@@ -1,0 +1,78 @@
+@import "tailwindcss";
+@import "@grenmet/ui/styles/globals";
+@plugin "@tailwindcss/typography";
+
+/*
+  Grenada Signal brand layer.
+
+  We consume the @grenmet/ui foundation above (which provides the shadcn
+  semantic @theme mapping), then override the semantic :root tokens to the
+  Signal palette so reused @grenmet/ui primitives reskin automatically.
+  Light mode only. Red is reserved for alerts.
+*/
+@layer base {
+  :root {
+    --signal-green: #1a7a3d;
+    --signal-green-dark: #136030;
+    --signal-gold: #f5c518;
+    --signal-ink: #0a0a0a;
+    --signal-alert: #c8102e;
+    --signal-muted: #6b7280;
+    --signal-rule: #e5e7eb;
+    --signal-paper: #ffffff;
+
+    /* Override @grenmet/ui shadcn semantics -> Signal */
+    --background: var(--signal-paper);
+    --foreground: var(--signal-ink);
+    --card: var(--signal-paper);
+    --card-foreground: var(--signal-ink);
+    --popover: var(--signal-paper);
+    --popover-foreground: var(--signal-ink);
+    --primary: var(--signal-green);
+    --primary-foreground: #ffffff;
+    --secondary: #f3f4f6;
+    --secondary-foreground: var(--signal-ink);
+    --muted: #f3f4f6;
+    --muted-foreground: var(--signal-muted);
+    --accent: var(--signal-gold);
+    --accent-foreground: var(--signal-ink);
+    --destructive: var(--signal-alert);
+    --destructive-foreground: #ffffff;
+    --border: var(--signal-rule);
+    --input: var(--signal-rule);
+    --ring: var(--signal-green);
+    --radius: 0.5rem;
+
+    color-scheme: light;
+  }
+}
+
+/* Signal-specific Tailwind utilities + font tokens */
+@theme inline {
+  --font-serif: var(
+    --font-source-serif,
+    ui-serif,
+    Georgia,
+    "Times New Roman",
+    serif
+  );
+
+  --color-signal-green: var(--signal-green);
+  --color-signal-green-dark: var(--signal-green-dark);
+  --color-signal-gold: var(--signal-gold);
+  --color-signal-ink: var(--signal-ink);
+  --color-signal-alert: var(--signal-alert);
+  --color-signal-muted: var(--signal-muted);
+  --color-signal-rule: var(--signal-rule);
+  --color-signal-paper: var(--signal-paper);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+a {
+  text-decoration: none;
+}

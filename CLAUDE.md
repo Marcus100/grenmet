@@ -18,6 +18,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 - Creating new files in `packages/` (shared — affects all apps)
 - Modifying `turbo.json`, `biome.jsonc`, or any `tsconfig*.json`
 - Modifying any Drizzle schema file or creating a migration
+- Adding or modifying FastAPI routes that are public or change the OpenAPI contract — update `docs/api/contracts.md` and regenerate the client
 - Introducing a new pattern, abstraction, or design approach
 
 ### Never
@@ -46,6 +47,14 @@ flag it and ask.
 ### Correction Handling
 When a correction is given mid-session, ask: "Should I add this to CLAUDE.md?"
 before writing anything to project files or memory.
+
+### CLAUDE.md Update Protocol
+When adding to this file, follow this structure:
+- **Behavioral rule** → add to the appropriate tier (Always / Ask First / Never) or create a named rule under Behavioral Rules
+- **Code convention** → add a bullet to Code Conventions; lead with `**Name**` and state what to do and what not to do
+- **CI/CD fact** → add to CI/CD Conventions
+- **Lookup pointer** → add a row to the Where to Look table
+- Keep each entry to one line or two where an example is essential. Do not add narrative prose — this file is machine-read first.
 
 ## Tool Usage
 
@@ -86,23 +95,52 @@ before writing anything to project files or memory.
 
 ## Figma / Design
 
+- Full Figma→code→verify→token-guard loop: `docs/design-workflow.md`. Token contract and governance: `docs/design-system.md`.
 - Always load the `/figma-use` skill before calling `use_figma` — it is mandatory.
-- Use `/figma-generate-design` for translating a page or layout into Figma.
-- Do not move pages between Figma files programmatically — instruct the user to
-  do it in the Figma UI.
-- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright)
-  when the dev server is running.
+- Use `/figma-generate-design` to translate a page or layout into code; `/analyse-grenmet` to audit Figma structure/drift.
+- Use `/ui-check` to implement or refine a component against its Figma node.
+- Do not move pages between Figma files programmatically — instruct the user to do it in the Figma UI.
+- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright) when the dev server is running.
+- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius and never add design values to Tailwind config. Adding or changing a `--gm-*` token needs user approval, landed in Figma and `packages/ui/src/styles/globals.css` together.
+- Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full` (warning-only drift), `:contrast` (warning pairs), `:sync` (regenerate app blocks after editing the canonical block). V1 is light-mode only — no `dark:` branches in shared primitives.
 
 ## Where to Look
 
-| I need to understand…            | Read…                        |
-|----------------------------------|------------------------------|
-| Monorepo structure and auth flow | `docs/technical-overview.md` |
-| Service architecture             | `docs/architecture.md`       |
-| Auth package API                 | `packages/auth/README.md`    |
-| Environment variables            | `docs/env.md`                |
-| Deployment                       | `docs/deployment.md`         |
-| Troubleshooting                  | `docs/troubleshooting.md`    |
-| Design system tokens             | `docs/design-system.md`      |
-| A specific app                   | `apps/web/<app>/CLAUDE.md`   |
-| Dev commands                     | `AGENTS.md`                  |
+| I need to understand…              | Read…                              |
+|------------------------------------|------------------------------------|
+| Monorepo structure and auth flow   | `docs/technical-overview.md`       |
+| Service architecture               | `docs/architecture.md`             |
+| Auth package API                   | `packages/auth/README.md`          |
+| Auth package rules (agent)         | `packages/auth/CLAUDE.md`          |
+| UI package rules (agent)           | `packages/ui/CLAUDE.md`            |
+| API contracts and public endpoints | `docs/api/contracts.md`            |
+| Environment variables              | `docs/env.md`                      |
+| Deployment                         | `docs/deployment.md`               |
+| Infrastructure, backups, incidents | `docs/infrastructure.md`           |
+| Security baseline                  | `docs/security.md`                 |
+| Troubleshooting                    | `docs/troubleshooting.md`          |
+| Design system tokens               | `docs/design-system.md`            |
+| Design workflow (Figma→code→verify)| `docs/design-workflow.md`          |
+| Data architecture and governance   | `docs/data-architecture.md`        |
+| GMS programme and strategy         | `docs/internal/`                   |
+| GMS operational procedures / SOPs  | `docs/operations/`                 |
+| A specific web app                 | `apps/web/<app>/CLAUDE.md`         |
+| HR forms → model field mapping     | `docs/hr/forms-inventory.md`       |
+| Adding a new HR form module        | `docs/hr/adding-a-form-module.md`  |
+| FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
+| FastAPI dev workflow               | `docs/api/development.md`          |
+| Dev commands                       | `AGENTS.md`                        |
+
+## Agent skills
+
+### Issue tracker
+
+Issues tracked in GitHub Issues for `Marcus100/grenmet` via the `gh` CLI; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default kebab-case state labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`wontfix` already exists; the other four are created on first use). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one root `CONTEXT.md` (created lazily by `/domain-modeling`) plus the existing `docs/adr/`. See `docs/agents/domain.md`.

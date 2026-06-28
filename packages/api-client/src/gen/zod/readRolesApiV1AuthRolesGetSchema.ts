@@ -5,18 +5,29 @@
 
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { rolesPublicSchema } from "./rolesPublicSchema.js";
+import { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
 
 export const readRolesApiV1AuthRolesGetQueryParamsSchema = z.object({
-  skip: z.coerce.number().int().default(0),
-  limit: z.coerce.number().int().default(100),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(100)
+    .describe("Items per page"),
 });
 
 /**
  * @description Roles returned
  */
 export const readRolesApiV1AuthRolesGet200Schema = z.lazy(
-  () => rolesPublicSchema
+  () => paginatedResponseRolePublicSchema
 );
 
 /**

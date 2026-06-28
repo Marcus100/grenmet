@@ -11,7 +11,7 @@ import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema
 /**
  * @description Role assignment created
  */
-export const createRoleAssignmentApiV1AuthRoleAssignmentsPost200Schema = z.lazy(
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPost201Schema = z.lazy(
   () => userRoleAssignmentPublicSchema
 );
 
@@ -26,4 +26,4 @@ export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequestSche
   z.lazy(() => userRoleAssignmentCreateSchema);
 
 export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponseSchema =
-  z.lazy(() => createRoleAssignmentApiV1AuthRoleAssignmentsPost200Schema);
+  z.lazy(() => createRoleAssignmentApiV1AuthRoleAssignmentsPost201Schema);

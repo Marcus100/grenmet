@@ -18,6 +18,13 @@ export const timesheetEntryInputSchema = z.object({
       .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
       .default("0.0")
   ),
+  total_hours: z.optional(
+    z.union([
+      z.number(),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+      z.null(),
+    ])
+  ),
   overtime_hours: z.optional(
     z
       .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
@@ -28,5 +35,13 @@ export const timesheetEntryInputSchema = z.object({
       .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
       .default("0.0")
   ),
+  hours_worked: z.optional(
+    z.union([
+      z.number(),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+      z.null(),
+    ])
+  ),
+  medical_certificate_attached: z.optional(z.boolean().default(false)),
   comments: z.optional(z.union([z.string(), z.null()])),
 });

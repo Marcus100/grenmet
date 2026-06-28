@@ -12,6 +12,7 @@ import fetch from "../../client.js";
 import type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
+  LoginAccessTokenApiV1LoginAccessTokenPost429,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -41,6 +42,7 @@ export async function loginAccessTokenApiV1LoginAccessTokenPost(
     ResponseErrorConfig<
       | LoginAccessTokenApiV1LoginAccessTokenPost400
       | LoginAccessTokenApiV1LoginAccessTokenPost422
+      | LoginAccessTokenApiV1LoginAccessTokenPost429
     >,
     LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest
   >({

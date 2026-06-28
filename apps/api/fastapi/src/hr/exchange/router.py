@@ -5,14 +5,11 @@ from fastapi import APIRouter, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
 
+from . import service
 from .schemas import (
     ShiftSwapAction,
     ShiftSwapRequestCreate,
     ShiftSwapRequestPublic,
-)
-from .service import (
-    action_shift_swap_request,
-    create_shift_swap_request,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-exchange"])
@@ -29,10 +26,10 @@ router = APIRouter(prefix="/hr", tags=["hr-exchange"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def create_shift_swap_endpoint(
+async def create_shift_swap(
     *, session: SessionDep, current_user: CurrentUser, payload: ShiftSwapRequestCreate
 ) -> Any:
-    return await create_shift_swap_request(
+    return await service.create_shift_swap_request(
         session=session, current_user=current_user, payload=payload
     )
 
@@ -50,14 +47,14 @@ async def create_shift_swap_endpoint(
         status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
     },
 )
-async def action_shift_swap_endpoint(
+async def action_shift_swap(
     *,
     session: SessionDep,
     current_user: CurrentUser,
     shift_swap: ShiftSwapDep,
     payload: ShiftSwapAction,
 ) -> Any:
-    return await action_shift_swap_request(
+    return await service.action_shift_swap_request(
         session=session,
         current_user=current_user,
         shift_swap_id=shift_swap.id,

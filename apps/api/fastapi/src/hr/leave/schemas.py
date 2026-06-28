@@ -7,7 +7,7 @@ from pydantic import Field
 from src.hr.models import RequestStatus
 from src.models import BaseModel
 
-from .models import LeaveType
+from .models import LeaveType, ProfAppointmentType
 
 
 class LeaveRequestCreate(BaseModel):
@@ -18,10 +18,16 @@ class LeaveRequestCreate(BaseModel):
     days_requested: Decimal = Field(default=Decimal("0.0"))
     days_with_pay: Decimal = Field(default=Decimal("0.0"))
     days_without_pay: Decimal = Field(default=Decimal("0.0"))
+    professional_appointment_subtype: ProfAppointmentType | None = None
     reason: str | None = None
     contact_phone: str | None = None
     leave_address: str | None = None
+    travel_from_date: date | None = None
+    travel_to_date: date | None = None
+    salary_in_advance: bool = False
+    requires_acting_appointment: bool = False
     acting_officer_id: uuid.UUID | None = None
+    expected_return_date: date | None = None
 
 
 class LeaveRequestAction(BaseModel):
@@ -40,10 +46,16 @@ class LeaveRequestPublic(BaseModel):
     days_requested: Decimal
     days_with_pay: Decimal
     days_without_pay: Decimal
+    professional_appointment_subtype: ProfAppointmentType | None = None
     reason: str | None = None
     contact_phone: str | None = None
     leave_address: str | None = None
+    travel_from_date: date | None = None
+    travel_to_date: date | None = None
+    salary_in_advance: bool
+    requires_acting_appointment: bool
     acting_officer_id: uuid.UUID | None = None
+    expected_return_date: date | None = None
     head_of_dept_comments: str | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None

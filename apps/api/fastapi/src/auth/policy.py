@@ -1,11 +1,14 @@
+import logging
 import uuid
 
-from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
+
+logger = logging.getLogger(__name__)
 
 ERROR_PERMISSION_DENIED = "Insufficient permission for this operation"
 
@@ -15,15 +18,14 @@ async def _active_assignments(
 ) -> list[UserRoleAssignment]:
     now = utc_now()
     result = await session.execute(
-        select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
+        select(UserRoleAssignment).where(
+            UserRoleAssignment.user_id == user_id,
+            col(UserRoleAssignment.effective_from) <= now,
+            col(UserRoleAssignment.effective_to).is_(None)
+            | (col(UserRoleAssignment.effective_to) >= now),
+        )
     )
-    assignments = list(result.scalars().all())
-    return [
-        assignment
-        for assignment in assignments
-        if assignment.effective_from <= now
-        and (assignment.effective_to is None or assignment.effective_to >= now)
-    ]
+    return list(result.scalars().all())
 
 
 def has_permission(*, current_user: User, permission_key: str) -> bool:
@@ -39,7 +41,11 @@ def has_permission(*, current_user: User, permission_key: str) -> bool:
 
 def require_permission(*, current_user: User, permission_key: str) -> None:
     if not has_permission(current_user=current_user, permission_key=permission_key):
-        raise HTTPException(status_code=403, detail=ERROR_PERMISSION_DENIED)
+        logger.warning(
+            "Permission denied",
+            extra={"user_id": str(current_user.id), "permission_key": permission_key},
+        )
+        raise AuthorizationError(ERROR_PERMISSION_DENIED)
 
 
 async def can_act_on_user(

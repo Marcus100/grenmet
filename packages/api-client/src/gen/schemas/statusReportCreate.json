@@ -7,6 +7,53 @@
       "title": "Report Date"
     },
     "shift_code": { "type": "string", "title": "Shift Code" },
+    "shift_period": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["AM", "PM"],
+          "title": "ShiftPeriod",
+          "x-readme-ref-name": "ShiftPeriod"
+        },
+        { "type": "null" }
+      ]
+    },
+    "all_personnel_reported_on_time": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "All Personnel Reported On Time"
+    },
+    "personnel_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Personnel Explanation"
+    },
+    "affected_operations": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Affected Operations"
+    },
+    "affected_operations_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Affected Operations Explanation"
+    },
+    "all_equipment_operational": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "All Equipment Operational"
+    },
+    "equipment_issue_reason": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Equipment Issue Reason"
+    },
+    "equipment_remedy_action": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Equipment Remedy Action"
+    },
+    "incident_reports_submitted": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Incident Reports Submitted"
+    },
+    "incident_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Incident Explanation"
+    },
     "weather_summary": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Weather Summary"

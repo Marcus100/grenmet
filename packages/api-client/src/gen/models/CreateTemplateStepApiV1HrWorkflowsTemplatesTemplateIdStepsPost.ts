@@ -19,6 +19,12 @@ export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathPa
  * @description Step created
  */
 export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200 =
+  any;
+
+/**
+ * @description Successful Response
+ */
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201 =
   WorkflowStepTemplatePublic;
 
 /**
@@ -47,11 +53,14 @@ export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutati
   WorkflowStepTemplateCreate;
 
 export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse =
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200;
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201;
 
 export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutation =
   {
-    Response: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200;
+    Response:
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201;
     Request: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
     PathParams: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams;
     Errors:

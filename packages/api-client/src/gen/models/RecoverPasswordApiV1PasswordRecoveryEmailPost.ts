@@ -25,11 +25,18 @@ export type RecoverPasswordApiV1PasswordRecoveryEmailPost200 = Message;
 export type RecoverPasswordApiV1PasswordRecoveryEmailPost422 =
   HTTPValidationError;
 
+/**
+ * @description Rate limit exceeded
+ */
+export type RecoverPasswordApiV1PasswordRecoveryEmailPost429 = any;
+
 export type RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse =
   RecoverPasswordApiV1PasswordRecoveryEmailPost200;
 
 export type RecoverPasswordApiV1PasswordRecoveryEmailPostMutation = {
   Response: RecoverPasswordApiV1PasswordRecoveryEmailPost200;
   PathParams: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams;
-  Errors: RecoverPasswordApiV1PasswordRecoveryEmailPost422;
+  Errors:
+    | RecoverPasswordApiV1PasswordRecoveryEmailPost422
+    | RecoverPasswordApiV1PasswordRecoveryEmailPost429;
 };

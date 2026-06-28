@@ -4,7 +4,7 @@
     "sections": [
       {
         "id": "title-actions-after-the-hurricane-or-storm-description-post-storm-recovery-and-restoration-actions-after-event-passage",
-        "title": "title: 'Actions after the hurricane or storm'\ndescription: 'Post-storm recovery and restoration actions after event passage.'"
+        "title": "title: 'Actions after the hurricane or storm'\r\ndescription: 'Post-storm recovery and restoration actions after event passage.'"
       },
       {
         "id": "source-note",
@@ -141,7 +141,7 @@
     "sections": [
       {
         "id": "title-actions-during-the-hurricane-or-storm-description-actions-to-be-taken-while-hurricane-or-storm-conditions-are-in-effect",
-        "title": "title: 'Actions during the hurricane or storm'\ndescription: 'Actions to be taken while hurricane or storm conditions are in effect.'"
+        "title": "title: 'Actions during the hurricane or storm'\r\ndescription: 'Actions to be taken while hurricane or storm conditions are in effect.'"
       },
       {
         "id": "action-checklist",
@@ -171,7 +171,7 @@
     "sections": [
       {
         "id": "title-forecast-for-season-description-forecast-context-for-the-2024-atlantic-hurricane-season",
-        "title": "title: 'Forecast for Season'\ndescription: 'Forecast context for the 2024 Atlantic hurricane season.'"
+        "title": "title: 'Forecast for Season'\r\ndescription: 'Forecast context for the 2024 Atlantic hurricane season.'"
       },
       {
         "id": "2024-outlook",
@@ -229,7 +229,7 @@
     "sections": [
       {
         "id": "title-introduction-description-introduction-to-the-grenada-airports-authority-tropical-cyclone-emergency-plan-2024",
-        "title": "title: 'Introduction'\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
+        "title": "title: 'Introduction'\r\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
       },
       {
         "id": "coverage",
@@ -283,7 +283,7 @@
     "sections": [
       {
         "id": "title-objectives-description-objectives-of-the-gaa-tropical-cyclone-emergency-plan",
-        "title": "title: 'Objectives'\ndescription: 'Objectives of the GAA Tropical Cyclone Emergency Plan.'"
+        "title": "title: 'Objectives'\r\ndescription: 'Objectives of the GAA Tropical Cyclone Emergency Plan.'"
       },
       {
         "id": "plan-objectives",
@@ -334,7 +334,7 @@
     "sections": [
       {
         "id": "title-representation-description-eoc-representation-and-leadership-roles-under-the-hurricane-plan",
-        "title": "title: 'Representation'\ndescription: 'EOC representation and leadership roles under the Hurricane Plan.'"
+        "title": "title: 'Representation'\r\ndescription: 'EOC representation and leadership roles under the Hurricane Plan.'"
       },
       {
         "id": "eoc-representation",
@@ -360,7 +360,7 @@
     "sections": [
       {
         "id": "title-useful-terms-and-definitions-description-operational-storm-terminology-used-in-this-plan",
-        "title": "title: 'Useful terms and definitions'\ndescription: 'Operational storm terminology used in this plan.'"
+        "title": "title: 'Useful terms and definitions'\r\ndescription: 'Operational storm terminology used in this plan.'"
       },
       {
         "id": "advisory",
@@ -446,7 +446,7 @@
     "sections": [
       {
         "id": "title-appendix-a-list-of-emergency-personnel-description-emergency-personnel-contacts-for-cyclone-operations-as-listed-in-appendix-a",
-        "title": "title: 'Appendix A: List of Emergency Personnel'\ndescription: 'Emergency personnel contacts for cyclone operations as listed in Appendix A.'"
+        "title": "title: 'Appendix A: List of Emergency Personnel'\r\ndescription: 'Emergency personnel contacts for cyclone operations as listed in Appendix A.'"
       },
       {
         "id": "meteorologists-and-forecasters",
@@ -491,7 +491,7 @@
     "sections": [
       {
         "id": "title-appendix-b-list-of-mbia-vehicles-description-mbia-vehicle-inventory-referenced-in-appendix-b-of-the-2024-plan",
-        "title": "title: 'Appendix B: List of MBIA Vehicles'\ndescription: 'MBIA vehicle inventory referenced in Appendix B of the 2024 plan.'"
+        "title": "title: 'Appendix B: List of MBIA Vehicles'\r\ndescription: 'MBIA vehicle inventory referenced in Appendix B of the 2024 plan.'"
       },
       {
         "id": "vehicle-list",
@@ -508,7 +508,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-administration-description-pre-season-preparedness-actions-for-administration",
-        "title": "title: 'Pre-season actions: Administration'\ndescription: 'Pre-season preparedness actions for Administration.'"
+        "title": "title: 'Pre-season actions: Administration'\r\ndescription: 'Pre-season preparedness actions for Administration.'"
       },
       {
         "id": "information-technology",
@@ -525,7 +525,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-air-traffic-description-pre-season-preparedness-actions-for-air-traffic-services",
-        "title": "title: 'Pre-season actions: Air Traffic'\ndescription: 'Pre-season preparedness actions for Air Traffic Services.'"
+        "title": "title: 'Pre-season actions: Air Traffic'\r\ndescription: 'Pre-season preparedness actions for Air Traffic Services.'"
       },
       {
         "id": "action-checklist",
@@ -538,7 +538,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-cfr-description-pre-season-preparedness-actions-for-crash-fire-rescue-cfr",
-        "title": "title: 'Pre-season actions: CFR'\ndescription: 'Pre-season preparedness actions for Crash Fire Rescue (CFR).'"
+        "title": "title: 'Pre-season actions: CFR'\r\ndescription: 'Pre-season preparedness actions for Crash Fire Rescue (CFR).'"
       },
       {
         "id": "action-checklist",
@@ -551,7 +551,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-general-description-general-readiness-actions-required-before-hurricane-season",
-        "title": "title: 'Pre-season actions: General'\ndescription: 'General readiness actions required before hurricane season.'"
+        "title": "title: 'Pre-season actions: General'\r\ndescription: 'General readiness actions required before hurricane season.'"
       },
       {
         "id": "annual-planning-and-readiness",
@@ -576,7 +576,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-maintenance-description-pre-season-readiness-actions-for-the-maintenance-department",
-        "title": "title: 'Pre-season actions: Maintenance'\ndescription: 'Pre-season readiness actions for the Maintenance Department.'"
+        "title": "title: 'Pre-season actions: Maintenance'\r\ndescription: 'Pre-season readiness actions for the Maintenance Department.'"
       },
       {
         "id": "electrical",
@@ -601,7 +601,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-met-department-description-pre-season-preparedness-actions-for-the-meteorological-department",
-        "title": "title: 'Pre-season actions: Met Department'\ndescription: 'Pre-season preparedness actions for the Meteorological Department.'"
+        "title": "title: 'Pre-season actions: Met Department'\r\ndescription: 'Pre-season preparedness actions for the Meteorological Department.'"
       },
       {
         "id": "consumables-and-equipment",
@@ -622,7 +622,7 @@
     "sections": [
       {
         "id": "title-pre-season-actions-security-description-pre-season-preparedness-actions-for-security-and-emergency-services",
-        "title": "title: 'Pre-season actions: Security'\ndescription: 'Pre-season preparedness actions for Security and Emergency Services.'"
+        "title": "title: 'Pre-season actions: Security'\r\ndescription: 'Pre-season preparedness actions for Security and Emergency Services.'"
       },
       {
         "id": "action-checklist",
@@ -635,7 +635,7 @@
     "sections": [
       {
         "id": "title-special-operating-procedures-of-met-department-description-special-operating-procedures-for-meteorological-department-during-the-hurricane-season",
-        "title": "title: 'Special operating procedures of Met Department'\ndescription: 'Special operating procedures for Meteorological Department during the hurricane season.'"
+        "title": "title: 'Special operating procedures of Met Department'\r\ndescription: 'Special operating procedures for Meteorological Department during the hurricane season.'"
       },
       {
         "id": "routine-monitoring-during-hurricane-season",
@@ -664,7 +664,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-administration-description-administration-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Administration'\ndescription: 'Administration actions when a storm or hurricane warning is issued.'"
+        "title": "title: 'Warning issued actions: Administration'\r\ndescription: 'Administration actions when a storm or hurricane warning is issued.'"
       },
       {
         "id": "information-technology-centre",
@@ -681,7 +681,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-air-traffic-description-air-traffic-services-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Air Traffic'\ndescription: 'Air Traffic Services actions when a storm or hurricane warning is issued.'"
+        "title": "title: 'Warning issued actions: Air Traffic'\r\ndescription: 'Air Traffic Services actions when a storm or hurricane warning is issued.'"
       },
       {
         "id": "action-checklist",
@@ -694,7 +694,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-airport-tenants-description-airport-tenant-responsibilities-under-storm-hurricane-watch-and-warning",
-        "title": "title: 'Warning issued actions: Airport Tenants'\ndescription: 'Airport tenant responsibilities under storm/hurricane watch and warning.'"
+        "title": "title: 'Warning issued actions: Airport Tenants'\r\ndescription: 'Airport tenant responsibilities under storm/hurricane watch and warning.'"
       },
       {
         "id": "actions-when-watch-is-issued",
@@ -711,7 +711,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-carriacou-description-carriacou-airport-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: Carriacou'\ndescription: 'Carriacou airport actions when warning is issued.'"
+        "title": "title: 'Warning issued actions: Carriacou'\r\ndescription: 'Carriacou airport actions when warning is issued.'"
       },
       {
         "id": "action-checklist",
@@ -724,7 +724,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-cfr-description-crash-fire-rescue-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: CFR'\ndescription: 'Crash Fire Rescue actions when warning is issued.'"
+        "title": "title: 'Warning issued actions: CFR'\r\ndescription: 'Crash Fire Rescue actions when warning is issued.'"
       },
       {
         "id": "action-checklist",
@@ -737,7 +737,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-eccaa-description-eccaa-technical-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: ECCAA'\ndescription: 'ECCAA technical actions when a storm or hurricane warning is issued.'"
+        "title": "title: 'Warning issued actions: ECCAA'\r\ndescription: 'ECCAA technical actions when a storm or hurricane warning is issued.'"
       },
       {
         "id": "action-checklist",
@@ -750,7 +750,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-maintenance-description-maintenance-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Maintenance'\ndescription: 'Maintenance actions when a storm or hurricane warning is issued.'"
+        "title": "title: 'Warning issued actions: Maintenance'\r\ndescription: 'Maintenance actions when a storm or hurricane warning is issued.'"
       },
       {
         "id": "electrical",
@@ -779,7 +779,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-met-department-description-meteorological-office-actions-when-storm-or-hurricane-watch-warning-is-issued",
-        "title": "title: 'Warning issued actions: Met Department'\ndescription: 'Meteorological Office actions when storm or hurricane watch/warning is issued.'"
+        "title": "title: 'Warning issued actions: Met Department'\r\ndescription: 'Meteorological Office actions when storm or hurricane watch/warning is issued.'"
       },
       {
         "id": "forecaster-officer-in-charge",
@@ -796,7 +796,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-operation-description-operations-team-actions-when-a-storm-or-hurricane-warning-is-issued",
-        "title": "title: 'Warning issued actions: Operation'\ndescription: 'Operations team actions when a storm or hurricane warning is issued.'"
+        "title": "title: 'Warning issued actions: Operation'\r\ndescription: 'Operations team actions when a storm or hurricane warning is issued.'"
       },
       {
         "id": "action-checklist",
@@ -809,7 +809,7 @@
     "sections": [
       {
         "id": "title-warning-issued-actions-security-description-security-and-emergency-services-actions-when-warning-is-issued",
-        "title": "title: 'Warning issued actions: Security'\ndescription: 'Security and Emergency Services actions when warning is issued.'"
+        "title": "title: 'Warning issued actions: Security'\r\ndescription: 'Security and Emergency Services actions when warning is issued.'"
       },
       {
         "id": "action-checklist",

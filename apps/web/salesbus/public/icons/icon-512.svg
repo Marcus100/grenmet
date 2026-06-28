@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <title>Salesbus Icon</title>
-  <rect width="512" height="512" rx="64" fill="#4A7FC1"/>
-  <circle cx="256" cy="180" r="90" fill="#fff"/>
-  <rect x="146" y="290" width="220" height="140" rx="20" fill="#fff"/>
-  <text x="256" y="385" font-family="Arial" font-size="64" font-weight="bold" fill="#4A7FC1" text-anchor="middle">SB</text>
-</svg>

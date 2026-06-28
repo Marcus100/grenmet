@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ShiftPeriod } from "./ShiftPeriod.js";
 import type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
 
 /**
@@ -21,6 +22,16 @@ export type StatusReportCreate = {
    * @type string
    */
   shift_code: string;
+  shift_period?: ShiftPeriod | null;
+  all_personnel_reported_on_time?: boolean | null;
+  personnel_explanation?: string | null;
+  affected_operations?: boolean | null;
+  affected_operations_explanation?: string | null;
+  all_equipment_operational?: boolean | null;
+  equipment_issue_reason?: string | null;
+  equipment_remedy_action?: string | null;
+  incident_reports_submitted?: boolean | null;
+  incident_explanation?: string | null;
   weather_summary?: string | null;
   equipment_summary?: string | null;
   personnel_summary?: string | null;

@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "code": {
+      "type": "string",
+      "maxLength": 10,
+      "minLength": 6,
+      "title": "Code"
+    }
+  },
+  "type": "object",
+  "required": ["code"],
+  "title": "TwoFactorCodeRequest",
+  "x-readme-ref-name": "TwoFactorCodeRequest"
+}

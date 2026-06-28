@@ -1,0 +1,11 @@
+{
+  "properties": {
+    "note": {
+      "anyOf": [{ "type": "string", "maxLength": 2000 }, { "type": "null" }],
+      "title": "Note"
+    }
+  },
+  "type": "object",
+  "title": "CapAlertAction",
+  "x-readme-ref-name": "CapAlertAction"
+}

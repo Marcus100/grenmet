@@ -4,14 +4,11 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 
+from . import service
 from .schemas import (
     AbsenteeReportCreate,
     AbsenteeReportListPublic,
     AbsenteeReportPublic,
-)
-from .service import (
-    create_absentee_report,
-    list_absentee_reports,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-absentee"])
@@ -28,10 +25,10 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def create_absentee_endpoint(
+async def create_absentee_report(
     *, session: SessionDep, current_user: CurrentUser, payload: AbsenteeReportCreate
 ) -> Any:
-    return await create_absentee_report(
+    return await service.create_absentee_report(
         session=session, current_user=current_user, payload=payload
     )
 
@@ -51,7 +48,7 @@ async def read_absentee_reports(
     current_user: CurrentUser,
     department_id: str | None = None,
 ) -> Any:
-    rows = await list_absentee_reports(
+    rows = await service.list_absentee_reports(
         session=session,
         current_user=current_user,
         department_id=department_id,

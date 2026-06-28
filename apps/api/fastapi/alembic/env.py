@@ -1,11 +1,14 @@
 import asyncio
+import selectors
 import sys
 from logging.config import fileConfig
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlmodel import SQLModel
 
 from alembic import context
 
@@ -14,6 +17,30 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
+from src.cap.models import (  # noqa: F401
+    CapAlert,
+    CapArea,
+    CapAuditEvent,
+    CapFeedImport,
+    CapHazardType,
+    CapIncident,
+    CapInfo,
+    CapJobEvent,
+    CapMqttBroker,
+    CapPredefinedArea,
+    CapReference,
+    CapResource,
+    CapSettings,
+    CapSnapshot,
+    CapWebhook,
+)
+from src.config import settings
+from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
+from src.hr.absentee.models import AbsenteeReport  # noqa: F401
+from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
+from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
+from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
+from src.hr.parking.models import ParkingPermit  # noqa: F401
 from src.hr.models import (  # noqa: F401
     ApprovalAuthority,
     Department,
@@ -26,10 +53,6 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
-from src.hr.absentee.models import AbsenteeReport  # noqa: F401
-from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
-from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.roster.models import (  # noqa: F401
     PublicHoliday,
     RosterAssignment,
@@ -52,52 +75,39 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
-from src.config import settings
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
 config = context.config
-
-# Set the SQLAlchemy URL from settings
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Import SQLModel metadata with naming conventions
-from sqlmodel import SQLModel
-from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
-
-# Apply naming convention to metadata
 SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = SQLModel.metadata
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
+# Schemas tracked by autogenerate. Extend this set when adding a new schema.
+_TRACKED_SCHEMAS = {None, "public", "hr", "cap"}
+
+
+def _include_object(
+    object: Any, name: str, type_: str, reflected: bool, compare_to: Any
+) -> bool:
+    """Include only tables from our tracked schemas; include all other objects."""
+    if type_ == "table":
+        return getattr(object, "schema", None) in _TRACKED_SCHEMAS
+    return True
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
-    """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_schemas=True,
+        compare_type=True,
+        include_object=_include_object,
     )
 
     with context.begin_transaction():
@@ -105,18 +115,19 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_schemas=True,
+        compare_type=True,
+        include_object=_include_object,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
 
 
 async def run_async_migrations() -> None:
-    """In this scenario we need to create an Engine
-    and associate a connection with the context.
-
-    """
-
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -130,7 +141,13 @@ async def run_async_migrations() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode."""
+    if sys.platform == "win32":
+        loop = asyncio.SelectorEventLoop(selectors.SelectSelector())
+        try:
+            loop.run_until_complete(run_async_migrations())
+        finally:
+            loop.close()
+        return
 
     asyncio.run(run_async_migrations())
 

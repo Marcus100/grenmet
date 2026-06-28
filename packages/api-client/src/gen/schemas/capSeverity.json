@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["Extreme", "Severe", "Moderate", "Minor", "Unknown"],
+  "title": "CapSeverity",
+  "x-readme-ref-name": "CapSeverity"
+}

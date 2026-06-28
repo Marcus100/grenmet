@@ -11,7 +11,7 @@ import { rolePublicSchema } from "./rolePublicSchema.js";
 /**
  * @description Role created
  */
-export const createRoleApiV1AuthRolesPost200Schema = z.lazy(
+export const createRoleApiV1AuthRolesPost201Schema = z.lazy(
   () => rolePublicSchema
 );
 
@@ -27,5 +27,5 @@ export const createRoleApiV1AuthRolesPostMutationRequestSchema = z.lazy(
 );
 
 export const createRoleApiV1AuthRolesPostMutationResponseSchema = z.lazy(
-  () => createRoleApiV1AuthRolesPost200Schema
+  () => createRoleApiV1AuthRolesPost201Schema
 );

@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "data": {
+      "items": { "x-readme-ref-name": "PermissionPublic" },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" },
+    "page": { "type": "integer", "title": "Page", "default": 1 },
+    "size": { "type": "integer", "title": "Size", "default": 100 },
+    "total_pages": { "type": "integer", "title": "Total Pages", "default": 1 }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "PaginatedResponse[PermissionPublic]",
+  "x-readme-ref-name": "PaginatedResponse_PermissionPublic_"
+}

@@ -45,7 +45,7 @@ class UserUpdateMe(BaseModel):
 
 class UpdatePassword(BaseModel):
     current_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=40)
 
 
 # Properties to return via API, id is always required
@@ -119,7 +119,7 @@ class PermissionBase(BaseModel):
 
 
 class PermissionCreate(PermissionBase):
-    key: str | None = None
+    pass
 
 
 class PermissionUpdate(BaseModel):
@@ -173,10 +173,31 @@ class SessionLoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=40)
     client_type: str = Field(default="web", min_length=1, max_length=50)
     app_name: str | None = Field(default=None, max_length=100)
+    totp_code: str | None = Field(default=None, max_length=10)
 
 
 class SessionTokenRequest(BaseModel):
     session_token: str = Field(min_length=32, max_length=500)
+
+
+# --- Two-factor authentication ---
+
+
+class TwoFactorSetupResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+
+
+class TwoFactorCodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=10)
+
+
+class TwoFactorDisableRequest(BaseModel):
+    password: str = Field(min_length=8, max_length=40)
+
+
+class TwoFactorStatusPublic(BaseModel):
+    enabled: bool
 
 
 class SessionAuthenticationBase(BaseModel):
@@ -198,7 +219,7 @@ class SessionAccessTokenResponse(SessionAuthenticationBase):
 
 class NewPassword(BaseModel):
     token: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=40)
 
 
 class UserRoleAssignmentBase(BaseModel):
