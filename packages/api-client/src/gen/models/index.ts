@@ -391,7 +391,6 @@ export type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
   LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   LoginAccessTokenApiV1LoginAccessTokenPostMutation,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,

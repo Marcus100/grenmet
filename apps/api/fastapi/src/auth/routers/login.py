@@ -10,7 +10,7 @@ This router handles all authentication-related operations including:
 from datetime import datetime
 from typing import Annotated, Any, overload
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
@@ -128,12 +128,12 @@ async def login_access_token(
     request: Request,
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    x_totp_code: Annotated[str | None, Header()] = None,
 ) -> Token:
     """
     OAuth2 compatible token login, get an access token for future requests.
 
-    For 2FA-enabled accounts, supply the TOTP code via the ``X-TOTP-Code`` header.
+    Accounts with 2FA enabled must use /login/session (which carries the TOTP code);
+    this legacy OAuth2 endpoint rejects them rather than bypassing 2FA.
     """
     _ = request
     if await login_lockout.is_locked(form_data.username):
@@ -149,11 +149,10 @@ async def login_access_token(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
-    if user.totp_enabled and not totp.verify_code(
-        secret=user.totp_secret or "", code=x_totp_code or ""
-    ):
+    if user.totp_enabled:
         raise HTTPException(
-            status_code=400, detail="Two-factor authentication code required or invalid"
+            status_code=400,
+            detail="This account uses two-factor authentication; sign in via /login/session",
         )
     await login_lockout.reset(form_data.username)
     access_token_expires = service.get_legacy_access_token_expires_delta()
