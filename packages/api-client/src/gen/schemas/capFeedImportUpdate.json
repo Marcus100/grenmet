@@ -1,0 +1,32 @@
+{
+  "properties": {
+    "name": {
+      "anyOf": [
+        { "type": "string", "maxLength": 255, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Name"
+    },
+    "url": {
+      "anyOf": [
+        { "type": "string", "maxLength": 1000, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Url"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["ACTIVE", "INACTIVE", "FAILED"],
+          "title": "CapIntegrationStatus",
+          "x-readme-ref-name": "CapIntegrationStatus"
+        },
+        { "type": "null" }
+      ]
+    }
+  },
+  "type": "object",
+  "title": "CapFeedImportUpdate",
+  "x-readme-ref-name": "CapFeedImportUpdate"
+}

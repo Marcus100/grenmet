@@ -4,17 +4,21 @@ from xml.etree import ElementTree as ET
 
 from fastapi import APIRouter, Query, Response, status
 
-from src.cap import service
+from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import CapLifecycleState
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
+    CapAlertImportRequest,
     CapAlertListPublic,
     CapAlertPublic,
     CapAlertUpdate,
     CapAuditEventPublic,
     CapCatalogsPublic,
+    CapFeedImportCreate,
+    CapFeedImportPublic,
+    CapFeedImportUpdate,
     CapPredefinedAreaCreate,
     CapPredefinedAreaPublic,
     CapPublishPublic,
@@ -52,6 +56,23 @@ async def create_alert(
 ) -> CapAlertPublic:
     return await service.create_alert(
         session=session, current_user=current_user, payload=payload
+    )
+
+
+@router.post(
+    "/alerts/import",
+    response_model=CapAlertPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Import a CAP alert from a URL or pasted XML",
+)
+async def import_alert(
+    *, session: SessionDep, current_user: CurrentUser, payload: CapAlertImportRequest
+) -> CapAlertPublic:
+    return await service.import_alert(
+        session=session,
+        current_user=current_user,
+        source=payload.source,
+        value=payload.value,
     )
 
 
@@ -248,9 +269,63 @@ async def read_audit(
     )
 
 
+@router.get("/feeds", response_model=list[CapFeedImportPublic])
+async def read_feeds(
+    *, session: SessionDep, current_user: CurrentUser
+) -> list[CapFeedImportPublic]:
+    feeds = await service.list_feeds(session=session, current_user=current_user)
+    return [CapFeedImportPublic.model_validate(f, from_attributes=True) for f in feeds]
+
+
+@router.post(
+    "/feeds",
+    response_model=CapFeedImportPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Register an external CAP feed source",
+)
+async def create_feed(
+    *, session: SessionDep, current_user: CurrentUser, payload: CapFeedImportCreate
+) -> CapFeedImportPublic:
+    feed = await service.create_feed(
+        session=session, current_user=current_user, payload=payload
+    )
+    return CapFeedImportPublic.model_validate(feed, from_attributes=True)
+
+
+@router.patch("/feeds/{feed_id}", response_model=CapFeedImportPublic)
+async def update_feed(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    feed_id: uuid.UUID,
+    payload: CapFeedImportUpdate,
+) -> CapFeedImportPublic:
+    feed = await service.update_feed(
+        session=session, current_user=current_user, feed_id=feed_id, payload=payload
+    )
+    return CapFeedImportPublic.model_validate(feed, from_attributes=True)
+
+
+@router.delete(
+    "/feeds/{feed_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete an external CAP feed source",
+)
+async def delete_feed(
+    *, session: SessionDep, current_user: CurrentUser, feed_id: uuid.UUID
+) -> None:
+    await service.delete_feed(
+        session=session, current_user=current_user, feed_id=feed_id
+    )
+
+
 @public_router.get("/latest-active", response_model=CapAlertListPublic)
-async def read_public_latest_active(*, session: SessionDep) -> CapAlertListPublic:
-    return await service.public_latest_active(session=session)
+async def read_public_latest_active(*, session: SessionDep) -> Any:
+    async def _produce() -> dict[str, Any]:
+        result = await service.public_latest_active(session=session)
+        return result.model_dump(mode="json")
+
+    return await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
 
 
 @public_router.get("/alerts", response_model=CapAlertListPublic)
@@ -271,9 +346,12 @@ async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlert
 
 
 @public_router.get("/alerts.geojson")
-async def read_alerts_geojson(*, session: SessionDep) -> dict[str, Any]:
-    alerts = await service.public_latest_active(session=session)
-    return alerts_to_feature_collection(alerts.data)
+async def read_alerts_geojson(*, session: SessionDep) -> Any:
+    async def _produce() -> dict[str, Any]:
+        alerts = await service.public_latest_active(session=session)
+        return alerts_to_feature_collection(alerts.data)
+
+    return await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
 
 
 @public_router.get("/active-map")
@@ -284,19 +362,24 @@ async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
 
 @public_router.get("/rss.xml")
 async def read_rss(*, session: SessionDep) -> Response:
-    alerts = await service.public_latest_active(session=session)
-    return Response(
-        content=_rss_xml(alerts.data),
-        media_type="application/rss+xml; charset=utf-8",
-    )
+    async def _produce() -> str:
+        alerts = await service.public_latest_active(session=session)
+        return _rss_xml(alerts.data)
+
+    body = await cache.cached_text(cache.PUBLIC_RSS, 30, _produce)
+    return Response(content=body, media_type="application/rss+xml; charset=utf-8")
 
 
 @public_router.get("/{identifier}.xml")
 async def read_cap_xml(*, session: SessionDep, identifier: str) -> Response:
-    snapshot = await service.latest_snapshot_for_identifier(
-        session=session, identifier=identifier
-    )
-    return Response(content=snapshot.xml, media_type="application/xml; charset=utf-8")
+    async def _produce() -> str:
+        snapshot = await service.latest_snapshot_for_identifier(
+            session=session, identifier=identifier
+        )
+        return snapshot.xml
+
+    body = await cache.cached_text(cache.public_xml_key(identifier), 300, _produce)
+    return Response(content=body, media_type="application/xml; charset=utf-8")
 
 
 def _rss_xml(alerts: list[CapAlertPublic]) -> str:

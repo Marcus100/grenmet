@@ -7,6 +7,7 @@ export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./clients/cancelAler
 export { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "./clients/closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export { createAbsenteeReportApiV1HrAbsenteeReportsPost } from "./clients/createAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 export { createAlertApiV1CapAlertsPost } from "./clients/createAlertApiV1CapAlertsPost.js";
+export { createFeedApiV1CapFeedsPost } from "./clients/createFeedApiV1CapFeedsPost.js";
 export { createHolidayApiV1HrRostersPublicHolidaysPost } from "./clients/createHolidayApiV1HrRostersPublicHolidaysPost.js";
 export { createInstanceApiV1HrWorkflowsInstancesPost } from "./clients/createInstanceApiV1HrWorkflowsInstancesPost.js";
 export { createLeaveRequestApiV1HrLeaveRequestsPost } from "./clients/createLeaveRequestApiV1HrLeaveRequestsPost.js";
@@ -22,6 +23,7 @@ export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./clients/createTem
 export { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "./clients/createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 export { createTimesheetApiV1HrTimesheetsPost } from "./clients/createTimesheetApiV1HrTimesheetsPost.js";
 export { createUserApiV1AuthUsersPost } from "./clients/createUserApiV1AuthUsersPost.js";
+export { deleteFeedApiV1CapFeedsFeedIdDelete } from "./clients/deleteFeedApiV1CapFeedsFeedIdDelete.js";
 export { deleteUserApiV1AuthUsersUserIdDelete } from "./clients/deleteUserApiV1AuthUsersUserIdDelete.js";
 export { deleteUserMeApiV1AuthUsersMeDelete } from "./clients/deleteUserMeApiV1AuthUsersMeDelete.js";
 export { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "./clients/duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
@@ -30,6 +32,7 @@ export { expireAlertApiV1CapAlertsAlertIdExpirePost } from "./clients/expireAler
 export { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "./clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./clients/getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./clients/healthCheckApiV1UtilsHealthCheckGet.js";
+export { importAlertApiV1CapAlertsImportPost } from "./clients/importAlertApiV1CapAlertsImportPost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./clients/importCsvApiV1HrRostersImportCsvPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./clients/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listHolidaysApiV1HrRostersPublicHolidaysGet } from "./clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
@@ -50,6 +53,7 @@ export { readCapSettingsApiV1CapSettingsGet } from "./clients/readCapSettingsApi
 export { readCapXmlApiCapIdentifierXmlGet } from "./clients/readCapXmlApiCapIdentifierXmlGet.js";
 export { readCatalogsApiV1CapCatalogsGet } from "./clients/readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export { readFeedsApiV1CapFeedsGet } from "./clients/readFeedsApiV1CapFeedsGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./clients/readHrProfileMeApiV1HrProfileMeGet.js";
 export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 export { readIntegrationsApiV1CapIntegrationsGet } from "./clients/readIntegrationsApiV1CapIntegrationsGet.js";
@@ -94,6 +98,7 @@ export { twofaSetupApiV12FaSetupPost } from "./clients/twofaSetupApiV12FaSetupPo
 export { twofaStatusApiV12FaStatusGet } from "./clients/twofaStatusApiV12FaStatusGet.js";
 export { updateAlertApiV1CapAlertsAlertIdPatch } from "./clients/updateAlertApiV1CapAlertsAlertIdPatch.js";
 export { updateCapSettingsApiV1CapSettingsPatch } from "./clients/updateCapSettingsApiV1CapSettingsPatch.js";
+export { updateFeedApiV1CapFeedsFeedIdPatch } from "./clients/updateFeedApiV1CapFeedsFeedIdPatch.js";
 export { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 export { updateHrProfileMeApiV1HrProfileMePatch } from "./clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
@@ -156,6 +161,12 @@ export {
   createAlertApiV1CapAlertsPostMutationOptions,
   useCreateAlertApiV1CapAlertsPost,
 } from "./hooks/useCreateAlertApiV1CapAlertsPost.js";
+export type { CreateFeedApiV1CapFeedsPostMutationKey } from "./hooks/useCreateFeedApiV1CapFeedsPost.js";
+export {
+  createFeedApiV1CapFeedsPostMutationKey,
+  createFeedApiV1CapFeedsPostMutationOptions,
+  useCreateFeedApiV1CapFeedsPost,
+} from "./hooks/useCreateFeedApiV1CapFeedsPost.js";
 export type { CreateHolidayApiV1HrRostersPublicHolidaysPostMutationKey } from "./hooks/useCreateHolidayApiV1HrRostersPublicHolidaysPost.js";
 export {
   createHolidayApiV1HrRostersPublicHolidaysPostMutationKey,
@@ -246,6 +257,12 @@ export {
   createUserApiV1AuthUsersPostMutationOptions,
   useCreateUserApiV1AuthUsersPost,
 } from "./hooks/useCreateUserApiV1AuthUsersPost.js";
+export type { DeleteFeedApiV1CapFeedsFeedIdDeleteMutationKey } from "./hooks/useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export {
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey,
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions,
+  useDeleteFeedApiV1CapFeedsFeedIdDelete,
+} from "./hooks/useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
 export type { DeleteUserApiV1AuthUsersUserIdDeleteMutationKey } from "./hooks/useDeleteUserApiV1AuthUsersUserIdDelete.js";
 export {
   deleteUserApiV1AuthUsersUserIdDeleteMutationKey,
@@ -312,6 +329,12 @@ export {
   healthCheckApiV1UtilsHealthCheckGetSuspenseQueryOptions,
   useHealthCheckApiV1UtilsHealthCheckGetSuspense,
 } from "./hooks/useHealthCheckApiV1UtilsHealthCheckGetSuspense.js";
+export type { ImportAlertApiV1CapAlertsImportPostMutationKey } from "./hooks/useImportAlertApiV1CapAlertsImportPost.js";
+export {
+  importAlertApiV1CapAlertsImportPostMutationKey,
+  importAlertApiV1CapAlertsImportPostMutationOptions,
+  useImportAlertApiV1CapAlertsImportPost,
+} from "./hooks/useImportAlertApiV1CapAlertsImportPost.js";
 export type { ImportCsvApiV1HrRostersImportCsvPostMutationKey } from "./hooks/useImportCsvApiV1HrRostersImportCsvPost.js";
 export {
   importCsvApiV1HrRostersImportCsvPostMutationKey,
@@ -504,6 +527,18 @@ export {
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspenseQueryOptions,
   useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspense,
 } from "./hooks/useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSuspense.js";
+export type { ReadFeedsApiV1CapFeedsGetQueryKey } from "./hooks/useReadFeedsApiV1CapFeedsGet.js";
+export {
+  readFeedsApiV1CapFeedsGetQueryKey,
+  readFeedsApiV1CapFeedsGetQueryOptions,
+  useReadFeedsApiV1CapFeedsGet,
+} from "./hooks/useReadFeedsApiV1CapFeedsGet.js";
+export type { ReadFeedsApiV1CapFeedsGetSuspenseQueryKey } from "./hooks/useReadFeedsApiV1CapFeedsGetSuspense.js";
+export {
+  readFeedsApiV1CapFeedsGetSuspenseQueryKey,
+  readFeedsApiV1CapFeedsGetSuspenseQueryOptions,
+  useReadFeedsApiV1CapFeedsGetSuspense,
+} from "./hooks/useReadFeedsApiV1CapFeedsGetSuspense.js";
 export type { ReadHrProfileMeApiV1HrProfileMeGetQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
 export {
   readHrProfileMeApiV1HrProfileMeGetQueryKey,
@@ -936,6 +971,12 @@ export {
   updateCapSettingsApiV1CapSettingsPatchMutationOptions,
   useUpdateCapSettingsApiV1CapSettingsPatch,
 } from "./hooks/useUpdateCapSettingsApiV1CapSettingsPatch.js";
+export type { UpdateFeedApiV1CapFeedsFeedIdPatchMutationKey } from "./hooks/useUpdateFeedApiV1CapFeedsFeedIdPatch.js";
+export {
+  updateFeedApiV1CapFeedsFeedIdPatchMutationKey,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationOptions,
+  useUpdateFeedApiV1CapFeedsFeedIdPatch,
+} from "./hooks/useUpdateFeedApiV1CapFeedsFeedIdPatch.js";
 export type { UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey } from "./hooks/useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 export {
   updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey,
@@ -1052,6 +1093,11 @@ export type {
 } from "./models/CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export type { CapAlertAction } from "./models/CapAlertAction.js";
 export type { CapAlertCreate } from "./models/CapAlertCreate.js";
+export type {
+  CapAlertImportRequest,
+  CapAlertImportRequestSourceEnumKey,
+} from "./models/CapAlertImportRequest.js";
+export { capAlertImportRequestSourceEnum } from "./models/CapAlertImportRequest.js";
 export type { CapAlertListPublic } from "./models/CapAlertListPublic.js";
 export type { CapAlertPublic } from "./models/CapAlertPublic.js";
 export type { CapAlertUpdate } from "./models/CapAlertUpdate.js";
@@ -1073,7 +1119,15 @@ export type {
   CapCertaintyCapCertaintyEnumKey,
 } from "./models/CapCertainty.js";
 export { capCertaintyCapCertaintyEnum } from "./models/CapCertainty.js";
+export type { CapFeedImportCreate } from "./models/CapFeedImportCreate.js";
+export type { CapFeedImportPublic } from "./models/CapFeedImportPublic.js";
+export type { CapFeedImportUpdate } from "./models/CapFeedImportUpdate.js";
 export type { CapInfoCreate } from "./models/CapInfoCreate.js";
+export type {
+  CapIntegrationStatus,
+  CapIntegrationStatusCapIntegrationStatusEnumKey,
+} from "./models/CapIntegrationStatus.js";
+export { capIntegrationStatusCapIntegrationStatusEnum } from "./models/CapIntegrationStatus.js";
 export type {
   CapLifecycleState,
   CapLifecycleStateCapLifecycleStateEnumKey,
@@ -1137,6 +1191,13 @@ export type {
   CreateAlertApiV1CapAlertsPostMutationRequest,
   CreateAlertApiV1CapAlertsPostMutationResponse,
 } from "./models/CreateAlertApiV1CapAlertsPost.js";
+export type {
+  CreateFeedApiV1CapFeedsPost201,
+  CreateFeedApiV1CapFeedsPost422,
+  CreateFeedApiV1CapFeedsPostMutation,
+  CreateFeedApiV1CapFeedsPostMutationRequest,
+  CreateFeedApiV1CapFeedsPostMutationResponse,
+} from "./models/CreateFeedApiV1CapFeedsPost.js";
 export type {
   CreateHolidayApiV1HrRostersPublicHolidaysPost200,
   CreateHolidayApiV1HrRostersPublicHolidaysPost201,
@@ -1267,6 +1328,13 @@ export type {
   CreateUserApiV1AuthUsersPostMutationResponse,
 } from "./models/CreateUserApiV1AuthUsersPost.js";
 export type {
+  DeleteFeedApiV1CapFeedsFeedIdDelete204,
+  DeleteFeedApiV1CapFeedsFeedIdDelete422,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteMutation,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
+  DeleteFeedApiV1CapFeedsFeedIdDeletePathParams,
+} from "./models/DeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export type {
   DeleteUserApiV1AuthUsersUserIdDelete200,
   DeleteUserApiV1AuthUsersUserIdDelete403,
   DeleteUserApiV1AuthUsersUserIdDelete404,
@@ -1339,6 +1407,13 @@ export type {
   HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
 } from "./models/HealthCheckApiV1UtilsHealthCheckGet.js";
 export type { HTTPValidationError } from "./models/HTTPValidationError.js";
+export type {
+  ImportAlertApiV1CapAlertsImportPost201,
+  ImportAlertApiV1CapAlertsImportPost422,
+  ImportAlertApiV1CapAlertsImportPostMutation,
+  ImportAlertApiV1CapAlertsImportPostMutationRequest,
+  ImportAlertApiV1CapAlertsImportPostMutationResponse,
+} from "./models/ImportAlertApiV1CapAlertsImportPost.js";
 export type {
   ImportCsvApiV1HrRostersImportCsvPost200,
   ImportCsvApiV1HrRostersImportCsvPost400,
@@ -1525,6 +1600,11 @@ export type {
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
 } from "./models/ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export type {
+  ReadFeedsApiV1CapFeedsGet200,
+  ReadFeedsApiV1CapFeedsGetQuery,
+  ReadFeedsApiV1CapFeedsGetQueryResponse,
+} from "./models/ReadFeedsApiV1CapFeedsGet.js";
 export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,
@@ -1904,6 +1984,14 @@ export type {
   UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
 } from "./models/UpdateCapSettingsApiV1CapSettingsPatch.js";
 export type {
+  UpdateFeedApiV1CapFeedsFeedIdPatch200,
+  UpdateFeedApiV1CapFeedsFeedIdPatch422,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutation,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
+  UpdateFeedApiV1CapFeedsFeedIdPatchPathParams,
+} from "./models/UpdateFeedApiV1CapFeedsFeedIdPatch.js";
+export type {
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
@@ -2067,6 +2155,7 @@ export {
 } from "./zod/cancelAlertApiV1CapAlertsAlertIdCancelPostSchema.js";
 export { capAlertActionSchema } from "./zod/capAlertActionSchema.js";
 export { capAlertCreateSchema } from "./zod/capAlertCreateSchema.js";
+export { capAlertImportRequestSchema } from "./zod/capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./zod/capAlertListPublicSchema.js";
 export { capAlertPublicSchema } from "./zod/capAlertPublicSchema.js";
 export { capAlertUpdateSchema } from "./zod/capAlertUpdateSchema.js";
@@ -2076,7 +2165,11 @@ export { capAuditEventPublicSchema } from "./zod/capAuditEventPublicSchema.js";
 export { capCatalogsPublicSchema } from "./zod/capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./zod/capCategorySchema.js";
 export { capCertaintySchema } from "./zod/capCertaintySchema.js";
+export { capFeedImportCreateSchema } from "./zod/capFeedImportCreateSchema.js";
+export { capFeedImportPublicSchema } from "./zod/capFeedImportPublicSchema.js";
+export { capFeedImportUpdateSchema } from "./zod/capFeedImportUpdateSchema.js";
 export { capInfoCreateSchema } from "./zod/capInfoCreateSchema.js";
+export { capIntegrationStatusSchema } from "./zod/capIntegrationStatusSchema.js";
 export { capLifecycleStateSchema } from "./zod/capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueInputSchema } from "./zod/capNameValueInputSchema.js";
@@ -2116,6 +2209,12 @@ export {
   createAlertApiV1CapAlertsPostMutationRequestSchema,
   createAlertApiV1CapAlertsPostMutationResponseSchema,
 } from "./zod/createAlertApiV1CapAlertsPostSchema.js";
+export {
+  createFeedApiV1CapFeedsPost201Schema,
+  createFeedApiV1CapFeedsPost422Schema,
+  createFeedApiV1CapFeedsPostMutationRequestSchema,
+  createFeedApiV1CapFeedsPostMutationResponseSchema,
+} from "./zod/createFeedApiV1CapFeedsPostSchema.js";
 export {
   createHolidayApiV1HrRostersPublicHolidaysPost200Schema,
   createHolidayApiV1HrRostersPublicHolidaysPost201Schema,
@@ -2231,6 +2330,12 @@ export {
   createUserApiV1AuthUsersPostMutationResponseSchema,
 } from "./zod/createUserApiV1AuthUsersPostSchema.js";
 export {
+  deleteFeedApiV1CapFeedsFeedIdDelete204Schema,
+  deleteFeedApiV1CapFeedsFeedIdDelete422Schema,
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationResponseSchema,
+  deleteFeedApiV1CapFeedsFeedIdDeletePathParamsSchema,
+} from "./zod/deleteFeedApiV1CapFeedsFeedIdDeleteSchema.js";
+export {
   deleteUserApiV1AuthUsersUserIdDelete200Schema,
   deleteUserApiV1AuthUsersUserIdDelete403Schema,
   deleteUserApiV1AuthUsersUserIdDelete404Schema,
@@ -2287,6 +2392,12 @@ export {
   healthCheckApiV1UtilsHealthCheckGet200Schema,
   healthCheckApiV1UtilsHealthCheckGetQueryResponseSchema,
 } from "./zod/healthCheckApiV1UtilsHealthCheckGetSchema.js";
+export {
+  importAlertApiV1CapAlertsImportPost201Schema,
+  importAlertApiV1CapAlertsImportPost422Schema,
+  importAlertApiV1CapAlertsImportPostMutationRequestSchema,
+  importAlertApiV1CapAlertsImportPostMutationResponseSchema,
+} from "./zod/importAlertApiV1CapAlertsImportPostSchema.js";
 export {
   importCsvApiV1HrRostersImportCsvPost200Schema,
   importCsvApiV1HrRostersImportCsvPost400Schema,
@@ -2437,6 +2548,10 @@ export {
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParamsSchema,
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponseSchema,
 } from "./zod/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSchema.js";
+export {
+  readFeedsApiV1CapFeedsGet200Schema,
+  readFeedsApiV1CapFeedsGetQueryResponseSchema,
+} from "./zod/readFeedsApiV1CapFeedsGetSchema.js";
 export {
   readHrProfileMeApiV1HrProfileMeGet200Schema,
   readHrProfileMeApiV1HrProfileMeGet404Schema,
@@ -2750,6 +2865,13 @@ export {
   updateCapSettingsApiV1CapSettingsPatchMutationRequestSchema,
   updateCapSettingsApiV1CapSettingsPatchMutationResponseSchema,
 } from "./zod/updateCapSettingsApiV1CapSettingsPatchSchema.js";
+export {
+  updateFeedApiV1CapFeedsFeedIdPatch200Schema,
+  updateFeedApiV1CapFeedsFeedIdPatch422Schema,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationRequestSchema,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationResponseSchema,
+  updateFeedApiV1CapFeedsFeedIdPatchPathParamsSchema,
+} from "./zod/updateFeedApiV1CapFeedsFeedIdPatchSchema.js";
 export {
   updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema,
   updateHrEmploymentApiV1HrEmploymentUserIdPatch403Schema,

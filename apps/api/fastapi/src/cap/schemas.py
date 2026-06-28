@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
 
@@ -160,6 +160,33 @@ class CapAlertBase(BaseModel):
 
 class CapAlertCreate(CapAlertBase):
     pass
+
+
+class CapAlertImportRequest(BaseModel):
+    source: Literal["url", "xml"] = "xml"
+    value: str = Field(min_length=1)
+
+
+class CapFeedImportCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+    url: str = Field(min_length=1, max_length=1000)
+
+
+class CapFeedImportUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    url: str | None = Field(default=None, min_length=1, max_length=1000)
+    status: CapIntegrationStatus | None = None
+
+
+class CapFeedImportPublic(BaseModel):
+    id: uuid.UUID
+    name: str
+    url: str
+    status: CapIntegrationStatus
+    last_checked_at: datetime | None = None
+    last_error: str | None = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class CapAlertUpdate(BaseModel):

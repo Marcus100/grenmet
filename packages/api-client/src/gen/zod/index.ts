@@ -56,6 +56,7 @@ export {
 } from "./cancelAlertApiV1CapAlertsAlertIdCancelPostSchema.js";
 export { capAlertActionSchema } from "./capAlertActionSchema.js";
 export { capAlertCreateSchema } from "./capAlertCreateSchema.js";
+export { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
 export { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
@@ -65,7 +66,11 @@ export { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
+export { capFeedImportCreateSchema } from "./capFeedImportCreateSchema.js";
+export { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
+export { capFeedImportUpdateSchema } from "./capFeedImportUpdateSchema.js";
 export { capInfoCreateSchema } from "./capInfoCreateSchema.js";
+export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 export { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueInputSchema } from "./capNameValueInputSchema.js";
@@ -105,6 +110,12 @@ export {
   createAlertApiV1CapAlertsPostMutationRequestSchema,
   createAlertApiV1CapAlertsPostMutationResponseSchema,
 } from "./createAlertApiV1CapAlertsPostSchema.js";
+export {
+  createFeedApiV1CapFeedsPost201Schema,
+  createFeedApiV1CapFeedsPost422Schema,
+  createFeedApiV1CapFeedsPostMutationRequestSchema,
+  createFeedApiV1CapFeedsPostMutationResponseSchema,
+} from "./createFeedApiV1CapFeedsPostSchema.js";
 export {
   createHolidayApiV1HrRostersPublicHolidaysPost200Schema,
   createHolidayApiV1HrRostersPublicHolidaysPost201Schema,
@@ -220,6 +231,12 @@ export {
   createUserApiV1AuthUsersPostMutationResponseSchema,
 } from "./createUserApiV1AuthUsersPostSchema.js";
 export {
+  deleteFeedApiV1CapFeedsFeedIdDelete204Schema,
+  deleteFeedApiV1CapFeedsFeedIdDelete422Schema,
+  deleteFeedApiV1CapFeedsFeedIdDeleteMutationResponseSchema,
+  deleteFeedApiV1CapFeedsFeedIdDeletePathParamsSchema,
+} from "./deleteFeedApiV1CapFeedsFeedIdDeleteSchema.js";
+export {
   deleteUserApiV1AuthUsersUserIdDelete200Schema,
   deleteUserApiV1AuthUsersUserIdDelete403Schema,
   deleteUserApiV1AuthUsersUserIdDelete404Schema,
@@ -276,6 +293,12 @@ export {
   healthCheckApiV1UtilsHealthCheckGet200Schema,
   healthCheckApiV1UtilsHealthCheckGetQueryResponseSchema,
 } from "./healthCheckApiV1UtilsHealthCheckGetSchema.js";
+export {
+  importAlertApiV1CapAlertsImportPost201Schema,
+  importAlertApiV1CapAlertsImportPost422Schema,
+  importAlertApiV1CapAlertsImportPostMutationRequestSchema,
+  importAlertApiV1CapAlertsImportPostMutationResponseSchema,
+} from "./importAlertApiV1CapAlertsImportPostSchema.js";
 export {
   importCsvApiV1HrRostersImportCsvPost200Schema,
   importCsvApiV1HrRostersImportCsvPost400Schema,
@@ -426,6 +449,10 @@ export {
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParamsSchema,
   readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponseSchema,
 } from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSchema.js";
+export {
+  readFeedsApiV1CapFeedsGet200Schema,
+  readFeedsApiV1CapFeedsGetQueryResponseSchema,
+} from "./readFeedsApiV1CapFeedsGetSchema.js";
 export {
   readHrProfileMeApiV1HrProfileMeGet200Schema,
   readHrProfileMeApiV1HrProfileMeGet404Schema,
@@ -739,6 +766,13 @@ export {
   updateCapSettingsApiV1CapSettingsPatchMutationRequestSchema,
   updateCapSettingsApiV1CapSettingsPatchMutationResponseSchema,
 } from "./updateCapSettingsApiV1CapSettingsPatchSchema.js";
+export {
+  updateFeedApiV1CapFeedsFeedIdPatch200Schema,
+  updateFeedApiV1CapFeedsFeedIdPatch422Schema,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationRequestSchema,
+  updateFeedApiV1CapFeedsFeedIdPatchMutationResponseSchema,
+  updateFeedApiV1CapFeedsFeedIdPatchPathParamsSchema,
+} from "./updateFeedApiV1CapFeedsFeedIdPatchSchema.js";
 export {
   updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema,
   updateHrEmploymentApiV1HrEmploymentUserIdPatch403Schema,

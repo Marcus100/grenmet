@@ -75,6 +75,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # CAP — administration
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
+    PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
@@ -165,6 +166,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.alert.read",
             "cap.integrations.manage",
             "cap.settings.manage",
+            "cap.feed.manage",
         ),
     ),
     "workflow-admin": (

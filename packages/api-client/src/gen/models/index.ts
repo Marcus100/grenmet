@@ -66,6 +66,11 @@ export type {
 } from "./CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
+export type {
+  CapAlertImportRequest,
+  CapAlertImportRequestSourceEnumKey,
+} from "./CapAlertImportRequest.js";
+export { capAlertImportRequestSourceEnum } from "./CapAlertImportRequest.js";
 export type { CapAlertListPublic } from "./CapAlertListPublic.js";
 export type { CapAlertPublic } from "./CapAlertPublic.js";
 export type { CapAlertUpdate } from "./CapAlertUpdate.js";
@@ -87,7 +92,15 @@ export type {
   CapCertaintyCapCertaintyEnumKey,
 } from "./CapCertainty.js";
 export { capCertaintyCapCertaintyEnum } from "./CapCertainty.js";
+export type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
+export type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
+export type { CapFeedImportUpdate } from "./CapFeedImportUpdate.js";
 export type { CapInfoCreate } from "./CapInfoCreate.js";
+export type {
+  CapIntegrationStatus,
+  CapIntegrationStatusCapIntegrationStatusEnumKey,
+} from "./CapIntegrationStatus.js";
+export { capIntegrationStatusCapIntegrationStatusEnum } from "./CapIntegrationStatus.js";
 export type {
   CapLifecycleState,
   CapLifecycleStateCapLifecycleStateEnumKey,
@@ -145,6 +158,13 @@ export type {
   CreateAlertApiV1CapAlertsPostMutationRequest,
   CreateAlertApiV1CapAlertsPostMutationResponse,
 } from "./CreateAlertApiV1CapAlertsPost.js";
+export type {
+  CreateFeedApiV1CapFeedsPost201,
+  CreateFeedApiV1CapFeedsPost422,
+  CreateFeedApiV1CapFeedsPostMutation,
+  CreateFeedApiV1CapFeedsPostMutationRequest,
+  CreateFeedApiV1CapFeedsPostMutationResponse,
+} from "./CreateFeedApiV1CapFeedsPost.js";
 export type {
   CreateHolidayApiV1HrRostersPublicHolidaysPost200,
   CreateHolidayApiV1HrRostersPublicHolidaysPost201,
@@ -275,6 +295,13 @@ export type {
   CreateUserApiV1AuthUsersPostMutationResponse,
 } from "./CreateUserApiV1AuthUsersPost.js";
 export type {
+  DeleteFeedApiV1CapFeedsFeedIdDelete204,
+  DeleteFeedApiV1CapFeedsFeedIdDelete422,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteMutation,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
+  DeleteFeedApiV1CapFeedsFeedIdDeletePathParams,
+} from "./DeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export type {
   DeleteUserApiV1AuthUsersUserIdDelete200,
   DeleteUserApiV1AuthUsersUserIdDelete403,
   DeleteUserApiV1AuthUsersUserIdDelete404,
@@ -347,6 +374,13 @@ export type {
   HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
 } from "./HealthCheckApiV1UtilsHealthCheckGet.js";
 export type { HTTPValidationError } from "./HTTPValidationError.js";
+export type {
+  ImportAlertApiV1CapAlertsImportPost201,
+  ImportAlertApiV1CapAlertsImportPost422,
+  ImportAlertApiV1CapAlertsImportPostMutation,
+  ImportAlertApiV1CapAlertsImportPostMutationRequest,
+  ImportAlertApiV1CapAlertsImportPostMutationResponse,
+} from "./ImportAlertApiV1CapAlertsImportPost.js";
 export type {
   ImportCsvApiV1HrRostersImportCsvPost200,
   ImportCsvApiV1HrRostersImportCsvPost400,
@@ -530,6 +564,11 @@ export type {
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
 } from "./ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export type {
+  ReadFeedsApiV1CapFeedsGet200,
+  ReadFeedsApiV1CapFeedsGetQuery,
+  ReadFeedsApiV1CapFeedsGetQueryResponse,
+} from "./ReadFeedsApiV1CapFeedsGet.js";
 export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,
@@ -908,6 +947,14 @@ export type {
   UpdateCapSettingsApiV1CapSettingsPatchMutationRequest,
   UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
 } from "./UpdateCapSettingsApiV1CapSettingsPatch.js";
+export type {
+  UpdateFeedApiV1CapFeedsFeedIdPatch200,
+  UpdateFeedApiV1CapFeedsFeedIdPatch422,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutation,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
+  UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
+  UpdateFeedApiV1CapFeedsFeedIdPatchPathParams,
+} from "./UpdateFeedApiV1CapFeedsFeedIdPatch.js";
 export type {
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200,
   UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,

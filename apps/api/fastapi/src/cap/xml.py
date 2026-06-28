@@ -1,8 +1,20 @@
 from datetime import datetime, timezone
+from typing import Any
 from xml.etree import ElementTree as ET
 
-from src.cap.models import CapMessageType
+from pydantic import ValidationError
+
+from src.cap.exceptions import CapImportError
+from src.cap.models import (
+    CapCertainty,
+    CapMessageType,
+    CapScope,
+    CapSeverity,
+    CapStatus,
+    CapUrgency,
+)
 from src.cap.schemas import (
+    CapAlertCreate,
     CapAlertPublic,
     CapAreaPublic,
     CapInfoPublic,
@@ -166,3 +178,171 @@ def _format_circle(circle: dict[str, float]) -> str:
 
 def _format_number(value: float) -> str:
     return f"{value:g}"
+
+
+# --------------------------------------------------------------------------- #
+# CAP XML -> alert data (inverse of alert_to_cap_xml). Keystone for CAP import
+# and external-feed ingestion. Namespace-agnostic (matches by local tag name).
+# --------------------------------------------------------------------------- #
+
+
+def xml_to_alert_data(xml: str | bytes) -> CapAlertCreate:
+    """Parse CAP 1.x XML into a ``CapAlertCreate``. Raises ``CapImportError``."""
+    raw = xml.encode("utf-8") if isinstance(xml, str) else xml
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError as exc:
+        raise CapImportError(f"invalid XML: {exc}") from exc
+    if _local(root.tag) != "alert":
+        raise CapImportError(f"root element <{_local(root.tag)}> is not a CAP <alert>")
+
+    data: dict[str, Any] = {
+        "identifier": _ftext(root, "identifier"),
+        "sender": _ftext(root, "sender"),
+        "sent": _parse_dt(_ftext(root, "sent")),
+        "status": _ftext(root, "status") or CapStatus.DRAFT.value,
+        "msg_type": _ftext(root, "msgType") or CapMessageType.ALERT.value,
+        "source": _ftext(root, "source"),
+        "scope": _ftext(root, "scope") or CapScope.PUBLIC.value,
+        "restriction": _ftext(root, "restriction"),
+        "addresses": _split_ws(
+            " ".join(e.text or "" for e in _fall(root, "addresses"))
+        ),
+        "codes": [e.text or "" for e in _fall(root, "code") if e.text],
+        "note": _ftext(root, "note"),
+        "references": _parse_references(_ftext(root, "references")),
+        "incidents": _split_ws((_ftext(root, "incidents") or "").replace(",", " ")),
+        "info": [_parse_info(info) for info in _fall(root, "info")],
+    }
+    try:
+        return CapAlertCreate.model_validate(data)
+    except ValidationError as exc:
+        raise CapImportError(f"alert failed validation: {exc}") from exc
+
+
+def _parse_info(el: ET.Element) -> dict[str, Any]:
+    return {
+        "language": _ftext(el, "language") or "en",
+        "categories": [c.text for c in _fall(el, "category") if c.text],
+        "event": _ftext(el, "event") or "",
+        "response_types": [r.text for r in _fall(el, "responseType") if r.text],
+        "urgency": _ftext(el, "urgency") or CapUrgency.UNKNOWN.value,
+        "severity": _ftext(el, "severity") or CapSeverity.UNKNOWN.value,
+        "certainty": _ftext(el, "certainty") or CapCertainty.UNKNOWN.value,
+        "audience": _ftext(el, "audience"),
+        "event_codes": [_parse_nv(x) for x in _fall(el, "eventCode")],
+        "effective": _parse_dt(_ftext(el, "effective")),
+        "onset": _parse_dt(_ftext(el, "onset")),
+        "expires": _parse_dt(_ftext(el, "expires")),
+        "sender_name": _ftext(el, "senderName"),
+        "headline": _ftext(el, "headline") or "",
+        "description": _ftext(el, "description") or "",
+        "instruction": _ftext(el, "instruction"),
+        "web": _ftext(el, "web"),
+        "contact": _ftext(el, "contact"),
+        "parameters": [_parse_nv(x) for x in _fall(el, "parameter")],
+        "resources": [_parse_resource(x) for x in _fall(el, "resource")],
+        "areas": [_parse_area(x) for x in _fall(el, "area")],
+    }
+
+
+def _parse_area(el: ET.Element) -> dict[str, Any]:
+    return {
+        "area_desc": _ftext(el, "areaDesc") or "",
+        "polygons": [_parse_polygon(p.text) for p in _fall(el, "polygon") if p.text],
+        "circles": [_parse_circle(c.text) for c in _fall(el, "circle") if c.text],
+        "geocodes": [_parse_nv(x) for x in _fall(el, "geocode")],
+        "altitude": _to_float(_ftext(el, "altitude")),
+        "ceiling": _to_float(_ftext(el, "ceiling")),
+    }
+
+
+def _parse_resource(el: ET.Element) -> dict[str, Any]:
+    return {
+        "resource_desc": _ftext(el, "resourceDesc") or "",
+        "mime_type": _ftext(el, "mimeType") or "application/octet-stream",
+        "size": _to_int(_ftext(el, "size")),
+        "uri": _ftext(el, "uri"),
+        "deref_uri": _ftext(el, "derefUri"),
+        "digest": _ftext(el, "digest"),
+    }
+
+
+def _parse_nv(el: ET.Element) -> dict[str, str]:
+    return {
+        "value_name": _ftext(el, "valueName") or "",
+        "value": _ftext(el, "value") or "",
+    }
+
+
+def _parse_references(text: str | None) -> list[dict[str, Any]]:
+    if not text:
+        return []
+    refs: list[dict[str, Any]] = []
+    for token in text.split():
+        parts = token.split(",")
+        if len(parts) >= 3:
+            refs.append(
+                {
+                    "sender": parts[0],
+                    "identifier": parts[1],
+                    "sent": _parse_dt(parts[2]),
+                }
+            )
+    return refs
+
+
+def _parse_polygon(text: str) -> list[list[float]]:
+    """CAP polygon is space-separated 'lat,lon' pairs; store as [lon, lat]."""
+    points: list[list[float]] = []
+    for pair in text.split():
+        coords = pair.split(",")
+        if len(coords) >= 2:
+            lat, lon = float(coords[0]), float(coords[1])
+            points.append([lon, lat])
+    return points
+
+
+def _parse_circle(text: str) -> dict[str, float]:
+    """CAP circle is 'lat,lon radius'."""
+    point, _, radius = text.partition(" ")
+    coords = point.split(",")
+    lat = float(coords[0]) if coords and coords[0] else 0.0
+    lon = float(coords[1]) if len(coords) > 1 else 0.0
+    return {"lat": lat, "lon": lon, "radius": float(radius or 0)}
+
+
+def _local(tag: str) -> str:
+    return tag.rsplit("}", 1)[-1]
+
+
+def _fall(parent: ET.Element, name: str) -> list[ET.Element]:
+    return [child for child in parent if _local(child.tag) == name]
+
+
+def _ftext(parent: ET.Element, name: str) -> str | None:
+    for child in parent:
+        if _local(child.tag) == name:
+            return child.text.strip() if child.text else None
+    return None
+
+
+def _split_ws(value: str | None) -> list[str]:
+    return value.split() if value else []
+
+
+def _parse_dt(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as exc:
+        raise CapImportError(f"invalid datetime '{value}': {exc}") from exc
+
+
+def _to_float(value: str | None) -> float | None:
+    return float(value) if value else None
+
+
+def _to_int(value: str | None) -> int | None:
+    return int(value) if value else None
