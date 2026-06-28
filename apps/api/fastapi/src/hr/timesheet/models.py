@@ -69,9 +69,7 @@ class TimesheetEntry(SQLModel, table=True):
     actual_hours: Decimal = Field(
         default=Decimal("0.0"), decimal_places=2, max_digits=5
     )
-    total_hours: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=5
-    )
+    total_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
     overtime_hours: Decimal = Field(
         default=Decimal("0.0"), decimal_places=2, max_digits=5
     )

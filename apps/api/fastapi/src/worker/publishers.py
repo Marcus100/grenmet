@@ -52,9 +52,7 @@ async def publish_webhooks(
 ) -> dict[str, Any]:
     """Deliver the job payload to every ACTIVE CAP webhook (HMAC-signed when a secret is set)."""
     result = await session.execute(
-        select(CapWebhook).where(
-            col(CapWebhook.status) == CapIntegrationStatus.ACTIVE
-        )
+        select(CapWebhook).where(col(CapWebhook.status) == CapIntegrationStatus.ACTIVE)
     )
     hooks = list(result.scalars().all())
     body = json.dumps(job.payload, default=str).encode()
@@ -102,9 +100,7 @@ async def _resolve_alert(*, session: AsyncSession, job: CapJobEvent) -> CapAlert
     return alert
 
 
-async def _alert_areas(
-    *, session: AsyncSession, alert_id: uuid.UUID
-) -> list[CapArea]:
+async def _alert_areas(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapArea]:
     result = await session.execute(
         select(CapArea)
         .join(CapInfo, col(CapArea.info_id) == col(CapInfo.id))

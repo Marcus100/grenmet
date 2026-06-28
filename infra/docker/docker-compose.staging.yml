@@ -85,12 +85,64 @@ services:
       SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
       RESEND_API_KEY: ${RESEND_API_KEY}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      REDIS_URL: ${REDIS_URL:-}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grenmet-api-staging.rule=Host(`api.staging.barrels.gd`)"
       - "traefik.http.routers.grenmet-api-staging.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api-staging.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api-staging.loadbalancer.server.port=8000"
+    networks:
+      - grenmet-staging
+
+  # ── Redis + Background worker (CAP outbox) ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data-staging:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - grenmet-staging
+
+  worker:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: uv run arq src.worker.main.WorkerSettings
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
     networks:
       - grenmet-staging
 
@@ -255,3 +307,4 @@ networks:
 volumes:
   pgdata-staging:
   traefik-certificates-staging:
+  redis-data-staging:

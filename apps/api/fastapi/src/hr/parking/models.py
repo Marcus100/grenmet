@@ -34,7 +34,9 @@ class ParkingPermit(SQLModel, table=True):
     vehicle_insurance_expiry_date: date | None = Field(default=None)
     action_requested: ParkingAction = Field(default=ParkingAction.NEW_PERMIT)
     action_other_detail: str | None = Field(default=None, max_length=255)
-    fee_amount: Decimal = Field(default=Decimal("40.00"), decimal_places=2, max_digits=8)
+    fee_amount: Decimal = Field(
+        default=Decimal("40.00"), decimal_places=2, max_digits=8
+    )
     # Decal issuance lifecycle (populated when a decal is issued).
     decal_number: str | None = Field(default=None, max_length=50)
     valid_from: date | None = Field(default=None)

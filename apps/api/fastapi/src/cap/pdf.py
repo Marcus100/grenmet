@@ -44,9 +44,7 @@ def render_alert_pdf(
     for block in info_blocks:
         pdf.set_font("Helvetica", style="B", size=13)
         headline = block.get("headline") or block.get("event") or "Alert"
-        pdf.multi_cell(
-            0, 7, _latin1(str(headline)), new_x="LMARGIN", new_y="NEXT"
-        )
+        pdf.multi_cell(0, 7, _latin1(str(headline)), new_x="LMARGIN", new_y="NEXT")
         pdf.set_font("Helvetica", size=9)
         meta = " | ".join(
             f"{label}: {block[key]}"
