@@ -9,6 +9,7 @@ export const workflowTypeWorkflowTypeEnum = {
   ABSENTEE_REPORT: "ABSENTEE_REPORT",
   STATUS_REPORT: "STATUS_REPORT",
   TIMESHEET: "TIMESHEET",
+  PARKING_PERMIT: "PARKING_PERMIT",
 } as const;
 
 export type WorkflowTypeWorkflowTypeEnumKey =

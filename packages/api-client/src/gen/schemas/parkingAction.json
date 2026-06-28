@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "enum": [
+    "NEW_PERMIT",
+    "ANNUAL_RENEWAL",
+    "REPLACEMENT_LOST_STOLEN",
+    "INFORMATION_CHANGE",
+    "OTHER"
+  ],
+  "title": "ParkingAction",
+  "x-readme-ref-name": "ParkingAction"
+}

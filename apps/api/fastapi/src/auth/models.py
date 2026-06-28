@@ -32,6 +32,9 @@ class User(UserBase, table=True):
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    # Two-factor auth (TOTP). Secret is plaintext for v1 — encrypt at rest in a follow-up.
+    totp_secret: str | None = Field(default=None, max_length=64)
+    totp_enabled: bool = Field(default=False)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

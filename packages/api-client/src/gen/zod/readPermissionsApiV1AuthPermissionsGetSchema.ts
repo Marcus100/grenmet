@@ -5,12 +5,23 @@
 
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
-import { permissionsPublicSchema } from "./permissionsPublicSchema.js";
+import { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 
 export const readPermissionsApiV1AuthPermissionsGetQueryParamsSchema = z.object(
   {
-    skip: z.coerce.number().int().default(0),
-    limit: z.coerce.number().int().default(100),
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .default(1)
+      .describe("Page number (1-indexed)"),
+    size: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .default(100)
+      .describe("Items per page"),
   }
 );
 
@@ -18,7 +29,7 @@ export const readPermissionsApiV1AuthPermissionsGetQueryParamsSchema = z.object(
  * @description Permissions returned
  */
 export const readPermissionsApiV1AuthPermissionsGet200Schema = z.lazy(
-  () => permissionsPublicSchema
+  () => paginatedResponsePermissionPublicSchema
 );
 
 /**

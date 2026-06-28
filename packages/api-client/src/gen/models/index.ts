@@ -1,46 +1,51 @@
+export type {
+  AbsenceReason,
+  AbsenceReasonAbsenceReasonEnumKey,
+} from "./AbsenceReason.js";
+export { absenceReasonAbsenceReasonEnum } from "./AbsenceReason.js";
 export type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 export type { AbsenteeReportListPublic } from "./AbsenteeReportListPublic.js";
 export type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 export type {
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch200,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch404,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch422,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutation,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
-  ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams,
-} from "./ActionLeaveRequestEndpointApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutation,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams,
+} from "./ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export type {
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch200,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch403,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch404,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch422,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutation,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
-} from "./ActionShiftSwapEndpointApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch200,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutation,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
+} from "./ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type {
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePost200,
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePost422,
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePostMutation,
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePostMutationRequest,
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePostMutationResponse,
-  ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePostPathParams,
-} from "./ApproveAlertEndpointApiV1CapAlertsAlertIdApprovePost.js";
+  ApproveAlertApiV1CapAlertsAlertIdApprovePost200,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePost422,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutation,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
+} from "./ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export type {
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch200,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch400,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch403,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch404,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch422,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutation,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
-} from "./ApproveTimesheetEndpointApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutation,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
+} from "./ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPost200,
@@ -52,13 +57,13 @@ export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
 } from "./BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export type {
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPost200,
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPost422,
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPostMutation,
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPostMutationRequest,
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPostMutationResponse,
-  CancelAlertEndpointApiV1CapAlertsAlertIdCancelPostPathParams,
-} from "./CancelAlertEndpointApiV1CapAlertsAlertIdCancelPost.js";
+  CancelAlertApiV1CapAlertsAlertIdCancelPost200,
+  CancelAlertApiV1CapAlertsAlertIdCancelPost422,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostMutation,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams,
+} from "./CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
 export type { CapAlertListPublic } from "./CapAlertListPublic.js";
@@ -125,21 +130,21 @@ export type {
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
 } from "./ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export type {
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost200,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost201,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost403,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost422,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutation,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeEndpointApiV1HrAbsenteeReportsPostMutationResponse,
-} from "./CreateAbsenteeEndpointApiV1HrAbsenteeReportsPost.js";
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPost200,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPost201,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPost403,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPost422,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutation,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+} from "./CreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 export type {
-  CreateAlertEndpointApiV1CapAlertsPost201,
-  CreateAlertEndpointApiV1CapAlertsPost422,
-  CreateAlertEndpointApiV1CapAlertsPostMutation,
-  CreateAlertEndpointApiV1CapAlertsPostMutationRequest,
-  CreateAlertEndpointApiV1CapAlertsPostMutationResponse,
-} from "./CreateAlertEndpointApiV1CapAlertsPost.js";
+  CreateAlertApiV1CapAlertsPost201,
+  CreateAlertApiV1CapAlertsPost422,
+  CreateAlertApiV1CapAlertsPostMutation,
+  CreateAlertApiV1CapAlertsPostMutationRequest,
+  CreateAlertApiV1CapAlertsPostMutationResponse,
+} from "./CreateAlertApiV1CapAlertsPost.js";
 export type {
   CreateHolidayApiV1HrRostersPublicHolidaysPost200,
   CreateHolidayApiV1HrRostersPublicHolidaysPost201,
@@ -161,14 +166,22 @@ export type {
   CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
 } from "./CreateInstanceApiV1HrWorkflowsInstancesPost.js";
 export type {
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost200,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost201,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost403,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost422,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutation,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestEndpointApiV1HrLeaveRequestsPostMutationResponse,
-} from "./CreateLeaveRequestEndpointApiV1HrLeaveRequestsPost.js";
+  CreateLeaveRequestApiV1HrLeaveRequestsPost200,
+  CreateLeaveRequestApiV1HrLeaveRequestsPost201,
+  CreateLeaveRequestApiV1HrLeaveRequestsPost403,
+  CreateLeaveRequestApiV1HrLeaveRequestsPost422,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostMutation,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+} from "./CreateLeaveRequestApiV1HrLeaveRequestsPost.js";
+export type {
+  CreateParkingPermitApiV1HrParkingPermitsPost201,
+  CreateParkingPermitApiV1HrParkingPermitsPost403,
+  CreateParkingPermitApiV1HrParkingPermitsPost422,
+  CreateParkingPermitApiV1HrParkingPermitsPostMutation,
+  CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest,
+  CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+} from "./CreateParkingPermitApiV1HrParkingPermitsPost.js";
 export type {
   CreatePeriodApiV1HrRostersPeriodsPost201,
   CreatePeriodApiV1HrRostersPeriodsPost400,
@@ -179,51 +192,51 @@ export type {
   CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
 } from "./CreatePeriodApiV1HrRostersPeriodsPost.js";
 export type {
-  CreatePermissionApiV1AuthPermissionsPost200,
+  CreatePermissionApiV1AuthPermissionsPost201,
   CreatePermissionApiV1AuthPermissionsPost422,
   CreatePermissionApiV1AuthPermissionsPostMutation,
   CreatePermissionApiV1AuthPermissionsPostMutationRequest,
   CreatePermissionApiV1AuthPermissionsPostMutationResponse,
 } from "./CreatePermissionApiV1AuthPermissionsPost.js";
 export type {
-  CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPost201,
-  CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPost422,
-  CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPostMutation,
-  CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPostMutationRequest,
-  CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPostMutationResponse,
-} from "./CreatePredefinedAreaEndpointApiV1CapAreasPredefinedPost.js";
+  CreatePredefinedAreaApiV1CapAreasPredefinedPost201,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPost422,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutation,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
+} from "./CreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
 export type {
-  CreateRoleApiV1AuthRolesPost200,
+  CreateRoleApiV1AuthRolesPost201,
   CreateRoleApiV1AuthRolesPost422,
   CreateRoleApiV1AuthRolesPostMutation,
   CreateRoleApiV1AuthRolesPostMutationRequest,
   CreateRoleApiV1AuthRolesPostMutationResponse,
 } from "./CreateRoleApiV1AuthRolesPost.js";
 export type {
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost200,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutation,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
 } from "./CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 export type {
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPost200,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPost201,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPost403,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPost422,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutation,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapEndpointApiV1HrShiftSwapsPostMutationResponse,
-} from "./CreateShiftSwapEndpointApiV1HrShiftSwapsPost.js";
+  CreateShiftSwapApiV1HrShiftSwapsPost200,
+  CreateShiftSwapApiV1HrShiftSwapsPost201,
+  CreateShiftSwapApiV1HrShiftSwapsPost403,
+  CreateShiftSwapApiV1HrShiftSwapsPost422,
+  CreateShiftSwapApiV1HrShiftSwapsPostMutation,
+  CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest,
+  CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+} from "./CreateShiftSwapApiV1HrShiftSwapsPost.js";
 export type {
-  CreateStatusReportEndpointApiV1HrStatusReportsPost200,
-  CreateStatusReportEndpointApiV1HrStatusReportsPost201,
-  CreateStatusReportEndpointApiV1HrStatusReportsPost403,
-  CreateStatusReportEndpointApiV1HrStatusReportsPost422,
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutation,
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportEndpointApiV1HrStatusReportsPostMutationResponse,
-} from "./CreateStatusReportEndpointApiV1HrStatusReportsPost.js";
+  CreateStatusReportApiV1HrStatusReportsPost200,
+  CreateStatusReportApiV1HrStatusReportsPost201,
+  CreateStatusReportApiV1HrStatusReportsPost403,
+  CreateStatusReportApiV1HrStatusReportsPost422,
+  CreateStatusReportApiV1HrStatusReportsPostMutation,
+  CreateStatusReportApiV1HrStatusReportsPostMutationRequest,
+  CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+} from "./CreateStatusReportApiV1HrStatusReportsPost.js";
 export type {
   CreateTemplateApiV1HrWorkflowsTemplatesPost200,
   CreateTemplateApiV1HrWorkflowsTemplatesPost201,
@@ -245,16 +258,16 @@ export type {
   CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
 } from "./CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 export type {
-  CreateTimesheetEndpointApiV1HrTimesheetsPost200,
-  CreateTimesheetEndpointApiV1HrTimesheetsPost201,
-  CreateTimesheetEndpointApiV1HrTimesheetsPost403,
-  CreateTimesheetEndpointApiV1HrTimesheetsPost422,
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutation,
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetEndpointApiV1HrTimesheetsPostMutationResponse,
-} from "./CreateTimesheetEndpointApiV1HrTimesheetsPost.js";
+  CreateTimesheetApiV1HrTimesheetsPost200,
+  CreateTimesheetApiV1HrTimesheetsPost201,
+  CreateTimesheetApiV1HrTimesheetsPost403,
+  CreateTimesheetApiV1HrTimesheetsPost422,
+  CreateTimesheetApiV1HrTimesheetsPostMutation,
+  CreateTimesheetApiV1HrTimesheetsPostMutationRequest,
+  CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+} from "./CreateTimesheetApiV1HrTimesheetsPost.js";
 export type {
-  CreateUserApiV1AuthUsersPost200,
+  CreateUserApiV1AuthUsersPost201,
   CreateUserApiV1AuthUsersPost400,
   CreateUserApiV1AuthUsersPost422,
   CreateUserApiV1AuthUsersPostMutation,
@@ -277,12 +290,12 @@ export type {
   DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
 } from "./DeleteUserMeApiV1AuthUsersMeDelete.js";
 export type {
-  DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePost200,
-  DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePost422,
-  DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePostMutation,
-  DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-  DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePostPathParams,
-} from "./DuplicateAlertEndpointApiV1CapAlertsAlertIdDuplicatePost.js";
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutation,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
+} from "./DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type {
   EmploymentStatus,
@@ -303,13 +316,13 @@ export type {
   ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
 } from "./ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
 export type {
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePost200,
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePost422,
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePostMutation,
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePostMutationRequest,
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePostMutationResponse,
-  ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePostPathParams,
-} from "./ExpireAlertEndpointApiV1CapAlertsAlertIdExpirePost.js";
+  ExpireAlertApiV1CapAlertsAlertIdExpirePost200,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePost422,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutation,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
+} from "./ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
 export type {
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet200,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
@@ -343,6 +356,16 @@ export type {
   ImportCsvApiV1HrRostersImportCsvPostMutationRequest,
   ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
 } from "./ImportCsvApiV1HrRostersImportCsvPost.js";
+export type {
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutation,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams,
+} from "./IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export type { LeaveRequestAction } from "./LeaveRequestAction.js";
 export type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 export type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
@@ -368,6 +391,7 @@ export type {
   LoginAccessTokenApiV1LoginAccessTokenPost400,
   LoginAccessTokenApiV1LoginAccessTokenPost422,
   LoginAccessTokenApiV1LoginAccessTokenPost429,
+  LoginAccessTokenApiV1LoginAccessTokenPostHeaderParams,
   LoginAccessTokenApiV1LoginAccessTokenPostMutation,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
   LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
@@ -397,27 +421,42 @@ export type {
 } from "./LogoutSessionApiV1LoginSessionLogoutPost.js";
 export type { Message } from "./Message.js";
 export type { NewPassword } from "./NewPassword.js";
+export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
+export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
+export type {
+  ParkingAction,
+  ParkingActionParkingActionEnumKey,
+} from "./ParkingAction.js";
+export { parkingActionParkingActionEnum } from "./ParkingAction.js";
+export type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
+export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
+export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
+export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
-export type { PermissionsPublic } from "./PermissionsPublic.js";
 export type {
   PersonnelStatus,
   PersonnelStatusPersonnelStatusEnumKey,
 } from "./PersonnelStatus.js";
 export { personnelStatusPersonnelStatusEnum } from "./PersonnelStatus.js";
+export type {
+  ProfAppointmentType,
+  ProfAppointmentTypeProfAppointmentTypeEnumKey,
+} from "./ProfAppointmentType.js";
+export { profAppointmentTypeProfAppointmentTypeEnum } from "./ProfAppointmentType.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 export type {
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPost200,
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPost422,
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPostMutation,
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPostMutationRequest,
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPostMutationResponse,
-  PublishAlertEndpointApiV1CapAlertsAlertIdPublishPostPathParams,
-} from "./PublishAlertEndpointApiV1CapAlertsAlertIdPublishPost.js";
+  PublishAlertApiV1CapAlertsAlertIdPublishPost200,
+  PublishAlertApiV1CapAlertsAlertIdPublishPost422,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostMutation,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams,
+} from "./PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export type {
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
@@ -523,6 +562,14 @@ export type {
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
 } from "./ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 export type {
+  ReadParkingPermitsApiV1HrParkingPermitsGet200,
+  ReadParkingPermitsApiV1HrParkingPermitsGet403,
+  ReadParkingPermitsApiV1HrParkingPermitsGet422,
+  ReadParkingPermitsApiV1HrParkingPermitsGetQuery,
+  ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
+  ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+} from "./ReadParkingPermitsApiV1HrParkingPermitsGet.js";
+export type {
   ReadPermissionApiV1AuthPermissionsPermissionIdGet200,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
   ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
@@ -600,14 +647,14 @@ export type {
   ReadRssApiCapRssXmlGetQueryResponse,
 } from "./ReadRssApiCapRssXmlGet.js";
 export type {
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet200,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet403,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet404,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet422,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetPathParams,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQuery,
-  ReadStatusReportEndpointApiV1HrStatusReportsReportIdGetQueryResponse,
-} from "./ReadStatusReportEndpointApiV1HrStatusReportsReportIdGet.js";
+  ReadStatusReportApiV1HrStatusReportsReportIdGet200,
+  ReadStatusReportApiV1HrStatusReportsReportIdGet403,
+  ReadStatusReportApiV1HrStatusReportsReportIdGet404,
+  ReadStatusReportApiV1HrStatusReportsReportIdGet422,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetQuery,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+} from "./ReadStatusReportApiV1HrStatusReportsReportIdGet.js";
 export type {
   ReadStatusReportsApiV1HrStatusReportsGet200,
   ReadStatusReportsApiV1HrStatusReportsGet403,
@@ -625,14 +672,14 @@ export type {
   ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
 } from "./ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
 export type {
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet200,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet403,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet404,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet422,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetPathParams,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQuery,
-  ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGetQueryResponse,
-} from "./ReadTimesheetEndpointApiV1HrTimesheetsTimesheetIdGet.js";
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQuery,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponse,
+} from "./ReadTimesheetApiV1HrTimesheetsTimesheetIdGet.js";
 export type {
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200,
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
@@ -727,7 +774,6 @@ export type {
 export { roleAssignmentScopeRoleAssignmentScopeEnum } from "./RoleAssignmentScope.js";
 export type { RoleCreate } from "./RoleCreate.js";
 export type { RolePublic } from "./RolePublic.js";
-export type { RolesPublic } from "./RolesPublic.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
@@ -749,6 +795,11 @@ export type {
   ShiftPatternShiftPatternEnumKey,
 } from "./ShiftPattern.js";
 export { shiftPatternShiftPatternEnum } from "./ShiftPattern.js";
+export type {
+  ShiftPeriod,
+  ShiftPeriodShiftPeriodEnumKey,
+} from "./ShiftPeriod.js";
+export { shiftPeriodShiftPeriodEnum } from "./ShiftPeriod.js";
 export type { ShiftSwapAction } from "./ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
@@ -762,24 +813,24 @@ export type {
 } from "./SubmissionMode.js";
 export { submissionModeSubmissionModeEnum } from "./SubmissionMode.js";
 export type {
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPost200,
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPost422,
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPostMutation,
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPostMutationRequest,
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-  SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPostPathParams,
-} from "./SubmitAlertEndpointApiV1CapAlertsAlertIdSubmitPost.js";
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPost200,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPost422,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutation,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
+} from "./SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export type {
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch200,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch400,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch403,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch404,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch422,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutation,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
-} from "./SubmitTimesheetEndpointApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutation,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
+} from "./SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export type { SwapType, SwapTypeSwapTypeEnumKey } from "./SwapType.js";
 export { swapTypeSwapTypeEnum } from "./SwapType.js";
 export type {
@@ -813,14 +864,44 @@ export type { TimesheetPublic } from "./TimesheetPublic.js";
 export type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
 export type { Token } from "./Token.js";
+export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
+export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
+export type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
+export type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 export type {
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatch200,
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatch422,
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatchMutation,
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatchMutationRequest,
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatchMutationResponse,
-  UpdateAlertEndpointApiV1CapAlertsAlertIdPatchPathParams,
-} from "./UpdateAlertEndpointApiV1CapAlertsAlertIdPatch.js";
+  TwofaActivateApiV12FaActivatePost200,
+  TwofaActivateApiV12FaActivatePost400,
+  TwofaActivateApiV12FaActivatePost422,
+  TwofaActivateApiV12FaActivatePostMutation,
+  TwofaActivateApiV12FaActivatePostMutationRequest,
+  TwofaActivateApiV12FaActivatePostMutationResponse,
+} from "./TwofaActivateApiV12FaActivatePost.js";
+export type {
+  TwofaDisableApiV12FaDisablePost200,
+  TwofaDisableApiV12FaDisablePost400,
+  TwofaDisableApiV12FaDisablePost422,
+  TwofaDisableApiV12FaDisablePostMutation,
+  TwofaDisableApiV12FaDisablePostMutationRequest,
+  TwofaDisableApiV12FaDisablePostMutationResponse,
+} from "./TwofaDisableApiV12FaDisablePost.js";
+export type {
+  TwofaSetupApiV12FaSetupPost200,
+  TwofaSetupApiV12FaSetupPostMutation,
+  TwofaSetupApiV12FaSetupPostMutationResponse,
+} from "./TwofaSetupApiV12FaSetupPost.js";
+export type {
+  TwofaStatusApiV12FaStatusGet200,
+  TwofaStatusApiV12FaStatusGetQuery,
+  TwofaStatusApiV12FaStatusGetQueryResponse,
+} from "./TwofaStatusApiV12FaStatusGet.js";
+export type {
+  UpdateAlertApiV1CapAlertsAlertIdPatch200,
+  UpdateAlertApiV1CapAlertsAlertIdPatch422,
+  UpdateAlertApiV1CapAlertsAlertIdPatchMutation,
+  UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest,
+  UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
+  UpdateAlertApiV1CapAlertsAlertIdPatchPathParams,
+} from "./UpdateAlertApiV1CapAlertsAlertIdPatch.js";
 export type {
   UpdateCapSettingsApiV1CapSettingsPatch200,
   UpdateCapSettingsApiV1CapSettingsPatch422,
@@ -896,12 +977,12 @@ export { userStatusUserStatusEnum } from "./UserStatus.js";
 export type { UserUpdate } from "./UserUpdate.js";
 export type { UserUpdateMe } from "./UserUpdateMe.js";
 export type {
-  ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePost200,
-  ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePost422,
-  ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePostMutation,
-  ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePostMutationResponse,
-  ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePostPathParams,
-} from "./ValidateAlertEndpointApiV1CapAlertsAlertIdValidatePost.js";
+  ValidateAlertApiV1CapAlertsAlertIdValidatePost200,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePost422,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutation,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams,
+} from "./ValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export type {
   ValidateCsvApiV1HrRostersImportCsvValidatePost200,
   ValidateCsvApiV1HrRostersImportCsvValidatePost400,

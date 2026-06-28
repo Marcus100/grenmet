@@ -173,10 +173,31 @@ class SessionLoginRequest(BaseModel):
     password: str = Field(min_length=8, max_length=40)
     client_type: str = Field(default="web", min_length=1, max_length=50)
     app_name: str | None = Field(default=None, max_length=100)
+    totp_code: str | None = Field(default=None, max_length=10)
 
 
 class SessionTokenRequest(BaseModel):
     session_token: str = Field(min_length=32, max_length=500)
+
+
+# --- Two-factor authentication ---
+
+
+class TwoFactorSetupResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+
+
+class TwoFactorCodeRequest(BaseModel):
+    code: str = Field(min_length=6, max_length=10)
+
+
+class TwoFactorDisableRequest(BaseModel):
+    password: str = Field(min_length=8, max_length=40)
+
+
+class TwoFactorStatusPublic(BaseModel):
+    enabled: bool
 
 
 class SessionAuthenticationBase(BaseModel):

@@ -13,15 +13,33 @@
         "summary": "Login with OAuth2",
         "description": "OAuth2 compatible token login. Returns an access token for future requests.",
         "operationId": "login_access_token_api_v1_login_access_token_post",
+        "parameters": [
+          {
+            "name": "x-totp-code",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Totp-Code"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/x-www-form-urlencoded": {
               "schema": {
                 "$ref": "#/components/schemas/Body_login_access_token_api_v1_login_access_token_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -523,7 +541,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "User created",
             "content": {
               "application/json": {
@@ -915,6 +933,158 @@
         }
       }
     },
+    "/api/v1/2fa/status": {
+      "get": {
+        "tags": [
+          "2fa"
+        ],
+        "summary": "Get 2FA status",
+        "operationId": "twofa_status_api_v1_2fa_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatusPublic"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/2fa/setup": {
+      "post": {
+        "tags": [
+          "2fa"
+        ],
+        "summary": "Begin 2FA enrollment",
+        "description": "Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /2fa/activate.",
+        "operationId": "twofa_setup_api_v1_2fa_setup_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSetupResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/2fa/activate": {
+      "post": {
+        "tags": [
+          "2fa"
+        ],
+        "summary": "Activate 2FA",
+        "operationId": "twofa_activate_api_v1_2fa_activate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatusPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired code"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/2fa/disable": {
+      "post": {
+        "tags": [
+          "2fa"
+        ],
+        "summary": "Disable 2FA",
+        "description": "Disable 2FA after confirming the account password.",
+        "operationId": "twofa_disable_api_v1_2fa_disable_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorDisableRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatusPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Incorrect password"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/roles/": {
       "get": {
         "tags": [
@@ -930,24 +1100,31 @@
         ],
         "parameters": [
           {
-            "name": "skip",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
           },
           {
-            "name": "limit",
+            "name": "size",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
               "default": 100,
-              "title": "Limit"
-            }
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -956,7 +1133,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RolesPublic"
+                  "$ref": "#/components/schemas/PaginatedResponse_RolePublic_"
                 }
               }
             }
@@ -996,7 +1173,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Role created",
             "content": {
               "application/json": {
@@ -1086,24 +1263,31 @@
         ],
         "parameters": [
           {
-            "name": "skip",
+            "name": "page",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
-              "default": 0,
-              "title": "Skip"
-            }
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
           },
           {
-            "name": "limit",
+            "name": "size",
             "in": "query",
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
               "default": 100,
-              "title": "Limit"
-            }
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -1112,7 +1296,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/PermissionsPublic"
+                  "$ref": "#/components/schemas/PaginatedResponse_PermissionPublic_"
                 }
               }
             }
@@ -1152,7 +1336,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Permission created",
             "content": {
               "application/json": {
@@ -1305,7 +1489,7 @@
           }
         },
         "responses": {
-          "200": {
+          "201": {
             "description": "Role assignment created",
             "content": {
               "application/json": {
@@ -2578,7 +2762,7 @@
         ],
         "summary": "Create timesheet",
         "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
-        "operationId": "create_timesheet_endpoint_api_v1_hr_timesheets__post",
+        "operationId": "create_timesheet_api_v1_hr_timesheets__post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2631,7 +2815,7 @@
         ],
         "summary": "Submit timesheet",
         "description": "Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
-        "operationId": "submit_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__submit_patch",
+        "operationId": "submit_timesheet_api_v1_hr_timesheets__timesheet_id__submit_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -2699,7 +2883,7 @@
         ],
         "summary": "Approve timesheet",
         "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
-        "operationId": "approve_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__approve_patch",
+        "operationId": "approve_timesheet_api_v1_hr_timesheets__timesheet_id__approve_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -2890,7 +3074,7 @@
         ],
         "summary": "Get timesheet details",
         "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
-        "operationId": "read_timesheet_endpoint_api_v1_hr_timesheets__timesheet_id__get",
+        "operationId": "read_timesheet_api_v1_hr_timesheets__timesheet_id__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -2945,7 +3129,7 @@
         ],
         "summary": "Create leave request",
         "description": "Create a leave request for the current user. Requires leave.request.create.self permission.",
-        "operationId": "create_leave_request_endpoint_api_v1_hr_leave_requests_post",
+        "operationId": "create_leave_request_api_v1_hr_leave_requests_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -2998,7 +3182,7 @@
         ],
         "summary": "Action leave request",
         "description": "Approve or update a leave request. Requires leave.request.action and scope over the user.",
-        "operationId": "action_leave_request_endpoint_api_v1_hr_leave_requests__leave_request_id__action_patch",
+        "operationId": "action_leave_request_api_v1_hr_leave_requests__leave_request_id__action_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3090,7 +3274,7 @@
         ],
         "summary": "Create absentee report",
         "description": "Create an absentee report. Requires absentee.report.create permission.",
-        "operationId": "create_absentee_endpoint_api_v1_hr_absentee_reports_post",
+        "operationId": "create_absentee_report_api_v1_hr_absentee_reports_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3199,7 +3383,7 @@
         ],
         "summary": "Create shift swap request",
         "description": "Create a shift swap request. Requires shift_swap.request.create.self permission.",
-        "operationId": "create_shift_swap_endpoint_api_v1_hr_shift_swaps_post",
+        "operationId": "create_shift_swap_api_v1_hr_shift_swaps_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3252,7 +3436,7 @@
         ],
         "summary": "Action shift swap request",
         "description": "Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.",
-        "operationId": "action_shift_swap_endpoint_api_v1_hr_shift_swaps__shift_swap_id__action_patch",
+        "operationId": "action_shift_swap_api_v1_hr_shift_swaps__shift_swap_id__action_patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3317,7 +3501,7 @@
         ],
         "summary": "Create status report",
         "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
-        "operationId": "create_status_report_endpoint_api_v1_hr_status_reports_post",
+        "operationId": "create_status_report_api_v1_hr_status_reports_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3426,7 +3610,7 @@
         ],
         "summary": "Get status report details",
         "description": "Return a status report with its personnel entries. Requires status.report.read permission.",
-        "operationId": "read_status_report_endpoint_api_v1_hr_status_reports__report_id__get",
+        "operationId": "read_status_report_api_v1_hr_status_reports__report_id__get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3460,6 +3644,177 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parking-permits": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Create parking permit application",
+        "description": "Create an airport security parking access application. Requires parking.permit.create permission.",
+        "operationId": "create_parking_permit_api_v1_hr_parking_permits_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Parking permit application created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "List parking permits",
+        "description": "List parking permits (own or by department). Department filter requires parking.permit.read.department.",
+        "operationId": "read_parking_permits_api_v1_hr_parking_permits_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Parking permits returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitListPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parking-permits/{permit_id}/issue": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Issue a parking decal",
+        "description": "Record decal issuance for a parking permit. Requires parking.permit.issue permission.",
+        "operationId": "issue_parking_decal_api_v1_hr_parking_permits__permit_id__issue_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "permit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Permit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitIssue"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Decal issued",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Parking permit not found"
           },
           "422": {
             "description": "Validation Error",
@@ -3531,8 +3886,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Create Alert Endpoint",
-        "operationId": "create_alert_endpoint_api_v1_cap_alerts_post",
+        "summary": "Create Alert",
+        "operationId": "create_alert_api_v1_cap_alerts_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3623,8 +3978,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Update Alert Endpoint",
-        "operationId": "update_alert_endpoint_api_v1_cap_alerts__alert_id__patch",
+        "summary": "Update Alert",
+        "operationId": "update_alert_api_v1_cap_alerts__alert_id__patch",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3681,8 +4036,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Duplicate Alert Endpoint",
-        "operationId": "duplicate_alert_endpoint_api_v1_cap_alerts__alert_id__duplicate_post",
+        "summary": "Duplicate Alert",
+        "operationId": "duplicate_alert_api_v1_cap_alerts__alert_id__duplicate_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3729,8 +4084,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Validate Alert Endpoint",
-        "operationId": "validate_alert_endpoint_api_v1_cap_alerts__alert_id__validate_post",
+        "summary": "Validate Alert",
+        "operationId": "validate_alert_api_v1_cap_alerts__alert_id__validate_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3777,8 +4132,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Submit Alert Endpoint",
-        "operationId": "submit_alert_endpoint_api_v1_cap_alerts__alert_id__submit_post",
+        "summary": "Submit Alert",
+        "operationId": "submit_alert_api_v1_cap_alerts__alert_id__submit_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3835,8 +4190,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Approve Alert Endpoint",
-        "operationId": "approve_alert_endpoint_api_v1_cap_alerts__alert_id__approve_post",
+        "summary": "Approve Alert",
+        "operationId": "approve_alert_api_v1_cap_alerts__alert_id__approve_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3893,8 +4248,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Publish Alert Endpoint",
-        "operationId": "publish_alert_endpoint_api_v1_cap_alerts__alert_id__publish_post",
+        "summary": "Publish Alert",
+        "operationId": "publish_alert_api_v1_cap_alerts__alert_id__publish_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -3951,8 +4306,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Cancel Alert Endpoint",
-        "operationId": "cancel_alert_endpoint_api_v1_cap_alerts__alert_id__cancel_post",
+        "summary": "Cancel Alert",
+        "operationId": "cancel_alert_api_v1_cap_alerts__alert_id__cancel_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4009,8 +4364,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Expire Alert Endpoint",
-        "operationId": "expire_alert_endpoint_api_v1_cap_alerts__alert_id__expire_post",
+        "summary": "Expire Alert",
+        "operationId": "expire_alert_api_v1_cap_alerts__alert_id__expire_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -4186,8 +4541,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Create Predefined Area Endpoint",
-        "operationId": "create_predefined_area_endpoint_api_v1_cap_areas_predefined_post",
+        "summary": "Create Predefined Area",
+        "operationId": "create_predefined_area_api_v1_cap_areas_predefined_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -4232,7 +4587,8 @@
         "tags": [
           "cap"
         ],
-        "summary": "Read Integrations",
+        "summary": "List integrations",
+        "description": "Return configured webhooks, MQTT brokers, and recent job events.",
         "operationId": "read_integrations_api_v1_cap_integrations_get",
         "responses": {
           "200": {
@@ -4536,7 +4892,6 @@
           "utils"
         ],
         "summary": "Test Email",
-        "description": "Test emails.",
         "operationId": "test_email_api_v1_utils_test_email__post",
         "security": [
           {
@@ -4634,6 +4989,17 @@
   },
   "components": {
     "schemas": {
+      "AbsenceReason": {
+        "type": "string",
+        "enum": [
+          "UNCERTIFIED_SICK",
+          "ILLNESS_FAMILY_MEMBER",
+          "ILLNESS_ON_JOB",
+          "TIME_OFF",
+          "OTHER"
+        ],
+        "title": "AbsenceReason"
+      },
       "AbsenteeReportCreate": {
         "properties": {
           "user_id": {
@@ -4683,9 +5049,8 @@
             ],
             "title": "Absence End Time"
           },
-          "reason_code": {
-            "type": "string",
-            "title": "Reason Code"
+          "reason": {
+            "$ref": "#/components/schemas/AbsenceReason"
           },
           "notes": {
             "anyOf": [
@@ -4737,7 +5102,7 @@
           "user_id",
           "department_id",
           "report_date",
-          "reason_code"
+          "reason"
         ],
         "title": "AbsenteeReportCreate"
       },
@@ -6220,6 +6585,16 @@
             "title": "Days Without Pay",
             "default": "0.0"
           },
+          "professional_appointment_subtype": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProfAppointmentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "reason": {
             "anyOf": [
               {
@@ -6253,6 +6628,40 @@
             ],
             "title": "Leave Address"
           },
+          "travel_from_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Travel From Date"
+          },
+          "travel_to_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Travel To Date"
+          },
+          "salary_in_advance": {
+            "type": "boolean",
+            "title": "Salary In Advance",
+            "default": false
+          },
+          "requires_acting_appointment": {
+            "type": "boolean",
+            "title": "Requires Acting Appointment",
+            "default": false
+          },
           "acting_officer_id": {
             "anyOf": [
               {
@@ -6264,6 +6673,18 @@
               }
             ],
             "title": "Acting Officer Id"
+          },
+          "expected_return_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Return Date"
           }
         },
         "type": "object",
@@ -6287,6 +6708,8 @@
           "PATERNITY",
           "STUDY",
           "COMPASSIONATE",
+          "PROFESSIONAL_APPOINTMENT",
+          "BEREAVEMENT",
           "WITHOUT_PAY",
           "OTHER"
         ],
@@ -6301,6 +6724,8 @@
           },
           "new_password": {
             "type": "string",
+            "maxLength": 40,
+            "minLength": 8,
             "title": "New Password"
           }
         },
@@ -6310,6 +6735,78 @@
           "new_password"
         ],
         "title": "NewPassword"
+      },
+      "PaginatedResponse_PermissionPublic_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PermissionPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[PermissionPublic]"
+      },
+      "PaginatedResponse_RolePublic_": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RolePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          },
+          "total_pages": {
+            "type": "integer",
+            "title": "Total Pages",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "PaginatedResponse[RolePublic]"
       },
       "PaginatedResponse_UserPublic_": {
         "properties": {
@@ -6347,6 +6844,153 @@
         ],
         "title": "PaginatedResponse[UserPublic]"
       },
+      "ParkingAction": {
+        "type": "string",
+        "enum": [
+          "NEW_PERMIT",
+          "ANNUAL_RENEWAL",
+          "REPLACEMENT_LOST_STOLEN",
+          "INFORMATION_CHANGE",
+          "OTHER"
+        ],
+        "title": "ParkingAction"
+      },
+      "ParkingPermitCreate": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "company_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "vehicle_registration_no": {
+            "type": "string",
+            "title": "Vehicle Registration No"
+          },
+          "vehicle_insurance_issue_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Insurance Issue Date"
+          },
+          "vehicle_insurance_expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vehicle Insurance Expiry Date"
+          },
+          "action_requested": {
+            "$ref": "#/components/schemas/ParkingAction",
+            "default": "NEW_PERMIT"
+          },
+          "action_other_detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Action Other Detail"
+          },
+          "fee_amount": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Fee Amount",
+            "default": "40.00"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "department_id",
+          "vehicle_registration_no"
+        ],
+        "title": "ParkingPermitCreate"
+      },
+      "ParkingPermitIssue": {
+        "properties": {
+          "decal_number": {
+            "type": "string",
+            "title": "Decal Number"
+          },
+          "valid_from": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "type": "string",
+            "format": "date",
+            "title": "Valid To"
+          },
+          "received_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Received By"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decal_number",
+          "valid_from",
+          "valid_to"
+        ],
+        "title": "ParkingPermitIssue"
+      },
+      "ParkingPermitListPublic": {},
+      "ParkingPermitPublic": {},
       "PermissionCreate": {
         "properties": {
           "key": {
@@ -6387,7 +7031,6 @@
         "title": "PermissionCreate"
       },
       "PermissionPublic": {},
-      "PermissionsPublic": {},
       "PersonnelStatus": {
         "type": "string",
         "enum": [
@@ -6398,6 +7041,16 @@
           "EXCUSED"
         ],
         "title": "PersonnelStatus"
+      },
+      "ProfAppointmentType": {
+        "type": "string",
+        "enum": [
+          "BANK",
+          "MEDICAL",
+          "LEGAL",
+          "DENTAL"
+        ],
+        "title": "ProfAppointmentType"
       },
       "ProfileDetailsUpdate": {
         "properties": {
@@ -6583,7 +7236,6 @@
         "title": "RoleCreate"
       },
       "RolePublic": {},
-      "RolesPublic": {},
       "RosterAssignmentBulkCreate": {
         "properties": {
           "roster_period_id": {
@@ -6796,6 +7448,18 @@
               }
             ],
             "title": "App Name"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
           }
         },
         "type": "object",
@@ -6830,6 +7494,14 @@
           "FLEX"
         ],
         "title": "ShiftPattern"
+      },
+      "ShiftPeriod": {
+        "type": "string",
+        "enum": [
+          "AM",
+          "PM"
+        ],
+        "title": "ShiftPeriod"
       },
       "ShiftSwapAction": {
         "properties": {
@@ -6949,6 +7621,115 @@
           "shift_code": {
             "type": "string",
             "title": "Shift Code"
+          },
+          "shift_period": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShiftPeriod"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "all_personnel_reported_on_time": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "All Personnel Reported On Time"
+          },
+          "personnel_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Personnel Explanation"
+          },
+          "affected_operations": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Operations"
+          },
+          "affected_operations_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Affected Operations Explanation"
+          },
+          "all_equipment_operational": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "All Equipment Operational"
+          },
+          "equipment_issue_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment Issue Reason"
+          },
+          "equipment_remedy_action": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equipment Remedy Action"
+          },
+          "incident_reports_submitted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Reports Submitted"
+          },
+          "incident_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incident Explanation"
           },
           "weather_summary": {
             "anyOf": [
@@ -7201,6 +7982,21 @@
             "title": "Actual Hours",
             "default": "0.0"
           },
+          "total_hours": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Hours"
+          },
           "overtime_hours": {
             "anyOf": [
               {
@@ -7226,6 +8022,26 @@
             ],
             "title": "Break Hours",
             "default": "0.0"
+          },
+          "hours_worked": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hours Worked"
+          },
+          "medical_certificate_attached": {
+            "type": "boolean",
+            "title": "Medical Certificate Attached",
+            "default": false
           },
           "comments": {
             "anyOf": [
@@ -7259,6 +8075,38 @@
       },
       "TimesheetSummaryByShift": {},
       "Token": {},
+      "TwoFactorCodeRequest": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 10,
+            "minLength": 6,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code"
+        ],
+        "title": "TwoFactorCodeRequest"
+      },
+      "TwoFactorDisableRequest": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 40,
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "title": "TwoFactorDisableRequest"
+      },
+      "TwoFactorSetupResponse": {},
+      "TwoFactorStatusPublic": {},
       "UpdatePassword": {
         "properties": {
           "current_password": {
@@ -7267,6 +8115,8 @@
           },
           "new_password": {
             "type": "string",
+            "maxLength": 40,
+            "minLength": 8,
             "title": "New Password"
           }
         },
@@ -7934,7 +8784,8 @@
           "SHIFT_SWAP",
           "ABSENTEE_REPORT",
           "STATUS_REPORT",
-          "TIMESHEET"
+          "TIMESHEET",
+          "PARKING_PERMIT"
         ],
         "title": "WorkflowType"
       }

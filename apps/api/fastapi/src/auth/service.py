@@ -154,6 +154,41 @@ async def authenticate(
     return db_user
 
 
+async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
+    """Generate and store a new (inactive) TOTP secret; return it for provisioning."""
+    from src.auth import totp
+
+    secret = totp.generate_secret()
+    user.totp_secret = secret
+    user.totp_enabled = False
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return secret
+
+
+async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool:
+    """Verify a code against the pending secret and enable 2FA on success."""
+    from src.auth import totp
+
+    if not user.totp_secret or not totp.verify_code(secret=user.totp_secret, code=code):
+        return False
+    user.totp_enabled = True
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return True
+
+
+async def disable_totp(*, session: AsyncSession, user: User) -> None:
+    """Disable 2FA and clear the stored secret."""
+    user.totp_secret = None
+    user.totp_enabled = False
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+
 def get_legacy_access_token_expires_delta() -> timedelta:
     """Get the existing access-token TTL used by direct-token clients."""
     return timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES)

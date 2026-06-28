@@ -18,8 +18,11 @@ class AuthConfig(BaseSettings):
 
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    # 60 minutes * 24 hours * 8 days = 8 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the
+    # primary web path is the cookie-session (15-min access + 30-day rotating
+    # session via /login/session/refresh), so bearer tokens need not be long-lived.
+    # Override ACCESS_TOKEN_EXPIRE_MINUTES for non-interactive/service clients if needed.
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     SESSION_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     SESSION_EXPIRE_DAYS: int = 30
     SESSION_COOKIE_NAME: str = "grenmet_session"

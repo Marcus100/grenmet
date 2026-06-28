@@ -17,6 +17,10 @@
     "app_name": {
       "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
       "title": "App Name"
+    },
+    "totp_code": {
+      "anyOf": [{ "type": "string", "maxLength": 10 }, { "type": "null" }],
+      "title": "Totp Code"
     }
   },
   "type": "object",

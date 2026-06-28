@@ -20,6 +20,7 @@ from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
 from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
+from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
@@ -135,6 +136,7 @@ app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Auth-related routers (split for better organization)
 app.include_router(login_router, prefix="/api/v1")
 app.include_router(users_router, prefix="/api/v1")
+app.include_router(twofa_router, prefix="/api/v1")
 app.include_router(roles_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
