@@ -24,8 +24,10 @@ from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
+from src.cap.images import render_area_map, render_social_image
 from src.cap.models import (
     CapAlert,
+    CapArea,
     CapInfo,
     CapIntegrationStatus,
     CapJobEvent,
@@ -89,19 +91,36 @@ async def _skipped(
     return {"skipped": True, "reason": "handler not implemented yet", "kind": job.kind}
 
 
+async def _resolve_alert(*, session: AsyncSession, job: CapJobEvent) -> CapAlert:
+    raw_id = job.alert_id or job.payload.get("alert_id")
+    if not raw_id:
+        raise PublishError({"error": f"{job.kind} requires an alert_id"})
+    alert_id = raw_id if isinstance(raw_id, uuid.UUID) else uuid.UUID(str(raw_id))
+    alert = await session.get(CapAlert, alert_id)
+    if alert is None:
+        raise PublishError({"error": f"alert {alert_id} not found"})
+    return alert
+
+
+async def _alert_areas(
+    *, session: AsyncSession, alert_id: uuid.UUID
+) -> list[CapArea]:
+    result = await session.execute(
+        select(CapArea)
+        .join(CapInfo, col(CapArea.info_id) == col(CapInfo.id))
+        .where(col(CapInfo.alert_id) == alert_id)
+        .order_by(col(CapArea.sequence))
+    )
+    return list(result.scalars().all())
+
+
 async def publish_pdf(
     *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
 ) -> dict[str, Any]:
     """Render the alert to a PDF and store it in object storage."""
     _ = http_client
-    raw_id = job.alert_id or job.payload.get("alert_id")
-    if not raw_id:
-        raise PublishError({"error": "publish.pdf requires an alert_id"})
-    alert_id = raw_id if isinstance(raw_id, uuid.UUID) else uuid.UUID(str(raw_id))
-
-    alert = await session.get(CapAlert, alert_id)
-    if alert is None:
-        raise PublishError({"error": f"alert {alert_id} not found"})
+    alert = await _resolve_alert(session=session, job=job)
+    alert_id = alert.id
 
     info_result = await session.execute(
         select(CapInfo)
@@ -141,9 +160,68 @@ async def publish_pdf(
     return {"pdf_url": storage_service.public_url(key), "bytes": len(pdf_bytes)}
 
 
+async def publish_social_image(
+    *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
+) -> dict[str, Any]:
+    """Render a severity-coloured social card (Pillow) and store it."""
+    _ = http_client
+    alert = await _resolve_alert(session=session, job=job)
+    info_result = await session.execute(
+        select(CapInfo)
+        .where(col(CapInfo.alert_id) == alert.id)
+        .order_by(col(CapInfo.sequence))
+    )
+    info = info_result.scalars().first()
+    if info is None:
+        raise PublishError({"error": "no info block to render"})
+    areas = await _alert_areas(session=session, alert_id=alert.id)
+    area_desc = areas[0].area_desc if areas else ""
+
+    png = await run_in_threadpool(
+        render_social_image,
+        identifier=alert.identifier,
+        headline=info.headline,
+        severity=info.severity.value,
+        area_desc=area_desc,
+    )
+    key = f"cap/{alert.identifier}-social.png"
+    try:
+        await run_in_threadpool(
+            storage_service.put_object, key, png, content_type="image/png"
+        )
+    except StorageNotConfiguredError:
+        return {"skipped": True, "reason": "storage not configured", "kind": job.kind}
+    return {"image_url": storage_service.public_url(key), "bytes": len(png)}
+
+
+async def publish_static_map(
+    *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
+) -> dict[str, Any]:
+    """Render a schematic map of the alert's area polygons (Pillow, no basemap)."""
+    _ = http_client
+    alert = await _resolve_alert(session=session, job=job)
+    areas = await _alert_areas(session=session, alert_id=alert.id)
+    polygons = [ring for area in areas for ring in area.polygons]
+    area_desc = areas[0].area_desc if areas else ""
+
+    png = await run_in_threadpool(
+        render_area_map,
+        polygons=polygons,
+        identifier=alert.identifier,
+        area_desc=area_desc,
+    )
+    if png is None:
+        return {"skipped": True, "reason": "no polygon geometry", "kind": job.kind}
+    key = f"cap/{alert.identifier}-map.png"
+    try:
+        await run_in_threadpool(
+            storage_service.put_object, key, png, content_type="image/png"
+        )
+    except StorageNotConfiguredError:
+        return {"skipped": True, "reason": "storage not configured", "kind": job.kind}
+    return {"image_url": storage_service.public_url(key), "bytes": len(png)}
+
+
 # MQTT / WIS2 are handled by the separate wis2box deployment — out of scope here.
 publish_mqtt = _skipped
 publish_wis2box = _skipped
-# Static map / social image need an external tile service — deferred.
-publish_static_map = _skipped
-publish_social_image = _skipped

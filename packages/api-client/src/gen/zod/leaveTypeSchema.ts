@@ -13,6 +13,8 @@ export const leaveTypeSchema = z.enum([
   "PATERNITY",
   "STUDY",
   "COMPASSIONATE",
+  "PROFESSIONAL_APPOINTMENT",
+  "BEREAVEMENT",
   "WITHOUT_PAY",
   "OTHER",
 ]);

@@ -25,4 +25,5 @@ export type SessionLoginRequest = {
    */
   client_type?: string;
   app_name?: string | null;
+  totp_code?: string | null;
 };

@@ -13,6 +13,10 @@ remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
 | Rate limiting | slowapi now uses Redis store when `REDIS_URL` set (multi-instance safe) | in-memory fallback when unset |
 | CAP drift | Reconciled FK `ondelete=CASCADE` + TEXT types on the **model** side; consolidated `alert.identifier` to a unique index | `alembic check` → "No new upgrade operations detected" |
 | Auth | Redis-backed **account lockout** (fail-open) on both login endpoints | `LOGIN_*` settings; disabled when `REDIS_URL` unset |
+| Auth | **2FA (TOTP)**: `/2fa/setup|activate|disable|status`; enforced at both login endpoints (`totp_code` in session body, `X-TOTP-Code` header for OAuth2) | `pyotp`; `User.totp_secret`/`totp_enabled` (migration `b2d4f6a8c1e3`) |
+| Auth | **Token TTL cutover**: legacy bearer default 8 days → **60 min**; session access 15 min | ⚠ `.env.local` pins `ACCESS_TOKEN_EXPIRE_MINUTES=11520` — lower it for the new default to take effect |
+| CAP publishers | **PDF** (fpdf2), **social image** + **static map** (Pillow, no tiles) → Spaces | MQTT/WIS2 still out of scope (separate wis2box) |
+| Contract | `openapi.json` regenerated with 2FA routes | Run `pnpm generate:api-client` to sync the TS client |
 
 ## Required env vars for staging/prod (set in deploy env, not committed)
 
@@ -26,17 +30,18 @@ STORAGE_PUBLIC_BASE_URL=<cdn base>          # optional
 SESSION_COOKIE_DOMAIN=.barrels.gd           # for subdomain SSO (when ready)
 ```
 
-## Deferred — needs your review (intentionally not done solo)
+## Remaining for you
 
-1. **2FA (TOTP) for privileged roles** — needs a `User.totp_secret` column (migration), an
-   enrollment + verify flow, and frontend coordination. Recommended before public launch.
-2. **Reduce the 8-day legacy JWT default** (`ACCESS_TOKEN_EXPIRE_MINUTES`) — changing the
-   default is a breaking change for existing clients; prefer short access tokens + the
-   30-day rotating session. Decide rollout, then change the default.
-3. **Static-map / social-image publishers** — need an external tile service + ToS decision;
-   currently registered as skipped handlers.
-4. **Postgres collation mismatch** on the `app` DB — run `ALTER DATABASE app REFRESH
-   COLLATION VERSION;` (cosmetic warning today).
+1. **Lower `ACCESS_TOKEN_EXPIRE_MINUTES` in `.env.local` / staging / prod** — code default is
+   now 60 min, but the env override (11520) wins until you change it. (Agents can't edit `.env`.)
+2. **2FA frontend** — backend is done (enroll/activate/disable + login enforcement). The
+   web apps need an enrollment UI (render `provisioning_uri` as a QR) and a `totp_code` field
+   on the session-login form. Consider TOTP **recovery codes** as a follow-up.
+3. **Encrypt `User.totp_secret` at rest** — stored plaintext for v1 (noted in `src/auth/totp.py`).
+4. **`pnpm generate:api-client`** — regenerate the TS client from the updated `openapi.json`.
+5. **Postgres collation mismatch** on `app` — `ALTER DATABASE app REFRESH COLLATION VERSION;`
+   (cosmetic warning).
+6. **MQTT/WIS2 publishers** — intentionally out of scope (separate wis2box deployment).
 
 ## Step 7 — fresh baseline squash (DESTRUCTIVE — run manually when ready)
 

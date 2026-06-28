@@ -10,7 +10,7 @@ import type { RolePublic } from "./RolePublic.js";
 /**
  * @description Role created
  */
-export type CreateRoleApiV1AuthRolesPost200 = RolePublic;
+export type CreateRoleApiV1AuthRolesPost201 = RolePublic;
 
 /**
  * HTTPValidationError
@@ -24,10 +24,10 @@ export type CreateRoleApiV1AuthRolesPost422 = HTTPValidationError;
 export type CreateRoleApiV1AuthRolesPostMutationRequest = RoleCreate;
 
 export type CreateRoleApiV1AuthRolesPostMutationResponse =
-  CreateRoleApiV1AuthRolesPost200;
+  CreateRoleApiV1AuthRolesPost201;
 
 export type CreateRoleApiV1AuthRolesPostMutation = {
-  Response: CreateRoleApiV1AuthRolesPost200;
+  Response: CreateRoleApiV1AuthRolesPost201;
   Request: CreateRoleApiV1AuthRolesPostMutationRequest;
   Errors: CreateRoleApiV1AuthRolesPost422;
 };

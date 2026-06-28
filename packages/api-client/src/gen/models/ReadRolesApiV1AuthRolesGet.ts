@@ -4,25 +4,31 @@
  */
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
-import type { RolesPublic } from "./RolesPublic.js";
+import type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 
 export type ReadRolesApiV1AuthRolesGetQueryParams = {
   /**
-   * @default 0
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
    * @type integer | undefined
    */
-  skip?: number;
+  page?: number;
   /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
    * @default 100
    * @type integer | undefined
    */
-  limit?: number;
+  size?: number;
 };
 
 /**
+ * PaginatedResponse[RolePublic]
  * @description Roles returned
  */
-export type ReadRolesApiV1AuthRolesGet200 = RolesPublic;
+export type ReadRolesApiV1AuthRolesGet200 = PaginatedResponseRolePublic;
 
 /**
  * HTTPValidationError

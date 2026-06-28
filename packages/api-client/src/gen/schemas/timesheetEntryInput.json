@@ -21,6 +21,14 @@
       "title": "Actual Hours",
       "default": "0.0"
     },
+    "total_hours": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" },
+        { "type": "null" }
+      ],
+      "title": "Total Hours"
+    },
     "overtime_hours": {
       "anyOf": [
         { "type": "number" },
@@ -36,6 +44,19 @@
       ],
       "title": "Break Hours",
       "default": "0.0"
+    },
+    "hours_worked": {
+      "anyOf": [
+        { "type": "number" },
+        { "type": "string", "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$" },
+        { "type": "null" }
+      ],
+      "title": "Hours Worked"
+    },
+    "medical_certificate_attached": {
+      "type": "boolean",
+      "title": "Medical Certificate Attached",
+      "default": false
     },
     "comments": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],

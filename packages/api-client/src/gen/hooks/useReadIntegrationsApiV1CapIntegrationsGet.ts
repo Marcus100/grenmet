@@ -47,7 +47,8 @@ export function readIntegrationsApiV1CapIntegrationsGetQueryOptions(
 }
 
 /**
- * @summary Read Integrations
+ * @description Return configured webhooks, MQTT brokers, and recent job events.
+ * @summary List integrations
  * {@link /api/v1/cap/integrations}
  */
 export function useReadIntegrationsApiV1CapIntegrationsGet<

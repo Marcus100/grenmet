@@ -21,7 +21,6 @@ function getTestEmailApiV1UtilsTestEmailPostUrl() {
 }
 
 /**
- * @description Test emails.
  * @summary Test Email
  * {@link /api/v1/utils/test-email/}
  */
