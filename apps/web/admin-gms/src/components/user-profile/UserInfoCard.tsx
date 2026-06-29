@@ -231,30 +231,27 @@ export default function UserInfoCard({
                     <div className="col-span-2 lg:col-span-1">
                       <Label>First Name</Label>
                       <Input
-                        defaultValue={firstName}
-                        key={`first-name-${firstName}`}
                         onChange={(event) => setFirstName(event.target.value)}
                         type="text"
+                        value={firstName}
                       />
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Middle Name</Label>
                       <Input
-                        defaultValue={middleName}
-                        key={`middle-name-${middleName}`}
                         onChange={(event) => setMiddleName(event.target.value)}
                         type="text"
+                        value={middleName}
                       />
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Last Name</Label>
                       <Input
-                        defaultValue={lastName}
-                        key={`last-name-${lastName}`}
                         onChange={(event) => setLastName(event.target.value)}
                         type="text"
+                        value={lastName}
                       />
                     </div>
 
@@ -270,30 +267,27 @@ export default function UserInfoCard({
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Phone</Label>
                       <Input
-                        defaultValue={phone}
-                        key={`phone-${phone}`}
                         onChange={(event) => setPhone(event.target.value)}
                         type="text"
+                        value={phone}
                       />
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Nationality</Label>
                       <Input
-                        defaultValue={nationality}
-                        key={`nationality-${nationality}`}
                         onChange={(event) => setNationality(event.target.value)}
                         type="text"
+                        value={nationality}
                       />
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Gender</Label>
                       <Input
-                        defaultValue={gender}
-                        key={`gender-${gender}`}
                         onChange={(event) => setGender(event.target.value)}
                         type="text"
+                        value={gender}
                       />
                     </div>
                   </div>
