@@ -42,6 +42,7 @@
     "d3-geo": "catalog:",
     "date-fns": "^4.1.0",
     "drizzle-orm": "catalog:",
+    "geist": "catalog:",
     "pg": "catalog:",
     "topojson-client": "catalog:",
     "server-only": "^0.0.1",
