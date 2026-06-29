@@ -52,7 +52,7 @@ export default function CategoryDetailPage() {
             <span className="text-muted-foreground text-sm lowercase sm:text-base">
               {category?.name ?? catId}
             </span>
-            <div className="h-px flex-1 bg-gray-300" />
+            <div className="h-px flex-1 bg-border" />
           </div>
 
           {/* Product grid - responsive columns */}

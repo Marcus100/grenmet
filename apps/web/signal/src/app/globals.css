@@ -2,6 +2,14 @@
 @import "@grenmet/ui/styles/globals";
 @plugin "@tailwindcss/typography";
 
+/* Tailwind v4 only auto-scans this app's own source. The reused @grenmet/ui
+   primitives (sheet, dialog, sidebar, …) use utilities found nowhere in Signal's
+   own pages, so scan the shared package explicitly or those classes are never
+   generated. node_modules symlink path keeps it inside the app tree for
+   turbopack; the explicit @source overrides Tailwind's default node_modules
+   ignore. */
+@source "../../node_modules/@grenmet/ui/src";
+
 /*
   Grenada Signal brand layer.
 

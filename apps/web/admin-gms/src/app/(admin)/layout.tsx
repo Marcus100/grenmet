@@ -1,10 +1,11 @@
+import { SessionUserProvider } from "@grenmet/auth";
 import { redirect } from "next/navigation";
+import { AppShell } from "@/components/layout/app-shell";
 import {
   exchangeSessionForAccessToken,
   readSessionCookie,
   type SessionUserPublic,
 } from "@/lib/server-session";
-import AdminLayoutClient from "./AdminLayoutClient";
 
 /** Protects admin routes even when proxy does not run in development. */
 export default async function AdminLayout({
@@ -26,5 +27,17 @@ export default async function AdminLayout({
     redirect("/signin");
   }
 
-  return <AdminLayoutClient user={user}>{children}</AdminLayoutClient>;
+  if (!user) {
+    redirect("/signin");
+  }
+
+  return (
+    <SessionUserProvider user={user}>
+      <AppShell
+        user={{ name: user.full_name ?? user.email, email: user.email }}
+      >
+        {children}
+      </AppShell>
+    </SessionUserProvider>
+  );
 }

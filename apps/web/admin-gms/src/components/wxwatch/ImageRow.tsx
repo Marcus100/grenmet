@@ -31,7 +31,7 @@ export function ImageRow({
   return (
     <section className="mb-6">
       <div className="mb-3 flex items-center justify-between px-4">
-        <h2 className="font-semibold text-gray-800 text-lg">{title}</h2>
+        <h2 className="font-semibold text-foreground text-lg">{title}</h2>
       </div>
 
       {/* 8-image grid */}
@@ -65,10 +65,12 @@ function SynopticImageSlot({
 }: SynopticImageSlotProps) {
   if (!image) {
     return (
-      <div className="relative flex aspect-[4/3] items-center justify-center rounded-lg border-2 border-gray-300 border-dashed bg-gray-200">
+      <div className="relative flex aspect-[4/3] items-center justify-center rounded-lg border-2 border-border border-dashed bg-muted">
         <div className="text-center">
-          <p className="mb-1 font-medium text-gray-400 text-xs">{hour}z</p>
-          <p className="text-gray-400 text-xs">No image</p>
+          <p className="mb-1 font-medium text-muted-foreground text-xs">
+            {hour}z
+          </p>
+          <p className="text-muted-foreground text-xs">No image</p>
         </div>
       </div>
     );
@@ -89,7 +91,7 @@ function SynopticImageSlot({
 
   return (
     <button
-      className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-gray-100 transition-all duration-200 hover:ring-2 hover:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="group relative aspect-[4/3] overflow-hidden rounded-lg bg-muted transition-all duration-200 hover:ring-2 hover:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
       onClick={() => onImageClick(image)}
       type="button"
     >

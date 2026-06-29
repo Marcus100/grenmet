@@ -17,21 +17,21 @@ export default function RadioButtons() {
         value={selectedValue}
       >
         <label
-          className="flex cursor-pointer items-center gap-3 font-medium text-gray-700 text-sm"
+          className="flex cursor-pointer items-center gap-3 font-medium text-foreground text-sm"
           htmlFor="radio1"
         >
           <RadioGroupItem id="radio1" value="option1" />
           Default
         </label>
         <label
-          className="flex cursor-pointer items-center gap-3 font-medium text-gray-700 text-sm"
+          className="flex cursor-pointer items-center gap-3 font-medium text-foreground text-sm"
           htmlFor="radio2"
         >
           <RadioGroupItem id="radio2" value="option2" />
           Selected
         </label>
         <label
-          className="flex cursor-not-allowed items-center gap-3 font-medium text-gray-300 text-sm"
+          className="flex cursor-not-allowed items-center gap-3 font-medium text-muted-foreground text-sm"
           htmlFor="radio3"
         >
           <RadioGroupItem disabled id="radio3" value="option3" />

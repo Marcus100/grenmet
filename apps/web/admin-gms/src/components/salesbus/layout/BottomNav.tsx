@@ -42,7 +42,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="safe-area-bottom fixed right-0 bottom-0 left-0 border-gray-200 border-t bg-card">
+    <nav className="safe-area-bottom fixed right-0 bottom-0 left-0 border-border border-t bg-card">
       <div className="mx-auto flex h-16 max-w-2xl items-center justify-around sm:h-18">
         {navItems.map((item) => {
           const active = isActive(item.href);
@@ -53,7 +53,7 @@ export function BottomNav() {
               className={`relative flex h-full min-w-gm-72 touch-manipulation flex-col items-center justify-center gap-1 px-4 transition-colors sm:px-6 ${
                 active
                   ? "text-gm-blue"
-                  : "text-muted-foreground hover:text-foreground active:bg-gray-100"
+                  : "text-muted-foreground hover:text-foreground active:bg-muted"
               }
               `}
               href={item.href}

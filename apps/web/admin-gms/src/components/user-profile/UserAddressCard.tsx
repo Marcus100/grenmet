@@ -122,7 +122,7 @@ export default function UserAddressCard({
           </div>
 
           <button
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-background px-4 py-3 font-medium text-gray-700 text-sm shadow-gm-card hover:bg-gray-50 hover:text-foreground lg:inline-flex lg:w-auto"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-background px-4 py-3 font-medium text-foreground text-sm shadow-gm-card hover:bg-muted hover:text-foreground lg:inline-flex lg:w-auto"
             onClick={handleOpen}
             type="button"
           >

@@ -36,7 +36,7 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
       {/* Previous Day Button */}
       <button
         aria-label="Previous day"
-        className="rounded-md bg-gray-100 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+        className="rounded-md bg-muted px-3 py-2 font-medium text-foreground transition-colors hover:bg-muted"
         onClick={goToPreviousDay}
         type="button"
       >
@@ -60,7 +60,7 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
       <div className="relative">
         <input
           aria-label="Select date"
-          className="rounded-md border border-gray-300 px-3 py-2 text-gray-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="rounded-md border border-border px-3 py-2 text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
           onChange={handleDateChange}
           type="date"
           value={dateInputValue}
@@ -70,7 +70,7 @@ export function DateNavigation({ currentDate }: DateNavigationProps) {
       {/* Next Day Button */}
       <button
         aria-label="Next day"
-        className="rounded-md bg-gray-100 px-3 py-2 font-medium text-gray-700 transition-colors hover:bg-gray-200"
+        className="rounded-md bg-muted px-3 py-2 font-medium text-foreground transition-colors hover:bg-muted"
         onClick={goToNextDay}
         type="button"
       >

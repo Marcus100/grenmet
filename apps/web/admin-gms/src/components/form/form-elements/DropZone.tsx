@@ -17,13 +17,13 @@ const DropzoneComponent: React.FC = () => {
   });
   return (
     <ComponentCard title="Dropzone">
-      <div className="cursor-pointer rounded-xl border border-gray-300 border-dashed transition hover:border-brand-500">
+      <div className="cursor-pointer rounded-xl border border-border border-dashed transition hover:border-brand-500">
         <form
           {...getRootProps()}
-          className={`dropzone rounded-xl border-gray-300 border-dashed p-7 lg:p-10 ${
+          className={`dropzone rounded-xl border-border border-dashed p-7 lg:p-10 ${
             isDragActive
-              ? "border-brand-500 bg-gray-100"
-              : "border-gray-300 bg-gray-50"
+              ? "border-brand-500 bg-muted"
+              : "border-border bg-muted"
           }
       `}
           id="demo-upload"
@@ -34,7 +34,7 @@ const DropzoneComponent: React.FC = () => {
           <div className="dz-message m-0! flex flex-col items-center">
             {/* Icon Container */}
             <div className="mb-[22px] flex justify-center">
-              <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-gray-200 text-gray-700">
+              <div className="flex h-[68px] w-[68px] items-center justify-center rounded-full bg-muted text-foreground">
                 <svg
                   aria-hidden="true"
                   className="fill-current"
@@ -57,7 +57,7 @@ const DropzoneComponent: React.FC = () => {
               {isDragActive ? "Drop Files Here" : "Drag & Drop Files Here"}
             </h4>
 
-            <span className="mb-5 block w-full max-w-[290px] text-center text-gray-700 text-sm">
+            <span className="mb-5 block w-full max-w-[290px] text-center text-foreground text-sm">
               Drag and drop your PNG, JPG, WebP, SVG images here or browse
             </span>
 
