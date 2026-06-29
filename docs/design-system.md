@@ -280,13 +280,13 @@ Run the contrast guard after changing warning color tokens:
 pnpm design-system:contrast
 ```
 
-## Light Mode V1
+## Dark Mode
 
-V1 is light-mode only. The shared foundation exposes a class-based `dark` variant so future work has a stable Tailwind hook, but the v1 contract does not define dark token modes.
+Dark mode is supported via the class-based `dark` variant. The foundation defines `.dark` token overrides (background, foreground, card, popover, primary, secondary, muted, accent, border, ring, chart-1..5, sidebar-*), so semantic tokens (`bg-background`, `text-foreground`, `border-border`) adapt automatically and most primitives need no `dark:*` branches.
 
-Apps should not follow system dark mode during v1. Root layouts set `color-scheme: light`, and apps using `next-themes` should force the light theme until dark tokens are intentionally designed and bridged.
+Apps may follow the user's theme preference (light / dark / system) via the `@grenmet/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
 
-Shared `@grenmet/ui` primitives should not ship active `dark:*` branches in v1. Dark mode readiness comes from semantic tokens, not from parallel component styling. V2 can add `.dark` token overrides after the dark palette is designed, audited, and synced with Figma.
+`admin-gms` ships the GrenMet `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
 
 ## Warning Pattern Checklist
 
