@@ -12,7 +12,7 @@ const Label: FC<LabelProps> = ({ htmlFor, children, className }) => {
     <label
       className={twMerge(
         // Default classes that apply by default
-        "mb-1.5 block font-medium text-gray-700 text-sm",
+        "mb-1.5 block font-medium text-foreground text-sm",
 
         // User-defined className that can override the default margin
         className

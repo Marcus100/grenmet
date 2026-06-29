@@ -1,27 +1,22 @@
+"use client";
+
+import { Separator as SeparatorPrimitive } from "@base-ui/react/separator";
+
 import { cn } from "@grenmet/ui/lib/utils";
-import type * as React from "react";
 
 function Separator({
   className,
   orientation = "horizontal",
-  decorative = true,
   ...props
-}: React.ComponentProps<"div"> & {
-  orientation?: "horizontal" | "vertical";
-  decorative?: boolean;
-}) {
+}: SeparatorPrimitive.Props) {
   return (
-    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-orientation is only set when role="separator"; static analysis cannot see the conditional exclusivity
-    <div
-      aria-orientation={decorative ? undefined : orientation}
+    <SeparatorPrimitive
       className={cn(
-        "shrink-0 bg-border",
-        orientation === "horizontal" ? "h-px w-full" : "h-full w-px",
+        "shrink-0 bg-border data-horizontal:h-px data-horizontal:w-full data-vertical:w-px data-vertical:self-stretch",
         className
       )}
-      data-orientation={orientation}
       data-slot="separator"
-      role={decorative ? "none" : "separator"}
+      orientation={orientation}
       {...props}
     />
   );

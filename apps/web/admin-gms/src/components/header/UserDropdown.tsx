@@ -16,10 +16,10 @@ export default function UserDropdown() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex items-center text-gray-700"
+        className="flex items-center text-foreground"
         type="button"
       >
-        <span className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-gray-200 font-semibold text-gray-600">
+        <span className="mr-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-muted font-semibold text-muted-foreground">
           {(user.full_name ?? user.email).charAt(0).toUpperCase()}
         </span>
         <span className="mr-1 block font-medium text-theme-sm">
@@ -46,7 +46,7 @@ export default function UserDropdown() {
 
       <DropdownMenuContent className="w-[260px] rounded-2xl p-3">
         <div className="pb-3">
-          <span className="block font-medium text-gray-700 text-theme-sm">
+          <span className="block font-medium text-foreground text-theme-sm">
             {user.full_name ?? user.email}
           </span>
           <span className="mt-0.5 block text-muted-foreground text-theme-xs">
@@ -56,7 +56,7 @@ export default function UserDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="flex flex-col gap-1 pt-3 pb-2">
           <DropdownMenuItem
-            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-foreground text-theme-sm hover:bg-muted"
             onSelect={() => {
               window.location.href = "/profile";
             }}
@@ -64,7 +64,7 @@ export default function UserDropdown() {
             Edit profile
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-foreground text-theme-sm hover:bg-muted"
             onSelect={() => {
               window.location.href = "/profile";
             }}
@@ -72,7 +72,7 @@ export default function UserDropdown() {
             Account settings
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-foreground text-theme-sm hover:bg-muted"
             onSelect={() => {
               window.location.href = "/profile";
             }}
@@ -83,13 +83,13 @@ export default function UserDropdown() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup className="flex flex-col gap-1 pt-2">
           <DropdownMenuItem
-            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-foreground text-theme-sm hover:bg-muted"
             onSelect={() => signOut()}
           >
             Sign out
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-gray-700 text-theme-sm hover:bg-gray-100"
+            className="flex items-center gap-3 rounded-lg px-3 py-2 font-medium text-foreground text-theme-sm hover:bg-muted"
             onSelect={() => signOutEverywhere()}
           >
             Sign out everywhere

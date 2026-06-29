@@ -8,7 +8,7 @@ Port **3001**. The heaviest app in the monorepo.
 
 | Package | Purpose |
 | --- | --- |
-| `@fullcalendar/*` (6 packages) | Calendar views — daygrid, timegrid, list, interaction |
+| `@fullcalendar/react` (v7) | Calendar views — v7 consolidated package; plugins via `@fullcalendar/react/{daygrid,timegrid,list,interaction,multimonth}` subpaths + `useCalendarController`. Shared component: `components/calendar/event-calendar.tsx` (used by `/calendar` + `/studio/calendar`) |
 | `recharts` | Charts (bar, area, statistics) — colors via `var(--gm-*)` tokens directly |
 | `@tanstack/react-form` + `zod-form-adapter` | Forms with Zod validation |
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |

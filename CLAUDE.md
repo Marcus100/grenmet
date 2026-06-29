@@ -102,7 +102,7 @@ When adding to this file, follow this structure:
 - Do not move pages between Figma files programmatically — instruct the user to do it in the Figma UI.
 - Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright) when the dev server is running.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius and never add design values to Tailwind config. Adding or changing a `--gm-*` token needs user approval, landed in Figma and `packages/ui/src/styles/globals.css` together.
-- Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full` (warning-only drift), `:contrast` (warning pairs), `:sync` (regenerate app blocks after editing the canonical block). V1 is light-mode only — no `dark:` branches in shared primitives.
+- Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full` (warning-only drift), `:contrast` (warning pairs), `:sync` (regenerate app blocks after editing the canonical block). Dark mode is supported (class-based `dark` variant + `.dark` token overrides); prefer semantic tokens over `dark:*` branches in shared primitives, and keep printable document "papers" light in both modes.
 
 ## Where to Look
 

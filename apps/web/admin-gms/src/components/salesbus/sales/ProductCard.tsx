@@ -13,7 +13,7 @@ interface ProductCardProps {
 export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
     <div className="flex gap-4 rounded-xl bg-card p-4 sm:p-5">
-      <div className="flex h-28 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 sm:h-32 sm:w-28">
+      <div className="flex h-28 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-32 sm:w-28">
         <Image
           alt={product.name}
           className="object-contain"

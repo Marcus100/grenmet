@@ -15,7 +15,7 @@ export function Gallery({ imagesBySynoptic }: GalleryProps) {
 
   if (imagesBySynoptic.length === 0) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center text-gray-500">
+      <div className="flex min-h-[400px] flex-col items-center justify-center text-muted-foreground">
         <svg
           aria-hidden="true"
           className="mb-4 h-16 w-16"

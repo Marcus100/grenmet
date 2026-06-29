@@ -30,7 +30,7 @@ catalog:
 
   # UI
   lucide-react: "^0.562.0"
-  "@base-ui-components/react": "^1.0.0-rc.0"
+  "@base-ui/react": "^1.6.0"
   class-variance-authority: "^0.7.1"
   clsx: "^2.1.1"
   tailwind-merge: "^3.6.0"
@@ -38,6 +38,24 @@ catalog:
   cmdk: "^1.1.1"
   sonner: "^2.0.7"
   recharts: "^3.9.0"
+  vaul: "^1.1.2"
+  react-resizable-panels: "^4.12.0"
+  input-otp: "^1.4.2"
+  embla-carousel-react: "^8.6.0"
+  simple-icons: "^16.24.1"
+
+  # Studio demo dashboards (kanban/invoice drag-drop, logistics map)
+  "@dnd-kit/core": "^6.3.1"
+  "@dnd-kit/modifiers": "^9.0.0"
+  "@dnd-kit/sortable": "^10.0.0"
+  d3-geo: "^3.1.1"
+  topojson-client: "^3.1.0"
+  react-hook-form: "^7.80.0"
+  "@hookform/resolvers": "^5.4.0"
+  "@fullcalendar/react": "^7.0.0"
+  "@types/d3-geo": "^3.1.0"
+  "@types/topojson-client": "^3.1.5"
+  "@types/geojson": "^7946.0.16"
 
   # Tables — admin-gms (data tables + virtualised lists)
   "@tanstack/react-table": "^8.21.3"
@@ -61,6 +79,9 @@ catalog:
 
   # Themes
   next-themes: "^0.4.6"
+
+  # State management — @grenmet/theme preferences store
+  zustand: "^5.0.14"
 
   # Database (pg) — used in wxwatch and wxproducts
   pg: "^8.17.1"

@@ -1,0 +1,172 @@
+"use client";
+
+import { Button } from "@grenmet/ui/components/ui/button";
+import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
+import { Input } from "@grenmet/ui/components/ui/input";
+import { Separator } from "@grenmet/ui/components/ui/separator";
+import { useForm } from "@tanstack/react-form";
+import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import { DatePicker } from "@/components/document/date-picker";
+import { DocumentPreview } from "@/components/document/document-preview";
+import {
+  EMPTY_TIMESHEET,
+  EMPTY_TIMESHEET_ROW,
+  TIMESHEET_COLUMNS,
+  TimesheetDocument,
+} from "./timesheet-document";
+
+export function TimesheetEditor() {
+  const form = useForm({ defaultValues: EMPTY_TIMESHEET });
+
+  return (
+    <form.Subscribe selector={(s) => s.values}>
+      {(values) => (
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-lg">Official Time Sheet</h2>
+              <Button
+                onClick={() => form.reset()}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <RotateCcw data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+
+            <Separator />
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
+                <div className="grid gap-5 md:grid-cols-2">
+                  <form.Field name="department">
+                    {(field) => (
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Department
+                        </FieldLabel>
+                        <Input
+                          id={field.name}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          value={field.state.value}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                  <form.Field name="period">
+                    {(field) => (
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Period
+                        </FieldLabel>
+                        <Input
+                          id={field.name}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          value={field.state.value}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+                </div>
+              </FieldGroup>
+
+              <Separator />
+
+              <form.Field mode="array" name="rows">
+                {(rowsField) => (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <FieldLabel>Entries</FieldLabel>
+                      <Button
+                        onClick={() =>
+                          rowsField.pushValue({
+                            ...EMPTY_TIMESHEET_ROW,
+                            id: crypto.randomUUID(),
+                          })
+                        }
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Plus data-icon="inline-start" />
+                        Add entry
+                      </Button>
+                    </div>
+
+                    {rowsField.state.value.map((row, i) => (
+                      <div
+                        className="flex flex-col gap-3 rounded-md border p-3"
+                        key={row.id}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-sm">
+                            Entry {i + 1}
+                          </span>
+                          <Button
+                            onClick={() => rowsField.removeValue(i)}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {TIMESHEET_COLUMNS.map((col) => (
+                            <form.Field
+                              key={col.key}
+                              name={`rows[${i}].${col.key}`}
+                            >
+                              {(field) => (
+                                <Field className="gap-1">
+                                  <FieldLabel
+                                    className="text-xs"
+                                    htmlFor={field.name}
+                                  >
+                                    {col.label}
+                                  </FieldLabel>
+                                  {col.key === "date" ? (
+                                    <DatePicker
+                                      id={field.name}
+                                      onChange={field.handleChange}
+                                      value={field.state.value}
+                                    />
+                                  ) : (
+                                    <Input
+                                      id={field.name}
+                                      onChange={(e) =>
+                                        field.handleChange(e.target.value)
+                                      }
+                                      value={field.state.value}
+                                    />
+                                  )}
+                                </Field>
+                              )}
+                            </form.Field>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </form.Field>
+            </form>
+          </div>
+
+          <DocumentPreview title="Official Time Sheet">
+            <TimesheetDocument values={values} />
+          </DocumentPreview>
+        </div>
+      )}
+    </form.Subscribe>
+  );
+}
