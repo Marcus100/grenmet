@@ -70,7 +70,7 @@ jobs:
           IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           TAG=${API_TAG}
           GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          WEB_TAG=latest
+          WEB_TAG=${API_TAG}
           SESSION_COOKIE_NAME=${SESSION_COOKIE_NAME}
           RESEND_API_KEY=${RESEND_API_KEY}
           WXWATCH_DB_URL=postgresql://wxwatch:${WXWATCH_DB_PASSWORD}@db:5432/wxwatch
@@ -100,6 +100,24 @@ jobs:
 
       - name: Authenticate with GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Wait for release images to be published
+        # Prevents the release-time race: build-* and deploy both fire on
+        # 'release: published'. Block until the release-tagged API and web-admin
+        # images actually exist in GHCR (up to 10 min) before deploying.
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.release.tag_name }}"; TAG="${TAG:-latest}"
+          REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+          for IMG in "ghcr.io/${REPO}:${TAG}" "ghcr.io/${OWNER}/grenmet-web-admin:${TAG}"; do
+            echo "Waiting for $IMG ..."
+            for i in $(seq 1 40); do
+              if docker manifest inspect "$IMG" >/dev/null 2>&1; then echo "  ✓ ready"; break; fi
+              echo "  attempt $i/40 — not published yet, sleeping 15s"; sleep 15
+              [ "$i" -eq 40 ] && { echo "::error::$IMG never appeared — did the build fail?"; exit 1; }
+            done
+          done
 
       - name: Pull images
         run: |
