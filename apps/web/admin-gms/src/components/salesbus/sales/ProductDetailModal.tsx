@@ -57,7 +57,7 @@ export function ProductDetailModal({
       <div className="flex flex-col gap-5 sm:gap-6">
         {/* Product Info */}
         <div className="flex gap-4 sm:gap-5">
-          <div className="flex h-32 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 sm:h-36 sm:w-32">
+          <div className="flex h-32 w-28 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-36 sm:w-32">
             <Image
               alt={product.name}
               className="object-contain"

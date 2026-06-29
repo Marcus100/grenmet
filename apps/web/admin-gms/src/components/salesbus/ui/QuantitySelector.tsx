@@ -31,7 +31,7 @@ export function QuantitySelector({
     <div className="flex items-center gap-3">
       <button
         aria-label="Decrease quantity"
-        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-gray-200 text-foreground transition-colors hover:bg-gray-300 active:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-muted-foreground/10 active:bg-muted-foreground/20 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={value <= min}
         onClick={handleDecrement}
         type="button"
@@ -45,7 +45,7 @@ export function QuantitySelector({
 
       <button
         aria-label="Increase quantity"
-        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-gray-200 text-foreground transition-colors hover:bg-gray-300 active:bg-gray-400 disabled:cursor-not-allowed disabled:opacity-50"
+        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-full bg-muted text-foreground transition-colors hover:bg-muted-foreground/10 active:bg-muted-foreground/20 disabled:cursor-not-allowed disabled:opacity-50"
         disabled={value >= max}
         onClick={handleIncrement}
         type="button"

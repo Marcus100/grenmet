@@ -37,12 +37,14 @@ export default function DatePicker({
       {label && <Label htmlFor={id}>{label}</Label>}
       <div className="relative">
         <button
-          className="h-11 w-full appearance-none rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 text-left text-foreground text-sm shadow-gm-card focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20"
+          className="h-11 w-full appearance-none rounded-lg border border-border bg-transparent px-4 py-2.5 text-left text-foreground text-sm shadow-gm-card focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/20"
           id={id}
           onClick={() => setOpen((v) => !v)}
           type="button"
         >
-          <span className={selected ? "text-foreground" : "text-gray-400"}>
+          <span
+            className={selected ? "text-foreground" : "text-muted-foreground"}
+          >
             {selected
               ? format(selected, "yyyy-MM-dd")
               : (placeholder ?? "Pick a date")}
@@ -52,7 +54,7 @@ export default function DatePicker({
           <CalenderIcon className="size-6" />
         </span>
         {open && (
-          <div className="absolute z-50 mt-1 rounded-lg border border-gray-200 bg-white shadow-lg">
+          <div className="absolute z-50 mt-1 rounded-lg border border-border bg-white shadow-lg">
             <DayPicker
               mode="single"
               onSelect={handleSelect}

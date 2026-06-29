@@ -42,7 +42,7 @@ export function SideNav() {
   };
 
   return (
-    <nav className="flex w-20 flex-col border-gray-200 border-r bg-card py-4">
+    <nav className="flex w-20 flex-col border-border border-r bg-card py-4">
       {navItems.map((item) => {
         const active = isActive(item.href);
         const Icon = item.icon;
@@ -52,7 +52,7 @@ export function SideNav() {
             className={`relative mx-2 flex touch-manipulation flex-col items-center justify-center gap-1.5 rounded-xl px-2 py-4 transition-colors ${
               active
                 ? "bg-gm-blue/10 text-gm-blue"
-                : "text-muted-foreground hover:bg-gray-100 hover:text-foreground"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             }
             `}
             href={item.href}
