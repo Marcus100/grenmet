@@ -1,6 +1,9 @@
 import { Inter, Noto_Sans } from "next/font/google";
 import "./globals.css";
 
+import { PreferencesStoreProvider } from "@grenmet/theme/components/preferences-provider";
+import { ThemeBootScript } from "@grenmet/theme/components/theme-boot";
+import { PREFERENCE_DEFAULTS } from "@grenmet/theme/lib/preferences-config";
 import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
@@ -40,22 +43,48 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const {
+    theme_mode,
+    theme_preset,
+    content_layout,
+    navbar_style,
+    sidebar_variant,
+    sidebar_collapsible,
+  } = PREFERENCE_DEFAULTS;
+
   return (
     <html
       className={`${inter.variable} ${notoSans.variable}`}
+      data-content-layout={content_layout}
+      data-navbar-style={navbar_style}
+      data-sidebar-collapsible={sidebar_collapsible}
+      data-sidebar-variant={sidebar_variant}
+      data-theme-mode={theme_mode}
+      data-theme-preset={theme_preset}
       lang="en"
-      style={{ colorScheme: "light" }}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Applies theme/layout prefs before hydration to avoid flicker (see @grenmet/theme). */}
+        <ThemeBootScript />
+      </head>
       <body>
         <PostHogProvider
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
           apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
         >
-          <QueryProvider>
-            <ApiProvider>
-              <SidebarProvider>{children}</SidebarProvider>
-            </ApiProvider>
-          </QueryProvider>
+          <PreferencesStoreProvider
+            contentLayout={content_layout}
+            navbarStyle={navbar_style}
+            themeMode={theme_mode}
+            themePreset={theme_preset}
+          >
+            <QueryProvider>
+              <ApiProvider>
+                <SidebarProvider>{children}</SidebarProvider>
+              </ApiProvider>
+            </QueryProvider>
+          </PreferencesStoreProvider>
         </PostHogProvider>
       </body>
     </html>
