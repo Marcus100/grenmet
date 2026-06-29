@@ -38,6 +38,10 @@ catalog:
   cmdk: "^1.1.1"
   sonner: "^2.0.7"
   recharts: "^3.9.0"
+  vaul: "^1.1.2"
+  react-resizable-panels: "^4.12.0"
+  input-otp: "^1.4.2"
+  embla-carousel-react: "^8.6.0"
 
   # Tables — admin-gms (data tables + virtualised lists)
   "@tanstack/react-table": "^8.21.3"
@@ -61,6 +65,9 @@ catalog:
 
   # Themes
   next-themes: "^0.4.6"
+
+  # State management — @grenmet/theme preferences store
+  zustand: "^5.0.14"
 
   # Database (pg) — used in wxwatch and wxproducts
   pg: "^8.17.1"

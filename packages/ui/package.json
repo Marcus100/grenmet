@@ -29,9 +29,18 @@
     "@base-ui/react": "catalog:",
     "class-variance-authority": "catalog:",
     "clsx": "catalog:",
+    "cmdk": "catalog:",
+    "embla-carousel-react": "catalog:",
+    "input-otp": "catalog:",
     "lucide-react": "catalog:",
+    "next-themes": "catalog:",
     "posthog-js": "catalog:",
-    "tailwind-merge": "catalog:"
+    "react-day-picker": "catalog:",
+    "react-resizable-panels": "catalog:",
+    "recharts": "catalog:",
+    "sonner": "catalog:",
+    "tailwind-merge": "catalog:",
+    "vaul": "catalog:"
   },
   "peerDependencies": {
     "next": "*",
