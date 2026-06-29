@@ -1,6 +1,6 @@
 "use client";
 
-import { Tabs } from "@base-ui-components/react/tabs";
+import { Tabs } from "@base-ui/react/tabs";
 import { cn } from "@grenmet/ui/lib/utils";
 import type * as React from "react";
 

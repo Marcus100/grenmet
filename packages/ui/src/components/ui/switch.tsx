@@ -1,6 +1,6 @@
 "use client";
 
-import { Switch } from "@base-ui-components/react/switch";
+import { Switch } from "@base-ui/react/switch";
 import { cn } from "@grenmet/ui/lib/utils";
 import type * as React from "react";
 
