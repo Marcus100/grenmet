@@ -44,6 +44,8 @@ function readDomState(): Partial<PreferencesState> {
       root.getAttribute("data-theme-preset"),
       THEME_PRESET_VALUES
     ),
+    // Font keys are owned by the app's registry, so accept the raw attribute.
+    font: root.getAttribute("data-font") ?? undefined,
     contentLayout: getSafeValue(
       root.getAttribute("data-content-layout"),
       CONTENT_LAYOUT_VALUES
@@ -68,12 +70,14 @@ export const PreferencesStoreProvider = ({
   themeMode,
   themePreset,
   contentLayout,
+  font,
   navbarStyle,
 }: {
   children: React.ReactNode;
   themeMode: PreferencesState["themeMode"];
   themePreset: PreferencesState["themePreset"];
   contentLayout: PreferencesState["contentLayout"];
+  font: PreferencesState["font"];
   navbarStyle: PreferencesState["navbarStyle"];
 }) => {
   const [store] = useState<StoreApi<PreferencesState>>(() =>
@@ -81,6 +85,7 @@ export const PreferencesStoreProvider = ({
       themeMode,
       themePreset,
       contentLayout,
+      font,
       navbarStyle,
     })
   );
