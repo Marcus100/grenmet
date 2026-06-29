@@ -30,7 +30,7 @@ catalog:
 
   # UI
   lucide-react: "^0.562.0"
-  "@base-ui-components/react": "^1.0.0-rc.0"
+  "@base-ui/react": "^1.6.0"
   class-variance-authority: "^0.7.1"
   clsx: "^2.1.1"
   tailwind-merge: "^3.6.0"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Select } from "@base-ui-components/react/select";
+import { Select } from "@base-ui/react/select";
 import { cn } from "@grenmet/ui/lib/utils";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 import type * as React from "react";

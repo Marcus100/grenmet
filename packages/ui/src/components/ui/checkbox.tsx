@@ -1,6 +1,6 @@
 "use client";
 
-import { Checkbox } from "@base-ui-components/react/checkbox";
+import { Checkbox } from "@base-ui/react/checkbox";
 import { cn } from "@grenmet/ui/lib/utils";
 import { CheckIcon } from "lucide-react";
 import type * as React from "react";

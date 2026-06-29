@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion } from "@base-ui-components/react/accordion";
+import { Accordion } from "@base-ui/react/accordion";
 import { cn } from "@grenmet/ui/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import type * as React from "react";
