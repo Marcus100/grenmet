@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface LeaveValues {
   daysRequested: string;
   department: string;
@@ -54,11 +56,8 @@ function SignatureLine({ label }: { label: string }) {
  */
 export function LeaveDocument({ values }: { values: LeaveValues }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
-      <header className="mb-6 text-center">
+    <Paper className="px-14 py-12 text-sm">
+      <header className="mb-8 text-center">
         <div className="font-semibold text-xl tracking-wide">
           GRENADA AIRPORTS AUTHORITY
         </div>
@@ -81,7 +80,7 @@ export function LeaveDocument({ values }: { values: LeaveValues }) {
         <Row label="End Date" value={values.endDate} />
       </dl>
 
-      <div className="mt-8">
+      <div className="mt-10">
         <div className="mb-3 text-center font-semibold text-base">
           TYPE OF LEAVE OF ABSENCE
         </div>
@@ -108,12 +107,12 @@ export function LeaveDocument({ values }: { values: LeaveValues }) {
         </div>
       </div>
 
-      <div className="mt-12 grid grid-cols-2 gap-x-10 gap-y-8">
+      <div className="mt-16 grid grid-cols-2 gap-x-10 gap-y-10">
         <SignatureLine label="Employee Signature" />
         <SignatureLine label="Date" />
         <SignatureLine label="Supervisor Approval" />
         <SignatureLine label="Date" />
       </div>
-    </div>
+    </Paper>
   );
 }

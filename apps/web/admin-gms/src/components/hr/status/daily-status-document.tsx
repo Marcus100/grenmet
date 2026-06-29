@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface DailyStatusValues {
   absenteeism: string;
   affectedEfficiency: string;
@@ -68,10 +70,7 @@ function QA({
 /** Static daily airport status report, driven by `values` — no backend. */
 export function DailyStatusDocument({ values }: { values: DailyStatusValues }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
+    <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
         <div className="font-semibold text-xl tracking-wide">
           GRENADA AIRPORTS AUTHORITY
@@ -129,6 +128,6 @@ export function DailyStatusDocument({ values }: { values: DailyStatusValues }) {
           <span className="text-xs text-zinc-500">Date</span>
         </div>
       </div>
-    </div>
+    </Paper>
   );
 }

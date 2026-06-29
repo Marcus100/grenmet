@@ -1,12 +1,21 @@
 "use client";
 
 import { Button } from "@grenmet/ui/components/ui/button";
-import { Card, CardContent } from "@grenmet/ui/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
+import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { Plus, Printer, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import { DatePicker } from "@/components/document/date-picker";
+import { DocumentPreview } from "@/components/document/document-preview";
 import {
   EMPTY_FORECAST,
   EMPTY_IMPACT,
@@ -15,9 +24,6 @@ import {
   LIKELIHOOD_LEVELS,
   RESPONSE_LEVELS,
 } from "./forecast-document";
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 interface SimpleField {
   label: string;
@@ -53,44 +59,38 @@ export function ForecastEditor({ period }: { period: string }) {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">{period} Forecast</h2>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => form.reset()}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <RotateCcw className="size-3.5" />
-                    Reset
-                  </Button>
-                  <Button
-                    onClick={() => window.print()}
-                    size="sm"
-                    type="button"
-                  >
-                    <Printer className="size-3.5" />
-                    Print
-                  </Button>
-                </div>
-              </div>
-
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-lg">{period} Forecast</h2>
+              <Button
+                onClick={() => form.reset()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
+                <RotateCcw data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+
+            <Separator />
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
                 {SIMPLE_FIELDS.map((f) => (
                   <form.Field key={f.name} name={f.name}>
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>{f.label}</Label>
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          {f.label}
+                        </FieldLabel>
                         {f.type === "textarea" ? (
                           <Textarea
                             id={field.name}
@@ -98,130 +98,157 @@ export function ForecastEditor({ period }: { period: string }) {
                             rows={3}
                             value={field.state.value as string}
                           />
-                        ) : (
+                        ) : null}
+                        {f.type === "date" ? (
+                          <DatePicker
+                            id={field.name}
+                            onChange={field.handleChange}
+                            value={field.state.value as string}
+                          />
+                        ) : null}
+                        {f.type === "text" ? (
                           <Input
                             id={field.name}
                             onChange={(e) => field.handleChange(e.target.value)}
-                            type={f.type}
                             value={field.state.value as string}
                           />
-                        )}
-                      </div>
+                        ) : null}
+                      </Field>
                     )}
                   </form.Field>
                 ))}
+              </FieldGroup>
 
-                <form.Field mode="array" name="impacts">
-                  {(impactsField) => (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <Label>Impacts</Label>
-                        <Button
-                          onClick={() =>
-                            impactsField.pushValue({
-                              ...EMPTY_IMPACT,
-                              id: crypto.randomUUID(),
-                            })
-                          }
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Plus className="size-3.5" />
-                          Add impact
-                        </Button>
-                      </div>
+              <Separator />
 
-                      {impactsField.state.value.map((imp, i) => (
-                        <div
-                          className="space-y-3 rounded-md border p-3"
-                          key={imp.id}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-sm">
-                              Impact {i + 1}
-                            </span>
-                            <Button
-                              onClick={() => impactsField.removeValue(i)}
-                              size="icon-sm"
-                              type="button"
-                              variant="ghost"
-                            >
-                              <Trash2 className="size-3.5" />
-                            </Button>
-                          </div>
-
-                          <form.Field name={`impacts[${i}].hazard`}>
-                            {(field) => (
-                              <div className="space-y-1.5">
-                                <Label htmlFor={field.name}>Hazard</Label>
-                                <Input
-                                  id={field.name}
-                                  onChange={(e) =>
-                                    field.handleChange(e.target.value)
-                                  }
-                                  value={field.state.value}
-                                />
-                              </div>
-                            )}
-                          </form.Field>
-
-                          <div className="grid grid-cols-3 gap-3">
-                            {IMPACT_SELECTS.map((sel) => (
-                              <form.Field
-                                key={sel.key}
-                                name={`impacts[${i}].${sel.key}`}
-                              >
-                                {(field) => (
-                                  <div className="space-y-1.5">
-                                    <Label htmlFor={field.name}>
-                                      {sel.label}
-                                    </Label>
-                                    <select
-                                      className={selectClass}
-                                      id={field.name}
-                                      onChange={(e) =>
-                                        field.handleChange(e.target.value)
-                                      }
-                                      value={field.state.value}
-                                    >
-                                      {sel.options.map((o) => (
-                                        <option key={o} value={o}>
-                                          {o}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                )}
-                              </form.Field>
-                            ))}
-                          </div>
-
-                          <form.Field name={`impacts[${i}].details`}>
-                            {(field) => (
-                              <div className="space-y-1.5">
-                                <Label htmlFor={field.name}>Details</Label>
-                                <Textarea
-                                  id={field.name}
-                                  onChange={(e) =>
-                                    field.handleChange(e.target.value)
-                                  }
-                                  rows={2}
-                                  value={field.state.value}
-                                />
-                              </div>
-                            )}
-                          </form.Field>
-                        </div>
-                      ))}
+              <form.Field mode="array" name="impacts">
+                {(impactsField) => (
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <FieldLabel>Impacts</FieldLabel>
+                      <Button
+                        onClick={() =>
+                          impactsField.pushValue({
+                            ...EMPTY_IMPACT,
+                            id: crypto.randomUUID(),
+                          })
+                        }
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Plus data-icon="inline-start" />
+                        Add impact
+                      </Button>
                     </div>
-                  )}
-                </form.Field>
-              </form>
-            </CardContent>
-          </Card>
 
-          <ForecastDocument period={period} values={values} />
+                    {impactsField.state.value.map((imp, i) => (
+                      <div
+                        className="flex flex-col gap-3 rounded-md border p-3"
+                        key={imp.id}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-sm">
+                            Impact {i + 1}
+                          </span>
+                          <Button
+                            onClick={() => impactsField.removeValue(i)}
+                            size="icon-sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+
+                        <form.Field name={`impacts[${i}].hazard`}>
+                          {(field) => (
+                            <Field className="gap-1">
+                              <FieldLabel
+                                className="text-xs"
+                                htmlFor={field.name}
+                              >
+                                Hazard
+                              </FieldLabel>
+                              <Input
+                                id={field.name}
+                                onChange={(e) =>
+                                  field.handleChange(e.target.value)
+                                }
+                                value={field.state.value}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+
+                        <div className="grid grid-cols-3 gap-3">
+                          {IMPACT_SELECTS.map((sel) => (
+                            <form.Field
+                              key={sel.key}
+                              name={`impacts[${i}].${sel.key}`}
+                            >
+                              {(field) => (
+                                <Field className="gap-1">
+                                  <FieldLabel
+                                    className="text-xs"
+                                    htmlFor={field.name}
+                                  >
+                                    {sel.label}
+                                  </FieldLabel>
+                                  <Select
+                                    onValueChange={(v) =>
+                                      field.handleChange(v ?? "")
+                                    }
+                                    value={field.state.value}
+                                  >
+                                    <SelectTrigger id={field.name}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {sel.options.map((o) => (
+                                        <SelectItem key={o} value={o}>
+                                          {o}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                </Field>
+                              )}
+                            </form.Field>
+                          ))}
+                        </div>
+
+                        <form.Field name={`impacts[${i}].details`}>
+                          {(field) => (
+                            <Field className="gap-1">
+                              <FieldLabel
+                                className="text-xs"
+                                htmlFor={field.name}
+                              >
+                                Details
+                              </FieldLabel>
+                              <Textarea
+                                id={field.name}
+                                onChange={(e) =>
+                                  field.handleChange(e.target.value)
+                                }
+                                rows={2}
+                                value={field.state.value}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </form.Field>
+            </form>
+          </div>
+
+          <DocumentPreview title={`${period} Forecast`}>
+            <ForecastDocument period={period} values={values} />
+          </DocumentPreview>
         </div>
       )}
     </form.Subscribe>

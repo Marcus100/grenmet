@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface ForecastImpact {
   details: string;
   hazard: string;
@@ -83,10 +85,7 @@ export function ForecastDocument({
   values: ForecastValues;
 }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
+    <Paper className="px-12 py-10 text-sm">
       <header className="mb-6">
         <div className="font-semibold text-lg tracking-wide">
           GRENADA METEOROLOGICAL SERVICE
@@ -170,6 +169,6 @@ export function ForecastDocument({
           </span>
         </div>
       </footer>
-    </div>
+    </Paper>
   );
 }

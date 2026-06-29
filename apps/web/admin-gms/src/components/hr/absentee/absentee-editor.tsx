@@ -1,20 +1,26 @@
 "use client";
 
 import { Button } from "@grenmet/ui/components/ui/button";
-import { Card, CardContent } from "@grenmet/ui/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
+import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { Printer, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { DatePicker } from "@/components/document/date-picker";
+import { DocumentPreview } from "@/components/document/document-preview";
 import {
   ABSENTEE_REASONS,
   AbsenteeDocument,
   EMPTY_ABSENTEE,
 } from "./absentee-document";
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 export function AbsenteeEditor() {
   const form = useForm({ defaultValues: EMPTY_ABSENTEE });
@@ -22,119 +28,125 @@ export function AbsenteeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">Absentee Report</h2>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => form.reset()}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <RotateCcw className="size-3.5" />
-                    Reset
-                  </Button>
-                  <Button
-                    onClick={() => window.print()}
-                    size="sm"
-                    type="button"
-                  >
-                    <Printer className="size-3.5" />
-                    Print
-                  </Button>
-                </div>
-              </div>
-
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-lg">Absentee Report</h2>
+              <Button
+                onClick={() => form.reset()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
+                <RotateCcw data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+
+            <Separator />
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
                 <form.Field name="employeeName">
                   {(field) => (
-                    <div className="space-y-1.5">
-                      <Label htmlFor={field.name}>Employee Name</Label>
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs" htmlFor={field.name}>
+                        Employee Name
+                      </FieldLabel>
                       <Input
                         id={field.name}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         value={field.state.value}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-5 md:grid-cols-2">
                   <form.Field name="department">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>Department</Label>
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Department
+                        </FieldLabel>
                         <Input
                           id={field.name}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
                   <form.Field name="date">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>Date</Label>
-                        <Input
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Date
+                        </FieldLabel>
+                        <DatePicker
                           id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          type="date"
+                          onChange={field.handleChange}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
                 </div>
 
                 <form.Field name="reason">
                   {(field) => (
-                    <div className="space-y-1.5">
-                      <Label htmlFor={field.name}>Reason</Label>
-                      <select
-                        className={selectClass}
-                        id={field.name}
-                        onChange={(e) => field.handleChange(e.target.value)}
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs" htmlFor={field.name}>
+                        Reason
+                      </FieldLabel>
+                      <Select
+                        onValueChange={(v) => field.handleChange(v ?? "")}
                         value={field.state.value}
                       >
-                        {ABSENTEE_REASONS.map((r) => (
-                          <option key={r} value={r}>
-                            {r}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        <SelectTrigger id={field.name}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {ABSENTEE_REASONS.map((r) => (
+                            <SelectItem key={r} value={r}>
+                              {r}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
                   )}
                 </form.Field>
 
                 <form.Field name="notes">
                   {(field) => (
-                    <div className="space-y-1.5">
-                      <Label htmlFor={field.name}>Reason(s) — details</Label>
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs" htmlFor={field.name}>
+                        Reason(s) — details
+                      </FieldLabel>
                       <Textarea
                         id={field.name}
                         onChange={(e) => field.handleChange(e.target.value)}
                         rows={4}
                         value={field.state.value}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
-              </form>
-            </CardContent>
-          </Card>
+              </FieldGroup>
+            </form>
+          </div>
 
-          <AbsenteeDocument values={values} />
+          <DocumentPreview title="Absentee Report">
+            <AbsenteeDocument values={values} />
+          </DocumentPreview>
         </div>
       )}
     </form.Subscribe>

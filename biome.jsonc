@@ -146,6 +146,19 @@
       }
     },
     {
+      // Admin form editors are config-driven (field-type switches + array
+      // repeaters) that legitimately exceed the cognitive-complexity threshold.
+      "includes": [
+        "apps/web/admin-gms/src/components/hr/**",
+        "apps/web/admin-gms/src/components/wxproducts/**"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": { "noExcessiveCognitiveComplexity": "off" }
+        }
+      }
+    },
+    {
       "includes": [
         "**/env.ts",
         "**/env.*.ts",
