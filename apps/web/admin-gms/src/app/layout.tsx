@@ -7,7 +7,6 @@ import { PREFERENCE_DEFAULTS } from "@grenmet/theme/lib/preferences-config";
 import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
-import { SidebarProvider } from "@/context/SidebarContext";
 import { env } from "@/lib/env";
 import { QueryProvider } from "@/providers/QueryProvider";
 
@@ -80,9 +79,7 @@ export default function RootLayout({
             themePreset={theme_preset}
           >
             <QueryProvider>
-              <ApiProvider>
-                <SidebarProvider>{children}</SidebarProvider>
-              </ApiProvider>
+              <ApiProvider>{children}</ApiProvider>
             </QueryProvider>
           </PreferencesStoreProvider>
         </PostHogProvider>

@@ -98,6 +98,45 @@
       }
     },
     {
+      // Vendored Studio-Admin template demo pages (additive; user prunes them).
+      // Same vendored-code relaxation as the shadcn primitives above.
+      "includes": ["apps/web/admin-gms/src/app/(admin)/studio/**"],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off",
+            "noNoninteractiveElementInteractions": "off",
+            "useFocusableInteractive": "off",
+            "useKeyWithClickEvents": "off",
+            "noStaticElementInteractions": "off",
+            "useAriaPropsForRole": "off",
+            "noLabelWithoutControl": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          },
+          "correctness": {
+            "noNestedComponentDefinitions": "off"
+          },
+          "performance": {
+            "noNamespaceImport": "off"
+          },
+          "style": {
+            "noNestedTernary": "off",
+            "useConsistentTypeDefinitions": "off",
+            "useAtIndex": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off"
+          }
+        }
+      }
+    },
+    {
       "includes": [
         "**/env.ts",
         "**/env.*.ts",

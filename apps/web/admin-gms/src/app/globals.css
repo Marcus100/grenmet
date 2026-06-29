@@ -2,10 +2,20 @@
 @import "tw-animate-css";
 
 /* Theme presets — override CSS variables based on [data-theme-preset].
-   GrenMet ("default") needs no file; it is the :root baseline below. */
-@import "@grenmet/theme/styles/presets/brutalist.css";
-@import "@grenmet/theme/styles/presets/soft-pop.css";
-@import "@grenmet/theme/styles/presets/tangerine.css";
+   GrenMet ("default") needs no file; it is the :root baseline below.
+   Imported from @grenmet/theme WITHOUT the .css extension (the package's
+   "./styles/*" export appends it), matching how signal imports @grenmet/ui.
+   All @import rules must precede @source (CSS: imports come first). */
+@import "@grenmet/theme/styles/presets/brutalist";
+@import "@grenmet/theme/styles/presets/soft-pop";
+@import "@grenmet/theme/styles/presets/tangerine";
+
+/* Tailwind v4 only auto-scans this app's own source. The promoted @grenmet/ui
+   primitives (sidebar, etc.) use utilities found nowhere in app code, so scan
+   the shared package explicitly or those classes are never generated. Use the
+   node_modules symlink path (stays inside the app tree for turbopack; the
+   explicit @source overrides Tailwind's default node_modules ignore). */
+@source "../../node_modules/@grenmet/ui/src";
 
 /* BEGIN GRENMET DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
