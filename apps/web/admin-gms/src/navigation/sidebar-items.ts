@@ -89,6 +89,7 @@ export const sidebarItems: NavGroup[] = [
           { id: "hr-shift", title: "Shift Exchange", url: "/hr/shift" },
           { id: "hr-absentee", title: "Absentee Report", url: "/hr/absentee" },
           { id: "hr-status", title: "Daily Airport Status", url: "/hr/status" },
+          { id: "hr-timesheet", title: "Time Sheet", url: "/hr/timesheet" },
           { id: "hr-forms", title: "All Forms", url: "/hr" },
         ],
       },
