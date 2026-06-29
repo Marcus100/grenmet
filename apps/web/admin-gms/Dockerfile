@@ -11,6 +11,7 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
+COPY packages/theme/package.json packages/theme/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/admin-gms/package.json apps/web/admin-gms/
 COPY apps/web/auth/package.json apps/web/auth/
