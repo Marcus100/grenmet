@@ -30,6 +30,9 @@ export type PreferencePersistence =
  */
 export interface PreferenceValueMap {
   content_layout: ContentLayout;
+  /** Font-switcher selection — a `data-font` key. The set of valid keys is
+   *  owned by the consuming app's font registry, so this stays a plain string. */
+  font: string;
   navbar_style: NavbarStyle;
   sidebar_collapsible: SidebarCollapsible;
   sidebar_variant: SidebarVariant;
@@ -78,6 +81,7 @@ export const PREFERENCE_DEFAULTS: PreferenceValueMap = {
   theme_mode: "light",
   theme_preset: "default",
   content_layout: "centered",
+  font: "inter",
   navbar_style: "sticky",
   sidebar_variant: "inset",
   sidebar_collapsible: "icon",
@@ -91,6 +95,7 @@ export const PREFERENCE_PERSISTENCE: PreferencePersistenceConfig = {
   theme_mode: "client-cookie",
   theme_preset: "client-cookie",
   content_layout: "client-cookie",
+  font: "client-cookie",
   navbar_style: "client-cookie",
   sidebar_variant: "client-cookie", // layout-critical → cannot be "localStorage"
   sidebar_collapsible: "client-cookie", // layout-critical → cannot be "localStorage"

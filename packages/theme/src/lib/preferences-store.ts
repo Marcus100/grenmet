@@ -11,10 +11,12 @@ import type { ResolvedThemeMode, ThemeMode, ThemePreset } from "./theme";
 
 export interface PreferencesState {
   contentLayout: ContentLayout;
+  font: string;
   isSynced: boolean;
   navbarStyle: NavbarStyle;
   resolvedThemeMode: ResolvedThemeMode;
   setContentLayout: (layout: ContentLayout) => void;
+  setFont: (font: string) => void;
   setIsSynced: (val: boolean) => void;
   setNavbarStyle: (style: NavbarStyle) => void;
   setResolvedThemeMode: (mode: ResolvedThemeMode) => void;
@@ -34,6 +36,7 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
     resolvedThemeMode: init?.resolvedThemeMode ?? "light",
     themePreset: init?.themePreset ?? PREFERENCE_DEFAULTS.theme_preset,
     contentLayout: init?.contentLayout ?? PREFERENCE_DEFAULTS.content_layout,
+    font: init?.font ?? PREFERENCE_DEFAULTS.font,
     navbarStyle: init?.navbarStyle ?? PREFERENCE_DEFAULTS.navbar_style,
     sidebarVariant: init?.sidebarVariant ?? PREFERENCE_DEFAULTS.sidebar_variant,
     sidebarCollapsible:
@@ -42,6 +45,7 @@ export const createPreferencesStore = (init?: Partial<PreferencesState>) =>
     setResolvedThemeMode: (mode) => set({ resolvedThemeMode: mode }),
     setThemePreset: (preset) => set({ themePreset: preset }),
     setContentLayout: (layout) => set({ contentLayout: layout }),
+    setFont: (font) => set({ font }),
     setNavbarStyle: (style) => set({ navbarStyle: style }),
     setSidebarVariant: (variant) => set({ sidebarVariant: variant }),
     setSidebarCollapsible: (mode) => set({ sidebarCollapsible: mode }),
