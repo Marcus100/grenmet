@@ -58,7 +58,10 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        run: uv sync
+        # --frozen: install exactly what's in uv.lock (same as the prod image).
+        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
+        # dependency drift that otherwise only surfaces as a crash in production.
+        run: uv sync --frozen
 
       - name: Run Ruff (Linter)
         run: uv run ruff check src scripts
@@ -151,7 +154,10 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        run: uv sync
+        # --frozen: install exactly what's in uv.lock (same as the prod image).
+        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
+        # dependency drift that otherwise only surfaces as a crash in production.
+        run: uv sync --frozen
 
       - name: Run migrations
         run: uv run alembic upgrade head
@@ -209,6 +215,20 @@ jobs:
           echo "Loading Docker image for vulnerability scanning..."
           docker load -i /tmp/test-image.tar
           echo "SUCCESS Image loaded successfully"
+
+      - name: Smoke test — prod image boots and imports the full app
+        # Runs the actual production image and imports the whole FastAPI app
+        # (all routers/services/deps). Catches crash-on-boot — e.g. a missing
+        # dependency — in the exact artifact that gets deployed, before release.
+        run: |
+          docker run --rm --entrypoint sh \
+            -e PROJECT_NAME=ci \
+            -e SECRET_KEY=ci-secret-key-min-32-characters-long \
+            -e POSTGRES_SERVER=db -e POSTGRES_PORT=5432 \
+            -e POSTGRES_USER=app -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
+            -e FIRST_SUPERUSER=ci@weather.gd -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
+            test-image:latest \
+            -lc 'uv run python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true
@@ -285,7 +305,10 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        run: uv sync
+        # --frozen: install exactly what's in uv.lock (same as the prod image).
+        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
+        # dependency drift that otherwise only surfaces as a crash in production.
+        run: uv sync --frozen
 
       - name: Generate OpenAPI schema
         env:
