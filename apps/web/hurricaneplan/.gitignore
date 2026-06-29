@@ -11,6 +11,9 @@
 /out/
 !lib/
 
+# content-collections (generated at dev/build time)
+/.content-collections
+
 # production
 /build
 
