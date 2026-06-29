@@ -41,6 +41,7 @@ import {
   ToggleGroupItem,
 } from "@grenmet/ui/components/ui/toggle-group";
 import { Settings } from "lucide-react";
+import { fontOptions } from "@/lib/fonts/registry";
 
 export function LayoutControls() {
   const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
@@ -48,6 +49,8 @@ export function LayoutControls() {
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
   const themePreset = usePreferencesStore((s) => s.themePreset);
   const setThemePreset = usePreferencesStore((s) => s.setThemePreset);
+  const font = usePreferencesStore((s) => s.font);
+  const setFont = usePreferencesStore((s) => s.setFont);
   const contentLayout = usePreferencesStore((s) => s.contentLayout);
   const setContentLayout = usePreferencesStore((s) => s.setContentLayout);
   const navbarStyle = usePreferencesStore((s) => s.navbarStyle);
@@ -71,6 +74,12 @@ export function LayoutControls() {
   const onThemeModeChange = (mode: ThemeMode) => {
     setThemeMode(mode);
     persistPreference("theme_mode", mode).catch(() => undefined);
+  };
+
+  const onFontChange = (nextFont: string) => {
+    document.documentElement.setAttribute("data-font", nextFont);
+    setFont(nextFont);
+    persistPreference("font", nextFont).catch(() => undefined);
   };
 
   const onContentLayoutChange = (layout: ContentLayout) => {
@@ -99,6 +108,7 @@ export function LayoutControls() {
 
   const handleRestore = () => {
     onThemePresetChange(PREFERENCE_DEFAULTS.theme_preset);
+    onFontChange(PREFERENCE_DEFAULTS.font);
     onThemeModeChange(PREFERENCE_DEFAULTS.theme_mode);
     onContentLayoutChange(PREFERENCE_DEFAULTS.content_layout);
     onNavbarStyleChange(PREFERENCE_DEFAULTS.navbar_style);
@@ -158,6 +168,36 @@ export function LayoutControls() {
                           />
                           {preset.label}
                         </span>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="font-medium text-xs">Font</Label>
+              <Select
+                items={fontOptions.map((f) => ({
+                  value: f.key,
+                  label: f.label,
+                }))}
+                onValueChange={(value) => {
+                  if (!value) {
+                    return;
+                  }
+                  onFontChange(value);
+                }}
+                value={font}
+              >
+                <SelectTrigger className="w-full text-xs" size="sm">
+                  <SelectValue className="items-center" placeholder="Font" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {fontOptions.map((f) => (
+                      <SelectItem className="text-xs" key={f.key} value={f.key}>
+                        {f.label}
                       </SelectItem>
                     ))}
                   </SelectGroup>
