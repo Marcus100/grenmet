@@ -33,9 +33,15 @@ catalogs:
     '@faker-js/faker':
       specifier: ^10.2.0
       version: 10.3.0
+    '@fullcalendar/react':
+      specifier: ^7.0.0
+      version: 7.0.0
     '@headlessui/react':
       specifier: ^2.2.9
       version: 2.2.9
+    '@hookform/resolvers':
+      specifier: ^5.4.0
+      version: 5.4.0
     '@playwright/test':
       specifier: ^1.57.0
       version: 1.58.2
@@ -165,6 +171,9 @@ catalogs:
     react-dom:
       specifier: ^19.2.0
       version: 19.2.3
+    react-hook-form:
+      specifier: ^7.80.0
+      version: 7.80.0
     react-resizable-panels:
       specifier: ^4.12.0
       version: 4.12.0
@@ -276,24 +285,9 @@ importers:
       '@epic-web/invariant':
         specifier: ^1.0.0
         version: 1.0.0
-      '@fullcalendar/core':
-        specifier: ^6.1.19
-        version: 6.1.20
-      '@fullcalendar/daygrid':
-        specifier: ^6.1.19
-        version: 6.1.20(@fullcalendar/core@6.1.20)
-      '@fullcalendar/interaction':
-        specifier: ^6.1.19
-        version: 6.1.20(@fullcalendar/core@6.1.20)
-      '@fullcalendar/list':
-        specifier: ^6.1.19
-        version: 6.1.20(@fullcalendar/core@6.1.20)
       '@fullcalendar/react':
-        specifier: ^6.1.19
-        version: 6.1.20(@fullcalendar/core@6.1.20)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@fullcalendar/timegrid':
-        specifier: ^6.1.19
-        version: 6.1.20(@fullcalendar/core@6.1.20)
+        specifier: 'catalog:'
+        version: 7.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(temporal-polyfill@1.0.1)
       '@grenmet/api-client':
         specifier: workspace:*
         version: link:../../../packages/api-client
@@ -306,9 +300,12 @@ importers:
       '@grenmet/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
+      '@hookform/resolvers':
+        specifier: 'catalog:'
+        version: 5.4.0(react-hook-form@7.80.0(react@19.2.3))
       '@sentry/nextjs':
         specifier: 'catalog:'
-        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
+        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
       '@t3-oss/env-nextjs':
         specifier: 'catalog:'
         version: 0.13.10(typescript@5.9.3)(zod@4.3.6)
@@ -366,6 +363,9 @@ importers:
       react-error-boundary:
         specifier: ^6.1.0
         version: 6.1.0(react@19.2.3)
+      react-hook-form:
+        specifier: 'catalog:'
+        version: 7.80.0(react@19.2.3)
       react-simple-maps:
         specifier: 'catalog:'
         version: 3.0.0(prop-types@15.8.1)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -507,7 +507,7 @@ importers:
         version: link:../../../packages/ui
       '@sentry/nextjs':
         specifier: 'catalog:'
-        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
+        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
       '@t3-oss/env-nextjs':
         specifier: 'catalog:'
         version: 0.13.10(typescript@5.9.3)(zod@4.3.6)
@@ -598,7 +598,7 @@ importers:
         version: 2.2.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@sentry/nextjs':
         specifier: 'catalog:'
-        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2)
+        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(esbuild@0.25.12))
       '@sindresorhus/slugify':
         specifier: ^2.2.1
         version: 2.2.1
@@ -713,7 +713,7 @@ importers:
         version: link:../../../packages/ui
       '@sentry/nextjs':
         specifier: 'catalog:'
-        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2))
+        version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
       '@t3-oss/env-nextjs':
         specifier: 'catalog:'
         version: 0.13.10(typescript@5.9.3)(zod@4.3.6)
@@ -2508,35 +2508,23 @@ packages:
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
 
-  '@fullcalendar/core@6.1.20':
-    resolution: {integrity: sha512-1cukXLlePFiJ8YKXn/4tMKsy0etxYLCkXk8nUCFi11nRONF2Ba2CD5b21/ovtOO2tL6afTJfwmc1ed3HG7eB1g==}
-
-  '@fullcalendar/daygrid@6.1.20':
-    resolution: {integrity: sha512-AO9vqhkLP77EesmJzuU+IGXgxNulsA8mgQHynclJ8U70vSwAVnbcLG9qftiTAFSlZjiY/NvhE7sflve6cJelyQ==}
+  '@full-ui/headless-calendar@7.0.0':
+    resolution: {integrity: sha512-47Y2NoiSt/DJy/+PD9yv4OLhaVJqn8oknFXhS6kiMnoXSOiYkoz6gqVIOCF2nvvQPqKUepb3W3403Qj34QfjtQ==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.20
+      temporal-polyfill: ^1.0.1
 
-  '@fullcalendar/interaction@6.1.20':
-    resolution: {integrity: sha512-p6txmc5txL0bMiPaJxe2ip6o0T384TyoD2KGdsU6UjZ5yoBlaY+dg7kxfnYKpYMzEJLG58n+URrHr2PgNL2fyA==}
+  '@fullcalendar/core@7.0.0':
+    resolution: {integrity: sha512-cZobng3rB7PQp8zdRp7SIeA4ZEvOWhnwHuFWQf3xXIM9BPfmKb5EFhpiNHCT6zzn041A2wv9ztqiQ60S1sY5KA==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.20
+      '@full-ui/headless-calendar': 7.0.0
+      temporal-polyfill: ^1.0.1
 
-  '@fullcalendar/list@6.1.20':
-    resolution: {integrity: sha512-7Hzkbb7uuSqrXwTyD0Ld/7SwWNxPD6SlU548vtkIpH55rZ4qquwtwYdMPgorHos5OynHA4OUrZNcH51CjrCf2g==}
+  '@fullcalendar/react@7.0.0':
+    resolution: {integrity: sha512-klabENcKYXPom8UB8eTzLSaSNeB/gpe11XVBOnjnsVmOJqLftnkBBQXtAF6lFuXQrj0goHdIan8xicOTLJhSeA==}
     peerDependencies:
-      '@fullcalendar/core': ~6.1.20
-
-  '@fullcalendar/react@6.1.20':
-    resolution: {integrity: sha512-1w0pZtceaUdfAnxMSCGHCQalhi+mR1jOe76sXzyAXpcPz/Lf0zHSdcGK/U2XpZlnQgQtBZW+d+QBnnzVQKCxAA==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.20
-      react: ^16.7.0 || ^17 || ^18 || ^19
-      react-dom: ^16.7.0 || ^17 || ^18 || ^19
-
-  '@fullcalendar/timegrid@6.1.20':
-    resolution: {integrity: sha512-4H+/MWbz3ntA50lrPif+7TsvMeX3R1GSYjiLULz0+zEJ7/Yfd9pupZmAwUs/PBpA6aAcFmeRr0laWfcz1a9V1A==}
-    peerDependencies:
-      '@fullcalendar/core': ~6.1.20
+      react: ^17 || ^18 || ^19
+      react-dom: ^17 || ^18 || ^19
+      temporal-polyfill: ^1.0.1
 
   '@headlessui/react@2.2.9':
     resolution: {integrity: sha512-Mb+Un58gwBn0/yWZfyrCh0TJyurtT+dETj7YHleylHk5od3dv2XqETPGWMyQ5/7sYN7oWdyM1u9MvC0OC8UmzQ==}
@@ -2550,6 +2538,11 @@ packages:
     engines: {node: '>=18.14.1'}
     peerDependencies:
       hono: ^4
+
+  '@hookform/resolvers@5.4.0':
+    resolution: {integrity: sha512-EIsqr/t/qbinPIhGjMdtvutIN1Kk4uwbROE9/UQ93CAVGR7GkA7Y92+fX80OzXi/OB67jVFYwKGO1WzkxmkFZw==}
+    peerDependencies:
+      react-hook-form: ^7.55.0
 
   '@humanwhocodes/momoa@2.0.4':
     resolution: {integrity: sha512-RE815I4arJFtt+FVeU1Tgp9/Xvecacji8w/V6XtXsWWH/wz/eNkNbhb+ny/+PlVZjV0rxQpRSQKNKE3lcktHEA==}
@@ -6946,9 +6939,6 @@ packages:
     resolution: {integrity: sha512-XROs1h+DNatgKh/AlIlCtDxWzwrKdYDb2mOs58n4yN8BkGN9ewqeQwG5ApS4/IzwCb7HPttUkOVulkYatd2PIw==}
     engines: {node: '>=15.0.0'}
 
-  preact@10.12.1:
-    resolution: {integrity: sha512-l8386ixSsBdbreOAkqtrwqHwdvR35ID8c3rKPa8lCWuO86dBi32QWHV4vfsZK1utLLFMvw+Z5Ad4XLkZzchscg==}
-
   preact@10.29.2:
     resolution: {integrity: sha512-7tNmwg/7mzzAoB/8kSg6Hl37JraAZw3Z3A0JSY7VXlZwo82Xn0G7wKbNNs2qoF4ZEEsQGTwDAroNdqKs1ofJxQ==}
 
@@ -7039,6 +7029,12 @@ packages:
     resolution: {integrity: sha512-SdWEeU9fIINArEPO1rO5OxPyuhdEKZQhHzZZP1ie6UeXQf+CjycT1kWaB+9bwGcVbR0NowuHK3RqgqNg6bgBDQ==}
     peerDependencies:
       react: ^0.14.0 || ^15.0.0 || ^16.0.0-0 || ^17.0.0-0 || ^18.0.0-0 || ^19.0.0-0
+
+  react-hook-form@7.80.0:
+    resolution: {integrity: sha512-4P+fk6oXsxY+6xSj7Euhc2sumQD8zQqCuVHoJwoyp9EchP+IUW9OESB7uHFJOKsIBQ4MQqYE84INJFqUCYNoOg==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      react: ^16.8.0 || ^17 || ^18 || ^19
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -7547,6 +7543,15 @@ packages:
   tapable@2.3.3:
     resolution: {integrity: sha512-uxc/zpqFg6x7C8vOE7lh6Lbda8eEL9zmVm/PLeTPBRhh1xCgdWaQ+J1CUieGpIfm2HdtsUpRv+HshiasBMcc6A==}
     engines: {node: '>=6'}
+
+  temporal-polyfill@1.0.1:
+    resolution: {integrity: sha512-N2SoI9olnW7BUsU8RosDphZQl9s+WJ8O7PoJMFCr/e5/1rFkVI4GNOWaSeySG+UoP04foPYsnLWbJmbXOiShZg==}
+
+  temporal-spec@1.0.0:
+    resolution: {integrity: sha512-00Ahj1e1ifaERTMOIIGpOCdOo9IEk2m6GGSMedsn9a2SIsGLdOTbmME1Htv6IM82b6VHrzSUTIVc7YHy6hdhFQ==}
+
+  temporal-utils@1.0.1:
+    resolution: {integrity: sha512-HAixuesxFQIUaQk3ptX2jhfO/FsOkgVkDDMawvp6n/fkB1q6BKfs3lURw9I+pK/2e2e/q/vrLrxmeqauBoyGMQ==}
 
   terser-webpack-plugin@5.6.1:
     resolution: {integrity: sha512-201R5j+sJpK8nFWwKVyNfZot8FaJbLZDq5evriVzbV1wDtSXDjRUDRfJzHpAaxFDMEhsZL1QkeqM61wgsS3KaQ==}
@@ -9663,32 +9668,22 @@ snapshots:
 
   '@floating-ui/utils@0.2.11': {}
 
-  '@fullcalendar/core@6.1.20':
+  '@full-ui/headless-calendar@7.0.0(temporal-polyfill@1.0.1)':
     dependencies:
-      preact: 10.12.1
+      temporal-polyfill: 1.0.1
 
-  '@fullcalendar/daygrid@6.1.20(@fullcalendar/core@6.1.20)':
+  '@fullcalendar/core@7.0.0(@full-ui/headless-calendar@7.0.0(temporal-polyfill@1.0.1))(temporal-polyfill@1.0.1)':
     dependencies:
-      '@fullcalendar/core': 6.1.20
+      '@full-ui/headless-calendar': 7.0.0(temporal-polyfill@1.0.1)
+      temporal-polyfill: 1.0.1
 
-  '@fullcalendar/interaction@6.1.20(@fullcalendar/core@6.1.20)':
+  '@fullcalendar/react@7.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(temporal-polyfill@1.0.1)':
     dependencies:
-      '@fullcalendar/core': 6.1.20
-
-  '@fullcalendar/list@6.1.20(@fullcalendar/core@6.1.20)':
-    dependencies:
-      '@fullcalendar/core': 6.1.20
-
-  '@fullcalendar/react@6.1.20(@fullcalendar/core@6.1.20)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
-    dependencies:
-      '@fullcalendar/core': 6.1.20
+      '@full-ui/headless-calendar': 7.0.0(temporal-polyfill@1.0.1)
+      '@fullcalendar/core': 7.0.0(@full-ui/headless-calendar@7.0.0(temporal-polyfill@1.0.1))(temporal-polyfill@1.0.1)
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-
-  '@fullcalendar/timegrid@6.1.20(@fullcalendar/core@6.1.20)':
-    dependencies:
-      '@fullcalendar/core': 6.1.20
-      '@fullcalendar/daygrid': 6.1.20(@fullcalendar/core@6.1.20)
+      temporal-polyfill: 1.0.1
 
   '@headlessui/react@2.2.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
@@ -9703,6 +9698,11 @@ snapshots:
   '@hono/node-server@1.19.9(hono@4.11.5)':
     dependencies:
       hono: 4.11.5
+
+  '@hookform/resolvers@5.4.0(react-hook-form@7.80.0(react@19.2.3))':
+    dependencies:
+      '@standard-schema/utils': 0.3.0
+      react-hook-form: 7.80.0(react@19.2.3)
 
   '@humanwhocodes/momoa@2.0.4': {}
 
@@ -11033,32 +11033,7 @@ snapshots:
     dependencies:
       '@sentry/core': 10.62.0
 
-  '@sentry/nextjs@10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2))':
-    dependencies:
-      '@opentelemetry/api': 1.9.1
-      '@rollup/plugin-commonjs': 28.0.1(rollup@4.62.2)
-      '@sentry/browser-utils': 10.62.0
-      '@sentry/bundler-plugin-core': 5.3.0
-      '@sentry/conventions': 0.12.0
-      '@sentry/core': 10.62.0
-      '@sentry/node': 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))
-      '@sentry/opentelemetry': 10.62.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))
-      '@sentry/react': 10.62.0(react@19.2.3)
-      '@sentry/vercel-edge': 10.62.0
-      '@sentry/webpack-plugin': 5.3.0(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2))
-      next: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      rollup: 4.62.2
-      stacktrace-parser: 0.1.11
-    transitivePeerDependencies:
-      - '@opentelemetry/core'
-      - '@opentelemetry/exporter-trace-otlp-http'
-      - '@opentelemetry/sdk-trace-base'
-      - encoding
-      - react
-      - supports-color
-      - webpack
-
-  '@sentry/nextjs@10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))':
+  '@sentry/nextjs@10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))':
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@rollup/plugin-commonjs': 28.0.1(rollup@4.62.2)
@@ -11071,6 +11046,31 @@ snapshots:
       '@sentry/react': 10.62.0(react@19.2.3)
       '@sentry/vercel-edge': 10.62.0
       '@sentry/webpack-plugin': 5.3.0(webpack@5.107.2(lightningcss@1.30.2))
+      next: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      rollup: 4.62.2
+      stacktrace-parser: 0.1.11
+    transitivePeerDependencies:
+      - '@opentelemetry/core'
+      - '@opentelemetry/exporter-trace-otlp-http'
+      - '@opentelemetry/sdk-trace-base'
+      - encoding
+      - react
+      - supports-color
+      - webpack
+
+  '@sentry/nextjs@10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(esbuild@0.25.12))':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@rollup/plugin-commonjs': 28.0.1(rollup@4.62.2)
+      '@sentry/browser-utils': 10.62.0
+      '@sentry/bundler-plugin-core': 5.3.0
+      '@sentry/conventions': 0.12.0
+      '@sentry/core': 10.62.0
+      '@sentry/node': 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))
+      '@sentry/opentelemetry': 10.62.0(@opentelemetry/api@1.9.1)(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))
+      '@sentry/react': 10.62.0(react@19.2.3)
+      '@sentry/vercel-edge': 10.62.0
+      '@sentry/webpack-plugin': 5.3.0(webpack@5.107.2(esbuild@0.25.12))
       next: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       rollup: 4.62.2
       stacktrace-parser: 0.1.11
@@ -11176,10 +11176,10 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@sentry/core': 10.62.0
 
-  '@sentry/webpack-plugin@5.3.0(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2))':
+  '@sentry/webpack-plugin@5.3.0(webpack@5.107.2(esbuild@0.25.12))':
     dependencies:
       '@sentry/bundler-plugin-core': 5.3.0
-      webpack: 5.107.2(esbuild@0.25.12)(lightningcss@1.30.2)
+      webpack: 5.107.2(esbuild@0.25.12)
     transitivePeerDependencies:
       - encoding
       - supports-color
@@ -14279,8 +14279,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  preact@10.12.1: {}
-
   preact@10.29.2: {}
 
   prettier@2.8.8: {}
@@ -14379,6 +14377,10 @@ snapshots:
     dependencies:
       highlight-words-core: 1.2.3
       memoize-one: 4.0.3
+      react: 19.2.3
+
+  react-hook-form@7.80.0(react@19.2.3):
+    dependencies:
       react: 19.2.3
 
   react-is@16.13.1: {}
@@ -15031,16 +15033,24 @@ snapshots:
 
   tapable@2.3.3: {}
 
-  terser-webpack-plugin@5.6.1(esbuild@0.25.12)(lightningcss@1.30.2)(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2)):
+  temporal-polyfill@1.0.1:
+    dependencies:
+      temporal-spec: 1.0.0
+      temporal-utils: 1.0.1
+
+  temporal-spec@1.0.0: {}
+
+  temporal-utils@1.0.1: {}
+
+  terser-webpack-plugin@5.6.1(esbuild@0.25.12)(webpack@5.107.2(esbuild@0.25.12)):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
       terser: 5.48.0
-      webpack: 5.107.2(esbuild@0.25.12)(lightningcss@1.30.2)
+      webpack: 5.107.2(esbuild@0.25.12)
     optionalDependencies:
       esbuild: 0.25.12
-      lightningcss: 1.30.2
 
   terser-webpack-plugin@5.6.1(lightningcss@1.30.2)(webpack@5.107.2(lightningcss@1.30.2)):
     dependencies:
@@ -15528,7 +15538,7 @@ snapshots:
       - postcss
       - uglify-js
 
-  webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2):
+  webpack@5.107.2(esbuild@0.25.12):
     dependencies:
       '@types/estree': 1.0.9
       '@types/json-schema': 7.0.15
@@ -15550,7 +15560,7 @@ snapshots:
       neo-async: 2.6.2
       schema-utils: 4.3.3
       tapable: 2.3.3
-      terser-webpack-plugin: 5.6.1(esbuild@0.25.12)(lightningcss@1.30.2)(webpack@5.107.2(esbuild@0.25.12)(lightningcss@1.30.2))
+      terser-webpack-plugin: 5.6.1(esbuild@0.25.12)(webpack@5.107.2(esbuild@0.25.12))
       watchpack: 2.5.1
       webpack-sources: 3.5.0
     transitivePeerDependencies:

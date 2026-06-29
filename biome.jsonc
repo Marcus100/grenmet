@@ -98,9 +98,14 @@
       }
     },
     {
-      // Vendored Studio-Admin template demo pages (additive; user prunes them).
-      // Same vendored-code relaxation as the shadcn primitives above.
-      "includes": ["apps/web/admin-gms/src/app/(admin)/studio/**"],
+      // Vendored Studio-Admin template code (demo pages + lifted components like
+      // the calendar + date-range-picker). Additive; relax vendored-code patterns
+      // only, same as the shadcn primitives above.
+      "includes": [
+        "apps/web/admin-gms/src/app/(admin)/studio/**",
+        "apps/web/admin-gms/src/components/calendar/**",
+        "apps/web/admin-gms/src/components/date-range-picker.tsx"
+      ],
       "linter": {
         "rules": {
           "a11y": {
@@ -113,7 +118,9 @@
             "noLabelWithoutControl": "off"
           },
           "complexity": {
-            "noExcessiveCognitiveComplexity": "off"
+            "noExcessiveCognitiveComplexity": "off",
+            "noUselessFragments": "off",
+            "noVoid": "off"
           },
           "correctness": {
             "noNestedComponentDefinitions": "off"
@@ -124,14 +131,16 @@
           "style": {
             "noNestedTernary": "off",
             "useConsistentTypeDefinitions": "off",
-            "useAtIndex": "off"
+            "useAtIndex": "off",
+            "noProcessEnv": "off"
           },
           "security": {
             "noDangerouslySetInnerHtml": "off"
           },
           "suspicious": {
             "noArrayIndexKey": "off",
-            "noDocumentCookie": "off"
+            "noDocumentCookie": "off",
+            "noConsole": "off"
           }
         }
       }
