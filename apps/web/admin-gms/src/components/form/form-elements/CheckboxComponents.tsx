@@ -15,7 +15,7 @@ export default function CheckboxComponents() {
             checked={isChecked}
             onCheckedChange={(v) => setIsChecked(Boolean(v))}
           />
-          <span className="block font-medium text-gray-700 text-sm">
+          <span className="block font-medium text-foreground text-sm">
             Default
           </span>
         </div>
@@ -28,7 +28,7 @@ export default function CheckboxComponents() {
             id="cb-checked"
             onCheckedChange={(v) => setIsCheckedTwo(Boolean(v))}
           />
-          <span className="font-medium text-gray-700 text-sm">Checked</span>
+          <span className="font-medium text-foreground text-sm">Checked</span>
         </label>
         <label
           className="flex cursor-not-allowed items-center gap-3 opacity-60"
@@ -40,7 +40,7 @@ export default function CheckboxComponents() {
             id="cb-disabled"
             onCheckedChange={(v) => setIsCheckedDisabled(Boolean(v))}
           />
-          <span className="font-medium text-gray-700 text-sm">Disabled</span>
+          <span className="font-medium text-foreground text-sm">Disabled</span>
         </label>
       </div>
     </ComponentCard>

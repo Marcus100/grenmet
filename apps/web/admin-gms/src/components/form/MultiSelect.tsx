@@ -48,14 +48,14 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
 
   return (
     <div className="w-full">
-      <span className="mb-1.5 block font-medium text-gray-700 text-sm">
+      <span className="mb-1.5 block font-medium text-foreground text-sm">
         {label}
       </span>
 
       <div className="relative z-20 inline-block w-full">
         <div className="relative flex flex-col items-center">
           <div className="w-full">
-            <div className="mb-2 flex h-11 rounded-lg border border-gray-300 py-1.5 pr-3 pl-3 shadow-gm-card outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring">
+            <div className="mb-2 flex h-11 rounded-lg border border-border py-1.5 pr-3 pl-3 shadow-gm-card outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring">
               <div className="flex flex-auto flex-wrap gap-2">
                 {selectedOptions.length > 0 ? (
                   selectedOptions.map((value) => {
@@ -63,13 +63,13 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
                       options.find((o) => o.value === value)?.text || "";
                     return (
                       <div
-                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 pr-2 pl-2.5 text-foreground text-sm hover:border-border"
+                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-muted py-1 pr-2 pl-2.5 text-foreground text-sm hover:border-border"
                         key={value}
                       >
                         <span className="max-w-full flex-initial">{text}</span>
                         <div className="flex flex-auto flex-row-reverse">
                           <button
-                            className="cursor-pointer pl-2 text-muted-foreground group-hover:text-gray-400"
+                            className="cursor-pointer pl-2 text-muted-foreground group-hover:text-muted-foreground"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeOption(0, value);
@@ -106,7 +106,7 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
               </div>
               <div className="flex w-7 items-center py-1 pr-1 pl-1">
                 <button
-                  className="h-5 w-5 cursor-pointer text-gray-700 outline-hidden focus:outline-hidden"
+                  className="h-5 w-5 cursor-pointer text-foreground outline-hidden focus:outline-hidden"
                   onClick={toggleDropdown}
                   type="button"
                 >

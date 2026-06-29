@@ -18,7 +18,7 @@ export function TransactionList({
     <div className="flex flex-col">
       {transactions.map((transaction) => (
         <div
-          className="border-gray-200 border-b py-4 last:border-b-0 sm:py-5"
+          className="border-border border-b py-4 last:border-b-0 sm:py-5"
           key={transaction.id}
         >
           {transaction.items.map((item) => (
@@ -43,7 +43,7 @@ export function TransactionList({
       ))}
 
       {showTotal && transactions.length > 0 && (
-        <div className="mt-2 flex items-center justify-between border-gray-300 border-t pt-4 sm:pt-5">
+        <div className="mt-2 flex items-center justify-between border-border border-t pt-4 sm:pt-5">
           <span className="font-bold text-foreground text-lg sm:text-xl">
             TOTAL
           </span>

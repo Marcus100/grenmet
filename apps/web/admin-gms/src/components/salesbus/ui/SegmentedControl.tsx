@@ -28,7 +28,7 @@ export function SegmentedControl({
               className={`min-h-12 touch-manipulation rounded-full px-5 py-3 font-semibold text-sm transition-colors ${
                 isSelected
                   ? "bg-foreground text-background"
-                  : "border border-gray-300 bg-transparent text-muted-foreground hover:border-gray-400 active:bg-gray-100"
+                  : "border border-border bg-transparent text-muted-foreground hover:border-border active:bg-muted"
               }
               `}
               key={option.value}
@@ -44,7 +44,7 @@ export function SegmentedControl({
   }
 
   return (
-    <div className="flex rounded-lg bg-gray-200 p-1">
+    <div className="flex rounded-lg bg-muted p-1">
       {options.map((option) => {
         const isSelected = option.value === value;
         return (
@@ -52,7 +52,7 @@ export function SegmentedControl({
             className={`min-h-12 flex-1 touch-manipulation rounded-md px-4 py-3.5 font-semibold text-sm uppercase tracking-wide transition-colors ${
               isSelected
                 ? "bg-foreground text-background"
-                : "bg-transparent text-muted-foreground hover:text-foreground active:bg-gray-300"
+                : "bg-transparent text-muted-foreground hover:text-foreground active:bg-muted"
             }
             `}
             key={option.value}

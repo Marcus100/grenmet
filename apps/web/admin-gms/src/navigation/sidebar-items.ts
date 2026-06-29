@@ -90,7 +90,7 @@ export const sidebarItems: NavGroup[] = [
           { id: "hr-absentee", title: "Absentee Report", url: "/hr/absentee" },
           { id: "hr-status", title: "Daily Airport Status", url: "/hr/status" },
           { id: "hr-timesheet", title: "Time Sheet", url: "/hr/timesheet" },
-          { id: "hr-forms", title: "All Forms", url: "/hr" },
+          { id: "hr-forms", title: "Overview", url: "/hr" },
         ],
       },
       {

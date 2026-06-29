@@ -54,7 +54,7 @@ export default function CustomerDetailPage() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4 p-4 sm:gap-5 sm:p-5">
       {/* Customer name header */}
-      <div className="rounded-xl bg-gray-200 p-4 sm:p-5">
+      <div className="rounded-xl bg-muted p-4 sm:p-5">
         <h1 className="text-center font-bold text-foreground text-lg tracking-wide sm:text-xl">
           {customer.name}
         </h1>
@@ -62,7 +62,7 @@ export default function CustomerDetailPage() {
 
       {/* Balance summary */}
       <div className="rounded-xl bg-card p-4 sm:p-5">
-        <div className="flex items-center justify-between border-gray-100 border-b py-3">
+        <div className="flex items-center justify-between border-border border-b py-3">
           <span className="font-medium text-base text-foreground sm:text-lg">
             Total
           </span>
@@ -70,7 +70,7 @@ export default function CustomerDetailPage() {
             {formatPrice(balance.totalOwed)}
           </span>
         </div>
-        <div className="flex items-center justify-between border-gray-100 border-b py-3">
+        <div className="flex items-center justify-between border-border border-b py-3">
           <span className="font-medium text-base text-foreground sm:text-lg">
             Amount Payed
           </span>
