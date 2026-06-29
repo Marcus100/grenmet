@@ -581,6 +581,9 @@ importers:
       '@algolia/autocomplete-core':
         specifier: ^1.19.2
         version: 1.19.6(@algolia/client-search@5.49.2)(algoliasearch@5.49.2)(search-insights@2.17.3)
+      '@content-collections/cli':
+        specifier: 'catalog:'
+        version: 0.1.9(@content-collections/core@0.10.0(typescript@5.9.3))
       '@content-collections/core':
         specifier: 'catalog:'
         version: 0.10.0(typescript@5.9.3)
