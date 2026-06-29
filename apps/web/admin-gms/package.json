@@ -60,7 +60,9 @@
     "tailwind-merge": "catalog:",
     "zod": "catalog:",
     "@grenmet/api-client": "workspace:*",
-    "@grenmet/auth": "workspace:*"
+    "@grenmet/auth": "workspace:*",
+    "@grenmet/theme": "workspace:*",
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@faker-js/faker": "catalog:",

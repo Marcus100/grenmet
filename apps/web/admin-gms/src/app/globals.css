@@ -1,6 +1,12 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Theme presets — override CSS variables based on [data-theme-preset].
+   GrenMet ("default") needs no file; it is the :root baseline below. */
+@import "@grenmet/theme/styles/presets/brutalist.css";
+@import "@grenmet/theme/styles/presets/soft-pop.css";
+@import "@grenmet/theme/styles/presets/tangerine.css";
+
 /* BEGIN GRENMET DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -133,6 +139,13 @@
     --ring: var(--gm-blue);
     --radius: 0.5rem;
 
+    /* Chart palette (GrenMet brand hues) */
+    --chart-1: var(--gm-blue);
+    --chart-2: var(--gm-sky);
+    --chart-3: var(--gm-navy);
+    --chart-4: var(--gm-sun);
+    --chart-5: var(--gm-risk-green);
+
     /* Sidebar semantics used by shared/admin UI */
     --sidebar: var(--gm-surface-page);
     --sidebar-foreground: var(--gm-text-primary);
@@ -149,6 +162,47 @@
 
     color-scheme: light;
   }
+}
+
+/* GrenMet dark palette — first pass (V1 was light-only). Tune as desired.
+   Activated when the <html> element carries the `dark` class (theme-boot). */
+.dark {
+  --background: #0b1020;
+  --foreground: #e6eaf2;
+  --card: #11182b;
+  --card-foreground: #e6eaf2;
+  --popover: #11182b;
+  --popover-foreground: #e6eaf2;
+  --primary: #39a9f5;
+  --primary-foreground: #07111f;
+  --secondary: #1b2336;
+  --secondary-foreground: #e6eaf2;
+  --muted: #1b2336;
+  --muted-foreground: #9aa4b8;
+  --accent: #16324a;
+  --accent-foreground: #e6eaf2;
+  --destructive: #ff5a5f;
+  --destructive-foreground: #ffffff;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: #39a9f5;
+
+  --chart-1: #39a9f5;
+  --chart-2: #2478f2;
+  --chart-3: #7aa7ff;
+  --chart-4: #ff981e;
+  --chart-5: #34c77b;
+
+  --sidebar: #0e1424;
+  --sidebar-foreground: #e6eaf2;
+  --sidebar-primary: #39a9f5;
+  --sidebar-primary-foreground: #07111f;
+  --sidebar-accent: #16324a;
+  --sidebar-accent-foreground: #e6eaf2;
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #39a9f5;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -183,11 +237,19 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
 
   /* GrenMet brand utilities */
   --color-gm-blue: var(--gm-blue);
@@ -275,6 +337,11 @@
   --height-gm-header: var(--gm-height-header);
 }
 /* END GRENMET DESIGN SYSTEM V1 */
+
+/* Suppress transitions during theme-mode flips (see @grenmet/theme theme-utils). */
+.disable-transitions * {
+  transition: none !important;
+}
 
 @theme {
   --font-outfit: var(--gm-font-sans);
@@ -664,6 +731,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  /* biome-ignore lint/style/noDescendingSpecificity: Tailwind v4 border-color compatibility reset */
   *,
   ::after,
   ::before,
