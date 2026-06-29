@@ -1,6 +1,6 @@
 "use client";
 
-import { Accordion } from "@base-ui-components/react/accordion";
+import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
 import type { Warning } from "@/lib/forecast-data";
 import { cn } from "@/lib/utils";

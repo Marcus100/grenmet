@@ -150,3 +150,6 @@ artifacts/
 # Turborepo
 .turbo/*
 !.turbo/config.json
+
+
+next-shadcn-admin-dashboard-baseui/

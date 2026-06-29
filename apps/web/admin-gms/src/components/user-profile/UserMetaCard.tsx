@@ -40,9 +40,9 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
             </h4>
             <div className="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
               <p className="text-muted-foreground text-sm">{position}</p>
-              <div className="hidden h-3.5 w-px bg-gray-300 xl:block" />
+              <div className="hidden h-3.5 w-px bg-border xl:block" />
               <p className="text-muted-foreground text-sm">{department}</p>
-              <div className="hidden h-3.5 w-px bg-gray-300 xl:block" />
+              <div className="hidden h-3.5 w-px bg-border xl:block" />
               <p className="text-muted-foreground text-sm">{location}</p>
             </div>
           </div>

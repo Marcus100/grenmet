@@ -295,9 +295,9 @@ export default function BasicTableOne({
   return (
     <div className="overflow-hidden rounded-xl border border-border bg-background">
       {/* Filter Controls */}
-      <div className="flex items-center justify-between border-gray-100 border-b p-4">
+      <div className="flex items-center justify-between border-border border-b p-4">
         <div className="relative max-w-sm">
-          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="pl-9"
             onChange={(e) => setGlobalFilter(e.target.value)}
@@ -326,7 +326,7 @@ export default function BasicTableOne({
               ref={tableContainerRef}
             >
               <Table>
-                <TableHeader className="sticky top-0 z-10 border-gray-100 border-b bg-background">
+                <TableHeader className="sticky top-0 z-10 border-border border-b bg-background">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header) => (
@@ -385,7 +385,7 @@ export default function BasicTableOne({
           ) : (
             // Standard Paginated Table
             <Table>
-              <TableHeader className="border-gray-100 border-b">
+              <TableHeader className="border-border border-b">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
@@ -440,7 +440,7 @@ export default function BasicTableOne({
 
       {/* Pagination Controls - Only show when not virtualizing */}
       {!enableVirtualization && (
-        <div className="flex items-center justify-between border-gray-100 border-t p-4">
+        <div className="flex items-center justify-between border-border border-t p-4">
           <div className="text-muted-foreground text-sm">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}

@@ -18,7 +18,7 @@ export function DateNavigator({
     <div className="flex items-center justify-between rounded-xl bg-card p-2">
       <button
         aria-label="Previous date"
-        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-gray-100 hover:text-foreground active:bg-gray-200"
+        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-muted"
         onClick={onPrevious}
         type="button"
       >
@@ -31,7 +31,7 @@ export function DateNavigator({
 
       <button
         aria-label="Next date"
-        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-gray-100 hover:text-foreground active:bg-gray-200"
+        className="flex h-12 w-12 touch-manipulation items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:bg-muted"
         onClick={onNext}
         type="button"
       >

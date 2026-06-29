@@ -41,7 +41,7 @@ Do **not** move pages between Figma files programmatically — instruct the user
 - **Server Components by default.** Add `"use client"` only for interactivity or browser hooks. Fetch server-fetchable data directly in Server Components — no React Query for it.
 - Compose from `@grenmet/ui/components/ui/<name>` (per-file import, no barrel). Only write new markup when a primitive genuinely does not exist.
 - Style with token utilities (`text-gm-blue`, `p-gm-4`, `text-gm-heading-md`, `bg-gm-warning-red-bg`) or shadcn semantics (`bg-background`, `border-border`).
-- **Light mode only in v1.** Don't add `dark:` branches to shared primitives.
+- **Dark mode is supported** via the class-based `dark` variant + `.dark` token overrides. Prefer semantic tokens (`bg-background`, `text-foreground`, `border-border`) so primitives adapt automatically; avoid one-off `dark:*` branches. Printable document papers stay light in both modes.
 - One-off inline measurements are allowed but are treated as migration debt — keep them local, never promote them to tokens.
 - Use the [Warning Pattern Checklist](./design-system.md#warning-pattern-checklist) for any warning, bulletin, or impact-based summary. Color must always be paired with visible text.
 

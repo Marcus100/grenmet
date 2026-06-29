@@ -56,6 +56,109 @@
       }
     },
     {
+      // Vendored shadcn/Base UI primitives. Relax only the rules that conflict
+      // with upstream shadcn patterns so the code stays close to source for
+      // re-syncs; real bug-catching rules (e.g. noDoubleEquals) stay on.
+      // See biomejs.dev/linter and shadcn-ui/ui#7639.
+      "includes": [
+        "packages/ui/src/components/ui/**",
+        "packages/ui/src/hooks/**"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off",
+            "noNoninteractiveElementInteractions": "off",
+            "useFocusableInteractive": "off",
+            "useKeyWithClickEvents": "off",
+            "noStaticElementInteractions": "off",
+            "useAriaPropsForRole": "off",
+            "noLabelWithoutControl": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off"
+          },
+          "correctness": {
+            "noNestedComponentDefinitions": "off"
+          },
+          "performance": {
+            "noNamespaceImport": "off"
+          },
+          "style": {
+            "noNestedTernary": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off"
+          }
+        }
+      }
+    },
+    {
+      // Vendored Studio-Admin template code (demo pages + lifted components like
+      // the calendar + date-range-picker). Additive; relax vendored-code patterns
+      // only, same as the shadcn primitives above.
+      "includes": [
+        "apps/web/admin-gms/src/app/(admin)/studio/**",
+        "apps/web/admin-gms/src/components/calendar/**",
+        "apps/web/admin-gms/src/components/date-range-picker.tsx"
+      ],
+      "linter": {
+        "rules": {
+          "a11y": {
+            "useSemanticElements": "off",
+            "noNoninteractiveElementInteractions": "off",
+            "useFocusableInteractive": "off",
+            "useKeyWithClickEvents": "off",
+            "noStaticElementInteractions": "off",
+            "useAriaPropsForRole": "off",
+            "noLabelWithoutControl": "off"
+          },
+          "complexity": {
+            "noExcessiveCognitiveComplexity": "off",
+            "noUselessFragments": "off",
+            "noVoid": "off"
+          },
+          "correctness": {
+            "noNestedComponentDefinitions": "off"
+          },
+          "performance": {
+            "noNamespaceImport": "off"
+          },
+          "style": {
+            "noNestedTernary": "off",
+            "useConsistentTypeDefinitions": "off",
+            "useAtIndex": "off",
+            "noProcessEnv": "off"
+          },
+          "security": {
+            "noDangerouslySetInnerHtml": "off"
+          },
+          "suspicious": {
+            "noArrayIndexKey": "off",
+            "noDocumentCookie": "off",
+            "noConsole": "off"
+          }
+        }
+      }
+    },
+    {
+      // Admin form editors are config-driven (field-type switches + array
+      // repeaters) that legitimately exceed the cognitive-complexity threshold.
+      "includes": [
+        "apps/web/admin-gms/src/components/hr/**",
+        "apps/web/admin-gms/src/components/wxproducts/**"
+      ],
+      "linter": {
+        "rules": {
+          "complexity": { "noExcessiveCognitiveComplexity": "off" }
+        }
+      }
+    },
+    {
       "includes": [
         "**/env.ts",
         "**/env.*.ts",

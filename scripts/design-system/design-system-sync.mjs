@@ -6,16 +6,14 @@ import { fileURLToPath } from "node:url";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationPath = join(rootDir, "packages/ui/src/styles/globals.css");
+// signal is intentionally absent: it consumes the foundation via
+// `@import "@grenmet/ui/styles/globals"` (import-based) instead of inlining the
+// generated block, so it is always in sync by construction.
 const targetPaths = [
   "apps/web/admin-gms/src/app/globals.css",
   "apps/web/auth/src/app/globals.css",
-  "apps/web/cap/src/app/globals.css",
-  "apps/web/hr/src/app/globals.css",
   "apps/web/hurricaneplan/src/styles/tailwind.css",
-  "apps/web/salesbus/src/app/globals.css",
   "apps/web/spicewx/src/app/globals.css",
-  "apps/web/wxproducts/src/app/globals.css",
-  "apps/web/wxwatch/src/app/globals.css",
 ].map((path) => join(rootDir, path));
 
 const blockPattern =
@@ -24,8 +22,10 @@ const darkVariantPattern =
   /^\s*@custom-variant\s+dark\s+\([^;]+;\s*(?:\r?\n)?/gm;
 const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/im;
 
-// Hoisted regex literal (useTopLevelRegex):
-const tailwindAtRulePattern = /^@(charset|import|plugin|config)\b/;
+// Hoisted regex literal (useTopLevelRegex). `@source` is included so the
+// generated block is inserted AFTER all top-of-file at-rules (e.g. admin-gms
+// has theme-preset @import rules + an @source past the first bare @import).
+const tailwindAtRulePattern = /^@(charset|import|plugin|config|source)\b/;
 
 function normalize(text) {
   return text.replace(/\r\n/g, "\n").trim();
@@ -65,27 +65,40 @@ function stripLocalDarkVariant(text) {
 function insertAfterTailwindDirectives(text, block) {
   const lines = text.replace(/\r\n/g, "\n").split("\n");
   let index = 0;
-  let sawDirective = false;
+  // Split point: the last line index belonging to the leading at-rule region
+  // (@import / @plugin / @config / @charset / @source and the comments that
+  // annotate them). Comments alone do not advance it — only a real directive
+  // does — so trailing block-describing comments fall into the tail.
+  let splitAt = 0;
 
   while (index < lines.length) {
     const trimmed = lines[index].trim();
 
-    if (tailwindAtRulePattern.test(trimmed)) {
-      sawDirective = true;
+    if (trimmed === "") {
       index += 1;
       continue;
     }
 
-    if (sawDirective && trimmed === "") {
+    // Skip comment lines, including multi-line block comments.
+    if (trimmed.startsWith("/*")) {
+      while (index < lines.length && !lines[index].includes("*/")) {
+        index += 1;
+      }
       index += 1;
+      continue;
+    }
+
+    if (tailwindAtRulePattern.test(trimmed)) {
+      index += 1;
+      splitAt = index;
       continue;
     }
 
     break;
   }
 
-  const head = lines.slice(0, index).join("\n").trimEnd();
-  const tail = lines.slice(index).join("\n").trimStart();
+  const head = lines.slice(0, splitAt).join("\n").trimEnd();
+  const tail = lines.slice(splitAt).join("\n").trimStart();
 
   const result = `${head ? `${head}\n\n` : ""}${block}\n\n${tail}`.trimEnd();
   return `${result}\n`;

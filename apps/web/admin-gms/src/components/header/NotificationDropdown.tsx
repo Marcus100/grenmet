@@ -36,7 +36,7 @@ export default function NotificationDropdown() {
   return (
     <div className="relative">
       <button
-        className="notification-toggle relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-gray-100 hover:text-gray-700"
+        className="notification-toggle relative flex h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         onClick={handleClick}
         type="button"
       >
@@ -68,12 +68,12 @@ export default function NotificationDropdown() {
           className="absolute -right-[240px] z-40 mt-[17px] flex h-[480px] w-[350px] flex-col rounded-2xl border border-border bg-background p-3 shadow-gm-card sm:w-[361px] lg:right-0"
           ref={panelRef}
         >
-          <div className="mb-3 flex items-center justify-between border-gray-100 border-b pb-3">
+          <div className="mb-3 flex items-center justify-between border-border border-b pb-3">
             <h5 className="font-semibold text-foreground text-lg">
               Notification
             </h5>
             <button
-              className="dropdown-toggle text-muted-foreground transition hover:text-gray-700"
+              className="dropdown-toggle text-muted-foreground transition hover:text-foreground"
               onClick={toggleDropdown}
               type="button"
             >
@@ -98,7 +98,7 @@ export default function NotificationDropdown() {
             {/* Example notification items */}
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -126,7 +126,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>5 min ago</span>
                   </span>
                 </span>
@@ -135,7 +135,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -163,7 +163,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>8 min ago</span>
                   </span>
                 </span>
@@ -172,7 +172,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -200,7 +200,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>15 min ago</span>
                   </span>
                 </span>
@@ -209,7 +209,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -237,7 +237,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>1 hr ago</span>
                   </span>
                 </span>
@@ -246,7 +246,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -274,7 +274,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>5 min ago</span>
                   </span>
                 </span>
@@ -283,7 +283,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -311,7 +311,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>8 min ago</span>
                   </span>
                 </span>
@@ -320,7 +320,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -348,7 +348,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>15 min ago</span>
                   </span>
                 </span>
@@ -357,7 +357,7 @@ export default function NotificationDropdown() {
 
             <li>
               <button
-                className="flex gap-3 rounded-lg border-gray-100 border-b p-3 px-4.5 py-3 hover:bg-gray-100"
+                className="flex gap-3 rounded-lg border-border border-b p-3 px-4.5 py-3 hover:bg-muted"
                 onClick={closeDropdown}
                 type="button"
               >
@@ -385,7 +385,7 @@ export default function NotificationDropdown() {
 
                   <span className="flex items-center gap-2 text-muted-foreground text-theme-xs">
                     <span>Project</span>
-                    <span className="h-1 w-1 rounded-full bg-gray-400" />
+                    <span className="h-1 w-1 rounded-full bg-muted-foreground" />
                     <span>1 hr ago</span>
                   </span>
                 </span>
@@ -394,7 +394,7 @@ export default function NotificationDropdown() {
             {/* Add more items as needed */}
           </ul>
           <Link
-            className="mt-3 block rounded-lg border border-gray-300 bg-background px-4 py-2 text-center font-medium text-gray-700 text-sm hover:bg-gray-100"
+            className="mt-3 block rounded-lg border border-border bg-background px-4 py-2 text-center font-medium text-foreground text-sm hover:bg-muted"
             href="/"
           >
             View All Notifications
