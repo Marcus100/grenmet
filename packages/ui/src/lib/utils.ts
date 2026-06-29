@@ -23,3 +23,29 @@ export function getInitials(str: string): string {
       .toUpperCase() || "?"
   );
 }
+
+export function formatCurrency(
+  amount: number,
+  opts?: {
+    currency?: string;
+    locale?: string;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+    noDecimals?: boolean;
+  }
+) {
+  const {
+    currency = "USD",
+    locale = "en-US",
+    minimumFractionDigits,
+    maximumFractionDigits,
+    noDecimals,
+  } = opts ?? {};
+
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: noDecimals ? 0 : minimumFractionDigits,
+    maximumFractionDigits: noDecimals ? 0 : maximumFractionDigits,
+  }).format(amount);
+}
