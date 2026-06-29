@@ -23,7 +23,7 @@ export function Header({
   const initials = getInitials(userName);
 
   return (
-    <header className="flex items-center justify-between border-gray-100 border-b bg-card px-4 py-3 sm:px-6 sm:py-4">
+    <header className="flex items-center justify-between border-border border-b bg-card px-4 py-3 sm:px-6 sm:py-4">
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gm-blue font-semibold text-sm text-white sm:h-12 sm:w-12 sm:text-base">
           {initials}
@@ -34,7 +34,7 @@ export function Header({
       </div>
 
       <Link
-        className="-mr-3 flex min-h-12 touch-manipulation items-center gap-2 rounded-lg px-3 text-muted-foreground transition-colors hover:text-foreground active:bg-gray-100"
+        className="-mr-3 flex min-h-12 touch-manipulation items-center gap-2 rounded-lg px-3 text-muted-foreground transition-colors hover:text-foreground active:bg-muted"
         href="/salesbus/sales/cart"
       >
         <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6" />

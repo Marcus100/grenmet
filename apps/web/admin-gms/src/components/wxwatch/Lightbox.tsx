@@ -97,23 +97,23 @@ export function Lightbox({ image, onClose }: LightboxProps) {
           </h3>
           <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
             <div>
-              <span className="text-gray-400">Spider:</span>
+              <span className="text-muted-foreground">Spider:</span>
               <p className="capitalize">
                 {image.spiderName?.replace(/_/g, " ") || "Unknown"}
               </p>
             </div>
             <div>
-              <span className="text-gray-400">Dimensions:</span>
+              <span className="text-muted-foreground">Dimensions:</span>
               <p>
                 {image.width || "?"} × {image.height || "?"}
               </p>
             </div>
             <div>
-              <span className="text-gray-400">Format:</span>
+              <span className="text-muted-foreground">Format:</span>
               <p className="uppercase">{image.fileFormat || "Unknown"}</p>
             </div>
             <div>
-              <span className="text-gray-400">Fetched:</span>
+              <span className="text-muted-foreground">Fetched:</span>
               <p>{fetchedDate}</p>
             </div>
           </div>

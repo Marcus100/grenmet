@@ -21,7 +21,7 @@ export default function BadgePage() {
               With Light Background
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               {/* Light Variant */}
               <Badge variant="light-primary">Primary</Badge>
@@ -41,7 +41,7 @@ export default function BadgePage() {
               With Solid Background
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               {/* Solid Variant */}
               <Badge variant="solid-primary">Primary</Badge>
@@ -61,7 +61,7 @@ export default function BadgePage() {
               Light Background with Left Icon
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="light-primary">
                 <Plus className="size-3" />
@@ -101,7 +101,7 @@ export default function BadgePage() {
               Solid Background with Left Icon
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="solid-primary">
                 <Plus className="size-3" />
@@ -141,7 +141,7 @@ export default function BadgePage() {
               Light Background with Right Icon
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="light-primary">
                 Primary
@@ -181,7 +181,7 @@ export default function BadgePage() {
               Solid Background with Right Icon
             </h3>
           </div>
-          <div className="border-gray-100 border-t p-6 xl:p-10">
+          <div className="border-border border-t p-6 xl:p-10">
             <div className="flex flex-wrap gap-4 sm:items-center sm:justify-center">
               <Badge variant="solid-primary">
                 Primary

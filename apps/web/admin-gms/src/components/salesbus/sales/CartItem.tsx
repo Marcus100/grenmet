@@ -11,7 +11,7 @@ interface CartItemProps {
 export function CartItemCard({ item }: CartItemProps) {
   return (
     <div className="flex items-center gap-4 rounded-xl bg-card p-4 sm:p-5">
-      <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 sm:h-24 sm:w-20">
+      <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-20">
         <Image
           alt={item.product.name}
           className="object-contain"

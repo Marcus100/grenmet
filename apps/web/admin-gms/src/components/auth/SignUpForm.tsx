@@ -13,7 +13,7 @@ export default function SignUpForm() {
     <div className="no-scrollbar flex w-full flex-1 flex-col overflow-y-auto lg:w-1/2">
       <div className="mx-auto mb-5 w-full max-w-md sm:pt-10">
         <Link
-          className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-gray-700"
+          className="inline-flex items-center text-muted-foreground text-sm transition-colors hover:text-foreground"
           href="/"
         >
           <ChevronLeftIcon />
@@ -33,7 +33,7 @@ export default function SignUpForm() {
           <div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
               <button
-                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-foreground"
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-muted px-7 py-3 font-normal text-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
                 type="button"
               >
                 <svg
@@ -64,7 +64,7 @@ export default function SignUpForm() {
                 Sign up with Google
               </button>
               <button
-                className="inline-flex items-center justify-center gap-3 rounded-lg bg-gray-100 px-7 py-3 font-normal text-gray-700 text-sm transition-colors hover:bg-gray-200 hover:text-foreground"
+                className="inline-flex items-center justify-center gap-3 rounded-lg bg-muted px-7 py-3 font-normal text-foreground text-sm transition-colors hover:bg-muted hover:text-foreground"
                 type="button"
               >
                 <svg
@@ -86,7 +86,7 @@ export default function SignUpForm() {
                 <div className="w-full border-border border-t" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="bg-background p-2 text-gray-400 sm:px-5 sm:py-2">
+                <span className="bg-background p-2 text-muted-foreground sm:px-5 sm:py-2">
                   Or
                 </span>
               </div>
@@ -183,7 +183,7 @@ export default function SignUpForm() {
             </form>
 
             <div className="mt-5">
-              <p className="text-center font-normal text-gray-700 text-sm sm:text-start">
+              <p className="text-center font-normal text-foreground text-sm sm:text-start">
                 Already have an account?
                 <Link
                   className="text-brand-500 hover:text-brand-600"

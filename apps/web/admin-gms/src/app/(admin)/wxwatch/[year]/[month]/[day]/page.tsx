@@ -29,16 +29,16 @@ export default async function DatePage({ params }: PageProps) {
   const images = await getImagesByDateAndSynoptic(date);
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-muted">
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="font-bold text-2xl text-gray-900">
+              <h1 className="font-bold text-2xl text-foreground">
                 Weather Image Gallery
               </h1>
-              <p className="mt-1 text-gray-500 text-sm">
+              <p className="mt-1 text-muted-foreground text-sm">
                 {date.toLocaleDateString("en-US", {
                   weekday: "long",
                   year: "numeric",
@@ -57,7 +57,7 @@ export default async function DatePage({ params }: PageProps) {
       {/* Gallery */}
       <div className="mx-auto max-w-full p-6">
         {images.length === 0 ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center text-gray-500">
+          <div className="flex min-h-[400px] flex-col items-center justify-center text-muted-foreground">
             <svg
               aria-hidden="true"
               className="mb-4 h-16 w-16"

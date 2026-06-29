@@ -20,12 +20,12 @@ export default function Error404() {
 
         <Image alt="404" height={152} src="/images/error/404.svg" width={472} />
 
-        <p className="mt-10 mb-6 text-base text-gray-700 sm:text-lg">
+        <p className="mt-10 mb-6 text-base text-foreground sm:text-lg">
           We can’t seem to find the page you are looking for!
         </p>
 
         <Link
-          className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-background px-5 py-3.5 font-medium text-gray-700 text-sm shadow-gm-card hover:bg-gray-50 hover:text-foreground"
+          className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-5 py-3.5 font-medium text-foreground text-sm shadow-gm-card hover:bg-muted hover:text-foreground"
           href="/"
         >
           Back to Home Page

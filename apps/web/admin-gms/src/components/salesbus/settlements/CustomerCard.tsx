@@ -15,7 +15,7 @@ export function CustomerCard({
 }: CustomerCardProps) {
   return (
     <Link
-      className="flex min-h-16 touch-manipulation items-center justify-between rounded-xl bg-card p-4 transition-all hover:shadow-gm-card active:bg-gray-50 sm:p-5"
+      className="flex min-h-16 touch-manipulation items-center justify-between rounded-xl bg-card p-4 transition-all hover:shadow-gm-card active:bg-muted sm:p-5"
       href={`/salesbus/settlements/customers/${customer.customerId}`}
     >
       <h3 className="font-bold text-base text-foreground tracking-wide sm:text-lg">
