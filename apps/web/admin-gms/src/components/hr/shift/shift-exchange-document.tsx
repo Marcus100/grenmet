@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface ShiftValues {
   dateReturnShift: string;
   dateShiftRequested: string;
@@ -39,10 +41,7 @@ function SignatureLine({ label }: { label: string }) {
 /** Static shift-exchange requisition document, driven by `values` — no backend. */
 export function ShiftExchangeDocument({ values }: { values: ShiftValues }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
+    <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
         <div className="font-semibold text-xl tracking-wide">
           GRENADA AIRPORTS AUTHORITY
@@ -88,6 +87,6 @@ export function ShiftExchangeDocument({ values }: { values: ShiftValues }) {
           <SignatureLine label="Date" />
         </div>
       </div>
-    </div>
+    </Paper>
   );
 }

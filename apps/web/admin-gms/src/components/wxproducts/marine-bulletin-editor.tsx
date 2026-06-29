@@ -1,20 +1,26 @@
 "use client";
 
 import { Button } from "@grenmet/ui/components/ui/button";
-import { Card, CardContent } from "@grenmet/ui/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
+import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { Printer, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { DatePicker } from "@/components/document/date-picker";
+import { DocumentPreview } from "@/components/document/document-preview";
 import {
   EMPTY_MARINE_BULLETIN,
   MarineBulletinDocument,
   WARNING_LEVELS,
 } from "./marine-bulletin-document";
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 type FieldType = "text" | "date" | "time" | "textarea" | "select";
 
@@ -46,46 +52,38 @@ export function MarineBulletinEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">
-                  Marine Weather Bulletin
-                </h2>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => form.reset()}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <RotateCcw className="size-3.5" />
-                    Reset
-                  </Button>
-                  <Button
-                    onClick={() => window.print()}
-                    size="sm"
-                    type="button"
-                  >
-                    <Printer className="size-3.5" />
-                    Print
-                  </Button>
-                </div>
-              </div>
-
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-lg">Marine Weather Bulletin</h2>
+              <Button
+                onClick={() => form.reset()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
+                <RotateCcw data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+
+            <Separator />
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
                 {FIELDS.map((f) => (
                   <form.Field key={f.name} name={f.name}>
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>{f.label}</Label>
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          {f.label}
+                        </FieldLabel>
                         {f.type === "textarea" ? (
                           <Textarea
                             id={field.name}
@@ -93,36 +91,50 @@ export function MarineBulletinEditor() {
                             rows={4}
                             value={field.state.value}
                           />
-                        ) : f.type === "select" ? (
-                          <select
-                            className={selectClass}
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
+                        ) : null}
+                        {f.type === "select" ? (
+                          <Select
+                            onValueChange={(v) => field.handleChange(v ?? "")}
                             value={field.state.value}
                           >
-                            {WARNING_LEVELS.map((w) => (
-                              <option key={w} value={w}>
-                                {w}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
+                            <SelectTrigger id={field.name}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {WARNING_LEVELS.map((w) => (
+                                <SelectItem key={w} value={w}>
+                                  {w}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : null}
+                        {f.type === "date" ? (
+                          <DatePicker
+                            id={field.name}
+                            onChange={field.handleChange}
+                            value={field.state.value}
+                          />
+                        ) : null}
+                        {f.type === "text" || f.type === "time" ? (
                           <Input
                             id={field.name}
                             onChange={(e) => field.handleChange(e.target.value)}
-                            type={f.type === "text" ? "text" : f.type}
+                            type={f.type === "time" ? "time" : "text"}
                             value={field.state.value}
                           />
-                        )}
-                      </div>
+                        ) : null}
+                      </Field>
                     )}
                   </form.Field>
                 ))}
-              </form>
-            </CardContent>
-          </Card>
+              </FieldGroup>
+            </form>
+          </div>
 
-          <MarineBulletinDocument values={values} />
+          <DocumentPreview title="Marine Weather Bulletin">
+            <MarineBulletinDocument values={values} />
+          </DocumentPreview>
         </div>
       )}
     </form.Subscribe>

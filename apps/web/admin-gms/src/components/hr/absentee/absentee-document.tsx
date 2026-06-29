@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface AbsenteeValues {
   date: string;
   department: string;
@@ -36,10 +38,7 @@ function Row({ label, value }: { label: string; value: string }) {
 /** Static absentee report document, driven by `values` — no backend. */
 export function AbsenteeDocument({ values }: { values: AbsenteeValues }) {
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
+    <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
         <div className="font-semibold text-xl tracking-wide">
           GRENADA AIRPORTS AUTHORITY
@@ -106,6 +105,6 @@ export function AbsenteeDocument({ values }: { values: AbsenteeValues }) {
           <span className="text-xs text-zinc-500">Date</span>
         </div>
       </div>
-    </div>
+    </Paper>
   );
 }

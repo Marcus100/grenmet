@@ -1,15 +1,21 @@
 "use client";
 
 import { Button } from "@grenmet/ui/components/ui/button";
-import { Card, CardContent } from "@grenmet/ui/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
+import { Separator } from "@grenmet/ui/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
-import { Printer, RotateCcw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
+import { DatePicker } from "@/components/document/date-picker";
+import { DocumentPreview } from "@/components/document/document-preview";
 import { EMPTY_LEAVE, LEAVE_TYPES, LeaveDocument } from "./leave-document";
-
-const selectClass =
-  "h-9 w-full rounded-md border border-input bg-background px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 export function LeaveApplicationEditor() {
   const form = useForm({ defaultValues: EMPTY_LEAVE });
@@ -17,151 +23,160 @@ export function LeaveApplicationEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex items-center justify-between">
-                <h2 className="font-semibold text-lg">Leave Application</h2>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => form.reset()}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <RotateCcw className="size-3.5" />
-                    Reset
-                  </Button>
-                  <Button
-                    onClick={() => window.print()}
-                    size="sm"
-                    type="button"
-                  >
-                    <Printer className="size-3.5" />
-                    Print
-                  </Button>
-                </div>
-              </div>
-
-              <form
-                className="space-y-4"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
+        <div className="grid items-start gap-5 xl:grid-cols-2">
+          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            <div className="flex items-center justify-between">
+              <h2 className="font-medium text-lg">Leave Application</h2>
+              <Button
+                onClick={() => form.reset()}
+                size="sm"
+                type="button"
+                variant="outline"
               >
+                <RotateCcw data-icon="inline-start" />
+                Reset
+              </Button>
+            </div>
+
+            <Separator />
+
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
                 <form.Field name="employeeName">
                   {(field) => (
-                    <div className="space-y-1.5">
-                      <Label htmlFor={field.name}>Employee Name</Label>
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs" htmlFor={field.name}>
+                        Employee Name
+                      </FieldLabel>
                       <Input
                         id={field.name}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         value={field.state.value}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 
                 <form.Field name="department">
                   {(field) => (
-                    <div className="space-y-1.5">
-                      <Label htmlFor={field.name}>Department</Label>
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs" htmlFor={field.name}>
+                        Department
+                      </FieldLabel>
                       <Input
                         id={field.name}
                         onBlur={field.handleBlur}
                         onChange={(e) => field.handleChange(e.target.value)}
                         value={field.state.value}
                       />
-                    </div>
+                    </Field>
                   )}
                 </form.Field>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-5 md:grid-cols-2">
                   <form.Field name="daysRequested">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>Days Requested</Label>
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Days Requested
+                        </FieldLabel>
                         <Input
                           id={field.name}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
+
                   <form.Field name="leaveType">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>Type of Leave</Label>
-                        <select
-                          className={selectClass}
-                          id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Type of Leave
+                        </FieldLabel>
+                        <Select
+                          onValueChange={(v) => field.handleChange(v ?? "")}
                           value={field.state.value}
                         >
-                          {LEAVE_TYPES.map((t) => (
-                            <option key={t} value={t}>
-                              {t}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
+                          <SelectTrigger id={field.name}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {LEAVE_TYPES.map((t) => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </Field>
                     )}
                   </form.Field>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-5 md:grid-cols-2">
                   <form.Field name="startDate">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>Start Date</Label>
-                        <Input
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Start Date
+                        </FieldLabel>
+                        <DatePicker
                           id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          type="date"
+                          onChange={field.handleChange}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
+
                   <form.Field name="endDate">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>End Date</Label>
-                        <Input
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          End Date
+                        </FieldLabel>
+                        <DatePicker
                           id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          type="date"
+                          onChange={field.handleChange}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
                 </div>
 
-                {values.leaveType === "Other" && (
+                {values.leaveType === "Other" ? (
                   <form.Field name="otherReason">
                     {(field) => (
-                      <div className="space-y-1.5">
-                        <Label htmlFor={field.name}>
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
                           Other — please state reason
-                        </Label>
+                        </FieldLabel>
                         <Input
                           id={field.name}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
-                      </div>
+                      </Field>
                     )}
                   </form.Field>
-                )}
-              </form>
-            </CardContent>
-          </Card>
+                ) : null}
+              </FieldGroup>
+            </form>
+          </div>
 
-          <LeaveDocument values={values} />
+          <DocumentPreview title="Leave Application">
+            <LeaveDocument values={values} />
+          </DocumentPreview>
         </div>
       )}
     </form.Subscribe>

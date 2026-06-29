@@ -1,3 +1,5 @@
+import { Paper } from "@/components/document/paper";
+
 export interface MarineBulletinValues {
   date: string;
   forecasterName: string;
@@ -69,10 +71,7 @@ export function MarineBulletinDocument({
     warningTone[values.warningLevel.toLowerCase()] ?? warningTone.green;
 
   return (
-    <div
-      className="rounded-xl border bg-white p-8 text-zinc-900 shadow-sm"
-      data-print-paper
-    >
+    <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 flex items-start justify-between gap-4">
         <div>
           <div className="font-semibold text-lg tracking-wide">
@@ -127,6 +126,6 @@ export function MarineBulletinDocument({
         </span>
         <span className="text-xs text-zinc-500">Forecaster on Duty</span>
       </footer>
-    </div>
+    </Paper>
   );
 }
