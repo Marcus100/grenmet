@@ -20,6 +20,7 @@
     "dev:web:hurricane": "turbo run dev --filter=@grenmet/web-hurricaneplan",
     "dev:web:auth": "turbo run dev --filter=@grenmet/web-auth",
     "dev:web:spicewx": "turbo run dev --filter=@grenmet/web-spicewx",
+    "dev:web:signal": "turbo run dev --filter=@grenmet/web-signal",
     "dev:honoapi": "turbo run dev --filter=@grenmet/api-hono",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",

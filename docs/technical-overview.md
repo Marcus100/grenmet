@@ -22,9 +22,9 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 |---|---|---|---|---|
 | `auth` | `@grenmet/web-auth` | 3000 | Owns sign-in/sign-up | — |
 | `admin-gms` | `@grenmet/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
-| `hurricaneplan` | `@grenmet/web-hurricaneplan` | 3003 | Delegates to auth | — |
-| `spicewx` | `@grenmet/web-spicewx` | 3004 | Delegates to auth | — |
-| `signal` | `@grenmet/web-signal` | 3009 | None (static MDX) | — |
+| `hurricaneplan` | `@grenmet/web-hurricaneplan` | 3002 | Delegates to auth | — |
+| `spicewx` | `@grenmet/web-spicewx` | 3003 | Delegates to auth | — |
+| `signal` | `@grenmet/web-signal` | 3004 | None (static MDX) | — |
 
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
 

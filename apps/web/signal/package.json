@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack --port 3009",
+    "dev": "next dev --turbopack --port 3004",
     "build": "content-collections build && next build",
-    "start": "next start --port 3009",
+    "start": "next start --port 3004",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",

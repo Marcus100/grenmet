@@ -98,10 +98,14 @@
       }
     },
     {
-      // Vendored Studio-Admin template code: the lifted event-calendar used by
-      // /calendar. Additive; relax vendored-code patterns only, same as the
-      // shadcn primitives above.
-      "includes": ["apps/web/admin-gms/src/components/calendar/**"],
+      // Vendored Studio-Admin template code (demo pages + lifted components like
+      // the calendar + date-range-picker). Additive; relax vendored-code patterns
+      // only, same as the shadcn primitives above.
+      "includes": [
+        "apps/web/admin-gms/src/app/(admin)/studio/**",
+        "apps/web/admin-gms/src/components/calendar/**",
+        "apps/web/admin-gms/src/components/date-range-picker.tsx"
+      ],
       "linter": {
         "rules": {
           "a11y": {
