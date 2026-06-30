@@ -11,7 +11,9 @@ const schema = z.object({
     .default("local"),
   API_PREFIX: z.string().default("/api/v1"),
   // CORS — comma-separated list of allowed origins
-  CORS_ORIGINS: z.string().default("http://localhost:3000"),
+  CORS_ORIGINS: z
+    .string()
+    .default("http://localhost:3000,http://localhost:3001"),
 });
 
 const parsed = schema.safeParse(process.env);

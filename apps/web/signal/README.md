@@ -1,12 +1,12 @@
 # Grenada Signal (`@grenmet/web-signal`)
 
 Mobile-first civic-media front door for **Grenada Signal** — a Morning Brew-style
-single-column reader. Port **3009**, domain `signal.barrels.gd`.
+single-column reader. Port **3004**, domain `signal.barrels.gd`.
 
 MVP scope: static MDX content, light mode, no auth, no database.
 
 ```bash
-pnpm --filter @grenmet/web-signal dev     # http://localhost:3009
+pnpm --filter @grenmet/web-signal dev     # http://localhost:3004
 pnpm --filter @grenmet/web-signal build
 pnpm --filter @grenmet/web-signal test
 ```

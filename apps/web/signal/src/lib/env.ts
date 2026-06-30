@@ -8,7 +8,7 @@ export const env = createEnv({
       .string()
       .url()
       .optional()
-      .default("http://localhost:3009"),
+      .default("http://localhost:3004"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()

@@ -1,6 +1,6 @@
 # spicewx (`@grenmet/web-spicewx`) — Claude context
 
-Port **3004**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
+Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
 
 **Design-system role: public web reference app.** Lowest-drift baseline — prototype and validate new public-facing patterns here first before reusing them elsewhere. See `docs/design-workflow.md`.
 

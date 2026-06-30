@@ -103,14 +103,24 @@ jobs:
 
       - name: Wait for release images to be published
         # Prevents the release-time race: build-* and deploy both fire on
-        # 'release: published'. Block until the release-tagged API and web-admin
-        # images actually exist in GHCR (up to 10 min) before deploying.
+        # 'release: published'. Block until ALL release-tagged images (API + every
+        # web app + the migrate image) actually exist in GHCR (up to 10 min each)
+        # before deploying. Waiting for only a subset let a failed web build slip
+        # through and then break `up --pull always` mid-deploy on the missing image.
         run: |
           set -euo pipefail
           TAG="${{ github.event.release.tag_name }}"; TAG="${TAG:-latest}"
           REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
-          for IMG in "ghcr.io/${REPO}:${TAG}" "ghcr.io/${OWNER}/grenmet-web-admin:${TAG}"; do
+          IMAGES=(
+            "ghcr.io/${REPO}:${TAG}"
+            "ghcr.io/${OWNER}/grenmet-web-auth:${TAG}"
+            "ghcr.io/${OWNER}/grenmet-web-admin:${TAG}"
+            "ghcr.io/${OWNER}/grenmet-web-admin-migrate:${TAG}"
+            "ghcr.io/${OWNER}/grenmet-web-hurricaneplan:${TAG}"
+            "ghcr.io/${OWNER}/grenmet-web-spicewx:${TAG}"
+          )
+          for IMG in "${IMAGES[@]}"; do
             echo "Waiting for $IMG ..."
             for i in $(seq 1 40); do
               if docker manifest inspect "$IMG" >/dev/null 2>&1; then echo "  ✓ ready"; break; fi
@@ -151,18 +161,42 @@ jobs:
 
       - name: Health checks
         run: |
-          echo "=== API health check ==="
+          set -uo pipefail
+          COMPOSE="docker compose --env-file .env -f docker-compose.prod.yml -p grenmet"
+
+          echo "=== API health (fatal) ==="
           PASSED=false
           for i in {1..10}; do
-            if curl -f -s "https://api.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
-              echo "Production API health check passed"; PASSED=true; break
+            if curl -f -s "https://api.barrels.gd/api/v1/utils/health-check/" >/dev/null; then
+              echo "API healthy"; PASSED=true; break
             fi
-            echo "Attempt $i/10..."; sleep 10
+            echo "attempt $i/10..."; sleep 10
           done
           [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
-          echo "=== Auth app health check ==="
-          curl -sSo /dev/null -w "%{http_code}" https://auth.barrels.gd/ || echo "Auth health check failed"
+          echo "=== Web app container health (fatal) ==="
+          # Gate on each web container's own /api/health (via the compose healthcheck),
+          # so a container that boots then fails to serve cannot deploy green.
+          for svc in web-auth web-admin web-hurricaneplan web-spicewx; do
+            cid=$($COMPOSE ps -q "$svc" 2>/dev/null || true)
+            [ -n "$cid" ] || { echo "::error::$svc has no running container"; exit 1; }
+            ok=false
+            for i in {1..20}; do
+              status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null || echo missing)
+              case "$status" in
+                healthy) ok=true; break ;;
+                none) echo "$svc: no healthcheck defined — skipping gate"; ok=true; break ;;
+                *) echo "$svc: $status ($i/20)"; sleep 6 ;;
+              esac
+            done
+            [ "$ok" = true ] || { echo "::error::$svc did not become healthy"; exit 1; }
+          done
+
+          echo "=== External smoke via Cloudflare (non-fatal) ==="
+          for host in auth admin hurricane spice; do
+            code=$(curl -4 -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host.barrels.gd/" || echo 000)
+            echo "  $host.barrels.gd → $code"
+          done
 
       - name: Show logs on failure
         if: failure()
