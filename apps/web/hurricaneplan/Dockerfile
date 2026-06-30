@@ -47,7 +47,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/hurricaneplan/.next/stat
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/hurricaneplan/public ./apps/web/hurricaneplan/public
 
 USER nextjs
-EXPOSE 3003
-ENV PORT=3003
+EXPOSE 3002
+ENV PORT=3002
 ENV HOSTNAME=0.0.0.0
 CMD ["node", "apps/web/hurricaneplan/server.js"]

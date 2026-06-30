@@ -55,10 +55,10 @@ jobs:
             target: migrate
           - app: web-hurricaneplan
             path: apps/web/hurricaneplan
-            port: 3003
+            port: 3002
           - app: web-spicewx
             path: apps/web/spicewx
-            port: 3004
+            port: 3003
 
     steps:
       - name: Checkout
@@ -124,7 +124,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,scope=${{ matrix.app }},mode=max
+          cache-to: type=gha,scope=${{ matrix.app }},mode=max,ignore-error=true
           platforms: linux/amd64
 
       - name: Summary

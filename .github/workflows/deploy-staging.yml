@@ -165,18 +165,42 @@ jobs:
 
       - name: Health checks
         run: |
-          echo "=== API health check ==="
+          set -uo pipefail
+          COMPOSE="docker compose --env-file .env -f docker-compose.staging.yml -p grenmet-staging"
+
+          echo "=== API health (fatal) ==="
           PASSED=false
           for i in {1..10}; do
-            if curl -f -s "https://api.staging.barrels.gd/api/v1/utils/health-check/" > /dev/null; then
-              echo "Staging API health check passed"; PASSED=true; break
+            if curl -f -s "https://api.staging.barrels.gd/api/v1/utils/health-check/" >/dev/null; then
+              echo "API healthy"; PASSED=true; break
             fi
-            echo "Attempt $i/10..."; sleep 10
+            echo "attempt $i/10..."; sleep 10
           done
           [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
-          echo "=== Auth app health check ==="
-          curl -sSo /dev/null -w "%{http_code}" https://auth.staging.barrels.gd/ || echo "Auth staging health check failed"
+          echo "=== Web app container health (fatal) ==="
+          # Gate on each web container's own /api/health (via the compose healthcheck),
+          # so a container that boots then fails to serve cannot deploy green.
+          for svc in web-auth web-admin web-hurricaneplan web-spicewx; do
+            cid=$($COMPOSE ps -q "$svc" 2>/dev/null || true)
+            [ -n "$cid" ] || { echo "::error::$svc has no running container"; exit 1; }
+            ok=false
+            for i in {1..20}; do
+              status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null || echo missing)
+              case "$status" in
+                healthy) ok=true; break ;;
+                none) echo "$svc: no healthcheck defined — skipping gate"; ok=true; break ;;
+                *) echo "$svc: $status ($i/20)"; sleep 6 ;;
+              esac
+            done
+            [ "$ok" = true ] || { echo "::error::$svc did not become healthy"; exit 1; }
+          done
+
+          echo "=== External smoke via Cloudflare (non-fatal) ==="
+          for host in auth admin hurricane spice; do
+            code=$(curl -4 -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host.staging.barrels.gd/" || echo 000)
+            echo "  $host.staging.barrels.gd → $code"
+          done
 
       - name: Show logs on failure
         if: failure()

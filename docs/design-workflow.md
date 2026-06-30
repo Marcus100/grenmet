@@ -49,7 +49,7 @@ Do **not** move pages between Figma files programmatically — instruct the user
 
 - **`/ui-check`** — implement/refine a component against its Figma node: extracts tokens, lists discrepancies, proposes changes, iterates. This is the primary fidelity tool.
 - Screenshot diffing uses the **Chrome MCP tool** (not Playwright) with the dev server running.
-- Run the dev server for the specific app on its port (see the port table in [`technical-overview.md`](./technical-overview.md); e.g. `spicewx` = 3004, `admin-gms` = 3001, `cap` = 3008).
+- Run the dev server for the specific app on its port (see [`ports.md`](./ports.md); e.g. `spicewx` = 3003, `admin-gms` = 3001).
 
 ### 5. Guard the token contract
 

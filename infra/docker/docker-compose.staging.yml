@@ -166,6 +166,12 @@ services:
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
@@ -184,6 +190,12 @@ services:
   web-admin:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     depends_on:
       web-migrate:
         condition: service_completed_successfully
@@ -211,6 +223,12 @@ services:
   web-hurricaneplan:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
@@ -222,13 +240,19 @@ services:
       - "traefik.http.routers.web-hurricaneplan-staging.rule=Host(`hurricane.staging.barrels.gd`)"
       - "traefik.http.routers.web-hurricaneplan-staging.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3003"
+      - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3002"
     networks:
       - grenmet-staging
 
   web-spicewx:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
@@ -240,7 +264,7 @@ services:
       - "traefik.http.routers.web-spicewx-staging.rule=Host(`spice.staging.barrels.gd`)"
       - "traefik.http.routers.web-spicewx-staging.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3004"
+      - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3003"
     networks:
       - grenmet-staging
 
