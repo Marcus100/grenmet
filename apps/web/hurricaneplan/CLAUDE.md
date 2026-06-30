@@ -1,13 +1,13 @@
 # hurricaneplan (`@grenmet/web-hurricaneplan`) — Claude context
 
-Port **3003**. Hurricane preparedness plan — a static MDX documentation site for airport meteorological operations.
+Port **3002**. Hurricane preparedness plan — a static MDX documentation site for airport meteorological operations.
 
 ## Turbopack
 
 Runs Turbopack. Config file is `next.config.ts`. Do not add `--webpack`.
 
 ```bash
-pnpm dev    # runs: node scripts/generate-sections.mjs && next dev --turbopack --port 3003
+pnpm dev    # runs: node scripts/generate-sections.mjs && next dev --turbopack --port 3002
 pnpm build  # runs: node scripts/generate-sections.mjs && next build --turbopack
 ```
 

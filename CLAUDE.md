@@ -115,6 +115,7 @@ When adding to this file, follow this structure:
 | UI package rules (agent)           | `packages/ui/CLAUDE.md`            |
 | API contracts and public endpoints | `docs/api/contracts.md`            |
 | Environment variables              | `docs/env.md`                      |
+| Port allocation (dev + container)  | `docs/ports.md`                    |
 | Deployment                         | `docs/deployment.md`               |
 | Infrastructure, backups, incidents | `docs/infrastructure.md`           |
 | Security baseline                  | `docs/security.md`                 |

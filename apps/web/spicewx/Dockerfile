@@ -47,7 +47,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/spicewx/.next/static ./a
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/spicewx/public ./apps/web/spicewx/public
 
 USER nextjs
-EXPOSE 3004
-ENV PORT=3004
+EXPOSE 3003
+ENV PORT=3003
 ENV HOSTNAME=0.0.0.0
 CMD ["node", "apps/web/spicewx/server.js"]

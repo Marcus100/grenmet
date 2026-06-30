@@ -44,13 +44,19 @@ Consumes FastAPI HR + Auth endpoints via `@grenmet/api-client`. Initialised in `
 ```
 src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
-    page.tsx         ← dashboard
-    (others-pages)/  ← calendar, charts, forms, tables, profile
+    page.tsx         ← GMS operations dashboard (HomeMetricCards + RainfallChart)
+    cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
+    (others-pages)/  ← calendar, profile, charts, forms, tables, blank
     (ui-elements)/   ← alerts, avatars, badges, buttons, images, videos, modals
+    studio/          ← Studio-Admin template demo dashboards (kept as reference)
   (full-width-pages)/
     (auth)/          ← signin, signup (full-width, no sidebar)
     (error-pages)/   ← 404
 ```
+
+The UI font is user-selectable via `@grenmet/theme`'s font switcher (registry in
+`src/lib/fonts/registry.ts`, `data-font` CSS in `globals.css`); default Inter,
+print documents always Noto Sans.
 
 ## Consolidated apps (folded in 2026-06)
 
@@ -60,7 +66,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 
 | Prefix | Source app | Data | Notes |
 |---|---|---|---|
-| `/hr` | hr | FastAPI HR API (via api-client) | Print forms; components in `components/hr/` |
+| `/hr` | hr | **none yet — print-only** | Static TanStack-form editors + print preview; FastAPI HR endpoints + generated api-client hooks exist but are **not wired** (deferred). Components in `components/hr/` |
 | `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
 | `/salesbus` | salesbus | mock data (api-client planned) | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
 | `/wxwatch` | wxwatch | wxwatch Postgres (`WXWATCH_DATABASE_URL`) | client `src/db/wxwatch/` → `wxwatchDb`; `getImageUrl` serves `/wxwatch/<path>` assets |
