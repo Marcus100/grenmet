@@ -27,7 +27,7 @@
     "@tanstack/react-query": "catalog:",
     "@grenmet/tsconfig": "workspace:*",
     "@kubb/cli": "^4.37.8",
-    "@kubb/core": "^4.29.1",
+    "@kubb/core": "^4.39.2",
     "@kubb/plugin-client": "^4.29.1",
     "@kubb/plugin-oas": "^4.29.1",
     "@kubb/plugin-react-query": "^4.29.1",
