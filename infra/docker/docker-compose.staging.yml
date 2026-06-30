@@ -166,6 +166,12 @@ services:
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
@@ -184,6 +190,12 @@ services:
   web-admin:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     depends_on:
       web-migrate:
         condition: service_completed_successfully
@@ -211,6 +223,12 @@ services:
   web-hurricaneplan:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
@@ -229,6 +247,12 @@ services:
   web-spicewx:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG:-staging}
     restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     environment:
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1

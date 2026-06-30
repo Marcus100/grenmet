@@ -207,7 +207,7 @@ jobs:
           push: false
           tags: test-image:latest
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=max,ignore-error=true
           outputs: type=docker,dest=/tmp/test-image.tar
 
       - name: Load Docker image for scanning
@@ -320,6 +320,10 @@ jobs:
           SECRET_KEY: test-secret-key-min-32-characters-long
           FIRST_SUPERUSER: admin@weather.gd
           FIRST_SUPERUSER_PASSWORD: changethis
+          # info.title comes from PROJECT_NAME; the committed openapi.json is
+          # generated with the real project name, so pin it here or the drift
+          # diff below would always trip on the title alone (not a real change).
+          PROJECT_NAME: "Grenmet API"
         run: |
           uv run python -c "
           from src.main import app
@@ -327,6 +331,13 @@ jobs:
           with open('openapi.json', 'w') as f:
               json.dump(app.openapi(), f, indent=2)
           "
+
+      - name: Fail if committed openapi.json is stale
+        # The TS api-client is generated from the committed openapi.json. If routes
+        # change but openapi.json isn't regenerated, the client gate passes while the
+        # contract is stale. Diff the freshly-generated schema against the committed
+        # one to close that gap: routes → openapi.json → generated client all gated.
+        run: git diff --exit-code -- openapi.json
 
       - name: Upload OpenAPI schema
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
