@@ -114,10 +114,10 @@ After a successful sign-in, the auth app reads a `return_to` query parameter and
 Local dev value (all apps):
 
 ```
-AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost:3004,localhost:3005,localhost:3006,localhost:3007
+AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost:3004
 ```
 
-Port map: 3001=admin-gms, 3002=wxwatch, 3003=hurricaneplan, 3004=spicewx, 3005=wxproducts, 3006=hr, 3007=salesbus.
+Port map: 3001=admin-gms, 3002=hurricaneplan, 3003=spicewx, 3004=signal. See [`ports.md`](./ports.md) for the canonical allocation.
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
@@ -151,7 +151,7 @@ HR also delegates to `web-auth` but redirects back to itself after sign-in, so i
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
 | `SESSION_COOKIE_NAME` | Shared session cookie name |
-| `AUTH_ALLOWED_RETURN_HOSTS` | Allowlist for post-login redirects (e.g. `localhost:3006`) |
+| `AUTH_ALLOWED_RETURN_HOSTS` | Allowlist for post-login redirects (e.g. `localhost:3002`) |
 
 ### admin-gms (`apps/web/admin-gms/.env.local`)
 

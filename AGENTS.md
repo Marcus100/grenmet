@@ -15,14 +15,11 @@ pnpm start         # Start Docker services (Postgres + FastAPI)
 ### Development
 
 ```bash
-pnpm dev:web:admin      # admin-gms      :3001
 pnpm dev:web:auth       # auth           :3000
-pnpm dev:web:wxwatch    # wxwatch        :3002
-pnpm dev:web:hurricane  # hurricaneplan  :3003
-pnpm dev:web:spicewx    # spicewx        :3004
-pnpm dev:web:wxproducts # wxproducts     :3005
-pnpm dev:web:hr         # hr             :3006
-pnpm dev:web:salesbus   # salesbus       :3007
+pnpm dev:web:admin      # admin-gms      :3001
+pnpm dev:web:hurricane  # hurricaneplan  :3002
+pnpm dev:web:spicewx    # spicewx        :3003
+pnpm dev:web:signal     # signal         :3004
 ```
 
 ### Quality — run both before finishing any task
