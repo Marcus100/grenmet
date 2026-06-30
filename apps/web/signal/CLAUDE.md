@@ -1,6 +1,6 @@
 # signal (`@grenmet/web-signal`) — Claude context
 
-Port **3009**. Mobile-first, Morning Brew-style civic-media reader for **Grenada
+Port **3004**. Mobile-first, Morning Brew-style civic-media reader for **Grenada
 Signal**. Domain `signal.barrels.gd`. MVP: static MDX, light mode, no auth, no DB.
 
 ## MDX pipeline — Content Collections

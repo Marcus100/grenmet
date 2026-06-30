@@ -222,7 +222,7 @@ services:
       - "traefik.http.routers.web-hurricaneplan-staging.rule=Host(`hurricane.staging.barrels.gd`)"
       - "traefik.http.routers.web-hurricaneplan-staging.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3003"
+      - "traefik.http.services.web-hurricaneplan-staging.loadbalancer.server.port=3002"
     networks:
       - grenmet-staging
 
@@ -240,7 +240,7 @@ services:
       - "traefik.http.routers.web-spicewx-staging.rule=Host(`spice.staging.barrels.gd`)"
       - "traefik.http.routers.web-spicewx-staging.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx-staging.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3004"
+      - "traefik.http.services.web-spicewx-staging.loadbalancer.server.port=3003"
     networks:
       - grenmet-staging
 

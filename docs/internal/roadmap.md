@@ -179,7 +179,7 @@ The internal dashboard is the `admin-gms` application (port 3001).
 
 *Mapping: Programme Phase 6*
 
-The public-facing platform is `spicewx` (port 3004), the primary GMS public weather website.
+The public-facing platform is `spicewx` (port 3003), the primary GMS public weather website.
 
 ### Completed
 - ✅ spicewx application with weather conditions, date-based forecast navigation, header, footer, nav drawer
