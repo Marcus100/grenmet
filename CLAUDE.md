@@ -8,6 +8,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
 ### Always (no confirmation needed)
 - Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
 - Include tests with every new feature or significant logic change
 - Explain reasoning before proposing any new pattern, library, or abstraction
@@ -33,6 +34,25 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 Only touch files explicitly named in the request. If working on a task reveals
 related changes needed in other files, finish the requested task first, then
 describe the finding and ask before continuing.
+
+### Blast-Radius Gate
+A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
+Before declaring done, grep for every consumer of the symbols you touched and
+verify each affected layer. admin-gms is a cross-cutting surface — it hosts five
+formerly-separate apps, so treat any change there as potentially affecting
+cap/hr/wxwatch/wxproducts/salesbus, not one isolated app.
+
+This gate finds impact; it does not override the Scope Gate. When the search
+surfaces a file you were not asked to change, report it and ask — do not silently
+edit it. Find and report, never silently expand scope.
+
+| If you change…                  | Also verify…                                                                                    |
+|---------------------------------|-------------------------------------------------------------------------------------------------|
+| A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
+| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, spicewx via `AUTH_API_URL`)                         |
+| A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
+| A consolidated admin route      | the other folded modules in admin-gms (cap/hr/wxwatch/wxproducts/salesbus)                       |
+| A `@grenmet/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
 
 ### Reasoning Gate
 Before introducing any new pattern, library, abstraction, or approach not already
@@ -65,6 +85,8 @@ When adding to this file, follow this structure:
   each one before continuing.
 - When making multi-file changes, trace the full impact across types, config, and
   related files before starting.
+- When spawning an Agent for a code change, include the Blast-Radius Gate in its
+  brief — a sub-agent starts cold and will otherwise plan only on the files it opens.
 
 ## Code Conventions
 

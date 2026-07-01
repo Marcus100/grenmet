@@ -4,16 +4,16 @@
  */
 
 import * as z from "zod";
-import { userStatusSchema } from "./userStatusSchema.js";
+import { genderSchema } from "./genderSchema.js";
+import { titleSchema } from "./titleSchema.js";
 
 export const profileDetailsUpdateSchema = z.object({
+  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
   first_name: z.optional(z.union([z.string(), z.null()])),
   middle_name: z.optional(z.union([z.string(), z.null()])),
   last_name: z.optional(z.union([z.string(), z.null()])),
   date_of_birth: z.optional(z.union([z.string().date(), z.null()])),
   nationality: z.optional(z.union([z.string(), z.null()])),
-  gender: z.optional(z.union([z.string(), z.null()])),
+  gender: z.optional(z.union([z.lazy(() => genderSchema), z.null()])),
   phone: z.optional(z.union([z.string(), z.null()])),
-  avatar_url: z.optional(z.union([z.string(), z.null()])),
-  status: z.optional(z.union([z.lazy(() => userStatusSchema), z.null()])),
 });

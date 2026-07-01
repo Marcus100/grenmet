@@ -3,12 +3,15 @@
  * Do not edit manually.
  */
 
+import type { Title } from "./Title.js";
+
 /**
  * UserUpdate
  */
 export type UserUpdate = {
   email?: string | null;
   username?: string | null;
+  title?: Title | null;
   first_name?: string | null;
   middle_name?: string | null;
   last_name?: string | null;

@@ -56,6 +56,36 @@ async def test_update_hr_profile_me(
     assert payload["address"]["city"] == "St. George's"
 
 
+async def test_update_hr_profile_modern_fields(
+    async_client: httpx.AsyncClient,
+    normal_user_token_headers_async: dict[str, str],
+) -> None:
+    """Title, gender enum, parish enum, and emergency contact round-trip; status derives."""
+    response = await async_client.patch(
+        f"{settings.API_V1_STR}/hr/profile/me",
+        headers=normal_user_token_headers_async,
+        json={
+            "profile": {"title": "DR", "gender": "MALE"},
+            "address": {"parish": "SAINT_GEORGE"},
+            "emergency_contact": {
+                "name": "Jane Doe",
+                "phone": "+1473000000",
+                "relationship": "Spouse",
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["profile"]["title"] == "DR"
+    assert payload["profile"]["gender"] == "MALE"
+    assert payload["address"]["parish"] == "SAINT_GEORGE"
+    assert payload["emergency_contact"]["name"] == "Jane Doe"
+    assert payload["emergency_contact"]["relationship"] == "Spouse"
+    # status is derived from auth user.is_active (active normal user -> ACTIVE)
+    assert payload["identity"]["status"] == "ACTIVE"
+
+
 async def test_supervisor_cannot_update_other_department(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:

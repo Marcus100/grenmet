@@ -3,19 +3,19 @@
  * Do not edit manually.
  */
 
-import type { UserStatus } from "./UserStatus.js";
+import type { Gender } from "./Gender.js";
+import type { Title } from "./Title.js";
 
 /**
  * ProfileDetailsUpdate
  */
 export type ProfileDetailsUpdate = {
+  title?: Title | null;
   first_name?: string | null;
   middle_name?: string | null;
   last_name?: string | null;
   date_of_birth?: string | null;
   nationality?: string | null;
-  gender?: string | null;
+  gender?: Gender | null;
   phone?: string | null;
-  avatar_url?: string | null;
-  status?: UserStatus | null;
 };

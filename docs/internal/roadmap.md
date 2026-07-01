@@ -40,7 +40,7 @@ These are the operational phases from the DTO Terms of Reference. Each phase map
 Everything built to establish the platform before domain-specific features.
 
 ### Infrastructure and CI/CD
-- ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications
+- ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications (consolidated to 5 in 2026-06 — wxwatch/wxproducts/hr/salesbus/cap folded into admin-gms)
 - ✅ FastAPI backend — authentication and HR domains, PostgreSQL via SQLModel/asyncpg
 - ✅ Drizzle ORM for wxwatch and wxproducts (separate DB per app)
 - ✅ Docker + Docker Compose for FastAPI, PostgreSQL, and infrastructure services
@@ -56,7 +56,7 @@ Everything built to establish the platform before domain-specific features.
 - ✅ Figma `GrenMet v1 Foundation Contract` — color, spacing, radius, typography, shadow tokens
 
 ### Application Scaffolds
-- ✅ All 8 Next.js apps bootstrapped with routing, auth, and environment configuration
+- ✅ All 8 Next.js apps bootstrapped with routing, auth, and environment configuration (consolidated to 5 in 2026-06)
 - ✅ `spicewx` established as the v1 design system reference app
 
 ---
@@ -226,7 +226,7 @@ These are items with an immediate deadline — the July 2026 end-of-period perfo
 Separate from the programme phases, the design system has its own compliance track across all apps.
 
 ### Completed
-- ✅ GrenMet v1 foundation block deployed to all 8 web apps
+- ✅ GrenMet v1 foundation block deployed to all 8 web apps (since consolidated to 5 in 2026-06)
 - ✅ spicewx established as reference implementation
 - ✅ Figma `GrenMet v1` file consolidated into current `00 Overview` and `13 Components` handoff map
 - ✅ Button Code Connect mapping complete locally (publish deferred — Figma account limitation)

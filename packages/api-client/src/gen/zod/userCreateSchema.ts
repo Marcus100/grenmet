@@ -4,10 +4,12 @@
  */
 
 import * as z from "zod";
+import { titleSchema } from "./titleSchema.js";
 
 export const userCreateSchema = z.object({
   email: z.string().email().max(255),
   username: z.string().max(255),
+  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
   first_name: z.string().max(100),
   middle_name: z.optional(z.union([z.string(), z.null()])),
   last_name: z.string().max(100),

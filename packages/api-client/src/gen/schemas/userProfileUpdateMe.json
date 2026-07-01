@@ -4,6 +4,18 @@
       "anyOf": [
         {
           "properties": {
+            "title": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+                  "title": "Title",
+                  "description": "Honorific prefix for a person's name (used on official bylines).",
+                  "x-readme-ref-name": "Title"
+                },
+                { "type": "null" }
+              ]
+            },
             "first_name": {
               "anyOf": [
                 { "type": "string", "maxLength": 100, "minLength": 1 },
@@ -41,10 +53,14 @@
             },
             "gender": {
               "anyOf": [
-                { "type": "string", "maxLength": 50 },
+                {
+                  "type": "string",
+                  "enum": ["MALE", "FEMALE", "OTHER", "UNSPECIFIED"],
+                  "title": "Gender",
+                  "x-readme-ref-name": "Gender"
+                },
                 { "type": "null" }
-              ],
-              "title": "Gender"
+              ]
             },
             "phone": {
               "anyOf": [
@@ -52,24 +68,6 @@
                 { "type": "null" }
               ],
               "title": "Phone"
-            },
-            "avatar_url": {
-              "anyOf": [
-                { "type": "string", "maxLength": 500 },
-                { "type": "null" }
-              ],
-              "title": "Avatar Url"
-            },
-            "status": {
-              "anyOf": [
-                {
-                  "type": "string",
-                  "enum": ["ACTIVE", "INACTIVE"],
-                  "title": "UserStatus",
-                  "x-readme-ref-name": "UserStatus"
-                },
-                { "type": "null" }
-              ]
             }
           },
           "type": "object",
@@ -106,10 +104,24 @@
             },
             "parish": {
               "anyOf": [
-                { "type": "string", "maxLength": 100 },
+                {
+                  "type": "string",
+                  "enum": [
+                    "SAINT_GEORGE",
+                    "SAINT_ANDREW",
+                    "SAINT_DAVID",
+                    "SAINT_JOHN",
+                    "SAINT_MARK",
+                    "SAINT_PATRICK",
+                    "CARRIACOU",
+                    "PETITE_MARTINIQUE"
+                  ],
+                  "title": "Parish",
+                  "description": "Grenada's six parishes plus its two island dependencies.",
+                  "x-readme-ref-name": "Parish"
+                },
                 { "type": "null" }
-              ],
-              "title": "Parish"
+              ]
             },
             "postal_code": {
               "anyOf": [
@@ -129,6 +141,39 @@
           "type": "object",
           "title": "AddressUpdate",
           "x-readme-ref-name": "AddressUpdate"
+        },
+        { "type": "null" }
+      ]
+    },
+    "emergency_contact": {
+      "anyOf": [
+        {
+          "properties": {
+            "name": {
+              "anyOf": [
+                { "type": "string", "maxLength": 255 },
+                { "type": "null" }
+              ],
+              "title": "Name"
+            },
+            "phone": {
+              "anyOf": [
+                { "type": "string", "maxLength": 30 },
+                { "type": "null" }
+              ],
+              "title": "Phone"
+            },
+            "relationship": {
+              "anyOf": [
+                { "type": "string", "maxLength": 100 },
+                { "type": "null" }
+              ],
+              "title": "Relationship"
+            }
+          },
+          "type": "object",
+          "title": "EmergencyContactUpdate",
+          "x-readme-ref-name": "EmergencyContactUpdate"
         },
         { "type": "null" }
       ]
