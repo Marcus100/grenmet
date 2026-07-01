@@ -7,6 +7,18 @@
       "title": "Email"
     },
     "username": { "type": "string", "maxLength": 255, "title": "Username" },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+          "title": "Title",
+          "description": "Honorific prefix for a person's name (used on official bylines).",
+          "x-readme-ref-name": "Title"
+        },
+        { "type": "null" }
+      ]
+    },
     "first_name": { "type": "string", "maxLength": 100, "title": "First Name" },
     "middle_name": {
       "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],

@@ -15,10 +15,21 @@ class RoleAssignmentScope(str, Enum):
     ALL = "ALL"
 
 
+class Title(str, Enum):
+    """Honorific prefix for a person's name (used on official bylines)."""
+
+    MR = "MR"
+    MRS = "MRS"
+    MS = "MS"
+    MISS = "MISS"
+    DR = "DR"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     username: str = Field(unique=True, index=True, max_length=255)
+    title: Title | None = Field(default=None)
     first_name: str = Field(max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str = Field(max_length=100)
@@ -35,6 +46,7 @@ class User(UserBase, table=True):
     # Two-factor auth (TOTP). Secret is plaintext for v1 — encrypt at rest in a follow-up.
     totp_secret: str | None = Field(default=None, max_length=64)
     totp_enabled: bool = Field(default=False)
+    last_login_at: datetime | None = Field(default=None)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

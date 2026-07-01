@@ -17,7 +17,7 @@ pnpm vitest run src/path/to/test.test.ts
 pnpm vitest
 ```
 
-Only `admin-gms` has actual test files. `auth` and `salesbus` have a `vitest.config.ts` in place but no tests yet.
+`admin-gms` and `signal` have actual test files. `auth` has a `vitest.config.ts` in place but unit tests are minimal (its coverage is mostly Playwright e2e).
 See [`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md) for
 the full unit test conventions.
 
@@ -42,7 +42,7 @@ pnpm playwright test --ui
 ## Adding tests to a new app
 
 1. Add `vitest` to `devDependencies` using `catalog:` reference
-2. Create `vitest.config.ts` — copy from `apps/web/salesbus/vitest.config.ts`
+2. Create `vitest.config.ts` — copy from `apps/web/signal/vitest.config.ts`
 3. Add `"test": "vitest run"` to the app's `package.json` scripts
 4. Add `turbo run test` to the `test` task in `turbo.json` if not already present
 

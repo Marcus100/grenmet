@@ -5,7 +5,7 @@ from pydantic import EmailStr, Field
 
 from src.models import BaseModel
 
-from .models import RoleAssignmentScope, UserBase
+from .models import RoleAssignmentScope, Title, UserBase
 
 
 # Properties to receive via API on creation
@@ -27,6 +27,7 @@ class UserRegister(BaseModel):
 class UserUpdate(BaseModel):
     email: EmailStr | None = None
     username: str | None = Field(default=None, min_length=3, max_length=255)
+    title: Title | None = None
     first_name: str | None = Field(default=None, min_length=1, max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
@@ -53,6 +54,7 @@ class UserPublic(UserBase):
     id: uuid.UUID
     created_at: datetime
     updated_at: datetime
+    last_login_at: datetime | None = None
     full_name: str  # Computed field from first_name and last_name
 
 

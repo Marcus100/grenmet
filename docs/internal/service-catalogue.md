@@ -355,4 +355,4 @@ Often underestimated, but it builds the public trust that makes warnings effecti
 | [GMS Digital Service Architecture](./architecture.md) | Strategic framing, design system lanes, warning model, product metadata direction |
 | [Programme Roadmap](./internal/roadmap.md) | What is actively in scope and what is phased/deferred |
 | [Design System](./design-system.md) | Component and token strategy for implementing product UIs |
-| [WxProducts schema](../apps/web/wxproducts/README.md) | Current implemented product database (morning, midday, evening, METAR/SPECI, TAF, SYNOP, CAP, IBF, BUFR, marine, outlook, hourly) |
+| [WxProducts schema](../data-architecture.md#wxproducts-database) | Current implemented product database (morning, midday, evening, METAR/SPECI, TAF, SYNOP, CAP, IBF, BUFR, marine, outlook, hourly) — owned by admin-gms since the 2026-06 consolidation |

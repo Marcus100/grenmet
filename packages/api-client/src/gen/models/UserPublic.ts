@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { Title } from "./Title.js";
+
 /**
  * UserPublic
  */
@@ -17,6 +19,7 @@ export type UserPublic = {
    * @type string
    */
   username: string;
+  title?: Title | null;
   /**
    * @maxLength 100
    * @type string
@@ -50,6 +53,7 @@ export type UserPublic = {
    * @type string, date-time
    */
   updated_at: string;
+  last_login_at?: string | null;
   /**
    * @type string
    */
