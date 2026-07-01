@@ -1,15 +1,36 @@
 "use client";
 
 import type {
+  Gender,
+  Title,
   UserProfilePublic,
   UserProfileUpdateMe,
 } from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
 import { Input } from "@grenmet/ui/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@grenmet/ui/components/ui/native-select";
 import { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import Label from "../form/Label";
+
+const TITLE_OPTIONS: { label: string; value: Title }[] = [
+  { value: "MR", label: "Mr" },
+  { value: "MRS", label: "Mrs" },
+  { value: "MS", label: "Ms" },
+  { value: "MISS", label: "Miss" },
+  { value: "DR", label: "Dr" },
+];
+
+const GENDER_OPTIONS: { label: string; value: Gender }[] = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "OTHER", label: "Other" },
+  { value: "UNSPECIFIED", label: "Unspecified" },
+];
 
 interface UserInfoCardProps {
   isSaving: boolean;
@@ -23,6 +44,7 @@ export default function UserInfoCard({
   onSave,
 }: UserInfoCardProps) {
   const { isOpen, openModal, closeModal } = useModal();
+  const [title, setTitle] = useState<Title | "">(profile.profile.title || "");
   const [firstName, setFirstName] = useState(profile.profile.first_name);
   const [middleName, setMiddleName] = useState(
     profile.profile.middle_name || ""
@@ -32,27 +54,48 @@ export default function UserInfoCard({
   const [nationality, setNationality] = useState(
     profile.profile.nationality || ""
   );
-  const [gender, setGender] = useState(profile.profile.gender || "");
+  const [gender, setGender] = useState<Gender | "">(
+    profile.profile.gender || ""
+  );
+  const [emergencyName, setEmergencyName] = useState(
+    profile.emergency_contact.name || ""
+  );
+  const [emergencyPhone, setEmergencyPhone] = useState(
+    profile.emergency_contact.phone || ""
+  );
+  const [emergencyRelationship, setEmergencyRelationship] = useState(
+    profile.emergency_contact.relationship || ""
+  );
 
   const handleOpen = () => {
+    setTitle(profile.profile.title || "");
     setFirstName(profile.profile.first_name);
     setMiddleName(profile.profile.middle_name || "");
     setLastName(profile.profile.last_name);
     setPhone(profile.identity.phone || "");
     setNationality(profile.profile.nationality || "");
     setGender(profile.profile.gender || "");
+    setEmergencyName(profile.emergency_contact.name || "");
+    setEmergencyPhone(profile.emergency_contact.phone || "");
+    setEmergencyRelationship(profile.emergency_contact.relationship || "");
     openModal();
   };
 
   const handleSave = async () => {
     await onSave({
       profile: {
+        title: title || null,
         first_name: firstName,
         middle_name: middleName || null,
         last_name: lastName,
         phone: phone || null,
         nationality: nationality || null,
         gender: gender || null,
+      },
+      emergency_contact: {
+        name: emergencyName || null,
+        phone: emergencyPhone || null,
+        relationship: emergencyRelationship || null,
       },
     });
     closeModal();
@@ -69,6 +112,15 @@ export default function UserInfoCard({
           </h4>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
+            <div>
+              <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                Title
+              </p>
+              <p className="font-medium text-foreground text-sm">
+                {profile.profile.title || "-"}
+              </p>
+            </div>
+
             <div>
               <p className="mb-2 text-muted-foreground text-xs leading-normal">
                 First Name
@@ -138,6 +190,33 @@ export default function UserInfoCard({
               </p>
               <p className="font-medium text-foreground text-sm">
                 {profile.profile.gender || "-"}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                Emergency Contact
+              </p>
+              <p className="font-medium text-foreground text-sm">
+                {profile.emergency_contact.name || "-"}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                Emergency Phone
+              </p>
+              <p className="font-medium text-foreground text-sm">
+                {profile.emergency_contact.phone || "-"}
+              </p>
+            </div>
+
+            <div>
+              <p className="mb-2 text-muted-foreground text-xs leading-normal">
+                Emergency Relationship
+              </p>
+              <p className="font-medium text-foreground text-sm">
+                {profile.emergency_contact.relationship || "-"}
               </p>
             </div>
           </div>
@@ -229,6 +308,29 @@ export default function UserInfoCard({
 
                   <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                     <div className="col-span-2 lg:col-span-1">
+                      <Label>Title</Label>
+                      <NativeSelect
+                        className="w-full"
+                        onChange={(event) =>
+                          setTitle(event.target.value as Title | "")
+                        }
+                        value={title}
+                      >
+                        <NativeSelectOption value="">
+                          Select title
+                        </NativeSelectOption>
+                        {TITLE_OPTIONS.map((option) => (
+                          <NativeSelectOption
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-1">
                       <Label>First Name</Label>
                       <Input
                         onChange={(event) => setFirstName(event.target.value)}
@@ -284,10 +386,57 @@ export default function UserInfoCard({
 
                     <div className="col-span-2 lg:col-span-1">
                       <Label>Gender</Label>
-                      <Input
-                        onChange={(event) => setGender(event.target.value)}
-                        type="text"
+                      <NativeSelect
+                        className="w-full"
+                        onChange={(event) =>
+                          setGender(event.target.value as Gender | "")
+                        }
                         value={gender}
+                      >
+                        <NativeSelectOption value="">
+                          Select gender
+                        </NativeSelectOption>
+                        {GENDER_OPTIONS.map((option) => (
+                          <NativeSelectOption
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label}
+                          </NativeSelectOption>
+                        ))}
+                      </NativeSelect>
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-1">
+                      <Label>Emergency Contact Name</Label>
+                      <Input
+                        onChange={(event) =>
+                          setEmergencyName(event.target.value)
+                        }
+                        type="text"
+                        value={emergencyName}
+                      />
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-1">
+                      <Label>Emergency Contact Phone</Label>
+                      <Input
+                        onChange={(event) =>
+                          setEmergencyPhone(event.target.value)
+                        }
+                        type="text"
+                        value={emergencyPhone}
+                      />
+                    </div>
+
+                    <div className="col-span-2 lg:col-span-1">
+                      <Label>Emergency Relationship</Label>
+                      <Input
+                        onChange={(event) =>
+                          setEmergencyRelationship(event.target.value)
+                        }
+                        type="text"
+                        value={emergencyRelationship}
                       />
                     </div>
                   </div>

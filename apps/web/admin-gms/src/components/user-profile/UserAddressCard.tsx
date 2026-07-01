@@ -1,15 +1,31 @@
 "use client";
 
 import type {
+  Parish,
   UserProfilePublic,
   UserProfileUpdateMe,
 } from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
 import { Input } from "@grenmet/ui/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@grenmet/ui/components/ui/native-select";
 import { useState } from "react";
 import { useModal } from "../../hooks/useModal";
 import Label from "../form/Label";
+
+const PARISH_OPTIONS: { label: string; value: Parish }[] = [
+  { value: "SAINT_GEORGE", label: "St. George" },
+  { value: "SAINT_ANDREW", label: "St. Andrew" },
+  { value: "SAINT_DAVID", label: "St. David" },
+  { value: "SAINT_JOHN", label: "St. John" },
+  { value: "SAINT_MARK", label: "St. Mark" },
+  { value: "SAINT_PATRICK", label: "St. Patrick" },
+  { value: "CARRIACOU", label: "Carriacou" },
+  { value: "PETITE_MARTINIQUE", label: "Petite Martinique" },
+];
 
 interface UserAddressCardProps {
   isSaving: boolean;
@@ -26,7 +42,9 @@ export default function UserAddressCard({
   const [line1, setLine1] = useState(profile.address.line_1 || "");
   const [line2, setLine2] = useState(profile.address.line_2 || "");
   const [city, setCity] = useState(profile.address.city || "");
-  const [parish, setParish] = useState(profile.address.parish || "");
+  const [parish, setParish] = useState<Parish | "">(
+    profile.address.parish || ""
+  );
   const [postalCode, setPostalCode] = useState(
     profile.address.postal_code || ""
   );
@@ -197,12 +215,26 @@ export default function UserAddressCard({
 
                   <div>
                     <Label>Parish</Label>
-                    <Input
-                      defaultValue={parish}
+                    <NativeSelect
+                      className="w-full"
                       key={`parish-${parish}`}
-                      onChange={(event) => setParish(event.target.value)}
-                      type="text"
-                    />
+                      onChange={(event) =>
+                        setParish(event.target.value as Parish | "")
+                      }
+                      value={parish}
+                    >
+                      <NativeSelectOption value="">
+                        Select parish
+                      </NativeSelectOption>
+                      {PARISH_OPTIONS.map((option) => (
+                        <NativeSelectOption
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </NativeSelectOption>
+                      ))}
+                    </NativeSelect>
                   </div>
 
                   <div>

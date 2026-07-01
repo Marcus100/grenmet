@@ -4,12 +4,13 @@
  */
 
 import * as z from "zod";
+import { parishSchema } from "./parishSchema.js";
 
 export const addressUpdateSchema = z.object({
   line_1: z.optional(z.union([z.string(), z.null()])),
   line_2: z.optional(z.union([z.string(), z.null()])),
   city: z.optional(z.union([z.string(), z.null()])),
-  parish: z.optional(z.union([z.string(), z.null()])),
+  parish: z.optional(z.union([z.lazy(() => parishSchema), z.null()])),
   postal_code: z.optional(z.union([z.string(), z.null()])),
   country: z.optional(z.union([z.string(), z.null()])),
 });

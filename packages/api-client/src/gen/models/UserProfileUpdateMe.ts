@@ -4,6 +4,7 @@
  */
 
 import type { AddressUpdate } from "./AddressUpdate.js";
+import type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
 import type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 import type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
 
@@ -13,5 +14,6 @@ import type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
 export type UserProfileUpdateMe = {
   profile?: ProfileDetailsUpdate | null;
   address?: AddressUpdate | null;
+  emergency_contact?: EmergencyContactUpdate | null;
   roster_preferences?: RosterPreferencesUpdate | null;
 };

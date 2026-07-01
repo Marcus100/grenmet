@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { Title } from "./Title.js";
+
 /**
  * UserCreate
  */
@@ -17,6 +19,7 @@ export type UserCreate = {
    * @type string
    */
   username: string;
+  title?: Title | null;
   /**
    * @maxLength 100
    * @type string

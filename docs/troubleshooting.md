@@ -177,7 +177,7 @@ netstat -ano | findstr :3001
 taskkill /PID <pid> /F
 ```
 
-App ports are listed in the [Technical Overview — 8 web apps at a glance](./technical-overview.md#the-8-web-apps-at-a-glance). Infrastructure ports: FastAPI `:8000`, Adminer `:8080`, MailCatcher `:1080`.
+App ports are listed in [`docs/ports.md`](./ports.md) (canonical) and the [Technical Overview — web apps at a glance](./technical-overview.md#the-web-apps-at-a-glance). Infrastructure ports: FastAPI `:8000`, Adminer `:8080`, MailCatcher `:1080`.
 
 ---
 

@@ -7,8 +7,10 @@ GrenMet currently uses a modular-monolith data model: several applications share
 | Database | Owner | Main code | Migration tool | Notes |
 | --- | --- | --- | --- | --- |
 | FastAPI DB: local `app`, staging `app_staging`, production `app_prod` | FastAPI | `apps/api/fastapi/src` | Alembic | Auth, HR, and FastAPI CAP domain tables |
-| `wxwatch` | `@grenmet/web-wxwatch` and Scrapy pipeline | `apps/web/wxwatch/src/db/schema.ts` | Drizzle Kit | Weather image archive metadata |
-| `wxproducts` | `@grenmet/web-wxproducts` | `apps/web/wxproducts/src/db/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
+| `wxwatch` | `@grenmet/web-admin` (admin-gms) + Scrapy pipeline | `apps/web/admin-gms/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
+| `wxproducts` | `@grenmet/web-admin` (admin-gms) | `apps/web/admin-gms/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
+
+> Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **admin-gms**. Their migrations run in production via the `web-migrate` service (built from admin-gms's `migrate` Dockerfile stage). The databases and their backups are otherwise unchanged.
 
 The databases are provisioned by `infra/postgres/init-databases.sh` on first PostgreSQL volume initialization.
 
@@ -35,16 +37,16 @@ Rules:
 
 Rules:
 
-- Edit `apps/web/wxwatch/src/db/schema.ts` for schema changes.
-- Run `pnpm db:generate` from `apps/web/wxwatch`.
-- Run `pnpm db:migrate` from `apps/web/wxwatch`.
+- Edit `apps/web/admin-gms/src/db/wxwatch/schema.ts` for schema changes.
+- Run `pnpm db:wxwatch:generate` from `apps/web/admin-gms`.
+- Run `pnpm db:wxwatch:migrate` from `apps/web/admin-gms`.
 - Commit schema and generated migration output together.
 
 The Scrapy pipeline writes weather image metadata into this database. Do not couple `wxwatch` data directly to FastAPI tables.
 
 ## WxProducts Database
 
-`wxproducts` owns the structured meteorological product model. The schema barrel is `apps/web/wxproducts/src/db/schema/index.ts`.
+`wxproducts` owns the structured meteorological product model. The schema barrel is `apps/web/admin-gms/src/db/wxproducts/schema/index.ts`.
 
 Current schema families include:
 
@@ -57,9 +59,9 @@ Current schema families include:
 
 Rules:
 
-- Edit files under `apps/web/wxproducts/src/db/schema/`.
-- Run `pnpm db:generate` from `apps/web/wxproducts`.
-- Run `pnpm db:migrate` from `apps/web/wxproducts`.
+- Edit files under `apps/web/admin-gms/src/db/wxproducts/schema/`.
+- Run `pnpm db:wxproducts:generate` from `apps/web/admin-gms`.
+- Run `pnpm db:wxproducts:migrate` from `apps/web/admin-gms`.
 - Keep fixed-output PDF requirements in the document lane; do not force those dimensions into generic UI tokens.
 
 ## Backups

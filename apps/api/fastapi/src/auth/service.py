@@ -232,6 +232,8 @@ async def create_session(
     """Create and persist a new opaque session for a user."""
     now = utc_now()
     session_secret = create_session_token()
+    user.last_login_at = now
+    session.add(user)
     db_session = AuthSession.model_validate(
         SessionCreate(
             user_id=user.id,

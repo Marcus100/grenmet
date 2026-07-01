@@ -18,12 +18,8 @@ cp apps/api/fastapi/.env.local.example  apps/api/fastapi/.env.local
 # 3. Each Next.js app
 cp apps/web/auth/.env.local.example         apps/web/auth/.env.local
 cp apps/web/admin-gms/.env.local.example    apps/web/admin-gms/.env.local
-cp apps/web/wxwatch/.env.local.example      apps/web/wxwatch/.env.local
-cp apps/web/wxproducts/.env.local.example   apps/web/wxproducts/.env.local
-cp apps/web/hr/.env.local.example           apps/web/hr/.env.local
 cp apps/web/hurricaneplan/.env.local.example apps/web/hurricaneplan/.env.local
 cp apps/web/spicewx/.env.local.example      apps/web/spicewx/.env.local
-cp apps/web/salesbus/.env.local.example     apps/web/salesbus/.env.local
 
 # 4. Scrapy script (optional — only if using the Scrapy pipeline)
 cp scripts/scrapy-wxwatch/.env.local.example  scripts/scrapy-wxwatch/.env.local
@@ -123,12 +119,13 @@ For staging/production, replace with the actual subdomain hosts (no port needed)
 
 **Current active domain (`barrels.gd`):**
 ```
-AUTH_ALLOWED_RETURN_HOSTS=admin.barrels.gd,wxwatch.barrels.gd,hurricane.barrels.gd,spice.barrels.gd,wxproducts.barrels.gd,hr.barrels.gd,sales.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
 ```
+A leading-dot domain matches every `*.barrels.gd` subdomain (admin, hurricane, spice, signal), so no per-app maintenance is needed — this is exactly what the prod/staging compose files set.
 
 **Planned production domain (`weather.gd`) — update when DNS cutover is complete:**
 ```
-AUTH_ALLOWED_RETURN_HOSTS=admin.weather.gd,wxwatch.weather.gd,hurricane.weather.gd,spice.weather.gd,wxproducts.weather.gd,hr.weather.gd,sales.weather.gd
+AUTH_ALLOWED_RETURN_HOSTS=.weather.gd
 ```
 
 ### Apps that delegate auth (hurricaneplan, spicewx)
@@ -141,19 +138,9 @@ These apps redirect to `web-auth` for sign-in. They do not manage sessions direc
 | `AUTH_API_V1_STR` | API version prefix |
 | `SESSION_COOKIE_NAME` | Must match the value in the auth app |
 
-### hr (`apps/web/hr/.env.local`)
-
-HR also delegates to `web-auth` but redirects back to itself after sign-in, so it needs `AUTH_APP_URL` and `AUTH_ALLOWED_RETURN_HOSTS` in addition to the standard auth variables.
-
-| Variable | Purpose |
-|---|---|
-| `AUTH_APP_URL` | URL of the auth app (e.g. `http://localhost:3000`) |
-| `AUTH_API_URL` | FastAPI base URL |
-| `AUTH_API_V1_STR` | API version prefix |
-| `SESSION_COOKIE_NAME` | Shared session cookie name |
-| `AUTH_ALLOWED_RETURN_HOSTS` | Allowlist for post-login redirects (e.g. `localhost:3002`) |
-
 ### admin-gms (`apps/web/admin-gms/.env.local`)
+
+admin-gms hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (2026-06), so it owns their env vars — including the two Drizzle database URLs and the CAP API base.
 
 | Variable | Purpose |
 |---|---|
@@ -163,35 +150,18 @@ HR also delegates to `web-auth` but redirects back to itself after sign-in, so i
 | `SESSION_COOKIE_NAME` | Session cookie name |
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
+| `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
+| `WXWATCH_DATABASE_URL` | Postgres connection string for the wxwatch database (Drizzle) |
+| `WXPRODUCTS_DATABASE_URL` | Postgres connection string for the wxproducts database (Drizzle) |
 
-### wxwatch (`apps/web/wxwatch/.env.local`)
+### signal (`apps/web/signal/.env.local`)
 
-| Variable | Purpose |
-|---|---|
-| `AUTH_APP_URL` | URL of the auth app |
-| `AUTH_API_URL` | FastAPI base URL |
-| `AUTH_API_V1_STR` | API version prefix |
-| `SESSION_COOKIE_NAME` | Session cookie name |
-| `SESSION_COOKIE_DOMAIN` | Cookie domain for cross-app sharing |
-| `DATABASE_URL` | wxwatch's own Postgres connection string |
-
-### wxproducts (`apps/web/wxproducts/.env.local`)
+Signal has no auth or database. All variables are optional client-side publics with sensible defaults.
 
 | Variable | Purpose |
 |---|---|
-| `DATABASE_URL` | wxproducts' own Postgres connection string |
-
-### salesbus (`apps/web/salesbus/.env.local`)
-
-Salesbus is not yet integrated with the shared auth system. It uses only client-side public variables.
-
-| Variable | Purpose |
-|---|---|
-| `NEXT_PUBLIC_API_URL` | FastAPI base URL for client-side requests |
-| `NEXT_PUBLIC_APP_NAME` | Application display name |
-| `NEXT_PUBLIC_APP_VERSION` | Application version string |
-| `NEXT_PUBLIC_ENABLE_DEBUG` | Enable debug output in development (`true` / `false`) |
-| `NEXT_PUBLIC_ENABLE_ANALYTICS` | Enable analytics (`true` / `false`; disabled by default in dev) |
+| `NEXT_PUBLIC_SITE_URL` | Public site URL (default `http://localhost:3004`) |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (optional) |
 
 ### Scrapy script (`scripts/scrapy-wxwatch/.env.local`)
 

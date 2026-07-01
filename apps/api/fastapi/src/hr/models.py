@@ -21,6 +21,26 @@ class UserStatus(str, Enum):
     INACTIVE = "INACTIVE"
 
 
+class Gender(str, Enum):
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+    OTHER = "OTHER"
+    UNSPECIFIED = "UNSPECIFIED"
+
+
+class Parish(str, Enum):
+    """Grenada's six parishes plus its two island dependencies."""
+
+    SAINT_GEORGE = "SAINT_GEORGE"
+    SAINT_ANDREW = "SAINT_ANDREW"
+    SAINT_DAVID = "SAINT_DAVID"
+    SAINT_JOHN = "SAINT_JOHN"
+    SAINT_MARK = "SAINT_MARK"
+    SAINT_PATRICK = "SAINT_PATRICK"
+    CARRIACOU = "CARRIACOU"
+    PETITE_MARTINIQUE = "PETITE_MARTINIQUE"
+
+
 class EmploymentType(str, Enum):
     FULL_TIME = "FULL_TIME"
     PART_TIME = "PART_TIME"
@@ -61,12 +81,15 @@ class UserProfile(SQLModel, table=True):
         foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
     )
     phone: str | None = Field(default=None, max_length=30)
-    avatar_url: str | None = Field(default=None, max_length=500)
-    status: UserStatus = Field(default=UserStatus.ACTIVE)
     date_of_birth: date | None = Field(default=None)
     nationality: str | None = Field(default=None, max_length=100)
-    gender: str | None = Field(default=None, max_length=50)
-    created_by: str | None = Field(default=None, max_length=255)
+    gender: Gender | None = Field(default=None)
+    emergency_contact_name: str | None = Field(default=None, max_length=255)
+    emergency_contact_phone: str | None = Field(default=None, max_length=30)
+    emergency_contact_relationship: str | None = Field(default=None, max_length=100)
+    created_by: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", ondelete="SET NULL"
+    )
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -82,9 +105,9 @@ class UserAddress(SQLModel, table=True):
     line_1: str | None = Field(default=None, max_length=255)
     line_2: str | None = Field(default=None, max_length=255)
     city: str | None = Field(default=None, max_length=100)
-    parish: str | None = Field(default=None, max_length=100)
+    parish: Parish | None = Field(default=None)
     postal_code: str | None = Field(default=None, max_length=20)
-    country: str | None = Field(default=None, max_length=100)
+    country: str | None = Field(default="Grenada", max_length=100)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
