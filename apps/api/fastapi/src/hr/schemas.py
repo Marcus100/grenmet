@@ -3,12 +3,14 @@ from datetime import date, datetime
 
 from pydantic import Field
 
-from src.auth.models import RoleAssignmentScope
+from src.auth.models import RoleAssignmentScope, Title
 from src.models import BaseModel
 
 from .models import (
     EmploymentStatus,
     EmploymentType,
+    Gender,
+    Parish,
     ShiftPattern,
     UserStatus,
 )
@@ -23,22 +25,29 @@ class ProfileIdentityPublic(BaseModel):
 
 
 class ProfileDetailsPublic(BaseModel):
+    title: Title | None = None
     first_name: str
     middle_name: str | None = None
     last_name: str
     display_name: str | None = None
     date_of_birth: date | None = None
     nationality: str | None = None
-    gender: str | None = None
+    gender: Gender | None = None
 
 
 class AddressPublic(BaseModel):
     line_1: str | None = None
     line_2: str | None = None
     city: str | None = None
-    parish: str | None = None
+    parish: Parish | None = None
     postal_code: str | None = None
     country: str | None = None
+
+
+class EmergencyContactPublic(BaseModel):
+    name: str | None = None
+    phone: str | None = None
+    relationship: str | None = None
 
 
 class DepartmentPublic(BaseModel):
@@ -83,7 +92,7 @@ class ApprovalAuthorityPublic(BaseModel):
 
 class ProfileAuditPublic(BaseModel):
     created_at: datetime | None = None
-    created_by: str | None = None
+    created_by: uuid.UUID | None = None
     updated_at: datetime | None = None
 
 
@@ -92,6 +101,7 @@ class UserProfilePublic(BaseModel):
     identity: ProfileIdentityPublic
     profile: ProfileDetailsPublic
     address: AddressPublic
+    emergency_contact: EmergencyContactPublic
     employment: EmploymentPublic
     roles: list[RolePublic] = Field(default_factory=list)
     permissions: list[str] = Field(default_factory=list)
@@ -102,22 +112,21 @@ class UserProfilePublic(BaseModel):
 
 
 class ProfileDetailsUpdate(BaseModel):
+    title: Title | None = None
     first_name: str | None = Field(default=None, min_length=1, max_length=100)
     middle_name: str | None = Field(default=None, max_length=100)
     last_name: str | None = Field(default=None, min_length=1, max_length=100)
     date_of_birth: date | None = None
     nationality: str | None = Field(default=None, max_length=100)
-    gender: str | None = Field(default=None, max_length=50)
+    gender: Gender | None = None
     phone: str | None = Field(default=None, max_length=30)
-    avatar_url: str | None = Field(default=None, max_length=500)
-    status: UserStatus | None = None
 
 
 class AddressUpdate(BaseModel):
     line_1: str | None = Field(default=None, max_length=255)
     line_2: str | None = Field(default=None, max_length=255)
     city: str | None = Field(default=None, max_length=100)
-    parish: str | None = Field(default=None, max_length=100)
+    parish: Parish | None = None
     postal_code: str | None = Field(default=None, max_length=20)
     country: str | None = Field(default=None, max_length=100)
 
@@ -129,9 +138,16 @@ class RosterPreferencesUpdate(BaseModel):
     max_night_shifts_per_month: int | None = Field(default=None, ge=0, le=31)
 
 
+class EmergencyContactUpdate(BaseModel):
+    name: str | None = Field(default=None, max_length=255)
+    phone: str | None = Field(default=None, max_length=30)
+    relationship: str | None = Field(default=None, max_length=100)
+
+
 class UserProfileUpdateMe(BaseModel):
     profile: ProfileDetailsUpdate | None = None
     address: AddressUpdate | None = None
+    emergency_contact: EmergencyContactUpdate | None = None
     roster_preferences: RosterPreferencesUpdate | None = None
 
 

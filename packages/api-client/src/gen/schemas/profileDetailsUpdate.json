@@ -1,5 +1,17 @@
 {
   "properties": {
+    "title": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+          "title": "Title",
+          "description": "Honorific prefix for a person's name (used on official bylines).",
+          "x-readme-ref-name": "Title"
+        },
+        { "type": "null" }
+      ]
+    },
     "first_name": {
       "anyOf": [
         { "type": "string", "maxLength": 100, "minLength": 1 },
@@ -27,27 +39,19 @@
       "title": "Nationality"
     },
     "gender": {
-      "anyOf": [{ "type": "string", "maxLength": 50 }, { "type": "null" }],
-      "title": "Gender"
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["MALE", "FEMALE", "OTHER", "UNSPECIFIED"],
+          "title": "Gender",
+          "x-readme-ref-name": "Gender"
+        },
+        { "type": "null" }
+      ]
     },
     "phone": {
       "anyOf": [{ "type": "string", "maxLength": 30 }, { "type": "null" }],
       "title": "Phone"
-    },
-    "avatar_url": {
-      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
-      "title": "Avatar Url"
-    },
-    "status": {
-      "anyOf": [
-        {
-          "type": "string",
-          "enum": ["ACTIVE", "INACTIVE"],
-          "title": "UserStatus",
-          "x-readme-ref-name": "UserStatus"
-        },
-        { "type": "null" }
-      ]
     }
   },
   "type": "object",

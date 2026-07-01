@@ -76,18 +76,20 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 4. Access env vars through the app's `src/env.ts` — never `process.env` directly.
 5. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
 
-## Top 5 Anti-Patterns
+## Top 6 Anti-Patterns
 
 1. Never manually edit `packages/api-client/src/gen/` — always regenerate via `pnpm generate:api-client`.
 2. Never write to `.env.*` or `.env.local` files.
 3. Never run `git commit`, `git push`, `gh pr merge`, or any deploy command.
 4. Never touch a file not explicitly named in the request without stopping and asking first.
 5. Never implement after analysis — stop and wait for explicit approval before writing code.
+6. Never declare a task done after editing only the named file — grep every callsite of changed symbols and verify each affected layer first (see the Blast-Radius Gate in `CLAUDE.md`).
 
 ## Where to Look Next
 
 | I need to understand…            | Read…                        |
 |----------------------------------|------------------------------|
+| Cross-cutting change impact      | Blast-Radius Gate in `CLAUDE.md` |
 | Monorepo structure and auth flow | `docs/technical-overview.md` |
 | Service architecture             | `docs/architecture.md`       |
 | Auth package API                 | `packages/auth/README.md`    |

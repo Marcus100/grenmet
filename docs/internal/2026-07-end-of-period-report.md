@@ -65,7 +65,7 @@ The review covers:
 | # | Deliverable | Committed by | Actual status | Evidence / notes |
 |---|---|---|---|---|
 | 1 | Digital Transformation Strategy and roadmap approved by management | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: link to ROADMAP.md or note if verbally agreed]* |
-| 2 | Application platform and CI/CD pipeline fully operational | June 2026 | ✅ Complete | 10 automated GitHub Actions workflows; 8 Next.js apps deployable to staging and production; 160+ commits Jan–May 2026. |
+| 2 | Application platform and CI/CD pipeline fully operational | June 2026 | ✅ Complete | 10 automated GitHub Actions workflows; 8 Next.js apps deployable to staging and production (consolidated to 5 in 2026-06); 160+ commits Jan–May 2026. |
 | 3 | CAP data schema and alert product models defined and deployed | June 2026 | ✅ Schema complete | CAP, IBF, tropical outlook, and product-metadata schemas deployed in wxproducts database. |
 | 4 | CAP dissemination tool MVP | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: what exists — even if minimal — and what remains]* |
 | 5 | CDMS evaluation completed and implementation plan approved | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: SURFACE CDMS evaluation outcome; approval status]* |

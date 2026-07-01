@@ -59,5 +59,14 @@ else
 fi
 echo ""
 
+# Seed custom user accounts (idempotent — skips users that already exist)
+echo "👥 Seeding custom users..."
+if "${UV_CMD[@]}" run python scripts/seed_data.py; then
+    echo "✅ Custom users seeded"
+else
+    echo "⚠️  User seeding failed (may already exist)"
+fi
+echo ""
+
 echo "✅ Prestart script completed successfully!"
 exit 0

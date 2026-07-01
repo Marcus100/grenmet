@@ -11,14 +11,11 @@ grenmet/
 │   │   ├── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, webhooks
 │   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
-│       ├── admin-gms/          # Internal GMS operations dashboard
+│       ├── admin-gms/          # Internal GMS ops dashboard — also hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules
 │       ├── auth/               # Shared sign-in/sign-up gateway for all apps
-│       ├── hr/                 # HR management — timesheets, rosters, shifts, leave
 │       ├── hurricaneplan/      # Public hurricane preparedness content site (MDX)
-│       ├── salesbus/           # Sales and inventory management
-│       ├── spicewx/            # Public GMS weather website (design system reference app)
-│       ├── wxproducts/         # Structured forecast products platform + PDF export
-│       └── wxwatch/            # Weather image archive (automated scraping + browseable)
+│       ├── signal/             # Grenada Signal — civic-media reader (static MDX)
+│       └── spicewx/            # Public GMS weather website (design system reference app)
 ├── packages/
 │   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
 │   ├── auth/                   # Shared auth/session package (@grenmet/auth)
@@ -90,12 +87,9 @@ From repo root:
 
 - [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
-- [hr](apps/web/hr/README.md) – `pnpm dev:web:hr`
 - [hurricaneplan](apps/web/hurricaneplan/README.md) – `pnpm dev:web:hurricane`
-- [salesbus](apps/web/salesbus/README.md) – `pnpm dev:web:salesbus`
+- [signal](apps/web/signal/README.md) – `pnpm dev:web:signal`
 - [spicewx](apps/web/spicewx/README.md) – `pnpm dev:web:spicewx`
-- [wxproducts](apps/web/wxproducts/README.md) – `pnpm dev:web:wxproducts`
-- [wxwatch](apps/web/wxwatch/README.md) – `pnpm dev:web:wxwatch`
 
 ## Scripts
 
@@ -117,12 +111,9 @@ All commands are run from the monorepo root.
 | `pnpm dev`                | All apps (Turbo dev in parallel)        |
 | `pnpm dev:web:admin`      | [admin-gms](apps/web/admin-gms)         |
 | `pnpm dev:web:auth`       | [auth](apps/web/auth)                   |
-| `pnpm dev:web:hr`         | [hr](apps/web/hr)                       |
 | `pnpm dev:web:hurricane`  | [hurricaneplan](apps/web/hurricaneplan) |
-| `pnpm dev:web:salesbus`   | [salesbus](apps/web/salesbus)           |
+| `pnpm dev:web:signal`     | [signal](apps/web/signal)               |
 | `pnpm dev:web:spicewx`    | [spicewx](apps/web/spicewx)             |
-| `pnpm dev:web:wxproducts` | [wxproducts](apps/web/wxproducts)       |
-| `pnpm dev:web:wxwatch`    | [wxwatch](apps/web/wxwatch)             |
 | `pnpm dev:honoapi`        | [Hono API](apps/api/honoapi)            |
 
 API (FastAPI): use `pnpm start` for infra + API, or `cd apps/api/fastapi && docker compose watch` for API-only.
@@ -155,7 +146,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | [Technical Overview](docs/technical-overview.md) | How the codebase fits together — monorepo structure, auth flow, shared packages, databases |
 | [Contributing](CONTRIBUTING.md) | Branching strategy, commit conventions, pre-commit checklist, PR process, code conventions |
 | [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
-| [Operations](docs/operations.md) | Runtime topology, health checks, incident triage, backups, restore, access review |
+| [Infrastructure & Operations](docs/infrastructure.md) | Runtime topology, health checks, incident triage, backups, restore, access review |
 | [Security Baseline](docs/security.md) | Implemented controls, security rules, authz model, and known gaps |
 | [API Contracts](docs/api/contracts.md) | API conventions, generated client policy, errors, pagination, health, public CAP feeds |
 | [Data Architecture](docs/data-architecture.md) | Database ownership, migrations, backups, and data-governance rules |
@@ -177,12 +168,9 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | --- | --- |
 | admin-gms | [apps/web/admin-gms/README.md](apps/web/admin-gms/README.md) |
 | auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
-| hr | [apps/web/hr/README.md](apps/web/hr/README.md) |
 | hurricaneplan | [apps/web/hurricaneplan/README.md](apps/web/hurricaneplan/README.md) |
-| salesbus | [apps/web/salesbus/README.md](apps/web/salesbus/README.md) |
+| signal | [apps/web/signal/README.md](apps/web/signal/README.md) |
 | spicewx | [apps/web/spicewx/README.md](apps/web/spicewx/README.md) |
-| wxproducts | [apps/web/wxproducts/README.md](apps/web/wxproducts/README.md) |
-| wxwatch | [apps/web/wxwatch/README.md](apps/web/wxwatch/README.md) |
 | FastAPI | [apps/api/fastapi/README.md](apps/api/fastapi/README.md) |
 
 ## Development
@@ -215,7 +203,7 @@ cd apps/api/fastapi
 
 **Web (TypeScript)**
 
-See each app's README (e.g. `apps/web/admin-gms`, `apps/web/wxwatch`).
+See each app's README (e.g. `apps/web/admin-gms`, `apps/web/spicewx`).
 
 ### Dependencies
 

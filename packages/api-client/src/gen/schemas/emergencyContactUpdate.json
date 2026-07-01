@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "name": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Name"
+    },
+    "phone": {
+      "anyOf": [{ "type": "string", "maxLength": 30 }, { "type": "null" }],
+      "title": "Phone"
+    },
+    "relationship": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Relationship"
+    }
+  },
+  "type": "object",
+  "title": "EmergencyContactUpdate",
+  "x-readme-ref-name": "EmergencyContactUpdate"
+}

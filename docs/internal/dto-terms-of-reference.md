@@ -234,7 +234,7 @@ Beyond the execution phases, the following foundational systems have been establ
 
 | System | Description | Status |
 |---|---|---|
-| **Application platform** | Monorepo with 8 Next.js applications, shared authentication, shared UI library, and type-safe API client generation | ✅ Operational |
+| **Application platform** | Monorepo with 8 Next.js applications (consolidated to 5 in 2026-06), shared authentication, shared UI library, and type-safe API client generation | ✅ Operational |
 | **Authentication system** | Session-based auth with shared cookie management across all apps | ✅ Operational |
 | **CI/CD pipeline** | 10 automated GitHub Actions workflows: web builds, API builds, deployment to staging and production, database backup, code quality checks, security scanning | ✅ Operational |
 | **GrenMet Design System v1** | Foundation design token system with Figma integration; CSS custom properties, Tailwind v4 aliases, and shared component library | ✅ Complete |

@@ -1356,6 +1356,7 @@ export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
 } from "./models/DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { EmergencyContactUpdate } from "./models/EmergencyContactUpdate.js";
 export type { EmploymentAdminUpdate } from "./models/EmploymentAdminUpdate.js";
 export type {
   EmploymentStatus,
@@ -1383,6 +1384,8 @@ export type {
   ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
   ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
 } from "./models/ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export type { Gender, GenderGenderEnumKey } from "./models/Gender.js";
+export { genderGenderEnum } from "./models/Gender.js";
 export type {
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet200,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
@@ -1493,6 +1496,8 @@ export type { NewPassword } from "./models/NewPassword.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./models/PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./models/PaginatedResponseUserPublic.js";
+export type { Parish, ParishParishEnumKey } from "./models/Parish.js";
+export { parishParishEnum } from "./models/Parish.js";
 export type {
   ParkingAction,
   ParkingActionParkingActionEnumKey,
@@ -1937,6 +1942,8 @@ export type { TimesheetListPublic } from "./models/TimesheetListPublic.js";
 export type { TimesheetPublic } from "./models/TimesheetPublic.js";
 export type { TimesheetSubmitRequest } from "./models/TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./models/TimesheetSummaryByShift.js";
+export type { Title, TitleTitleEnumKey } from "./models/Title.js";
+export { titleTitleEnum } from "./models/Title.js";
 export type { Token } from "./models/Token.js";
 export type { TwoFactorCodeRequest } from "./models/TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./models/TwoFactorDisableRequest.js";
@@ -2054,11 +2061,6 @@ export type { UserRoleAssignmentCreate } from "./models/UserRoleAssignmentCreate
 export type { UserRoleAssignmentPublic } from "./models/UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./models/UserRoleAssignmentsPublic.js";
 export type { UserRoleAssignmentUpdate } from "./models/UserRoleAssignmentUpdate.js";
-export type {
-  UserStatus,
-  UserStatusUserStatusEnumKey,
-} from "./models/UserStatus.js";
-export { userStatusUserStatusEnum } from "./models/UserStatus.js";
 export type { UserUpdate } from "./models/UserUpdate.js";
 export type { UserUpdateMe } from "./models/UserUpdateMe.js";
 export type {
@@ -2354,6 +2356,7 @@ export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponseSchema,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParamsSchema,
 } from "./zod/duplicateAlertApiV1CapAlertsAlertIdDuplicatePostSchema.js";
+export { emergencyContactUpdateSchema } from "./zod/emergencyContactUpdateSchema.js";
 export { employmentAdminUpdateSchema } from "./zod/employmentAdminUpdateSchema.js";
 export { employmentStatusSchema } from "./zod/employmentStatusSchema.js";
 export { employmentTypeSchema } from "./zod/employmentTypeSchema.js";
@@ -2371,6 +2374,7 @@ export {
   expireAlertApiV1CapAlertsAlertIdExpirePostMutationResponseSchema,
   expireAlertApiV1CapAlertsAlertIdExpirePostPathParamsSchema,
 } from "./zod/expireAlertApiV1CapAlertsAlertIdExpirePostSchema.js";
+export { genderSchema } from "./zod/genderSchema.js";
 export {
   getPeriodApiV1HrRostersPeriodsPeriodIdGet200Schema,
   getPeriodApiV1HrRostersPeriodsPeriodIdGet403Schema,
@@ -2465,6 +2469,7 @@ export { newPasswordSchema } from "./zod/newPasswordSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./zod/paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./zod/paginatedResponseUserPublicSchema.js";
+export { parishSchema } from "./zod/parishSchema.js";
 export { parkingActionSchema } from "./zod/parkingActionSchema.js";
 export { parkingPermitCreateSchema } from "./zod/parkingPermitCreateSchema.js";
 export { parkingPermitIssueSchema } from "./zod/parkingPermitIssueSchema.js";
@@ -2825,6 +2830,7 @@ export { timesheetListPublicSchema } from "./zod/timesheetListPublicSchema.js";
 export { timesheetPublicSchema } from "./zod/timesheetPublicSchema.js";
 export { timesheetSubmitRequestSchema } from "./zod/timesheetSubmitRequestSchema.js";
 export { timesheetSummaryByShiftSchema } from "./zod/timesheetSummaryByShiftSchema.js";
+export { titleSchema } from "./zod/titleSchema.js";
 export { tokenSchema } from "./zod/tokenSchema.js";
 export { twoFactorCodeRequestSchema } from "./zod/twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSchema.js";
@@ -2929,7 +2935,6 @@ export { userRoleAssignmentCreateSchema } from "./zod/userRoleAssignmentCreateSc
 export { userRoleAssignmentPublicSchema } from "./zod/userRoleAssignmentPublicSchema.js";
 export { userRoleAssignmentsPublicSchema } from "./zod/userRoleAssignmentsPublicSchema.js";
 export { userRoleAssignmentUpdateSchema } from "./zod/userRoleAssignmentUpdateSchema.js";
-export { userStatusSchema } from "./zod/userStatusSchema.js";
 export { userUpdateMeSchema } from "./zod/userUpdateMeSchema.js";
 export { userUpdateSchema } from "./zod/userUpdateSchema.js";
 export {
