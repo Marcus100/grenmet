@@ -350,7 +350,8 @@ async def update_profile_details(
     safe_profile_data = {
         key: value
         for key, value in profile_data.items()
-        if key not in {"title", "first_name", "middle_name", "last_name", "display_name"}
+        if key
+        not in {"title", "first_name", "middle_name", "last_name", "display_name"}
     }
     profile.sqlmodel_update(safe_profile_data)
     profile.updated_at = utc_now()
