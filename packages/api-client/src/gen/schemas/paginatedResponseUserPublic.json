@@ -14,6 +14,18 @@
             "maxLength": 255,
             "title": "Username"
           },
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+                "title": "Title",
+                "description": "Honorific prefix for a person's name (used on official bylines).",
+                "x-readme-ref-name": "Title"
+              },
+              { "type": "null" }
+            ]
+          },
           "first_name": {
             "type": "string",
             "maxLength": 100,
@@ -51,6 +63,13 @@
             "type": "string",
             "format": "date-time",
             "title": "Updated At"
+          },
+          "last_login_at": {
+            "anyOf": [
+              { "type": "string", "format": "date-time" },
+              { "type": "null" }
+            ],
+            "title": "Last Login At"
           },
           "full_name": { "type": "string", "title": "Full Name" }
         },

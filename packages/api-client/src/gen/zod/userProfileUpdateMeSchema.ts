@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { addressUpdateSchema } from "./addressUpdateSchema.js";
+import { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
 import { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 import { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.js";
 
@@ -13,6 +14,9 @@ export const userProfileUpdateMeSchema = z.object({
     z.union([z.lazy(() => profileDetailsUpdateSchema), z.null()])
   ),
   address: z.optional(z.union([z.lazy(() => addressUpdateSchema), z.null()])),
+  emergency_contact: z.optional(
+    z.union([z.lazy(() => emergencyContactUpdateSchema), z.null()])
+  ),
   roster_preferences: z.optional(
     z.union([z.lazy(() => rosterPreferencesUpdateSchema), z.null()])
   ),

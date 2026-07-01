@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { Parish } from "./Parish.js";
+
 /**
  * AddressUpdate
  */
@@ -10,7 +12,7 @@ export type AddressUpdate = {
   line_1?: string | null;
   line_2?: string | null;
   city?: string | null;
-  parish?: string | null;
+  parish?: Parish | null;
   postal_code?: string | null;
   country?: string | null;
 };

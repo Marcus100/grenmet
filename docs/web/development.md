@@ -39,10 +39,10 @@ Never commit `.env.local`. Never write to it programmatically.
 
 - **hurricaneplan**: Uses Turbopack. Content lives in `src/content/` via
   `@content-collections/next`. MDX plugins run in a separate Node.js process.
-- **wxwatch**: Has its own Drizzle ORM + Postgres DB. Run `pnpm db:migrate`
-  before first use (from within `apps/web/wxwatch/`).
-- **wxproducts**: Has its own Drizzle ORM + Postgres DB and Playwright PDF export.
-  Run `pnpm db:migrate` before first use.
+- **admin-gms**: Owns the consolidated `wxwatch` + `wxproducts` Drizzle ORM +
+  Postgres DBs (and Playwright PDF export). Run `pnpm db:wxwatch:migrate` and
+  `pnpm db:wxproducts:migrate` from within `apps/web/admin-gms/` before first use.
+  (The former standalone wxwatch/wxproducts/hr/salesbus apps were folded in here in 2026-06.)
 - **All apps**: React Compiler is enabled — do not add `useMemo`/`useCallback`
   for performance; the compiler handles it.
 - **All apps**: Sentry is wired in via `instrumentation.ts` and

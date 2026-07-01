@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const userStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
+export const genderSchema = z.enum(["MALE", "FEMALE", "OTHER", "UNSPECIFIED"]);
