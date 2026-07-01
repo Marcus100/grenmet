@@ -8,7 +8,7 @@ This document holds the strategic service-design framing for Grenada Meteorologi
 
 `GrenMet` remains the current repo and Figma implementation namespace. `GMS` is the service and product strategy those implementation artifacts support.
 
-This document is not a runtime schema contract. Existing `wxproducts` code already provides product-metadata, impact-based forecasting, and CAP foundations. A later schema-design pass should reconcile those working foundations with this broader GMS service catalogue before runtime interfaces change.
+This document is not a runtime schema contract. The existing `wxproducts` schema (now part of `admin-gms` after the 2026-06 consolidation) already provides product-metadata, impact-based forecasting, and CAP foundations. A later schema-design pass should reconcile those working foundations with this broader GMS service catalogue before runtime interfaces change.
 
 ## Service Framing
 

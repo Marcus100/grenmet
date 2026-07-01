@@ -13,7 +13,7 @@ published GitHub Release or manual workflow dispatch.
 Push to branch
   │
   ├─ CI (FastAPI)           lint, type-check, tests, docker build smoke test
-  └─ CI — Web Apps          Biome, type-check, build all 8 Next.js apps
+  └─ CI — Web Apps          Biome, type-check, build all Next.js apps
          │
          ├─ Build and Push Docker Images    → ghcr.io/marcus100/grenmet:<tag>
          └─ Build Web App Images            → ghcr.io/marcus100/grenmet-web-*:<tag>
@@ -419,13 +419,9 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | Service           | URL                                      |
 | ----------------- | ---------------------------------------- |
 | Auth (sign-in)    | `https://auth.staging.barrels.gd`        |
-| Admin GMS         | `https://admin.staging.barrels.gd`       |
-| WxWatch           | `https://wxwatch.staging.barrels.gd`     |
+| Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.staging.barrels.gd`       |
 | Hurricane Plan    | `https://hurricane.staging.barrels.gd`   |
 | Spice WX          | `https://spice.staging.barrels.gd`       |
-| WxProducts        | `https://wxproducts.staging.barrels.gd`  |
-| HR                | `https://hr.staging.barrels.gd`          |
-| Salesbus          | `https://sales.staging.barrels.gd`       |
 | FastAPI backend   | `https://api.staging.barrels.gd`         |
 | API docs          | `https://api.staging.barrels.gd/swagger` |
 | Adminer (DB UI)   | `https://adminer.staging.barrels.gd`     |
@@ -436,13 +432,9 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | Service           | URL                              |
 | ----------------- | -------------------------------- |
 | Auth (sign-in)    | `https://auth.barrels.gd`        |
-| Admin GMS         | `https://admin.barrels.gd`       |
-| WxWatch           | `https://wxwatch.barrels.gd`     |
+| Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.barrels.gd`       |
 | Hurricane Plan    | `https://hurricane.barrels.gd`   |
 | Spice WX          | `https://spice.barrels.gd`       |
-| WxProducts        | `https://wxproducts.barrels.gd`  |
-| HR                | `https://hr.barrels.gd`          |
-| Salesbus          | `https://sales.barrels.gd`       |
 | FastAPI backend   | `https://api.barrels.gd`         |
 | API docs          | Disabled in production           |
 | Adminer (DB UI)   | Not in current production compose |

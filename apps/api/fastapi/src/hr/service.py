@@ -34,6 +34,7 @@ from .schemas import (
     ApprovalAuthorityPublic,
     ApprovalAuthorityUpdate,
     DepartmentPublic,
+    EmergencyContactPublic,
     EmploymentPublic,
     EmploymentUpdate,
     LeavePublic,
@@ -104,10 +105,7 @@ async def _get_or_create_profile(session: AsyncSession, user: User) -> UserProfi
     try:
         profile = UserProfile(
             user_id=user.id,
-            phone=None,
-            avatar_url=None,
-            status=UserStatus.ACTIVE,
-            created_by=str(user.id),
+            created_by=user.id,
         )
         session.add(profile)
         await session.commit()
@@ -241,9 +239,7 @@ async def _build_profile_response(
         for role in user.roles
     ]
 
-    avatar_url = profile.avatar_url
-    if not avatar_url and user.user_image:
-        avatar_url = user.user_image.object_key
+    avatar_url = user.user_image.object_key if user.user_image else None
 
     employment = EmploymentPublic(
         employee_number=(
@@ -271,9 +267,10 @@ async def _build_profile_response(
             email=user.email,
             phone=profile.phone,
             avatar_url=avatar_url,
-            status=profile.status,
+            status=UserStatus.ACTIVE if user.is_active else UserStatus.INACTIVE,
         ),
         profile=ProfileDetailsPublic(
+            title=user.title,
             first_name=user.first_name,
             middle_name=user.middle_name,
             last_name=user.last_name,
@@ -289,6 +286,11 @@ async def _build_profile_response(
             parish=address.parish,
             postal_code=address.postal_code,
             country=address.country,
+        ),
+        emergency_contact=EmergencyContactPublic(
+            name=profile.emergency_contact_name,
+            phone=profile.emergency_contact_phone,
+            relationship=profile.emergency_contact_relationship,
         ),
         employment=employment,
         roles=roles,
@@ -348,9 +350,33 @@ async def update_profile_details(
     safe_profile_data = {
         key: value
         for key, value in profile_data.items()
-        if key not in {"first_name", "middle_name", "last_name", "display_name"}
+        if key
+        not in {"title", "first_name", "middle_name", "last_name", "display_name"}
     }
     profile.sqlmodel_update(safe_profile_data)
+    profile.updated_at = utc_now()
+    session.add(profile)
+    return profile
+
+
+async def update_emergency_contact(
+    *,
+    session: AsyncSession,
+    user: User,
+    emergency_data: dict[str, object],
+) -> UserProfile:
+    profile = await _get_or_create_profile(session=session, user=user)
+    field_map = {
+        "name": "emergency_contact_name",
+        "phone": "emergency_contact_phone",
+        "relationship": "emergency_contact_relationship",
+    }
+    mapped = {
+        field_map[key]: value
+        for key, value in emergency_data.items()
+        if key in field_map
+    }
+    profile.sqlmodel_update(mapped)
     profile.updated_at = utc_now()
     session.add(profile)
     return profile
@@ -425,6 +451,14 @@ async def update_profile_for_current_user(
             address_data=address_updates,
         )
 
+    emergency_updates = payload.get("emergency_contact")
+    if isinstance(emergency_updates, dict):
+        await update_emergency_contact(
+            session=session,
+            user=current_user,
+            emergency_data=emergency_updates,
+        )
+
     roster_updates = payload.get("roster_preferences")
     if isinstance(roster_updates, dict):
         await update_roster_preferences(
@@ -438,7 +472,7 @@ async def update_profile_for_current_user(
         auth_updates = {
             key: value
             for key, value in profile_updates.items()
-            if key in {"first_name", "middle_name", "last_name"}
+            if key in {"title", "first_name", "middle_name", "last_name"}
         }
         if auth_updates:
             current_user.sqlmodel_update(auth_updates)

@@ -323,6 +323,7 @@ export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
 } from "./DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type {
   EmploymentStatus,
@@ -350,6 +351,8 @@ export type {
   ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
   ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
 } from "./ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export type { Gender, GenderGenderEnumKey } from "./Gender.js";
+export { genderGenderEnum } from "./Gender.js";
 export type {
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet200,
   GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
@@ -457,6 +460,8 @@ export type { NewPassword } from "./NewPassword.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
+export type { Parish, ParishParishEnumKey } from "./Parish.js";
+export { parishParishEnum } from "./Parish.js";
 export type {
   ParkingAction,
   ParkingActionParkingActionEnumKey,
@@ -901,6 +906,8 @@ export type { TimesheetListPublic } from "./TimesheetListPublic.js";
 export type { TimesheetPublic } from "./TimesheetPublic.js";
 export type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
+export type { Title, TitleTitleEnumKey } from "./Title.js";
+export { titleTitleEnum } from "./Title.js";
 export type { Token } from "./Token.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
@@ -1018,8 +1025,6 @@ export type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./UserRoleAssignmentsPublic.js";
 export type { UserRoleAssignmentUpdate } from "./UserRoleAssignmentUpdate.js";
-export type { UserStatus, UserStatusUserStatusEnumKey } from "./UserStatus.js";
-export { userStatusUserStatusEnum } from "./UserStatus.js";
 export type { UserUpdate } from "./UserUpdate.js";
 export type { UserUpdateMe } from "./UserUpdateMe.js";
 export type {

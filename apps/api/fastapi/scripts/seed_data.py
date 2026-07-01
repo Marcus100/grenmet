@@ -18,7 +18,7 @@ import sys
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
-from src.auth.models import User
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user_sync
 from src.database import engine
@@ -29,10 +29,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Custom users to create - edit this list to add your own users
-# Only users defined here will be created (no automatic generic users)
+# Custom users to create - edit this list to add your own users.
+# Only users defined here will be created (no automatic generic users).
+#
+# Every seeded user gets the baseline `staff` role. Functional roles (cap-*, hr-*),
+# departments, and job positions are intentionally NOT seeded here — the super admin
+# manages those at runtime via the admin API (users, roles, role-assignments,
+# hr/employment endpoints).
 CUSTOM_USERS = [
     {
+        # Super admin — full control of users, roles, positions at runtime.
         "email": "ewhint@weather.gd",
         "username": "ewhint",
         "password": "changethis",
@@ -40,7 +46,7 @@ CUSTOM_USERS = [
         "middle_name": None,
         "last_name": "Whint",
         "is_active": True,
-        "is_superuser": False,
+        "is_superuser": True,
     },
     {
         "email": "acharles@weather.gd",
@@ -222,6 +228,26 @@ CUSTOM_USERS = [
         "is_active": True,
         "is_superuser": False,
     },
+    {
+        "email": "tclovey@weather.gd",
+        "username": "tclovey",
+        "password": "changethis",
+        "first_name": "Tavon",
+        "middle_name": None,
+        "last_name": "Clovey",
+        "is_active": True,
+        "is_superuser": False,
+    },
+    {
+        "email": "dwilliams@weather.gd",
+        "username": "dwilliams",
+        "password": "changethis",
+        "first_name": "Dieonne",
+        "middle_name": None,
+        "last_name": "Williams",
+        "is_active": True,
+        "is_superuser": False,
+    },
 ]
 
 
@@ -249,6 +275,39 @@ def clear_seed_data(session: Session) -> int:
     return user_count
 
 
+def _ensure_staff_role(session: Session, user: User) -> None:
+    """Give a seeded user the baseline 'staff' role (membership + SELF assignment).
+
+    Idempotent: skips the role link and the assignment if they already exist.
+    Relies on the 'staff' role having been seeded by initial_data.py beforehand.
+    """
+    role = session.exec(select(Role).where(Role.name == "staff")).first()
+    if role is None:
+        logger.warning(
+            "'staff' role not found; skipping role assignment for %s", user.email
+        )
+        return
+
+    if role.id not in {assigned.id for assigned in user.roles}:
+        user.roles.append(role)
+        session.add(user)
+
+    existing_assignment = session.exec(
+        select(UserRoleAssignment).where(
+            UserRoleAssignment.user_id == user.id,
+            UserRoleAssignment.role_id == role.id,
+        )
+    ).first()
+    if existing_assignment is None:
+        session.add(
+            UserRoleAssignment(
+                user_id=user.id,
+                role_id=role.id,
+                scope=RoleAssignmentScope.SELF,
+            )
+        )
+
+
 def _create_user_from_data(
     session: Session, user_data: dict, users: list[User]
 ) -> tuple[int, int]:
@@ -273,23 +332,40 @@ def _create_user_from_data(
         select(User).where(User.email == user_in.email)
     ).first()
 
+    resolved_user: User | None = None
     if existing_user:
-        users.append(existing_user)
+        resolved_user = existing_user
         existing_count += 1
         logger.debug("User already exists: %s", user_in.email)
+        # Keep account-control flags authoritative from the seed so re-seeding
+        # promotes/demotes the super admin even when the user row already exists.
+        if (
+            resolved_user.is_superuser != user_in.is_superuser
+            or resolved_user.is_active != user_in.is_active
+        ):
+            resolved_user.is_superuser = user_in.is_superuser
+            resolved_user.is_active = user_in.is_active
+            session.add(resolved_user)
+            logger.info("Synced account flags for %s", resolved_user.email)
     else:
         try:
-            user = create_user_sync(session=session, user_create=user_in)
-            users.append(user)
+            resolved_user = create_user_sync(session=session, user_create=user_in)
             created_count += 1
-            logger.info("Created user: %s", user.email)
+            logger.info("Created user: %s", resolved_user.email)
         except IntegrityError as e:
             logger.warning("Failed to create user %s: %s", user_in.email, e)
             # Try to get the user that might have been created concurrently
-            user = session.exec(select(User).where(User.email == user_in.email)).first()
-            if user:
-                users.append(user)
+            resolved_user = session.exec(
+                select(User).where(User.email == user_in.email)
+            ).first()
+            if resolved_user:
                 existing_count += 1
+
+    if resolved_user is not None:
+        users.append(resolved_user)
+        # Baseline role so every seeded user has self-service access.
+        # Functional roles (cap-*, hr-*) are assigned per person later.
+        _ensure_staff_role(session, resolved_user)
 
     return created_count, existing_count
 

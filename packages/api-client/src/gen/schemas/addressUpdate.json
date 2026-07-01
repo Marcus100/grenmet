@@ -13,8 +13,25 @@
       "title": "City"
     },
     "parish": {
-      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
-      "title": "Parish"
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "SAINT_GEORGE",
+            "SAINT_ANDREW",
+            "SAINT_DAVID",
+            "SAINT_JOHN",
+            "SAINT_MARK",
+            "SAINT_PATRICK",
+            "CARRIACOU",
+            "PETITE_MARTINIQUE"
+          ],
+          "title": "Parish",
+          "description": "Grenada's six parishes plus its two island dependencies.",
+          "x-readme-ref-name": "Parish"
+        },
+        { "type": "null" }
+      ]
     },
     "postal_code": {
       "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }],

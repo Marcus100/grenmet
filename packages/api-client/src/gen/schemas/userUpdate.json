@@ -11,6 +11,18 @@
       ],
       "title": "Username"
     },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+          "title": "Title",
+          "description": "Honorific prefix for a person's name (used on official bylines).",
+          "x-readme-ref-name": "Title"
+        },
+        { "type": "null" }
+      ]
+    },
     "first_name": {
       "anyOf": [
         { "type": "string", "maxLength": 100, "minLength": 1 },
