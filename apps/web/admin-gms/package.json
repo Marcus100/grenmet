@@ -55,7 +55,7 @@
     "react-dom": "catalog:",
     "react-hook-form": "catalog:",
     "recharts": "catalog:",
-    "react-dropzone": "^14.3.8",
+    "react-dropzone": "^15.0.0",
     "react-error-boundary": "^6.1.0",
     "resend": "^6.6.0",
     "sonner": "catalog:",
