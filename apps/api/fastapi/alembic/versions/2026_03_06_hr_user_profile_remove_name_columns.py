@@ -7,10 +7,10 @@ Create Date: 2026-03-06
 Drops first_name, middle_name, last_name, display_name from hr.user_profile.
 Auth User is the single source of truth for names; HR reads from it.
 """
-from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
+from alembic import op
 
 revision = "c7e2f4a1b9d3"
 down_revision = "b5a1503a7136"
