@@ -6,6 +6,7 @@
 import type { TimesheetListPublic } from "./TimesheetListPublic.js";
 
 /**
+ * TimesheetListPublic
  * @description Timesheets returned
  */
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGet200 = TimesheetListPublic;

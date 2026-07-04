@@ -1,0 +1,31 @@
+{
+  "properties": {
+    "expires_at": { "type": "string", "title": "Expires At" },
+    "client_type": { "type": "string", "title": "Client Type" },
+    "app_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "App Name"
+    },
+    "last_used_at": { "type": "string", "title": "Last Used At" },
+    "revoked_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Revoked At"
+    },
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" },
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" }
+  },
+  "type": "object",
+  "required": [
+    "expires_at",
+    "client_type",
+    "last_used_at",
+    "id",
+    "created_at",
+    "updated_at",
+    "user_id"
+  ],
+  "title": "SessionPublic",
+  "x-readme-ref-name": "SessionPublic"
+}

@@ -6,7 +6,7 @@
 /**
  * CapNameValue
  */
-export type CapNameValueInput = {
+export type CapNameValue = {
   /**
    * @minLength 1
    * @maxLength 255

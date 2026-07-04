@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["DRAFT", "PUBLISHED", "CLOSED"],
+  "title": "RosterPeriodStatus",
+  "x-readme-ref-name": "RosterPeriodStatus"
+}

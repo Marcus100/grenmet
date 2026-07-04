@@ -3,4 +3,18 @@
  * Do not edit manually.
  */
 
-export type ParkingPermitListPublic = any;
+import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
+
+/**
+ * ParkingPermitListPublic
+ */
+export type ParkingPermitListPublic = {
+  /**
+   * @type array
+   */
+  data: ParkingPermitPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+};

@@ -1,1 +1,71 @@
-{ "x-readme-ref-name": "WorkflowInstancePublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "workflow_template_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Workflow Template Id"
+    },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "workflow_type": {
+      "type": "string",
+      "enum": [
+        "LEAVE_REQUEST",
+        "SHIFT_SWAP",
+        "ABSENTEE_REPORT",
+        "STATUS_REPORT",
+        "TIMESHEET",
+        "PARKING_PERMIT"
+      ],
+      "title": "WorkflowType",
+      "x-readme-ref-name": "WorkflowType"
+    },
+    "entity_type": { "type": "string", "title": "Entity Type" },
+    "entity_id": { "type": "string", "format": "uuid", "title": "Entity Id" },
+    "requested_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Requested By User Id"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "DRAFT",
+        "PENDING",
+        "RETURNED",
+        "APPROVED",
+        "REJECTED",
+        "CANCELLED"
+      ],
+      "title": "WorkflowStatus",
+      "x-readme-ref-name": "WorkflowStatus"
+    },
+    "current_step_order": { "type": "integer", "title": "Current Step Order" },
+    "submitted_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Submitted At"
+    },
+    "resolved_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Resolved At"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "workflow_template_id",
+    "department_id",
+    "workflow_type",
+    "entity_type",
+    "entity_id",
+    "requested_by_user_id",
+    "status",
+    "current_step_order",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "WorkflowInstancePublic",
+  "x-readme-ref-name": "WorkflowInstancePublic"
+}

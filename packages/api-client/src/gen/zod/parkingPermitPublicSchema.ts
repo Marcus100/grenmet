@@ -4,5 +4,34 @@
  */
 
 import * as z from "zod";
+import { parkingActionSchema } from "./parkingActionSchema.js";
+import { requestStatusSchema } from "./requestStatusSchema.js";
 
-export const parkingPermitPublicSchema = z.any();
+export const parkingPermitPublicSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  department_id: z.string(),
+  submitted_by_user_id: z.string().uuid(),
+  company_name: z.optional(z.union([z.string(), z.null()])),
+  phone: z.optional(z.union([z.string(), z.null()])),
+  vehicle_registration_no: z.string(),
+  vehicle_insurance_issue_date: z.optional(
+    z.union([z.string().date(), z.null()])
+  ),
+  vehicle_insurance_expiry_date: z.optional(
+    z.union([z.string().date(), z.null()])
+  ),
+  action_requested: z.lazy(() => parkingActionSchema),
+  action_other_detail: z.optional(z.union([z.string(), z.null()])),
+  fee_amount: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  decal_number: z.optional(z.union([z.string(), z.null()])),
+  valid_from: z.optional(z.union([z.string().date(), z.null()])),
+  valid_to: z.optional(z.union([z.string().date(), z.null()])),
+  issued_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  received_by: z.optional(z.union([z.string(), z.null()])),
+  issued_at: z.optional(z.union([z.string(), z.null()])),
+  status: z.lazy(() => requestStatusSchema),
+  workflow_instance_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

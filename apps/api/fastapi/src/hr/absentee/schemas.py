@@ -1,9 +1,9 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from src.hr.absentee.models import AbsenceReason
 from src.hr.models import RequestStatus
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 
 class AbsenteeReportCreate(BaseModel):
@@ -38,8 +38,8 @@ class AbsenteeReportPublic(BaseModel):
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
     submitted_by_user_id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class AbsenteeReportListPublic(BaseModel):

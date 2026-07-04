@@ -1,0 +1,44 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "roster_period_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Roster Period Id"
+    },
+    "revision_number": { "type": "integer", "title": "Revision Number" },
+    "action": {
+      "type": "string",
+      "enum": ["CREATED", "ASSIGNMENTS_UPDATED", "PUBLISHED", "CLOSED"],
+      "title": "RosterRevisionAction",
+      "x-readme-ref-name": "RosterRevisionAction"
+    },
+    "changed_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Changed By User Id"
+    },
+    "summary": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Summary"
+    },
+    "snapshot": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Snapshot"
+    },
+    "created_at": { "type": "string", "title": "Created At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "roster_period_id",
+    "revision_number",
+    "action",
+    "changed_by_user_id",
+    "snapshot",
+    "created_at"
+  ],
+  "title": "RosterRevisionPublic",
+  "x-readme-ref-name": "RosterRevisionPublic"
+}

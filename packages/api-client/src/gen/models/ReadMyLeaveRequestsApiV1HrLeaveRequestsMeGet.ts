@@ -6,6 +6,7 @@
 import type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
 
 /**
+ * LeaveRequestListPublic
  * @description Leave requests returned
  */
 export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200 =

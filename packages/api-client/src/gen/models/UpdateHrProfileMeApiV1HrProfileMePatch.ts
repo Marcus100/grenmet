@@ -8,6 +8,7 @@ import type { UserProfilePublic } from "./UserProfilePublic.js";
 import type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 
 /**
+ * UserProfilePublic
  * @description Profile updated
  */
 export type UpdateHrProfileMeApiV1HrProfileMePatch200 = UserProfilePublic;

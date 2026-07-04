@@ -1,1 +1,35 @@
-{ "x-readme-ref-name": "WorkflowTemplatePublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "workflow_type": {
+      "type": "string",
+      "enum": [
+        "LEAVE_REQUEST",
+        "SHIFT_SWAP",
+        "ABSENTEE_REPORT",
+        "STATUS_REPORT",
+        "TIMESHEET",
+        "PARKING_PERMIT"
+      ],
+      "title": "WorkflowType",
+      "x-readme-ref-name": "WorkflowType"
+    },
+    "name": { "type": "string", "title": "Name" },
+    "is_active": { "type": "boolean", "title": "Is Active" },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "department_id",
+    "workflow_type",
+    "name",
+    "is_active",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "WorkflowTemplatePublic",
+  "x-readme-ref-name": "WorkflowTemplatePublic"
+}

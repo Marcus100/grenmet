@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime
 
 from pydantic import Field
 
 from src.auth.models import RoleAssignmentScope
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import WorkflowAction, WorkflowStatus, WorkflowType
 
@@ -21,8 +20,8 @@ class WorkflowTemplatePublic(BaseModel):
     workflow_type: WorkflowType
     name: str
     is_active: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class WorkflowTemplatesPublic(BaseModel):
@@ -44,8 +43,8 @@ class WorkflowStepTemplatePublic(BaseModel):
     required_role_id: uuid.UUID
     required_scope: RoleAssignmentScope
     is_required: bool
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class WorkflowInstanceCreate(BaseModel):
@@ -64,10 +63,10 @@ class WorkflowInstancePublic(BaseModel):
     requested_by_user_id: uuid.UUID
     status: WorkflowStatus
     current_step_order: int
-    submitted_at: datetime | None = None
-    resolved_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    submitted_at: UtcDateTime | None = None
+    resolved_at: UtcDateTime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class WorkflowStepInstancePublic(BaseModel):
@@ -80,9 +79,9 @@ class WorkflowStepInstancePublic(BaseModel):
     approver_user_id: uuid.UUID | None = None
     action: WorkflowAction | None = None
     comments: str | None = None
-    acted_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    acted_at: UtcDateTime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class WorkflowActionRequest(BaseModel):

@@ -11,6 +11,7 @@ export type ReadStatusReportsApiV1HrStatusReportsGetQueryParams = {
 };
 
 /**
+ * StatusReportListPublic
  * @description Status reports returned
  */
 export type ReadStatusReportsApiV1HrStatusReportsGet200 =

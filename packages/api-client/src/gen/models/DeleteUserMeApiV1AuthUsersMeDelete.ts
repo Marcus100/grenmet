@@ -6,6 +6,7 @@
 import type { Message } from "./Message.js";
 
 /**
+ * Message
  * @description User deleted
  */
 export type DeleteUserMeApiV1AuthUsersMeDelete200 = Message;

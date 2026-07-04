@@ -14,6 +14,7 @@ export type ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams = {
 };
 
 /**
+ * PermissionPublic
  * @description Permission returned
  */
 export type ReadPermissionApiV1AuthPermissionsPermissionIdGet200 =

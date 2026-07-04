@@ -1,8 +1,8 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from src.hr.models import RequestStatus
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import SwapType
 
@@ -39,8 +39,8 @@ class ShiftSwapRequestPublic(BaseModel):
     restoration_date: date | None = None
     reason: str | None = None
     counterpart_agreed: bool
-    counterpart_agreed_at: datetime | None = None
+    counterpart_agreed_at: UtcDateTime | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime

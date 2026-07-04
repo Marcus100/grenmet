@@ -26,7 +26,9 @@ export type {
   ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
   ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
 } from "./ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
+export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
+export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type {
   ApproveAlertApiV1CapAlertsAlertIdApprovePost200,
@@ -80,6 +82,7 @@ export type {
   CapAreaKindCapAreaKindEnumKey,
 } from "./CapAreaKind.js";
 export { capAreaKindCapAreaKindEnum } from "./CapAreaKind.js";
+export type { CapAreaPublic } from "./CapAreaPublic.js";
 export type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type {
@@ -96,6 +99,7 @@ export type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
 export type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 export type { CapFeedImportUpdate } from "./CapFeedImportUpdate.js";
 export type { CapInfoCreate } from "./CapInfoCreate.js";
+export type { CapInfoPublic } from "./CapInfoPublic.js";
 export type {
   CapIntegrationStatus,
   CapIntegrationStatusCapIntegrationStatusEnumKey,
@@ -111,13 +115,14 @@ export type {
   CapMessageTypeCapMessageTypeEnumKey,
 } from "./CapMessageType.js";
 export { capMessageTypeCapMessageTypeEnum } from "./CapMessageType.js";
-export type { CapNameValueInput } from "./CapNameValueInput.js";
-export type { CapNameValueOutput } from "./CapNameValueOutput.js";
+export type { CapNameValue } from "./CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
 export type { CapPublishPublic } from "./CapPublishPublic.js";
 export type { CapReferenceCreate } from "./CapReferenceCreate.js";
+export type { CapReferencePublic } from "./CapReferencePublic.js";
 export type { CapResourceCreate } from "./CapResourceCreate.js";
+export type { CapResourcePublic } from "./CapResourcePublic.js";
 export type { CapScope, CapScopeCapScopeEnumKey } from "./CapScope.js";
 export { capScopeCapScopeEnum } from "./CapScope.js";
 export type { CapSettingsPublic } from "./CapSettingsPublic.js";
@@ -127,6 +132,7 @@ export type {
   CapSeverityCapSeverityEnumKey,
 } from "./CapSeverity.js";
 export { capSeverityCapSeverityEnum } from "./CapSeverity.js";
+export type { CapSnapshotPublic } from "./CapSnapshotPublic.js";
 export type { CapStatus, CapStatusCapStatusEnumKey } from "./CapStatus.js";
 export { capStatusCapStatusEnum } from "./CapStatus.js";
 export type { CapUrgency, CapUrgencyCapUrgencyEnumKey } from "./CapUrgency.js";
@@ -316,6 +322,7 @@ export type {
   DeleteUserMeApiV1AuthUsersMeDeleteMutation,
   DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
 } from "./DeleteUserMeApiV1AuthUsersMeDelete.js";
+export type { DepartmentPublic } from "./DepartmentPublic.js";
 export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
@@ -323,8 +330,10 @@ export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
 } from "./DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
+export type { EmploymentPublic } from "./EmploymentPublic.js";
 export type {
   EmploymentStatus,
   EmploymentStatusEmploymentStatusEnumKey,
@@ -394,6 +403,11 @@ export type {
   ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
 } from "./ImportCsvApiV1HrRostersImportCsvPost.js";
 export type {
+  ImportStatus,
+  ImportStatusImportStatusEnumKey,
+} from "./ImportStatus.js";
+export { importStatusImportStatusEnum } from "./ImportStatus.js";
+export type {
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404,
@@ -403,6 +417,7 @@ export type {
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams,
 } from "./IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
+export type { LeavePublic } from "./LeavePublic.js";
 export type { LeaveRequestAction } from "./LeaveRequestAction.js";
 export type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 export type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
@@ -483,7 +498,10 @@ export type {
   ProfAppointmentTypeProfAppointmentTypeEnumKey,
 } from "./ProfAppointmentType.js";
 export { profAppointmentTypeProfAppointmentTypeEnum } from "./ProfAppointmentType.js";
+export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
+export type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
+export type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
 export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
@@ -816,23 +834,43 @@ export type {
 } from "./RoleAssignmentScope.js";
 export { roleAssignmentScopeRoleAssignmentScopeEnum } from "./RoleAssignmentScope.js";
 export type { RoleCreate } from "./RoleCreate.js";
-export type { RolePublic } from "./RolePublic.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
 export type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
+export type { RosterCsvRowValidation } from "./RosterCsvRowValidation.js";
 export type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 export type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
 export type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 export type { RosterPeriodDetails } from "./RosterPeriodDetails.js";
 export type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
+export type {
+  RosterPeriodStatus,
+  RosterPeriodStatusRosterPeriodStatusEnumKey,
+} from "./RosterPeriodStatus.js";
+export { rosterPeriodStatusRosterPeriodStatusEnum } from "./RosterPeriodStatus.js";
+export type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
+export type {
+  RosterRevisionAction,
+  RosterRevisionActionRosterRevisionActionEnumKey,
+} from "./RosterRevisionAction.js";
+export { rosterRevisionActionRosterRevisionActionEnum } from "./RosterRevisionAction.js";
+export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./SessionLoginResponse.js";
+export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
+export type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
+export type {
+  ShiftCategory,
+  ShiftCategoryShiftCategoryEnumKey,
+} from "./ShiftCategory.js";
+export { shiftCategoryShiftCategoryEnum } from "./ShiftCategory.js";
+export type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
 export type {
   ShiftPattern,
   ShiftPatternShiftPatternEnumKey,
@@ -846,10 +884,14 @@ export { shiftPeriodShiftPeriodEnum } from "./ShiftPeriod.js";
 export type { ShiftSwapAction } from "./ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
+export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
+export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
+export type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 export type { StatusReportListPublic } from "./StatusReportListPublic.js";
+export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type {
   SubmissionMode,
   SubmissionModeSubmissionModeEnumKey,
@@ -902,8 +944,14 @@ export type {
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
 export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
+export type { TimesheetEntryPublic } from "./TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./TimesheetListPublic.js";
 export type { TimesheetPublic } from "./TimesheetPublic.js";
+export type {
+  TimesheetStatus,
+  TimesheetStatusTimesheetStatusEnumKey,
+} from "./TimesheetStatus.js";
+export { timesheetStatusTimesheetStatusEnum } from "./TimesheetStatus.js";
 export type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
 export type { Title, TitleTitleEnumKey } from "./Title.js";
@@ -1025,6 +1073,8 @@ export type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./UserRoleAssignmentsPublic.js";
 export type { UserRoleAssignmentUpdate } from "./UserRoleAssignmentUpdate.js";
+export type { UserStatus, UserStatusUserStatusEnumKey } from "./UserStatus.js";
+export { userStatusUserStatusEnum } from "./UserStatus.js";
 export type { UserUpdate } from "./UserUpdate.js";
 export type { UserUpdateMe } from "./UserUpdateMe.js";
 export type {
@@ -1053,6 +1103,12 @@ export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
 export type { WorkflowInstanceCreate } from "./WorkflowInstanceCreate.js";
 export type { WorkflowInstanceDetails } from "./WorkflowInstanceDetails.js";
 export type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
+export type {
+  WorkflowStatus,
+  WorkflowStatusWorkflowStatusEnumKey,
+} from "./WorkflowStatus.js";
+export { workflowStatusWorkflowStatusEnum } from "./WorkflowStatus.js";
+export type { WorkflowStepInstancePublic } from "./WorkflowStepInstancePublic.js";
 export type { WorkflowStepTemplateCreate } from "./WorkflowStepTemplateCreate.js";
 export type { WorkflowStepTemplatePublic } from "./WorkflowStepTemplatePublic.js";
 export type { WorkflowTemplateCreate } from "./WorkflowTemplateCreate.js";

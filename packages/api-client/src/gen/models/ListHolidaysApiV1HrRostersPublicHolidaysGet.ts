@@ -11,6 +11,7 @@ export type ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams = {
 };
 
 /**
+ * PublicHolidaysPublic
  * @description Public holidays returned
  */
 export type ListHolidaysApiV1HrRostersPublicHolidaysGet200 =

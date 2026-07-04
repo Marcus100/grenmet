@@ -6,7 +6,7 @@
 import type { CapAreaCreate } from "./CapAreaCreate.js";
 import type { CapCategory } from "./CapCategory.js";
 import type { CapCertainty } from "./CapCertainty.js";
-import type { CapNameValueInput } from "./CapNameValueInput.js";
+import type { CapNameValue } from "./CapNameValue.js";
 import type { CapResourceCreate } from "./CapResourceCreate.js";
 import type { CapSeverity } from "./CapSeverity.js";
 import type { CapUrgency } from "./CapUrgency.js";
@@ -35,7 +35,7 @@ export type CapInfoCreate = {
   /**
    * @type array | undefined
    */
-  event_codes?: CapNameValueInput[];
+  event_codes?: CapNameValue[];
   /**
    * @type array | undefined
    */
@@ -75,7 +75,7 @@ export type CapInfoCreate = {
   /**
    * @type array | undefined
    */
-  parameters?: CapNameValueInput[];
+  parameters?: CapNameValue[];
   /**
    * @type array | undefined
    */

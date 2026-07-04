@@ -16,6 +16,7 @@ export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathPar
   };
 
 /**
+ * UserRoleAssignmentPublic
  * @description Role assignment updated
  */
 export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200 =

@@ -15,6 +15,7 @@ export type ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type ApproveAlertApiV1CapAlertsAlertIdApprovePost200 = CapAlertPublic;

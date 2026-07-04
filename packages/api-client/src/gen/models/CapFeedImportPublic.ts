@@ -3,4 +3,36 @@
  * Do not edit manually.
  */
 
-export type CapFeedImportPublic = any;
+import type { CapIntegrationStatus } from "./CapIntegrationStatus.js";
+
+/**
+ * CapFeedImportPublic
+ */
+export type CapFeedImportPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  name: string;
+  /**
+   * @type string
+   */
+  url: string;
+  /**
+   * @type string
+   */
+  status: CapIntegrationStatus;
+  last_checked_at?: string | null;
+  last_error?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

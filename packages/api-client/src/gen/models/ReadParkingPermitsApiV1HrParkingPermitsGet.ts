@@ -11,6 +11,7 @@ export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams = {
 };
 
 /**
+ * ParkingPermitListPublic
  * @description Parking permits returned
  */
 export type ReadParkingPermitsApiV1HrParkingPermitsGet200 =

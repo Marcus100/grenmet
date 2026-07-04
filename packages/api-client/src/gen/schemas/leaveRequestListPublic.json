@@ -1,1 +1,160 @@
-{ "x-readme-ref-name": "LeaveRequestListPublic" }
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "department_id": { "type": "string", "title": "Department Id" },
+          "leave_type": {
+            "type": "string",
+            "enum": [
+              "VACATION",
+              "SICK",
+              "CASUAL",
+              "MATERNITY",
+              "PATERNITY",
+              "STUDY",
+              "COMPASSIONATE",
+              "PROFESSIONAL_APPOINTMENT",
+              "BEREAVEMENT",
+              "WITHOUT_PAY",
+              "OTHER"
+            ],
+            "title": "LeaveType",
+            "x-readme-ref-name": "LeaveType"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "days_requested": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Days Requested"
+          },
+          "days_with_pay": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Days With Pay"
+          },
+          "days_without_pay": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Days Without Pay"
+          },
+          "professional_appointment_subtype": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": ["BANK", "MEDICAL", "LEGAL", "DENTAL"],
+                "title": "ProfAppointmentType",
+                "x-readme-ref-name": "ProfAppointmentType"
+              },
+              { "type": "null" }
+            ]
+          },
+          "reason": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Reason"
+          },
+          "contact_phone": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Contact Phone"
+          },
+          "leave_address": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Leave Address"
+          },
+          "travel_from_date": {
+            "anyOf": [
+              { "type": "string", "format": "date" },
+              { "type": "null" }
+            ],
+            "title": "Travel From Date"
+          },
+          "travel_to_date": {
+            "anyOf": [
+              { "type": "string", "format": "date" },
+              { "type": "null" }
+            ],
+            "title": "Travel To Date"
+          },
+          "salary_in_advance": {
+            "type": "boolean",
+            "title": "Salary In Advance"
+          },
+          "requires_acting_appointment": {
+            "type": "boolean",
+            "title": "Requires Acting Appointment"
+          },
+          "acting_officer_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Acting Officer Id"
+          },
+          "expected_return_date": {
+            "anyOf": [
+              { "type": "string", "format": "date" },
+              { "type": "null" }
+            ],
+            "title": "Expected Return Date"
+          },
+          "head_of_dept_comments": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Head Of Dept Comments"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+            "title": "RequestStatus",
+            "x-readme-ref-name": "RequestStatus"
+          },
+          "workflow_instance_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Workflow Instance Id"
+          },
+          "created_at": { "type": "string", "title": "Created At" },
+          "updated_at": { "type": "string", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "leave_type",
+          "start_date",
+          "end_date",
+          "days_requested",
+          "days_with_pay",
+          "days_without_pay",
+          "salary_in_advance",
+          "requires_acting_appointment",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LeaveRequestPublic",
+        "x-readme-ref-name": "LeaveRequestPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "LeaveRequestListPublic",
+  "x-readme-ref-name": "LeaveRequestListPublic"
+}

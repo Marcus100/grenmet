@@ -14,6 +14,7 @@ export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams = {
 };
 
 /**
+ * WorkflowInstanceDetails
  * @description Instance and steps returned
  */
 export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet200 =

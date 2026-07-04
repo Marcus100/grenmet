@@ -1,10 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
 from src.hr.models import RequestStatus
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import PersonnelStatus, ShiftPeriod
 
@@ -76,8 +76,8 @@ class StatusReportPublic(BaseModel):
     general_remarks: str | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class StatusReportDetails(BaseModel):

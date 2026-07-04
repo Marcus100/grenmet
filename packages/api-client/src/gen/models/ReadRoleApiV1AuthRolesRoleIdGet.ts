@@ -4,7 +4,7 @@
  */
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
-import type { RolePublic } from "./RolePublic.js";
+import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
 export type ReadRoleApiV1AuthRolesRoleIdGetPathParams = {
   /**
@@ -14,9 +14,10 @@ export type ReadRoleApiV1AuthRolesRoleIdGetPathParams = {
 };
 
 /**
+ * RolePublic
  * @description Role returned
  */
-export type ReadRoleApiV1AuthRolesRoleIdGet200 = RolePublic;
+export type ReadRoleApiV1AuthRolesRoleIdGet200 = SrcAuthSchemasRolePublic;
 
 /**
  * @description Role not found

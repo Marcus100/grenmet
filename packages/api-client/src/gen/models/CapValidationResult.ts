@@ -3,4 +3,20 @@
  * Do not edit manually.
  */
 
-export type CapValidationResult = any;
+/**
+ * CapValidationResult
+ */
+export type CapValidationResult = {
+  /**
+   * @type boolean
+   */
+  is_valid: boolean;
+  /**
+   * @type array | undefined
+   */
+  errors?: string[];
+  /**
+   * @type array | undefined
+   */
+  warnings?: string[];
+};

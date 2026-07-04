@@ -6,6 +6,7 @@
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
 /**
+ * TwoFactorStatusPublic
  * @description Successful Response
  */
 export type TwofaStatusApiV12FaStatusGet200 = TwoFactorStatusPublic;

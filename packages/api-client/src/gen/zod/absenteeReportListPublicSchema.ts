@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 
-export const absenteeReportListPublicSchema = z.any();
+export const absenteeReportListPublicSchema = z.object({
+  data: z.array(z.lazy(() => absenteeReportPublicSchema)),
+  count: z.number().int(),
+});

@@ -1,1 +1,86 @@
-{ "x-readme-ref-name": "AbsenteeReportPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Report Date"
+    },
+    "expected_shift_code": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Expected Shift Code"
+    },
+    "absence_start_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Absence Start Time"
+    },
+    "absence_end_time": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Absence End Time"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "UNCERTIFIED_SICK",
+        "ILLNESS_FAMILY_MEMBER",
+        "ILLNESS_ON_JOB",
+        "TIME_OFF",
+        "OTHER"
+      ],
+      "title": "AbsenceReason",
+      "x-readme-ref-name": "AbsenceReason"
+    },
+    "notes": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Notes"
+    },
+    "contact_attempted": { "type": "boolean", "title": "Contact Attempted" },
+    "contact_method": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Contact Method"
+    },
+    "replacement_arranged": {
+      "type": "boolean",
+      "title": "Replacement Arranged"
+    },
+    "replacement_user_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Replacement User Id"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+      "title": "RequestStatus",
+      "x-readme-ref-name": "RequestStatus"
+    },
+    "workflow_instance_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Workflow Instance Id"
+    },
+    "submitted_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Submitted By User Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "user_id",
+    "department_id",
+    "report_date",
+    "reason",
+    "contact_attempted",
+    "replacement_arranged",
+    "status",
+    "submitted_by_user_id",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "AbsenteeReportPublic",
+  "x-readme-ref-name": "AbsenteeReportPublic"
+}
