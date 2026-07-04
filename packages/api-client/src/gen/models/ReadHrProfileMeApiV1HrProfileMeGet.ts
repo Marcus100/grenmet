@@ -6,6 +6,7 @@
 import type { UserProfilePublic } from "./UserProfilePublic.js";
 
 /**
+ * UserProfilePublic
  * @description HR profile returned
  */
 export type ReadHrProfileMeApiV1HrProfileMeGet200 = UserProfilePublic;

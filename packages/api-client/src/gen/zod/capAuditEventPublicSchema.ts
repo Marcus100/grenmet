@@ -5,4 +5,14 @@
 
 import * as z from "zod";
 
-export const capAuditEventPublicSchema = z.any();
+export const capAuditEventPublicSchema = z.object({
+  id: z.string().uuid(),
+  alert_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  actor_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  action: z.string(),
+  previous_state: z.optional(z.union([z.string(), z.null()])),
+  next_state: z.optional(z.union([z.string(), z.null()])),
+  note: z.optional(z.union([z.string(), z.null()])),
+  payload: z.optional(z.object({}).catchall(z.any())),
+  created_at: z.string(),
+});

@@ -1,0 +1,319 @@
+{
+  "properties": {
+    "language": {
+      "type": "string",
+      "maxLength": 35,
+      "minLength": 2,
+      "title": "Language",
+      "default": "en"
+    },
+    "categories": {
+      "items": {
+        "type": "string",
+        "enum": [
+          "Geo",
+          "Met",
+          "Safety",
+          "Security",
+          "Rescue",
+          "Fire",
+          "Health",
+          "Env",
+          "Transport",
+          "Infra",
+          "CBRNE",
+          "Other"
+        ],
+        "title": "CapCategory",
+        "x-readme-ref-name": "CapCategory"
+      },
+      "type": "array",
+      "title": "Categories"
+    },
+    "event": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Event"
+    },
+    "event_codes": {
+      "items": {
+        "properties": {
+          "value_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Value Name"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": ["value_name", "value"],
+        "title": "CapNameValue",
+        "x-readme-ref-name": "CapNameValue"
+      },
+      "type": "array",
+      "title": "Event Codes"
+    },
+    "response_types": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Response Types"
+    },
+    "urgency": {
+      "default": "Expected",
+      "type": "string",
+      "enum": ["Immediate", "Expected", "Future", "Past", "Unknown"],
+      "title": "CapUrgency",
+      "x-readme-ref-name": "CapUrgency"
+    },
+    "severity": {
+      "default": "Moderate",
+      "type": "string",
+      "enum": ["Extreme", "Severe", "Moderate", "Minor", "Unknown"],
+      "title": "CapSeverity",
+      "x-readme-ref-name": "CapSeverity"
+    },
+    "certainty": {
+      "default": "Likely",
+      "type": "string",
+      "enum": ["Observed", "Likely", "Possible", "Unlikely", "Unknown"],
+      "title": "CapCertainty",
+      "x-readme-ref-name": "CapCertainty"
+    },
+    "audience": {
+      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+      "title": "Audience"
+    },
+    "effective": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Effective"
+    },
+    "onset": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Onset"
+    },
+    "expires": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Expires"
+    },
+    "sender_name": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Sender Name"
+    },
+    "headline": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Headline"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 4000,
+      "minLength": 1,
+      "title": "Description"
+    },
+    "instruction": {
+      "anyOf": [{ "type": "string", "maxLength": 4000 }, { "type": "null" }],
+      "title": "Instruction"
+    },
+    "web": {
+      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+      "title": "Web"
+    },
+    "contact": {
+      "anyOf": [{ "type": "string", "maxLength": 500 }, { "type": "null" }],
+      "title": "Contact"
+    },
+    "parameters": {
+      "items": {
+        "properties": {
+          "value_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Value Name"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": ["value_name", "value"],
+        "title": "CapNameValue",
+        "x-readme-ref-name": "CapNameValue"
+      },
+      "type": "array",
+      "title": "Parameters"
+    },
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "sequence": { "type": "integer", "title": "Sequence" },
+    "resources": {
+      "items": {
+        "properties": {
+          "resource_desc": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Resource Desc"
+          },
+          "mime_type": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Mime Type"
+          },
+          "size": {
+            "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }],
+            "title": "Size"
+          },
+          "uri": {
+            "anyOf": [
+              { "type": "string", "maxLength": 1000 },
+              { "type": "null" }
+            ],
+            "title": "Uri"
+          },
+          "deref_uri": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Deref Uri"
+          },
+          "digest": {
+            "anyOf": [
+              { "type": "string", "maxLength": 255 },
+              { "type": "null" }
+            ],
+            "title": "Digest"
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "sequence": { "type": "integer", "title": "Sequence" }
+        },
+        "type": "object",
+        "required": ["resource_desc", "mime_type", "id", "sequence"],
+        "title": "CapResourcePublic",
+        "x-readme-ref-name": "CapResourcePublic"
+      },
+      "type": "array",
+      "title": "Resources"
+    },
+    "areas": {
+      "items": {
+        "properties": {
+          "kind": {
+            "default": "AREA",
+            "type": "string",
+            "enum": [
+              "AREA",
+              "PREDEFINED",
+              "POLYGON",
+              "MULTIPOLYGON",
+              "CIRCLE",
+              "GEOCODE"
+            ],
+            "title": "CapAreaKind",
+            "x-readme-ref-name": "CapAreaKind"
+          },
+          "area_desc": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Area Desc"
+          },
+          "predefined_area_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Predefined Area Id"
+          },
+          "polygons": {
+            "items": {
+              "items": { "items": { "type": "number" }, "type": "array" },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Polygons"
+          },
+          "multipolygons": {
+            "items": {
+              "items": {
+                "items": { "items": { "type": "number" }, "type": "array" },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "type": "array",
+            "title": "Multipolygons"
+          },
+          "circles": {
+            "items": {
+              "additionalProperties": { "type": "number" },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Circles"
+          },
+          "geocodes": {
+            "items": {
+              "properties": {
+                "value_name": {
+                  "type": "string",
+                  "maxLength": 255,
+                  "minLength": 1,
+                  "title": "Value Name"
+                },
+                "value": {
+                  "type": "string",
+                  "maxLength": 1000,
+                  "minLength": 1,
+                  "title": "Value"
+                }
+              },
+              "type": "object",
+              "required": ["value_name", "value"],
+              "title": "CapNameValue",
+              "x-readme-ref-name": "CapNameValue"
+            },
+            "type": "array",
+            "title": "Geocodes"
+          },
+          "geometry": {
+            "anyOf": [
+              { "additionalProperties": true, "type": "object" },
+              { "type": "null" }
+            ],
+            "title": "Geometry"
+          },
+          "altitude": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Altitude"
+          },
+          "ceiling": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }],
+            "title": "Ceiling"
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "sequence": { "type": "integer", "title": "Sequence" }
+        },
+        "type": "object",
+        "required": ["area_desc", "id", "sequence"],
+        "title": "CapAreaPublic",
+        "x-readme-ref-name": "CapAreaPublic"
+      },
+      "type": "array",
+      "title": "Areas"
+    }
+  },
+  "type": "object",
+  "required": ["event", "headline", "description", "id", "sequence"],
+  "title": "CapInfoPublic",
+  "x-readme-ref-name": "CapInfoPublic"
+}

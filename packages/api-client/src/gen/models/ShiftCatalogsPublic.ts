@@ -3,4 +3,18 @@
  * Do not edit manually.
  */
 
-export type ShiftCatalogsPublic = any;
+import type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
+
+/**
+ * ShiftCatalogsPublic
+ */
+export type ShiftCatalogsPublic = {
+  /**
+   * @type array
+   */
+  data: ShiftCatalogPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+};

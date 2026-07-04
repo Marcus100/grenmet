@@ -5,7 +5,7 @@
 
 import * as z from "zod";
 import { capAreaKindSchema } from "./capAreaKindSchema.js";
-import { capNameValueInputSchema } from "./capNameValueInputSchema.js";
+import { capNameValueSchema } from "./capNameValueSchema.js";
 
 export const capAreaCreateSchema = z.object({
   kind: z.optional(z.lazy(() => capAreaKindSchema)),
@@ -14,7 +14,7 @@ export const capAreaCreateSchema = z.object({
   polygons: z.optional(z.array(z.array(z.array(z.number())))),
   multipolygons: z.optional(z.array(z.array(z.array(z.array(z.number()))))),
   circles: z.optional(z.array(z.object({}).catchall(z.number()))),
-  geocodes: z.optional(z.array(z.lazy(() => capNameValueInputSchema))),
+  geocodes: z.optional(z.array(z.lazy(() => capNameValueSchema))),
   geometry: z.optional(z.union([z.object({}).catchall(z.any()), z.null()])),
   altitude: z.optional(z.union([z.number(), z.null()])),
   ceiling: z.optional(z.union([z.number(), z.null()])),

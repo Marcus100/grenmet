@@ -11,6 +11,7 @@ export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams = {
 };
 
 /**
+ * AbsenteeReportListPublic
  * @description Absentee reports returned
  */
 export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGet200 =

@@ -4,5 +4,10 @@
  */
 
 import * as z from "zod";
+import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+import { capSnapshotPublicSchema } from "./capSnapshotPublicSchema.js";
 
-export const capPublishPublicSchema = z.any();
+export const capPublishPublicSchema = z.object({
+  alert: z.lazy(() => capAlertPublicSchema),
+  snapshot: z.lazy(() => capSnapshotPublicSchema),
+});

@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["PENDING", "VALIDATED", "COMPLETED", "FAILED"],
+  "title": "ImportStatus",
+  "x-readme-ref-name": "ImportStatus"
+}

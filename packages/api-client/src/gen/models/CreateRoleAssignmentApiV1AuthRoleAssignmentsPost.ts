@@ -8,6 +8,7 @@ import type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 
 /**
+ * UserRoleAssignmentPublic
  * @description Role assignment created
  */
 export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201 =

@@ -3,4 +3,30 @@
  * Do not edit manually.
  */
 
-export type RosterCsvImportResponse = any;
+import type { ImportStatus } from "./ImportStatus.js";
+
+/**
+ * RosterCsvImportResponse
+ */
+export type RosterCsvImportResponse = {
+  /**
+   * @type string, uuid
+   */
+  job_id: string;
+  /**
+   * @type string
+   */
+  status: ImportStatus;
+  /**
+   * @type integer
+   */
+  total_rows: number;
+  /**
+   * @type integer
+   */
+  valid_rows: number;
+  /**
+   * @type integer
+   */
+  invalid_rows: number;
+};

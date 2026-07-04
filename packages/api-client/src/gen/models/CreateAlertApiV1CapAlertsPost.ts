@@ -8,6 +8,7 @@ import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type CreateAlertApiV1CapAlertsPost201 = CapAlertPublic;

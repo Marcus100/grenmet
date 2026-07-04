@@ -7,7 +7,7 @@ import * as z from "zod";
 import { capAreaCreateSchema } from "./capAreaCreateSchema.js";
 import { capCategorySchema } from "./capCategorySchema.js";
 import { capCertaintySchema } from "./capCertaintySchema.js";
-import { capNameValueInputSchema } from "./capNameValueInputSchema.js";
+import { capNameValueSchema } from "./capNameValueSchema.js";
 import { capResourceCreateSchema } from "./capResourceCreateSchema.js";
 import { capSeveritySchema } from "./capSeveritySchema.js";
 import { capUrgencySchema } from "./capUrgencySchema.js";
@@ -16,7 +16,7 @@ export const capInfoCreateSchema = z.object({
   language: z.optional(z.string().min(2).max(35).default("en")),
   categories: z.optional(z.array(z.lazy(() => capCategorySchema))),
   event: z.string().min(1).max(255),
-  event_codes: z.optional(z.array(z.lazy(() => capNameValueInputSchema))),
+  event_codes: z.optional(z.array(z.lazy(() => capNameValueSchema))),
   response_types: z.optional(z.array(z.string())),
   urgency: z.optional(z.lazy(() => capUrgencySchema)),
   severity: z.optional(z.lazy(() => capSeveritySchema)),
@@ -31,7 +31,7 @@ export const capInfoCreateSchema = z.object({
   instruction: z.optional(z.union([z.string(), z.null()])),
   web: z.optional(z.union([z.string(), z.null()])),
   contact: z.optional(z.union([z.string(), z.null()])),
-  parameters: z.optional(z.array(z.lazy(() => capNameValueInputSchema))),
+  parameters: z.optional(z.array(z.lazy(() => capNameValueSchema))),
   resources: z.optional(z.array(z.lazy(() => capResourceCreateSchema))),
   areas: z.optional(z.array(z.lazy(() => capAreaCreateSchema))),
 });

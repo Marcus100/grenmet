@@ -11,6 +11,7 @@ export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams = {
 };
 
 /**
+ * UserRoleAssignmentsPublic
  * @description Role assignments returned
  */
 export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet200 =

@@ -1,0 +1,61 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "workflow_instance_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Workflow Instance Id"
+    },
+    "step_order": { "type": "integer", "title": "Step Order" },
+    "required_role_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Required Role Id"
+    },
+    "required_scope": {
+      "type": "string",
+      "enum": ["SELF", "DEPARTMENT", "ALL"],
+      "title": "RoleAssignmentScope",
+      "x-readme-ref-name": "RoleAssignmentScope"
+    },
+    "is_required": { "type": "boolean", "title": "Is Required" },
+    "approver_user_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Approver User Id"
+    },
+    "action": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["SUBMIT", "APPROVE", "REJECT", "RETURN", "CANCEL"],
+          "title": "WorkflowAction",
+          "x-readme-ref-name": "WorkflowAction"
+        },
+        { "type": "null" }
+      ]
+    },
+    "comments": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Comments"
+    },
+    "acted_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Acted At"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "workflow_instance_id",
+    "step_order",
+    "required_role_id",
+    "required_scope",
+    "is_required",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "WorkflowStepInstancePublic",
+  "x-readme-ref-name": "WorkflowStepInstancePublic"
+}

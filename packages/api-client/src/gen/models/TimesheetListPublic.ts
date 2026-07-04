@@ -3,4 +3,18 @@
  * Do not edit manually.
  */
 
-export type TimesheetListPublic = any;
+import type { TimesheetPublic } from "./TimesheetPublic.js";
+
+/**
+ * TimesheetListPublic
+ */
+export type TimesheetListPublic = {
+  /**
+   * @type array
+   */
+  data: TimesheetPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+};

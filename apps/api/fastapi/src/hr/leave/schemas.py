@@ -1,11 +1,11 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 from pydantic import Field
 
 from src.hr.models import RequestStatus
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import LeaveType, ProfAppointmentType
 
@@ -59,8 +59,8 @@ class LeaveRequestPublic(BaseModel):
     head_of_dept_comments: str | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class LeaveRequestListPublic(BaseModel):

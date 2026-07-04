@@ -8,6 +8,7 @@ import type { CapSettingsUpdate } from "./CapSettingsUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 /**
+ * CapSettingsPublic
  * @description Successful Response
  */
 export type UpdateCapSettingsApiV1CapSettingsPatch200 = CapSettingsPublic;

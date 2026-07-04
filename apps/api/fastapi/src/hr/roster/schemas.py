@@ -1,9 +1,9 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import (
     ImportStatus,
@@ -44,8 +44,8 @@ class RosterPeriodPublic(BaseModel):
     period_end: date
     status: RosterPeriodStatus
     created_by_user_id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class RosterAssignmentInput(BaseModel):
@@ -119,7 +119,7 @@ class PublicHolidayPublic(BaseModel):
     is_recurring: bool
     country_code: str
     created_by_user_id: uuid.UUID
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 class PublicHolidaysPublic(BaseModel):
@@ -138,7 +138,7 @@ class RosterRevisionPublic(BaseModel):
     changed_by_user_id: uuid.UUID
     summary: str | None = None
     snapshot: dict[str, object]
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 class RosterRevisionsPublic(BaseModel):

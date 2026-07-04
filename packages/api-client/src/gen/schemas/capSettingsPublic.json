@@ -1,1 +1,39 @@
-{ "x-readme-ref-name": "CapSettingsPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "sender": { "type": "string", "title": "Sender" },
+    "sender_name": { "type": "string", "title": "Sender Name" },
+    "wmo_oid": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Wmo Oid"
+    },
+    "web": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Web"
+    },
+    "contact": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Contact"
+    },
+    "feed_limit": { "type": "integer", "title": "Feed Limit" },
+    "signing_enabled": { "type": "boolean", "title": "Signing Enabled" },
+    "signing_certificate_ref": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Signing Certificate Ref"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "sender",
+    "sender_name",
+    "feed_limit",
+    "signing_enabled",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "CapSettingsPublic",
+  "x-readme-ref-name": "CapSettingsPublic"
+}

@@ -5,4 +5,4 @@
 
 import * as z from "zod";
 
-export const capNameValueOutputSchema = z.any();
+export const shiftCategorySchema = z.enum(["WORK", "OFF", "LEAVE", "HOLIDAY"]);

@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["WORK", "OFF", "LEAVE", "HOLIDAY"],
+  "title": "ShiftCategory",
+  "x-readme-ref-name": "ShiftCategory"
+}

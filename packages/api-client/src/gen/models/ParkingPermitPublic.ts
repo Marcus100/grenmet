@@ -3,4 +3,64 @@
  * Do not edit manually.
  */
 
-export type ParkingPermitPublic = any;
+import type { ParkingAction } from "./ParkingAction.js";
+import type { RequestStatus } from "./RequestStatus.js";
+
+/**
+ * ParkingPermitPublic
+ */
+export type ParkingPermitPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  user_id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string, uuid
+   */
+  submitted_by_user_id: string;
+  company_name?: string | null;
+  phone?: string | null;
+  /**
+   * @type string
+   */
+  vehicle_registration_no: string;
+  vehicle_insurance_issue_date?: string | null;
+  vehicle_insurance_expiry_date?: string | null;
+  /**
+   * @type string
+   */
+  action_requested: ParkingAction;
+  action_other_detail?: string | null;
+  /**
+   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+   * @type string
+   */
+  fee_amount: string;
+  decal_number?: string | null;
+  valid_from?: string | null;
+  valid_to?: string | null;
+  issued_by_user_id?: string | null;
+  received_by?: string | null;
+  issued_at?: string | null;
+  /**
+   * @type string
+   */
+  status: RequestStatus;
+  workflow_instance_id?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

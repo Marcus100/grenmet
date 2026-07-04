@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 
-export const timesheetListPublicSchema = z.any();
+export const timesheetListPublicSchema = z.object({
+  data: z.array(z.lazy(() => timesheetPublicSchema)),
+  count: z.number().int(),
+});

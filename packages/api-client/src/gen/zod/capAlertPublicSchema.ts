@@ -4,5 +4,37 @@
  */
 
 import * as z from "zod";
+import { capInfoPublicSchema } from "./capInfoPublicSchema.js";
+import { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
+import { capMessageTypeSchema } from "./capMessageTypeSchema.js";
+import { capReferencePublicSchema } from "./capReferencePublicSchema.js";
+import { capScopeSchema } from "./capScopeSchema.js";
+import { capStatusSchema } from "./capStatusSchema.js";
 
-export const capAlertPublicSchema = z.any();
+export const capAlertPublicSchema = z.object({
+  id: z.string().uuid(),
+  identifier: z.string(),
+  sender: z.string(),
+  sent: z.string(),
+  status: z.lazy(() => capStatusSchema),
+  msg_type: z.lazy(() => capMessageTypeSchema),
+  source: z.optional(z.union([z.string(), z.null()])),
+  scope: z.lazy(() => capScopeSchema),
+  restriction: z.optional(z.union([z.string(), z.null()])),
+  addresses: z.optional(z.array(z.string())),
+  codes: z.optional(z.array(z.string())),
+  note: z.optional(z.union([z.string(), z.null()])),
+  lifecycle_state: z.lazy(() => capLifecycleStateSchema),
+  created_by_user_id: z.string().uuid(),
+  updated_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  submitted_at: z.optional(z.union([z.string(), z.null()])),
+  approved_at: z.optional(z.union([z.string(), z.null()])),
+  published_at: z.optional(z.union([z.string(), z.null()])),
+  expired_at: z.optional(z.union([z.string(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+  references: z.optional(z.array(z.lazy(() => capReferencePublicSchema))),
+  incidents: z.optional(z.array(z.string())),
+  info: z.optional(z.array(z.lazy(() => capInfoPublicSchema))),
+  xml_url: z.optional(z.union([z.string(), z.null()])),
+});

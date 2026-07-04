@@ -4,5 +4,14 @@
  */
 
 import * as z from "zod";
+import { sessionPublicSchema } from "./sessionPublicSchema.js";
+import { userPublicSchema } from "./userPublicSchema.js";
 
-export const sessionAccessTokenResponseSchema = z.any();
+export const sessionAccessTokenResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.optional(z.string().default("bearer")),
+  access_token_expires_at: z.string(),
+  session_expires_at: z.string(),
+  session: z.lazy(() => sessionPublicSchema),
+  user: z.lazy(() => userPublicSchema),
+});

@@ -3,4 +3,62 @@
  * Do not edit manually.
  */
 
-export type AbsenteeReportPublic = any;
+import type { AbsenceReason } from "./AbsenceReason.js";
+import type { RequestStatus } from "./RequestStatus.js";
+
+/**
+ * AbsenteeReportPublic
+ */
+export type AbsenteeReportPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  user_id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string, date
+   */
+  report_date: string;
+  expected_shift_code?: string | null;
+  absence_start_time?: string | null;
+  absence_end_time?: string | null;
+  /**
+   * @type string
+   */
+  reason: AbsenceReason;
+  notes?: string | null;
+  /**
+   * @type boolean
+   */
+  contact_attempted: boolean;
+  contact_method?: string | null;
+  /**
+   * @type boolean
+   */
+  replacement_arranged: boolean;
+  replacement_user_id?: string | null;
+  /**
+   * @type string
+   */
+  status: RequestStatus;
+  workflow_instance_id?: string | null;
+  /**
+   * @type string, uuid
+   */
+  submitted_by_user_id: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

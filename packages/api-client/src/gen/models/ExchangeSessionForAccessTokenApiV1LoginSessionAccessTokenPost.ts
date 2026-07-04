@@ -8,6 +8,7 @@ import type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
 /**
+ * SessionAccessTokenResponse
  * @description Successful Response
  */
 export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200 =

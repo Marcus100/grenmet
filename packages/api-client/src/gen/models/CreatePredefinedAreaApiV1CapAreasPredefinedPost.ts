@@ -8,6 +8,7 @@ import type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 /**
+ * CapPredefinedAreaPublic
  * @description Successful Response
  */
 export type CreatePredefinedAreaApiV1CapAreasPredefinedPost201 =

@@ -8,6 +8,7 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Token } from "./Token.js";
 
 /**
+ * Token
  * @description Login successful, access token returned
  */
 export type LoginAccessTokenApiV1LoginAccessTokenPost200 = Token;

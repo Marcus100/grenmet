@@ -15,6 +15,7 @@ export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams =
   };
 
 /**
+ * TimesheetListPublic
  * @description Timesheets returned
  */
 export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200 =

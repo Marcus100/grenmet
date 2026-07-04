@@ -15,6 +15,7 @@ export type UpdateFeedApiV1CapFeedsFeedIdPatchPathParams = {
 };
 
 /**
+ * CapFeedImportPublic
  * @description Successful Response
  */
 export type UpdateFeedApiV1CapFeedsFeedIdPatch200 = CapFeedImportPublic;

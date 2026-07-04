@@ -8,6 +8,7 @@ import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
 /**
+ * SessionLoginResponse
  * @description Successful Response
  */
 export type RefreshSessionApiV1LoginSessionRefreshPost200 =

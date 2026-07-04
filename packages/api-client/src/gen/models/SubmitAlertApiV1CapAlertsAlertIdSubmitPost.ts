@@ -15,6 +15,7 @@ export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type SubmitAlertApiV1CapAlertsAlertIdSubmitPost200 = CapAlertPublic;

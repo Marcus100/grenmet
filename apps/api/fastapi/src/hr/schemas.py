@@ -1,10 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
 from src.auth.models import RoleAssignmentScope, Title
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import (
     EmploymentStatus,
@@ -91,9 +91,9 @@ class ApprovalAuthorityPublic(BaseModel):
 
 
 class ProfileAuditPublic(BaseModel):
-    created_at: datetime | None = None
+    created_at: UtcDateTime | None = None
     created_by: uuid.UUID | None = None
-    updated_at: datetime | None = None
+    updated_at: UtcDateTime | None = None
 
 
 class UserProfilePublic(BaseModel):

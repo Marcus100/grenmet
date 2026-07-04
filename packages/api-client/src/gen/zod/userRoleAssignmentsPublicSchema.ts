@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 
-export const userRoleAssignmentsPublicSchema = z.any();
+export const userRoleAssignmentsPublicSchema = z.object({
+  data: z.array(z.lazy(() => userRoleAssignmentPublicSchema)),
+  count: z.number().int(),
+});

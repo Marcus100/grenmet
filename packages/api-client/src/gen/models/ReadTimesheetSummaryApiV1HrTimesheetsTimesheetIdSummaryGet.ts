@@ -15,6 +15,7 @@ export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams
   };
 
 /**
+ * TimesheetSummaryByShift
  * @description Summary returned
  */
 export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200 =

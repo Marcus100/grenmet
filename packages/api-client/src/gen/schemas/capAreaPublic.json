@@ -1,0 +1,100 @@
+{
+  "properties": {
+    "kind": {
+      "default": "AREA",
+      "type": "string",
+      "enum": [
+        "AREA",
+        "PREDEFINED",
+        "POLYGON",
+        "MULTIPOLYGON",
+        "CIRCLE",
+        "GEOCODE"
+      ],
+      "title": "CapAreaKind",
+      "x-readme-ref-name": "CapAreaKind"
+    },
+    "area_desc": {
+      "type": "string",
+      "maxLength": 1000,
+      "minLength": 1,
+      "title": "Area Desc"
+    },
+    "predefined_area_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Predefined Area Id"
+    },
+    "polygons": {
+      "items": {
+        "items": { "items": { "type": "number" }, "type": "array" },
+        "type": "array"
+      },
+      "type": "array",
+      "title": "Polygons"
+    },
+    "multipolygons": {
+      "items": {
+        "items": {
+          "items": { "items": { "type": "number" }, "type": "array" },
+          "type": "array"
+        },
+        "type": "array"
+      },
+      "type": "array",
+      "title": "Multipolygons"
+    },
+    "circles": {
+      "items": {
+        "additionalProperties": { "type": "number" },
+        "type": "object"
+      },
+      "type": "array",
+      "title": "Circles"
+    },
+    "geocodes": {
+      "items": {
+        "properties": {
+          "value_name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Value Name"
+          },
+          "value": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": ["value_name", "value"],
+        "title": "CapNameValue",
+        "x-readme-ref-name": "CapNameValue"
+      },
+      "type": "array",
+      "title": "Geocodes"
+    },
+    "geometry": {
+      "anyOf": [
+        { "additionalProperties": true, "type": "object" },
+        { "type": "null" }
+      ],
+      "title": "Geometry"
+    },
+    "altitude": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }],
+      "title": "Altitude"
+    },
+    "ceiling": {
+      "anyOf": [{ "type": "number" }, { "type": "null" }],
+      "title": "Ceiling"
+    },
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "sequence": { "type": "integer", "title": "Sequence" }
+  },
+  "type": "object",
+  "required": ["area_desc", "id", "sequence"],
+  "title": "CapAreaPublic",
+  "x-readme-ref-name": "CapAreaPublic"
+}

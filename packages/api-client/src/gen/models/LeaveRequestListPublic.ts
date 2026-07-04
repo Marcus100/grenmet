@@ -3,4 +3,18 @@
  * Do not edit manually.
  */
 
-export type LeaveRequestListPublic = any;
+import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
+
+/**
+ * LeaveRequestListPublic
+ */
+export type LeaveRequestListPublic = {
+  /**
+   * @type array
+   */
+  data: LeaveRequestPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+};

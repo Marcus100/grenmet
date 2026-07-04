@@ -14,6 +14,7 @@ export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200 =

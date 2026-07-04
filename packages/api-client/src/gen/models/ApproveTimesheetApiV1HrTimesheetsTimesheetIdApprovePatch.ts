@@ -15,6 +15,7 @@ export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams =
   };
 
 /**
+ * TimesheetPublic
  * @description Timesheet approved
  */
 export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200 =

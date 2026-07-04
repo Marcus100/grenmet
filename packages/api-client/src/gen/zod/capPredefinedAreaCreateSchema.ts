@@ -4,7 +4,7 @@
  */
 
 import * as z from "zod";
-import { capNameValueInputSchema } from "./capNameValueInputSchema.js";
+import { capNameValueSchema } from "./capNameValueSchema.js";
 
 export const capPredefinedAreaCreateSchema = z.object({
   name: z.string().min(1).max(255),
@@ -13,6 +13,6 @@ export const capPredefinedAreaCreateSchema = z.object({
   polygons: z.optional(z.array(z.array(z.array(z.number())))),
   multipolygons: z.optional(z.array(z.array(z.array(z.array(z.number()))))),
   circles: z.optional(z.array(z.object({}).catchall(z.number()))),
-  geocodes: z.optional(z.array(z.lazy(() => capNameValueInputSchema))),
+  geocodes: z.optional(z.array(z.lazy(() => capNameValueSchema))),
   is_active: z.optional(z.boolean().default(true)),
 });

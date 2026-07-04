@@ -5,7 +5,7 @@
 
 import * as z from "zod";
 
-export const capNameValueInputSchema = z.object({
+export const capNameValueSchema = z.object({
   value_name: z.string().min(1).max(255),
   value: z.string().min(1).max(1000),
 });

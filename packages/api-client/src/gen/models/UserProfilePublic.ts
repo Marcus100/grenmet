@@ -3,4 +3,67 @@
  * Do not edit manually.
  */
 
-export type UserProfilePublic = any;
+import type { AddressPublic } from "./AddressPublic.js";
+import type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
+import type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
+import type { EmploymentPublic } from "./EmploymentPublic.js";
+import type { LeavePublic } from "./LeavePublic.js";
+import type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
+import type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
+import type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
+import type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
+import type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
+
+/**
+ * UserProfilePublic
+ */
+export type UserProfilePublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type object
+   */
+  identity: ProfileIdentityPublic;
+  /**
+   * @type object
+   */
+  profile: ProfileDetailsPublic;
+  /**
+   * @type object
+   */
+  address: AddressPublic;
+  /**
+   * @type object
+   */
+  emergency_contact: EmergencyContactPublic;
+  /**
+   * @type object
+   */
+  employment: EmploymentPublic;
+  /**
+   * @type array | undefined
+   */
+  roles?: SrcHrSchemasRolePublic[];
+  /**
+   * @type array | undefined
+   */
+  permissions?: string[];
+  /**
+   * @type object
+   */
+  roster_preferences: RosterPreferencesPublic;
+  /**
+   * @type object
+   */
+  leave: LeavePublic;
+  /**
+   * @type object
+   */
+  approval_authority: ApprovalAuthorityPublic;
+  /**
+   * @type object
+   */
+  audit: ProfileAuditPublic;
+};

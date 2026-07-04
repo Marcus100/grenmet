@@ -14,6 +14,7 @@ export type DeleteUserApiV1AuthUsersUserIdDeletePathParams = {
 };
 
 /**
+ * Message
  * @description User deleted
  */
 export type DeleteUserApiV1AuthUsersUserIdDelete200 = Message;

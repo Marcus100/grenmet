@@ -1,1 +1,126 @@
-{ "x-readme-ref-name": "SessionLoginResponse" }
+{
+  "properties": {
+    "access_token": { "type": "string", "title": "Access Token" },
+    "token_type": {
+      "type": "string",
+      "title": "Token Type",
+      "default": "bearer"
+    },
+    "access_token_expires_at": {
+      "type": "string",
+      "title": "Access Token Expires At"
+    },
+    "session_expires_at": { "type": "string", "title": "Session Expires At" },
+    "session": {
+      "properties": {
+        "expires_at": { "type": "string", "title": "Expires At" },
+        "client_type": { "type": "string", "title": "Client Type" },
+        "app_name": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "App Name"
+        },
+        "last_used_at": { "type": "string", "title": "Last Used At" },
+        "revoked_at": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Revoked At"
+        },
+        "id": { "type": "string", "format": "uuid", "title": "Id" },
+        "created_at": { "type": "string", "title": "Created At" },
+        "updated_at": { "type": "string", "title": "Updated At" },
+        "user_id": { "type": "string", "format": "uuid", "title": "User Id" }
+      },
+      "type": "object",
+      "required": [
+        "expires_at",
+        "client_type",
+        "last_used_at",
+        "id",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "title": "SessionPublic",
+      "x-readme-ref-name": "SessionPublic"
+    },
+    "user": {
+      "properties": {
+        "email": {
+          "type": "string",
+          "maxLength": 255,
+          "format": "email",
+          "title": "Email"
+        },
+        "username": { "type": "string", "maxLength": 255, "title": "Username" },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": ["MR", "MRS", "MS", "MISS", "DR"],
+              "title": "Title",
+              "description": "Honorific prefix for a person's name (used on official bylines).",
+              "x-readme-ref-name": "Title"
+            },
+            { "type": "null" }
+          ]
+        },
+        "first_name": {
+          "type": "string",
+          "maxLength": 100,
+          "title": "First Name"
+        },
+        "middle_name": {
+          "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+          "title": "Middle Name"
+        },
+        "last_name": {
+          "type": "string",
+          "maxLength": 100,
+          "title": "Last Name"
+        },
+        "is_active": {
+          "type": "boolean",
+          "title": "Is Active",
+          "default": true
+        },
+        "is_superuser": {
+          "type": "boolean",
+          "title": "Is Superuser",
+          "default": false
+        },
+        "id": { "type": "string", "format": "uuid", "title": "Id" },
+        "created_at": { "type": "string", "title": "Created At" },
+        "updated_at": { "type": "string", "title": "Updated At" },
+        "last_login_at": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Last Login At"
+        },
+        "full_name": { "type": "string", "title": "Full Name" }
+      },
+      "type": "object",
+      "required": [
+        "email",
+        "username",
+        "first_name",
+        "last_name",
+        "id",
+        "created_at",
+        "updated_at",
+        "full_name"
+      ],
+      "title": "UserPublic",
+      "x-readme-ref-name": "UserPublic"
+    },
+    "session_token": { "type": "string", "title": "Session Token" }
+  },
+  "type": "object",
+  "required": [
+    "access_token",
+    "access_token_expires_at",
+    "session_expires_at",
+    "session",
+    "user",
+    "session_token"
+  ],
+  "title": "SessionLoginResponse",
+  "x-readme-ref-name": "SessionLoginResponse"
+}

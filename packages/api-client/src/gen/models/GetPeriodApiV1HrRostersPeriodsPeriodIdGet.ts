@@ -14,6 +14,7 @@ export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams = {
 };
 
 /**
+ * RosterPeriodDetails
  * @description Period and assignments returned
  */
 export type GetPeriodApiV1HrRostersPeriodsPeriodIdGet200 = RosterPeriodDetails;

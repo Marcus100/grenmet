@@ -6,6 +6,7 @@
 import type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 
 /**
+ * CapCatalogsPublic
  * @description Successful Response
  */
 export type ReadCatalogsApiV1CapCatalogsGet200 = CapCatalogsPublic;

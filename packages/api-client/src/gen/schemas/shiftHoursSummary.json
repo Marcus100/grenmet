@@ -1,0 +1,37 @@
+{
+  "properties": {
+    "shift_code": { "type": "string", "title": "Shift Code" },
+    "total_roster_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Total Roster Hours"
+    },
+    "total_actual_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Total Actual Hours"
+    },
+    "total_overtime_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Total Overtime Hours"
+    },
+    "total_break_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Total Break Hours"
+    },
+    "entry_count": { "type": "integer", "title": "Entry Count" }
+  },
+  "type": "object",
+  "required": [
+    "shift_code",
+    "total_roster_hours",
+    "total_actual_hours",
+    "total_overtime_hours",
+    "total_break_hours",
+    "entry_count"
+  ],
+  "title": "ShiftHoursSummary",
+  "x-readme-ref-name": "ShiftHoursSummary"
+}

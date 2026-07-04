@@ -1,0 +1,24 @@
+{
+  "properties": {
+    "username": { "type": "string", "title": "Username" },
+    "email": { "type": "string", "title": "Email" },
+    "phone": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Phone"
+    },
+    "avatar_url": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Avatar Url"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "INACTIVE"],
+      "title": "UserStatus",
+      "x-readme-ref-name": "UserStatus"
+    }
+  },
+  "type": "object",
+  "required": ["username", "email", "status"],
+  "title": "ProfileIdentityPublic",
+  "x-readme-ref-name": "ProfileIdentityPublic"
+}

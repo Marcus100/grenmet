@@ -16,8 +16,8 @@ export const userPublicSchema = z.object({
   is_active: z.optional(z.boolean().default(true)),
   is_superuser: z.optional(z.boolean().default(false)),
   id: z.string().uuid(),
-  created_at: z.string().datetime(),
-  updated_at: z.string().datetime(),
-  last_login_at: z.optional(z.union([z.string().datetime(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+  last_login_at: z.optional(z.union([z.string(), z.null()])),
   full_name: z.string(),
 });

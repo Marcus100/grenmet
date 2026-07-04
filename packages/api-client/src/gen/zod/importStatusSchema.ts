@@ -5,4 +5,9 @@
 
 import * as z from "zod";
 
-export const rolePublicSchema = z.any();
+export const importStatusSchema = z.enum([
+  "PENDING",
+  "VALIDATED",
+  "COMPLETED",
+  "FAILED",
+]);
