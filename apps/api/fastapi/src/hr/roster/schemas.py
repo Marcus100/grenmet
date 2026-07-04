@@ -19,6 +19,7 @@ class ShiftCatalogPublic(BaseModel):
     category: ShiftCategory
     start_time: str | None = None
     end_time: str | None = None
+    ends_next_day: bool
     counts_as_work_hours: bool
     needs_reason: bool
     needs_approval: bool

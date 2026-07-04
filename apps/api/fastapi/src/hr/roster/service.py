@@ -165,18 +165,31 @@ async def publish_roster_period(
     period.updated_at = utc_now()
     session.add(period)
     assign_result = await session.execute(
-        select(RosterAssignment).where(
-            col(RosterAssignment.roster_period_id) == period_id
-        )
+        select(RosterAssignment)
+        .where(col(RosterAssignment.roster_period_id) == period_id)
+        .order_by(col(RosterAssignment.assignment_date), col(RosterAssignment.user_id))
     )
-    assignment_count = len(list(assign_result.scalars().all()))
+    assignments = list(assign_result.scalars().all())
+    # The publish snapshot is the authoritative "signed" state of the roster;
+    # later write-throughs (leave, swaps, amendments) diff against it.
     await _create_revision(
         session=session,
         roster_period_id=period_id,
         action=RosterRevisionAction.PUBLISHED,
         changed_by_user_id=current_user.id,
-        summary=f"Published with {assignment_count} assignments",
-        snapshot={"assignment_count": assignment_count},
+        summary=f"Published with {len(assignments)} assignments",
+        snapshot={
+            "assignment_count": len(assignments),
+            "assignments": [
+                {
+                    "user_id": str(assignment.user_id),
+                    "assignment_date": assignment.assignment_date.isoformat(),
+                    "shift_code": assignment.shift_code,
+                    "remarks": assignment.remarks,
+                }
+                for assignment in assignments
+            ],
+        },
     )
     await session.commit()
     await session.refresh(period)
