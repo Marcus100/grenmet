@@ -17,6 +17,7 @@ import type {
 import fetch from "../../client.js";
 import { updateUserApiV1AuthUsersUserIdPatch } from "../clients/updateUserApiV1AuthUsersUserIdPatch.js";
 import type {
+  UpdateUserApiV1AuthUsersUserIdPatch403,
   UpdateUserApiV1AuthUsersUserIdPatch404,
   UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
@@ -43,6 +44,7 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
   return mutationOptions<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
     ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch403
       | UpdateUserApiV1AuthUsersUserIdPatch404
       | UpdateUserApiV1AuthUsersUserIdPatch409
       | UpdateUserApiV1AuthUsersUserIdPatch422
@@ -61,7 +63,7 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
 }
 
 /**
- * @description Update a user by ID (superuser only).
+ * @description Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
@@ -70,6 +72,7 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
     mutation?: UseMutationOptions<
       UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
       ResponseErrorConfig<
+        | UpdateUserApiV1AuthUsersUserIdPatch403
         | UpdateUserApiV1AuthUsersUserIdPatch404
         | UpdateUserApiV1AuthUsersUserIdPatch409
         | UpdateUserApiV1AuthUsersUserIdPatch422
@@ -96,6 +99,7 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   ) as UseMutationOptions<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
     ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch403
       | UpdateUserApiV1AuthUsersUserIdPatch404
       | UpdateUserApiV1AuthUsersUserIdPatch409
       | UpdateUserApiV1AuthUsersUserIdPatch422
@@ -110,6 +114,7 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   return useMutation<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
     ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch403
       | UpdateUserApiV1AuthUsersUserIdPatch404
       | UpdateUserApiV1AuthUsersUserIdPatch409
       | UpdateUserApiV1AuthUsersUserIdPatch422
@@ -129,6 +134,7 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   ) as UseMutationResult<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
     ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch403
       | UpdateUserApiV1AuthUsersUserIdPatch404
       | UpdateUserApiV1AuthUsersUserIdPatch409
       | UpdateUserApiV1AuthUsersUserIdPatch422

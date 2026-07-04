@@ -1,0 +1,23 @@
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "name": { "type": "string", "title": "Name" }
+        },
+        "type": "object",
+        "required": ["id", "name"],
+        "title": "DepartmentPublic",
+        "x-readme-ref-name": "DepartmentPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "DepartmentsPublic",
+  "x-readme-ref-name": "DepartmentsPublic"
+}

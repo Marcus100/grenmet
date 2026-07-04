@@ -25,6 +25,7 @@ import {
   ShoppingBag,
   SquareKanban,
   Truck,
+  UserCog,
   Users,
 } from "lucide-react";
 
@@ -74,6 +75,7 @@ export const sidebarItems: NavGroup[] = [
       { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       { id: "roster", title: "Roster", url: "/roster", icon: CalendarDays },
+      { id: "users", title: "Users", url: "/users", icon: UserCog },
       {
         id: "profile",
         title: "User Profile",

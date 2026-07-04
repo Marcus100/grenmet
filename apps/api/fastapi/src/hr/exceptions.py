@@ -22,6 +22,11 @@ class EmploymentNotFoundError(NotFoundError):
         super().__init__(hr_constants.ERROR_EMPLOYMENT_NOT_FOUND)
 
 
+class DepartmentNotFoundError(NotFoundError):
+    def __init__(self) -> None:
+        super().__init__(hr_constants.ERROR_DEPARTMENT_NOT_FOUND)
+
+
 class RosterPeriodNotFoundError(NotFoundError):
     def __init__(self) -> None:
         super().__init__(hr_constants.ERROR_ROSTER_PERIOD_NOT_FOUND)

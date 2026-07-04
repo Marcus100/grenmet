@@ -48,6 +48,11 @@ class RosterPeriodPublic(BaseModel):
     updated_at: UtcDateTime
 
 
+class RosterPeriodsPublic(BaseModel):
+    data: list[RosterPeriodPublic]
+    count: int
+
+
 class RosterAssignmentInput(BaseModel):
     user_id: uuid.UUID
     assignment_date: date

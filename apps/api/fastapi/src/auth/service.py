@@ -14,6 +14,7 @@ from src.auth.schemas import (
     PermissionCreate,
     PermissionUpdate,
     RoleCreate,
+    RoleUpdate,
     SessionCreate,
     UserCreate,
     UserRoleAssignmentCreate,
@@ -421,6 +422,50 @@ async def get_roles_with_count(
     list_result = await session.execute(list_stmt)
     roles = list(list_result.scalars().all())
     return roles, total
+
+
+async def update_role(
+    *, session: AsyncSession, db_role: Role, role_in: RoleUpdate
+) -> Role:
+    """Update a role's name/description."""
+    role_data = role_in.model_dump(exclude_unset=True)
+    db_role.sqlmodel_update(role_data)
+    session.add(db_role)
+    await session.commit()
+    await session.refresh(db_role)
+    return db_role
+
+
+async def count_role_assignments_for_role(
+    *, session: AsyncSession, role_id: uuid.UUID
+) -> int:
+    """Count active user-role assignments referencing a role."""
+    count_stmt = (
+        select(func.count())
+        .select_from(UserRoleAssignment)
+        .where(UserRoleAssignment.role_id == role_id)
+    )
+    result = await session.execute(count_stmt)
+    return result.scalar() or 0
+
+
+async def delete_role(*, session: AsyncSession, db_role: Role) -> None:
+    """Delete a role. Callers must ensure no assignments reference it."""
+    # Clear the role_permission link rows explicitly — the FK has no cascade.
+    await session.refresh(db_role, attribute_names=["permissions"])
+    db_role.permissions.clear()
+    session.add(db_role)
+    await session.flush()
+    await session.delete(db_role)
+    await session.commit()
+
+
+async def delete_user_role_assignment(
+    *, session: AsyncSession, db_assignment: UserRoleAssignment
+) -> None:
+    """Revoke a user-role assignment."""
+    await session.delete(db_assignment)
+    await session.commit()
 
 
 # Permission management

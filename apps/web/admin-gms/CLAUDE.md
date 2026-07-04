@@ -14,12 +14,8 @@ Port **3001**. The heaviest app in the monorepo.
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |
 | `@tanstack/react-table` | Data tables with `Pagination` component |
 | `@tanstack/react-virtual` | Virtualised lists |
-| `react-dropzone` | File upload |
 | `react-error-boundary` | Error boundaries around data-heavy sections |
 | `sonner` | Toast notifications |
-| `swiper` | Carousels |
-| `flatpickr` | Date pickers |
-| `@react-jvectormap` | World map (demographics card) |
 | `date-fns` | Date formatting |
 | `resend` | Email (server-side) |
 | `msw` | API mocking in tests |
@@ -46,8 +42,7 @@ src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (HomeMetricCards + RainfallChart)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
-    (others-pages)/  ← calendar, profile, charts, forms, tables, blank
-    (ui-elements)/   ← alerts, avatars, badges, buttons, images, videos, modals
+    (others-pages)/  ← calendar, profile
     studio/          ← Studio-Admin template demo dashboards (kept as reference)
   (full-width-pages)/
     (auth)/          ← signin, signup (full-width, no sidebar)
@@ -104,6 +99,6 @@ Test setup: `src/test/setup.ts`. Uses `jsdom`, `@testing-library/react`, `msw` f
 ## Important conventions
 
 - **No direct `process.env`** — use `src/env.ts` (typed via `@t3-oss/env-nextjs`)
-- **`@grenmet/ui` for primitives** — custom UI components in `src/components/ui/` are app-specific wrappers or extensions
+- **`@grenmet/ui` for primitives** — import per-file as `@grenmet/ui/components/ui/<name>`; there is no app-local `src/components/ui/`
 - **React Query for client-side server state** — initialised in `QueryProvider`, not for data that can be Server Component fetches
 - **`src/lib/query-client.ts`** — shared query client config; do not create new instances

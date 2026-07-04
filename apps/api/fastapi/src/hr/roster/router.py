@@ -6,6 +6,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
 
 from . import service
+from .models import RosterPeriodStatus
 from .schemas import (
     PublicHolidayCreate,
     PublicHolidayPublic,
@@ -18,6 +19,7 @@ from .schemas import (
     RosterPeriodCreate,
     RosterPeriodDetails,
     RosterPeriodPublic,
+    RosterPeriodsPublic,
     RosterRevisionPublic,
     RosterRevisionsPublic,
     ShiftCatalogPublic,
@@ -47,6 +49,37 @@ async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> 
             for shift in shifts
         ],
         count=len(shifts),
+    )
+
+
+@router.get(
+    "/periods",
+    response_model=RosterPeriodsPublic,
+    summary="List roster periods",
+    description="Return roster periods for a department, newest first. Requires roster.view permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Roster periods returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def list_periods(
+    session: SessionDep,
+    current_user: CurrentUser,
+    department_id: str,
+    period_status: RosterPeriodStatus | None = None,
+) -> Any:
+    periods = await service.list_roster_periods(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        period_status=period_status,
+    )
+    return RosterPeriodsPublic(
+        data=[
+            RosterPeriodPublic.model_validate(period, from_attributes=True)
+            for period in periods
+        ],
+        count=len(periods),
     )
 
 

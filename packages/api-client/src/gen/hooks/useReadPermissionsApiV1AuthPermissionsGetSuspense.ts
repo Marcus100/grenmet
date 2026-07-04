@@ -26,7 +26,7 @@ import type {
 export const readPermissionsApiV1AuthPermissionsGetSuspenseQueryKey = (
   params: ReadPermissionsApiV1AuthPermissionsGetQueryParams = {}
 ) =>
-  [{ url: "/api/v1/auth/permissions/" }, ...(params ? [params] : [])] as const;
+  [{ url: "/api/v1/auth/permissions" }, ...(params ? [params] : [])] as const;
 
 export type ReadPermissionsApiV1AuthPermissionsGetSuspenseQueryKey = ReturnType<
   typeof readPermissionsApiV1AuthPermissionsGetSuspenseQueryKey
@@ -57,7 +57,7 @@ export function readPermissionsApiV1AuthPermissionsGetSuspenseQueryOptions(
 /**
  * @description Return permissions (superuser only).
  * @summary List permissions
- * {@link /api/v1/auth/permissions/}
+ * {@link /api/v1/auth/permissions}
  */
 export function useReadPermissionsApiV1AuthPermissionsGetSuspense<
   TData = ReadPermissionsApiV1AuthPermissionsGetQueryResponse,

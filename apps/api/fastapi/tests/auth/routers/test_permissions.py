@@ -13,7 +13,7 @@ async def test_get_permissions(
 ) -> None:
     """Test getting all permissions."""
     response = await async_client.get(
-        f"{settings.API_V1_STR}/auth/permissions/",
+        f"{settings.API_V1_STR}/auth/permissions",
         headers=superuser_token_headers_async,
     )
     assert response.status_code == 200
@@ -36,7 +36,7 @@ async def test_create_permission(
         "description": "Read own user data",
     }
     response = await async_client.post(
-        f"{settings.API_V1_STR}/auth/permissions/",
+        f"{settings.API_V1_STR}/auth/permissions",
         headers=superuser_token_headers_async,
         json=data,
     )
@@ -59,7 +59,7 @@ async def test_get_permission(
         "description": "Read own user data",
     }
     create_response = await async_client.post(
-        f"{settings.API_V1_STR}/auth/permissions/",
+        f"{settings.API_V1_STR}/auth/permissions",
         headers=superuser_token_headers_async,
         json=data,
     )

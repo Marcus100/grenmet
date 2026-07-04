@@ -1,0 +1,47 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "employee_number": { "type": "string", "title": "Employee Number" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "position": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Position"
+    },
+    "employment_type": {
+      "type": "string",
+      "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+      "title": "EmploymentType",
+      "x-readme-ref-name": "EmploymentType"
+    },
+    "start_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Start Date"
+    },
+    "supervisor_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Supervisor Id"
+    },
+    "work_location": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Work Location"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
+      "title": "EmploymentStatus",
+      "x-readme-ref-name": "EmploymentStatus"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "user_id",
+    "employee_number",
+    "department_id",
+    "employment_type",
+    "status"
+  ],
+  "title": "EmploymentRecordPublic",
+  "x-readme-ref-name": "EmploymentRecordPublic"
+}

@@ -131,3 +131,27 @@ async def get_current_active_superuser(current_user: CurrentUser) -> User:
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
     return current_user
+
+
+def is_user_manager(user: User) -> bool:
+    """Superuser or holder of user.manage (delegated account administration)."""
+    from src.auth.policy import has_permission
+
+    return user.is_superuser or has_permission(
+        current_user=user, permission_key="user.manage"
+    )
+
+
+async def get_current_user_manager(current_user: CurrentUser) -> User:
+    """Allow superusers and users holding the user.manage permission.
+
+    user.manage delegates account administration (create staff logins,
+    deactivate leavers) to hr-admins; anything touching superuser status or
+    role/permission definitions stays superuser-only via in-route guards.
+    """
+    if not is_user_manager(current_user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=ERROR_INSUFFICIENT_PRIVILEGES,
+        )
+    return current_user

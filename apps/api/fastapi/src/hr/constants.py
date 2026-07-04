@@ -14,6 +14,10 @@ ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT = (
     "Supervisors can update only users in their department"
 )
 
+ERROR_DEPARTMENT_NOT_FOUND = "Department not found"
+ERROR_DEPARTMENT_ALREADY_EXISTS = "A department with this id or name already exists"
+ERROR_EMPLOYMENT_ALREADY_EXISTS = "An employment record already exists for this user"
+
 # --- Roster (hr/roster/service.py) ---
 ERROR_ROSTER_PERIOD_END_BEFORE_START = "period_end must be after period_start"
 ERROR_ROSTER_PERIOD_NOT_FOUND = "Roster period not found"

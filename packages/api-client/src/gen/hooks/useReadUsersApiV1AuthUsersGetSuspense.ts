@@ -25,7 +25,7 @@ import type {
 
 export const readUsersApiV1AuthUsersGetSuspenseQueryKey = (
   params: ReadUsersApiV1AuthUsersGetQueryParams = {}
-) => [{ url: "/api/v1/auth/users/" }, ...(params ? [params] : [])] as const;
+) => [{ url: "/api/v1/auth/users" }, ...(params ? [params] : [])] as const;
 
 export type ReadUsersApiV1AuthUsersGetSuspenseQueryKey = ReturnType<
   typeof readUsersApiV1AuthUsersGetSuspenseQueryKey
@@ -53,9 +53,9 @@ export function readUsersApiV1AuthUsersGetSuspenseQueryOptions(
 }
 
 /**
- * @description Return users (superuser only). Uses standard pagination (page, size, total_pages).
+ * @description Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).
  * @summary List users
- * {@link /api/v1/auth/users/}
+ * {@link /api/v1/auth/users}
  */
 export function useReadUsersApiV1AuthUsersGetSuspense<
   TData = ReadUsersApiV1AuthUsersGetQueryResponse,
