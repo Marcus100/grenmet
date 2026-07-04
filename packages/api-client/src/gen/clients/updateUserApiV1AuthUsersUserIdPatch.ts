@@ -10,6 +10,7 @@ import type {
 } from "../../client.js";
 import fetch from "../../client.js";
 import type {
+  UpdateUserApiV1AuthUsersUserIdPatch403,
   UpdateUserApiV1AuthUsersUserIdPatch404,
   UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,
@@ -29,7 +30,7 @@ function getUpdateUserApiV1AuthUsersUserIdPatchUrl(
 }
 
 /**
- * @description Update a user by ID (superuser only).
+ * @description Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
@@ -47,6 +48,7 @@ export async function updateUserApiV1AuthUsersUserIdPatch(
   const res = await request<
     UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
     ResponseErrorConfig<
+      | UpdateUserApiV1AuthUsersUserIdPatch403
       | UpdateUserApiV1AuthUsersUserIdPatch404
       | UpdateUserApiV1AuthUsersUserIdPatch409
       | UpdateUserApiV1AuthUsersUserIdPatch422

@@ -16,17 +16,14 @@ import type {
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 
 function getCreateRoleAssignmentApiV1AuthRoleAssignmentsPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/role-assignments/` as const,
-  };
+  const res = { method: "POST", url: `/api/v1/auth/role-assignments` as const };
   return res;
 }
 
 /**
  * @description Create a user-role assignment (superuser only).
  * @summary Create role assignment
- * {@link /api/v1/auth/role-assignments/}
+ * {@link /api/v1/auth/role-assignments}
  */
 export async function createRoleAssignmentApiV1AuthRoleAssignmentsPost(
   data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,

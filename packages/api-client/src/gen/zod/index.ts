@@ -117,6 +117,14 @@ export {
   createAlertApiV1CapAlertsPostMutationResponseSchema,
 } from "./createAlertApiV1CapAlertsPostSchema.js";
 export {
+  createDepartmentEndpointApiV1HrDepartmentsPost201Schema,
+  createDepartmentEndpointApiV1HrDepartmentsPost400Schema,
+  createDepartmentEndpointApiV1HrDepartmentsPost403Schema,
+  createDepartmentEndpointApiV1HrDepartmentsPost422Schema,
+  createDepartmentEndpointApiV1HrDepartmentsPostMutationRequestSchema,
+  createDepartmentEndpointApiV1HrDepartmentsPostMutationResponseSchema,
+} from "./createDepartmentEndpointApiV1HrDepartmentsPostSchema.js";
+export {
   createFeedApiV1CapFeedsPost201Schema,
   createFeedApiV1CapFeedsPost422Schema,
   createFeedApiV1CapFeedsPostMutationRequestSchema,
@@ -131,6 +139,16 @@ export {
   createHolidayApiV1HrRostersPublicHolidaysPostMutationRequestSchema,
   createHolidayApiV1HrRostersPublicHolidaysPostMutationResponseSchema,
 } from "./createHolidayApiV1HrRostersPublicHolidaysPostSchema.js";
+export {
+  createHrEmploymentApiV1HrEmploymentUserIdPost201Schema,
+  createHrEmploymentApiV1HrEmploymentUserIdPost400Schema,
+  createHrEmploymentApiV1HrEmploymentUserIdPost403Schema,
+  createHrEmploymentApiV1HrEmploymentUserIdPost404Schema,
+  createHrEmploymentApiV1HrEmploymentUserIdPost422Schema,
+  createHrEmploymentApiV1HrEmploymentUserIdPostMutationRequestSchema,
+  createHrEmploymentApiV1HrEmploymentUserIdPostMutationResponseSchema,
+  createHrEmploymentApiV1HrEmploymentUserIdPostPathParamsSchema,
+} from "./createHrEmploymentApiV1HrEmploymentUserIdPostSchema.js";
 export {
   createInstanceApiV1HrWorkflowsInstancesPost200Schema,
   createInstanceApiV1HrWorkflowsInstancesPost201Schema,
@@ -232,6 +250,7 @@ export {
 export {
   createUserApiV1AuthUsersPost201Schema,
   createUserApiV1AuthUsersPost400Schema,
+  createUserApiV1AuthUsersPost403Schema,
   createUserApiV1AuthUsersPost422Schema,
   createUserApiV1AuthUsersPostMutationRequestSchema,
   createUserApiV1AuthUsersPostMutationResponseSchema,
@@ -242,6 +261,21 @@ export {
   deleteFeedApiV1CapFeedsFeedIdDeleteMutationResponseSchema,
   deleteFeedApiV1CapFeedsFeedIdDeletePathParamsSchema,
 } from "./deleteFeedApiV1CapFeedsFeedIdDeleteSchema.js";
+export {
+  deleteRoleApiV1AuthRolesRoleIdDelete204Schema,
+  deleteRoleApiV1AuthRolesRoleIdDelete400Schema,
+  deleteRoleApiV1AuthRolesRoleIdDelete404Schema,
+  deleteRoleApiV1AuthRolesRoleIdDelete422Schema,
+  deleteRoleApiV1AuthRolesRoleIdDeleteMutationResponseSchema,
+  deleteRoleApiV1AuthRolesRoleIdDeletePathParamsSchema,
+} from "./deleteRoleApiV1AuthRolesRoleIdDeleteSchema.js";
+export {
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204Schema,
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404Schema,
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422Schema,
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponseSchema,
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParamsSchema,
+} from "./deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteSchema.js";
 export {
   deleteUserApiV1AuthUsersUserIdDelete200Schema,
   deleteUserApiV1AuthUsersUserIdDelete403Schema,
@@ -255,7 +289,12 @@ export {
   deleteUserMeApiV1AuthUsersMeDelete403Schema,
   deleteUserMeApiV1AuthUsersMeDeleteMutationResponseSchema,
 } from "./deleteUserMeApiV1AuthUsersMeDeleteSchema.js";
+export { departmentCreateSchema } from "./departmentCreateSchema.js";
+export { departmentMemberPublicSchema } from "./departmentMemberPublicSchema.js";
+export { departmentMembersPublicSchema } from "./departmentMembersPublicSchema.js";
 export { departmentPublicSchema } from "./departmentPublicSchema.js";
+export { departmentsPublicSchema } from "./departmentsPublicSchema.js";
+export { departmentUpdateSchema } from "./departmentUpdateSchema.js";
 export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePost200Schema,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePost422Schema,
@@ -265,7 +304,9 @@ export {
 export { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
 export { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
+export { employmentCreateSchema } from "./employmentCreateSchema.js";
 export { employmentPublicSchema } from "./employmentPublicSchema.js";
+export { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js";
 export { employmentStatusSchema } from "./employmentStatusSchema.js";
 export { employmentTypeSchema } from "./employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./employmentUpdateSchema.js";
@@ -335,12 +376,32 @@ export { leaveRequestListPublicSchema } from "./leaveRequestListPublicSchema.js"
 export { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 export { leaveTypeSchema } from "./leaveTypeSchema.js";
 export {
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200Schema,
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403Schema,
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404Schema,
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422Schema,
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParamsSchema,
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponseSchema,
+} from "./listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetSchema.js";
+export {
+  listDepartmentsEndpointApiV1HrDepartmentsGet200Schema,
+  listDepartmentsEndpointApiV1HrDepartmentsGet403Schema,
+  listDepartmentsEndpointApiV1HrDepartmentsGetQueryResponseSchema,
+} from "./listDepartmentsEndpointApiV1HrDepartmentsGetSchema.js";
+export {
   listHolidaysApiV1HrRostersPublicHolidaysGet200Schema,
   listHolidaysApiV1HrRostersPublicHolidaysGet403Schema,
   listHolidaysApiV1HrRostersPublicHolidaysGet422Schema,
   listHolidaysApiV1HrRostersPublicHolidaysGetQueryParamsSchema,
   listHolidaysApiV1HrRostersPublicHolidaysGetQueryResponseSchema,
 } from "./listHolidaysApiV1HrRostersPublicHolidaysGetSchema.js";
+export {
+  listPeriodsApiV1HrRostersPeriodsGet200Schema,
+  listPeriodsApiV1HrRostersPeriodsGet403Schema,
+  listPeriodsApiV1HrRostersPeriodsGet422Schema,
+  listPeriodsApiV1HrRostersPeriodsGetQueryParamsSchema,
+  listPeriodsApiV1HrRostersPeriodsGetQueryResponseSchema,
+} from "./listPeriodsApiV1HrRostersPeriodsGetSchema.js";
 export {
   listShiftCatalogApiV1HrRostersShiftsGet200Schema,
   listShiftCatalogApiV1HrRostersShiftsGet403Schema,
@@ -671,6 +732,7 @@ export {
 } from "./resetPasswordApiV1ResetPasswordPostSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
+export { roleUpdateSchema } from "./roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 export { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
@@ -682,6 +744,7 @@ export { rosterPeriodCreateSchema } from "./rosterPeriodCreateSchema.js";
 export { rosterPeriodDetailsSchema } from "./rosterPeriodDetailsSchema.js";
 export { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 export { rosterPeriodStatusSchema } from "./rosterPeriodStatusSchema.js";
+export { rosterPeriodsPublicSchema } from "./rosterPeriodsPublicSchema.js";
 export { rosterPreferencesPublicSchema } from "./rosterPreferencesPublicSchema.js";
 export { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.js";
 export { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
@@ -799,6 +862,16 @@ export {
   updateCapSettingsApiV1CapSettingsPatchMutationResponseSchema,
 } from "./updateCapSettingsApiV1CapSettingsPatchSchema.js";
 export {
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200Schema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400Schema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403Schema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404Schema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422Schema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequestSchema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponseSchema,
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParamsSchema,
+} from "./updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchSchema.js";
+export {
   updateFeedApiV1CapFeedsFeedIdPatch200Schema,
   updateFeedApiV1CapFeedsFeedIdPatch422Schema,
   updateFeedApiV1CapFeedsFeedIdPatchMutationRequestSchema,
@@ -830,6 +903,14 @@ export {
 } from "./updatePasswordMeApiV1AuthUsersMePasswordPatchSchema.js";
 export { updatePasswordSchema } from "./updatePasswordSchema.js";
 export {
+  updateRoleApiV1AuthRolesRoleIdPatch200Schema,
+  updateRoleApiV1AuthRolesRoleIdPatch404Schema,
+  updateRoleApiV1AuthRolesRoleIdPatch422Schema,
+  updateRoleApiV1AuthRolesRoleIdPatchMutationRequestSchema,
+  updateRoleApiV1AuthRolesRoleIdPatchMutationResponseSchema,
+  updateRoleApiV1AuthRolesRoleIdPatchPathParamsSchema,
+} from "./updateRoleApiV1AuthRolesRoleIdPatchSchema.js";
+export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200Schema,
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404Schema,
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422Schema,
@@ -839,6 +920,7 @@ export {
 } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchSchema.js";
 export {
   updateUserApiV1AuthUsersUserIdPatch200Schema,
+  updateUserApiV1AuthUsersUserIdPatch403Schema,
   updateUserApiV1AuthUsersUserIdPatch404Schema,
   updateUserApiV1AuthUsersUserIdPatch409Schema,
   updateUserApiV1AuthUsersUserIdPatch422Schema,

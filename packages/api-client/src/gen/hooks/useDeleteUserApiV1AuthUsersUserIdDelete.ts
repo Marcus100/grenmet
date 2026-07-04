@@ -53,7 +53,7 @@ export function deleteUserApiV1AuthUsersUserIdDeleteMutationOptions<
 }
 
 /**
- * @description Delete a user by ID (superuser only).
+ * @description Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.
  * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

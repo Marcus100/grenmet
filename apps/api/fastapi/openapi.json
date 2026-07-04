@@ -435,14 +435,14 @@
         }
       }
     },
-    "/api/v1/auth/users/": {
+    "/api/v1/auth/users": {
       "get": {
         "tags": [
           "users"
         ],
         "summary": "List users",
-        "description": "Return users (superuser only). Uses standard pagination (page, size, total_pages).",
-        "operationId": "read_users_api_v1_auth_users__get",
+        "description": "Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).",
+        "operationId": "read_users_api_v1_auth_users_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -505,8 +505,8 @@
           "users"
         ],
         "summary": "Create user",
-        "description": "Create a user (superuser only).",
-        "operationId": "create_user_api_v1_auth_users__post",
+        "description": "Create a user (superuser or user.manage). Only superusers can create superuser accounts.",
+        "operationId": "create_user_api_v1_auth_users_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -535,6 +535,9 @@
           },
           "400": {
             "description": "User with this email already exists"
+          },
+          "403": {
+            "description": "Insufficient privileges"
           },
           "422": {
             "description": "Validation Error",
@@ -803,7 +806,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user by ID (superuser only).",
+        "description": "Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.",
         "operationId": "update_user_api_v1_auth_users__user_id__patch",
         "security": [
           {
@@ -843,6 +846,9 @@
               }
             }
           },
+          "403": {
+            "description": "Insufficient privileges"
+          },
           "404": {
             "description": "User not found"
           },
@@ -866,7 +872,7 @@
           "users"
         ],
         "summary": "Delete user by ID",
-        "description": "Delete a user by ID (superuser only).",
+        "description": "Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.",
         "operationId": "delete_user_api_v1_auth_users__user_id__delete",
         "security": [
           {
@@ -897,7 +903,7 @@
             }
           },
           "403": {
-            "description": "Superuser cannot delete own account"
+            "description": "Insufficient privileges or self-deletion"
           },
           "404": {
             "description": "User not found"
@@ -1067,14 +1073,14 @@
         ]
       }
     },
-    "/api/v1/auth/roles/": {
+    "/api/v1/auth/roles": {
       "get": {
         "tags": [
           "roles"
         ],
         "summary": "List roles",
         "description": "Return roles (superuser only).",
-        "operationId": "read_roles_api_v1_auth_roles__get",
+        "operationId": "read_roles_api_v1_auth_roles_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1138,7 +1144,7 @@
         ],
         "summary": "Create role",
         "description": "Create a role (superuser only).",
-        "operationId": "create_role_api_v1_auth_roles__post",
+        "operationId": "create_role_api_v1_auth_roles_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1228,16 +1234,122 @@
             }
           }
         }
+      },
+      "patch": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Update role",
+        "description": "Update a role's name or description (superuser only).",
+        "operationId": "update_role_api_v1_auth_roles__role_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoleUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/src__auth__schemas__RolePublic"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "roles"
+        ],
+        "summary": "Delete role",
+        "description": "Delete a role (superuser only). Fails while any user still holds the role.",
+        "operationId": "delete_role_api_v1_auth_roles__role_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role deleted"
+          },
+          "400": {
+            "description": "Role is still assigned"
+          },
+          "404": {
+            "description": "Role not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/api/v1/auth/permissions/": {
+    "/api/v1/auth/permissions": {
       "get": {
         "tags": [
           "permissions"
         ],
         "summary": "List permissions",
         "description": "Return permissions (superuser only).",
-        "operationId": "read_permissions_api_v1_auth_permissions__get",
+        "operationId": "read_permissions_api_v1_auth_permissions_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1301,7 +1413,7 @@
         ],
         "summary": "Create permission",
         "description": "Create a permission (superuser only).",
-        "operationId": "create_permission_api_v1_auth_permissions__post",
+        "operationId": "create_permission_api_v1_auth_permissions_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1393,14 +1505,14 @@
         }
       }
     },
-    "/api/v1/auth/role-assignments/": {
+    "/api/v1/auth/role-assignments": {
       "get": {
         "tags": [
           "role-assignments"
         ],
         "summary": "List role assignments",
         "description": "Return role assignments, optionally filtered by user_id (superuser only).",
-        "operationId": "read_role_assignments_api_v1_auth_role_assignments__get",
+        "operationId": "read_role_assignments_api_v1_auth_role_assignments_get",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1454,7 +1566,7 @@
         ],
         "summary": "Create role assignment",
         "description": "Create a user-role assignment (superuser only).",
-        "operationId": "create_role_assignment_api_v1_auth_role_assignments__post",
+        "operationId": "create_role_assignment_api_v1_auth_role_assignments_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
@@ -1604,6 +1716,382 @@
             }
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "role-assignments"
+        ],
+        "summary": "Revoke role assignment",
+        "description": "Delete a user-role assignment (superuser or user.manage).",
+        "operationId": "delete_role_assignment_api_v1_auth_role_assignments__assignment_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Role assignment revoked"
+          },
+          "404": {
+            "description": "Role assignment not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/departments": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "List departments",
+        "description": "Return all departments, ordered by name. Requires roster.view permission.",
+        "operationId": "list_departments_endpoint_api_v1_hr_departments_get",
+        "responses": {
+          "200": {
+            "description": "Departments returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentsPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Create department",
+        "description": "Create a department. Requires user.manage permission.",
+        "operationId": "create_department_endpoint_api_v1_hr_departments_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Department created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Department already exists"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/departments/{department_id}": {
+      "patch": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Rename department",
+        "description": "Update a department's name. Requires user.manage permission.",
+        "operationId": "update_department_endpoint_api_v1_hr_departments__department_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DepartmentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Department updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Department name already taken"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/employment/{user_id}": {
+      "post": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Create employment record",
+        "description": "Create a user's employment record (department, employee number, position). Supervisor or admin only.",
+        "operationId": "create_hr_employment_api_v1_hr_employment__user_id__post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmploymentCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Employment record created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmploymentRecordPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Employment record already exists"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "User or department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Update employment (admin)",
+        "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
+        "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmploymentAdminUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Employment updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfilePublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "User or employment record not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/departments/{department_id}/members": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "List department members",
+        "description": "Return active members of a department with their employment details, for roster rows. Requires roster.view permission.",
+        "operationId": "list_department_members_endpoint_api_v1_hr_departments__department_id__members_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department members returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentMembersPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/hr/profile/me": {
@@ -1682,71 +2170,6 @@
             "OAuth2PasswordBearer": []
           }
         ]
-      }
-    },
-    "/api/v1/hr/employment/{user_id}": {
-      "patch": {
-        "tags": [
-          "hr"
-        ],
-        "summary": "Update employment (admin)",
-        "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
-        "operationId": "update_hr_employment_api_v1_hr_employment__user_id__patch",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "user_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "title": "User Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EmploymentAdminUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Employment updated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserProfilePublic"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Insufficient permission"
-          },
-          "404": {
-            "description": "User or employment record not found"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/v1/hr/workflows/templates": {
@@ -2136,6 +2559,71 @@
       }
     },
     "/api/v1/hr/rosters/periods": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "List roster periods",
+        "description": "Return roster periods for a department, newest first. Requires roster.view permission.",
+        "operationId": "list_periods_api_v1_hr_rosters_periods_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "period_status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/RosterPeriodStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Period Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roster periods returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterPeriodsPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "tags": [
           "hr-rosters"
@@ -2143,15 +2631,20 @@
         "summary": "Create roster period",
         "description": "Create a new roster period. Requires roster.manage permission.",
         "operationId": "create_period_api_v1_hr_rosters_periods_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/RosterPeriodCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -2180,12 +2673,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/rosters/assignments/bulk": {
@@ -8044,6 +8532,92 @@
         ],
         "title": "CapValidationResult"
       },
+      "DepartmentCreate": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z0-9_-]+$",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "DepartmentCreate"
+      },
+      "DepartmentMemberPublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "first_name": {
+            "type": "string",
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "title": "Last Name"
+          },
+          "employee_number": {
+            "type": "string",
+            "title": "Employee Number"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "employment_status": {
+            "$ref": "#/components/schemas/EmploymentStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "first_name",
+          "last_name",
+          "employee_number",
+          "employment_status"
+        ],
+        "title": "DepartmentMemberPublic"
+      },
+      "DepartmentMembersPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentMemberPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "DepartmentMembersPublic"
+      },
       "DepartmentPublic": {
         "properties": {
           "id": {
@@ -8061,6 +8635,41 @@
           "name"
         ],
         "title": "DepartmentPublic"
+      },
+      "DepartmentUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "DepartmentUpdate"
+      },
+      "DepartmentsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DepartmentPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "DepartmentsPublic"
       },
       "EmergencyContactPublic": {
         "properties": {
@@ -8169,6 +8778,78 @@
         "type": "object",
         "title": "EmploymentAdminUpdate"
       },
+      "EmploymentCreate": {
+        "properties": {
+          "employee_number": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Employee Number"
+          },
+          "department_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Department Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 150
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "employment_type": {
+            "$ref": "#/components/schemas/EmploymentType",
+            "default": "FULL_TIME"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          }
+        },
+        "type": "object",
+        "required": [
+          "employee_number",
+          "department_id"
+        ],
+        "title": "EmploymentCreate"
+      },
       "EmploymentPublic": {
         "properties": {
           "employee_number": {
@@ -8261,6 +8942,90 @@
         },
         "type": "object",
         "title": "EmploymentPublic"
+      },
+      "EmploymentRecordPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_number": {
+            "type": "string",
+            "title": "Employee Number"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "employment_type": {
+            "$ref": "#/components/schemas/EmploymentType"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "work_location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Location"
+          },
+          "status": {
+            "$ref": "#/components/schemas/EmploymentStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "employee_number",
+          "department_id",
+          "employment_type",
+          "status"
+        ],
+        "title": "EmploymentRecordPublic"
       },
       "EmploymentStatus": {
         "type": "string",
@@ -9907,6 +10672,34 @@
         ],
         "title": "RoleCreate"
       },
+      "RoleUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "RoleUpdate"
+      },
       "RosterAssignmentBulkCreate": {
         "properties": {
           "roster_period_id": {
@@ -10240,6 +11033,27 @@
           "CLOSED"
         ],
         "title": "RosterPeriodStatus"
+      },
+      "RosterPeriodsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RosterPeriodPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "RosterPeriodsPublic"
       },
       "RosterPreferencesPublic": {
         "properties": {

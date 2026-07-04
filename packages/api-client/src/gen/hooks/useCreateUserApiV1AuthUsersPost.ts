@@ -18,13 +18,14 @@ import fetch from "../../client.js";
 import { createUserApiV1AuthUsersPost } from "../clients/createUserApiV1AuthUsersPost.js";
 import type {
   CreateUserApiV1AuthUsersPost400,
+  CreateUserApiV1AuthUsersPost403,
   CreateUserApiV1AuthUsersPost422,
   CreateUserApiV1AuthUsersPostMutationRequest,
   CreateUserApiV1AuthUsersPostMutationResponse,
 } from "../models/CreateUserApiV1AuthUsersPost.js";
 
 export const createUserApiV1AuthUsersPostMutationKey = () =>
-  [{ url: "/api/v1/auth/users/" }] as const;
+  [{ url: "/api/v1/auth/users" }] as const;
 
 export type CreateUserApiV1AuthUsersPostMutationKey = ReturnType<
   typeof createUserApiV1AuthUsersPostMutationKey
@@ -39,7 +40,9 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
   return mutationOptions<
     CreateUserApiV1AuthUsersPostMutationResponse,
     ResponseErrorConfig<
-      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      | CreateUserApiV1AuthUsersPost400
+      | CreateUserApiV1AuthUsersPost403
+      | CreateUserApiV1AuthUsersPost422
     >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
@@ -52,16 +55,18 @@ export function createUserApiV1AuthUsersPostMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create a user (superuser only).
+ * @description Create a user (superuser or user.manage). Only superusers can create superuser accounts.
  * @summary Create user
- * {@link /api/v1/auth/users/}
+ * {@link /api/v1/auth/users}
  */
 export function useCreateUserApiV1AuthUsersPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CreateUserApiV1AuthUsersPostMutationResponse,
       ResponseErrorConfig<
-        CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+        | CreateUserApiV1AuthUsersPost400
+        | CreateUserApiV1AuthUsersPost403
+        | CreateUserApiV1AuthUsersPost422
       >,
       { data: CreateUserApiV1AuthUsersPostMutationRequest },
       TContext
@@ -81,7 +86,9 @@ export function useCreateUserApiV1AuthUsersPost<TContext>(
   ) as UseMutationOptions<
     CreateUserApiV1AuthUsersPostMutationResponse,
     ResponseErrorConfig<
-      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      | CreateUserApiV1AuthUsersPost400
+      | CreateUserApiV1AuthUsersPost403
+      | CreateUserApiV1AuthUsersPost422
     >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
@@ -90,7 +97,9 @@ export function useCreateUserApiV1AuthUsersPost<TContext>(
   return useMutation<
     CreateUserApiV1AuthUsersPostMutationResponse,
     ResponseErrorConfig<
-      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      | CreateUserApiV1AuthUsersPost400
+      | CreateUserApiV1AuthUsersPost403
+      | CreateUserApiV1AuthUsersPost422
     >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext
@@ -104,7 +113,9 @@ export function useCreateUserApiV1AuthUsersPost<TContext>(
   ) as UseMutationResult<
     CreateUserApiV1AuthUsersPostMutationResponse,
     ResponseErrorConfig<
-      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      | CreateUserApiV1AuthUsersPost400
+      | CreateUserApiV1AuthUsersPost403
+      | CreateUserApiV1AuthUsersPost422
     >,
     { data: CreateUserApiV1AuthUsersPostMutationRequest },
     TContext

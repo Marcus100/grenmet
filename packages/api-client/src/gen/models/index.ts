@@ -165,6 +165,15 @@ export type {
   CreateAlertApiV1CapAlertsPostMutationResponse,
 } from "./CreateAlertApiV1CapAlertsPost.js";
 export type {
+  CreateDepartmentEndpointApiV1HrDepartmentsPost201,
+  CreateDepartmentEndpointApiV1HrDepartmentsPost400,
+  CreateDepartmentEndpointApiV1HrDepartmentsPost403,
+  CreateDepartmentEndpointApiV1HrDepartmentsPost422,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostMutation,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+} from "./CreateDepartmentEndpointApiV1HrDepartmentsPost.js";
+export type {
   CreateFeedApiV1CapFeedsPost201,
   CreateFeedApiV1CapFeedsPost422,
   CreateFeedApiV1CapFeedsPostMutation,
@@ -181,6 +190,17 @@ export type {
   CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
   CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
 } from "./CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
+export type {
+  CreateHrEmploymentApiV1HrEmploymentUserIdPost201,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPost400,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPost403,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPost404,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPost422,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutation,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams,
+} from "./CreateHrEmploymentApiV1HrEmploymentUserIdPost.js";
 export type {
   CreateInstanceApiV1HrWorkflowsInstancesPost200,
   CreateInstanceApiV1HrWorkflowsInstancesPost201,
@@ -295,6 +315,7 @@ export type {
 export type {
   CreateUserApiV1AuthUsersPost201,
   CreateUserApiV1AuthUsersPost400,
+  CreateUserApiV1AuthUsersPost403,
   CreateUserApiV1AuthUsersPost422,
   CreateUserApiV1AuthUsersPostMutation,
   CreateUserApiV1AuthUsersPostMutationRequest,
@@ -307,6 +328,23 @@ export type {
   DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
   DeleteFeedApiV1CapFeedsFeedIdDeletePathParams,
 } from "./DeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export type {
+  DeleteRoleApiV1AuthRolesRoleIdDelete204,
+  DeleteRoleApiV1AuthRolesRoleIdDelete400,
+  DeleteRoleApiV1AuthRolesRoleIdDelete404,
+  DeleteRoleApiV1AuthRolesRoleIdDelete422,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteMutation,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+  DeleteRoleApiV1AuthRolesRoleIdDeletePathParams,
+} from "./DeleteRoleApiV1AuthRolesRoleIdDelete.js";
+export type {
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutation,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams,
+} from "./DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
 export type {
   DeleteUserApiV1AuthUsersUserIdDelete200,
   DeleteUserApiV1AuthUsersUserIdDelete403,
@@ -322,7 +360,12 @@ export type {
   DeleteUserMeApiV1AuthUsersMeDeleteMutation,
   DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
 } from "./DeleteUserMeApiV1AuthUsersMeDelete.js";
+export type { DepartmentCreate } from "./DepartmentCreate.js";
+export type { DepartmentMemberPublic } from "./DepartmentMemberPublic.js";
+export type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
 export type { DepartmentPublic } from "./DepartmentPublic.js";
+export type { DepartmentsPublic } from "./DepartmentsPublic.js";
+export type { DepartmentUpdate } from "./DepartmentUpdate.js";
 export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
@@ -333,7 +376,9 @@ export type {
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
+export type { EmploymentCreate } from "./EmploymentCreate.js";
 export type { EmploymentPublic } from "./EmploymentPublic.js";
+export type { EmploymentRecordPublic } from "./EmploymentRecordPublic.js";
 export type {
   EmploymentStatus,
   EmploymentStatusEmploymentStatusEnumKey,
@@ -425,6 +470,21 @@ export type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 export type { LeaveType, LeaveTypeLeaveTypeEnumKey } from "./LeaveType.js";
 export { leaveTypeLeaveTypeEnum } from "./LeaveType.js";
 export type {
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQuery,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+} from "./ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
+export type {
+  ListDepartmentsEndpointApiV1HrDepartmentsGet200,
+  ListDepartmentsEndpointApiV1HrDepartmentsGet403,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetQuery,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse,
+} from "./ListDepartmentsEndpointApiV1HrDepartmentsGet.js";
+export type {
   ListHolidaysApiV1HrRostersPublicHolidaysGet200,
   ListHolidaysApiV1HrRostersPublicHolidaysGet403,
   ListHolidaysApiV1HrRostersPublicHolidaysGet422,
@@ -432,6 +492,14 @@ export type {
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
 } from "./ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
+export type {
+  ListPeriodsApiV1HrRostersPeriodsGet200,
+  ListPeriodsApiV1HrRostersPeriodsGet403,
+  ListPeriodsApiV1HrRostersPeriodsGet422,
+  ListPeriodsApiV1HrRostersPeriodsGetQuery,
+  ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
+  ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+} from "./ListPeriodsApiV1HrRostersPeriodsGet.js";
 export type {
   ListShiftCatalogApiV1HrRostersShiftsGet200,
   ListShiftCatalogApiV1HrRostersShiftsGet403,
@@ -834,6 +902,7 @@ export type {
 } from "./RoleAssignmentScope.js";
 export { roleAssignmentScopeRoleAssignmentScopeEnum } from "./RoleAssignmentScope.js";
 export type { RoleCreate } from "./RoleCreate.js";
+export type { RoleUpdate } from "./RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
@@ -849,6 +918,7 @@ export type {
   RosterPeriodStatusRosterPeriodStatusEnumKey,
 } from "./RosterPeriodStatus.js";
 export { rosterPeriodStatusRosterPeriodStatusEnum } from "./RosterPeriodStatus.js";
+export type { RosterPeriodsPublic } from "./RosterPeriodsPublic.js";
 export type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
 export type {
@@ -1003,6 +1073,17 @@ export type {
   UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
 } from "./UpdateCapSettingsApiV1CapSettingsPatch.js";
 export type {
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutation,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams,
+} from "./UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch.js";
+export type {
   UpdateFeedApiV1CapFeedsFeedIdPatch200,
   UpdateFeedApiV1CapFeedsFeedIdPatch422,
   UpdateFeedApiV1CapFeedsFeedIdPatchMutation,
@@ -1038,6 +1119,15 @@ export type {
   UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
 } from "./UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export type {
+  UpdateRoleApiV1AuthRolesRoleIdPatch200,
+  UpdateRoleApiV1AuthRolesRoleIdPatch404,
+  UpdateRoleApiV1AuthRolesRoleIdPatch422,
+  UpdateRoleApiV1AuthRolesRoleIdPatchMutation,
+  UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest,
+  UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+  UpdateRoleApiV1AuthRolesRoleIdPatchPathParams,
+} from "./UpdateRoleApiV1AuthRolesRoleIdPatch.js";
+export type {
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
@@ -1048,6 +1138,7 @@ export type {
 } from "./UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 export type {
   UpdateUserApiV1AuthUsersUserIdPatch200,
+  UpdateUserApiV1AuthUsersUserIdPatch403,
   UpdateUserApiV1AuthUsersUserIdPatch404,
   UpdateUserApiV1AuthUsersUserIdPatch409,
   UpdateUserApiV1AuthUsersUserIdPatch422,

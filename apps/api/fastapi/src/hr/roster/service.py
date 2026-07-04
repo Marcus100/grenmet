@@ -234,6 +234,26 @@ async def read_shift_catalog(
     return list(result.scalars().all())
 
 
+async def list_roster_periods(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str,
+    period_status: RosterPeriodStatus | None = None,
+) -> list[RosterPeriod]:
+    require_permission(current_user=current_user, permission_key="roster.view")
+    statement = (
+        select(RosterPeriod)
+        .where(col(RosterPeriod.department_id) == department_id)
+        .order_by(col(RosterPeriod.period_start).desc())
+        .limit(100)
+    )
+    if period_status is not None:
+        statement = statement.where(col(RosterPeriod.status) == period_status)
+    result = await session.execute(statement)
+    return list(result.scalars().all())
+
+
 async def create_roster_period(
     *, session: AsyncSession, current_user: User, period_in: RosterPeriodCreate
 ) -> RosterPeriod:

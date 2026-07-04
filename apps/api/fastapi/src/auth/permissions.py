@@ -29,6 +29,12 @@ class PermissionDef:
 # --- Permission catalog (grouped by domain) -------------------------------------
 
 PERMISSIONS: tuple[PermissionDef, ...] = (
+    # Accounts — delegated administration (superuser-only actions are enforced
+    # in routes: granting superuser, editing role/permission definitions)
+    PermissionDef(
+        "user.manage",
+        "Create, update, deactivate user accounts and assign domain roles",
+    ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
     # HR — roster
@@ -119,6 +125,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "hr-admin": (
         "HR administrator: full HR + workflow management",
         (
+            "user.manage",
             "hr.employment.manage",
             "roster.view",
             "roster.manage",

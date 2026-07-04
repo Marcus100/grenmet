@@ -23,7 +23,7 @@ import type {
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
 
 export const createPermissionApiV1AuthPermissionsPostMutationKey = () =>
-  [{ url: "/api/v1/auth/permissions/" }] as const;
+  [{ url: "/api/v1/auth/permissions" }] as const;
 
 export type CreatePermissionApiV1AuthPermissionsPostMutationKey = ReturnType<
   typeof createPermissionApiV1AuthPermissionsPostMutationKey
@@ -53,7 +53,7 @@ export function createPermissionApiV1AuthPermissionsPostMutationOptions<
 /**
  * @description Create a permission (superuser only).
  * @summary Create permission
- * {@link /api/v1/auth/permissions/}
+ * {@link /api/v1/auth/permissions}
  */
 export function useCreatePermissionApiV1AuthPermissionsPost<TContext>(
   options: {

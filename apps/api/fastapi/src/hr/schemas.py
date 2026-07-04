@@ -55,6 +55,57 @@ class DepartmentPublic(BaseModel):
     name: str
 
 
+class DepartmentsPublic(BaseModel):
+    data: list[DepartmentPublic]
+    count: int
+
+
+class DepartmentCreate(BaseModel):
+    id: str = Field(max_length=100, pattern=r"^[a-z0-9_-]+$")
+    name: str = Field(max_length=255)
+
+
+class DepartmentUpdate(BaseModel):
+    name: str = Field(max_length=255)
+
+
+class EmploymentCreate(BaseModel):
+    employee_number: str = Field(max_length=50)
+    department_id: str = Field(max_length=100)
+    position: str | None = Field(default=None, max_length=150)
+    employment_type: EmploymentType = EmploymentType.FULL_TIME
+    start_date: date | None = None
+    supervisor_id: uuid.UUID | None = None
+    work_location: str | None = Field(default=None, max_length=255)
+
+
+class EmploymentRecordPublic(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    employee_number: str
+    department_id: str
+    position: str | None = None
+    employment_type: EmploymentType
+    start_date: date | None = None
+    supervisor_id: uuid.UUID | None = None
+    work_location: str | None = None
+    status: EmploymentStatus
+
+
+class DepartmentMemberPublic(BaseModel):
+    user_id: uuid.UUID
+    first_name: str
+    last_name: str
+    employee_number: str
+    position: str | None = None
+    employment_status: EmploymentStatus
+
+
+class DepartmentMembersPublic(BaseModel):
+    data: list[DepartmentMemberPublic]
+    count: int
+
+
 class EmploymentPublic(BaseModel):
     employee_number: str | None = None
     department: DepartmentPublic | None = None
