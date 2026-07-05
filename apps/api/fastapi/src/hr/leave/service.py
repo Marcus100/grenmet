@@ -3,24 +3,26 @@ import uuid
 from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import (
     ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED,
+    ERROR_LEAVE_REQUEST_NOT_DRAFT,
 )
 from src.hr.dependencies import get_leave_request_or_404
 from src.hr.exceptions import (
     HRPermissionDeniedError,
+    HRValidationError,
 )
 from src.hr.models import RequestStatus
 from src.hr.workflow.models import WorkflowType
-from src.hr.workflow.service import start_workflow_for_entity
+from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
 from .models import LeaveBalanceEvent, LeaveRequest
-from .schemas import LeaveRequestAction, LeaveRequestCreate
+from .schemas import LeaveRequestAction, LeaveRequestCreate, LeaveRequestSubmit
 
 logger = logging.getLogger(__name__)
 
@@ -50,10 +52,12 @@ async def create_leave_request(
         requires_acting_appointment=payload.requires_acting_appointment,
         acting_officer_id=payload.acting_officer_id,
         expected_return_date=payload.expected_return_date,
+        status=RequestStatus.DRAFT if payload.as_draft else RequestStatus.SUBMITTED,
     )
+    # Flush to obtain the id, then start the workflow and commit once so the
+    # request and its workflow instance are persisted atomically.
     session.add(leave_request)
-    await session.commit()
-    await session.refresh(leave_request)
+    await session.flush()
 
     workflow_id = await start_workflow_for_entity(
         session=session,
@@ -62,14 +66,74 @@ async def create_leave_request(
         workflow_type=WorkflowType.LEAVE_REQUEST,
         entity_type="leave_request",
         entity_id=leave_request.id,
+        co_approver_user_ids=payload.co_approver_user_ids,
+        submit=not payload.as_draft,
     )
     if workflow_id:
         leave_request.workflow_instance_id = workflow_id
         session.add(leave_request)
-        await session.commit()
-        await session.refresh(leave_request)
+    await session.commit()
+    await session.refresh(leave_request)
     logger.info(
         "Leave request created",
+        extra={
+            "leave_request_id": str(leave_request.id),
+            "user_id": str(current_user.id),
+            "as_draft": payload.as_draft,
+        },
+    )
+    return leave_request
+
+
+async def submit_leave_request(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    leave_request_id: uuid.UUID,
+    payload: LeaveRequestSubmit,
+) -> LeaveRequest:
+    """Submit a previously-saved DRAFT leave request into the approval chain."""
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
+    leave_request = await get_leave_request_or_404(
+        session=session, leave_request_id=leave_request_id
+    )
+    if leave_request.user_id != current_user.id:
+        raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
+    if leave_request.status != RequestStatus.DRAFT:
+        raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
+
+    if leave_request.workflow_instance_id:
+        await submit_draft_workflow(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=leave_request.workflow_instance_id,
+            co_approver_user_ids=payload.co_approver_user_ids,
+            commit=False,
+        )
+    else:
+        # Drafted before a template existed for the department — start fresh.
+        workflow_id = await start_workflow_for_entity(
+            session=session,
+            current_user=current_user,
+            department_id=leave_request.department_id,
+            workflow_type=WorkflowType.LEAVE_REQUEST,
+            entity_type="leave_request",
+            entity_id=leave_request.id,
+            co_approver_user_ids=payload.co_approver_user_ids,
+            submit=True,
+        )
+        if workflow_id:
+            leave_request.workflow_instance_id = workflow_id
+
+    leave_request.status = RequestStatus.SUBMITTED
+    leave_request.updated_at = utc_now()
+    session.add(leave_request)
+    await session.commit()
+    await session.refresh(leave_request)
+    logger.info(
+        "Leave request submitted from draft",
         extra={
             "leave_request_id": str(leave_request.id),
             "user_id": str(current_user.id),
@@ -104,6 +168,10 @@ async def action_leave_request(
     session.add(leave_request)
     if payload.status == RequestStatus.APPROVED:
         leave_type_value = leave_request.leave_type.value
+        # Lock the latest balance row so concurrent approvals of the same
+        # user+leave-type serialize and cannot both derive from a stale balance.
+        # (An empty ledger has no row to lock; the first-ever pair of concurrent
+        # approvals is a known residual gap addressed by a balance table later.)
         result = await session.execute(
             select(LeaveBalanceEvent)
             .where(
@@ -111,6 +179,7 @@ async def action_leave_request(
                 col(LeaveBalanceEvent.leave_type) == leave_type_value,
             )
             .order_by(col(LeaveBalanceEvent.created_at).desc())
+            .with_for_update()
         )
         last_event = result.scalars().first()
         current_balance = (
@@ -142,12 +211,11 @@ async def action_leave_request(
 
 
 async def list_leave_requests(
-    *, session: AsyncSession, current_user: User
-) -> list[LeaveRequest]:
+    *, session: AsyncSession, current_user: User, skip: int = 0, limit: int = 100
+) -> tuple[list[LeaveRequest], int]:
+    base = select(LeaveRequest).where(col(LeaveRequest.user_id) == current_user.id)
+    total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        select(LeaveRequest)
-        .where(col(LeaveRequest.user_id) == current_user.id)
-        .order_by(col(LeaveRequest.created_at).desc())
-        .limit(100)
+        base.order_by(col(LeaveRequest.created_at).desc()).offset(skip).limit(limit)
     )
-    return list(result.scalars().all())
+    return list(result.scalars().all()), total or 0

@@ -467,6 +467,7 @@ export type { LeaveRequestAction } from "./LeaveRequestAction.js";
 export type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 export type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
 export type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
+export type { LeaveRequestSubmit } from "./LeaveRequestSubmit.js";
 export type { LeaveType, LeaveTypeLeaveTypeEnumKey } from "./LeaveType.js";
 export { leaveTypeLeaveTypeEnum } from "./LeaveType.js";
 export type {
@@ -492,6 +493,13 @@ export type {
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
 } from "./ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
+export type {
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGet200,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGet422,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+} from "./ListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export type {
   ListPeriodsApiV1HrRostersPeriodsGet200,
   ListPeriodsApiV1HrRostersPeriodsGet403,
@@ -682,12 +690,16 @@ export type {
 } from "./ReadIntegrationsApiV1CapIntegrationsGet.js";
 export type {
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
 } from "./ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export type {
   ReadMyTimesheetsApiV1HrTimesheetsMeGet200,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
 } from "./ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 export type {
@@ -954,6 +966,7 @@ export { shiftPeriodShiftPeriodEnum } from "./ShiftPeriod.js";
 export type { ShiftSwapAction } from "./ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
+export type { ShiftSwapRequestsPublic } from "./ShiftSwapRequestsPublic.js";
 export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
@@ -975,6 +988,17 @@ export type {
   SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
   SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
 } from "./SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export type {
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutation,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams,
+} from "./SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export type {
   SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200,
   SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,

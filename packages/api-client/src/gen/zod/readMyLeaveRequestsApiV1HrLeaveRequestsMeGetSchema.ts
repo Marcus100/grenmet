@@ -4,13 +4,38 @@
  */
 
 import * as z from "zod";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestListPublicSchema } from "./leaveRequestListPublicSchema.js";
+
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParamsSchema =
+  z.object({
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .default(1)
+      .describe("Page number (1-indexed)"),
+    size: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .default(100)
+      .describe("Items per page"),
+  });
 
 /**
  * @description Leave requests returned
  */
 export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGet200Schema = z.lazy(
   () => leaveRequestListPublicSchema
+);
+
+/**
+ * @description Validation Error
+ */
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGet422Schema = z.lazy(
+  () => HTTPValidationErrorSchema
 );
 
 export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponseSchema =

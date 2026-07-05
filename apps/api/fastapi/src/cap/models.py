@@ -403,6 +403,10 @@ class CapJobEvent(SQLModel, table=True):
     kind: str = Field(max_length=120)
     status: CapJobStatus = Field(default=CapJobStatus.QUEUED, index=True)
     attempts: int = Field(default=0, ge=0)
+    # Earliest time a FAILED job may be retried. NULL means "eligible now"
+    # (never-failed QUEUED jobs). Set to an exponential-backoff future time on
+    # failure so process_due_jobs paces retries instead of hammering every poll.
+    next_retry_at: datetime | None = Field(default=None)
     payload: dict[str, object] = Field(
         default_factory=dict, sa_column=sa.Column(sa.JSON)
     )

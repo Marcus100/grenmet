@@ -59,13 +59,20 @@ ERROR_TIMESHEET_READ_NOT_ALLOWED = "Not allowed to read this timesheet"
 # --- Leave / Absentee / Exchange / Daily Status ---
 ERROR_LEAVE_REQUEST_NOT_FOUND = "Leave request not found"
 ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED = "Not allowed to action this leave request"
+ERROR_LEAVE_REQUEST_NOT_DRAFT = "Only a draft leave request can be submitted"
 ERROR_SHIFT_SWAP_NOT_FOUND = "Shift swap request not found"
 ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED = "Not allowed to action this shift swap"
 ERROR_STATUS_REPORT_NOT_FOUND = "Status report not found"
 ERROR_ABSENTEE_REPORT_NOT_FOUND = "Absentee report not found"
+ERROR_ABSENTEE_FILE_FOR_USER_NOT_ALLOWED = (
+    "Not allowed to file an absentee report for this user"
+)
 
 # --- Parking (hr/parking/service.py) ---
 ERROR_PARKING_PERMIT_NOT_FOUND = "Parking permit not found"
+ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED = (
+    "Not allowed to file a parking permit application for this user"
+)
 ERROR_ABSENTEE_REASON_REQUIRES_NOTES = (
     "A written reason is required for uncertified sick or illness on the job"
 )

@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  type AbsenceReason,
+  type AbsenteeReportCreate,
+  readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey,
+  useCreateAbsenteeReportApiV1HrAbsenteeReportsPost,
+  useReadHrProfileMeApiV1HrProfileMeGet,
+} from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
@@ -13,7 +20,9 @@ import {
 import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { RotateCcw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RotateCcw, Send } from "lucide-react";
+import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import {
@@ -22,8 +31,61 @@ import {
   EMPTY_ABSENTEE,
 } from "./absentee-document";
 
+/** Paper-form checklist labels → API AbsenceReason values. */
+const ABSENCE_REASON_MAP: Record<string, AbsenceReason> = {
+  "Uncertified Sick": "UNCERTIFIED_SICK",
+  "Illness on the Job": "ILLNESS_ON_JOB",
+  "Illness (family member)": "ILLNESS_FAMILY_MEMBER",
+  "Time Off": "TIME_OFF",
+  Other: "OTHER",
+};
+
+export function buildAbsenteeReportPayload(
+  values: typeof EMPTY_ABSENTEE,
+  userId: string,
+  departmentId: string
+): AbsenteeReportCreate {
+  return {
+    user_id: userId,
+    department_id: departmentId,
+    report_date: values.date,
+    reason: ABSENCE_REASON_MAP[values.reason] ?? ("OTHER" as AbsenceReason),
+    notes: values.notes || undefined,
+  };
+}
+
 export function AbsenteeEditor() {
   const form = useForm({ defaultValues: EMPTY_ABSENTEE });
+  const queryClient = useQueryClient();
+  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const userId = profileQuery.data?.id;
+  const departmentId = profileQuery.data?.employment?.department?.id;
+  const createMutation = useCreateAbsenteeReportApiV1HrAbsenteeReportsPost();
+
+  async function submitToHr(values: typeof EMPTY_ABSENTEE) {
+    if (!values.date) {
+      toast.error("Date of absence is required");
+      return;
+    }
+    if (!(userId && departmentId)) {
+      toast.error("Your employment record has no department — contact HR");
+      return;
+    }
+    try {
+      await createMutation.mutateAsync({
+        data: buildAbsenteeReportPayload(values, userId, departmentId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(),
+      });
+      toast.success("Absentee report submitted");
+      form.reset();
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Something went wrong";
+      toast.error(`Submission failed: ${detail}`);
+    }
+  }
 
   return (
     <form.Subscribe selector={(s) => s.values}>
@@ -32,15 +94,26 @@ export function AbsenteeEditor() {
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-lg">Absentee Report</h2>
-              <Button
-                onClick={() => form.reset()}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <RotateCcw data-icon="inline-start" />
-                Reset
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => form.reset()}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <RotateCcw data-icon="inline-start" />
+                  Reset
+                </Button>
+                <Button
+                  disabled={createMutation.isPending}
+                  onClick={() => submitToHr(values)}
+                  size="sm"
+                  type="button"
+                >
+                  <Send data-icon="inline-start" />
+                  {createMutation.isPending ? "Submitting…" : "Submit to HR"}
+                </Button>
+              </div>
             </div>
 
             <Separator />

@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import StatusReportDep
+from src.pagination import PaginationDep
 
 from . import service
 from .schemas import (
@@ -56,17 +57,24 @@ async def create_status_report(
 async def read_status_reports(
     session: SessionDep,
     current_user: CurrentUser,
+    pagination: PaginationDep,
     department_id: str | None = None,
 ) -> Any:
-    rows = await service.list_status_reports(
-        session=session, current_user=current_user, department_id=department_id
+    rows, total = await service.list_status_reports(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
     )
     return StatusReportListPublic(
         data=[
             StatusReportPublic.model_validate(item, from_attributes=True)
             for item in rows
         ],
-        count=len(rows),
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 

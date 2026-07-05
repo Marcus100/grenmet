@@ -13,6 +13,5 @@ export type LeaveRequestAction = {
    * @type string
    */
   status: RequestStatus;
-  comments?: string | null;
   head_of_dept_comments?: string | null;
 };

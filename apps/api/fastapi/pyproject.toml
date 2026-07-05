@@ -29,6 +29,7 @@ dependencies = [
     "shapely>=2.1.2",
     "feedparser>=6.0.12",
     "signxml>=5.0.1",
+    "defusedxml>=0.7.1",
 ]
 
 [dependency-groups]
@@ -41,6 +42,7 @@ dev = [
     "pre-commit>=3.6.2",
     "coverage>=7.4.3",
     "fakeredis>=2.36.2",
+    "types-defusedxml>=0.7.0.20260504",
 ]
 
 [build-system]
@@ -69,17 +71,26 @@ select = [
     "UP",  # pyupgrade
     "ARG001", # unused arguments in functions
     "T201",   # print statements are not allowed
+    "ASYNC",  # flake8-async: blocking calls inside async def
+    "S",      # flake8-bandit: common security anti-patterns
 ]
 ignore = [
-    "E501",  # line too long, handled by black
+    "E501",  # line too long, handled by the formatter
     "B008",  # do not perform function calls in argument defaults
     "W191",  # indentation contains tabs
     "B904",  # Allow raising exceptions without from e, for HTTPException
+    "S101",  # assert is used deliberately in a few guarded application spots
+    "S104",  # binding 0.0.0.0 is intentional inside containers
+    "S105",  # only false-positives here: token-type/error-message label constants
+    "S311",  # non-crypto random is fine; crypto paths use `secrets`
 ]
 
-# Allow print statements in scripts directory
 [tool.ruff.lint.per-file-ignores]
-"scripts/*.py" = ["T201", "F401"]  # Allow print statements and unused imports in scripts
+# Scripts: dev/ops tooling — print output, re-exports, and a guarded
+# rollback swallow are expected.
+"scripts/*.py" = ["T201", "F401", "S110"]
+# Tests: hardcoded test secrets/URLs are expected.
+"tests/*.py" = ["S105", "S106", "S107", "S108"]
 
 [tool.ruff.lint.pyupgrade]
 # Preserve types, even if a file imports `from __future__ import annotations`.

@@ -40,9 +40,10 @@ def send_email(
     Resend is used when ``RESEND_API_KEY`` is configured.
     SMTP is the fallback for local development with Mailpit.
     """
-    assert email_settings.emails_enabled, (
-        "Email is not configured: set RESEND_API_KEY or SMTP_HOST + EMAILS_FROM_EMAIL"
-    )
+    if not email_settings.emails_enabled:
+        raise RuntimeError(
+            "Email is not configured: set RESEND_API_KEY or SMTP_HOST + EMAILS_FROM_EMAIL"
+        )
 
     from_address = (
         f"{email_settings.EMAILS_FROM_NAME} <{email_settings.EMAILS_FROM_EMAIL}>"
@@ -102,7 +103,8 @@ async def _render_remote(template: str, props: dict[str, Any]) -> EmailData:
 
     Raises httpx.HTTPStatusError on non-2xx responses.
     """
-    assert email_settings.EMAIL_RENDER_URL, "EMAIL_RENDER_URL is not configured"
+    if not email_settings.EMAIL_RENDER_URL:
+        raise RuntimeError("EMAIL_RENDER_URL is not configured")
 
     url = f"{email_settings.EMAIL_RENDER_URL.rstrip('/')}/api/email/render"
     headers = {"x-email-render-secret": email_settings.EMAIL_RENDER_SECRET or ""}

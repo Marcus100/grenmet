@@ -100,7 +100,29 @@ async def _create_step_instances_for_workflow(
     session: AsyncSession,
     workflow_instance_id: uuid.UUID,
     workflow_template_id: uuid.UUID,
+    co_approver_user_ids: list[uuid.UUID] | None = None,
 ) -> None:
+    """Build a workflow's step instances.
+
+    Named co-approvers, when supplied, form a parallel gate at ``step_order`` 1
+    (every one is required, order-independent); the template's role-based steps
+    are shifted to follow them. With no co-approvers the template steps keep their
+    original ordering, starting at 1.
+    """
+    co_approver_user_ids = co_approver_user_ids or []
+    order_offset = 1 if co_approver_user_ids else 0
+
+    for peer_user_id in co_approver_user_ids:
+        session.add(
+            WorkflowStepInstance(
+                workflow_instance_id=workflow_instance_id,
+                step_order=1,
+                required_user_id=peer_user_id,
+                required_role_id=None,
+                is_required=True,
+            )
+        )
+
     result = await session.execute(
         select(WorkflowStepTemplate)
         .where(col(WorkflowStepTemplate.workflow_template_id) == workflow_template_id)
@@ -110,7 +132,7 @@ async def _create_step_instances_for_workflow(
     for step in steps:
         step_instance = WorkflowStepInstance(
             workflow_instance_id=workflow_instance_id,
-            step_order=step.step_order,
+            step_order=step.step_order + order_offset,
             required_role_id=step.required_role_id,
             required_scope=step.required_scope,
             is_required=step.is_required,
@@ -119,8 +141,23 @@ async def _create_step_instances_for_workflow(
 
 
 async def create_workflow_instance(
-    *, session: AsyncSession, current_user: User, instance_in: WorkflowInstanceCreate
+    *,
+    session: AsyncSession,
+    current_user: User,
+    instance_in: WorkflowInstanceCreate,
+    require_actor_permission: bool = True,
+    commit: bool = True,
+    build_steps: bool = True,
+    co_approver_user_ids: list[uuid.UUID] | None = None,
 ) -> WorkflowInstance:
+    # The public POST /instances endpoint must be permission-gated (previously any
+    # authenticated user could create an instance against any template/entity).
+    # The internal start_workflow_for_entity path opts out: it is triggered by an
+    # entity create the actor is already authorized for.
+    if require_actor_permission:
+        require_permission(
+            current_user=current_user, permission_key="workflow.instance.action"
+        )
     workflow_template = await session.get(
         WorkflowTemplate, instance_in.workflow_template_id
     )
@@ -134,17 +171,23 @@ async def create_workflow_instance(
         entity_id=instance_in.entity_id,
         requested_by_user_id=current_user.id,
     )
+    # Flush (not commit) so step creation and any calling entity-create share one
+    # transaction; when commit=False the caller owns the terminal commit.
     session.add(db_instance)
-    await session.commit()
-    await session.refresh(db_instance)
+    await session.flush()
 
-    await _create_step_instances_for_workflow(
-        session=session,
-        workflow_instance_id=db_instance.id,
-        workflow_template_id=workflow_template.id,
-    )
-    await session.commit()
-    await session.refresh(db_instance)
+    if build_steps:
+        await _create_step_instances_for_workflow(
+            session=session,
+            workflow_instance_id=db_instance.id,
+            workflow_template_id=workflow_template.id,
+            co_approver_user_ids=co_approver_user_ids,
+        )
+    if commit:
+        await session.commit()
+        await session.refresh(db_instance)
+    else:
+        await session.flush()
     return db_instance
 
 
@@ -177,12 +220,18 @@ async def _is_actor_allowed_for_step(
     workflow_instance: WorkflowInstance,
     workflow_step: WorkflowStepInstance,
 ) -> bool:
-    return await can_act_on_user_for_role(
-        session=session,
-        current_user=current_user,
-        target_user_id=workflow_instance.requested_by_user_id,
-        required_role_id=workflow_step.required_role_id,
-    )
+    # A named-user step is satisfied only by that specific person; a role step
+    # falls back to the role + scope check against the requester.
+    if workflow_step.required_user_id is not None:
+        return current_user.id == workflow_step.required_user_id
+    if workflow_step.required_role_id is not None:
+        return await can_act_on_user_for_role(
+            session=session,
+            current_user=current_user,
+            target_user_id=workflow_instance.requested_by_user_id,
+            required_role_id=workflow_step.required_role_id,
+        )
+    return False
 
 
 async def apply_workflow_action(
@@ -191,14 +240,20 @@ async def apply_workflow_action(
     current_user: User,
     workflow_instance_id: uuid.UUID,
     action_in: WorkflowActionRequest,
+    require_actor_permission: bool = True,
+    commit: bool = True,
 ) -> WorkflowInstance:
-    require_permission(
-        current_user=current_user, permission_key="workflow.instance.action"
-    )
+    # require_actor_permission=False is the internal self-submit path: a requester
+    # submitting their own freshly-created instance must not need the approver-only
+    # workflow.instance.action (or .view) permission.
+    if require_actor_permission:
+        require_permission(
+            current_user=current_user, permission_key="workflow.instance.action"
+        )
     workflow_instance, steps = await read_workflow_instance_details(
         session=session,
         workflow_instance_id=workflow_instance_id,
-        current_user=current_user,
+        current_user=current_user if require_actor_permission else None,
     )
 
     if action_in.action == WorkflowAction.SUBMIT:
@@ -219,42 +274,53 @@ async def apply_workflow_action(
             )
         )
         session.add(workflow_instance)
-        await session.commit()
-        await session.refresh(workflow_instance)
+        if commit:
+            await session.commit()
+            await session.refresh(workflow_instance)
+        else:
+            await session.flush()
         return workflow_instance
 
     if workflow_instance.status != WorkflowStatus.PENDING:
         raise HRValidationError(ERROR_WORKFLOW_NOT_PENDING)
 
-    current_step = next(
-        (
-            step
-            for step in steps
-            if step.step_order == workflow_instance.current_step_order
-        ),
-        None,
-    )
-    if not current_step:
+    current_order = workflow_instance.current_step_order
+    order_steps = [
+        step
+        for step in steps
+        if step.step_order == current_order and step.is_required
+    ]
+    if not order_steps:
         raise WorkflowStepNotFoundError()
 
-    if not await _is_actor_allowed_for_step(
-        session=session,
-        current_user=current_user,
-        workflow_instance=workflow_instance,
-        workflow_step=current_step,
-    ):
+    # A step_order may hold several required steps (parallel co-approval). The
+    # actor acts on the first still-pending step at this order they are allowed
+    # for; each required step must be satisfied before the order completes.
+    target_step: WorkflowStepInstance | None = None
+    for step in order_steps:
+        if step.action is not None:
+            continue
+        if await _is_actor_allowed_for_step(
+            session=session,
+            current_user=current_user,
+            workflow_instance=workflow_instance,
+            workflow_step=step,
+        ):
+            target_step = step
+            break
+    if target_step is None:
         raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
 
-    current_step.approver_user_id = current_user.id
-    current_step.action = action_in.action
-    current_step.comments = action_in.comments
-    current_step.acted_at = utc_now()
-    current_step.updated_at = utc_now()
-    session.add(current_step)
+    target_step.approver_user_id = current_user.id
+    target_step.action = action_in.action
+    target_step.comments = action_in.comments
+    target_step.acted_at = utc_now()
+    target_step.updated_at = utc_now()
+    session.add(target_step)
     session.add(
         ApprovalActionLog(
             workflow_instance_id=workflow_instance.id,
-            workflow_step_instance_id=current_step.id,
+            workflow_step_instance_id=target_step.id,
             action=action_in.action,
             actor_user_id=current_user.id,
             comments=action_in.comments,
@@ -269,23 +335,30 @@ async def apply_workflow_action(
         workflow_instance.resolved_at = utc_now()
     elif action_in.action == WorkflowAction.RETURN:
         workflow_instance.status = WorkflowStatus.RETURNED
-        workflow_instance.current_step_order = max(
-            1, workflow_instance.current_step_order - 1
-        )
+        prev_orders = [s.step_order for s in steps if s.step_order < current_order]
+        workflow_instance.current_step_order = max(prev_orders, default=1)
     elif action_in.action == WorkflowAction.APPROVE:
-        next_step_exists = any(
-            step.step_order > workflow_instance.current_step_order for step in steps
+        # The order advances only once EVERY required step at it is approved.
+        order_complete = all(
+            step.action == WorkflowAction.APPROVE for step in order_steps
         )
-        if next_step_exists:
-            workflow_instance.current_step_order += 1
-        else:
-            workflow_instance.status = WorkflowStatus.APPROVED
-            workflow_instance.resolved_at = utc_now()
+        if order_complete:
+            next_orders = [
+                step.step_order for step in steps if step.step_order > current_order
+            ]
+            if next_orders:
+                workflow_instance.current_step_order = min(next_orders)
+            else:
+                workflow_instance.status = WorkflowStatus.APPROVED
+                workflow_instance.resolved_at = utc_now()
 
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
-    await session.commit()
-    await session.refresh(workflow_instance)
+    if commit:
+        await session.commit()
+        await session.refresh(workflow_instance)
+    else:
+        await session.flush()
     logger.info(
         "Workflow action taken",
         extra={
@@ -306,8 +379,17 @@ async def start_workflow_for_entity(
     workflow_type: WorkflowType,
     entity_type: str,
     entity_id: uuid.UUID,
+    co_approver_user_ids: list[uuid.UUID] | None = None,
+    submit: bool = True,
 ) -> uuid.UUID | None:
-    """Look up an active workflow template and kick off SUBMIT if found."""
+    """Look up an active workflow template and create an instance for an entity.
+
+    Requires a configured template for the department + workflow type (returns
+    None otherwise). With ``submit=True`` the named co-approvers are attached as
+    a parallel first step and the instance is submitted (DRAFT → PENDING). With
+    ``submit=False`` the instance is created at DRAFT with no steps yet — steps
+    (and co-approvers) are built later by :func:`submit_draft_workflow`.
+    """
     result = await session.execute(
         select(WorkflowTemplate).where(
             col(WorkflowTemplate.department_id) == department_id,
@@ -318,6 +400,8 @@ async def start_workflow_for_entity(
     template = result.scalars().first()
     if not template:
         return None
+    # commit=False: the calling entity-create owns the terminal commit, so the
+    # entity row and its workflow instance/steps land in one atomic transaction.
     instance = await create_workflow_instance(
         session=session,
         current_user=current_user,
@@ -326,11 +410,54 @@ async def start_workflow_for_entity(
             entity_type=entity_type,
             entity_id=entity_id,
         ),
+        require_actor_permission=False,
+        commit=False,
+        build_steps=submit,
+        co_approver_user_ids=co_approver_user_ids if submit else None,
     )
+    if not submit:
+        return instance.id
     instance = await apply_workflow_action(
         session=session,
         current_user=current_user,
         workflow_instance_id=instance.id,
         action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        require_actor_permission=False,
+        commit=False,
     )
     return instance.id if instance else None
+
+
+async def submit_draft_workflow(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    workflow_instance_id: uuid.UUID,
+    co_approver_user_ids: list[uuid.UUID] | None = None,
+    commit: bool = True,
+) -> WorkflowInstance:
+    """Build the approval chain for a DRAFT instance and submit it.
+
+    Steps are built at submit time (not draft-create) so the co-approvers chosen
+    at submission are the ones that take effect.
+    """
+    instance = await session.get(WorkflowInstance, workflow_instance_id)
+    if not instance:
+        raise WorkflowInstanceNotFoundError()
+    if instance.status != WorkflowStatus.DRAFT:
+        raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
+    await _create_step_instances_for_workflow(
+        session=session,
+        workflow_instance_id=instance.id,
+        workflow_template_id=instance.workflow_template_id,
+        co_approver_user_ids=co_approver_user_ids,
+    )
+    await session.flush()
+    return await apply_workflow_action(
+        session=session,
+        current_user=current_user,
+        workflow_instance_id=instance.id,
+        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        require_actor_permission=False,
+        commit=commit,
+    )

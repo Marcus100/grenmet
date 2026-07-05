@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  readStatusReportsApiV1HrStatusReportsGetQueryKey,
+  type ShiftPeriod,
+  type StatusReportCreate,
+  useCreateStatusReportApiV1HrStatusReportsPost,
+  useReadHrProfileMeApiV1HrProfileMeGet,
+} from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
@@ -13,18 +20,81 @@ import {
 import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { RotateCcw } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { RotateCcw, Send } from "lucide-react";
+import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import {
   DailyStatusDocument,
+  type DailyStatusValues,
   EMPTY_DAILY_STATUS,
   SHIFT_OPTIONS,
   YES_NO,
 } from "./daily-status-document";
 
+/** Paper-form shift labels → API ShiftPeriod values. */
+const SHIFT_PERIOD_MAP: Record<string, ShiftPeriod> = {
+  "A.M.": "AM",
+  "P.M.": "PM",
+};
+
+export function buildStatusReportPayload(
+  values: DailyStatusValues,
+  departmentId: string
+): StatusReportCreate {
+  const shiftPeriod = SHIFT_PERIOD_MAP[values.shift] ?? "AM";
+  return {
+    department_id: departmentId,
+    report_date: values.date,
+    shift_code: shiftPeriod,
+    shift_period: shiftPeriod,
+    all_personnel_reported_on_time: values.allReported === "Yes",
+    personnel_explanation:
+      values.allReported === "No"
+        ? values.notReportedExplain || undefined
+        : undefined,
+    affected_operations: values.affectedEfficiency === "Yes",
+    affected_operations_explanation:
+      values.affectedEfficiency === "Yes"
+        ? values.affectedExplain || undefined
+        : undefined,
+    personnel_summary: values.absenteeism || undefined,
+    general_remarks: values.comments || undefined,
+  };
+}
+
 export function DailyStatusEditor() {
   const form = useForm({ defaultValues: EMPTY_DAILY_STATUS });
+  const queryClient = useQueryClient();
+  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const departmentId = profileQuery.data?.employment?.department?.id;
+  const createMutation = useCreateStatusReportApiV1HrStatusReportsPost();
+
+  async function submitToHr(values: DailyStatusValues) {
+    if (!values.date) {
+      toast.error("Report date is required");
+      return;
+    }
+    if (!departmentId) {
+      toast.error("Your employment record has no department — contact HR");
+      return;
+    }
+    try {
+      await createMutation.mutateAsync({
+        data: buildStatusReportPayload(values, departmentId),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey(),
+      });
+      toast.success("Status report submitted");
+      form.reset();
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Something went wrong";
+      toast.error(`Submission failed: ${detail}`);
+    }
+  }
 
   return (
     <form.Subscribe selector={(s) => s.values}>
@@ -35,15 +105,26 @@ export function DailyStatusEditor() {
               <h2 className="font-medium text-lg">
                 Daily Airport Status Report
               </h2>
-              <Button
-                onClick={() => form.reset()}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <RotateCcw data-icon="inline-start" />
-                Reset
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => form.reset()}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  <RotateCcw data-icon="inline-start" />
+                  Reset
+                </Button>
+                <Button
+                  disabled={createMutation.isPending}
+                  onClick={() => submitToHr(values)}
+                  size="sm"
+                  type="button"
+                >
+                  <Send data-icon="inline-start" />
+                  {createMutation.isPending ? "Submitting…" : "Submit to HR"}
+                </Button>
+              </div>
             </div>
 
             <Separator />

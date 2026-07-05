@@ -55,3 +55,5 @@ class ParkingPermitPublic(BaseModel):
 class ParkingPermitListPublic(BaseModel):
     data: list[ParkingPermitPublic]
     count: int
+    page: int = 1
+    size: int = 100

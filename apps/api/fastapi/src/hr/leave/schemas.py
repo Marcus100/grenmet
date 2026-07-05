@@ -28,11 +28,19 @@ class LeaveRequestCreate(BaseModel):
     requires_acting_appointment: bool = False
     acting_officer_id: uuid.UUID | None = None
     expected_return_date: date | None = None
+    # Named colleagues who must all approve before the request reaches the
+    # supervisor/management tiers. Ignored when as_draft is true.
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
+    # Save without submitting: persist as DRAFT with no approval chain yet.
+    as_draft: bool = False
+
+
+class LeaveRequestSubmit(BaseModel):
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
 class LeaveRequestAction(BaseModel):
     status: RequestStatus
-    comments: str | None = Field(default=None, max_length=1000)
     head_of_dept_comments: str | None = None
 
 
@@ -66,3 +74,5 @@ class LeaveRequestPublic(BaseModel):
 class LeaveRequestListPublic(BaseModel):
     data: list[LeaveRequestPublic]
     count: int
+    page: int = 1
+    size: int = 100

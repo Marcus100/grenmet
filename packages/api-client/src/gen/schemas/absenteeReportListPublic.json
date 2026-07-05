@@ -99,7 +99,9 @@
       "type": "array",
       "title": "Data"
     },
-    "count": { "type": "integer", "title": "Count" }
+    "count": { "type": "integer", "title": "Count" },
+    "page": { "type": "integer", "title": "Page", "default": 1 },
+    "size": { "type": "integer", "title": "Size", "default": 100 }
   },
   "type": "object",
   "required": ["data", "count"],

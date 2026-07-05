@@ -111,6 +111,7 @@ export const sidebarItems: NavGroup[] = [
             title: "Settlements",
             url: "/salesbus/settlements",
           },
+          { id: "salesbus-cart", title: "Cart", url: "/salesbus/sales/cart" },
         ],
       },
     ],

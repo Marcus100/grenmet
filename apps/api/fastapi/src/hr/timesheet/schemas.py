@@ -79,6 +79,8 @@ class TimesheetSubmitRequest(BaseModel):
 class TimesheetListPublic(BaseModel):
     data: list[TimesheetPublic]
     count: int
+    page: int = 1
+    size: int = 100
 
 
 # --- Timesheet Summary ---

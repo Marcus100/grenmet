@@ -1,14 +1,10 @@
-from typing import Annotated
+"""Auth dependency re-exports.
 
-from fastapi import Depends
+Routers import ``get_current_active_superuser`` from here; the canonical
+definition lives in ``src.dependencies``. The explicit ``as`` re-export marks it
+intentional so it is not flagged as an unused import.
+"""
 
-from src.auth.models import User
 from src.dependencies import (
     get_current_active_superuser as get_current_active_superuser,
 )
-from src.dependencies import (
-    get_current_user,
-)
-
-CurrentActiveUser = Annotated[User, Depends(get_current_user)]
-CurrentSuperUser = Annotated[User, Depends(get_current_active_superuser)]
