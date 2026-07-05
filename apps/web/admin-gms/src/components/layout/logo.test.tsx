@@ -16,6 +16,8 @@ vi.mock("next/image", () => ({
     alt: string;
     className?: string;
   }) => (
+    // biome-ignore lint/performance/noImgElement: deliberate lightweight mock of next/image for tests
+    // biome-ignore lint/correctness/useImageSize: mocked next/image has no intrinsic dimensions
     <img
       alt={alt}
       className={className}
