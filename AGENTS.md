@@ -53,6 +53,19 @@ docker compose exec api uv run mypy src                      # Type-check
 ./scripts/format.sh                                          # Ruff fix + format
 ```
 
+**Inside the agent dev container** there is no docker CLI and `grenmet-postgres`
+is not reachable, so `docker compose exec api …` won't work. Run pytest directly
+against the host-published DB/redis instead (the host stack from `pnpm start` must
+be up):
+
+```bash
+cd apps/api/fastapi
+uv sync                                                      # one-time: build the venv (needs network)
+POSTGRES_SERVER=host.docker.internal \
+  REDIS_URL=redis://host.docker.internal:6379/0 \
+  uv run pytest
+```
+
 Regenerate `openapi.json` before running `pnpm generate:api-client`:
 
 ```bash
