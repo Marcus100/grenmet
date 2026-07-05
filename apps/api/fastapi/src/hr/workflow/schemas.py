@@ -93,3 +93,23 @@ class WorkflowActionRequest(BaseModel):
 class WorkflowInstanceDetails(BaseModel):
     instance: WorkflowInstancePublic
     steps: list[WorkflowStepInstancePublic]
+
+
+class WorkflowInboxItem(BaseModel):
+    instance_id: uuid.UUID
+    workflow_type: WorkflowType
+    entity_type: str
+    entity_id: uuid.UUID
+    department_id: str
+    requested_by_user_id: uuid.UUID
+    requester_name: str | None = None
+    submitted_at: UtcDateTime | None = None
+    current_step_order: int
+    # True when the current user is a named co-approver; False when they qualify
+    # through a role (supervisor/management tier).
+    step_is_named: bool
+
+
+class WorkflowInboxList(BaseModel):
+    data: list[WorkflowInboxItem]
+    count: int

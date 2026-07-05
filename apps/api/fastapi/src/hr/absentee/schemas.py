@@ -1,6 +1,8 @@
 import uuid
 from datetime import date
 
+from pydantic import Field
+
 from src.hr.absentee.models import AbsenceReason
 from src.hr.models import RequestStatus
 from src.models import BaseModel, UtcDateTime
@@ -19,6 +21,15 @@ class AbsenteeReportCreate(BaseModel):
     contact_method: str | None = None
     replacement_arranged: bool = False
     replacement_user_id: uuid.UUID | None = None
+    # Named colleagues who must all approve before the report reaches the
+    # supervisor/management tiers. Ignored when as_draft is true.
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
+    # Save without submitting: persist as DRAFT with no approval chain yet.
+    as_draft: bool = False
+
+
+class AbsenteeReportSubmit(BaseModel):
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
 class AbsenteeReportPublic(BaseModel):

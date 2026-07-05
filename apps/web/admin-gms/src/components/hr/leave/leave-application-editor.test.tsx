@@ -1,15 +1,29 @@
 import { configureApiClient } from "@grenmet/api-client";
+import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import {
   buildLeaveRequestPayload,
   LeaveApplicationEditor,
 } from "./leave-application-editor";
 import { EMPTY_LEAVE } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 const BASE = "http://localhost";
 
@@ -18,6 +32,9 @@ const server = setupServer(
     HttpResponse.json({
       employment: { department: { id: "dept_met", name: "Met" } },
     })
+  ),
+  http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+    HttpResponse.json({ data: [], count: 0 })
   ),
   http.get(`${BASE}/api/v1/hr/leave-requests/me`, () =>
     HttpResponse.json({
@@ -52,7 +69,19 @@ function wrap(children: React.ReactNode) {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "tester@barrels.gd",
+          full_name: "Tester",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        {children}
+      </SessionUserProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -90,12 +119,17 @@ describe("buildLeaveRequestPayload", () => {
 });
 
 describe("LeaveApplicationEditor (wired)", () => {
-  it("renders the submit button alongside reset", async () => {
+  it("renders the full action bar (reset, save, download, submit)", async () => {
     wrap(<LeaveApplicationEditor />);
     expect(
-      await screen.findByRole("button", { name: "Submit to HR" })
+      await screen.findByRole("button", { name: "Submit" })
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    // Download PDF appears in the action bar and the document-preview toolbar.
+    expect(
+      screen.getAllByRole("button", { name: "Download PDF" }).length
+    ).toBeGreaterThan(0);
   }, 20_000);
 });
 

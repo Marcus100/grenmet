@@ -17,7 +17,7 @@ from src.hr.exceptions import (
     HRValidationError,
 )
 from src.hr.models import RequestStatus
-from src.hr.workflow.models import WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
@@ -140,6 +140,77 @@ async def submit_leave_request(
         },
     )
     return leave_request
+
+
+async def update_leave_request(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    leave_request_id: uuid.UUID,
+    payload: LeaveRequestCreate,
+) -> LeaveRequest:
+    """Edit a still-DRAFT leave request in place (no new record is created)."""
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
+    leave_request = await get_leave_request_or_404(
+        session=session, leave_request_id=leave_request_id
+    )
+    if leave_request.user_id != current_user.id:
+        raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
+    if leave_request.status != RequestStatus.DRAFT:
+        raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
+
+    leave_request.department_id = payload.department_id
+    leave_request.leave_type = payload.leave_type
+    leave_request.start_date = payload.start_date
+    leave_request.end_date = payload.end_date
+    leave_request.days_requested = payload.days_requested
+    leave_request.days_with_pay = payload.days_with_pay
+    leave_request.days_without_pay = payload.days_without_pay
+    leave_request.professional_appointment_subtype = (
+        payload.professional_appointment_subtype
+    )
+    leave_request.reason = payload.reason
+    leave_request.contact_phone = payload.contact_phone
+    leave_request.leave_address = payload.leave_address
+    leave_request.travel_from_date = payload.travel_from_date
+    leave_request.travel_to_date = payload.travel_to_date
+    leave_request.salary_in_advance = payload.salary_in_advance
+    leave_request.requires_acting_appointment = payload.requires_acting_appointment
+    leave_request.acting_officer_id = payload.acting_officer_id
+    leave_request.expected_return_date = payload.expected_return_date
+    leave_request.updated_at = utc_now()
+    session.add(leave_request)
+    await session.commit()
+    await session.refresh(leave_request)
+    return leave_request
+
+
+async def delete_leave_request(
+    *, session: AsyncSession, current_user: User, leave_request_id: uuid.UUID
+) -> None:
+    """Delete an own DRAFT leave request (and its unstarted workflow instance)."""
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
+    leave_request = await get_leave_request_or_404(
+        session=session, leave_request_id=leave_request_id
+    )
+    if leave_request.user_id != current_user.id:
+        raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
+    if leave_request.status != RequestStatus.DRAFT:
+        raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
+
+    workflow_instance_id = leave_request.workflow_instance_id
+    # Delete the request first (it holds the FK to the instance), then the
+    # DRAFT instance itself (a draft has no step rows to clean up).
+    await session.delete(leave_request)
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance:
+            await session.delete(instance)
+    await session.commit()
 
 
 async def action_leave_request(

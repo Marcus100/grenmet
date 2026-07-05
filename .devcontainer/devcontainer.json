@@ -1,0 +1,28 @@
+{
+  "name": "grenmet-agents",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Mount your repo into the container at /workspace. Files edited by the
+  // agent inside the container are the same files on your host copy.
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  // Named volumes so Claude/Codex logins persist across rebuilds — log in once.
+  "mounts": [
+    "source=grenmet-claude-config,target=/home/node/.claude,type=volume",
+    "source=grenmet-codex-config,target=/home/node/.codex,type=volume",
+    "source=grenmet-config,target=/home/node/.config,type=volume",
+    "source=grenmet-cache,target=/home/node/.cache,type=volume"
+  ],
+
+  // Publish dev-server ports to the host so the apps open in your browser:
+  // web apps 3000-3004, HonoAPI 4000, FastAPI 8000.
+  "appPort": [3000, 3001, 3002, 3003, 3004, 4000, 8000],
+
+  "remoteUser": "node",
+
+  // Sanity check on first build: print every tool's version.
+  "postCreateCommand": "node -v && pnpm -v && uv --version && claude --version && codex --version"
+}

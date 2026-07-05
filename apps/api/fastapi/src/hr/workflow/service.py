@@ -1,10 +1,11 @@
 import logging
 import uuid
 
+from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
-from src.auth.models import User
+from src.auth.models import Role, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user_for_role, require_permission
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
@@ -369,6 +370,121 @@ async def apply_workflow_action(
         },
     )
     return workflow_instance
+
+
+WORKFLOW_TYPE_LABELS: dict[WorkflowType, str] = {
+    WorkflowType.LEAVE_REQUEST: "Leave request",
+    WorkflowType.SHIFT_SWAP: "Shift exchange",
+    WorkflowType.ABSENTEE_REPORT: "Absentee report",
+    WorkflowType.STATUS_REPORT: "Daily status report",
+    WorkflowType.TIMESHEET: "Timesheet",
+    WorkflowType.PARKING_PERMIT: "Parking permit",
+}
+
+
+async def _hr_admin_emails(*, session: AsyncSession) -> list[str]:
+    """Email addresses of everyone holding the hr-admin role."""
+    role_result = await session.execute(select(Role).where(Role.name == "hr-admin"))
+    role = role_result.scalars().first()
+    if not role:
+        return []
+    user_result = await session.execute(
+        select(User)
+        .join(UserRoleAssignment, col(UserRoleAssignment.user_id) == col(User.id))
+        .where(col(UserRoleAssignment.role_id) == role.id)
+    )
+    return [user.email for user in user_result.scalars().unique().all() if user.email]
+
+
+async def build_approval_notification(
+    *, session: AsyncSession, instance: WorkflowInstance
+) -> tuple[list[str], str, str] | None:
+    """Recipients + subject + HTML for the "approved" email to HR admins.
+
+    Returns None when there is nobody to notify (no hr-admin users).
+    """
+    recipients = await _hr_admin_emails(session=session)
+    if not recipients:
+        return None
+    requester = await session.get(User, instance.requested_by_user_id)
+    requester_name = requester.full_name if requester else "A staff member"
+    type_label = WORKFLOW_TYPE_LABELS.get(
+        instance.workflow_type, instance.workflow_type.value
+    )
+    subject = f"Approved: {type_label} — {requester_name}"
+    html = (
+        f"<p>A <strong>{type_label.lower()}</strong> has completed the approval "
+        f"chain and is now approved.</p>"
+        f"<ul>"
+        f"<li><strong>Requested by:</strong> {requester_name}</li>"
+        f"<li><strong>Department:</strong> {instance.department_id}</li>"
+        f"<li><strong>Reference:</strong> {instance.entity_type} {instance.entity_id}</li>"
+        f"</ul>"
+        f"<p>No action is required — this is a record notification for HR.</p>"
+    )
+    return recipients, subject, html
+
+
+async def list_actionable_instances(
+    *,
+    session: AsyncSession,
+    current_user: User,
+) -> list[tuple[WorkflowInstance, WorkflowStepInstance, User | None]]:
+    """Pending instances the current user can act on right now.
+
+    A row qualifies when the instance is PENDING and its current-order step is
+    still unacted and either names the user (co-approver) or requires a role the
+    user holds. Candidate rows are then confirmed with the same step-level
+    authorization the action endpoint enforces (so role scope is respected).
+    """
+    require_permission(
+        current_user=current_user, permission_key="workflow.instance.view"
+    )
+    my_role_ids = {role.id for role in current_user.roles}
+    match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
+    if my_role_ids:
+        match_conditions.append(col(WorkflowStepInstance.required_role_id).in_(my_role_ids))
+
+    result = await session.execute(
+        select(WorkflowInstance, WorkflowStepInstance)
+        .join(
+            WorkflowStepInstance,
+            col(WorkflowStepInstance.workflow_instance_id) == col(WorkflowInstance.id),
+        )
+        .where(
+            col(WorkflowInstance.status) == WorkflowStatus.PENDING,
+            col(WorkflowStepInstance.step_order)
+            == col(WorkflowInstance.current_step_order),
+            col(WorkflowStepInstance.action).is_(None),
+            col(WorkflowStepInstance.is_required) == True,  # noqa: E712
+            or_(*match_conditions),
+        )
+        .order_by(col(WorkflowInstance.submitted_at))
+    )
+
+    actionable: list[tuple[WorkflowInstance, WorkflowStepInstance]] = []
+    requester_ids: set[uuid.UUID] = set()
+    for instance, step in result.all():
+        if await _is_actor_allowed_for_step(
+            session=session,
+            current_user=current_user,
+            workflow_instance=instance,
+            workflow_step=step,
+        ):
+            actionable.append((instance, step))
+            requester_ids.add(instance.requested_by_user_id)
+
+    requesters: dict[uuid.UUID, User] = {}
+    if requester_ids:
+        requester_result = await session.execute(
+            select(User).where(col(User.id).in_(requester_ids))
+        )
+        requesters = {user.id: user for user in requester_result.scalars().all()}
+
+    return [
+        (instance, step, requesters.get(instance.requested_by_user_id))
+        for instance, step in actionable
+    ]
 
 
 async def start_workflow_for_entity(

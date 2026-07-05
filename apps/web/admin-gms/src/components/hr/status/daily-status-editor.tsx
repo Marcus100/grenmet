@@ -4,10 +4,14 @@ import {
   readStatusReportsApiV1HrStatusReportsGetQueryKey,
   type ShiftPeriod,
   type StatusReportCreate,
+  type StatusReportPublic,
   useCreateStatusReportApiV1HrStatusReportsPost,
   useReadHrProfileMeApiV1HrProfileMeGet,
+  useReadStatusReportsApiV1HrStatusReportsGet,
+  useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost,
+  useUpdateStatusReportApiV1HrStatusReportsReportIdPatch,
 } from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
+import { useSessionUser } from "@grenmet/auth";
 import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
 import {
@@ -21,10 +25,13 @@ import { Separator } from "@grenmet/ui/components/ui/separator";
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
-import { RotateCcw, Send } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
+import { CoApproverPicker } from "@/components/hr/co-approver-picker";
+import { FormActionBar } from "@/components/hr/form-action-bar";
 import {
   DailyStatusDocument,
   type DailyStatusValues,
@@ -37,6 +44,12 @@ import {
 const SHIFT_PERIOD_MAP: Record<string, ShiftPeriod> = {
   "A.M.": "AM",
   "P.M.": "PM",
+};
+
+/** API ShiftPeriod → paper-form shift label (for reopening a draft). */
+const REVERSE_SHIFT_PERIOD: Partial<Record<ShiftPeriod, string>> = {
+  AM: "A.M.",
+  PM: "P.M.",
 };
 
 export function buildStatusReportPayload(
@@ -64,15 +77,88 @@ export function buildStatusReportPayload(
   };
 }
 
+/** Map a saved report back onto the paper-form fields when reopening a draft. */
+function draftToFormValues(report: StatusReportPublic): DailyStatusValues {
+  const shiftLabel = report.shift_period
+    ? REVERSE_SHIFT_PERIOD[report.shift_period]
+    : undefined;
+  return {
+    ...EMPTY_DAILY_STATUS,
+    date: report.report_date ?? "",
+    shift: shiftLabel ?? "A.M.",
+    absenteeism: report.personnel_summary ?? "",
+    allReported: report.all_personnel_reported_on_time === false ? "No" : "Yes",
+    notReportedExplain: report.personnel_explanation ?? "",
+    affectedEfficiency: report.affected_operations ? "Yes" : "No",
+    affectedExplain: report.affected_operations_explanation ?? "",
+    comments: report.general_remarks ?? "",
+  };
+}
+
 export function DailyStatusEditor() {
   const form = useForm({ defaultValues: EMPTY_DAILY_STATUS });
   const queryClient = useQueryClient();
+  const sessionUser = useSessionUser();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const draftParam = searchParams.get("draft");
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const departmentId = profileQuery.data?.employment?.department?.id;
+  const myReportsQuery = useReadStatusReportsApiV1HrStatusReportsGet();
   const createMutation = useCreateStatusReportApiV1HrStatusReportsPost();
+  const updateMutation =
+    useUpdateStatusReportApiV1HrStatusReportsReportIdPatch();
+  const submitMutation =
+    useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost();
+  const [coApprovers, setCoApprovers] = useState<string[]>([]);
+  const [statusHint, setStatusHint] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(draftParam);
+  const [pendingAction, setPendingAction] = useState<"save" | "submit" | null>(
+    null
+  );
+  const loadedDraftRef = useRef<string | null>(null);
 
-  async function submitToHr(values: DailyStatusValues) {
-    if (!values.date) {
+  // When arriving via ?draft=<id>, load that draft into the form once.
+  useEffect(() => {
+    if (!draftParam || loadedDraftRef.current === draftParam) {
+      return;
+    }
+    const rows = myReportsQuery.data?.data;
+    if (!rows) {
+      return;
+    }
+    const draft = rows.find((report) => report.id === draftParam);
+    if (draft) {
+      form.reset(draftToFormValues(draft));
+      setDraftId(draftParam);
+      setStatusHint("Editing saved draft");
+      loadedDraftRef.current = draftParam;
+    }
+  }, [draftParam, myReportsQuery.data, form]);
+
+  function handleReset() {
+    form.reset();
+    setCoApprovers([]);
+    setStatusHint(null);
+    setDraftId(null);
+    loadedDraftRef.current = null;
+    if (searchParams.get("draft")) {
+      router.replace("/hr/status");
+    }
+  }
+
+  function handleDownloadPdf() {
+    window.print();
+  }
+
+  async function refreshMyReports() {
+    await queryClient.invalidateQueries({
+      queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey(),
+    });
+  }
+
+  async function persist(values: DailyStatusValues, asDraft: boolean) {
+    if (!(asDraft || values.date)) {
       toast.error("Report date is required");
       return;
     }
@@ -80,19 +166,54 @@ export function DailyStatusEditor() {
       toast.error("Your employment record has no department — contact HR");
       return;
     }
+    setPendingAction(asDraft ? "save" : "submit");
     try {
-      await createMutation.mutateAsync({
-        data: buildStatusReportPayload(values, departmentId),
-      });
-      await queryClient.invalidateQueries({
-        queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey(),
-      });
-      toast.success("Status report submitted");
-      form.reset();
+      if (asDraft) {
+        if (draftId) {
+          await updateMutation.mutateAsync({
+            report_id: draftId,
+            data: buildStatusReportPayload(values, departmentId),
+          });
+          setStatusHint("Draft updated");
+          toast.success("Draft updated");
+        } else {
+          const created = await createMutation.mutateAsync({
+            data: {
+              ...buildStatusReportPayload(values, departmentId),
+              as_draft: true,
+              co_approver_user_ids: [],
+            },
+          });
+          setDraftId(created.report.id);
+          loadedDraftRef.current = created.report.id;
+          setStatusHint("Draft saved");
+          toast.success("Draft saved");
+        }
+      } else {
+        if (draftId) {
+          await submitMutation.mutateAsync({
+            report_id: draftId,
+            data: { co_approver_user_ids: coApprovers },
+          });
+        } else {
+          await createMutation.mutateAsync({
+            data: {
+              ...buildStatusReportPayload(values, departmentId),
+              as_draft: false,
+              co_approver_user_ids: coApprovers,
+            },
+          });
+        }
+        toast.success("Status report submitted");
+        handleReset();
+      }
+      await refreshMyReports();
     } catch (error) {
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
-      toast.error(`Submission failed: ${detail}`);
+      toast.error(`${asDraft ? "Save" : "Submission"} failed: ${detail}`);
+    } finally {
+      setPendingAction(null);
     }
   }
 
@@ -101,30 +222,17 @@ export function DailyStatusEditor() {
       {(values) => (
         <div className="grid items-start gap-5 xl:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-medium text-lg">
-                Daily Airport Status Report
-              </h2>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => form.reset()}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  <RotateCcw data-icon="inline-start" />
-                  Reset
-                </Button>
-                <Button
-                  disabled={createMutation.isPending}
-                  onClick={() => submitToHr(values)}
-                  size="sm"
-                  type="button"
-                >
-                  <Send data-icon="inline-start" />
-                  {createMutation.isPending ? "Submitting…" : "Submit to HR"}
-                </Button>
-              </div>
+            <div className="flex flex-col gap-3">
+              <FormActionBar
+                isSaving={pendingAction === "save"}
+                isSubmitting={pendingAction === "submit"}
+                onDownloadPdf={handleDownloadPdf}
+                onReset={handleReset}
+                onSave={() => persist(values, true)}
+                onSubmit={() => persist(values, false)}
+                statusHint={statusHint}
+                submitDisabled={!departmentId}
+              />
             </div>
 
             <Separator />
@@ -305,11 +413,26 @@ export function DailyStatusEditor() {
                     </Field>
                   )}
                 </form.Field>
+
+                <Field className="gap-1">
+                  <FieldLabel className="text-xs">
+                    Co-approvers (all must approve before it reaches HR)
+                  </FieldLabel>
+                  <CoApproverPicker
+                    departmentId={departmentId}
+                    excludeUserId={sessionUser.id}
+                    onChange={setCoApprovers}
+                    selected={coApprovers}
+                  />
+                </Field>
               </FieldGroup>
             </form>
           </div>
 
-          <DocumentPreview title="Daily Airport Status Report">
+          <DocumentPreview
+            showDownloadPdf={false}
+            title="Daily Airport Status Report"
+          >
             <DailyStatusDocument values={values} />
           </DocumentPreview>
         </div>

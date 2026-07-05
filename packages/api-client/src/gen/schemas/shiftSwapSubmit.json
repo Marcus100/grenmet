@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "co_approver_user_ids": {
+      "items": { "type": "string", "format": "uuid" },
+      "type": "array",
+      "title": "Co Approver User Ids"
+    }
+  },
+  "type": "object",
+  "title": "ShiftSwapSubmit",
+  "x-readme-ref-name": "ShiftSwapSubmit"
+}

@@ -19,4 +19,6 @@ export const absenteeReportCreateSchema = z.object({
   contact_method: z.optional(z.union([z.string(), z.null()])),
   replacement_arranged: z.optional(z.boolean().default(false)),
   replacement_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  as_draft: z.optional(z.boolean().default(false)),
 });

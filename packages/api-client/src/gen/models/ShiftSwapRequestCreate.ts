@@ -40,4 +40,13 @@ export type ShiftSwapRequestCreate = {
   effective_date?: string | null;
   restoration_date?: string | null;
   reason?: string | null;
+  /**
+   * @type array | undefined
+   */
+  co_approver_user_ids?: string[];
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  as_draft?: boolean;
 };
