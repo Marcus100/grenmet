@@ -13,6 +13,7 @@ from .schemas import (
     StatusReportEntryPublic,
     StatusReportListPublic,
     StatusReportPublic,
+    StatusReportSubmit,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
@@ -41,6 +42,93 @@ async def create_status_report(
             StatusReportEntryPublic.model_validate(e, from_attributes=True)
             for e in entries
         ],
+    )
+
+
+@router.post(
+    "/status-reports/{report_id}/submit",
+    response_model=StatusReportPublic,
+    summary="Submit a draft status report",
+    description="Submit a previously-saved DRAFT status report, attaching named co-approvers. Requires status.report.create permission and ownership of the report.",
+    responses={
+        status.HTTP_200_OK: {"description": "Status report submitted"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to submit this status report"
+        },
+        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+    },
+)
+async def submit_status_report(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    report: StatusReportDep,
+    payload: StatusReportSubmit,
+) -> Any:
+    submitted = await service.submit_status_report(
+        session=session,
+        current_user=current_user,
+        status_report_id=report.id,
+        payload=payload,
+    )
+    return StatusReportPublic.model_validate(submitted, from_attributes=True)
+
+
+@router.patch(
+    "/status-reports/{report_id}",
+    response_model=StatusReportPublic,
+    summary="Edit a draft status report",
+    description="Update a still-DRAFT status report (and its personnel entries) in place. Requires status.report.create permission and ownership.",
+    responses={
+        status.HTTP_200_OK: {"description": "Status report updated"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to edit this status report"
+        },
+        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+    },
+)
+async def update_status_report(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    report: StatusReportDep,
+    payload: StatusReportCreate,
+) -> Any:
+    updated = await service.update_status_report(
+        session=session,
+        current_user=current_user,
+        report_id=report.id,
+        payload=payload,
+    )
+    return StatusReportPublic.model_validate(updated, from_attributes=True)
+
+
+@router.delete(
+    "/status-reports/{report_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a draft status report",
+    description="Delete an own DRAFT status report. Requires status.report.create permission and ownership.",
+    responses={
+        status.HTTP_204_NO_CONTENT: {"description": "Status report deleted"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to delete this status report"
+        },
+        status.HTTP_404_NOT_FOUND: {"description": "Status report not found"},
+    },
+)
+async def delete_status_report(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    report: StatusReportDep,
+) -> None:
+    await service.delete_status_report(
+        session=session,
+        current_user=current_user,
+        report_id=report.id,
     )
 
 

@@ -1,12 +1,13 @@
 import {
   AlertTriangle,
   Banknote,
+  BookOpen,
   Calendar,
   CalendarDays,
   ChartBar,
   CheckSquare,
-  CircleUser,
-  CloudSun,
+  Clock,
+  Compass,
   FileText,
   Fingerprint,
   Gauge,
@@ -17,16 +18,24 @@ import {
   ListTodo,
   type LucideIcon,
   Mail,
+  Map as MapIcon,
   MessagesSquare,
+  Plane,
   Radar,
   Rocket,
+  Rss,
   ScrollText,
   Server,
   ShoppingBag,
   SquareKanban,
+  SquarePen,
+  Sun,
+  Sunrise,
+  Sunset,
+  Thermometer,
   Truck,
-  UserCog,
   Users,
+  Waves,
 } from "lucide-react";
 
 export type NavBadge = "new" | "soon";
@@ -67,6 +76,11 @@ export interface NavGroup {
   label?: string;
 }
 
+// Placeholder destination for target-IA sections that have no page yet.
+// Keeps the "still beta" nav honest: every item lands somewhere real (no 404s)
+// while advertising the intended structure via a "soon" badge.
+const COMING_SOON_URL = "/studio/coming-soon";
+
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
@@ -75,25 +89,43 @@ export const sidebarItems: NavGroup[] = [
       { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       { id: "roster", title: "Roster", url: "/roster", icon: CalendarDays },
-      { id: "users", title: "Users", url: "/users", icon: UserCog },
+      { id: "staff", title: "Staff", url: "/users", icon: Users },
+    ],
+  },
+  {
+    id: 2,
+    label: "Human Resource",
+    items: [
       {
-        id: "profile",
-        title: "User Profile",
-        url: "/profile",
-        icon: CircleUser,
+        id: "hr-overview",
+        title: "Overview",
+        url: "/hr",
+        icon: LayoutDashboard,
       },
       {
-        id: "hr",
-        title: "Human Resource",
-        icon: Users,
+        id: "hr-forms",
+        title: "Forms",
+        icon: FileText,
         subItems: [
           { id: "hr-leave", title: "Leave Application", url: "/hr/leave" },
           { id: "hr-shift", title: "Shift Exchange", url: "/hr/shift" },
           { id: "hr-absentee", title: "Absentee Report", url: "/hr/absentee" },
+        ],
+      },
+      {
+        id: "hr-other-forms",
+        title: "Other forms",
+        icon: ScrollText,
+        subItems: [
           { id: "hr-status", title: "Daily Airport Status", url: "/hr/status" },
           { id: "hr-timesheet", title: "Time Sheet", url: "/hr/timesheet" },
-          { id: "hr-forms", title: "Overview", url: "/hr" },
         ],
+      },
+      {
+        id: "hr-approvals",
+        title: "Approvals",
+        url: "/hr/approvals",
+        icon: CheckSquare,
       },
       {
         id: "salesbus",
@@ -117,60 +149,94 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 2,
-    label: "Weather",
+    id: 3,
+    label: "Warnings",
     items: [
-      {
-        id: "cap",
-        title: "CAP Alerts",
-        icon: AlertTriangle,
-        subItems: [
-          { id: "cap-alerts", title: "Alerts", url: "/cap" },
-          { id: "cap-map", title: "Alert Map", url: "/cap/map" },
-          { id: "cap-feeds", title: "Feeds", url: "/cap/integrations" },
-          { id: "cap-editor", title: "Editor", url: "/cap/admin" },
-        ],
-      },
+      { id: "cap-alerts", title: "Alerts", url: "/cap", icon: AlertTriangle },
+      { id: "cap-map", title: "Alert Map", url: "/cap/map", icon: MapIcon },
+      { id: "cap-feeds", title: "Feeds", url: "/cap/integrations", icon: Rss },
+      { id: "cap-editor", title: "Editor", url: "/cap/admin", icon: SquarePen },
+    ],
+  },
+  {
+    id: 4,
+    label: "Weather & Forecasts",
+    items: [
       { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
-        id: "wxproducts-forecasts",
-        title: "Public Forecasts",
-        icon: CloudSun,
-        subItems: [
-          { id: "fcst-hourly", title: "Hourly", url: "/wxproducts/hourly" },
-          {
-            id: "fcst-morning",
-            title: "Morning",
-            url: "/wxproducts/fcsts/morning",
-          },
-          {
-            id: "fcst-midday",
-            title: "Midday",
-            url: "/wxproducts/fcsts/midday",
-          },
-          {
-            id: "fcst-evening",
-            title: "Evening",
-            url: "/wxproducts/fcsts/evening",
-          },
-        ],
+        id: "fcst-hourly",
+        title: "Hourly",
+        url: "/wxproducts/hourly",
+        icon: Clock,
       },
       {
-        id: "wxproducts-bulletins",
-        title: "Bulletins",
-        icon: ScrollText,
-        subItems: [
-          {
-            id: "bulletin-marine",
-            title: "Marine Bulletin",
-            url: "/wxproducts/bulletins/marine",
-          },
-        ],
+        id: "fcst-morning",
+        title: "Morning",
+        url: "/wxproducts/fcsts/morning",
+        icon: Sunrise,
+      },
+      {
+        id: "fcst-midday",
+        title: "Midday",
+        url: "/wxproducts/fcsts/midday",
+        icon: Sun,
+      },
+      {
+        id: "fcst-evening",
+        title: "Evening",
+        url: "/wxproducts/fcsts/evening",
+        icon: Sunset,
       },
     ],
   },
   {
-    id: 3,
+    id: 5,
+    label: "Products",
+    items: [
+      {
+        id: "bulletin-marine",
+        title: "Marine Bulletin",
+        url: "/wxproducts/bulletins/marine",
+        icon: Waves,
+      },
+    ],
+  },
+  {
+    id: 6,
+    label: "Coming soon",
+    items: [
+      {
+        id: "sectors",
+        title: "Sectors",
+        url: COMING_SOON_URL,
+        icon: Compass,
+        badge: "soon",
+      },
+      {
+        id: "aviation",
+        title: "Aviation",
+        url: COMING_SOON_URL,
+        icon: Plane,
+        badge: "soon",
+      },
+      {
+        id: "climate-data",
+        title: "Climate & Data",
+        url: COMING_SOON_URL,
+        icon: Thermometer,
+        badge: "soon",
+      },
+      {
+        id: "resources",
+        title: "Resources",
+        url: COMING_SOON_URL,
+        icon: BookOpen,
+        badge: "soon",
+      },
+    ],
+  },
+  {
+    id: 7,
     label: "Studio (demo)",
     items: [
       {

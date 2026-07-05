@@ -36,7 +36,13 @@
     "reason": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Reason"
-    }
+    },
+    "co_approver_user_ids": {
+      "items": { "type": "string", "format": "uuid" },
+      "type": "array",
+      "title": "Co Approver User Ids"
+    },
+    "as_draft": { "type": "boolean", "title": "As Draft", "default": false }
   },
   "type": "object",
   "required": [

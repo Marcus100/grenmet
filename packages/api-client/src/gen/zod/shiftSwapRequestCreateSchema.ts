@@ -17,4 +17,6 @@ export const shiftSwapRequestCreateSchema = z.object({
   effective_date: z.optional(z.union([z.string().date(), z.null()])),
   restoration_date: z.optional(z.union([z.string().date(), z.null()])),
   reason: z.optional(z.union([z.string(), z.null()])),
+  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  as_draft: z.optional(z.boolean().default(false)),
 });

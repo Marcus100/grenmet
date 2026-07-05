@@ -62,8 +62,13 @@ ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED = "Not allowed to action this leave reque
 ERROR_LEAVE_REQUEST_NOT_DRAFT = "Only a draft leave request can be submitted"
 ERROR_SHIFT_SWAP_NOT_FOUND = "Shift swap request not found"
 ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED = "Not allowed to action this shift swap"
+ERROR_SHIFT_SWAP_NOT_DRAFT = "Only a draft shift swap request can be submitted"
 ERROR_STATUS_REPORT_NOT_FOUND = "Status report not found"
+ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED = "Not allowed to submit this status report"
+ERROR_STATUS_REPORT_NOT_DRAFT = "Only a draft status report can be submitted"
 ERROR_ABSENTEE_REPORT_NOT_FOUND = "Absentee report not found"
+ERROR_ABSENTEE_REPORT_ACTION_NOT_ALLOWED = "Not allowed to submit this absentee report"
+ERROR_ABSENTEE_REPORT_NOT_DRAFT = "Only a draft absentee report can be submitted"
 ERROR_ABSENTEE_FILE_FOR_USER_NOT_ALLOWED = (
     "Not allowed to file an absentee report for this user"
 )

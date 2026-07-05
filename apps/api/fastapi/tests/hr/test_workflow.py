@@ -9,7 +9,12 @@ from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.hr.leave.models import LeaveRequest
 from src.hr.leave.schemas import LeaveRequestCreate, LeaveRequestSubmit
-from src.hr.leave.service import create_leave_request, submit_leave_request
+from src.hr.leave.service import (
+    create_leave_request,
+    delete_leave_request,
+    submit_leave_request,
+    update_leave_request,
+)
 from src.hr.models import Department, RequestStatus
 from src.hr.workflow.models import WorkflowAction, WorkflowStatus, WorkflowType
 from src.hr.workflow.schemas import (
@@ -23,6 +28,7 @@ from src.hr.workflow.service import (
     create_workflow_instance,
     create_workflow_step_template,
     create_workflow_template,
+    list_actionable_instances,
     read_workflow_instance_details,
 )
 from tests.factories import (
@@ -352,6 +358,128 @@ async def test_coapprover_rejection_rejects_instance(db_async: AsyncSession) -> 
         session=db_async, workflow_instance_id=leave.workflow_instance_id
     )
     assert instance.status == WorkflowStatus.REJECTED
+
+
+async def test_approval_notification_targets_hr_admins(
+    db_async: AsyncSession,
+) -> None:
+    """The approval email resolves hr-admin recipients and names the requester."""
+    import uuid as _uuid
+
+    from src.hr.workflow.models import WorkflowInstance
+    from src.hr.workflow.service import build_approval_notification
+
+    dept = await make_department(db_async, "dept_notify")
+    admin = await make_user(db_async)
+    role_result = await db_async.execute(select(Role).where(Role.name == "hr-admin"))
+    admin_role = role_result.scalars().first()
+    if admin_role is None:
+        admin_role, _ = await make_role_with_permission(
+            db_async, "workflow.instance.view", role_name="hr-admin"
+        )
+    await assign_role(db_async, user=admin, role=admin_role)
+    requester = await make_user(db_async)
+
+    # An in-memory instance is enough — the builder does not re-fetch it.
+    instance = WorkflowInstance(
+        workflow_template_id=_uuid.uuid4(),
+        department_id=dept.id,
+        workflow_type=WorkflowType.LEAVE_REQUEST,
+        entity_type="leave_request",
+        entity_id=_uuid.uuid4(),
+        requested_by_user_id=requester.id,
+    )
+    result = await build_approval_notification(session=db_async, instance=instance)
+    assert result is not None
+    recipients, subject, _html = result
+    assert admin.email in recipients
+    assert requester.full_name in subject
+
+
+async def test_inbox_shows_instances_only_to_current_actor(
+    db_async: AsyncSession,
+) -> None:
+    """The inbox surfaces an instance to a co-approver during the peer gate, to
+    the supervisor only once it's their turn, and never to an unrelated user."""
+    dept = await make_department(db_async, "dept_inbox")
+    sup_role = await _setup_coapproval(db_async, dept.id)
+    requester = await _make_requester(db_async)
+    peer = await _make_peer(db_async)
+    other = await _make_peer(db_async)  # has action/view but not on this instance
+    supervisor = await make_user(db_async)
+    await assign_role(
+        db_async, user=supervisor, role=sup_role, scope=RoleAssignmentScope.ALL
+    )
+
+    payload = _leave_payload(dept.id)
+    payload.co_approver_user_ids = [peer.id]
+    leave = await create_leave_request(
+        session=db_async, current_user=requester, payload=payload
+    )
+    instance_id = leave.workflow_instance_id
+
+    def _has(rows: list) -> bool:
+        return any(instance.id == instance_id for instance, _step, _req in rows)
+
+    # peer gate: the named co-approver sees it; supervisor and others do not
+    assert _has(await list_actionable_instances(session=db_async, current_user=peer))
+    assert not _has(
+        await list_actionable_instances(session=db_async, current_user=supervisor)
+    )
+    assert not _has(
+        await list_actionable_instances(session=db_async, current_user=other)
+    )
+
+    # once the peer approves, it advances and now the supervisor sees it
+    await _approve(db_async, peer, instance_id)
+    assert not _has(
+        await list_actionable_instances(session=db_async, current_user=peer)
+    )
+    assert _has(
+        await list_actionable_instances(session=db_async, current_user=supervisor)
+    )
+
+
+async def test_draft_can_be_edited_and_deleted(db_async: AsyncSession) -> None:
+    """A saved draft is editable in place (no new record) and deletable; both are
+    blocked once it is no longer a draft."""
+    from decimal import Decimal
+
+    dept = await make_department(db_async, "dept_draft_edit")
+    await _setup_coapproval(db_async, dept.id)
+    requester = await _make_requester(db_async)
+
+    draft_payload = _leave_payload(dept.id)
+    draft_payload.as_draft = True
+    draft = await create_leave_request(
+        session=db_async, current_user=requester, payload=draft_payload
+    )
+    assert draft.status == RequestStatus.DRAFT
+    original_id = draft.id
+    workflow_id = draft.workflow_instance_id
+
+    # edit in place — same row, updated fields, still DRAFT
+    edit_payload = _leave_payload(dept.id)
+    edit_payload.days_requested = Decimal("3.0")
+    edited = await update_leave_request(
+        session=db_async,
+        current_user=requester,
+        leave_request_id=draft.id,
+        payload=edit_payload,
+    )
+    assert edited.id == original_id
+    assert edited.status == RequestStatus.DRAFT
+    assert edited.days_requested == Decimal("3.0")
+
+    # delete removes the request and its unstarted workflow instance
+    await delete_leave_request(
+        session=db_async, current_user=requester, leave_request_id=draft.id
+    )
+    assert await db_async.get(LeaveRequest, original_id) is None
+    if workflow_id:
+        from src.hr.workflow.models import WorkflowInstance
+
+        assert await db_async.get(WorkflowInstance, workflow_id) is None
 
 
 async def test_save_draft_then_submit(db_async: AsyncSession) -> None:

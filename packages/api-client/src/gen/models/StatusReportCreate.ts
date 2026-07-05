@@ -43,4 +43,13 @@ export type StatusReportCreate = {
    * @type array | undefined
    */
   entries?: StatusReportEntryInput[];
+  /**
+   * @type array | undefined
+   */
+  co_approver_user_ids?: string[];
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  as_draft?: boolean;
 };

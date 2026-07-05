@@ -5,9 +5,10 @@ import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
 import { Input } from "@grenmet/ui/components/ui/input";
 import { Separator } from "@grenmet/ui/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
-import { Plus, RotateCcw, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
+import { FormActionBar } from "@/components/hr/form-action-bar";
 import {
   EMPTY_HOURLY,
   EMPTY_HOURLY_ROW,
@@ -23,17 +24,12 @@ export function HourlyEditor() {
       {(values) => (
         <div className="grid items-start gap-5 xl:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3">
               <h2 className="font-medium text-lg">Hourly Forecast</h2>
-              <Button
-                onClick={() => form.reset()}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <RotateCcw data-icon="inline-start" />
-                Reset
-              </Button>
+              <FormActionBar
+                onDownloadPdf={() => window.print()}
+                onReset={() => form.reset()}
+              />
             </div>
 
             <Separator />
@@ -168,7 +164,7 @@ export function HourlyEditor() {
             </form>
           </div>
 
-          <DocumentPreview title="Hourly Forecast">
+          <DocumentPreview showDownloadPdf={false} title="Hourly Forecast">
             <HourlyDocument values={values} />
           </DocumentPreview>
         </div>

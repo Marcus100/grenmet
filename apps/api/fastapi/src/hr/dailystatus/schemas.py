@@ -39,6 +39,15 @@ class StatusReportCreate(BaseModel):
     communications_status: str | None = None
     general_remarks: str | None = None
     entries: list[StatusReportEntryInput] = Field(default_factory=list)
+    # Named colleagues who must all approve before the report reaches the
+    # supervisor/management tiers. Ignored when as_draft is true.
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
+    # Save without submitting: persist as DRAFT with no approval chain yet.
+    as_draft: bool = False
+
+
+class StatusReportSubmit(BaseModel):
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
 class StatusReportEntryPublic(BaseModel):

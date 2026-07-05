@@ -9,4 +9,6 @@ export const validationErrorSchema = z.object({
   loc: z.array(z.union([z.number().int(), z.string()])),
   msg: z.string(),
   type: z.string(),
+  input: z.optional(z.any()),
+  ctx: z.optional(z.object({})),
 });

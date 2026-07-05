@@ -1,14 +1,28 @@
 import { configureApiClient } from "@grenmet/api-client";
+import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { EMPTY_ABSENTEE } from "./absentee-document";
 import { AbsenteeEditor, buildAbsenteeReportPayload } from "./absentee-editor";
 import { AbsenteeSubmissions } from "./absentee-submissions";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 const BASE = "http://localhost";
 
@@ -18,6 +32,9 @@ const server = setupServer(
       id: "u-1",
       employment: { department: { id: "dept_met", name: "Met" } },
     })
+  ),
+  http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+    HttpResponse.json({ data: [], count: 0 })
   ),
   http.get(`${BASE}/api/v1/hr/absentee-reports`, () =>
     HttpResponse.json({ data: [], count: 0 })
@@ -36,7 +53,19 @@ function wrap(children: React.ReactNode) {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "tester@barrels.gd",
+          full_name: "Tester",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        {children}
+      </SessionUserProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -92,12 +121,16 @@ describe("buildAbsenteeReportPayload", () => {
 });
 
 describe("AbsenteeEditor (wired)", () => {
-  it("renders the submit button alongside reset", async () => {
+  it("renders the full action bar (reset, save, download, submit)", async () => {
     wrap(<AbsenteeEditor />);
     expect(
-      await screen.findByRole("button", { name: "Submit to HR" })
+      await screen.findByRole("button", { name: "Submit" })
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("button", { name: "Download PDF" }).length
+    ).toBeGreaterThan(0);
   }, 20_000);
 
   it("submits a filled report to HR with the mapped payload", async () => {
@@ -128,7 +161,7 @@ describe("AbsenteeEditor (wired)", () => {
 
     const user = userEvent.setup();
     wrap(<AbsenteeEditor />);
-    await screen.findByRole("button", { name: "Submit to HR" });
+    await screen.findByRole("button", { name: "Submit" });
 
     // Pick today in the DatePicker popover calendar.
     const today = new Date();
@@ -141,7 +174,7 @@ describe("AbsenteeEditor (wired)", () => {
 
     await user.type(screen.getByLabelText("Reason(s) — details"), "Flu");
 
-    await user.click(screen.getByRole("button", { name: "Submit to HR" }));
+    await user.click(screen.getByRole("button", { name: "Submit" }));
 
     await waitFor(() => {
       expect(posted).toHaveLength(1);
@@ -152,6 +185,8 @@ describe("AbsenteeEditor (wired)", () => {
       report_date: format(today, "yyyy-MM-dd"),
       reason: "UNCERTIFIED_SICK",
       notes: "Flu",
+      as_draft: false,
+      co_approver_user_ids: [],
     });
   }, 20_000);
 });

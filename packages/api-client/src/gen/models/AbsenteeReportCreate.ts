@@ -41,4 +41,13 @@ export type AbsenteeReportCreate = {
    */
   replacement_arranged?: boolean;
   replacement_user_id?: string | null;
+  /**
+   * @type array | undefined
+   */
+  co_approver_user_ids?: string[];
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  as_draft?: boolean;
 };

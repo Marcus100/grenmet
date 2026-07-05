@@ -2405,6 +2405,36 @@
         ]
       }
     },
+    "/api/v1/hr/workflows/instances/inbox": {
+      "get": {
+        "tags": [
+          "hr-workflows"
+        ],
+        "summary": "List my pending approvals",
+        "description": "Return workflow instances awaiting an action the current user is authorized to take (named co-approver or role-based approver). Requires workflow.instance.view permission.",
+        "operationId": "read_inbox_api_v1_hr_workflows_instances_inbox_get",
+        "responses": {
+          "200": {
+            "description": "Pending approvals returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowInboxList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/workflows/instances/{instance_id}": {
       "get": {
         "tags": [
@@ -3779,6 +3809,123 @@
         }
       }
     },
+    "/api/v1/hr/leave-requests/{leave_request_id}": {
+      "patch": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Edit a draft leave request",
+        "description": "Update a still-DRAFT leave request in place. Requires leave.request.create.self permission and ownership.",
+        "operationId": "update_leave_request_api_v1_hr_leave_requests__leave_request_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "leave_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Leave Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Leave request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to edit this request"
+          },
+          "404": {
+            "description": "Leave request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Delete a draft leave request",
+        "description": "Delete an own DRAFT leave request. Requires leave.request.create.self permission and ownership.",
+        "operationId": "delete_leave_request_api_v1_hr_leave_requests__leave_request_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "leave_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Leave Request Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Leave request deleted"
+          },
+          "400": {
+            "description": "Leave request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to delete this request"
+          },
+          "404": {
+            "description": "Leave request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/leave-requests/{leave_request_id}/action": {
       "patch": {
         "tags": [
@@ -4046,6 +4193,191 @@
         }
       }
     },
+    "/api/v1/hr/absentee-reports/{absentee_report_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Submit a draft absentee report",
+        "description": "Submit a previously-saved DRAFT absentee report, attaching named co-approvers. Requires absentee.report.create permission and ownership of the report.",
+        "operationId": "submit_absentee_report_api_v1_hr_absentee_reports__absentee_report_id__submit_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "absentee_report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Absentee Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenteeReportSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Absentee report submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenteeReportPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Absentee report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to submit this absentee report"
+          },
+          "404": {
+            "description": "Absentee report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/absentee-reports/{absentee_report_id}": {
+      "patch": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Edit a draft absentee report",
+        "description": "Update a still-DRAFT absentee report in place. Requires absentee.report.create permission and ownership.",
+        "operationId": "update_absentee_report_api_v1_hr_absentee_reports__absentee_report_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "absentee_report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Absentee Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenteeReportCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Absentee report updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AbsenteeReportPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Absentee report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to edit this absentee report"
+          },
+          "404": {
+            "description": "Absentee report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Delete a draft absentee report",
+        "description": "Delete an own DRAFT absentee report. Requires absentee.report.create permission and ownership.",
+        "operationId": "delete_absentee_report_api_v1_hr_absentee_reports__absentee_report_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "absentee_report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Absentee Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Absentee report deleted"
+          },
+          "400": {
+            "description": "Absentee report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to delete this absentee report"
+          },
+          "404": {
+            "description": "Absentee report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/shift-swaps/me": {
       "get": {
         "tags": [
@@ -4163,6 +4495,191 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/v1/hr/shift-swaps/{shift_swap_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Submit a draft shift swap request",
+        "description": "Submit a previously-saved DRAFT shift swap request, attaching named co-approvers. Requires shift_swap.request.create.self permission and ownership of the request.",
+        "operationId": "submit_shift_swap_api_v1_hr_shift_swaps__shift_swap_id__submit_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift swap request submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRequestPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Shift swap request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to submit this shift swap request"
+          },
+          "404": {
+            "description": "Shift swap request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/shift-swaps/{shift_swap_id}": {
+      "patch": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Edit a draft shift swap request",
+        "description": "Update a still-DRAFT shift swap request in place. Requires shift_swap.request.create.self permission and ownership.",
+        "operationId": "update_shift_swap_api_v1_hr_shift_swaps__shift_swap_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapRequestCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift swap request updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRequestPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Shift swap request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to edit this shift swap request"
+          },
+          "404": {
+            "description": "Shift swap request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Delete a draft shift swap request",
+        "description": "Delete an own DRAFT shift swap request. Requires shift_swap.request.create.self permission and ownership.",
+        "operationId": "delete_shift_swap_api_v1_hr_shift_swaps__shift_swap_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Shift swap request deleted"
+          },
+          "400": {
+            "description": "Shift swap request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to delete this shift swap request"
+          },
+          "404": {
+            "description": "Shift swap request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/hr/shift-swaps/{shift_swap_id}/action": {
@@ -4366,7 +4883,190 @@
         }
       }
     },
+    "/api/v1/hr/status-reports/{report_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Submit a draft status report",
+        "description": "Submit a previously-saved DRAFT status report, attaching named co-approvers. Requires status.report.create permission and ownership of the report.",
+        "operationId": "submit_status_report_api_v1_hr_status_reports__report_id__submit_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReportSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status report submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReportPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to submit this status report"
+          },
+          "404": {
+            "description": "Status report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/status-reports/{report_id}": {
+      "patch": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Edit a draft status report",
+        "description": "Update a still-DRAFT status report (and its personnel entries) in place. Requires status.report.create permission and ownership.",
+        "operationId": "update_status_report_api_v1_hr_status_reports__report_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReportCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status report updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusReportPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Status report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to edit this status report"
+          },
+          "404": {
+            "description": "Status report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Delete a draft status report",
+        "description": "Delete an own DRAFT status report. Requires status.report.create permission and ownership.",
+        "operationId": "delete_status_report_api_v1_hr_status_reports__report_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Status report deleted"
+          },
+          "400": {
+            "description": "Status report is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to delete this status report"
+          },
+          "404": {
+            "description": "Status report not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "get": {
         "tags": [
           "hr-dailystatus"
@@ -6100,6 +6800,19 @@
               }
             ],
             "title": "Replacement User Id"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
           }
         },
         "type": "object",
@@ -6285,6 +6998,20 @@
           "updated_at"
         ],
         "title": "AbsenteeReportPublic"
+      },
+      "AbsenteeReportSubmit": {
+        "properties": {
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "AbsenteeReportSubmit"
       },
       "AddressPublic": {
         "properties": {
@@ -12054,6 +12781,19 @@
               }
             ],
             "title": "Reason"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
           }
         },
         "type": "object",
@@ -12231,6 +12971,20 @@
           "count"
         ],
         "title": "ShiftSwapRequestsPublic"
+      },
+      "ShiftSwapSubmit": {
+        "properties": {
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "ShiftSwapSubmit"
       },
       "StatusReportCreate": {
         "properties": {
@@ -12439,6 +13193,19 @@
             },
             "type": "array",
             "title": "Entries"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
           }
         },
         "type": "object",
@@ -12861,6 +13628,20 @@
           "updated_at"
         ],
         "title": "StatusReportPublic"
+      },
+      "StatusReportSubmit": {
+        "properties": {
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "StatusReportSubmit"
       },
       "SubmissionMode": {
         "type": "string",
@@ -14183,6 +14964,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",
@@ -14227,6 +15015,99 @@
           "action"
         ],
         "title": "WorkflowActionRequest"
+      },
+      "WorkflowInboxItem": {
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Instance Id"
+          },
+          "workflow_type": {
+            "$ref": "#/components/schemas/WorkflowType"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Entity Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "requested_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Requested By User Id"
+          },
+          "requester_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requester Name"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "current_step_order": {
+            "type": "integer",
+            "title": "Current Step Order"
+          },
+          "step_is_named": {
+            "type": "boolean",
+            "title": "Step Is Named"
+          }
+        },
+        "type": "object",
+        "required": [
+          "instance_id",
+          "workflow_type",
+          "entity_type",
+          "entity_id",
+          "department_id",
+          "requested_by_user_id",
+          "current_step_order",
+          "step_is_named"
+        ],
+        "title": "WorkflowInboxItem"
+      },
+      "WorkflowInboxList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowInboxItem"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "WorkflowInboxList"
       },
       "WorkflowInstanceCreate": {
         "properties": {

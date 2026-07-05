@@ -160,12 +160,24 @@ export {
   createUserApiV1AuthUsersPostMutationOptions,
   useCreateUserApiV1AuthUsersPost,
 } from "./useCreateUserApiV1AuthUsersPost.js";
+export type { DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey } from "./useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
+export {
+  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey,
+  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationOptions,
+  useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete,
+} from "./useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
 export type { DeleteFeedApiV1CapFeedsFeedIdDeleteMutationKey } from "./useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
 export {
   deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey,
   deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions,
   useDeleteFeedApiV1CapFeedsFeedIdDelete,
 } from "./useDeleteFeedApiV1CapFeedsFeedIdDelete.js";
+export type { DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey } from "./useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
+export {
+  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey,
+  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationOptions,
+  useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete,
+} from "./useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
 export type { DeleteRoleApiV1AuthRolesRoleIdDeleteMutationKey } from "./useDeleteRoleApiV1AuthRolesRoleIdDelete.js";
 export {
   deleteRoleApiV1AuthRolesRoleIdDeleteMutationKey,
@@ -178,6 +190,18 @@ export {
   deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationOptions,
   useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete,
 } from "./useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
+export type { DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey } from "./useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
+export {
+  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey,
+  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationOptions,
+  useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete,
+} from "./useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
+export type { DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationKey } from "./useDeleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
+export {
+  deleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationKey,
+  deleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationOptions,
+  useDeleteStatusReportApiV1HrStatusReportsReportIdDelete,
+} from "./useDeleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
 export type { DeleteUserApiV1AuthUsersUserIdDeleteMutationKey } from "./useDeleteUserApiV1AuthUsersUserIdDelete.js";
 export {
   deleteUserApiV1AuthUsersUserIdDeleteMutationKey,
@@ -514,6 +538,18 @@ export {
   readHrProfileMeApiV1HrProfileMeGetSuspenseQueryOptions,
   useReadHrProfileMeApiV1HrProfileMeGetSuspense,
 } from "./useReadHrProfileMeApiV1HrProfileMeGetSuspense.js";
+export type { ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryKey } from "./useReadInboxApiV1HrWorkflowsInstancesInboxGet.js";
+export {
+  readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey,
+  readInboxApiV1HrWorkflowsInstancesInboxGetQueryOptions,
+  useReadInboxApiV1HrWorkflowsInstancesInboxGet,
+} from "./useReadInboxApiV1HrWorkflowsInstancesInboxGet.js";
+export type { ReadInboxApiV1HrWorkflowsInstancesInboxGetSuspenseQueryKey } from "./useReadInboxApiV1HrWorkflowsInstancesInboxGetSuspense.js";
+export {
+  readInboxApiV1HrWorkflowsInstancesInboxGetSuspenseQueryKey,
+  readInboxApiV1HrWorkflowsInstancesInboxGetSuspenseQueryOptions,
+  useReadInboxApiV1HrWorkflowsInstancesInboxGetSuspense,
+} from "./useReadInboxApiV1HrWorkflowsInstancesInboxGetSuspense.js";
 export type { ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey } from "./useReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 export {
   readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey,
@@ -862,6 +898,12 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationOptions,
   useResetPasswordApiV1ResetPasswordPost,
 } from "./useResetPasswordApiV1ResetPasswordPost.js";
+export type { SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey } from "./useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
+export {
+  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,
+  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions,
+  useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost,
+} from "./useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export type { SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey } from "./useSubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export {
   submitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey,
@@ -874,6 +916,18 @@ export {
   submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationOptions,
   useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost,
 } from "./useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
+export type { SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey } from "./useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
+export {
+  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey,
+  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationOptions,
+  useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost,
+} from "./useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
+export type { SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey } from "./useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
+export {
+  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey,
+  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationOptions,
+  useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost,
+} from "./useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
 export type { SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey } from "./useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export {
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey,
@@ -928,6 +982,12 @@ export {
   twofaStatusApiV12FaStatusGetSuspenseQueryOptions,
   useTwofaStatusApiV12FaStatusGetSuspense,
 } from "./useTwofaStatusApiV12FaStatusGetSuspense.js";
+export type { UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey } from "./useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
+export {
+  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey,
+  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationOptions,
+  useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch,
+} from "./useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
 export type { UpdateAlertApiV1CapAlertsAlertIdPatchMutationKey } from "./useUpdateAlertApiV1CapAlertsAlertIdPatch.js";
 export {
   updateAlertApiV1CapAlertsAlertIdPatchMutationKey,
@@ -964,6 +1024,12 @@ export {
   updateHrProfileMeApiV1HrProfileMePatchMutationOptions,
   useUpdateHrProfileMeApiV1HrProfileMePatch,
 } from "./useUpdateHrProfileMeApiV1HrProfileMePatch.js";
+export type { UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey } from "./useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
+export {
+  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey,
+  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationOptions,
+  useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch,
+} from "./useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
 export type { UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey } from "./useUpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export {
   updatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey,
@@ -982,6 +1048,18 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions,
   useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch,
 } from "./useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type { UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey } from "./useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
+export {
+  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey,
+  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationOptions,
+  useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch,
+} from "./useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
+export type { UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey } from "./useUpdateStatusReportApiV1HrStatusReportsReportIdPatch.js";
+export {
+  updateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey,
+  updateStatusReportApiV1HrStatusReportsReportIdPatchMutationOptions,
+  useUpdateStatusReportApiV1HrStatusReportsReportIdPatch,
+} from "./useUpdateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export type { UpdateUserApiV1AuthUsersUserIdPatchMutationKey } from "./useUpdateUserApiV1AuthUsersUserIdPatch.js";
 export {
   updateUserApiV1AuthUsersUserIdPatchMutationKey,

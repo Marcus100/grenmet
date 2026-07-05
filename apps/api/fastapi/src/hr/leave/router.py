@@ -67,6 +67,58 @@ async def submit_leave_request(
 
 
 @router.patch(
+    "/leave-requests/{leave_request_id}",
+    response_model=LeaveRequestPublic,
+    summary="Edit a draft leave request",
+    description="Update a still-DRAFT leave request in place. Requires leave.request.create.self permission and ownership.",
+    responses={
+        status.HTTP_200_OK: {"description": "Leave request updated"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
+        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to edit this request"},
+        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+    },
+)
+async def update_leave_request(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    leave_request: LeaveRequestDep,
+    payload: LeaveRequestCreate,
+) -> Any:
+    return await service.update_leave_request(
+        session=session,
+        current_user=current_user,
+        leave_request_id=leave_request.id,
+        payload=payload,
+    )
+
+
+@router.delete(
+    "/leave-requests/{leave_request_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Delete a draft leave request",
+    description="Delete an own DRAFT leave request. Requires leave.request.create.self permission and ownership.",
+    responses={
+        status.HTTP_204_NO_CONTENT: {"description": "Leave request deleted"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
+        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to delete this request"},
+        status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
+    },
+)
+async def delete_leave_request(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    leave_request: LeaveRequestDep,
+) -> None:
+    await service.delete_leave_request(
+        session=session,
+        current_user=current_user,
+        leave_request_id=leave_request.id,
+    )
+
+
+@router.patch(
     "/leave-requests/{leave_request_id}/action",
     response_model=LeaveRequestPublic,
     summary="Action leave request",

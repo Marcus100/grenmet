@@ -1,17 +1,31 @@
 import { configureApiClient } from "@grenmet/api-client";
+import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { format } from "date-fns";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { EMPTY_DAILY_STATUS } from "./daily-status-document";
 import {
   buildStatusReportPayload,
   DailyStatusEditor,
 } from "./daily-status-editor";
 import { StatusSubmissions } from "./status-submissions";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 const BASE = "http://localhost";
 
@@ -20,6 +34,9 @@ const server = setupServer(
     HttpResponse.json({
       employment: { department: { id: "dept_met", name: "Met" } },
     })
+  ),
+  http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+    HttpResponse.json({ data: [], count: 0 })
   ),
   http.get(`${BASE}/api/v1/hr/status-reports`, () =>
     HttpResponse.json({ data: [], count: 0 })
@@ -38,7 +55,19 @@ function wrap(children: React.ReactNode) {
     defaultOptions: { queries: { retry: false } },
   });
   return render(
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "tester@barrels.gd",
+          full_name: "Tester",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        {children}
+      </SessionUserProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -125,7 +154,7 @@ describe("DailyStatusEditor (wired)", () => {
 
     const user = userEvent.setup();
     wrap(<DailyStatusEditor />);
-    await screen.findByRole("button", { name: "Submit to HR" });
+    await screen.findByRole("button", { name: "Submit" });
 
     // DatePicker: open the popover and pick the 15th of the current month.
     await user.click(screen.getByRole("button", { name: "Date" }));
@@ -143,7 +172,7 @@ describe("DailyStatusEditor (wired)", () => {
       target: { value: "All systems normal" },
     });
 
-    await user.click(screen.getByRole("button", { name: "Submit to HR" }));
+    await user.click(screen.getByRole("button", { name: "Submit" }));
 
     await waitFor(() => {
       expect(posted).toHaveLength(1);
@@ -157,6 +186,8 @@ describe("DailyStatusEditor (wired)", () => {
       affected_operations: false,
       personnel_summary: "2 on sick leave",
       general_remarks: "All systems normal",
+      as_draft: false,
+      co_approver_user_ids: [],
     });
   }, 20_000);
 });

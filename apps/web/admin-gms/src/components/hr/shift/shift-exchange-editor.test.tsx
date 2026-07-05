@@ -1,14 +1,28 @@
 import { configureApiClient } from "@grenmet/api-client";
+import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { ShiftExchangeEditor } from "./shift-exchange-editor";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 const BASE = "http://localhost";
-const SUBMIT_LABEL = /Submit to HR/;
+const SUBMIT_LABEL = "Submit";
 
 const PROFILE = {
   id: "99999999-9999-4999-8999-999999999999",
@@ -49,6 +63,9 @@ const server = setupServer(
   http.get(`${BASE}/api/v1/hr/departments/dept_met/members`, () =>
     HttpResponse.json(MEMBERS)
   ),
+  http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/shift-swaps/me`, () =>
     HttpResponse.json({ data: [], count: 0 })
   )
@@ -67,7 +84,17 @@ function renderEditor() {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ShiftExchangeEditor />
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "tester@barrels.gd",
+          full_name: "Tester",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        <ShiftExchangeEditor />
+      </SessionUserProvider>
     </QueryClientProvider>
   );
 }
@@ -155,6 +182,8 @@ describe("ShiftExchangeEditor (wired)", () => {
       target_date: isoDay(16),
       target_shift_code: "E",
       reason: "Family commitment",
+      as_draft: false,
+      co_approver_user_ids: [],
     });
   }, 20_000);
 
