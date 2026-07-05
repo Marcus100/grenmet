@@ -12,7 +12,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "tsc --noEmit"
+    "type-check": "rm -f next-env.d.ts && tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",

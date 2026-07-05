@@ -12,7 +12,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "content-collections build && tsc --noEmit"
+    "type-check": "rm -f next-env.d.ts && content-collections build && tsc --noEmit"
   },
   "type": "module",
   "browserslist": "defaults, not ie <= 11",
