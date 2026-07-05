@@ -32,6 +32,6 @@
     "CLAUDE_CONFIG_DIR": "/home/node/.claude"
   },
 
-  // Sanity check on first build: print every tool's version.
-  "postCreateCommand": "node -v && pnpm -v && uv --version && claude --version && codex --version"
+  // On create: install workspace deps, then print every tool's version.
+  "postCreateCommand": "pnpm install && node -v && pnpm -v && uv --version && claude --version && codex --version"
 }

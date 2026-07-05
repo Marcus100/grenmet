@@ -156,5 +156,8 @@ artifacts/
 .turbo/*
 !.turbo/config.json
 
+# Agent local settings — per-machine overrides, never commit
+.claude/settings.local.json
+
 
 next-shadcn-admin-dashboard-baseui/
