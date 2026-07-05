@@ -8,9 +8,25 @@ import type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 
 export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams = {
   department_id?: string | null;
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
 };
 
 /**
+ * ParkingPermitListPublic
  * @description Parking permits returned
  */
 export type ReadParkingPermitsApiV1HrParkingPermitsGet200 =

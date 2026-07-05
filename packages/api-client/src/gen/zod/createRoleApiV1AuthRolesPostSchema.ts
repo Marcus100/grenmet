@@ -6,13 +6,13 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { roleCreateSchema } from "./roleCreateSchema.js";
-import { rolePublicSchema } from "./rolePublicSchema.js";
+import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 
 /**
  * @description Role created
  */
 export const createRoleApiV1AuthRolesPost201Schema = z.lazy(
-  () => rolePublicSchema
+  () => srcAuthSchemasRolePublicSchema
 );
 
 /**

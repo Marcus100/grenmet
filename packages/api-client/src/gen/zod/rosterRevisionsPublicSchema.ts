@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { rosterRevisionPublicSchema } from "./rosterRevisionPublicSchema.js";
 
-export const rosterRevisionsPublicSchema = z.any();
+export const rosterRevisionsPublicSchema = z.object({
+  data: z.array(z.lazy(() => rosterRevisionPublicSchema)),
+  count: z.number().int(),
+});

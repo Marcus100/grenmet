@@ -1,1 +1,19 @@
-{ "x-readme-ref-name": "CapValidationResult" }
+{
+  "properties": {
+    "is_valid": { "type": "boolean", "title": "Is Valid" },
+    "errors": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Errors"
+    },
+    "warnings": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Warnings"
+    }
+  },
+  "type": "object",
+  "required": ["is_valid"],
+  "title": "CapValidationResult",
+  "x-readme-ref-name": "CapValidationResult"
+}

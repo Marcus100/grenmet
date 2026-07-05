@@ -13,6 +13,7 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost200 = any;
 
 /**
+ * AbsenteeReportPublic
  * @description Successful Response
  */
 export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost201 =

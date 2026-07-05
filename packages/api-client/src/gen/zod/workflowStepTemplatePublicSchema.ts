@@ -4,5 +4,15 @@
  */
 
 import * as z from "zod";
+import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
-export const workflowStepTemplatePublicSchema = z.any();
+export const workflowStepTemplatePublicSchema = z.object({
+  id: z.string().uuid(),
+  workflow_template_id: z.string().uuid(),
+  step_order: z.number().int(),
+  required_role_id: z.string().uuid(),
+  required_scope: z.lazy(() => roleAssignmentScopeSchema),
+  is_required: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "row_number": { "type": "integer", "title": "Row Number" },
+    "is_valid": { "type": "boolean", "title": "Is Valid" },
+    "errors": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Errors"
+    }
+  },
+  "type": "object",
+  "required": ["row_number", "is_valid"],
+  "title": "RosterCsvRowValidation",
+  "x-readme-ref-name": "RosterCsvRowValidation"
+}

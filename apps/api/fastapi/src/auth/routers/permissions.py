@@ -23,7 +23,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/",
+    "",
     response_model=PaginatedResponse[PermissionPublic],
     summary="List permissions",
     description="Return permissions (superuser only).",
@@ -67,7 +67,7 @@ async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
 
 
 @router.post(
-    "/",
+    "",
     response_model=PermissionPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create permission",

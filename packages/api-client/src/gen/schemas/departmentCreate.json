@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "id": {
+      "type": "string",
+      "maxLength": 100,
+      "pattern": "^[a-z0-9_-]+$",
+      "title": "Id"
+    },
+    "name": { "type": "string", "maxLength": 255, "title": "Name" }
+  },
+  "type": "object",
+  "required": ["id", "name"],
+  "title": "DepartmentCreate",
+  "x-readme-ref-name": "DepartmentCreate"
+}

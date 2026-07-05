@@ -13,6 +13,7 @@ import type { TimesheetDetails } from "./TimesheetDetails.js";
 export type CreateTimesheetApiV1HrTimesheetsPost200 = any;
 
 /**
+ * TimesheetDetails
  * @description Successful Response
  */
 export type CreateTimesheetApiV1HrTimesheetsPost201 = TimesheetDetails;

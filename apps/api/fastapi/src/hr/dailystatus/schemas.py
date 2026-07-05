@@ -1,10 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
 from src.hr.models import RequestStatus
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import PersonnelStatus, ShiftPeriod
 
@@ -39,6 +39,15 @@ class StatusReportCreate(BaseModel):
     communications_status: str | None = None
     general_remarks: str | None = None
     entries: list[StatusReportEntryInput] = Field(default_factory=list)
+    # Named colleagues who must all approve before the report reaches the
+    # supervisor/management tiers. Ignored when as_draft is true.
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
+    # Save without submitting: persist as DRAFT with no approval chain yet.
+    as_draft: bool = False
+
+
+class StatusReportSubmit(BaseModel):
+    co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
 class StatusReportEntryPublic(BaseModel):
@@ -76,8 +85,8 @@ class StatusReportPublic(BaseModel):
     general_remarks: str | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class StatusReportDetails(BaseModel):
@@ -88,3 +97,5 @@ class StatusReportDetails(BaseModel):
 class StatusReportListPublic(BaseModel):
     data: list[StatusReportPublic]
     count: int
+    page: int = 1
+    size: int = 100

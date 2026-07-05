@@ -124,7 +124,8 @@ jobs:
           PROJECT_NAME=Grenmet API
           BACKEND_CORS_ORIGINS=https://auth.staging.barrels.gd,https://admin.staging.barrels.gd,https://hurricane.staging.barrels.gd,https://spice.staging.barrels.gd
           SESSION_COOKIE_DOMAIN=.staging.barrels.gd
-          EMAILS_FROM_EMAIL=noreply@weather.gd
+          EMAILS_FROM_EMAIL=noreply@barrels.gd
+          FRONTEND_HOST=https://auth.staging.barrels.gd
           REDIS_URL=redis://redis:6379/0
           STORAGE_ENDPOINT_URL=${STORAGE_ENDPOINT_URL:-}
           STORAGE_REGION=${STORAGE_REGION:-}

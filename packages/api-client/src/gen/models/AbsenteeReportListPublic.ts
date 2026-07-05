@@ -3,4 +3,28 @@
  * Do not edit manually.
  */
 
-export type AbsenteeReportListPublic = any;
+import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
+
+/**
+ * AbsenteeReportListPublic
+ */
+export type AbsenteeReportListPublic = {
+  /**
+   * @type array
+   */
+  data: AbsenteeReportPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+  /**
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
+};

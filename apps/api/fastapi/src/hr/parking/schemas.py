@@ -1,10 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingAction
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 
 class ParkingPermitCreate(BaseModel):
@@ -45,13 +45,15 @@ class ParkingPermitPublic(BaseModel):
     valid_to: date | None = None
     issued_by_user_id: uuid.UUID | None = None
     received_by: str | None = None
-    issued_at: datetime | None = None
+    issued_at: UtcDateTime | None = None
     status: RequestStatus
     workflow_instance_id: uuid.UUID | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class ParkingPermitListPublic(BaseModel):
     data: list[ParkingPermitPublic]
     count: int
+    page: int = 1
+    size: int = 100

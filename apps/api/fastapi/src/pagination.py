@@ -7,7 +7,7 @@ ensuring consistent API behavior and better user experience.
 
 from typing import Annotated, Generic, TypeVar
 
-from fastapi import Query
+from fastapi import Depends, Query
 from pydantic import BaseModel, Field
 
 T = TypeVar("T")
@@ -78,3 +78,7 @@ def get_pagination_params(
             return PaginatedResponse(data=resources, count=total, page=pagination.page, size=pagination.size)
     """
     return PaginationParams(page=page, size=size)
+
+
+# Annotated alias for route signatures (keeps `Depends` out of the signature).
+PaginationDep = Annotated[PaginationParams, Depends(get_pagination_params)]

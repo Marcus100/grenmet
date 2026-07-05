@@ -3,6 +3,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.cap import service as cap_service
 from src.cap.exceptions import CapStateError
 from src.cap.models import CapLifecycleState
 from src.cap.schemas import CapAlertAction
@@ -10,6 +11,7 @@ from src.cap.service import (
     approve_alert,
     cancel_alert,
     create_alert,
+    expire_alert,
     publish_alert,
     submit_alert,
     update_alert,
@@ -153,6 +155,37 @@ async def test_cancel_from_published_succeeds(db_async: AsyncSession) -> None:
         session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
     )
     assert cancelled.lifecycle_state == CapLifecycleState.CANCELLED
+
+
+async def test_expire_from_published_succeeds_and_invalidates_cache(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Expiring a published alert transitions to EXPIRED and invalidates the
+    public feed caches so latest-active/past reflect it immediately."""
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await approve_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+
+    invalidated: list[tuple[str, ...]] = []
+
+    async def _spy_invalidate(*keys: str) -> None:
+        invalidated.append(keys)
+
+    monkeypatch.setattr(cap_service, "invalidate", _spy_invalidate)
+
+    expired = await expire_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert expired.lifecycle_state == CapLifecycleState.EXPIRED
+    assert invalidated, "expire must invalidate the public feed caches"
 
 
 async def test_cancel_from_draft_raises(db_async: AsyncSession) -> None:

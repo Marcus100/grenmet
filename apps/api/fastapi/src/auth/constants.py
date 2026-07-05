@@ -62,6 +62,7 @@ MAX_EMAIL_LENGTH = 255
 
 ERROR_PERMISSION_NOT_FOUND = "Permission not found"
 ERROR_ROLE_NOT_FOUND = "Role not found"
+ERROR_ROLE_IN_USE = "Role is still assigned to one or more users"
 ERROR_ROLE_ASSIGNMENT_NOT_FOUND = "Role assignment not found"
 
 # Default pagination values

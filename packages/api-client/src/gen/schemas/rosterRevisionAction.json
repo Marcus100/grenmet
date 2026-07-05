@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["CREATED", "ASSIGNMENTS_UPDATED", "PUBLISHED", "CLOSED"],
+  "title": "RosterRevisionAction",
+  "x-readme-ref-name": "RosterRevisionAction"
+}

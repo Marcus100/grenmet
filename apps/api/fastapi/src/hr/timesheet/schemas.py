@@ -1,10 +1,10 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 
 from pydantic import Field
 
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import SubmissionMode, TimesheetStatus
 
@@ -45,10 +45,10 @@ class TimesheetPublic(BaseModel):
     status: TimesheetStatus
     submitted_by_user_id: uuid.UUID | None = None
     approved_by_user_id: uuid.UUID | None = None
-    submitted_at: datetime | None = None
-    approved_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    submitted_at: UtcDateTime | None = None
+    approved_at: UtcDateTime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class TimesheetEntryPublic(BaseModel):
@@ -79,6 +79,8 @@ class TimesheetSubmitRequest(BaseModel):
 class TimesheetListPublic(BaseModel):
     data: list[TimesheetPublic]
     count: int
+    page: int = 1
+    size: int = 100
 
 
 # --- Timesheet Summary ---

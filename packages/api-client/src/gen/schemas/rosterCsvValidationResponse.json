@@ -1,1 +1,30 @@
-{ "x-readme-ref-name": "RosterCsvValidationResponse" }
+{
+  "properties": {
+    "total_rows": { "type": "integer", "title": "Total Rows" },
+    "valid_rows": { "type": "integer", "title": "Valid Rows" },
+    "invalid_rows": { "type": "integer", "title": "Invalid Rows" },
+    "rows": {
+      "items": {
+        "properties": {
+          "row_number": { "type": "integer", "title": "Row Number" },
+          "is_valid": { "type": "boolean", "title": "Is Valid" },
+          "errors": {
+            "items": { "type": "string" },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": ["row_number", "is_valid"],
+        "title": "RosterCsvRowValidation",
+        "x-readme-ref-name": "RosterCsvRowValidation"
+      },
+      "type": "array",
+      "title": "Rows"
+    }
+  },
+  "type": "object",
+  "required": ["total_rows", "valid_rows", "invalid_rows", "rows"],
+  "title": "RosterCsvValidationResponse",
+  "x-readme-ref-name": "RosterCsvValidationResponse"
+}

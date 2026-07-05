@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { RolePublic } from "./RolePublic.js";
+import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
 /**
  * PaginatedResponse[RolePublic]
@@ -12,7 +12,7 @@ export type PaginatedResponseRolePublic = {
   /**
    * @type array
    */
-  data: RolePublic[];
+  data: SrcAuthSchemasRolePublic[];
   /**
    * @type integer
    */

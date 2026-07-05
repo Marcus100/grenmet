@@ -1,1 +1,145 @@
-{ "x-readme-ref-name": "TimesheetDetails" }
+{
+  "properties": {
+    "timesheet": {
+      "properties": {
+        "id": { "type": "string", "format": "uuid", "title": "Id" },
+        "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+        "department_id": { "type": "string", "title": "Department Id" },
+        "period_start": {
+          "type": "string",
+          "format": "date",
+          "title": "Period Start"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date",
+          "title": "Period End"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED"],
+          "title": "TimesheetStatus",
+          "x-readme-ref-name": "TimesheetStatus"
+        },
+        "submitted_by_user_id": {
+          "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+          "title": "Submitted By User Id"
+        },
+        "approved_by_user_id": {
+          "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+          "title": "Approved By User Id"
+        },
+        "submitted_at": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Submitted At"
+        },
+        "approved_at": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Approved At"
+        },
+        "created_at": { "type": "string", "title": "Created At" },
+        "updated_at": { "type": "string", "title": "Updated At" }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "user_id",
+        "department_id",
+        "period_start",
+        "period_end",
+        "status",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "TimesheetPublic",
+      "x-readme-ref-name": "TimesheetPublic"
+    },
+    "entries": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "timesheet_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Timesheet Id"
+          },
+          "entry_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Entry Date"
+          },
+          "shift_code": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Shift Code"
+          },
+          "roster_assignment_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Roster Assignment Id"
+          },
+          "roster_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Roster Hours"
+          },
+          "actual_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Actual Hours"
+          },
+          "total_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Hours"
+          },
+          "overtime_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Overtime Hours"
+          },
+          "break_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Break Hours"
+          },
+          "hours_worked": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Hours Worked"
+          },
+          "medical_certificate_attached": {
+            "type": "boolean",
+            "title": "Medical Certificate Attached"
+          },
+          "comments": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Comments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "timesheet_id",
+          "entry_date",
+          "roster_hours",
+          "actual_hours",
+          "total_hours",
+          "overtime_hours",
+          "break_hours",
+          "hours_worked",
+          "medical_certificate_attached"
+        ],
+        "title": "TimesheetEntryPublic",
+        "x-readme-ref-name": "TimesheetEntryPublic"
+      },
+      "type": "array",
+      "title": "Entries"
+    }
+  },
+  "type": "object",
+  "required": ["timesheet", "entries"],
+  "title": "TimesheetDetails",
+  "x-readme-ref-name": "TimesheetDetails"
+}

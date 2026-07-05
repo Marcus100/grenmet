@@ -27,7 +27,7 @@ export const readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = (
   params: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams = {}
 ) =>
   [
-    { url: "/api/v1/auth/role-assignments/" },
+    { url: "/api/v1/auth/role-assignments" },
     ...(params ? [params] : []),
   ] as const;
 
@@ -60,7 +60,7 @@ export function readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryOptions(
 /**
  * @description Return role assignments, optionally filtered by user_id (superuser only).
  * @summary List role assignments
- * {@link /api/v1/auth/role-assignments/}
+ * {@link /api/v1/auth/role-assignments}
  */
 export function useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet<
   TData = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,

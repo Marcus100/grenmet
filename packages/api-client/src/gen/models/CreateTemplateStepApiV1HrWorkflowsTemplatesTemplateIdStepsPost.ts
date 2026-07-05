@@ -22,6 +22,7 @@ export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200 =
   any;
 
 /**
+ * WorkflowStepTemplatePublic
  * @description Successful Response
  */
 export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201 =

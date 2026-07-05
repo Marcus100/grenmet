@@ -4,5 +4,26 @@
  */
 
 import * as z from "zod";
+import { requestStatusSchema } from "./requestStatusSchema.js";
+import { swapTypeSchema } from "./swapTypeSchema.js";
 
-export const shiftSwapRequestPublicSchema = z.any();
+export const shiftSwapRequestPublicSchema = z.object({
+  id: z.string().uuid(),
+  requesting_user_id: z.string().uuid(),
+  counterpart_user_id: z.string().uuid(),
+  department_id: z.string(),
+  swap_type: z.lazy(() => swapTypeSchema),
+  source_date: z.string().date(),
+  source_shift_code: z.string(),
+  target_date: z.string().date(),
+  target_shift_code: z.string(),
+  effective_date: z.optional(z.union([z.string().date(), z.null()])),
+  restoration_date: z.optional(z.union([z.string().date(), z.null()])),
+  reason: z.optional(z.union([z.string(), z.null()])),
+  counterpart_agreed: z.boolean(),
+  counterpart_agreed_at: z.optional(z.union([z.string(), z.null()])),
+  status: z.lazy(() => requestStatusSchema),
+  workflow_instance_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

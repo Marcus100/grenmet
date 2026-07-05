@@ -3,4 +3,19 @@
  * Do not edit manually.
  */
 
-export type WorkflowInstanceDetails = any;
+import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
+import type { WorkflowStepInstancePublic } from "./WorkflowStepInstancePublic.js";
+
+/**
+ * WorkflowInstanceDetails
+ */
+export type WorkflowInstanceDetails = {
+  /**
+   * @type object
+   */
+  instance: WorkflowInstancePublic;
+  /**
+   * @type array
+   */
+  steps: WorkflowStepInstancePublic[];
+};

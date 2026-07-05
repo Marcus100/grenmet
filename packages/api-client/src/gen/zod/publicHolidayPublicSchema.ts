@@ -5,4 +5,12 @@
 
 import * as z from "zod";
 
-export const publicHolidayPublicSchema = z.any();
+export const publicHolidayPublicSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  holiday_date: z.string().date(),
+  is_recurring: z.boolean(),
+  country_code: z.string(),
+  created_by_user_id: z.string().uuid(),
+  created_at: z.string(),
+});

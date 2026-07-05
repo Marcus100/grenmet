@@ -7,11 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportListPublicSchema } from "./statusReportListPublicSchema.js";
 
-export const readStatusReportsApiV1HrStatusReportsGetQueryParamsSchema = z
-  .object({
+export const readStatusReportsApiV1HrStatusReportsGetQueryParamsSchema =
+  z.object({
     department_id: z.optional(z.union([z.string(), z.null()])),
-  })
-  .optional();
+    page: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .default(1)
+      .describe("Page number (1-indexed)"),
+    size: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(1000)
+      .default(100)
+      .describe("Items per page"),
+  });
 
 /**
  * @description Status reports returned

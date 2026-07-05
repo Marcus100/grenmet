@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-import type { CapNameValueInput } from "./CapNameValueInput.js";
+import type { CapNameValue } from "./CapNameValue.js";
 
 /**
  * CapPredefinedAreaCreate
@@ -41,7 +41,7 @@ export type CapPredefinedAreaCreate = {
   /**
    * @type array | undefined
    */
-  geocodes?: CapNameValueInput[];
+  geocodes?: CapNameValue[];
   /**
    * @default true
    * @type boolean | undefined

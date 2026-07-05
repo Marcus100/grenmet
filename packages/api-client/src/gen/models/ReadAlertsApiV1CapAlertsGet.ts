@@ -12,6 +12,7 @@ export type ReadAlertsApiV1CapAlertsGetQueryParams = {
 };
 
 /**
+ * CapAlertListPublic
  * @description Successful Response
  */
 export type ReadAlertsApiV1CapAlertsGet200 = CapAlertListPublic;

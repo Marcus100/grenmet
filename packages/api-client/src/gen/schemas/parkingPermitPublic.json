@@ -1,1 +1,104 @@
-{ "x-readme-ref-name": "ParkingPermitPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "submitted_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Submitted By User Id"
+    },
+    "company_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Company Name"
+    },
+    "phone": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Phone"
+    },
+    "vehicle_registration_no": {
+      "type": "string",
+      "title": "Vehicle Registration No"
+    },
+    "vehicle_insurance_issue_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Vehicle Insurance Issue Date"
+    },
+    "vehicle_insurance_expiry_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Vehicle Insurance Expiry Date"
+    },
+    "action_requested": {
+      "type": "string",
+      "enum": [
+        "NEW_PERMIT",
+        "ANNUAL_RENEWAL",
+        "REPLACEMENT_LOST_STOLEN",
+        "INFORMATION_CHANGE",
+        "OTHER"
+      ],
+      "title": "ParkingAction",
+      "x-readme-ref-name": "ParkingAction"
+    },
+    "action_other_detail": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Action Other Detail"
+    },
+    "fee_amount": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Fee Amount"
+    },
+    "decal_number": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Decal Number"
+    },
+    "valid_from": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Valid From"
+    },
+    "valid_to": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Valid To"
+    },
+    "issued_by_user_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Issued By User Id"
+    },
+    "received_by": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Received By"
+    },
+    "issued_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Issued At"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+      "title": "RequestStatus",
+      "x-readme-ref-name": "RequestStatus"
+    },
+    "workflow_instance_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Workflow Instance Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "user_id",
+    "department_id",
+    "submitted_by_user_id",
+    "vehicle_registration_no",
+    "action_requested",
+    "fee_amount",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "ParkingPermitPublic",
+  "x-readme-ref-name": "ParkingPermitPublic"
+}

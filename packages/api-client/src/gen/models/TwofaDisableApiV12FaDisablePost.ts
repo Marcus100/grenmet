@@ -8,6 +8,7 @@ import type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
 /**
+ * TwoFactorStatusPublic
  * @description Successful Response
  */
 export type TwofaDisableApiV12FaDisablePost200 = TwoFactorStatusPublic;

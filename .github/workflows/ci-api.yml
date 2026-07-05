@@ -4,22 +4,21 @@
 name: CI
 
 on:
+  # No paths filter anywhere. Flow is dev → (PR) → staging → (PR) → main. Both
+  # promotion PRs are integration gates, so a partial (path-filtered) run would
+  # let backend contract/format drift through, and a required check that gets
+  # path-skipped deadlocks the PR. Running the full suite on every push and PR
+  # to a long-lived branch keeps the gates honest and safe to mark "required".
   push:
     branches:
       - main
       - staging
       - dev
-    paths:
-      - "apps/api/fastapi/**"
-      - ".github/workflows/ci-api.yml"
   pull_request:
     branches:
       - main
       - staging
       - dev
-    paths:
-      - "apps/api/fastapi/**"
-      - ".github/workflows/ci-api.yml"
 
 # Cancel in-progress runs when a new workflow on the same PR is triggered
 concurrency:

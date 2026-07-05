@@ -1,1 +1,27 @@
-{ "x-readme-ref-name": "CapFeedImportPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "name": { "type": "string", "title": "Name" },
+    "url": { "type": "string", "title": "Url" },
+    "status": {
+      "type": "string",
+      "enum": ["ACTIVE", "INACTIVE", "FAILED"],
+      "title": "CapIntegrationStatus",
+      "x-readme-ref-name": "CapIntegrationStatus"
+    },
+    "last_checked_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Last Checked At"
+    },
+    "last_error": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Last Error"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": ["id", "name", "url", "status", "created_at", "updated_at"],
+  "title": "CapFeedImportPublic",
+  "x-readme-ref-name": "CapFeedImportPublic"
+}

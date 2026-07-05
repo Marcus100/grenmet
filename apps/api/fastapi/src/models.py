@@ -1,11 +1,10 @@
-from collections.abc import Callable
 from datetime import datetime
-from typing import Any, cast
+from typing import Annotated, Any, cast
 from zoneinfo import ZoneInfo
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel as PydanticBaseModel
-from pydantic import ConfigDict, model_serializer
+from pydantic import ConfigDict, PlainSerializer
 
 
 def datetime_to_gmt_str(dt: datetime) -> str:
@@ -15,29 +14,24 @@ def datetime_to_gmt_str(dt: datetime) -> str:
     return dt.strftime("%Y-%m-%dT%H:%M:%S%z")
 
 
-def _serialize_value(v: object) -> object:
-    """Recursively serialize values for JSON; datetimes to GMT string."""
-    if isinstance(v, datetime):
-        return datetime_to_gmt_str(v)
-    if isinstance(v, dict):
-        return {k: _serialize_value(val) for k, val in v.items()}
-    if isinstance(v, list):
-        return [_serialize_value(item) for item in v]
-    return v
+# DB datetimes are stored naive-UTC (see src.utils.datetime.utc_now); this
+# annotation stamps them as UTC on the way out so clients never misread them
+# as local time. Every datetime field on an API schema must use UtcDateTime,
+# not bare datetime — enforced by tests/test_schema_datetime_guard.py. A
+# model-level serializer would be less repetitive, but it collapses the
+# OpenAPI serialization schema of every response model to {} (untyped return),
+# which silently untypes the generated TS client.
+UtcDateTime = Annotated[
+    datetime, PlainSerializer(datetime_to_gmt_str, return_type=str, when_used="json")
+]
 
 
 class CustomModel(PydanticBaseModel):
-    """Custom base model with global configurations and consistent datetime serialization."""
+    """Custom base model with global configurations."""
 
     model_config = ConfigDict(
         populate_by_name=True,
     )
-
-    @model_serializer(mode="wrap")
-    def _serialize_model(self, serializer: Callable[..., object]) -> object:
-        """Serialize model for JSON; convert datetime fields to GMT string."""
-        data = serializer(self)
-        return _serialize_value(data)
 
     def serializable_dict(self) -> dict[str, Any]:
         """Return a dict which contains only serializable fields (for JSON)."""

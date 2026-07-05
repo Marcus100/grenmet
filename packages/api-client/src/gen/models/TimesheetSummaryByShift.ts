@@ -3,4 +3,33 @@
  * Do not edit manually.
  */
 
-export type TimesheetSummaryByShift = any;
+import type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
+
+/**
+ * TimesheetSummaryByShift
+ */
+export type TimesheetSummaryByShift = {
+  /**
+   * @type string, uuid
+   */
+  timesheet_id: string;
+  /**
+   * @type array
+   */
+  shifts: ShiftHoursSummary[];
+  /**
+   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+   * @type string
+   */
+  grand_total_roster: string;
+  /**
+   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+   * @type string
+   */
+  grand_total_actual: string;
+  /**
+   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+   * @type string
+   */
+  grand_total_overtime: string;
+};

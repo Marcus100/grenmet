@@ -17,22 +17,29 @@ import type {
 } from "../../client.js";
 import fetch from "../../client.js";
 import { readMyTimesheetsApiV1HrTimesheetsMeGet } from "../clients/readMyTimesheetsApiV1HrTimesheetsMeGet.js";
-import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
+import type {
+  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
+} from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 
-export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey = () =>
-  [{ url: "/api/v1/hr/timesheets/me" }] as const;
+export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey = (
+  params: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams = {}
+) =>
+  [{ url: "/api/v1/hr/timesheets/me" }, ...(params ? [params] : [])] as const;
 
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryKey = ReturnType<
   typeof readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey
 >;
 
 export function readMyTimesheetsApiV1HrTimesheetsMeGetQueryOptions(
+  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
-  const queryKey = readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey();
+  const queryKey = readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey(params);
   return queryOptions<
     ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
     ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
     typeof queryKey
   >({
@@ -41,7 +48,7 @@ export function readMyTimesheetsApiV1HrTimesheetsMeGetQueryOptions(
       if (!config.signal) {
         config.signal = signal;
       }
-      return readMyTimesheetsApiV1HrTimesheetsMeGet(config);
+      return readMyTimesheetsApiV1HrTimesheetsMeGet(params, config);
     },
   });
 }
@@ -56,11 +63,12 @@ export function useReadMyTimesheetsApiV1HrTimesheetsMeGet<
   TQueryData = ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
   TQueryKey extends QueryKey = ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryKey,
 >(
+  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   options: {
     query?: Partial<
       QueryObserverOptions<
         ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
         TData,
         TQueryData,
         TQueryKey
@@ -72,18 +80,20 @@ export function useReadMyTimesheetsApiV1HrTimesheetsMeGet<
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...queryOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey();
+    queryOptions?.queryKey ??
+    readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey(params);
 
   const query = useQuery(
     {
-      ...readMyTimesheetsApiV1HrTimesheetsMeGetQueryOptions(config),
+      ...readMyTimesheetsApiV1HrTimesheetsMeGetQueryOptions(params, config),
       queryKey,
       ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

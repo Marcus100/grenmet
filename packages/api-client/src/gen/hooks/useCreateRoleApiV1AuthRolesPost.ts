@@ -23,7 +23,7 @@ import type {
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
 
 export const createRoleApiV1AuthRolesPostMutationKey = () =>
-  [{ url: "/api/v1/auth/roles/" }] as const;
+  [{ url: "/api/v1/auth/roles" }] as const;
 
 export type CreateRoleApiV1AuthRolesPostMutationKey = ReturnType<
   typeof createRoleApiV1AuthRolesPostMutationKey
@@ -51,7 +51,7 @@ export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
 /**
  * @description Create a role (superuser only).
  * @summary Create role
- * {@link /api/v1/auth/roles/}
+ * {@link /api/v1/auth/roles}
  */
 export function useCreateRoleApiV1AuthRolesPost<TContext>(
   options: {

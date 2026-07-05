@@ -14,6 +14,7 @@ export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams = {
 };
 
 /**
+ * TimesheetDetails
  * @description Timesheet and entries returned
  */
 export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200 = TimesheetDetails;

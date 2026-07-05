@@ -1,1 +1,63 @@
-{ "x-readme-ref-name": "CapCatalogsPublic" }
+{
+  "properties": {
+    "categories": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Categories"
+    },
+    "response_types": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Response Types"
+    },
+    "urgencies": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Urgencies"
+    },
+    "severities": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Severities"
+    },
+    "certainties": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Certainties"
+    },
+    "statuses": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Statuses"
+    },
+    "message_types": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Message Types"
+    },
+    "scopes": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Scopes"
+    },
+    "languages": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Languages"
+    }
+  },
+  "type": "object",
+  "required": [
+    "categories",
+    "response_types",
+    "urgencies",
+    "severities",
+    "certainties",
+    "statuses",
+    "message_types",
+    "scopes",
+    "languages"
+  ],
+  "title": "CapCatalogsPublic",
+  "x-readme-ref-name": "CapCatalogsPublic"
+}

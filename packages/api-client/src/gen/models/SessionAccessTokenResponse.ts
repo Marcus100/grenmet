@@ -3,4 +3,36 @@
  * Do not edit manually.
  */
 
-export type SessionAccessTokenResponse = any;
+import type { SessionPublic } from "./SessionPublic.js";
+import type { UserPublic } from "./UserPublic.js";
+
+/**
+ * SessionAccessTokenResponse
+ */
+export type SessionAccessTokenResponse = {
+  /**
+   * @type string
+   */
+  access_token: string;
+  /**
+   * @default "bearer"
+   * @type string | undefined
+   */
+  token_type?: string;
+  /**
+   * @type string
+   */
+  access_token_expires_at: string;
+  /**
+   * @type string
+   */
+  session_expires_at: string;
+  /**
+   * @type object
+   */
+  session: SessionPublic;
+  /**
+   * @type object
+   */
+  user: UserPublic;
+};

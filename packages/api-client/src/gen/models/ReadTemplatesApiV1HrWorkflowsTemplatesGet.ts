@@ -11,6 +11,7 @@ export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams = {
 };
 
 /**
+ * WorkflowTemplatesPublic
  * @description Templates returned
  */
 export type ReadTemplatesApiV1HrWorkflowsTemplatesGet200 =

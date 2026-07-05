@@ -17,14 +17,14 @@ import type {
 } from "../models/CreateTimesheetApiV1HrTimesheetsPost.js";
 
 function getCreateTimesheetApiV1HrTimesheetsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/timesheets/` as const };
+  const res = { method: "POST", url: `/api/v1/hr/timesheets` as const };
   return res;
 }
 
 /**
  * @description Create a new timesheet (self or proxy). Policy controls self/proxy submission.
  * @summary Create timesheet
- * {@link /api/v1/hr/timesheets/}
+ * {@link /api/v1/hr/timesheets}
  */
 export async function createTimesheetApiV1HrTimesheetsPost(
   data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest,

@@ -1,0 +1,72 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "timesheet_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Timesheet Id"
+    },
+    "entry_date": { "type": "string", "format": "date", "title": "Entry Date" },
+    "shift_code": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Shift Code"
+    },
+    "roster_assignment_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Roster Assignment Id"
+    },
+    "roster_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Roster Hours"
+    },
+    "actual_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Actual Hours"
+    },
+    "total_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Total Hours"
+    },
+    "overtime_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Overtime Hours"
+    },
+    "break_hours": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Break Hours"
+    },
+    "hours_worked": {
+      "type": "string",
+      "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+      "title": "Hours Worked"
+    },
+    "medical_certificate_attached": {
+      "type": "boolean",
+      "title": "Medical Certificate Attached"
+    },
+    "comments": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Comments"
+    }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "timesheet_id",
+    "entry_date",
+    "roster_hours",
+    "actual_hours",
+    "total_hours",
+    "overtime_hours",
+    "break_hours",
+    "hours_worked",
+    "medical_certificate_attached"
+  ],
+  "title": "TimesheetEntryPublic",
+  "x-readme-ref-name": "TimesheetEntryPublic"
+}

@@ -1,1 +1,85 @@
-{ "x-readme-ref-name": "RosterPeriodDetails" }
+{
+  "properties": {
+    "period": {
+      "properties": {
+        "id": { "type": "string", "format": "uuid", "title": "Id" },
+        "department_id": { "type": "string", "title": "Department Id" },
+        "period_start": {
+          "type": "string",
+          "format": "date",
+          "title": "Period Start"
+        },
+        "period_end": {
+          "type": "string",
+          "format": "date",
+          "title": "Period End"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["DRAFT", "PUBLISHED", "CLOSED"],
+          "title": "RosterPeriodStatus",
+          "x-readme-ref-name": "RosterPeriodStatus"
+        },
+        "created_by_user_id": {
+          "type": "string",
+          "format": "uuid",
+          "title": "Created By User Id"
+        },
+        "created_at": { "type": "string", "title": "Created At" },
+        "updated_at": { "type": "string", "title": "Updated At" }
+      },
+      "type": "object",
+      "required": [
+        "id",
+        "department_id",
+        "period_start",
+        "period_end",
+        "status",
+        "created_by_user_id",
+        "created_at",
+        "updated_at"
+      ],
+      "title": "RosterPeriodPublic",
+      "x-readme-ref-name": "RosterPeriodPublic"
+    },
+    "assignments": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "roster_period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Period Id"
+          },
+          "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "assignment_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Assignment Date"
+          },
+          "shift_code": { "type": "string", "title": "Shift Code" },
+          "remarks": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Remarks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "roster_period_id",
+          "user_id",
+          "assignment_date",
+          "shift_code"
+        ],
+        "title": "RosterAssignmentPublic",
+        "x-readme-ref-name": "RosterAssignmentPublic"
+      },
+      "type": "array",
+      "title": "Assignments"
+    }
+  },
+  "type": "object",
+  "required": ["period", "assignments"],
+  "title": "RosterPeriodDetails",
+  "x-readme-ref-name": "RosterPeriodDetails"
+}

@@ -14,6 +14,7 @@ export type ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams = {
 };
 
 /**
+ * CapValidationResult
  * @description Successful Response
  */
 export type ValidateAlertApiV1CapAlertsAlertIdValidatePost200 =

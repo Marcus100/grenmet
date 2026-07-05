@@ -15,9 +15,10 @@ Note: ``gender`` and ``parish`` free-text values are not preserved (none exist i
 practice — both were optional and unset). The enum types are created/dropped here.
 """
 
-from alembic import op
 import sqlalchemy as sa
 import sqlmodel
+
+from alembic import op
 
 revision = "d3f5a7c9e1b4"
 down_revision = "b2d4f6a8c1e3"

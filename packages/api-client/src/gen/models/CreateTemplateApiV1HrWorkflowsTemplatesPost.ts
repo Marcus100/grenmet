@@ -13,6 +13,7 @@ import type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 export type CreateTemplateApiV1HrWorkflowsTemplatesPost200 = any;
 
 /**
+ * WorkflowTemplatePublic
  * @description Successful Response
  */
 export type CreateTemplateApiV1HrWorkflowsTemplatesPost201 =

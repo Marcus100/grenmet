@@ -8,6 +8,7 @@ import type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 
 /**
+ * ParkingPermitPublic
  * @description Parking permit application created
  */
 export type CreateParkingPermitApiV1HrParkingPermitsPost201 =

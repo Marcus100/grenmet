@@ -1,12 +1,64 @@
+import ipaddress
+import socket
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urlparse
 
+from fastapi.concurrency import run_in_threadpool
 from shapely.geometry import shape  # type: ignore[import-untyped]
 from shapely.validation import explain_validity  # type: ignore[import-untyped]
 
+from src.cap.exceptions import CapImportError
 from src.cap.models import CapMessageType, CapScope
 from src.cap.schemas import CapAlertPublic, CapValidationResult
 from src.utils.datetime import utc_now
+
+# Cap the response body pulled from an external CAP source (memory-DoS guard).
+MAX_IMPORT_BYTES = 5 * 1024 * 1024
+
+
+def validate_import_url(url: str) -> None:
+    """Reject non-public CAP import URLs before any network I/O (SSRF guard).
+
+    Pure/no-DNS: enforces http(s), forbids embedded credentials, and rejects
+    literal private/loopback/link-local/reserved IPs and local hostnames.
+    Host resolution is checked separately by ``ensure_public_host``.
+    """
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        raise CapImportError(f"unsupported URL scheme '{parsed.scheme or ''}'")
+    if parsed.username or parsed.password:
+        raise CapImportError("credentials in import URL are not allowed")
+    host = parsed.hostname
+    if not host:
+        raise CapImportError("import URL has no host")
+    lowered = host.lower()
+    if lowered == "localhost" or lowered.endswith(
+        (".local", ".internal", ".localhost")
+    ):
+        raise CapImportError(f"host '{host}' is not permitted")
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return  # a hostname — DNS-resolved addresses are checked in ensure_public_host
+    if not ip.is_global:
+        raise CapImportError(f"host '{host}' resolves to a non-public address")
+
+
+async def ensure_public_host(host: str) -> None:
+    """Resolve ``host`` and reject it if any address is non-public (SSRF guard)."""
+    try:
+        infos = await run_in_threadpool(socket.getaddrinfo, host, None)
+    except socket.gaierror as exc:
+        raise CapImportError(f"could not resolve host '{host}': {exc}") from exc
+    for info in infos:
+        addr = info[4][0]
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            continue
+        if not ip.is_global:
+            raise CapImportError(f"host '{host}' resolves to a non-public address")
 
 
 def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:

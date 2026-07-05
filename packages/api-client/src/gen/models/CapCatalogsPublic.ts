@@ -3,4 +3,44 @@
  * Do not edit manually.
  */
 
-export type CapCatalogsPublic = any;
+/**
+ * CapCatalogsPublic
+ */
+export type CapCatalogsPublic = {
+  /**
+   * @type array
+   */
+  categories: string[];
+  /**
+   * @type array
+   */
+  response_types: string[];
+  /**
+   * @type array
+   */
+  urgencies: string[];
+  /**
+   * @type array
+   */
+  severities: string[];
+  /**
+   * @type array
+   */
+  certainties: string[];
+  /**
+   * @type array
+   */
+  statuses: string[];
+  /**
+   * @type array
+   */
+  message_types: string[];
+  /**
+   * @type array
+   */
+  scopes: string[];
+  /**
+   * @type array
+   */
+  languages: string[];
+};

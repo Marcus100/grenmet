@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "resource_desc": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Resource Desc"
+    },
+    "mime_type": {
+      "type": "string",
+      "maxLength": 120,
+      "minLength": 1,
+      "title": "Mime Type"
+    },
+    "size": {
+      "anyOf": [{ "type": "integer", "minimum": 0 }, { "type": "null" }],
+      "title": "Size"
+    },
+    "uri": {
+      "anyOf": [{ "type": "string", "maxLength": 1000 }, { "type": "null" }],
+      "title": "Uri"
+    },
+    "deref_uri": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Deref Uri"
+    },
+    "digest": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Digest"
+    },
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "sequence": { "type": "integer", "title": "Sequence" }
+  },
+  "type": "object",
+  "required": ["resource_desc", "mime_type", "id", "sequence"],
+  "title": "CapResourcePublic",
+  "x-readme-ref-name": "CapResourcePublic"
+}

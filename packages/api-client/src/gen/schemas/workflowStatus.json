@@ -1,0 +1,6 @@
+{
+  "type": "string",
+  "enum": ["DRAFT", "PENDING", "RETURNED", "APPROVED", "REJECTED", "CANCELLED"],
+  "title": "WorkflowStatus",
+  "x-readme-ref-name": "WorkflowStatus"
+}
