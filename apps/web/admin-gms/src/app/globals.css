@@ -354,6 +354,7 @@
 }
 
 @layer base {
+  /* biome-ignore lint/style/noDescendingSpecificity: shadcn base reset — the universal selector is intentional and must stay in @layer base */
   * {
     @apply border-border outline-ring/50;
   }
