@@ -17,11 +17,20 @@
     "source=grenmet-cache,target=/home/node/.cache,type=volume"
   ],
 
-  // Publish dev-server ports to the host so the apps open in your browser:
-  // web apps 3000-3004, HonoAPI 4000, FastAPI 8000.
-  "appPort": [3000, 3001, 3002, 3003, 3004, 4000, 8000],
+  // No appPort: the app stack (Docker infra via `pnpm start` and the web dev
+  // servers via `pnpm dev:web:*`) runs on the HOST, which owns ports 3000-3004,
+  // 4000, 8000 directly. This container is only for the agent (editing, type-check,
+  // tests), so publishing those ports here would collide with the host stack.
 
   "remoteUser": "node",
+
+  // Claude's login/trust state lives in .claude.json. By default that file sits
+  // in the home root (outside any volume) and is wiped on every rebuild, forcing
+  // re-login. Pointing CLAUDE_CONFIG_DIR at the persisted .claude volume keeps
+  // .claude.json next to .credentials.json inside that volume, so logins stick.
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+  },
 
   // Sanity check on first build: print every tool's version.
   "postCreateCommand": "node -v && pnpm -v && uv --version && claude --version && codex --version"
