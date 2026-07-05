@@ -85,9 +85,7 @@ async def list_parking_permits(
         statement = statement.where(col(ParkingPermit.department_id) == department_id)
     else:
         statement = statement.where(col(ParkingPermit.user_id) == current_user.id)
-    total = await session.scalar(
-        select(func.count()).select_from(statement.subquery())
-    )
+    total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
         statement.order_by(col(ParkingPermit.created_at).desc())
         .offset(skip)

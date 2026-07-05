@@ -100,9 +100,7 @@ async def submit_status_report(
 ) -> StatusReport:
     """Submit a previously-saved DRAFT status report into the approval chain."""
     require_permission(current_user=current_user, permission_key="status.report.create")
-    report = await get_status_report_or_404(
-        session=session, report_id=status_report_id
-    )
+    report = await get_status_report_or_404(session=session, report_id=status_report_id)
     if report.submitted_by_user_id != current_user.id:
         raise HRPermissionDeniedError(ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED)
     if report.status != RequestStatus.DRAFT:
@@ -264,10 +262,10 @@ async def list_status_reports(
     statement = select(StatusReport)
     if department_id:
         statement = statement.where(col(StatusReport.department_id) == department_id)
-    total = await session.scalar(
-        select(func.count()).select_from(statement.subquery())
-    )
+    total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
-        statement.order_by(col(StatusReport.created_at).desc()).offset(skip).limit(limit)
+        statement.order_by(col(StatusReport.created_at).desc())
+        .offset(skip)
+        .limit(limit)
     )
     return list(result.scalars().all()), total or 0

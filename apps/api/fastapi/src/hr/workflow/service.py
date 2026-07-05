@@ -287,9 +287,7 @@ async def apply_workflow_action(
 
     current_order = workflow_instance.current_step_order
     order_steps = [
-        step
-        for step in steps
-        if step.step_order == current_order and step.is_required
+        step for step in steps if step.step_order == current_order and step.is_required
     ]
     if not order_steps:
         raise WorkflowStepNotFoundError()
@@ -443,7 +441,9 @@ async def list_actionable_instances(
     my_role_ids = {role.id for role in current_user.roles}
     match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
     if my_role_ids:
-        match_conditions.append(col(WorkflowStepInstance.required_role_id).in_(my_role_ids))
+        match_conditions.append(
+            col(WorkflowStepInstance.required_role_id).in_(my_role_ids)
+        )
 
     result = await session.execute(
         select(WorkflowInstance, WorkflowStepInstance)

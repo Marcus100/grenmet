@@ -101,7 +101,9 @@ async def update_leave_request(
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Leave request deleted"},
         status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
-        status.HTTP_403_FORBIDDEN: {"description": "Not allowed to delete this request"},
+        status.HTTP_403_FORBIDDEN: {
+            "description": "Not allowed to delete this request"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Leave request not found"},
     },
 )
