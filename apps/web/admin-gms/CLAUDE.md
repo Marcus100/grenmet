@@ -102,3 +102,8 @@ Test setup: `src/test/setup.ts`. Uses `jsdom`, `@testing-library/react`, `msw` f
 - **`@grenmet/ui` for primitives** — import per-file as `@grenmet/ui/components/ui/<name>`; there is no app-local `src/components/ui/`
 - **React Query for client-side server state** — initialised in `QueryProvider`, not for data that can be Server Component fetches
 - **`src/lib/query-client.ts`** — shared query client config; do not create new instances
+- **Type-check mirrors CI on purpose** — `type-check` deletes the gitignored,
+  generated `next-env.d.ts` before `tsc` so local runs match CI's fresh checkout
+  (CI does not `next build` first). Ambient decls tsc needs must be **committed**
+  (e.g. `src/types/next-image.d.ts` for `*.png`), never relied on from `next-env.d.ts`.
+  `next dev`/`next build` regenerates `next-env.d.ts` afterward.
