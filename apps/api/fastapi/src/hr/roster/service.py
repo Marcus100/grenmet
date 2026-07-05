@@ -2,6 +2,7 @@ import csv
 import uuid
 from io import StringIO
 
+from sqlalchemy import tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
 
@@ -288,13 +289,18 @@ async def bulk_upsert_roster_assignments(
     if not payload.assignments:
         return []
 
-    # Replace existing rows for the provided users+dates with fresh rows.
-    for assignment in payload.assignments:
-        statement = delete(RosterAssignment).where(
-            col(RosterAssignment.user_id) == assignment.user_id,
-            col(RosterAssignment.assignment_date) == assignment.assignment_date,
+    # Replace existing rows for the provided users+dates with fresh rows. Clear the
+    # whole set in one DELETE (tuple IN) instead of a query per assignment.
+    pairs = [(a.user_id, a.assignment_date) for a in payload.assignments]
+    await session.execute(
+        delete(RosterAssignment).where(
+            tuple_(
+                col(RosterAssignment.user_id),
+                col(RosterAssignment.assignment_date),
+            ).in_(pairs)
         )
-        await session.execute(statement)
+    )
+    for assignment in payload.assignments:
         session.add(
             RosterAssignment(
                 roster_period_id=payload.roster_period_id,

@@ -17,4 +17,14 @@ export type TimesheetListPublic = {
    * @type integer
    */
   count: number;
+  /**
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
 };

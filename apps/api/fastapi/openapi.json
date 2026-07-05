@@ -3225,14 +3225,14 @@
         }
       }
     },
-    "/api/v1/hr/timesheets/": {
+    "/api/v1/hr/timesheets": {
       "post": {
         "tags": [
           "hr-timesheets"
         ],
         "summary": "Create timesheet",
         "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
-        "operationId": "create_timesheet_api_v1_hr_timesheets__post",
+        "operationId": "create_timesheet_api_v1_hr_timesheets_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -3412,6 +3412,40 @@
         "summary": "List my timesheets",
         "description": "Return timesheets for the current user.",
         "operationId": "read_my_timesheets_api_v1_hr_timesheets_me_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Timesheets returned",
@@ -3422,13 +3456,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/timesheets/department": {
@@ -3453,6 +3492,33 @@
               "type": "string",
               "title": "Department Id"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -3645,6 +3711,74 @@
         ]
       }
     },
+    "/api/v1/hr/leave-requests/{leave_request_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Submit a draft leave request",
+        "description": "Submit a previously-saved DRAFT leave request, attaching named co-approvers. Requires leave.request.create.self permission and ownership of the request.",
+        "operationId": "submit_leave_request_api_v1_hr_leave_requests__leave_request_id__submit_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "leave_request_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Leave Request Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Leave request submitted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveRequestPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Leave request is not a draft"
+          },
+          "403": {
+            "description": "Not allowed to submit this leave request"
+          },
+          "404": {
+            "description": "Leave request not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/leave-requests/{leave_request_id}/action": {
       "patch": {
         "tags": [
@@ -3718,6 +3852,40 @@
         "summary": "List my leave requests",
         "description": "Return leave requests for the current user.",
         "operationId": "read_my_leave_requests_api_v1_hr_leave_requests_me_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Leave requests returned",
@@ -3728,13 +3896,18 @@
                 }
               }
             }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/absentee-reports": {
@@ -3817,6 +3990,33 @@
               ],
               "title": "Department Id"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -3832,6 +4032,72 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/shift-swaps/me": {
+      "get": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "List my shift swap requests",
+        "description": "Return shift swap requests created by the current user, newest first.",
+        "operationId": "list_my_shift_swaps_api_v1_hr_shift_swaps_me_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift swap requests returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRequestsPublic"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -4044,6 +4310,33 @@
               ],
               "title": "Department Id"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -4205,6 +4498,33 @@
               ],
               "title": "Department Id"
             }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
           }
         ],
         "responses": {
@@ -5803,6 +6123,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
           }
         },
         "type": "object",
@@ -9202,18 +9532,6 @@
           "status": {
             "$ref": "#/components/schemas/RequestStatus"
           },
-          "comments": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 1000
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Comments"
-          },
           "head_of_dept_comments": {
             "anyOf": [
               {
@@ -9390,6 +9708,19 @@
               }
             ],
             "title": "Expected Return Date"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
           }
         },
         "type": "object",
@@ -9413,6 +9744,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
           }
         },
         "type": "object",
@@ -9618,6 +9959,20 @@
           "updated_at"
         ],
         "title": "LeaveRequestPublic"
+      },
+      "LeaveRequestSubmit": {
+        "properties": {
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "LeaveRequestSubmit"
       },
       "LeaveType": {
         "type": "string",
@@ -9949,6 +10304,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
           }
         },
         "type": "object",
@@ -11836,6 +12201,37 @@
         ],
         "title": "ShiftSwapRequestPublic"
       },
+      "ShiftSwapRequestsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftSwapRequestPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ShiftSwapRequestsPublic"
+      },
       "StatusReportCreate": {
         "properties": {
           "department_id": {
@@ -12199,6 +12595,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
           }
         },
         "type": "object",
@@ -12772,6 +13178,16 @@
           "count": {
             "type": "integer",
             "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
           }
         },
         "type": "object",
@@ -13975,9 +14391,28 @@
             "title": "Step Order"
           },
           "required_role_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Required Role Id"
+          },
+          "required_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required User Id"
           },
           "required_scope": {
             "$ref": "#/components/schemas/RoleAssignmentScope"
@@ -14044,7 +14479,6 @@
           "id",
           "workflow_instance_id",
           "step_order",
-          "required_role_id",
           "required_scope",
           "is_required",
           "created_at",

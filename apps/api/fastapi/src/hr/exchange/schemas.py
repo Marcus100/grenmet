@@ -44,3 +44,10 @@ class ShiftSwapRequestPublic(BaseModel):
     workflow_instance_id: uuid.UUID | None = None
     created_at: UtcDateTime
     updated_at: UtcDateTime
+
+
+class ShiftSwapRequestsPublic(BaseModel):
+    data: list[ShiftSwapRequestPublic]
+    count: int
+    page: int = 1
+    size: int = 100

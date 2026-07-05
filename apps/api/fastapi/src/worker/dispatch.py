@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable
+from datetime import timedelta
 from typing import Any
 
 import httpx
@@ -23,6 +24,16 @@ from src.worker.publishers import PublishError
 logger = logging.getLogger(__name__)
 
 Handler = Callable[..., Awaitable[dict[str, Any]]]
+
+# Exponential backoff for FAILED-job retries: base * 2**(attempts-1), capped.
+_RETRY_BASE_SECONDS = 10
+_RETRY_MAX_SECONDS = 3600
+
+
+def _retry_delay_seconds(attempts: int) -> int:
+    """Backoff for a job that has failed ``attempts`` times (attempts >= 1)."""
+    exponent = max(attempts - 1, 0)
+    return min(_RETRY_BASE_SECONDS << exponent, _RETRY_MAX_SECONDS)
 
 KIND_HANDLERS: dict[str, Handler] = {
     "publish.webhooks": publishers.publish_webhooks,
@@ -51,15 +62,22 @@ async def dispatch_job(
         result = await handler(session=session, job=job, http_client=http_client)
         job.status = CapJobStatus.SUCCEEDED
         job.result = result
+        job.next_retry_at = None
     except PublishError as exc:
         job.status = CapJobStatus.FAILED
         job.result = exc.details
+        job.next_retry_at = utc_now() + timedelta(
+            seconds=_retry_delay_seconds(job.attempts)
+        )
         logger.warning(
             "CAP job failed", extra={"job_id": str(job.id), "kind": job.kind}
         )
     except Exception as exc:  # noqa: BLE001 - never let one job kill the batch
         job.status = CapJobStatus.FAILED
         job.result = {"error": str(exc)}
+        job.next_retry_at = utc_now() + timedelta(
+            seconds=_retry_delay_seconds(job.attempts)
+        )
         logger.exception("CAP job errored", extra={"job_id": str(job.id)})
 
     job.updated_at = utc_now()
@@ -78,6 +96,7 @@ async def process_due_jobs(
     """Process QUEUED jobs (and FAILED jobs under the retry limit). Returns count handled."""
     owns_client = http_client is None
     client = http_client or httpx.AsyncClient()
+    now = utc_now()
     try:
         result = await session.execute(
             select(CapJobEvent)
@@ -85,7 +104,12 @@ async def process_due_jobs(
                 or_(
                     col(CapJobEvent.status) == CapJobStatus.QUEUED,
                     (col(CapJobEvent.status) == CapJobStatus.FAILED)
-                    & (col(CapJobEvent.attempts) < max_attempts),
+                    & (col(CapJobEvent.attempts) < max_attempts)
+                    # Only retry once the backoff window has elapsed.
+                    & (
+                        col(CapJobEvent.next_retry_at).is_(None)
+                        | (col(CapJobEvent.next_retry_at) <= now)
+                    ),
                 )
             )
             .order_by(col(CapJobEvent.created_at))

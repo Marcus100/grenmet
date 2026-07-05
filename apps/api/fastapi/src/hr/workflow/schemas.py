@@ -73,7 +73,8 @@ class WorkflowStepInstancePublic(BaseModel):
     id: uuid.UUID
     workflow_instance_id: uuid.UUID
     step_order: int
-    required_role_id: uuid.UUID
+    required_role_id: uuid.UUID | None = None
+    required_user_id: uuid.UUID | None = None
     required_scope: RoleAssignmentScope
     is_required: bool
     approver_user_id: uuid.UUID | None = None

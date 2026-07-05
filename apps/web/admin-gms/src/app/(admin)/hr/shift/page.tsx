@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ShiftExchangeEditor } from "@/components/hr/shift/shift-exchange-editor";
+import { ShiftSwapSubmissions } from "@/components/hr/shift/shift-swap-submissions";
 
 export const metadata: Metadata = {
   title: "Shift Exchange",
@@ -18,6 +19,7 @@ export default function ShiftExchangePage() {
         </p>
       </div>
       <ShiftExchangeEditor />
+      <ShiftSwapSubmissions />
     </div>
   );
 }

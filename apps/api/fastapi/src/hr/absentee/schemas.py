@@ -45,3 +45,5 @@ class AbsenteeReportPublic(BaseModel):
 class AbsenteeReportListPublic(BaseModel):
     data: list[AbsenteeReportPublic]
     count: int
+    page: int = 1
+    size: int = 100

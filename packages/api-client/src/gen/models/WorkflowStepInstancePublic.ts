@@ -22,10 +22,8 @@ export type WorkflowStepInstancePublic = {
    * @type integer
    */
   step_order: number;
-  /**
-   * @type string, uuid
-   */
-  required_role_id: string;
+  required_role_id?: string | null;
+  required_user_id?: string | null;
   /**
    * @type string
    */

@@ -9,7 +9,11 @@ import type {
   ResponseErrorConfig,
 } from "../../client.js";
 import fetch from "../../client.js";
-import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
+import type {
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
+} from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 
 function getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl() {
   const res = { method: "GET", url: `/api/v1/hr/leave-requests/me` as const };
@@ -22,17 +26,19 @@ function getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl() {
  * {@link /api/v1/hr/leave-requests/me}
  */
 export async function readMyLeaveRequestsApiV1HrLeaveRequestsMeGet(
+  params?: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
   const { client: request = fetch, ...requestConfig } = config;
 
   const res = await request<
     ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422>,
     unknown
   >({
     method: "GET",
     url: getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl().url.toString(),
+    params,
     ...requestConfig,
   });
   return res.data;

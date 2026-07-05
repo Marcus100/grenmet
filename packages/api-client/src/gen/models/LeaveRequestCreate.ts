@@ -56,4 +56,13 @@ export type LeaveRequestCreate = {
   requires_acting_appointment?: boolean;
   acting_officer_id?: string | null;
   expected_return_date?: string | null;
+  /**
+   * @type array | undefined
+   */
+  co_approver_user_ids?: string[];
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  as_draft?: boolean;
 };

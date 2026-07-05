@@ -3,7 +3,26 @@
  * Do not edit manually.
  */
 
+import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetListPublic } from "./TimesheetListPublic.js";
+
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams = {
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
+};
 
 /**
  * TimesheetListPublic
@@ -11,10 +30,17 @@ import type { TimesheetListPublic } from "./TimesheetListPublic.js";
  */
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGet200 = TimesheetListPublic;
 
+/**
+ * HTTPValidationError
+ * @description Validation Error
+ */
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGet422 = HTTPValidationError;
+
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse =
   ReadMyTimesheetsApiV1HrTimesheetsMeGet200;
 
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery = {
   Response: ReadMyTimesheetsApiV1HrTimesheetsMeGet200;
-  Errors: any;
+  QueryParams: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams;
+  Errors: ReadMyTimesheetsApiV1HrTimesheetsMeGet422;
 };

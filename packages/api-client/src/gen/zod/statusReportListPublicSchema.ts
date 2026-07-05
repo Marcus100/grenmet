@@ -9,4 +9,6 @@ import { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export const statusReportListPublicSchema = z.object({
   data: z.array(z.lazy(() => statusReportPublicSchema)),
   count: z.number().int(),
+  page: z.optional(z.number().int().default(1)),
+  size: z.optional(z.number().int().default(100)),
 });

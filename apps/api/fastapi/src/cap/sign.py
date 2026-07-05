@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import Any
 
 from src.cap.config import cap_config
 
@@ -30,16 +31,25 @@ def _load(value: str) -> bytes:
     return Path(value).read_bytes()
 
 
+def _hardened_parser() -> Any:
+    """lxml parser with entity resolution and network access disabled (XXE-safe)."""
+    from lxml import etree  # type: ignore[import-untyped]
+
+    return etree.XMLParser(
+        resolve_entities=False, no_network=True, dtd_validation=False
+    )
+
+
 def sign_xml(xml: str) -> str:
     """Return signed CAP XML, or the input unchanged when signing is disabled."""
     cert_src = cap_config.CAP_SIGNING_CERT
     key_src = cap_config.CAP_SIGNING_KEY
     if not (cert_src and key_src):
         return xml
-    from lxml import etree  # type: ignore[import-untyped]
+    from lxml import etree
     from signxml import XMLSigner  # type: ignore[attr-defined]
 
-    root = etree.fromstring(xml.encode("utf-8"))
+    root = etree.fromstring(xml.encode("utf-8"), parser=_hardened_parser())
     signed = XMLSigner().sign(
         root, key=_load(key_src), cert=_load(cert_src).decode("utf-8")
     )
@@ -56,7 +66,7 @@ def verify_xml(xml: str) -> bool:
 
     try:
         XMLVerifier().verify(
-            etree.fromstring(xml.encode("utf-8")),
+            etree.fromstring(xml.encode("utf-8"), parser=_hardened_parser()),
             x509_cert=_load(cert_src).decode("utf-8"),
         )
         return True

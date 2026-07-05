@@ -298,6 +298,18 @@ export {
   listHolidaysApiV1HrRostersPublicHolidaysGetSuspenseQueryOptions,
   useListHolidaysApiV1HrRostersPublicHolidaysGetSuspense,
 } from "./useListHolidaysApiV1HrRostersPublicHolidaysGetSuspense.js";
+export type { ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey } from "./useListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
+export {
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions,
+  useListMyShiftSwapsApiV1HrShiftSwapsMeGet,
+} from "./useListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
+export type { ListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryKey } from "./useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense.js";
+export {
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryKey,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryOptions,
+  useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense,
+} from "./useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense.js";
 export type { ListPeriodsApiV1HrRostersPeriodsGetQueryKey } from "./useListPeriodsApiV1HrRostersPeriodsGet.js";
 export {
   listPeriodsApiV1HrRostersPeriodsGetQueryKey,
@@ -856,6 +868,12 @@ export {
   submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions,
   useSubmitAlertApiV1CapAlertsAlertIdSubmitPost,
 } from "./useSubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export type { SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey } from "./useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
+export {
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationOptions,
+  useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost,
+} from "./useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export type { SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey } from "./useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export {
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey,

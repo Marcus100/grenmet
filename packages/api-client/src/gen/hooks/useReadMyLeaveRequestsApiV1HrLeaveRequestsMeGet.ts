@@ -17,22 +17,32 @@ import type {
 } from "../../client.js";
 import fetch from "../../client.js";
 import { readMyLeaveRequestsApiV1HrLeaveRequestsMeGet } from "../clients/readMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
-import type { ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
+import type {
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
+} from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 
-export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey = () =>
-  [{ url: "/api/v1/hr/leave-requests/me" }] as const;
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey = (
+  params: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams = {}
+) =>
+  [
+    { url: "/api/v1/hr/leave-requests/me" },
+    ...(params ? [params] : []),
+  ] as const;
 
 export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey = ReturnType<
   typeof readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey
 >;
 
 export function readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryOptions(
+  params?: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
-  const queryKey = readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey();
+  const queryKey = readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey(params);
   return queryOptions<
     ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422>,
     ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
     typeof queryKey
   >({
@@ -41,7 +51,7 @@ export function readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryOptions(
       if (!config.signal) {
         config.signal = signal;
       }
-      return readMyLeaveRequestsApiV1HrLeaveRequestsMeGet(config);
+      return readMyLeaveRequestsApiV1HrLeaveRequestsMeGet(params, config);
     },
   });
 }
@@ -57,11 +67,12 @@ export function useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet<
   TQueryKey extends
     QueryKey = ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
 >(
+  params?: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
   options: {
     query?: Partial<
       QueryObserverOptions<
         ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422>,
         TData,
         TQueryData,
         TQueryKey
@@ -74,18 +85,22 @@ export function useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet<
   const { client: queryClient, ...queryOptions } = queryConfig;
   const queryKey =
     queryOptions?.queryKey ??
-    readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey();
+    readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey(params);
 
   const query = useQuery(
     {
-      ...readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryOptions(config),
+      ...readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryOptions(
+        params,
+        config
+      ),
       queryKey,
       ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

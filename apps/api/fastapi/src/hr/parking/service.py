@@ -2,11 +2,12 @@ import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from src.auth.models import User
-from src.auth.policy import require_permission
-from src.hr.exceptions import ParkingPermitNotFoundError
+from src.auth.policy import can_act_on_user, require_permission
+from src.hr.constants import ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED
+from src.hr.exceptions import HRPermissionDeniedError, ParkingPermitNotFoundError
 from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity
 from src.utils.datetime import utc_now
@@ -23,6 +24,15 @@ async def create_parking_permit(
     require_permission(
         current_user=current_user, permission_key="parking.permit.create"
     )
+    # Filing for another user requires dept-scoped authority over that user, not
+    # just the flat create permission (mirrors the timesheet proxy pattern).
+    if payload.user_id != current_user.id and not await can_act_on_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=payload.user_id,
+        permission_key="parking.permit.create",
+    ):
+        raise HRPermissionDeniedError(ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED)
     permit = ParkingPermit(
         user_id=payload.user_id,
         department_id=payload.department_id,
@@ -36,9 +46,10 @@ async def create_parking_permit(
         action_other_detail=payload.action_other_detail,
         fee_amount=payload.fee_amount,
     )
+    # Flush to obtain the id, then start the workflow and commit once so the
+    # permit and its workflow instance are persisted atomically.
     session.add(permit)
-    await session.commit()
-    await session.refresh(permit)
+    await session.flush()
     permit.workflow_instance_id = await start_workflow_for_entity(
         session=session,
         current_user=current_user,
@@ -58,8 +69,13 @@ async def create_parking_permit(
 
 
 async def list_parking_permits(
-    *, session: AsyncSession, current_user: User, department_id: str | None = None
-) -> list[ParkingPermit]:
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> tuple[list[ParkingPermit], int]:
     statement = select(ParkingPermit)
     if department_id:
         require_permission(
@@ -69,10 +85,15 @@ async def list_parking_permits(
         statement = statement.where(col(ParkingPermit.department_id) == department_id)
     else:
         statement = statement.where(col(ParkingPermit.user_id) == current_user.id)
-    result = await session.execute(
-        statement.order_by(col(ParkingPermit.created_at).desc()).limit(100)
+    total = await session.scalar(
+        select(func.count()).select_from(statement.subquery())
     )
-    return list(result.scalars().all())
+    result = await session.execute(
+        statement.order_by(col(ParkingPermit.created_at).desc())
+        .offset(skip)
+        .limit(limit)
+    )
+    return list(result.scalars().all()), total or 0
 
 
 async def issue_decal(

@@ -42,6 +42,7 @@ export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./clien
 export { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "./clients/listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./clients/listDepartmentsEndpointApiV1HrDepartmentsGet.js";
 export { listHolidaysApiV1HrRostersPublicHolidaysGet } from "./clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
+export { listMyShiftSwapsApiV1HrShiftSwapsMeGet } from "./clients/listMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export { listPeriodsApiV1HrRostersPeriodsGet } from "./clients/listPeriodsApiV1HrRostersPeriodsGet.js";
 export { listShiftCatalogApiV1HrRostersShiftsGet } from "./clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
 export { loginAccessTokenApiV1LoginAccessTokenPost } from "./clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -95,6 +96,7 @@ export { registerUserApiV1AuthUsersSignupPost } from "./clients/registerUserApiV
 export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./clients/resetPasswordApiV1ResetPasswordPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./clients/submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./clients/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export { submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch } from "./clients/submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export { takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost } from "./clients/takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 export { testEmailApiV1UtilsTestEmailPost } from "./clients/testEmailApiV1UtilsTestEmailPost.js";
@@ -416,6 +418,18 @@ export {
   listHolidaysApiV1HrRostersPublicHolidaysGetSuspenseQueryOptions,
   useListHolidaysApiV1HrRostersPublicHolidaysGetSuspense,
 } from "./hooks/useListHolidaysApiV1HrRostersPublicHolidaysGetSuspense.js";
+export type { ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey } from "./hooks/useListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
+export {
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions,
+  useListMyShiftSwapsApiV1HrShiftSwapsMeGet,
+} from "./hooks/useListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
+export type { ListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryKey } from "./hooks/useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense.js";
+export {
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryKey,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetSuspenseQueryOptions,
+  useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense,
+} from "./hooks/useListMyShiftSwapsApiV1HrShiftSwapsMeGetSuspense.js";
 export type { ListPeriodsApiV1HrRostersPeriodsGetQueryKey } from "./hooks/useListPeriodsApiV1HrRostersPeriodsGet.js";
 export {
   listPeriodsApiV1HrRostersPeriodsGetQueryKey,
@@ -974,6 +988,12 @@ export {
   submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions,
   useSubmitAlertApiV1CapAlertsAlertIdSubmitPost,
 } from "./hooks/useSubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export type { SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey } from "./hooks/useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
+export {
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationOptions,
+  useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost,
+} from "./hooks/useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export type { SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey } from "./hooks/useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export {
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey,
@@ -1581,6 +1601,7 @@ export type { LeaveRequestAction } from "./models/LeaveRequestAction.js";
 export type { LeaveRequestCreate } from "./models/LeaveRequestCreate.js";
 export type { LeaveRequestListPublic } from "./models/LeaveRequestListPublic.js";
 export type { LeaveRequestPublic } from "./models/LeaveRequestPublic.js";
+export type { LeaveRequestSubmit } from "./models/LeaveRequestSubmit.js";
 export type {
   LeaveType,
   LeaveTypeLeaveTypeEnumKey,
@@ -1609,6 +1630,13 @@ export type {
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
   ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
 } from "./models/ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
+export type {
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGet200,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGet422,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+} from "./models/ListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export type {
   ListPeriodsApiV1HrRostersPeriodsGet200,
   ListPeriodsApiV1HrRostersPeriodsGet403,
@@ -1799,12 +1827,16 @@ export type {
 } from "./models/ReadIntegrationsApiV1CapIntegrationsGet.js";
 export type {
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
 } from "./models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export type {
   ReadMyTimesheetsApiV1HrTimesheetsMeGet200,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
 } from "./models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 export type {
@@ -2071,6 +2103,7 @@ export { shiftPeriodShiftPeriodEnum } from "./models/ShiftPeriod.js";
 export type { ShiftSwapAction } from "./models/ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./models/ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./models/ShiftSwapRequestPublic.js";
+export type { ShiftSwapRequestsPublic } from "./models/ShiftSwapRequestsPublic.js";
 export type { SrcAuthSchemasRolePublic } from "./models/SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
@@ -2092,6 +2125,17 @@ export type {
   SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
   SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
 } from "./models/SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export type {
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutation,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams,
+} from "./models/SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export type {
   SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200,
   SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,
@@ -2706,6 +2750,7 @@ export { leaveRequestActionSchema } from "./zod/leaveRequestActionSchema.js";
 export { leaveRequestCreateSchema } from "./zod/leaveRequestCreateSchema.js";
 export { leaveRequestListPublicSchema } from "./zod/leaveRequestListPublicSchema.js";
 export { leaveRequestPublicSchema } from "./zod/leaveRequestPublicSchema.js";
+export { leaveRequestSubmitSchema } from "./zod/leaveRequestSubmitSchema.js";
 export { leaveTypeSchema } from "./zod/leaveTypeSchema.js";
 export {
   listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200Schema,
@@ -2727,6 +2772,12 @@ export {
   listHolidaysApiV1HrRostersPublicHolidaysGetQueryParamsSchema,
   listHolidaysApiV1HrRostersPublicHolidaysGetQueryResponseSchema,
 } from "./zod/listHolidaysApiV1HrRostersPublicHolidaysGetSchema.js";
+export {
+  listMyShiftSwapsApiV1HrShiftSwapsMeGet200Schema,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGet422Schema,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParamsSchema,
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponseSchema,
+} from "./zod/listMyShiftSwapsApiV1HrShiftSwapsMeGetSchema.js";
 export {
   listPeriodsApiV1HrRostersPeriodsGet200Schema,
   listPeriodsApiV1HrRostersPeriodsGet403Schema,
@@ -2882,10 +2933,14 @@ export {
 } from "./zod/readIntegrationsApiV1CapIntegrationsGetSchema.js";
 export {
   readMyLeaveRequestsApiV1HrLeaveRequestsMeGet200Schema,
+  readMyLeaveRequestsApiV1HrLeaveRequestsMeGet422Schema,
+  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParamsSchema,
   readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponseSchema,
 } from "./zod/readMyLeaveRequestsApiV1HrLeaveRequestsMeGetSchema.js";
 export {
   readMyTimesheetsApiV1HrTimesheetsMeGet200Schema,
+  readMyTimesheetsApiV1HrTimesheetsMeGet422Schema,
+  readMyTimesheetsApiV1HrTimesheetsMeGetQueryParamsSchema,
   readMyTimesheetsApiV1HrTimesheetsMeGetQueryResponseSchema,
 } from "./zod/readMyTimesheetsApiV1HrTimesheetsMeGetSchema.js";
 export {
@@ -3096,6 +3151,7 @@ export { shiftPeriodSchema } from "./zod/shiftPeriodSchema.js";
 export { shiftSwapActionSchema } from "./zod/shiftSwapActionSchema.js";
 export { shiftSwapRequestCreateSchema } from "./zod/shiftSwapRequestCreateSchema.js";
 export { shiftSwapRequestPublicSchema } from "./zod/shiftSwapRequestPublicSchema.js";
+export { shiftSwapRequestsPublicSchema } from "./zod/shiftSwapRequestsPublicSchema.js";
 export { srcAuthSchemasRolePublicSchema } from "./zod/srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./zod/srcHrSchemasRolePublicSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
@@ -3112,6 +3168,16 @@ export {
   submitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponseSchema,
   submitAlertApiV1CapAlertsAlertIdSubmitPostPathParamsSchema,
 } from "./zod/submitAlertApiV1CapAlertsAlertIdSubmitPostSchema.js";
+export {
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200Schema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400Schema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403Schema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404Schema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422Schema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequestSchema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponseSchema,
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParamsSchema,
+} from "./zod/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostSchema.js";
 export {
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200Schema,
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400Schema,

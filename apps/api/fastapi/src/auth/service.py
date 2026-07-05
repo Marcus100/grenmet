@@ -23,11 +23,13 @@ from src.auth.schemas import (
     UserUpdateMe,
 )
 from src.auth.utils import (
+    DUMMY_PASSWORD_HASH,
     create_access_token,
     create_session_token,
     get_password_hash,
+    get_password_hash_async,
     hash_session_token,
-    verify_password,
+    verify_password_async,
 )
 from src.exceptions import AppException
 from src.utils.datetime import utc_now
@@ -48,8 +50,9 @@ def create_user_sync(*, session: SQLModelSession, user_create: UserCreate) -> Us
 
 async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User:
     """Create a new user with hashed password."""
+    hashed_password = await get_password_hash_async(user_create.password)
     db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+        user_create, update={"hashed_password": hashed_password}
     )
     session.add(db_obj)
     await session.commit()
@@ -68,7 +71,7 @@ async def update_user(
     extra_data = {}
     if "password" in user_data:
         password = user_data["password"]
-        hashed_password = get_password_hash(password)
+        hashed_password = await get_password_hash_async(password)
         extra_data["hashed_password"] = hashed_password
     db_user.sqlmodel_update(user_data, update=extra_data)
     session.add(db_user)
@@ -93,7 +96,7 @@ async def update_user_me(
 
 
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
-    user.hashed_password = get_password_hash(new_password)
+    user.hashed_password = await get_password_hash_async(new_password)
     session.add(user)
     await session.commit()
     logger.info("Password changed", extra={"user_id": str(user.id)})
@@ -102,7 +105,7 @@ async def set_password(*, session: AsyncSession, user: User, new_password: str) 
 async def update_password(
     *, session: AsyncSession, user: User, current_password: str, new_password: str
 ) -> None:
-    if not verify_password(current_password, user.hashed_password):
+    if not await verify_password_async(current_password, user.hashed_password):
         raise AppException("Incorrect password", 400)
     if current_password == new_password:
         raise AppException("New password must be different from current password", 400)
@@ -149,8 +152,11 @@ async def authenticate(
     """Authenticate user with email and password."""
     db_user = await get_user_by_email(session=session, email=email)
     if not db_user:
+        # Equalize timing with the found-user path so a missing account is not
+        # distinguishable from a wrong password by response latency.
+        await verify_password_async(password, DUMMY_PASSWORD_HASH)
         return None
-    if not verify_password(password, db_user.hashed_password):
+    if not await verify_password_async(password, db_user.hashed_password):
         return None
     return db_user
 

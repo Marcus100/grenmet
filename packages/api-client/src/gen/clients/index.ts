@@ -42,6 +42,7 @@ export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issue
 export { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "./listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./listDepartmentsEndpointApiV1HrDepartmentsGet.js";
 export { listHolidaysApiV1HrRostersPublicHolidaysGet } from "./listHolidaysApiV1HrRostersPublicHolidaysGet.js";
+export { listMyShiftSwapsApiV1HrShiftSwapsMeGet } from "./listMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export { listPeriodsApiV1HrRostersPeriodsGet } from "./listPeriodsApiV1HrRostersPeriodsGet.js";
 export { listShiftCatalogApiV1HrRostersShiftsGet } from "./listShiftCatalogApiV1HrRostersShiftsGet.js";
 export { loginAccessTokenApiV1LoginAccessTokenPost } from "./loginAccessTokenApiV1LoginAccessTokenPost.js";
@@ -95,6 +96,7 @@ export { registerUserApiV1AuthUsersSignupPost } from "./registerUserApiV1AuthUse
 export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./resetPasswordApiV1ResetPasswordPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
+export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export { submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch } from "./submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export { takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost } from "./takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 export { testEmailApiV1UtilsTestEmailPost } from "./testEmailApiV1UtilsTestEmailPost.js";

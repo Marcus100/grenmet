@@ -2,7 +2,7 @@ import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -43,9 +43,10 @@ async def create_status_report(
         communications_status=payload.communications_status,
         general_remarks=payload.general_remarks,
     )
+    # Flush to obtain the report id, add entries, start the workflow, then commit
+    # once so the report, its entries, and its workflow instance are atomic.
     session.add(report)
-    await session.commit()
-    await session.refresh(report)
+    await session.flush()
 
     entries: list[StatusReportEntry] = []
     for entry_in in payload.entries:
@@ -59,10 +60,6 @@ async def create_status_report(
         )
         session.add(entry)
         entries.append(entry)
-    if entries:
-        await session.commit()
-        for e in entries:
-            await session.refresh(e)
 
     report.workflow_instance_id = await start_workflow_for_entity(
         session=session,
@@ -75,6 +72,8 @@ async def create_status_report(
     session.add(report)
     await session.commit()
     await session.refresh(report)
+    # No per-row refresh: entry id/created_at/updated_at are Python-side
+    # default_factory values and expire_on_commit=False keeps them after commit.
     logger.info(
         "Status report created",
         extra={"report_id": str(report.id), "user_id": str(current_user.id)},
@@ -100,13 +99,21 @@ async def read_status_report_details(
 
 
 async def list_status_reports(
-    *, session: AsyncSession, current_user: User, department_id: str | None = None
-) -> list[StatusReport]:
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str | None = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> tuple[list[StatusReport], int]:
     require_permission(current_user=current_user, permission_key="status.report.read")
     statement = select(StatusReport)
     if department_id:
         statement = statement.where(col(StatusReport.department_id) == department_id)
-    result = await session.execute(
-        statement.order_by(col(StatusReport.created_at).desc()).limit(100)
+    total = await session.scalar(
+        select(func.count()).select_from(statement.subquery())
     )
-    return list(result.scalars().all())
+    result = await session.execute(
+        statement.order_by(col(StatusReport.created_at).desc()).offset(skip).limit(limit)
+    )
+    return list(result.scalars().all()), total or 0

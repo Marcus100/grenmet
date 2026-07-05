@@ -2,6 +2,7 @@ import logging
 import uuid
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -20,6 +21,21 @@ from .models import ShiftSwapRequest
 from .schemas import ShiftSwapAction, ShiftSwapRequestCreate
 
 logger = logging.getLogger(__name__)
+
+
+async def list_my_shift_swap_requests(
+    *, session: AsyncSession, current_user: User, skip: int = 0, limit: int = 100
+) -> tuple[list[ShiftSwapRequest], int]:
+    """Shift swaps the current user filed or is the counterpart of."""
+    base = select(ShiftSwapRequest).where(
+        (col(ShiftSwapRequest.requesting_user_id) == current_user.id)
+        | (col(ShiftSwapRequest.counterpart_user_id) == current_user.id)
+    )
+    total = await session.scalar(select(func.count()).select_from(base.subquery()))
+    result = await session.execute(
+        base.order_by(col(ShiftSwapRequest.created_at).desc()).offset(skip).limit(limit)
+    )
+    return list(result.scalars().all()), total or 0
 
 
 async def create_shift_swap_request(
@@ -41,9 +57,10 @@ async def create_shift_swap_request(
         restoration_date=payload.restoration_date,
         reason=payload.reason,
     )
+    # Flush to obtain the id, then start the workflow and commit once so the
+    # request and its workflow instance are persisted atomically.
     session.add(request)
-    await session.commit()
-    await session.refresh(request)
+    await session.flush()
     request.workflow_instance_id = await start_workflow_for_entity(
         session=session,
         current_user=current_user,

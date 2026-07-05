@@ -88,3 +88,5 @@ class StatusReportDetails(BaseModel):
 class StatusReportListPublic(BaseModel):
     data: list[StatusReportPublic]
     count: int
+    page: int = 1
+    size: int = 100
