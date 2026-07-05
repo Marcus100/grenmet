@@ -20,6 +20,11 @@ export const updateUserApiV1AuthUsersUserIdPatch200Schema = z.lazy(
 );
 
 /**
+ * @description Insufficient privileges
+ */
+export const updateUserApiV1AuthUsersUserIdPatch403Schema = z.any();
+
+/**
  * @description User not found
  */
 export const updateUserApiV1AuthUsersUserIdPatch404Schema = z.any();

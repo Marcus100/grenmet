@@ -3,4 +3,42 @@
  * Do not edit manually.
  */
 
-export type RosterPeriodPublic = any;
+import type { RosterPeriodStatus } from "./RosterPeriodStatus.js";
+
+/**
+ * RosterPeriodPublic
+ */
+export type RosterPeriodPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string, date
+   */
+  period_start: string;
+  /**
+   * @type string, date
+   */
+  period_end: string;
+  /**
+   * @type string
+   */
+  status: RosterPeriodStatus;
+  /**
+   * @type string, uuid
+   */
+  created_by_user_id: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

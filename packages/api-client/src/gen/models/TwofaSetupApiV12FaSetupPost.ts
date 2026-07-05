@@ -6,6 +6,7 @@
 import type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
 
 /**
+ * TwoFactorSetupResponse
  * @description Successful Response
  */
 export type TwofaSetupApiV12FaSetupPost200 = TwoFactorSetupResponse;

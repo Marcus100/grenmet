@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import TimesheetDep
+from src.pagination import PaginationDep
 
 from . import service
 from .schemas import (
@@ -20,7 +21,7 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
 
 
 @router.post(
-    "/",
+    "",
     response_model=TimesheetDetails,
     status_code=status.HTTP_201_CREATED,
     summary="Create timesheet",
@@ -105,13 +106,22 @@ async def approve_timesheet(
     description="Return timesheets for the current user.",
     responses={status.HTTP_200_OK: {"description": "Timesheets returned"}},
 )
-async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> Any:
-    rows = await service.list_my_timesheets(session=session, current_user=current_user)
+async def read_my_timesheets(
+    session: SessionDep, current_user: CurrentUser, pagination: PaginationDep
+) -> Any:
+    rows, total = await service.list_my_timesheets(
+        session=session,
+        current_user=current_user,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
     return TimesheetListPublic(
         data=[
             TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
         ],
-        count=len(rows),
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 
@@ -126,16 +136,25 @@ async def read_my_timesheets(session: SessionDep, current_user: CurrentUser) -> 
     },
 )
 async def read_department_timesheets(
-    session: SessionDep, current_user: CurrentUser, department_id: str
+    session: SessionDep,
+    current_user: CurrentUser,
+    pagination: PaginationDep,
+    department_id: str,
 ) -> Any:
-    rows = await service.list_department_timesheets(
-        session=session, current_user=current_user, department_id=department_id
+    rows, total = await service.list_department_timesheets(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
     )
     return TimesheetListPublic(
         data=[
             TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
         ],
-        count=len(rows),
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
     )
 
 

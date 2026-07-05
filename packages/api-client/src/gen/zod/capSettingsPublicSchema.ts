@@ -5,4 +5,16 @@
 
 import * as z from "zod";
 
-export const capSettingsPublicSchema = z.any();
+export const capSettingsPublicSchema = z.object({
+  id: z.string().uuid(),
+  sender: z.string(),
+  sender_name: z.string(),
+  wmo_oid: z.optional(z.union([z.string(), z.null()])),
+  web: z.optional(z.union([z.string(), z.null()])),
+  contact: z.optional(z.union([z.string(), z.null()])),
+  feed_limit: z.number().int(),
+  signing_enabled: z.boolean(),
+  signing_certificate_ref: z.optional(z.union([z.string(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

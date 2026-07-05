@@ -4,5 +4,10 @@
  */
 
 import * as z from "zod";
+import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
+import { workflowStepInstancePublicSchema } from "./workflowStepInstancePublicSchema.js";
 
-export const workflowInstanceDetailsSchema = z.any();
+export const workflowInstanceDetailsSchema = z.object({
+  instance: z.lazy(() => workflowInstancePublicSchema),
+  steps: z.array(z.lazy(() => workflowStepInstancePublicSchema)),
+});

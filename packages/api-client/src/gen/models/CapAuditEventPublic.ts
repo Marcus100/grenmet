@@ -3,4 +3,31 @@
  * Do not edit manually.
  */
 
-export type CapAuditEventPublic = any;
+/**
+ * CapAuditEventPublic
+ */
+export type CapAuditEventPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  alert_id?: string | null;
+  actor_user_id?: string | null;
+  /**
+   * @type string
+   */
+  action: string;
+  previous_state?: string | null;
+  next_state?: string | null;
+  note?: string | null;
+  /**
+   * @type object | undefined
+   */
+  payload?: {
+    [key: string]: any;
+  };
+  /**
+   * @type string
+   */
+  created_at: string;
+};

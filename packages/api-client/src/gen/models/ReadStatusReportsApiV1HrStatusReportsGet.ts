@@ -8,9 +8,25 @@ import type { StatusReportListPublic } from "./StatusReportListPublic.js";
 
 export type ReadStatusReportsApiV1HrStatusReportsGetQueryParams = {
   department_id?: string | null;
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
 };
 
 /**
+ * StatusReportListPublic
  * @description Status reports returned
  */
 export type ReadStatusReportsApiV1HrStatusReportsGet200 =

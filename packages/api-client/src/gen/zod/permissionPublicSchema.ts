@@ -5,4 +5,13 @@
 
 import * as z from "zod";
 
-export const permissionPublicSchema = z.any();
+export const permissionPublicSchema = z.object({
+  key: z.optional(z.union([z.string(), z.null()])),
+  action: z.string(),
+  entity: z.string(),
+  access: z.string(),
+  description: z.optional(z.string().default("")),
+  id: z.string().uuid(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

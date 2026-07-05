@@ -9,13 +9,12 @@ import type {
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
 import { Input } from "@grenmet/ui/components/ui/input";
+import { Label } from "@grenmet/ui/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@grenmet/ui/components/ui/native-select";
 import { useState } from "react";
-import { useModal } from "../../hooks/useModal";
-import Label from "../form/Label";
 
 const TITLE_OPTIONS: { label: string; value: Title }[] = [
   { value: "MR", label: "Mr" },
@@ -43,7 +42,9 @@ export default function UserInfoCard({
   isSaving,
   onSave,
 }: UserInfoCardProps) {
-  const { isOpen, openModal, closeModal } = useModal();
+  const [isOpen, setIsOpen] = useState(false);
+  const openModal = () => setIsOpen(true);
+  const closeModal = () => setIsOpen(false);
   const [title, setTitle] = useState<Title | "">(profile.profile.title || "");
   const [firstName, setFirstName] = useState(profile.profile.first_name);
   const [middleName, setMiddleName] = useState(
@@ -254,7 +255,7 @@ export default function UserInfoCard({
         open={isOpen}
       >
         <DialogContent className="m-4 max-w-[700px]">
-          <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-background p-4 lg:p-11">
+          <div className="relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-background p-4 lg:p-11">
             <div className="px-2 pr-14">
               <h4 className="mb-2 font-semibold text-2xl text-foreground">
                 Edit Personal Information
@@ -264,7 +265,7 @@ export default function UserInfoCard({
               </p>
             </div>
             <form className="flex flex-col">
-              <div className="custom-scrollbar h-[450px] overflow-y-auto px-2 pb-3">
+              <div className="h-[450px] overflow-y-auto px-2 pb-3">
                 <div>
                   <h5 className="mb-5 font-medium text-foreground text-lg lg:mb-6">
                     Social Links
@@ -272,7 +273,7 @@ export default function UserInfoCard({
 
                   <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                     <div>
-                      <Label>Facebook</Label>
+                      <Label className="mb-1.5">Facebook</Label>
                       <Input
                         defaultValue="https://www.facebook.com/PimjoHQ"
                         type="text"
@@ -280,12 +281,12 @@ export default function UserInfoCard({
                     </div>
 
                     <div>
-                      <Label>X.com</Label>
+                      <Label className="mb-1.5">X.com</Label>
                       <Input defaultValue="https://x.com/PimjoHQ" type="text" />
                     </div>
 
                     <div>
-                      <Label>Linkedin</Label>
+                      <Label className="mb-1.5">Linkedin</Label>
                       <Input
                         defaultValue="https://www.linkedin.com/company/pimjo"
                         type="text"
@@ -293,7 +294,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div>
-                      <Label>Instagram</Label>
+                      <Label className="mb-1.5">Instagram</Label>
                       <Input
                         defaultValue="https://instagram.com/PimjoHQ"
                         type="text"
@@ -308,7 +309,7 @@ export default function UserInfoCard({
 
                   <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Title</Label>
+                      <Label className="mb-1.5">Title</Label>
                       <NativeSelect
                         className="w-full"
                         onChange={(event) =>
@@ -331,7 +332,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>First Name</Label>
+                      <Label className="mb-1.5">First Name</Label>
                       <Input
                         onChange={(event) => setFirstName(event.target.value)}
                         type="text"
@@ -340,7 +341,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Middle Name</Label>
+                      <Label className="mb-1.5">Middle Name</Label>
                       <Input
                         onChange={(event) => setMiddleName(event.target.value)}
                         type="text"
@@ -349,7 +350,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Last Name</Label>
+                      <Label className="mb-1.5">Last Name</Label>
                       <Input
                         onChange={(event) => setLastName(event.target.value)}
                         type="text"
@@ -358,7 +359,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Email Address</Label>
+                      <Label className="mb-1.5">Email Address</Label>
                       <Input
                         defaultValue={profile.identity.email}
                         disabled
@@ -367,7 +368,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Phone</Label>
+                      <Label className="mb-1.5">Phone</Label>
                       <Input
                         onChange={(event) => setPhone(event.target.value)}
                         type="text"
@@ -376,7 +377,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Nationality</Label>
+                      <Label className="mb-1.5">Nationality</Label>
                       <Input
                         onChange={(event) => setNationality(event.target.value)}
                         type="text"
@@ -385,7 +386,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Gender</Label>
+                      <Label className="mb-1.5">Gender</Label>
                       <NativeSelect
                         className="w-full"
                         onChange={(event) =>
@@ -408,7 +409,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Emergency Contact Name</Label>
+                      <Label className="mb-1.5">Emergency Contact Name</Label>
                       <Input
                         onChange={(event) =>
                           setEmergencyName(event.target.value)
@@ -419,7 +420,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Emergency Contact Phone</Label>
+                      <Label className="mb-1.5">Emergency Contact Phone</Label>
                       <Input
                         onChange={(event) =>
                           setEmergencyPhone(event.target.value)
@@ -430,7 +431,7 @@ export default function UserInfoCard({
                     </div>
 
                     <div className="col-span-2 lg:col-span-1">
-                      <Label>Emergency Relationship</Label>
+                      <Label className="mb-1.5">Emergency Relationship</Label>
                       <Input
                         onChange={(event) =>
                           setEmergencyRelationship(event.target.value)

@@ -5,4 +5,8 @@
 
 import * as z from "zod";
 
-export const capValidationResultSchema = z.any();
+export const capValidationResultSchema = z.object({
+  is_valid: z.boolean(),
+  errors: z.optional(z.array(z.string())),
+  warnings: z.optional(z.array(z.string())),
+});

@@ -1,1 +1,18 @@
-{ "x-readme-ref-name": "RosterCsvImportResponse" }
+{
+  "properties": {
+    "job_id": { "type": "string", "format": "uuid", "title": "Job Id" },
+    "status": {
+      "type": "string",
+      "enum": ["PENDING", "VALIDATED", "COMPLETED", "FAILED"],
+      "title": "ImportStatus",
+      "x-readme-ref-name": "ImportStatus"
+    },
+    "total_rows": { "type": "integer", "title": "Total Rows" },
+    "valid_rows": { "type": "integer", "title": "Valid Rows" },
+    "invalid_rows": { "type": "integer", "title": "Invalid Rows" }
+  },
+  "type": "object",
+  "required": ["job_id", "status", "total_rows", "valid_rows", "invalid_rows"],
+  "title": "RosterCsvImportResponse",
+  "x-readme-ref-name": "RosterCsvImportResponse"
+}

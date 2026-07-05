@@ -1,7 +1,36 @@
 {
   "properties": {
     "data": {
-      "items": { "x-readme-ref-name": "PermissionPublic" },
+      "items": {
+        "properties": {
+          "key": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Key"
+          },
+          "action": { "type": "string", "title": "Action" },
+          "entity": { "type": "string", "title": "Entity" },
+          "access": { "type": "string", "title": "Access" },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "default": ""
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "created_at": { "type": "string", "title": "Created At" },
+          "updated_at": { "type": "string", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "entity",
+          "access",
+          "id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PermissionPublic",
+        "x-readme-ref-name": "PermissionPublic"
+      },
       "type": "array",
       "title": "Data"
     },

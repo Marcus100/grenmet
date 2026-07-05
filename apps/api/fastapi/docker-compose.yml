@@ -58,7 +58,7 @@ services:
       - SMTP_HOST=grenmet-mailcatcher
       - SMTP_PORT=1025
       - SMTP_TLS=false
-      - EMAILS_FROM_EMAIL=noreply@weather.gd
+      - EMAILS_FROM_EMAIL=noreply@barrels.gd
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
       - ./src:/app/src
@@ -68,6 +68,7 @@ services:
       - ./tests:/app/tests
       - ./alembic.ini:/app/alembic.ini
       - ./pyproject.toml:/app/pyproject.toml
+      - ./uv.lock:/app/uv.lock
     command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     develop:
       watch:

@@ -3,4 +3,68 @@
  * Do not edit manually.
  */
 
-export type ShiftSwapRequestPublic = any;
+import type { RequestStatus } from "./RequestStatus.js";
+import type { SwapType } from "./SwapType.js";
+
+/**
+ * ShiftSwapRequestPublic
+ */
+export type ShiftSwapRequestPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  requesting_user_id: string;
+  /**
+   * @type string, uuid
+   */
+  counterpart_user_id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string
+   */
+  swap_type: SwapType;
+  /**
+   * @type string, date
+   */
+  source_date: string;
+  /**
+   * @type string
+   */
+  source_shift_code: string;
+  /**
+   * @type string, date
+   */
+  target_date: string;
+  /**
+   * @type string
+   */
+  target_shift_code: string;
+  effective_date?: string | null;
+  restoration_date?: string | null;
+  reason?: string | null;
+  /**
+   * @type boolean
+   */
+  counterpart_agreed: boolean;
+  counterpart_agreed_at?: string | null;
+  /**
+   * @type string
+   */
+  status: RequestStatus;
+  workflow_instance_id?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

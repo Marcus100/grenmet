@@ -1,5 +1,4 @@
 import uuid
-from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import Field, field_validator, model_validator
@@ -16,7 +15,7 @@ from src.cap.models import (
     CapStatus,
     CapUrgency,
 )
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 
 class CapNameValue(BaseModel):
@@ -75,9 +74,9 @@ class CapInfoBase(BaseModel):
     severity: CapSeverity = CapSeverity.MODERATE
     certainty: CapCertainty = CapCertainty.LIKELY
     audience: str | None = Field(default=None, max_length=500)
-    effective: datetime | None = None
-    onset: datetime | None = None
-    expires: datetime | None = None
+    effective: UtcDateTime | None = None
+    onset: UtcDateTime | None = None
+    expires: UtcDateTime | None = None
     sender_name: str | None = Field(default=None, max_length=255)
     headline: str = Field(min_length=1, max_length=255)
     description: str = Field(min_length=1, max_length=4000)
@@ -112,7 +111,7 @@ class CapInfoPublic(CapInfoBase):
 class CapReferenceBase(BaseModel):
     sender: str = Field(min_length=1, max_length=255)
     identifier: str = Field(min_length=1, max_length=255)
-    sent: datetime
+    sent: UtcDateTime
 
 
 class CapReferenceCreate(CapReferenceBase):
@@ -127,7 +126,7 @@ class CapReferencePublic(CapReferenceBase):
 class CapAlertBase(BaseModel):
     identifier: str | None = Field(default=None, max_length=255)
     sender: str | None = Field(default=None, max_length=255)
-    sent: datetime | None = None
+    sent: UtcDateTime | None = None
     status: CapStatus = CapStatus.DRAFT
     msg_type: CapMessageType = CapMessageType.ALERT
     source: str | None = Field(default=None, max_length=255)
@@ -183,16 +182,16 @@ class CapFeedImportPublic(BaseModel):
     name: str
     url: str
     status: CapIntegrationStatus
-    last_checked_at: datetime | None = None
+    last_checked_at: UtcDateTime | None = None
     last_error: str | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class CapAlertUpdate(BaseModel):
     identifier: str | None = Field(default=None, max_length=255)
     sender: str | None = Field(default=None, max_length=255)
-    sent: datetime | None = None
+    sent: UtcDateTime | None = None
     status: CapStatus | None = None
     msg_type: CapMessageType | None = None
     source: str | None = Field(default=None, max_length=255)
@@ -210,7 +209,7 @@ class CapAlertPublic(BaseModel):
     id: uuid.UUID
     identifier: str
     sender: str
-    sent: datetime
+    sent: UtcDateTime
     status: CapStatus
     msg_type: CapMessageType
     source: str | None = None
@@ -222,12 +221,12 @@ class CapAlertPublic(BaseModel):
     lifecycle_state: CapLifecycleState
     created_by_user_id: uuid.UUID
     updated_by_user_id: uuid.UUID | None = None
-    submitted_at: datetime | None = None
-    approved_at: datetime | None = None
-    published_at: datetime | None = None
-    expired_at: datetime | None = None
-    created_at: datetime
-    updated_at: datetime
+    submitted_at: UtcDateTime | None = None
+    approved_at: UtcDateTime | None = None
+    published_at: UtcDateTime | None = None
+    expired_at: UtcDateTime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
     references: list[CapReferencePublic] = Field(default_factory=list)
     incidents: list[str] = Field(default_factory=list)
     info: list[CapInfoPublic] = Field(default_factory=list)
@@ -254,8 +253,8 @@ class CapSnapshotPublic(BaseModel):
     alert_id: uuid.UUID
     identifier: str
     content_hash: str
-    generated_at: datetime
-    signed_at: datetime | None = None
+    generated_at: UtcDateTime
+    signed_at: UtcDateTime | None = None
     signing_key_ref: str | None = None
 
 
@@ -274,8 +273,8 @@ class CapSettingsPublic(BaseModel):
     feed_limit: int
     signing_enabled: bool
     signing_certificate_ref: str | None = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class CapSettingsUpdate(BaseModel):
@@ -314,16 +313,16 @@ class CapPredefinedAreaCreate(BaseModel):
 
 class CapPredefinedAreaPublic(CapPredefinedAreaCreate):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class CapIntegrationPublic(BaseModel):
     id: uuid.UUID
     name: str
     status: CapIntegrationStatus
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class CapAuditEventPublic(BaseModel):
@@ -335,4 +334,4 @@ class CapAuditEventPublic(BaseModel):
     next_state: str | None = None
     note: str | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime
+    created_at: UtcDateTime

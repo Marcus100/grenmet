@@ -8,6 +8,7 @@ import type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
 /**
+ * TwoFactorStatusPublic
  * @description Successful Response
  */
 export type TwofaActivateApiV12FaActivatePost200 = TwoFactorStatusPublic;

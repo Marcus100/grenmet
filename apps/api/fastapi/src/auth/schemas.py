@@ -1,9 +1,8 @@
 import uuid
-from datetime import datetime
 
 from pydantic import EmailStr, Field
 
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import RoleAssignmentScope, Title, UserBase
 
@@ -52,9 +51,9 @@ class UpdatePassword(BaseModel):
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
-    last_login_at: datetime | None = None
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+    last_login_at: UtcDateTime | None = None
     full_name: str  # Computed field from first_name and last_name
 
 
@@ -80,8 +79,8 @@ class UserImageUpdate(BaseModel):
 
 class UserImagePublic(UserImageBase):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
     user_id: uuid.UUID
 
 
@@ -102,8 +101,8 @@ class RoleUpdate(BaseModel):
 
 class RolePublic(RoleBase):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class RolesPublic(BaseModel):
@@ -134,8 +133,8 @@ class PermissionUpdate(BaseModel):
 
 class PermissionPublic(PermissionBase):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class PermissionsPublic(BaseModel):
@@ -145,28 +144,28 @@ class PermissionsPublic(BaseModel):
 
 # Session schemas
 class SessionBase(BaseModel):
-    expires_at: datetime
+    expires_at: UtcDateTime
     client_type: str
     app_name: str | None = None
-    last_used_at: datetime
-    revoked_at: datetime | None = None
+    last_used_at: UtcDateTime
+    revoked_at: UtcDateTime | None = None
 
 
 class SessionCreate(BaseModel):
     user_id: uuid.UUID
     session_token: str
-    expires_at: datetime
+    expires_at: UtcDateTime
     client_type: str = Field(default="web", min_length=1, max_length=50)
     app_name: str | None = Field(default=None, max_length=100)
     user_agent: str | None = Field(default=None, max_length=500)
     ip_address: str | None = Field(default=None, max_length=64)
-    last_used_at: datetime | None = None
+    last_used_at: UtcDateTime | None = None
 
 
 class SessionPublic(SessionBase):
     id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
     user_id: uuid.UUID
 
 
@@ -205,8 +204,8 @@ class TwoFactorStatusPublic(BaseModel):
 class SessionAuthenticationBase(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    access_token_expires_at: datetime
-    session_expires_at: datetime
+    access_token_expires_at: UtcDateTime
+    session_expires_at: UtcDateTime
     session: SessionPublic
     user: UserPublic
 
@@ -229,7 +228,7 @@ class UserRoleAssignmentBase(BaseModel):
     role_id: uuid.UUID
     scope: RoleAssignmentScope = RoleAssignmentScope.SELF
     department_id: str | None = None
-    effective_to: datetime | None = None
+    effective_to: UtcDateTime | None = None
 
 
 class UserRoleAssignmentCreate(UserRoleAssignmentBase):
@@ -239,14 +238,14 @@ class UserRoleAssignmentCreate(UserRoleAssignmentBase):
 class UserRoleAssignmentUpdate(BaseModel):
     scope: RoleAssignmentScope | None = None
     department_id: str | None = None
-    effective_to: datetime | None = None
+    effective_to: UtcDateTime | None = None
 
 
 class UserRoleAssignmentPublic(UserRoleAssignmentBase):
     id: uuid.UUID
-    effective_from: datetime
-    created_at: datetime
-    updated_at: datetime
+    effective_from: UtcDateTime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
 
 
 class UserRoleAssignmentsPublic(BaseModel):

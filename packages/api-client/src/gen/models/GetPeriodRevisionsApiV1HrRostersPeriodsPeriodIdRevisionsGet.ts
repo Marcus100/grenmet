@@ -15,6 +15,7 @@ export type GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParam
   };
 
 /**
+ * RosterRevisionsPublic
  * @description Revisions returned
  */
 export type GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet200 =

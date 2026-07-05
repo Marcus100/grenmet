@@ -14,12 +14,13 @@ export type DeleteUserApiV1AuthUsersUserIdDeletePathParams = {
 };
 
 /**
+ * Message
  * @description User deleted
  */
 export type DeleteUserApiV1AuthUsersUserIdDelete200 = Message;
 
 /**
- * @description Superuser cannot delete own account
+ * @description Insufficient privileges or self-deletion
  */
 export type DeleteUserApiV1AuthUsersUserIdDelete403 = any;
 

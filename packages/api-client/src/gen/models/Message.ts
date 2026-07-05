@@ -3,4 +3,12 @@
  * Do not edit manually.
  */
 
-export type Message = any;
+/**
+ * Message
+ */
+export type Message = {
+  /**
+   * @type string
+   */
+  message: string;
+};

@@ -104,6 +104,39 @@ async def test_stub_kind_marked_skipped(db_async: AsyncSession) -> None:
     assert job.result is not None and job.result.get("skipped") is True
 
 
+async def _clear_backoff(session: AsyncSession, job: CapJobEvent) -> None:
+    """Make a FAILED job immediately retry-eligible (simulate elapsed backoff)."""
+    await session.refresh(job)
+    job.next_retry_at = None
+    session.add(job)
+    await session.commit()
+
+
+async def test_failed_job_backoff_gates_immediate_retry(
+    db_async: AsyncSession,
+) -> None:
+    """After a failure the job is scheduled for a future retry, so an immediate
+    re-poll does not pick it up again."""
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(503)
+
+    await _add_webhook(db_async, "https://example.test/hook")
+    job = await _add_job(db_async, "publish.webhooks")
+
+    async with _client(handler) as client:
+        await process_due_jobs(session=db_async, http_client=client, max_attempts=5)
+        # Immediate second pass: next_retry_at is in the future → skipped.
+        handled = await process_due_jobs(
+            session=db_async, http_client=client, max_attempts=5
+        )
+
+    assert handled == 0
+    await db_async.refresh(job)
+    assert job.attempts == 1
+    assert job.status == CapJobStatus.FAILED
+    assert job.next_retry_at is not None
+
+
 async def test_failed_job_retried_until_limit(db_async: AsyncSession) -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(503)
@@ -112,9 +145,11 @@ async def test_failed_job_retried_until_limit(db_async: AsyncSession) -> None:
     job = await _add_job(db_async, "publish.webhooks")
 
     async with _client(handler) as client:
-        # First pass marks it FAILED (attempts=1); second pass retries (attempts=2).
+        # First pass marks it FAILED (attempts=1); clear backoff and retry (attempts=2).
         await process_due_jobs(session=db_async, http_client=client, max_attempts=2)
+        await _clear_backoff(db_async, job)
         await process_due_jobs(session=db_async, http_client=client, max_attempts=2)
+        await _clear_backoff(db_async, job)
         # Now attempts == max_attempts, so it is no longer picked up.
         handled = await process_due_jobs(
             session=db_async, http_client=client, max_attempts=2
@@ -124,6 +159,45 @@ async def test_failed_job_retried_until_limit(db_async: AsyncSession) -> None:
     await db_async.refresh(job)
     assert job.attempts == 2
     assert job.status == CapJobStatus.FAILED
+
+
+async def test_webhook_retry_is_idempotent_per_hook(db_async: AsyncSession) -> None:
+    """A hook delivered on the first attempt is not re-POSTed on retry; only the
+    previously-failed hook is re-targeted."""
+    good_url = "https://good.test/hook"
+    bad_url = "https://bad.test/hook"
+    await _add_webhook(db_async, good_url)
+    await _add_webhook(db_async, bad_url)
+    job = await _add_job(db_async, "publish.webhooks")
+
+    first_calls: list[str] = []
+
+    def first_handler(request: httpx.Request) -> httpx.Response:
+        first_calls.append(str(request.url))
+        return httpx.Response(200 if str(request.url) == good_url else 500)
+
+    async with _client(first_handler) as client:
+        await process_due_jobs(session=db_async, http_client=client, max_attempts=5)
+
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.FAILED
+    assert set(first_calls) == {good_url, bad_url}
+
+    await _clear_backoff(db_async, job)
+    second_calls: list[str] = []
+
+    def second_handler(request: httpx.Request) -> httpx.Response:
+        second_calls.append(str(request.url))
+        return httpx.Response(200)
+
+    async with _client(second_handler) as client:
+        await process_due_jobs(session=db_async, http_client=client, max_attempts=5)
+
+    # The retry must only re-POST to the previously-failed hook.
+    assert second_calls == [bad_url]
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.SUCCEEDED
+    assert job.result is not None and job.result.get("count") == 2
 
 
 async def test_pdf_job_without_alert_id_fails(db_async: AsyncSession) -> None:

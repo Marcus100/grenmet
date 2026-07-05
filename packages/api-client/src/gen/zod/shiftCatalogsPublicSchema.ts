@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 
-export const shiftCatalogsPublicSchema = z.any();
+export const shiftCatalogsPublicSchema = z.object({
+  data: z.array(z.lazy(() => shiftCatalogPublicSchema)),
+  count: z.number().int(),
+});

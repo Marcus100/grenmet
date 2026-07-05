@@ -4,5 +4,19 @@
  */
 
 import * as z from "zod";
+import { timesheetStatusSchema } from "./timesheetStatusSchema.js";
 
-export const timesheetPublicSchema = z.any();
+export const timesheetPublicSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  department_id: z.string(),
+  period_start: z.string().date(),
+  period_end: z.string().date(),
+  status: z.lazy(() => timesheetStatusSchema),
+  submitted_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  approved_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  submitted_at: z.optional(z.union([z.string(), z.null()])),
+  approved_at: z.optional(z.union([z.string(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

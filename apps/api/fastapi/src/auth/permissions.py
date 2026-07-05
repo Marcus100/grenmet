@@ -29,6 +29,12 @@ class PermissionDef:
 # --- Permission catalog (grouped by domain) -------------------------------------
 
 PERMISSIONS: tuple[PermissionDef, ...] = (
+    # Accounts — delegated administration (superuser-only actions are enforced
+    # in routes: granting superuser, editing role/permission definitions)
+    PermissionDef(
+        "user.manage",
+        "Create, update, deactivate user accounts and assign domain roles",
+    ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
     # HR — roster
@@ -97,6 +103,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "parking.permit.create",
             "roster.view",
             "workflow.instance.view",
+            # Any staff member may be named a co-approver on a colleague's
+            # request; step-level named-user checks still restrict which steps
+            # they can actually act on.
+            "workflow.instance.action",
         ),
     ),
     "hr-supervisor": (
@@ -116,9 +126,26 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "workflow.instance.view",
         ),
     ),
+    "management": (
+        "Management: second-tier approval above the department supervisor",
+        (
+            "timesheet.approve",
+            "timesheet.read.department",
+            "leave.request.action",
+            "absentee.report.read.department",
+            "shift_swap.request.action",
+            "status.report.read",
+            "parking.permit.issue",
+            "parking.permit.read.department",
+            "roster.view",
+            "workflow.instance.action",
+            "workflow.instance.view",
+        ),
+    ),
     "hr-admin": (
         "HR administrator: full HR + workflow management",
         (
+            "user.manage",
             "hr.employment.manage",
             "roster.view",
             "roster.manage",

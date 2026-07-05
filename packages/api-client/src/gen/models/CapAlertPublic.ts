@@ -3,4 +3,88 @@
  * Do not edit manually.
  */
 
-export type CapAlertPublic = any;
+import type { CapInfoPublic } from "./CapInfoPublic.js";
+import type { CapLifecycleState } from "./CapLifecycleState.js";
+import type { CapMessageType } from "./CapMessageType.js";
+import type { CapReferencePublic } from "./CapReferencePublic.js";
+import type { CapScope } from "./CapScope.js";
+import type { CapStatus } from "./CapStatus.js";
+
+/**
+ * CapAlertPublic
+ */
+export type CapAlertPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  identifier: string;
+  /**
+   * @type string
+   */
+  sender: string;
+  /**
+   * @type string
+   */
+  sent: string;
+  /**
+   * @type string
+   */
+  status: CapStatus;
+  /**
+   * @type string
+   */
+  msg_type: CapMessageType;
+  source?: string | null;
+  /**
+   * @type string
+   */
+  scope: CapScope;
+  restriction?: string | null;
+  /**
+   * @type array | undefined
+   */
+  addresses?: string[];
+  /**
+   * @type array | undefined
+   */
+  codes?: string[];
+  note?: string | null;
+  /**
+   * @type string
+   */
+  lifecycle_state: CapLifecycleState;
+  /**
+   * @type string, uuid
+   */
+  created_by_user_id: string;
+  updated_by_user_id?: string | null;
+  submitted_at?: string | null;
+  approved_at?: string | null;
+  published_at?: string | null;
+  expired_at?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+  /**
+   * @type array | undefined
+   */
+  references?: CapReferencePublic[];
+  /**
+   * @type array | undefined
+   */
+  incidents?: string[];
+  /**
+   * @type array | undefined
+   */
+  info?: CapInfoPublic[];
+  xml_url?: string | null;
+};

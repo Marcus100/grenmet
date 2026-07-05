@@ -8,6 +8,7 @@ import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js
 import type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
 
 /**
+ * RosterCsvValidationResponse
  * @description Validation result returned
  */
 export type ValidateCsvApiV1HrRostersImportCsvValidatePost200 =

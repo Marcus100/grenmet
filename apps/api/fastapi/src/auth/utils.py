@@ -5,6 +5,7 @@ from typing import Any
 
 import bcrypt
 import jwt
+from fastapi.concurrency import run_in_threadpool
 
 from src.auth.config import auth_settings
 
@@ -47,3 +48,20 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         plain_password.encode("utf-8"),
         hashed_password.encode("utf-8"),
     )
+
+
+# Constant-time equalizer for the unknown-user login path: verifying a supplied
+# password against this hash costs the same as verifying against a real one, so
+# "no such user" and "wrong password" are indistinguishable by response timing.
+# Computed once at import; not a credential for any account.
+DUMMY_PASSWORD_HASH = get_password_hash(secrets.token_urlsafe(32))
+
+
+async def get_password_hash_async(password: str) -> str:
+    """Hash a password off the event loop (bcrypt is CPU-bound ~50-100ms)."""
+    return await run_in_threadpool(get_password_hash, password)
+
+
+async def verify_password_async(plain_password: str, hashed_password: str) -> bool:
+    """Verify a password off the event loop (bcrypt is CPU-bound ~50-100ms)."""
+    return await run_in_threadpool(verify_password, plain_password, hashed_password)

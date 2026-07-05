@@ -25,7 +25,7 @@ import type {
 
 export const readRolesApiV1AuthRolesGetSuspenseQueryKey = (
   params: ReadRolesApiV1AuthRolesGetQueryParams = {}
-) => [{ url: "/api/v1/auth/roles/" }, ...(params ? [params] : [])] as const;
+) => [{ url: "/api/v1/auth/roles" }, ...(params ? [params] : [])] as const;
 
 export type ReadRolesApiV1AuthRolesGetSuspenseQueryKey = ReturnType<
   typeof readRolesApiV1AuthRolesGetSuspenseQueryKey
@@ -55,7 +55,7 @@ export function readRolesApiV1AuthRolesGetSuspenseQueryOptions(
 /**
  * @description Return roles (superuser only).
  * @summary List roles
- * {@link /api/v1/auth/roles/}
+ * {@link /api/v1/auth/roles}
  */
 export function useReadRolesApiV1AuthRolesGetSuspense<
   TData = ReadRolesApiV1AuthRolesGetQueryResponse,

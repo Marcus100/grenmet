@@ -1,1 +1,10 @@
-{ "x-readme-ref-name": "TwoFactorSetupResponse" }
+{
+  "properties": {
+    "secret": { "type": "string", "title": "Secret" },
+    "provisioning_uri": { "type": "string", "title": "Provisioning Uri" }
+  },
+  "type": "object",
+  "required": ["secret", "provisioning_uri"],
+  "title": "TwoFactorSetupResponse",
+  "x-readme-ref-name": "TwoFactorSetupResponse"
+}

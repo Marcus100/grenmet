@@ -2,6 +2,7 @@ import csv
 import uuid
 from io import StringIO
 
+from sqlalchemy import tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
 
@@ -165,18 +166,31 @@ async def publish_roster_period(
     period.updated_at = utc_now()
     session.add(period)
     assign_result = await session.execute(
-        select(RosterAssignment).where(
-            col(RosterAssignment.roster_period_id) == period_id
-        )
+        select(RosterAssignment)
+        .where(col(RosterAssignment.roster_period_id) == period_id)
+        .order_by(col(RosterAssignment.assignment_date), col(RosterAssignment.user_id))
     )
-    assignment_count = len(list(assign_result.scalars().all()))
+    assignments = list(assign_result.scalars().all())
+    # The publish snapshot is the authoritative "signed" state of the roster;
+    # later write-throughs (leave, swaps, amendments) diff against it.
     await _create_revision(
         session=session,
         roster_period_id=period_id,
         action=RosterRevisionAction.PUBLISHED,
         changed_by_user_id=current_user.id,
-        summary=f"Published with {assignment_count} assignments",
-        snapshot={"assignment_count": assignment_count},
+        summary=f"Published with {len(assignments)} assignments",
+        snapshot={
+            "assignment_count": len(assignments),
+            "assignments": [
+                {
+                    "user_id": str(assignment.user_id),
+                    "assignment_date": assignment.assignment_date.isoformat(),
+                    "shift_code": assignment.shift_code,
+                    "remarks": assignment.remarks,
+                }
+                for assignment in assignments
+            ],
+        },
     )
     await session.commit()
     await session.refresh(period)
@@ -221,6 +235,26 @@ async def read_shift_catalog(
     return list(result.scalars().all())
 
 
+async def list_roster_periods(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str,
+    period_status: RosterPeriodStatus | None = None,
+) -> list[RosterPeriod]:
+    require_permission(current_user=current_user, permission_key="roster.view")
+    statement = (
+        select(RosterPeriod)
+        .where(col(RosterPeriod.department_id) == department_id)
+        .order_by(col(RosterPeriod.period_start).desc())
+        .limit(100)
+    )
+    if period_status is not None:
+        statement = statement.where(col(RosterPeriod.status) == period_status)
+    result = await session.execute(statement)
+    return list(result.scalars().all())
+
+
 async def create_roster_period(
     *, session: AsyncSession, current_user: User, period_in: RosterPeriodCreate
 ) -> RosterPeriod:
@@ -255,13 +289,18 @@ async def bulk_upsert_roster_assignments(
     if not payload.assignments:
         return []
 
-    # Replace existing rows for the provided users+dates with fresh rows.
-    for assignment in payload.assignments:
-        statement = delete(RosterAssignment).where(
-            col(RosterAssignment.user_id) == assignment.user_id,
-            col(RosterAssignment.assignment_date) == assignment.assignment_date,
+    # Replace existing rows for the provided users+dates with fresh rows. Clear the
+    # whole set in one DELETE (tuple IN) instead of a query per assignment.
+    pairs = [(a.user_id, a.assignment_date) for a in payload.assignments]
+    await session.execute(
+        delete(RosterAssignment).where(
+            tuple_(
+                col(RosterAssignment.user_id),
+                col(RosterAssignment.assignment_date),
+            ).in_(pairs)
         )
-        await session.execute(statement)
+    )
+    for assignment in payload.assignments:
         session.add(
             RosterAssignment(
                 roster_period_id=payload.roster_period_id,

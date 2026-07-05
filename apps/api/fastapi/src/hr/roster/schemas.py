@@ -1,9 +1,9 @@
 import uuid
-from datetime import date, datetime
+from datetime import date
 
 from pydantic import Field
 
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 from .models import (
     ImportStatus,
@@ -19,6 +19,7 @@ class ShiftCatalogPublic(BaseModel):
     category: ShiftCategory
     start_time: str | None = None
     end_time: str | None = None
+    ends_next_day: bool
     counts_as_work_hours: bool
     needs_reason: bool
     needs_approval: bool
@@ -43,8 +44,13 @@ class RosterPeriodPublic(BaseModel):
     period_end: date
     status: RosterPeriodStatus
     created_by_user_id: uuid.UUID
-    created_at: datetime
-    updated_at: datetime
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class RosterPeriodsPublic(BaseModel):
+    data: list[RosterPeriodPublic]
+    count: int
 
 
 class RosterAssignmentInput(BaseModel):
@@ -118,7 +124,7 @@ class PublicHolidayPublic(BaseModel):
     is_recurring: bool
     country_code: str
     created_by_user_id: uuid.UUID
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 class PublicHolidaysPublic(BaseModel):
@@ -137,7 +143,7 @@ class RosterRevisionPublic(BaseModel):
     changed_by_user_id: uuid.UUID
     summary: str | None = None
     snapshot: dict[str, object]
-    created_at: datetime
+    created_at: UtcDateTime
 
 
 class RosterRevisionsPublic(BaseModel):

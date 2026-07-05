@@ -4,5 +4,12 @@
  */
 
 import * as z from "zod";
+import { shiftHoursSummarySchema } from "./shiftHoursSummarySchema.js";
 
-export const timesheetSummaryByShiftSchema = z.any();
+export const timesheetSummaryByShiftSchema = z.object({
+  timesheet_id: z.string().uuid(),
+  shifts: z.array(z.lazy(() => shiftHoursSummarySchema)),
+  grand_total_roster: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  grand_total_actual: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  grand_total_overtime: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+});

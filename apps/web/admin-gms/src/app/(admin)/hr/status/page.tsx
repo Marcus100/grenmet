@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DailyStatusEditor } from "@/components/hr/status/daily-status-editor";
+import { StatusSubmissions } from "@/components/hr/status/status-submissions";
 
 export const metadata: Metadata = {
   title: "Daily Airport Status",
@@ -18,6 +19,7 @@ export default function DailyStatusPage() {
         </p>
       </div>
       <DailyStatusEditor />
+      <StatusSubmissions />
     </div>
   );
 }

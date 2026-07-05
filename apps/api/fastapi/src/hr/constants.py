@@ -14,6 +14,10 @@ ERROR_SUPERVISOR_CAN_ONLY_MANAGE_DEPARTMENT = (
     "Supervisors can update only users in their department"
 )
 
+ERROR_DEPARTMENT_NOT_FOUND = "Department not found"
+ERROR_DEPARTMENT_ALREADY_EXISTS = "A department with this id or name already exists"
+ERROR_EMPLOYMENT_ALREADY_EXISTS = "An employment record already exists for this user"
+
 # --- Roster (hr/roster/service.py) ---
 ERROR_ROSTER_PERIOD_END_BEFORE_START = "period_end must be after period_start"
 ERROR_ROSTER_PERIOD_NOT_FOUND = "Roster period not found"
@@ -55,13 +59,25 @@ ERROR_TIMESHEET_READ_NOT_ALLOWED = "Not allowed to read this timesheet"
 # --- Leave / Absentee / Exchange / Daily Status ---
 ERROR_LEAVE_REQUEST_NOT_FOUND = "Leave request not found"
 ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED = "Not allowed to action this leave request"
+ERROR_LEAVE_REQUEST_NOT_DRAFT = "Only a draft leave request can be submitted"
 ERROR_SHIFT_SWAP_NOT_FOUND = "Shift swap request not found"
 ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED = "Not allowed to action this shift swap"
+ERROR_SHIFT_SWAP_NOT_DRAFT = "Only a draft shift swap request can be submitted"
 ERROR_STATUS_REPORT_NOT_FOUND = "Status report not found"
+ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED = "Not allowed to submit this status report"
+ERROR_STATUS_REPORT_NOT_DRAFT = "Only a draft status report can be submitted"
 ERROR_ABSENTEE_REPORT_NOT_FOUND = "Absentee report not found"
+ERROR_ABSENTEE_REPORT_ACTION_NOT_ALLOWED = "Not allowed to submit this absentee report"
+ERROR_ABSENTEE_REPORT_NOT_DRAFT = "Only a draft absentee report can be submitted"
+ERROR_ABSENTEE_FILE_FOR_USER_NOT_ALLOWED = (
+    "Not allowed to file an absentee report for this user"
+)
 
 # --- Parking (hr/parking/service.py) ---
 ERROR_PARKING_PERMIT_NOT_FOUND = "Parking permit not found"
+ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED = (
+    "Not allowed to file a parking permit application for this user"
+)
 ERROR_ABSENTEE_REASON_REQUIRES_NOTES = (
     "A written reason is required for uncertified sick or illness on the job"
 )

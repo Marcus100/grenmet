@@ -1,1 +1,31 @@
-{ "x-readme-ref-name": "PublicHolidayPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "name": { "type": "string", "title": "Name" },
+    "holiday_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Holiday Date"
+    },
+    "is_recurring": { "type": "boolean", "title": "Is Recurring" },
+    "country_code": { "type": "string", "title": "Country Code" },
+    "created_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Created By User Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "holiday_date",
+    "is_recurring",
+    "country_code",
+    "created_by_user_id",
+    "created_at"
+  ],
+  "title": "PublicHolidayPublic",
+  "x-readme-ref-name": "PublicHolidayPublic"
+}

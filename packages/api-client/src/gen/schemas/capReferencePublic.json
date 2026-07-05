@@ -1,0 +1,23 @@
+{
+  "properties": {
+    "sender": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Sender"
+    },
+    "identifier": {
+      "type": "string",
+      "maxLength": 255,
+      "minLength": 1,
+      "title": "Identifier"
+    },
+    "sent": { "type": "string", "title": "Sent" },
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "sequence": { "type": "integer", "title": "Sequence" }
+  },
+  "type": "object",
+  "required": ["sender", "identifier", "sent", "id", "sequence"],
+  "title": "CapReferencePublic",
+  "x-readme-ref-name": "CapReferencePublic"
+}

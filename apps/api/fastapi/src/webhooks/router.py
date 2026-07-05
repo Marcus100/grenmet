@@ -23,6 +23,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from src.config import settings
 from src.email_config import email_settings
 
 logger = logging.getLogger(__name__)
@@ -70,11 +71,12 @@ def _verify_svix_signature(
         hmac.new(raw_key, to_sign.encode(), hashlib.sha256).digest()
     ).decode()
 
-    # 5. Compare against each signature in the header (space-separated "v1,<sig>" pairs).
+    # 5. Compare against each signature in the header (space-separated "v1,<sig>" pairs)
+    #    using a constant-time comparison to avoid leaking the signature by timing.
     provided_sigs = [
         part.split(",", 1)[1] for part in svix_signature.split(" ") if "," in part
     ]
-    return computed in provided_sigs
+    return any(hmac.compare_digest(computed, sig) for sig in provided_sigs)
 
 
 @router.post(
@@ -111,9 +113,21 @@ async def resend_webhook(request: Request) -> JSONResponse:
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid webhook signature",
             )
-    else:
+    elif settings.ENVIRONMENT == "local":
         logger.warning(
-            "RESEND_WEBHOOK_SECRET not set — accepting webhook without verification"
+            "RESEND_WEBHOOK_SECRET not set — accepting webhook without verification "
+            "(local only)"
+        )
+    else:
+        # Fail closed outside local: an unset secret must never allow forged
+        # delivery/bounce events to be accepted in staging/production.
+        logger.error(
+            "RESEND_WEBHOOK_SECRET not set — rejecting webhook in %s",
+            settings.ENVIRONMENT,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Webhook verification is not configured",
         )
 
     # ── Parse event ────────────────────────────────────────────────────────

@@ -14,6 +14,7 @@ export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams = {
 };
 
 /**
+ * RosterPeriodPublic
  * @description Roster period closed
  */
 export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch200 =

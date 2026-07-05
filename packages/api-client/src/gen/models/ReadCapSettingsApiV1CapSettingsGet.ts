@@ -6,6 +6,7 @@
 import type { CapSettingsPublic } from "./CapSettingsPublic.js";
 
 /**
+ * CapSettingsPublic
  * @description Successful Response
  */
 export type ReadCapSettingsApiV1CapSettingsGet200 = CapSettingsPublic;

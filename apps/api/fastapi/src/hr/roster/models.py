@@ -37,6 +37,9 @@ class ShiftCatalog(SQLModel, table=True):
     category: ShiftCategory
     start_time: str | None = Field(default=None, max_length=5)
     end_time: str | None = Field(default=None, max_length=5)
+    # A shift whose end_time falls on the day after assignment_date (e.g. the
+    # night shift N, 22:30-06:00). Explicit flag, never inferred from times.
+    ends_next_day: bool = False
     counts_as_work_hours: bool = True
     needs_reason: bool = False
     needs_approval: bool = False

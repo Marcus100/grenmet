@@ -6,6 +6,7 @@
 import type { CapAlertListPublic } from "./CapAlertListPublic.js";
 
 /**
+ * CapAlertListPublic
  * @description Successful Response
  */
 export type ReadPublicAlertsApiCapAlertsGet200 = CapAlertListPublic;

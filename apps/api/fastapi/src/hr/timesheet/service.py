@@ -4,7 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
+from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -136,8 +136,8 @@ async def create_timesheet(
         session.add(db_entry)
         entries.append(db_entry)
     await session.commit()
-    for created_entry in entries:
-        await session.refresh(created_entry)
+    # No per-row refresh: id/created_at/updated_at are Python-side default_factory
+    # values, already populated, and expire_on_commit=False keeps them after commit.
     return timesheet, entries
 
 
@@ -233,30 +233,33 @@ async def approve_timesheet(
 
 
 async def list_my_timesheets(
-    *, session: AsyncSession, current_user: User
-) -> list[Timesheet]:
+    *, session: AsyncSession, current_user: User, skip: int = 0, limit: int = 100
+) -> tuple[list[Timesheet], int]:
+    base = select(Timesheet).where(col(Timesheet.user_id) == current_user.id)
+    total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        select(Timesheet)
-        .where(col(Timesheet.user_id) == current_user.id)
-        .order_by(col(Timesheet.created_at).desc())
-        .limit(100)
+        base.order_by(col(Timesheet.created_at).desc()).offset(skip).limit(limit)
     )
-    return list(result.scalars().all())
+    return list(result.scalars().all()), total or 0
 
 
 async def list_department_timesheets(
-    *, session: AsyncSession, current_user: User, department_id: str
-) -> list[Timesheet]:
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str,
+    skip: int = 0,
+    limit: int = 100,
+) -> tuple[list[Timesheet], int]:
     require_permission(
         current_user=current_user, permission_key="timesheet.read.department"
     )
+    base = select(Timesheet).where(col(Timesheet.department_id) == department_id)
+    total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        select(Timesheet)
-        .where(col(Timesheet.department_id) == department_id)
-        .order_by(col(Timesheet.created_at).desc())
-        .limit(100)
+        base.order_by(col(Timesheet.created_at).desc()).offset(skip).limit(limit)
     )
-    return list(result.scalars().all())
+    return list(result.scalars().all()), total or 0
 
 
 async def read_timesheet_details(

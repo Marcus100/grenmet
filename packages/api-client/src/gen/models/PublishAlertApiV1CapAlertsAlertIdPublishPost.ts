@@ -15,6 +15,7 @@ export type PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams = {
 };
 
 /**
+ * CapPublishPublic
  * @description Successful Response
  */
 export type PublishAlertApiV1CapAlertsAlertIdPublishPost200 = CapPublishPublic;

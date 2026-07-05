@@ -39,4 +39,6 @@ export const leaveRequestCreateSchema = z.object({
   requires_acting_appointment: z.optional(z.boolean().default(false)),
   acting_officer_id: z.optional(z.union([z.string().uuid(), z.null()])),
   expected_return_date: z.optional(z.union([z.string().date(), z.null()])),
+  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  as_draft: z.optional(z.boolean().default(false)),
 });

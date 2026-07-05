@@ -16,6 +16,7 @@ export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams =
   };
 
 /**
+ * ParkingPermitPublic
  * @description Decal issued
  */
 export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200 =

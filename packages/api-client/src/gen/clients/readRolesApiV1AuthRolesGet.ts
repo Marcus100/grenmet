@@ -16,14 +16,14 @@ import type {
 } from "../models/ReadRolesApiV1AuthRolesGet.js";
 
 function getReadRolesApiV1AuthRolesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/roles/` as const };
+  const res = { method: "GET", url: `/api/v1/auth/roles` as const };
   return res;
 }
 
 /**
  * @description Return roles (superuser only).
  * @summary List roles
- * {@link /api/v1/auth/roles/}
+ * {@link /api/v1/auth/roles}
  */
 export async function readRolesApiV1AuthRolesGet(
   params?: ReadRolesApiV1AuthRolesGetQueryParams,

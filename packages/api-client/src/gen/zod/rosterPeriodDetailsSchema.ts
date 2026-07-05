@@ -4,5 +4,10 @@
  */
 
 import * as z from "zod";
+import { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
+import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
-export const rosterPeriodDetailsSchema = z.any();
+export const rosterPeriodDetailsSchema = z.object({
+  period: z.lazy(() => rosterPeriodPublicSchema),
+  assignments: z.array(z.lazy(() => rosterAssignmentPublicSchema)),
+});

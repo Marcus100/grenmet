@@ -4,5 +4,15 @@
  */
 
 import * as z from "zod";
+import { rosterPeriodStatusSchema } from "./rosterPeriodStatusSchema.js";
 
-export const rosterPeriodPublicSchema = z.any();
+export const rosterPeriodPublicSchema = z.object({
+  id: z.string().uuid(),
+  department_id: z.string(),
+  period_start: z.string().date(),
+  period_end: z.string().date(),
+  status: z.lazy(() => rosterPeriodStatusSchema),
+  created_by_user_id: z.string().uuid(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

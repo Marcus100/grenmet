@@ -4,5 +4,11 @@
  */
 
 import * as z from "zod";
+import { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 
-export const parkingPermitListPublicSchema = z.any();
+export const parkingPermitListPublicSchema = z.object({
+  data: z.array(z.lazy(() => parkingPermitPublicSchema)),
+  count: z.number().int(),
+  page: z.optional(z.number().int().default(1)),
+  size: z.optional(z.number().int().default(100)),
+});

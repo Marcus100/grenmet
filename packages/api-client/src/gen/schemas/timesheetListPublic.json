@@ -1,1 +1,75 @@
-{ "x-readme-ref-name": "TimesheetListPublic" }
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "department_id": { "type": "string", "title": "Department Id" },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED"],
+            "title": "TimesheetStatus",
+            "x-readme-ref-name": "TimesheetStatus"
+          },
+          "submitted_by_user_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Submitted By User Id"
+          },
+          "approved_by_user_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Approved By User Id"
+          },
+          "submitted_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Submitted At"
+          },
+          "approved_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Approved At"
+          },
+          "created_at": { "type": "string", "title": "Created At" },
+          "updated_at": { "type": "string", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "department_id",
+          "period_start",
+          "period_end",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "TimesheetPublic",
+        "x-readme-ref-name": "TimesheetPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" },
+    "page": { "type": "integer", "title": "Page", "default": 1 },
+    "size": { "type": "integer", "title": "Size", "default": 100 }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "TimesheetListPublic",
+  "x-readme-ref-name": "TimesheetListPublic"
+}

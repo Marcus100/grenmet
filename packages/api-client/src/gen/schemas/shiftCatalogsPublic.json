@@ -1,1 +1,54 @@
-{ "x-readme-ref-name": "ShiftCatalogsPublic" }
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "code": { "type": "string", "title": "Code" },
+          "label": { "type": "string", "title": "Label" },
+          "category": {
+            "type": "string",
+            "enum": ["WORK", "OFF", "LEAVE", "HOLIDAY"],
+            "title": "ShiftCategory",
+            "x-readme-ref-name": "ShiftCategory"
+          },
+          "start_time": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "End Time"
+          },
+          "ends_next_day": { "type": "boolean", "title": "Ends Next Day" },
+          "counts_as_work_hours": {
+            "type": "boolean",
+            "title": "Counts As Work Hours"
+          },
+          "needs_reason": { "type": "boolean", "title": "Needs Reason" },
+          "needs_approval": { "type": "boolean", "title": "Needs Approval" },
+          "is_active": { "type": "boolean", "title": "Is Active" }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "category",
+          "ends_next_day",
+          "counts_as_work_hours",
+          "needs_reason",
+          "needs_approval",
+          "is_active"
+        ],
+        "title": "ShiftCatalogPublic",
+        "x-readme-ref-name": "ShiftCatalogPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "ShiftCatalogsPublic",
+  "x-readme-ref-name": "ShiftCatalogsPublic"
+}

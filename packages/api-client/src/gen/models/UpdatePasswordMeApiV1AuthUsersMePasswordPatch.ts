@@ -8,6 +8,7 @@ import type { Message } from "./Message.js";
 import type { UpdatePassword } from "./UpdatePassword.js";
 
 /**
+ * Message
  * @description Password updated
  */
 export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch200 = Message;

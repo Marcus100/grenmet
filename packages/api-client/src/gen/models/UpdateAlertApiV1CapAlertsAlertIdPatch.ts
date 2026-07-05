@@ -15,6 +15,7 @@ export type UpdateAlertApiV1CapAlertsAlertIdPatchPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type UpdateAlertApiV1CapAlertsAlertIdPatch200 = CapAlertPublic;

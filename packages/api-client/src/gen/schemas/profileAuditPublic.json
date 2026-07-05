@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "created_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Created At"
+    },
+    "created_by": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Created By"
+    },
+    "updated_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Updated At"
+    }
+  },
+  "type": "object",
+  "title": "ProfileAuditPublic",
+  "x-readme-ref-name": "ProfileAuditPublic"
+}

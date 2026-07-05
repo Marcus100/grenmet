@@ -7,11 +7,11 @@
     },
     "department_id": { "type": "string", "title": "Department Id" },
     "swap_type": {
-      "default": "TEMPORARY",
       "type": "string",
       "enum": ["TEMPORARY", "PERMANENT"],
       "title": "SwapType",
-      "x-readme-ref-name": "SwapType"
+      "x-readme-ref-name": "SwapType",
+      "default": "TEMPORARY"
     },
     "source_date": {
       "type": "string",
@@ -36,7 +36,13 @@
     "reason": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Reason"
-    }
+    },
+    "co_approver_user_ids": {
+      "items": { "type": "string", "format": "uuid" },
+      "type": "array",
+      "title": "Co Approver User Ids"
+    },
+    "as_draft": { "type": "boolean", "title": "As Draft", "default": false }
   },
   "type": "object",
   "required": [

@@ -1,0 +1,37 @@
+{
+  "name": "grenmet-agents",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Mount your repo into the container at /workspace. Files edited by the
+  // agent inside the container are the same files on your host copy.
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  // Named volumes so Claude/Codex logins persist across rebuilds — log in once.
+  "mounts": [
+    "source=grenmet-claude-config,target=/home/node/.claude,type=volume",
+    "source=grenmet-codex-config,target=/home/node/.codex,type=volume",
+    "source=grenmet-config,target=/home/node/.config,type=volume",
+    "source=grenmet-cache,target=/home/node/.cache,type=volume"
+  ],
+
+  // No appPort: the app stack (Docker infra via `pnpm start` and the web dev
+  // servers via `pnpm dev:web:*`) runs on the HOST, which owns ports 3000-3004,
+  // 4000, 8000 directly. This container is only for the agent (editing, type-check,
+  // tests), so publishing those ports here would collide with the host stack.
+
+  "remoteUser": "node",
+
+  // Claude's login/trust state lives in .claude.json. By default that file sits
+  // in the home root (outside any volume) and is wiped on every rebuild, forcing
+  // re-login. Pointing CLAUDE_CONFIG_DIR at the persisted .claude volume keeps
+  // .claude.json next to .credentials.json inside that volume, so logins stick.
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+  },
+
+  // On create: install workspace deps, then print every tool's version.
+  "postCreateCommand": "pnpm install && node -v && pnpm -v && uv --version && claude --version && codex --version"
+}

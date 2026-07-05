@@ -67,6 +67,11 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# pnpm content-addressable store — lands in-repo inside the devcontainer
+# (bind-mount is on a different fs than container home, so pnpm co-locates
+# the store here for hardlinking). Never commit it.
+.pnpm-store/
+
 # Package manager locks (choose one per project)
 # package-lock.json
 # yarn.lock
@@ -150,6 +155,9 @@ artifacts/
 # Turborepo
 .turbo/*
 !.turbo/config.json
+
+# Agent local settings — per-machine overrides, never commit
+.claude/settings.local.json
 
 
 next-shadcn-admin-dashboard-baseui/

@@ -94,7 +94,16 @@ class WorkflowStepInstance(SQLModel, table=True):
         foreign_key="hr.workflow_instance.id", index=True
     )
     step_order: int = Field(ge=1)
-    required_role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
+    # A step is gated on EITHER a role (role-based approval tier, from a template)
+    # OR a named individual (required_user_id — a per-submission co-approver).
+    # Exactly one is set. Multiple required steps may share a step_order to model
+    # an "all of N must approve" parallel gate.
+    required_role_id: uuid.UUID | None = Field(
+        default=None, foreign_key="role.id", index=True
+    )
+    required_user_id: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", index=True
+    )
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     is_required: bool = True
     approver_user_id: uuid.UUID | None = Field(

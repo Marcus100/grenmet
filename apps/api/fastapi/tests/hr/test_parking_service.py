@@ -77,9 +77,10 @@ async def test_list_department_filter_requires_permission(
             session=db_async, current_user=user, department_id=dept.id
         )
 
-    # Own-only listing requires no permission and returns a list.
-    own = await list_parking_permits(session=db_async, current_user=user)
+    # Own-only listing requires no permission and returns (rows, total).
+    own, total = await list_parking_permits(session=db_async, current_user=user)
     assert own == []
+    assert total == 0
 
 
 async def test_issue_decal_sets_fields(db_async: AsyncSession) -> None:

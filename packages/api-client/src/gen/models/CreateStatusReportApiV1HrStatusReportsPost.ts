@@ -13,6 +13,7 @@ import type { StatusReportDetails } from "./StatusReportDetails.js";
 export type CreateStatusReportApiV1HrStatusReportsPost200 = any;
 
 /**
+ * StatusReportDetails
  * @description Successful Response
  */
 export type CreateStatusReportApiV1HrStatusReportsPost201 = StatusReportDetails;
