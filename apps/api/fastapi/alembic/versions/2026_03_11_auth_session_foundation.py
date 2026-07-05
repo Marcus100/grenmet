@@ -7,10 +7,10 @@ Create Date: 2026-03-11
 Adds persisted-session lifecycle metadata needed for opaque web sessions.
 """
 
-from alembic import op
 import sqlalchemy as sa
 import sqlmodel
 
+from alembic import op
 
 revision = "8f2cc7b3e0f1"
 down_revision = "c7e2f4a1b9d3"

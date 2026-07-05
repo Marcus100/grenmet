@@ -13,6 +13,7 @@ import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 export type CreateLeaveRequestApiV1HrLeaveRequestsPost200 = any;
 
 /**
+ * LeaveRequestPublic
  * @description Successful Response
  */
 export type CreateLeaveRequestApiV1HrLeaveRequestsPost201 = LeaveRequestPublic;

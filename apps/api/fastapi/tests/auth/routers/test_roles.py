@@ -13,7 +13,7 @@ async def test_get_roles(
 ) -> None:
     """Test getting all roles."""
     response = await async_client.get(
-        f"{settings.API_V1_STR}/auth/roles/",
+        f"{settings.API_V1_STR}/auth/roles",
         headers=superuser_token_headers_async,
     )
     assert response.status_code == 200
@@ -35,7 +35,7 @@ async def test_create_role(
         "description": "Test role for testing",
     }
     response = await async_client.post(
-        f"{settings.API_V1_STR}/auth/roles/",
+        f"{settings.API_V1_STR}/auth/roles",
         headers=superuser_token_headers_async,
         json=data,
     )
@@ -56,7 +56,7 @@ async def test_get_role(
         "description": "Test role for testing",
     }
     create_response = await async_client.post(
-        f"{settings.API_V1_STR}/auth/roles/",
+        f"{settings.API_V1_STR}/auth/roles",
         headers=superuser_token_headers_async,
         json=data,
     )

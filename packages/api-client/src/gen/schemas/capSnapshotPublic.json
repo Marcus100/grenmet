@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "alert_id": { "type": "string", "format": "uuid", "title": "Alert Id" },
+    "identifier": { "type": "string", "title": "Identifier" },
+    "content_hash": { "type": "string", "title": "Content Hash" },
+    "generated_at": { "type": "string", "title": "Generated At" },
+    "signed_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Signed At"
+    },
+    "signing_key_ref": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Signing Key Ref"
+    }
+  },
+  "type": "object",
+  "required": ["id", "alert_id", "identifier", "content_hash", "generated_at"],
+  "title": "CapSnapshotPublic",
+  "x-readme-ref-name": "CapSnapshotPublic"
+}

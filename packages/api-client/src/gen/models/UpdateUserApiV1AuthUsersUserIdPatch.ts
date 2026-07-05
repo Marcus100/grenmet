@@ -21,6 +21,11 @@ export type UpdateUserApiV1AuthUsersUserIdPatchPathParams = {
 export type UpdateUserApiV1AuthUsersUserIdPatch200 = UserPublic;
 
 /**
+ * @description Insufficient privileges
+ */
+export type UpdateUserApiV1AuthUsersUserIdPatch403 = any;
+
+/**
  * @description User not found
  */
 export type UpdateUserApiV1AuthUsersUserIdPatch404 = any;
@@ -49,6 +54,7 @@ export type UpdateUserApiV1AuthUsersUserIdPatchMutation = {
   Request: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
   PathParams: UpdateUserApiV1AuthUsersUserIdPatchPathParams;
   Errors:
+    | UpdateUserApiV1AuthUsersUserIdPatch403
     | UpdateUserApiV1AuthUsersUserIdPatch404
     | UpdateUserApiV1AuthUsersUserIdPatch409
     | UpdateUserApiV1AuthUsersUserIdPatch422;

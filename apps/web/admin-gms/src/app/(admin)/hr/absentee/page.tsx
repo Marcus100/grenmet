@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AbsenteeEditor } from "@/components/hr/absentee/absentee-editor";
+import { AbsenteeSubmissions } from "@/components/hr/absentee/absentee-submissions";
 
 export const metadata: Metadata = {
   title: "Absentee Report",
@@ -18,6 +19,7 @@ export default function AbsenteePage() {
         </p>
       </div>
       <AbsenteeEditor />
+      <AbsenteeSubmissions />
     </div>
   );
 }

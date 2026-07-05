@@ -5,4 +5,14 @@
 
 import * as z from "zod";
 
-export const capCatalogsPublicSchema = z.any();
+export const capCatalogsPublicSchema = z.object({
+  categories: z.array(z.string()),
+  response_types: z.array(z.string()),
+  urgencies: z.array(z.string()),
+  severities: z.array(z.string()),
+  certainties: z.array(z.string()),
+  statuses: z.array(z.string()),
+  message_types: z.array(z.string()),
+  scopes: z.array(z.string()),
+  languages: z.array(z.string()),
+});

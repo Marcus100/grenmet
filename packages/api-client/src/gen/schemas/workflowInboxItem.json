@@ -1,0 +1,53 @@
+{
+  "properties": {
+    "instance_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Instance Id"
+    },
+    "workflow_type": {
+      "type": "string",
+      "enum": [
+        "LEAVE_REQUEST",
+        "SHIFT_SWAP",
+        "ABSENTEE_REPORT",
+        "STATUS_REPORT",
+        "TIMESHEET",
+        "PARKING_PERMIT"
+      ],
+      "title": "WorkflowType",
+      "x-readme-ref-name": "WorkflowType"
+    },
+    "entity_type": { "type": "string", "title": "Entity Type" },
+    "entity_id": { "type": "string", "format": "uuid", "title": "Entity Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "requested_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Requested By User Id"
+    },
+    "requester_name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Requester Name"
+    },
+    "submitted_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Submitted At"
+    },
+    "current_step_order": { "type": "integer", "title": "Current Step Order" },
+    "step_is_named": { "type": "boolean", "title": "Step Is Named" }
+  },
+  "type": "object",
+  "required": [
+    "instance_id",
+    "workflow_type",
+    "entity_type",
+    "entity_id",
+    "department_id",
+    "requested_by_user_id",
+    "current_step_order",
+    "step_is_named"
+  ],
+  "title": "WorkflowInboxItem",
+  "x-readme-ref-name": "WorkflowInboxItem"
+}

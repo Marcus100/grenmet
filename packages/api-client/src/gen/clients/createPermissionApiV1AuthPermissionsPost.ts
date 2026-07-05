@@ -16,14 +16,14 @@ import type {
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
 
 function getCreatePermissionApiV1AuthPermissionsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/permissions/` as const };
+  const res = { method: "POST", url: `/api/v1/auth/permissions` as const };
   return res;
 }
 
 /**
  * @description Create a permission (superuser only).
  * @summary Create permission
- * {@link /api/v1/auth/permissions/}
+ * {@link /api/v1/auth/permissions}
  */
 export async function createPermissionApiV1AuthPermissionsPost(
   data: CreatePermissionApiV1AuthPermissionsPostMutationRequest,

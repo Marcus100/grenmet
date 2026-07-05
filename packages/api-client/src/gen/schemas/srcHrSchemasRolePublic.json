@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "name": { "type": "string", "title": "Name" },
+    "scope": {
+      "type": "string",
+      "enum": ["SELF", "DEPARTMENT", "ALL"],
+      "title": "RoleAssignmentScope",
+      "x-readme-ref-name": "RoleAssignmentScope"
+    }
+  },
+  "type": "object",
+  "required": ["name", "scope"],
+  "title": "RolePublic",
+  "x-readme-ref-name": "src__hr__schemas__RolePublic"
+}

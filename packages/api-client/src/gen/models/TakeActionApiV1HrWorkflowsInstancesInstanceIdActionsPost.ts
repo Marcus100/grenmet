@@ -16,6 +16,7 @@ export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams =
   };
 
 /**
+ * WorkflowInstancePublic
  * @description Action applied
  */
 export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200 =

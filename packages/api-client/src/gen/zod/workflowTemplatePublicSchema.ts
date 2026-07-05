@@ -4,5 +4,14 @@
  */
 
 import * as z from "zod";
+import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
-export const workflowTemplatePublicSchema = z.any();
+export const workflowTemplatePublicSchema = z.object({
+  id: z.string().uuid(),
+  department_id: z.string(),
+  workflow_type: z.lazy(() => workflowTypeSchema),
+  name: z.string(),
+  is_active: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

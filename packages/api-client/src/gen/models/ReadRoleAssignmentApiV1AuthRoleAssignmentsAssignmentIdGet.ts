@@ -15,6 +15,7 @@ export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams 
   };
 
 /**
+ * UserRoleAssignmentPublic
  * @description Role assignment returned
  */
 export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200 =

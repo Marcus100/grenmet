@@ -3,4 +3,16 @@
  * Do not edit manually.
  */
 
-export type TwoFactorSetupResponse = any;
+/**
+ * TwoFactorSetupResponse
+ */
+export type TwoFactorSetupResponse = {
+  /**
+   * @type string
+   */
+  secret: string;
+  /**
+   * @type string
+   */
+  provisioning_uri: string;
+};

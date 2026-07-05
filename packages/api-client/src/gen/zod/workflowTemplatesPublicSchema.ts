@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
 
-export const workflowTemplatesPublicSchema = z.any();
+export const workflowTemplatesPublicSchema = z.object({
+  data: z.array(z.lazy(() => workflowTemplatePublicSchema)),
+  count: z.number().int(),
+});

@@ -3,4 +3,60 @@
  * Do not edit manually.
  */
 
-export type CapPredefinedAreaPublic = any;
+import type { CapNameValue } from "./CapNameValue.js";
+
+/**
+ * CapPredefinedAreaPublic
+ */
+export type CapPredefinedAreaPublic = {
+  /**
+   * @minLength 1
+   * @maxLength 255
+   * @type string
+   */
+  name: string;
+  /**
+   * @minLength 1
+   * @maxLength 1000
+   * @type string
+   */
+  area_desc: string;
+  geometry?: {
+    [key: string]: any;
+  } | null;
+  /**
+   * @type array | undefined
+   */
+  polygons?: number[][][];
+  /**
+   * @type array | undefined
+   */
+  multipolygons?: number[][][][];
+  /**
+   * @type array | undefined
+   */
+  circles?: {
+    [key: string]: number;
+  }[];
+  /**
+   * @type array | undefined
+   */
+  geocodes?: CapNameValue[];
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  is_active?: boolean;
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

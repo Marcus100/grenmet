@@ -15,6 +15,7 @@ export type ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams = {
 };
 
 /**
+ * ShiftSwapRequestPublic
  * @description Shift swap request updated
  */
 export type ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch200 =

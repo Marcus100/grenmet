@@ -8,6 +8,5 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const leaveRequestActionSchema = z.object({
   status: z.lazy(() => requestStatusSchema),
-  comments: z.optional(z.union([z.string(), z.null()])),
   head_of_dept_comments: z.optional(z.union([z.string(), z.null()])),
 });

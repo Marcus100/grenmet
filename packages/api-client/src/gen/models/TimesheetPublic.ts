@@ -3,4 +3,46 @@
  * Do not edit manually.
  */
 
-export type TimesheetPublic = any;
+import type { TimesheetStatus } from "./TimesheetStatus.js";
+
+/**
+ * TimesheetPublic
+ */
+export type TimesheetPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  user_id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string, date
+   */
+  period_start: string;
+  /**
+   * @type string, date
+   */
+  period_end: string;
+  /**
+   * @type string
+   */
+  status: TimesheetStatus;
+  submitted_by_user_id?: string | null;
+  approved_by_user_id?: string | null;
+  submitted_at?: string | null;
+  approved_at?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

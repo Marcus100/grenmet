@@ -82,7 +82,8 @@ jobs:
           PROJECT_NAME=Grenmet API
           BACKEND_CORS_ORIGINS=https://auth.barrels.gd,https://admin.barrels.gd,https://hurricane.barrels.gd,https://spice.barrels.gd
           SESSION_COOKIE_DOMAIN=.barrels.gd
-          EMAILS_FROM_EMAIL=noreply@weather.gd
+          EMAILS_FROM_EMAIL=noreply@barrels.gd
+          FRONTEND_HOST=https://auth.barrels.gd
           REDIS_URL=redis://redis:6379/0
           STORAGE_ENDPOINT_URL=${STORAGE_ENDPOINT_URL:-}
           STORAGE_REGION=${STORAGE_REGION:-}

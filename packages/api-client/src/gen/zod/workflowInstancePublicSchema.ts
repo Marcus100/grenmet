@@ -4,5 +4,21 @@
  */
 
 import * as z from "zod";
+import { workflowStatusSchema } from "./workflowStatusSchema.js";
+import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
-export const workflowInstancePublicSchema = z.any();
+export const workflowInstancePublicSchema = z.object({
+  id: z.string().uuid(),
+  workflow_template_id: z.string().uuid(),
+  department_id: z.string(),
+  workflow_type: z.lazy(() => workflowTypeSchema),
+  entity_type: z.string(),
+  entity_id: z.string().uuid(),
+  requested_by_user_id: z.string().uuid(),
+  status: z.lazy(() => workflowStatusSchema),
+  current_step_order: z.number().int(),
+  submitted_at: z.optional(z.union([z.string(), z.null()])),
+  resolved_at: z.optional(z.union([z.string(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

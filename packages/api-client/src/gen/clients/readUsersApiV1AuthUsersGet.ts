@@ -16,14 +16,14 @@ import type {
 } from "../models/ReadUsersApiV1AuthUsersGet.js";
 
 function getReadUsersApiV1AuthUsersGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/users/` as const };
+  const res = { method: "GET", url: `/api/v1/auth/users` as const };
   return res;
 }
 
 /**
- * @description Return users (superuser only). Uses standard pagination (page, size, total_pages).
+ * @description Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).
  * @summary List users
- * {@link /api/v1/auth/users/}
+ * {@link /api/v1/auth/users}
  */
 export async function readUsersApiV1AuthUsersGet(
   params?: ReadUsersApiV1AuthUsersGetQueryParams,

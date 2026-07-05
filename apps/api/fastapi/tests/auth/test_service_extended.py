@@ -120,3 +120,54 @@ async def test_update_user_me_own_email_succeeds(db_async: AsyncSession) -> None
         user_in=UserUpdateMe(email=user.email, first_name="Updated"),
     )
     assert result.first_name == "Updated"
+
+
+async def test_authenticate_correct_password(db_async: AsyncSession) -> None:
+    """authenticate returns the user for valid credentials."""
+    user = await _make_user(db_async, "validPass123")
+
+    result = await service.authenticate(
+        session=db_async, email=user.email, password="validPass123"
+    )
+    assert result is not None
+    assert result.id == user.id
+
+
+async def test_authenticate_wrong_password_returns_none(db_async: AsyncSession) -> None:
+    """authenticate returns None when the password is wrong."""
+    user = await _make_user(db_async, "validPass123")
+
+    result = await service.authenticate(
+        session=db_async, email=user.email, password="wrongPass123"
+    )
+    assert result is None
+
+
+async def test_authenticate_unknown_email_returns_none(db_async: AsyncSession) -> None:
+    """authenticate returns None for an email that does not exist."""
+    result = await service.authenticate(
+        session=db_async, email=random_email(), password="anything123"
+    )
+    assert result is None
+
+
+async def test_authenticate_unknown_email_equalizes_timing(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The unknown-email path still runs a bcrypt verify (against the dummy hash)
+    so it is not distinguishable from a wrong-password by timing."""
+    from src.auth.utils import DUMMY_PASSWORD_HASH
+
+    calls: list[tuple[str, str]] = []
+
+    async def _spy(plain: str, hashed: str) -> bool:
+        calls.append((plain, hashed))
+        return False
+
+    monkeypatch.setattr(service, "verify_password_async", _spy)
+
+    result = await service.authenticate(
+        session=db_async, email=random_email(), password="anything123"
+    )
+    assert result is None
+    assert calls == [("anything123", DUMMY_PASSWORD_HASH)]

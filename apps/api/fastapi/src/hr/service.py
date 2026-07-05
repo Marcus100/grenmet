@@ -7,19 +7,22 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import col, delete, select
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
-from src.auth.policy import can_act_on_user
+from src.auth.policy import can_act_on_user, require_permission
 from src.utils.datetime import utc_now
 
 from . import constants as hr_constants
 from .exceptions import (
+    DepartmentNotFoundError,
     EmploymentNotFoundError,
     HRPermissionDeniedError,
     HRProfileNotFoundError,
+    HRValidationError,
 )
 from .models import (
     ApprovalAuthority,
     Department,
     EmploymentRecord,
+    EmploymentStatus,
     LeaveBalance,
     LeaveCarryOver,
     RosterPreference,
@@ -33,8 +36,11 @@ from .schemas import (
     AddressPublic,
     ApprovalAuthorityPublic,
     ApprovalAuthorityUpdate,
+    DepartmentCreate,
     DepartmentPublic,
+    DepartmentUpdate,
     EmergencyContactPublic,
+    EmploymentCreate,
     EmploymentPublic,
     EmploymentUpdate,
     LeavePublic,
@@ -45,6 +51,110 @@ from .schemas import (
     RosterPreferencesPublic,
     UserProfilePublic,
 )
+
+
+async def create_department(
+    *, session: AsyncSession, current_user: User, payload: DepartmentCreate
+) -> Department:
+    require_permission(current_user=current_user, permission_key="user.manage")
+    existing = await session.get(Department, payload.id)
+    if existing:
+        raise HRValidationError(hr_constants.ERROR_DEPARTMENT_ALREADY_EXISTS)
+    department = Department(id=payload.id, name=payload.name)
+    session.add(department)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HRValidationError(hr_constants.ERROR_DEPARTMENT_ALREADY_EXISTS)
+    await session.refresh(department)
+    return department
+
+
+async def update_department(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    department_id: str,
+    payload: DepartmentUpdate,
+) -> Department:
+    require_permission(current_user=current_user, permission_key="user.manage")
+    department = await session.get(Department, department_id)
+    if not department:
+        raise DepartmentNotFoundError()
+    department.name = payload.name
+    department.updated_at = utc_now()
+    session.add(department)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HRValidationError(hr_constants.ERROR_DEPARTMENT_ALREADY_EXISTS)
+    await session.refresh(department)
+    return department
+
+
+async def create_employment_for_user(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    target_user_id: uuid.UUID,
+    payload: EmploymentCreate,
+) -> EmploymentRecord:
+    target_user = await session.get(User, target_user_id)
+    if not target_user:
+        raise HRProfileNotFoundError()
+    if not await _can_manage_employment(
+        session=session, current_user=current_user, target_user_id=target_user_id
+    ):
+        raise HRPermissionDeniedError(hr_constants.ERROR_ONLY_SUPERVISOR_OR_ADMIN)
+    existing = await _get_employment_record(session=session, user_id=target_user_id)
+    if existing:
+        raise HRValidationError(hr_constants.ERROR_EMPLOYMENT_ALREADY_EXISTS)
+    department = await session.get(Department, payload.department_id)
+    if not department:
+        raise DepartmentNotFoundError()
+    record = EmploymentRecord(
+        user_id=target_user_id, **payload.model_dump(exclude_unset=True)
+    )
+    session.add(record)
+    try:
+        await session.commit()
+    except IntegrityError:
+        await session.rollback()
+        raise HRValidationError(hr_constants.ERROR_EMPLOYMENT_ALREADY_EXISTS)
+    await session.refresh(record)
+    return record
+
+
+async def list_departments(
+    *, session: AsyncSession, current_user: User
+) -> list[Department]:
+    require_permission(current_user=current_user, permission_key="roster.view")
+    result = await session.execute(
+        select(Department).order_by(col(Department.name)).limit(200)
+    )
+    return list(result.scalars().all())
+
+
+async def list_department_members(
+    *, session: AsyncSession, current_user: User, department_id: str
+) -> list[tuple[EmploymentRecord, User]]:
+    """Active members of a department with their auth user, for roster rows."""
+    require_permission(current_user=current_user, permission_key="roster.view")
+    department = await session.get(Department, department_id)
+    if not department:
+        raise DepartmentNotFoundError()
+    result = await session.execute(
+        select(EmploymentRecord, User)
+        .join(User, col(EmploymentRecord.user_id) == col(User.id))
+        .where(
+            col(EmploymentRecord.department_id) == department_id,
+            col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
+        )
+        .order_by(col(User.last_name), col(User.first_name))
+    )
+    return [(employment, user) for employment, user in result.all()]
 
 
 def _normalize_shift_codes(codes: list[str]) -> list[str]:

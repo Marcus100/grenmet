@@ -3,6 +3,7 @@ import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urlparse
 
 import feedparser  # type: ignore[import-untyped]
 import httpx
@@ -77,7 +78,12 @@ from src.cap.schemas import (
 )
 from src.cap.sign import is_signing_enabled, sign_xml, signing_key_ref
 from src.cap.tasks import enqueue_publish_side_effects
-from src.cap.validation import validate_cap_alert
+from src.cap.validation import (
+    MAX_IMPORT_BYTES,
+    ensure_public_host,
+    validate_cap_alert,
+    validate_import_url,
+)
 from src.cap.xml import alert_to_cap_xml, xml_to_alert_data
 from src.config import settings as app_config
 from src.utils.datetime import utc_now
@@ -221,17 +227,34 @@ async def import_alert(
     value: str,
     http_client: httpx.AsyncClient | None = None,
 ) -> CapAlertPublic:
-    """Import a CAP alert from a source URL or pasted XML. Reuses create_alert."""
+    """Import a CAP alert from a source URL or pasted XML. Reuses create_alert.
+
+    URL imports are SSRF-guarded: the scheme/host are validated, the resolved
+    host must be public (skipped when a client is injected for tests), redirects
+    are not followed, and the body size is capped. Redirecting feeds are not a
+    supported import source.
+    """
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     if source == "url":
+        validate_import_url(value)
         owns_client = http_client is None
+        if owns_client:
+            host = urlparse(value).hostname or ""
+            await ensure_public_host(host)
         client = http_client or httpx.AsyncClient()
         try:
-            response = await client.get(value, timeout=15.0, follow_redirects=True)
+            response = await client.get(value, timeout=15.0, follow_redirects=False)
+            if response.is_redirect:
+                raise CapImportError("redirects are not followed for CAP imports")
             response.raise_for_status()
-            raw_xml: str | bytes = response.content
+            content = response.content
+            if len(content) > MAX_IMPORT_BYTES:
+                raise CapImportError(f"import exceeds {MAX_IMPORT_BYTES} byte limit")
+            raw_xml: str | bytes = content
         except httpx.HTTPError as exc:
-            raise CapImportError(f"could not fetch {value}: {exc}") from exc
+            raise CapImportError(
+                f"could not fetch source: {type(exc).__name__}"
+            ) from exc
         finally:
             if owns_client:
                 await client.aclose()
@@ -333,7 +356,7 @@ async def update_alert(
     await session.commit()
     await session.refresh(alert)
     logger.info(
-        "CAP alert created",
+        "CAP alert updated",
         extra={"alert_id": str(alert.id), "user_id": str(current_user.id)},
     )
     return await _to_public(session=session, alert=alert)
@@ -592,7 +615,8 @@ async def expire_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    return await _transition(
+    identifier = alert.identifier
+    public = await _transition(
         session=session,
         current_user=current_user,
         alert=alert,
@@ -602,6 +626,10 @@ async def expire_alert(
         note=payload.note,
         timestamp_field="expired_at",
     )
+    # Expiring removes the alert from the active feeds; invalidate the public
+    # caches so latest-active/past reflect it immediately (matches publish/cancel).
+    await invalidate(*PUBLIC_FEED_KEYS, public_xml_key(identifier))
+    return public
 
 
 async def get_or_create_settings(*, session: AsyncSession) -> CapSettings:
@@ -907,76 +935,18 @@ def _is_active(alert: CapAlertPublic) -> bool:
 
 
 async def _to_public(*, session: AsyncSession, alert: CapAlert) -> CapAlertPublic:
-    info_rows = await _info_rows(session=session, alert_id=alert.id)
-    reference_rows = await _reference_rows(session=session, alert_id=alert.id)
-    incident_rows = await _incident_rows(session=session, alert_id=alert.id)
-    info = [
-        await _info_to_public(session=session, info=info_row) for info_row in info_rows
-    ]
-    references = [
-        CapReferencePublic.model_validate(reference, from_attributes=True)
-        for reference in reference_rows
-    ]
-    return CapAlertPublic(
-        id=alert.id,
-        identifier=alert.identifier,
-        sender=alert.sender,
-        sent=alert.sent,
-        status=alert.status,
-        msg_type=alert.msg_type,
-        source=alert.source,
-        scope=alert.scope,
-        restriction=alert.restriction,
-        addresses=list(alert.addresses or []),
-        codes=list(alert.codes or []),
-        note=alert.note,
-        lifecycle_state=alert.lifecycle_state,
-        created_by_user_id=alert.created_by_user_id,
-        updated_by_user_id=alert.updated_by_user_id,
-        submitted_at=alert.submitted_at,
-        approved_at=alert.approved_at,
-        published_at=alert.published_at,
-        expired_at=alert.expired_at,
-        created_at=alert.created_at,
-        updated_at=alert.updated_at,
-        references=references,
-        incidents=[incident.value for incident in incident_rows],
-        info=info,
-        xml_url=f"/api/cap/{alert.identifier}.xml",
+    # Re-fetch with all children eager-loaded, then render via the loaded builder
+    # so a single query set replaces the previous per-child (N+1) lookups. Callers
+    # commit/flush their changes before rendering, so the reload sees fresh data.
+    result = await session.execute(
+        select(CapAlert)
+        .where(CapAlert.id == alert.id)
+        .options(*_alert_selectinload_options())
     )
-
-
-async def _info_to_public(*, session: AsyncSession, info: CapInfo) -> CapInfoPublic:
-    resource_rows = await _resource_rows(session=session, info_id=info.id)
-    area_rows = await _area_rows(session=session, info_id=info.id)
-    return CapInfoPublic(
-        id=info.id,
-        sequence=info.sequence,
-        language=info.language,
-        categories=_as_categories(info.categories or []),
-        event=info.event,
-        event_codes=_as_name_values(info.event_codes or []),
-        response_types=info.response_types or [],
-        urgency=info.urgency,
-        severity=info.severity,
-        certainty=info.certainty,
-        audience=info.audience,
-        effective=info.effective,
-        onset=info.onset,
-        expires=info.expires,
-        sender_name=info.sender_name,
-        headline=info.headline,
-        description=info.description,
-        instruction=info.instruction,
-        web=info.web,
-        contact=info.contact,
-        parameters=_as_name_values(info.parameters or []),
-        resources=[
-            CapResourcePublic.model_validate(resource, from_attributes=True)
-            for resource in resource_rows
-        ],
-        areas=[_area_to_public(area) for area in area_rows],
-    )
+    loaded = result.scalars().first()
+    if loaded is None:
+        raise CapAlertNotFoundError()
+    return _to_public_from_loaded(loaded)
 
 
 def _area_to_public(area: CapArea) -> CapAreaPublic:
@@ -1159,48 +1129,6 @@ async def _info_rows(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapI
         select(CapInfo)
         .where(CapInfo.alert_id == alert_id)
         .order_by(col(CapInfo.sequence))
-    )
-    return list(result.scalars())
-
-
-async def _reference_rows(
-    *, session: AsyncSession, alert_id: uuid.UUID
-) -> list[CapReference]:
-    result = await session.execute(
-        select(CapReference)
-        .where(CapReference.alert_id == alert_id)
-        .order_by(col(CapReference.sequence))
-    )
-    return list(result.scalars())
-
-
-async def _incident_rows(
-    *, session: AsyncSession, alert_id: uuid.UUID
-) -> list[CapIncident]:
-    result = await session.execute(
-        select(CapIncident)
-        .where(CapIncident.alert_id == alert_id)
-        .order_by(col(CapIncident.sequence))
-    )
-    return list(result.scalars())
-
-
-async def _resource_rows(
-    *, session: AsyncSession, info_id: uuid.UUID
-) -> list[CapResource]:
-    result = await session.execute(
-        select(CapResource)
-        .where(CapResource.info_id == info_id)
-        .order_by(col(CapResource.sequence))
-    )
-    return list(result.scalars())
-
-
-async def _area_rows(*, session: AsyncSession, info_id: uuid.UUID) -> list[CapArea]:
-    result = await session.execute(
-        select(CapArea)
-        .where(CapArea.info_id == info_id)
-        .order_by(col(CapArea.sequence))
     )
     return list(result.scalars())
 

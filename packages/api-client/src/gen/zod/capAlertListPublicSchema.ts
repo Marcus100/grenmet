@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 
-export const capAlertListPublicSchema = z.any();
+export const capAlertListPublicSchema = z.object({
+  data: z.array(z.lazy(() => capAlertPublicSchema)),
+  count: z.number().int(),
+});

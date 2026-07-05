@@ -7,24 +7,26 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.auth import service
 from src.auth.constants import ERROR_ROLE_ASSIGNMENT_NOT_FOUND
-from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import (
     UserRoleAssignmentCreate,
     UserRoleAssignmentPublic,
     UserRoleAssignmentsPublic,
     UserRoleAssignmentUpdate,
 )
-from src.dependencies import SessionDep
+from src.dependencies import SessionDep, get_current_user_manager
 
+# user.manage holders (hr-admins) assign and revoke domain roles during
+# onboarding/offboarding. Superuser status is a User flag, not a role, so
+# role assignment cannot grant it.
 router = APIRouter(
     prefix="/auth/role-assignments",
     tags=["role-assignments"],
-    dependencies=[Depends(get_current_active_superuser)],
+    dependencies=[Depends(get_current_user_manager)],
 )
 
 
 @router.get(
-    "/",
+    "",
     response_model=UserRoleAssignmentsPublic,
     summary="List role assignments",
     description="Return role assignments, optionally filtered by user_id (superuser only).",
@@ -65,7 +67,7 @@ async def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) ->
 
 
 @router.post(
-    "/",
+    "",
     response_model=UserRoleAssignmentPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create role assignment",
@@ -105,4 +107,27 @@ async def update_role_assignment(
         session=session,
         db_assignment=db_assignment,
         assignment_in=assignment_in,
+    )
+
+
+@router.delete(
+    "/{assignment_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Revoke role assignment",
+    description="Delete a user-role assignment (superuser or user.manage).",
+    responses={
+        status.HTTP_204_NO_CONTENT: {"description": "Role assignment revoked"},
+        status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
+    },
+)
+async def delete_role_assignment(
+    *, session: SessionDep, assignment_id: uuid.UUID
+) -> None:
+    db_assignment = await service.get_user_role_assignment(
+        session=session, assignment_id=assignment_id
+    )
+    if not db_assignment:
+        raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+    await service.delete_user_role_assignment(
+        session=session, db_assignment=db_assignment
     )

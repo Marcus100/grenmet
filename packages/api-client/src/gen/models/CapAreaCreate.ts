@@ -4,7 +4,7 @@
  */
 
 import type { CapAreaKind } from "./CapAreaKind.js";
-import type { CapNameValueInput } from "./CapNameValueInput.js";
+import type { CapNameValue } from "./CapNameValue.js";
 
 /**
  * CapAreaCreate
@@ -38,7 +38,7 @@ export type CapAreaCreate = {
   /**
    * @type array | undefined
    */
-  geocodes?: CapNameValueInput[];
+  geocodes?: CapNameValue[];
   geometry?: {
     [key: string]: any;
   } | null;

@@ -18,10 +18,13 @@ export function DocumentPreview({
   title = "Preview",
   onDownloadPdf,
   children,
+  showDownloadPdf = true,
 }: {
   title?: string;
   onDownloadPdf?: () => void;
   children: ReactNode;
+  /** Hide the Download-PDF button when a surrounding action bar already offers it. */
+  showDownloadPdf?: boolean;
 }) {
   const bodyRef = useRef<HTMLDivElement>(null);
   const layout = usePaperScale(bodyRef, {
@@ -47,10 +50,12 @@ export function DocumentPreview({
               <Printer data-icon="inline-start" />
               Print
             </Button>
-            <Button onClick={handleDownload} type="button" variant="outline">
-              <Download data-icon="inline-start" />
-              Download PDF
-            </Button>
+            {showDownloadPdf ? (
+              <Button onClick={handleDownload} type="button" variant="outline">
+                <Download data-icon="inline-start" />
+                Download PDF
+              </Button>
+            ) : null}
           </ButtonGroup>
         </div>
 

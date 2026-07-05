@@ -31,4 +31,6 @@ export const statusReportCreateSchema = z.object({
   communications_status: z.optional(z.union([z.string(), z.null()])),
   general_remarks: z.optional(z.union([z.string(), z.null()])),
   entries: z.optional(z.array(z.lazy(() => statusReportEntryInputSchema))),
+  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  as_draft: z.optional(z.boolean().default(false)),
 });

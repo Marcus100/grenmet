@@ -1,0 +1,41 @@
+{
+  "properties": {
+    "employee_number": {
+      "type": "string",
+      "maxLength": 50,
+      "title": "Employee Number"
+    },
+    "department_id": {
+      "type": "string",
+      "maxLength": 100,
+      "title": "Department Id"
+    },
+    "position": {
+      "anyOf": [{ "type": "string", "maxLength": 150 }, { "type": "null" }],
+      "title": "Position"
+    },
+    "employment_type": {
+      "default": "FULL_TIME",
+      "type": "string",
+      "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+      "title": "EmploymentType",
+      "x-readme-ref-name": "EmploymentType"
+    },
+    "start_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Start Date"
+    },
+    "supervisor_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Supervisor Id"
+    },
+    "work_location": {
+      "anyOf": [{ "type": "string", "maxLength": 255 }, { "type": "null" }],
+      "title": "Work Location"
+    }
+  },
+  "type": "object",
+  "required": ["employee_number", "department_id"],
+  "title": "EmploymentCreate",
+  "x-readme-ref-name": "EmploymentCreate"
+}

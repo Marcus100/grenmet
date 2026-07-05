@@ -3,4 +3,40 @@
  * Do not edit manually.
  */
 
-export type CapSettingsPublic = any;
+/**
+ * CapSettingsPublic
+ */
+export type CapSettingsPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  sender: string;
+  /**
+   * @type string
+   */
+  sender_name: string;
+  wmo_oid?: string | null;
+  web?: string | null;
+  contact?: string | null;
+  /**
+   * @type integer
+   */
+  feed_limit: number;
+  /**
+   * @type boolean
+   */
+  signing_enabled: boolean;
+  signing_certificate_ref?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

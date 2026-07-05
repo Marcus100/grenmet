@@ -13,6 +13,7 @@ import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
 export type CreateInstanceApiV1HrWorkflowsInstancesPost200 = any;
 
 /**
+ * WorkflowInstancePublic
  * @description Successful Response
  */
 export type CreateInstanceApiV1HrWorkflowsInstancesPost201 =

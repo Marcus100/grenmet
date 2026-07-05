@@ -4,5 +4,12 @@
  */
 
 import * as z from "zod";
+import { importStatusSchema } from "./importStatusSchema.js";
 
-export const rosterCsvImportResponseSchema = z.any();
+export const rosterCsvImportResponseSchema = z.object({
+  job_id: z.string().uuid(),
+  status: z.lazy(() => importStatusSchema),
+  total_rows: z.number().int(),
+  valid_rows: z.number().int(),
+  invalid_rows: z.number().int(),
+});

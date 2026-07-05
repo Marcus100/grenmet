@@ -13,6 +13,7 @@ import type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type CreateHolidayApiV1HrRostersPublicHolidaysPost200 = any;
 
 /**
+ * PublicHolidayPublic
  * @description Successful Response
  */
 export type CreateHolidayApiV1HrRostersPublicHolidaysPost201 =

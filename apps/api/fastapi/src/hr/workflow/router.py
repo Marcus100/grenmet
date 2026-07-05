@@ -1,13 +1,18 @@
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, BackgroundTasks, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.email import send_email
+from src.email_config import email_settings
 from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
 
 from . import service
+from .models import WorkflowAction, WorkflowStatus
 from .schemas import (
     WorkflowActionRequest,
+    WorkflowInboxItem,
+    WorkflowInboxList,
     WorkflowInstanceCreate,
     WorkflowInstanceDetails,
     WorkflowInstancePublic,
@@ -120,6 +125,38 @@ async def create_instance(
 
 
 @router.get(
+    "/instances/inbox",
+    response_model=WorkflowInboxList,
+    summary="List my pending approvals",
+    description="Return workflow instances awaiting an action the current user is authorized to take (named co-approver or role-based approver). Requires workflow.instance.view permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Pending approvals returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def read_inbox(session: SessionDep, current_user: CurrentUser) -> Any:
+    rows = await service.list_actionable_instances(
+        session=session, current_user=current_user
+    )
+    items = [
+        WorkflowInboxItem(
+            instance_id=instance.id,
+            workflow_type=instance.workflow_type,
+            entity_type=instance.entity_type,
+            entity_id=instance.entity_id,
+            department_id=instance.department_id,
+            requested_by_user_id=instance.requested_by_user_id,
+            requester_name=requester.full_name if requester else None,
+            submitted_at=instance.submitted_at,
+            current_step_order=instance.current_step_order,
+            step_is_named=step.required_user_id is not None,
+        )
+        for instance, step, requester in rows
+    ]
+    return WorkflowInboxList(data=items, count=len(items))
+
+
+@router.get(
     "/instances/{instance_id}",
     response_model=WorkflowInstanceDetails,
     summary="Get workflow instance details",
@@ -173,10 +210,30 @@ async def take_action(
     current_user: CurrentUser,
     workflow_instance: WorkflowInstanceDep,
     action_in: WorkflowActionRequest,
+    background_tasks: BackgroundTasks,
 ) -> Any:
-    return await service.apply_workflow_action(
+    instance = await service.apply_workflow_action(
         session=session,
         current_user=current_user,
         workflow_instance_id=workflow_instance.id,
         action_in=action_in,
     )
+    # When this approval was the final one, notify HR admins (fire-and-forget).
+    if (
+        action_in.action == WorkflowAction.APPROVE
+        and instance.status == WorkflowStatus.APPROVED
+        and email_settings.emails_enabled
+    ):
+        notification = await service.build_approval_notification(
+            session=session, instance=instance
+        )
+        if notification:
+            recipients, subject, html = notification
+            for email_to in recipients:
+                background_tasks.add_task(
+                    send_email,
+                    email_to=email_to,
+                    subject=subject,
+                    html_content=html,
+                )
+    return instance

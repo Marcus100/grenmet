@@ -1,1 +1,49 @@
-{ "x-readme-ref-name": "UserRoleAssignmentsPublic" }
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "role_id": { "type": "string", "format": "uuid", "title": "Role Id" },
+          "scope": {
+            "default": "SELF",
+            "type": "string",
+            "enum": ["SELF", "DEPARTMENT", "ALL"],
+            "title": "RoleAssignmentScope",
+            "x-readme-ref-name": "RoleAssignmentScope"
+          },
+          "department_id": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Department Id"
+          },
+          "effective_to": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Effective To"
+          },
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "effective_from": { "type": "string", "title": "Effective From" },
+          "created_at": { "type": "string", "title": "Created At" },
+          "updated_at": { "type": "string", "title": "Updated At" }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "role_id",
+          "id",
+          "effective_from",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UserRoleAssignmentPublic",
+        "x-readme-ref-name": "UserRoleAssignmentPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "UserRoleAssignmentsPublic",
+  "x-readme-ref-name": "UserRoleAssignmentsPublic"
+}

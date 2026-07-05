@@ -15,6 +15,7 @@ export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams = {
 };
 
 /**
+ * UserProfilePublic
  * @description Employment updated
  */
 export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200 =

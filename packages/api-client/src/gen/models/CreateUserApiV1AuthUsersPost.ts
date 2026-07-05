@@ -19,6 +19,11 @@ export type CreateUserApiV1AuthUsersPost201 = UserPublic;
 export type CreateUserApiV1AuthUsersPost400 = any;
 
 /**
+ * @description Insufficient privileges
+ */
+export type CreateUserApiV1AuthUsersPost403 = any;
+
+/**
  * HTTPValidationError
  * @description Validation Error
  */
@@ -35,5 +40,8 @@ export type CreateUserApiV1AuthUsersPostMutationResponse =
 export type CreateUserApiV1AuthUsersPostMutation = {
   Response: CreateUserApiV1AuthUsersPost201;
   Request: CreateUserApiV1AuthUsersPostMutationRequest;
-  Errors: CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422;
+  Errors:
+    | CreateUserApiV1AuthUsersPost400
+    | CreateUserApiV1AuthUsersPost403
+    | CreateUserApiV1AuthUsersPost422;
 };

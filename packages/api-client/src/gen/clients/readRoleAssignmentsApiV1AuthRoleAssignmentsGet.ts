@@ -16,14 +16,14 @@ import type {
 } from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 
 function getReadRoleAssignmentsApiV1AuthRoleAssignmentsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/role-assignments/` as const };
+  const res = { method: "GET", url: `/api/v1/auth/role-assignments` as const };
   return res;
 }
 
 /**
  * @description Return role assignments, optionally filtered by user_id (superuser only).
  * @summary List role assignments
- * {@link /api/v1/auth/role-assignments/}
+ * {@link /api/v1/auth/role-assignments}
  */
 export async function readRoleAssignmentsApiV1AuthRoleAssignmentsGet(
   params?: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,

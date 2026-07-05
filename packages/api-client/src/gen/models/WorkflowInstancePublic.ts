@@ -3,4 +3,57 @@
  * Do not edit manually.
  */
 
-export type WorkflowInstancePublic = any;
+import type { WorkflowStatus } from "./WorkflowStatus.js";
+import type { WorkflowType } from "./WorkflowType.js";
+
+/**
+ * WorkflowInstancePublic
+ */
+export type WorkflowInstancePublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  workflow_template_id: string;
+  /**
+   * @type string
+   */
+  department_id: string;
+  /**
+   * @type string
+   */
+  workflow_type: WorkflowType;
+  /**
+   * @type string
+   */
+  entity_type: string;
+  /**
+   * @type string, uuid
+   */
+  entity_id: string;
+  /**
+   * @type string, uuid
+   */
+  requested_by_user_id: string;
+  /**
+   * @type string
+   */
+  status: WorkflowStatus;
+  /**
+   * @type integer
+   */
+  current_step_order: number;
+  submitted_at?: string | null;
+  resolved_at?: string | null;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

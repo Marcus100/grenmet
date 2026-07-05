@@ -23,7 +23,7 @@ import type {
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 
 export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey = () =>
-  [{ url: "/api/v1/auth/role-assignments/" }] as const;
+  [{ url: "/api/v1/auth/role-assignments" }] as const;
 
 export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey =
   ReturnType<
@@ -55,7 +55,7 @@ export function createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions<
 /**
  * @description Create a user-role assignment (superuser only).
  * @summary Create role assignment
- * {@link /api/v1/auth/role-assignments/}
+ * {@link /api/v1/auth/role-assignments}
  */
 export function useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost<TContext>(
   options: {

@@ -4,5 +4,10 @@
  */
 
 import * as z from "zod";
+import { statusReportEntryPublicSchema } from "./statusReportEntryPublicSchema.js";
+import { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 
-export const statusReportDetailsSchema = z.any();
+export const statusReportDetailsSchema = z.object({
+  report: z.lazy(() => statusReportPublicSchema),
+  entries: z.array(z.lazy(() => statusReportEntryPublicSchema)),
+});

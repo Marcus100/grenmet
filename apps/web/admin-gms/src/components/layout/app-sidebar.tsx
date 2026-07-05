@@ -1,6 +1,7 @@
 "use client";
 
 import { usePreferencesStore } from "@grenmet/theme/components/preferences-provider";
+import { Logo } from "@grenmet/ui/components/ui/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +11,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@grenmet/ui/components/ui/sidebar";
-import Image from "next/image";
 import Link from "next/link";
 import { useShallow } from "zustand/react/shallow";
 import { sidebarItems } from "@/navigation/sidebar-items";
@@ -42,15 +42,11 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
               render={<Link href="/" prefetch={false} />}
               size="lg"
             >
-              <Image
-                alt="Grenada Met Service"
-                className="shrink-0"
-                height={28}
-                src="/images/logo/logo-icon.svg"
-                width={28}
-              />
-              <span className="font-semibold text-base group-data-[collapsible=icon]:hidden">
-                Grenada Met Service
+              <span className="hidden items-center group-data-[collapsible=icon]:flex">
+                <Logo className="size-7 shrink-0" variant="icon" />
+              </span>
+              <span className="flex items-center group-data-[collapsible=icon]:hidden">
+                <Logo className="h-7 w-auto" priority variant="primary" />
               </span>
             </SidebarMenuButton>
           </SidebarMenuItem>

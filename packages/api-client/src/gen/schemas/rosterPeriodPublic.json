@@ -1,1 +1,38 @@
-{ "x-readme-ref-name": "RosterPeriodPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "title": "Period Start"
+    },
+    "period_end": { "type": "string", "format": "date", "title": "Period End" },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "PUBLISHED", "CLOSED"],
+      "title": "RosterPeriodStatus",
+      "x-readme-ref-name": "RosterPeriodStatus"
+    },
+    "created_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Created By User Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "department_id",
+    "period_start",
+    "period_end",
+    "status",
+    "created_by_user_id",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "RosterPeriodPublic",
+  "x-readme-ref-name": "RosterPeriodPublic"
+}

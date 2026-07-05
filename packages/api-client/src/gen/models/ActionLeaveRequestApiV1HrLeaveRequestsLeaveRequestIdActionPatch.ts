@@ -16,6 +16,7 @@ export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathP
   };
 
 /**
+ * LeaveRequestPublic
  * @description Leave request updated
  */
 export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200 =

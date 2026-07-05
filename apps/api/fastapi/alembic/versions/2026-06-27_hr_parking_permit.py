@@ -12,11 +12,11 @@ Note: autogenerate also surfaced pre-existing CAP-domain drift (cap.* FKs/indexe
 which is intentionally NOT included here — it is unrelated to this change.
 """
 
-from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 import sqlmodel
+from sqlalchemy.dialects import postgresql
 
+from alembic import op
 
 # revision identifiers, used by Alembic.
 revision = "429042be8687"

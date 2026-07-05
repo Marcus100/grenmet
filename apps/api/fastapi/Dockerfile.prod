@@ -70,6 +70,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=5 \
     CMD curl --fail --silent --show-error --retry 3 --retry-delay 5 http://localhost:8000/api/v1/utils/health-check/ || exit 1
 
-# Run the application with uvicorn
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
+# Run under ddtrace-run so APM tracing, log trace-ID injection, and auto-
+# instrumentation (FastAPI/SQLAlchemy/httpx) are active in production. Requires
+# DD_SERVICE / DD_ENV / DD_VERSION and DD_LOGS_INJECTION=true in the environment.
+CMD ["ddtrace-run", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
 

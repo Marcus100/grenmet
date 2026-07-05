@@ -16,14 +16,14 @@ import type {
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
 
 function getCreateRoleApiV1AuthRolesPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/roles/` as const };
+  const res = { method: "POST", url: `/api/v1/auth/roles` as const };
   return res;
 }
 
 /**
  * @description Create a role (superuser only).
  * @summary Create role
- * {@link /api/v1/auth/roles/}
+ * {@link /api/v1/auth/roles}
  */
 export async function createRoleApiV1AuthRolesPost(
   data: CreateRoleApiV1AuthRolesPostMutationRequest,

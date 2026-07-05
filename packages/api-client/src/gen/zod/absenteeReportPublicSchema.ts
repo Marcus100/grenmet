@@ -4,5 +4,26 @@
  */
 
 import * as z from "zod";
+import { absenceReasonSchema } from "./absenceReasonSchema.js";
+import { requestStatusSchema } from "./requestStatusSchema.js";
 
-export const absenteeReportPublicSchema = z.any();
+export const absenteeReportPublicSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  department_id: z.string(),
+  report_date: z.string().date(),
+  expected_shift_code: z.optional(z.union([z.string(), z.null()])),
+  absence_start_time: z.optional(z.union([z.string(), z.null()])),
+  absence_end_time: z.optional(z.union([z.string(), z.null()])),
+  reason: z.lazy(() => absenceReasonSchema),
+  notes: z.optional(z.union([z.string(), z.null()])),
+  contact_attempted: z.boolean(),
+  contact_method: z.optional(z.union([z.string(), z.null()])),
+  replacement_arranged: z.boolean(),
+  replacement_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  status: z.lazy(() => requestStatusSchema),
+  workflow_instance_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  submitted_by_user_id: z.string().uuid(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

@@ -4,5 +4,15 @@
  */
 
 import * as z from "zod";
+import { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 
-export const capFeedImportPublicSchema = z.any();
+export const capFeedImportPublicSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  url: z.string(),
+  status: z.lazy(() => capIntegrationStatusSchema),
+  last_checked_at: z.optional(z.union([z.string(), z.null()])),
+  last_error: z.optional(z.union([z.string(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

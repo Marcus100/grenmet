@@ -3,4 +3,29 @@
  * Do not edit manually.
  */
 
-export type RosterAssignmentPublic = any;
+/**
+ * RosterAssignmentPublic
+ */
+export type RosterAssignmentPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  roster_period_id: string;
+  /**
+   * @type string, uuid
+   */
+  user_id: string;
+  /**
+   * @type string, date
+   */
+  assignment_date: string;
+  /**
+   * @type string
+   */
+  shift_code: string;
+  remarks?: string | null;
+};

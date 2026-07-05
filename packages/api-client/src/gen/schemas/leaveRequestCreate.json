@@ -93,7 +93,13 @@
     "expected_return_date": {
       "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
       "title": "Expected Return Date"
-    }
+    },
+    "co_approver_user_ids": {
+      "items": { "type": "string", "format": "uuid" },
+      "type": "array",
+      "title": "Co Approver User Ids"
+    },
+    "as_draft": { "type": "boolean", "title": "As Draft", "default": false }
   },
   "type": "object",
   "required": ["department_id", "leave_type", "start_date", "end_date"],

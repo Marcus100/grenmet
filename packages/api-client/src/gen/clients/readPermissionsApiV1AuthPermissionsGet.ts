@@ -16,14 +16,14 @@ import type {
 } from "../models/ReadPermissionsApiV1AuthPermissionsGet.js";
 
 function getReadPermissionsApiV1AuthPermissionsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/permissions/` as const };
+  const res = { method: "GET", url: `/api/v1/auth/permissions` as const };
   return res;
 }
 
 /**
  * @description Return permissions (superuser only).
  * @summary List permissions
- * {@link /api/v1/auth/permissions/}
+ * {@link /api/v1/auth/permissions}
  */
 export async function readPermissionsApiV1AuthPermissionsGet(
   params?: ReadPermissionsApiV1AuthPermissionsGetQueryParams,

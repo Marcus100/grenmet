@@ -25,7 +25,7 @@ import type {
 
 export const readRolesApiV1AuthRolesGetQueryKey = (
   params: ReadRolesApiV1AuthRolesGetQueryParams = {}
-) => [{ url: "/api/v1/auth/roles/" }, ...(params ? [params] : [])] as const;
+) => [{ url: "/api/v1/auth/roles" }, ...(params ? [params] : [])] as const;
 
 export type ReadRolesApiV1AuthRolesGetQueryKey = ReturnType<
   typeof readRolesApiV1AuthRolesGetQueryKey
@@ -55,7 +55,7 @@ export function readRolesApiV1AuthRolesGetQueryOptions(
 /**
  * @description Return roles (superuser only).
  * @summary List roles
- * {@link /api/v1/auth/roles/}
+ * {@link /api/v1/auth/roles}
  */
 export function useReadRolesApiV1AuthRolesGet<
   TData = ReadRolesApiV1AuthRolesGetQueryResponse,

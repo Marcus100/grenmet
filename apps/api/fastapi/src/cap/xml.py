@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 from typing import Any
 from xml.etree import ElementTree as ET
 
+import defusedxml.ElementTree as DefusedET
+from defusedxml.common import DefusedXmlException
 from pydantic import ValidationError
 
 from src.cap.exceptions import CapImportError
@@ -189,9 +191,11 @@ def _format_number(value: float) -> str:
 def xml_to_alert_data(xml: str | bytes) -> CapAlertCreate:
     """Parse CAP 1.x XML into a ``CapAlertCreate``. Raises ``CapImportError``."""
     raw = xml.encode("utf-8") if isinstance(xml, str) else xml
+    # defusedxml rejects DTDs, entity expansion, and external references, closing
+    # the XXE / billion-laughs vectors on untrusted feed/import XML.
     try:
-        root = ET.fromstring(raw)
-    except ET.ParseError as exc:
+        root = DefusedET.fromstring(raw)
+    except (ET.ParseError, DefusedXmlException) as exc:
         raise CapImportError(f"invalid XML: {exc}") from exc
     if _local(root.tag) != "alert":
         raise CapImportError(f"root element <{_local(root.tag)}> is not a CAP <alert>")
@@ -298,7 +302,10 @@ def _parse_polygon(text: str) -> list[list[float]]:
     for pair in text.split():
         coords = pair.split(",")
         if len(coords) >= 2:
-            lat, lon = float(coords[0]), float(coords[1])
+            try:
+                lat, lon = float(coords[0]), float(coords[1])
+            except ValueError as exc:
+                raise CapImportError(f"invalid polygon point '{pair}': {exc}") from exc
             points.append([lon, lat])
     return points
 
@@ -307,9 +314,12 @@ def _parse_circle(text: str) -> dict[str, float]:
     """CAP circle is 'lat,lon radius'."""
     point, _, radius = text.partition(" ")
     coords = point.split(",")
-    lat = float(coords[0]) if coords and coords[0] else 0.0
-    lon = float(coords[1]) if len(coords) > 1 else 0.0
-    return {"lat": lat, "lon": lon, "radius": float(radius or 0)}
+    try:
+        lat = float(coords[0]) if coords and coords[0] else 0.0
+        lon = float(coords[1]) if len(coords) > 1 else 0.0
+        return {"lat": lat, "lon": lon, "radius": float(radius or 0)}
+    except ValueError as exc:
+        raise CapImportError(f"invalid circle '{text}': {exc}") from exc
 
 
 def _local(tag: str) -> str:
@@ -341,8 +351,18 @@ def _parse_dt(value: str | None) -> datetime | None:
 
 
 def _to_float(value: str | None) -> float | None:
-    return float(value) if value else None
+    if not value:
+        return None
+    try:
+        return float(value)
+    except ValueError as exc:
+        raise CapImportError(f"invalid number '{value}': {exc}") from exc
 
 
 def _to_int(value: str | None) -> int | None:
-    return int(value) if value else None
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError as exc:
+        raise CapImportError(f"invalid integer '{value}': {exc}") from exc
