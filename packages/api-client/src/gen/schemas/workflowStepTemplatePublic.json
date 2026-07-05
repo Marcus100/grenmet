@@ -1,1 +1,38 @@
-{ "x-readme-ref-name": "WorkflowStepTemplatePublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "workflow_template_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Workflow Template Id"
+    },
+    "step_order": { "type": "integer", "title": "Step Order" },
+    "required_role_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Required Role Id"
+    },
+    "required_scope": {
+      "type": "string",
+      "enum": ["SELF", "DEPARTMENT", "ALL"],
+      "title": "RoleAssignmentScope",
+      "x-readme-ref-name": "RoleAssignmentScope"
+    },
+    "is_required": { "type": "boolean", "title": "Is Required" },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "workflow_template_id",
+    "step_order",
+    "required_role_id",
+    "required_scope",
+    "is_required",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "WorkflowStepTemplatePublic",
+  "x-readme-ref-name": "WorkflowStepTemplatePublic"
+}

@@ -6,6 +6,7 @@
 import type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
 
 /**
+ * ShiftCatalogsPublic
  * @description Shift catalog returned
  */
 export type ListShiftCatalogApiV1HrRostersShiftsGet200 = ShiftCatalogsPublic;

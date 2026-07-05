@@ -4,5 +4,16 @@
  */
 
 import * as z from "zod";
+import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
-export const userRoleAssignmentPublicSchema = z.any();
+export const userRoleAssignmentPublicSchema = z.object({
+  user_id: z.string().uuid(),
+  role_id: z.string().uuid(),
+  scope: z.optional(z.lazy(() => roleAssignmentScopeSchema)),
+  department_id: z.optional(z.union([z.string(), z.null()])),
+  effective_to: z.optional(z.union([z.string(), z.null()])),
+  id: z.string().uuid(),
+  effective_from: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

@@ -19,7 +19,7 @@ export const deleteUserApiV1AuthUsersUserIdDelete200Schema = z.lazy(
 );
 
 /**
- * @description Superuser cannot delete own account
+ * @description Insufficient privileges or self-deletion
  */
 export const deleteUserApiV1AuthUsersUserIdDelete403Schema = z.any();
 

@@ -3,18 +3,46 @@
  * Do not edit manually.
  */
 
+import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
 
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams = {
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
+};
+
 /**
+ * LeaveRequestListPublic
  * @description Leave requests returned
  */
 export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200 =
   LeaveRequestListPublic;
+
+/**
+ * HTTPValidationError
+ * @description Validation Error
+ */
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422 =
+  HTTPValidationError;
 
 export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse =
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200;
 
 export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery = {
   Response: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200;
-  Errors: any;
+  QueryParams: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams;
+  Errors: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422;
 };

@@ -1,0 +1,117 @@
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "report_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Report Date"
+    },
+    "shift_code": { "type": "string", "title": "Shift Code" },
+    "shift_period": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["AM", "PM"],
+          "title": "ShiftPeriod",
+          "x-readme-ref-name": "ShiftPeriod"
+        },
+        { "type": "null" }
+      ]
+    },
+    "submitted_by_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Submitted By User Id"
+    },
+    "all_personnel_reported_on_time": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "All Personnel Reported On Time"
+    },
+    "personnel_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Personnel Explanation"
+    },
+    "affected_operations": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Affected Operations"
+    },
+    "affected_operations_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Affected Operations Explanation"
+    },
+    "all_equipment_operational": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "All Equipment Operational"
+    },
+    "equipment_issue_reason": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Equipment Issue Reason"
+    },
+    "equipment_remedy_action": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Equipment Remedy Action"
+    },
+    "incident_reports_submitted": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Incident Reports Submitted"
+    },
+    "incident_explanation": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Incident Explanation"
+    },
+    "weather_summary": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Weather Summary"
+    },
+    "equipment_summary": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Equipment Summary"
+    },
+    "personnel_summary": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Personnel Summary"
+    },
+    "runway_status": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Runway Status"
+    },
+    "navaids_status": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Navaids Status"
+    },
+    "communications_status": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Communications Status"
+    },
+    "general_remarks": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "General Remarks"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+      "title": "RequestStatus",
+      "x-readme-ref-name": "RequestStatus"
+    },
+    "workflow_instance_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Workflow Instance Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "department_id",
+    "report_date",
+    "shift_code",
+    "submitted_by_user_id",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "StatusReportPublic",
+  "x-readme-ref-name": "StatusReportPublic"
+}

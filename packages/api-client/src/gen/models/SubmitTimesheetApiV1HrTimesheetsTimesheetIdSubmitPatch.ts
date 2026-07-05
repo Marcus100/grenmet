@@ -15,6 +15,7 @@ export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams = {
 };
 
 /**
+ * TimesheetPublic
  * @description Timesheet submitted
  */
 export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200 =

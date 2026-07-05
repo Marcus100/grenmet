@@ -5,4 +5,6 @@
 
 import * as z from "zod";
 
-export const messageSchema = z.any();
+export const messageSchema = z.object({
+  message: z.string(),
+});

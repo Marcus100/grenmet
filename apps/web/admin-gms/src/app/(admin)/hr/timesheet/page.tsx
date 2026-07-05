@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { TimesheetEditor } from "@/components/hr/timesheet/timesheet-editor";
+import { TimesheetSubmissions } from "@/components/hr/timesheet/timesheet-submissions";
 
 export const metadata: Metadata = {
   title: "Time Sheet",
@@ -18,6 +19,7 @@ export default function TimesheetPage() {
         </p>
       </div>
       <TimesheetEditor />
+      <TimesheetSubmissions />
     </div>
   );
 }

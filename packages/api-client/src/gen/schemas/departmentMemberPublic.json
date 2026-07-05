@@ -1,0 +1,28 @@
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "first_name": { "type": "string", "title": "First Name" },
+    "last_name": { "type": "string", "title": "Last Name" },
+    "employee_number": { "type": "string", "title": "Employee Number" },
+    "position": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Position"
+    },
+    "employment_status": {
+      "type": "string",
+      "enum": ["ACTIVE", "INACTIVE", "TERMINATED"],
+      "title": "EmploymentStatus",
+      "x-readme-ref-name": "EmploymentStatus"
+    }
+  },
+  "type": "object",
+  "required": [
+    "user_id",
+    "first_name",
+    "last_name",
+    "employee_number",
+    "employment_status"
+  ],
+  "title": "DepartmentMemberPublic",
+  "x-readme-ref-name": "DepartmentMemberPublic"
+}

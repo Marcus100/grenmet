@@ -8,6 +8,7 @@ import type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
 /**
+ * RosterPeriodPublic
  * @description Roster period created
  */
 export type CreatePeriodApiV1HrRostersPeriodsPost201 = RosterPeriodPublic;

@@ -15,6 +15,7 @@ export type ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type ExpireAlertApiV1CapAlertsAlertIdExpirePost200 = CapAlertPublic;

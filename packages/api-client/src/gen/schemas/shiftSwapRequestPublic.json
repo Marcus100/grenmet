@@ -1,1 +1,81 @@
-{ "x-readme-ref-name": "ShiftSwapRequestPublic" }
+{
+  "properties": {
+    "id": { "type": "string", "format": "uuid", "title": "Id" },
+    "requesting_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Requesting User Id"
+    },
+    "counterpart_user_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Counterpart User Id"
+    },
+    "department_id": { "type": "string", "title": "Department Id" },
+    "swap_type": {
+      "type": "string",
+      "enum": ["TEMPORARY", "PERMANENT"],
+      "title": "SwapType",
+      "x-readme-ref-name": "SwapType"
+    },
+    "source_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Source Date"
+    },
+    "source_shift_code": { "type": "string", "title": "Source Shift Code" },
+    "target_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Target Date"
+    },
+    "target_shift_code": { "type": "string", "title": "Target Shift Code" },
+    "effective_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Effective Date"
+    },
+    "restoration_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Restoration Date"
+    },
+    "reason": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Reason"
+    },
+    "counterpart_agreed": { "type": "boolean", "title": "Counterpart Agreed" },
+    "counterpart_agreed_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Counterpart Agreed At"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", "CANCELLED"],
+      "title": "RequestStatus",
+      "x-readme-ref-name": "RequestStatus"
+    },
+    "workflow_instance_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Workflow Instance Id"
+    },
+    "created_at": { "type": "string", "title": "Created At" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": [
+    "id",
+    "requesting_user_id",
+    "counterpart_user_id",
+    "department_id",
+    "swap_type",
+    "source_date",
+    "source_shift_code",
+    "target_date",
+    "target_shift_code",
+    "counterpart_agreed",
+    "status",
+    "created_at",
+    "updated_at"
+  ],
+  "title": "ShiftSwapRequestPublic",
+  "x-readme-ref-name": "ShiftSwapRequestPublic"
+}

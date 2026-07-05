@@ -3,4 +3,42 @@
  * Do not edit manually.
  */
 
-export type WorkflowStepTemplatePublic = any;
+import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
+
+/**
+ * WorkflowStepTemplatePublic
+ */
+export type WorkflowStepTemplatePublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string, uuid
+   */
+  workflow_template_id: string;
+  /**
+   * @type integer
+   */
+  step_order: number;
+  /**
+   * @type string, uuid
+   */
+  required_role_id: string;
+  /**
+   * @type string
+   */
+  required_scope: RoleAssignmentScope;
+  /**
+   * @type boolean
+   */
+  is_required: boolean;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

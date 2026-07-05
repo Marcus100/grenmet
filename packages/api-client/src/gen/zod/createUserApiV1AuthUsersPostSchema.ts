@@ -21,6 +21,11 @@ export const createUserApiV1AuthUsersPost201Schema = z.lazy(
 export const createUserApiV1AuthUsersPost400Schema = z.any();
 
 /**
+ * @description Insufficient privileges
+ */
+export const createUserApiV1AuthUsersPost403Schema = z.any();
+
+/**
  * @description Validation Error
  */
 export const createUserApiV1AuthUsersPost422Schema = z.lazy(

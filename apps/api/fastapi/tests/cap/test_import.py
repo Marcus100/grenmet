@@ -78,3 +78,90 @@ async def test_import_requires_permission(db_async: AsyncSession) -> None:
         await import_alert(
             session=db_async, current_user=user, source="xml", value=_XML
         )
+
+
+# --------------------------------------------------------------------------- #
+# SSRF guards — URL imports must reject non-public / redirecting / oversized
+# sources. These use an injected MockTransport so no real network I/O occurs;
+# validate_import_url runs on every URL regardless of the injected client.
+# --------------------------------------------------------------------------- #
+
+_SSRF_URLS = [
+    "file:///etc/passwd",
+    "ftp://example.test/cap.xml",
+    "http://localhost/cap.xml",
+    "http://127.0.0.1/cap.xml",
+    "http://169.254.169.254/latest/meta-data/",
+    "http://10.0.0.1/cap.xml",
+    "http://[::1]/cap.xml",
+    "https://user:pass@example.test/cap.xml",
+]
+
+
+@pytest.mark.parametrize("bad_url", _SSRF_URLS)
+async def test_import_rejects_ssrf_urls(db_async: AsyncSession, bad_url: str) -> None:
+    user = await _user_with_perm(db_async)
+
+    def handler(_request: httpx.Request) -> httpx.Response:  # pragma: no cover
+        return httpx.Response(200, content=_XML.encode())
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(CapImportError):
+            await import_alert(
+                session=db_async,
+                current_user=user,
+                source="url",
+                value=bad_url,
+                http_client=client,
+            )
+
+
+async def test_import_rejects_redirect(db_async: AsyncSession) -> None:
+    user = await _user_with_perm(db_async)
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(302, headers={"location": "http://127.0.0.1/x"})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(CapImportError):
+            await import_alert(
+                session=db_async,
+                current_user=user,
+                source="url",
+                value="https://example.test/cap.xml",
+                http_client=client,
+            )
+
+
+async def test_import_rejects_oversized_body(db_async: AsyncSession) -> None:
+    from src.cap.validation import MAX_IMPORT_BYTES
+
+    user = await _user_with_perm(db_async)
+
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, content=b"x" * (MAX_IMPORT_BYTES + 1))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(CapImportError):
+            await import_alert(
+                session=db_async,
+                current_user=user,
+                source="url",
+                value="https://example.test/cap.xml",
+                http_client=client,
+            )
+
+
+async def test_ensure_public_host_rejects_private_resolution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import socket
+
+    from src.cap import validation
+
+    def _fake_getaddrinfo(*_args: object, **_kwargs: object) -> list[object]:
+        return [(socket.AF_INET, None, None, "", ("127.0.0.1", 0))]
+
+    monkeypatch.setattr(socket, "getaddrinfo", _fake_getaddrinfo)
+    with pytest.raises(CapImportError):
+        await validation.ensure_public_host("evil.test")

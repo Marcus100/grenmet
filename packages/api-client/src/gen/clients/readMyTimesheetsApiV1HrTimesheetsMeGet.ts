@@ -9,7 +9,11 @@ import type {
   ResponseErrorConfig,
 } from "../../client.js";
 import fetch from "../../client.js";
-import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
+import type {
+  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
+} from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 
 function getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl() {
   const res = { method: "GET", url: `/api/v1/hr/timesheets/me` as const };
@@ -22,17 +26,19 @@ function getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl() {
  * {@link /api/v1/hr/timesheets/me}
  */
 export async function readMyTimesheetsApiV1HrTimesheetsMeGet(
+  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
   const { client: request = fetch, ...requestConfig } = config;
 
   const res = await request<
     ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
     unknown
   >({
     method: "GET",
     url: getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl().url.toString(),
+    params,
     ...requestConfig,
   });
   return res.data;

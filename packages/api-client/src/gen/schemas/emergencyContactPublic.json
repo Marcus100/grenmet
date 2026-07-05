@@ -1,0 +1,19 @@
+{
+  "properties": {
+    "name": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Name"
+    },
+    "phone": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Phone"
+    },
+    "relationship": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Relationship"
+    }
+  },
+  "type": "object",
+  "title": "EmergencyContactPublic",
+  "x-readme-ref-name": "EmergencyContactPublic"
+}

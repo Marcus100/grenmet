@@ -75,3 +75,39 @@ def test_build_then_parse_roundtrip_preserves_identifier_and_polygon() -> None:
 
     pts = alert.info[0].areas[0].polygons[0]
     assert _parse_polygon(_format_polygon(pts)) == pts
+
+
+_BILLION_LAUGHS = """<?xml version="1.0"?>
+<!DOCTYPE lolz [
+  <!ENTITY lol "lol">
+  <!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">
+  <!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">
+]>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>&lol3;</identifier>
+</alert>"""
+
+_EXTERNAL_ENTITY = """<?xml version="1.0"?>
+<!DOCTYPE alert [ <!ENTITY xxe SYSTEM "file:///etc/passwd"> ]>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>&xxe;</identifier>
+</alert>"""
+
+
+def test_rejects_billion_laughs_entity_expansion() -> None:
+    with pytest.raises(CapImportError):
+        xml_to_alert_data(_BILLION_LAUGHS)
+
+
+def test_rejects_external_entity_reference() -> None:
+    with pytest.raises(CapImportError):
+        xml_to_alert_data(_EXTERNAL_ENTITY)
+
+
+def test_rejects_malformed_numeric_coordinate() -> None:
+    bad = _SAMPLE.replace(
+        "<areaDesc>St. George's</areaDesc>",
+        "<areaDesc>x</areaDesc><polygon>not,a number 1,2</polygon>",
+    )
+    with pytest.raises(CapImportError):
+        xml_to_alert_data(bad)

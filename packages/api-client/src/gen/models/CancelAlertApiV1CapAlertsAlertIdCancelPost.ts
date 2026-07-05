@@ -15,6 +15,7 @@ export type CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type CancelAlertApiV1CapAlertsAlertIdCancelPost200 = CapAlertPublic;

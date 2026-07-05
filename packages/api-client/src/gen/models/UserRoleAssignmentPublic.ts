@@ -3,4 +3,40 @@
  * Do not edit manually.
  */
 
-export type UserRoleAssignmentPublic = any;
+import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
+
+/**
+ * UserRoleAssignmentPublic
+ */
+export type UserRoleAssignmentPublic = {
+  /**
+   * @type string, uuid
+   */
+  user_id: string;
+  /**
+   * @type string, uuid
+   */
+  role_id: string;
+  /**
+   * @type string | undefined
+   */
+  scope?: RoleAssignmentScope;
+  department_id?: string | null;
+  effective_to?: string | null;
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  effective_from: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

@@ -10,6 +10,23 @@ import { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
 export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParamsSchema =
   z.object({
     department_id: z.string(),
+    page: z.optional(
+      z.coerce
+        .number()
+        .int()
+        .min(1)
+        .default(1)
+        .describe("Page number (1-indexed)")
+    ),
+    size: z.optional(
+      z.coerce
+        .number()
+        .int()
+        .min(1)
+        .max(1000)
+        .default(100)
+        .describe("Items per page")
+    ),
   });
 
 /**

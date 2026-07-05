@@ -8,6 +8,7 @@ import type { PermissionCreate } from "./PermissionCreate.js";
 import type { PermissionPublic } from "./PermissionPublic.js";
 
 /**
+ * PermissionPublic
  * @description Permission created
  */
 export type CreatePermissionApiV1AuthPermissionsPost201 = PermissionPublic;

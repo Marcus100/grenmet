@@ -8,6 +8,7 @@ import type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 /**
+ * CapFeedImportPublic
  * @description Successful Response
  */
 export type CreateFeedApiV1CapFeedsPost201 = CapFeedImportPublic;

@@ -4,5 +4,11 @@
  */
 
 import * as z from "zod";
+import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 
-export const leaveRequestListPublicSchema = z.any();
+export const leaveRequestListPublicSchema = z.object({
+  data: z.array(z.lazy(() => leaveRequestPublicSchema)),
+  count: z.number().int(),
+  page: z.optional(z.number().int().default(1)),
+  size: z.optional(z.number().int().default(100)),
+});

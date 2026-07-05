@@ -11,20 +11,21 @@ import type {
 import fetch from "../../client.js";
 import type {
   CreateUserApiV1AuthUsersPost400,
+  CreateUserApiV1AuthUsersPost403,
   CreateUserApiV1AuthUsersPost422,
   CreateUserApiV1AuthUsersPostMutationRequest,
   CreateUserApiV1AuthUsersPostMutationResponse,
 } from "../models/CreateUserApiV1AuthUsersPost.js";
 
 function getCreateUserApiV1AuthUsersPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/users/` as const };
+  const res = { method: "POST", url: `/api/v1/auth/users` as const };
   return res;
 }
 
 /**
- * @description Create a user (superuser only).
+ * @description Create a user (superuser or user.manage). Only superusers can create superuser accounts.
  * @summary Create user
- * {@link /api/v1/auth/users/}
+ * {@link /api/v1/auth/users}
  */
 export async function createUserApiV1AuthUsersPost(
   data: CreateUserApiV1AuthUsersPostMutationRequest,
@@ -39,7 +40,9 @@ export async function createUserApiV1AuthUsersPost(
   const res = await request<
     CreateUserApiV1AuthUsersPostMutationResponse,
     ResponseErrorConfig<
-      CreateUserApiV1AuthUsersPost400 | CreateUserApiV1AuthUsersPost422
+      | CreateUserApiV1AuthUsersPost400
+      | CreateUserApiV1AuthUsersPost403
+      | CreateUserApiV1AuthUsersPost422
     >,
     CreateUserApiV1AuthUsersPostMutationRequest
   >({

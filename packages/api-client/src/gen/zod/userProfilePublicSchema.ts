@@ -4,5 +4,28 @@
  */
 
 import * as z from "zod";
+import { addressPublicSchema } from "./addressPublicSchema.js";
+import { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
+import { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
+import { employmentPublicSchema } from "./employmentPublicSchema.js";
+import { leavePublicSchema } from "./leavePublicSchema.js";
+import { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
+import { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
+import { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
+import { rosterPreferencesPublicSchema } from "./rosterPreferencesPublicSchema.js";
+import { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 
-export const userProfilePublicSchema = z.any();
+export const userProfilePublicSchema = z.object({
+  id: z.string().uuid(),
+  identity: z.lazy(() => profileIdentityPublicSchema),
+  profile: z.lazy(() => profileDetailsPublicSchema),
+  address: z.lazy(() => addressPublicSchema),
+  emergency_contact: z.lazy(() => emergencyContactPublicSchema),
+  employment: z.lazy(() => employmentPublicSchema),
+  roles: z.optional(z.array(z.lazy(() => srcHrSchemasRolePublicSchema))),
+  permissions: z.optional(z.array(z.string())),
+  roster_preferences: z.lazy(() => rosterPreferencesPublicSchema),
+  leave: z.lazy(() => leavePublicSchema),
+  approval_authority: z.lazy(() => approvalAuthorityPublicSchema),
+  audit: z.lazy(() => profileAuditPublicSchema),
+});

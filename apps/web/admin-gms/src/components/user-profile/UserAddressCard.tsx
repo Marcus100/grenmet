@@ -8,13 +8,12 @@ import type {
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
 import { Input } from "@grenmet/ui/components/ui/input";
+import { Label } from "@grenmet/ui/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@grenmet/ui/components/ui/native-select";
 import { useState } from "react";
-import { useModal } from "../../hooks/useModal";
-import Label from "../form/Label";
 
 const PARISH_OPTIONS: { label: string; value: Parish }[] = [
   { value: "SAINT_GEORGE", label: "St. George" },
@@ -38,7 +37,9 @@ export default function UserAddressCard({
   isSaving,
   onSave,
 }: UserAddressCardProps) {
-  const { isOpen, openModal, closeModal } = useModal();
+  const [isOpen, setIsOpen] = useState(false);
+  const openModal = () => setIsOpen(true);
+  const closeModal = () => setIsOpen(false);
   const [line1, setLine1] = useState(profile.address.line_1 || "");
   const [line2, setLine2] = useState(profile.address.line_2 || "");
   const [city, setCity] = useState(profile.address.city || "");
@@ -171,7 +172,7 @@ export default function UserAddressCard({
         open={isOpen}
       >
         <DialogContent className="m-4 max-w-[700px]">
-          <div className="no-scrollbar relative w-full overflow-y-auto rounded-3xl bg-background p-4 lg:p-11">
+          <div className="relative w-full overflow-y-auto rounded-3xl bg-background p-4 lg:p-11">
             <div className="px-2 pr-14">
               <h4 className="mb-2 font-semibold text-2xl text-foreground">
                 Edit Address
@@ -181,10 +182,10 @@ export default function UserAddressCard({
               </p>
             </div>
             <form className="flex flex-col">
-              <div className="custom-scrollbar overflow-y-auto px-2">
+              <div className="overflow-y-auto px-2">
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
                   <div>
-                    <Label>Address Line 1</Label>
+                    <Label className="mb-1.5">Address Line 1</Label>
                     <Input
                       defaultValue={line1}
                       key={`line1-${line1}`}
@@ -194,7 +195,7 @@ export default function UserAddressCard({
                   </div>
 
                   <div>
-                    <Label>Address Line 2</Label>
+                    <Label className="mb-1.5">Address Line 2</Label>
                     <Input
                       defaultValue={line2}
                       key={`line2-${line2}`}
@@ -204,7 +205,7 @@ export default function UserAddressCard({
                   </div>
 
                   <div>
-                    <Label>City</Label>
+                    <Label className="mb-1.5">City</Label>
                     <Input
                       defaultValue={city}
                       key={`city-${city}`}
@@ -214,7 +215,7 @@ export default function UserAddressCard({
                   </div>
 
                   <div>
-                    <Label>Parish</Label>
+                    <Label className="mb-1.5">Parish</Label>
                     <NativeSelect
                       className="w-full"
                       key={`parish-${parish}`}
@@ -238,7 +239,7 @@ export default function UserAddressCard({
                   </div>
 
                   <div>
-                    <Label>Postal Code</Label>
+                    <Label className="mb-1.5">Postal Code</Label>
                     <Input
                       defaultValue={postalCode}
                       key={`postal-code-${postalCode}`}
@@ -248,7 +249,7 @@ export default function UserAddressCard({
                   </div>
 
                   <div>
-                    <Label>Country</Label>
+                    <Label className="mb-1.5">Country</Label>
                     <Input
                       defaultValue={country}
                       key={`country-${country}`}

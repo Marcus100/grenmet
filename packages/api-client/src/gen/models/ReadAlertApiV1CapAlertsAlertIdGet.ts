@@ -14,6 +14,7 @@ export type ReadAlertApiV1CapAlertsAlertIdGetPathParams = {
 };
 
 /**
+ * CapAlertPublic
  * @description Successful Response
  */
 export type ReadAlertApiV1CapAlertsAlertIdGet200 = CapAlertPublic;

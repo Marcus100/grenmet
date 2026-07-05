@@ -47,6 +47,16 @@ class PublishError(Exception):
         self.details = details
 
 
+def _prior_delivered(result: object) -> set[str]:
+    """IDs of webhooks already delivered on a previous attempt (from job.result)."""
+    if not isinstance(result, dict):
+        return set()
+    delivered = result.get("delivered", [])
+    if not isinstance(delivered, list):
+        return set()
+    return {str(hook_id) for hook_id in delivered if hook_id is not None}
+
+
 async def publish_webhooks(
     *, session: AsyncSession, job: CapJobEvent, http_client: httpx.AsyncClient
 ) -> dict[str, Any]:
@@ -57,9 +67,16 @@ async def publish_webhooks(
     hooks = list(result.scalars().all())
     body = json.dumps(job.payload, default=str).encode()
 
-    delivered: list[str] = []
+    # Idempotent retries: a hook delivered on an earlier attempt (recorded in
+    # job.result["delivered"]) is not re-POSTed. Carry the prior successes forward
+    # so a partial failure only re-targets the hooks that have not yet received it.
+    already_delivered = _prior_delivered(job.result)
+
+    delivered: list[str] = list(already_delivered)
     failures: list[dict[str, str]] = []
     for hook in hooks:
+        if str(hook.id) in already_delivered:
+            continue
         headers = {"Content-Type": "application/json"}
         if hook.secret_ref:
             signature = hmac.new(

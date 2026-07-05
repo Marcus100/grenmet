@@ -8,6 +8,7 @@ import type { Message } from "./Message.js";
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
 /**
+ * Message
  * @description Successful Response
  */
 export type LogoutSessionApiV1LoginSessionLogoutPost200 = Message;

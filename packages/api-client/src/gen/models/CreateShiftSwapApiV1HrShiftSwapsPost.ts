@@ -13,6 +13,7 @@ import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 export type CreateShiftSwapApiV1HrShiftSwapsPost200 = any;
 
 /**
+ * ShiftSwapRequestPublic
  * @description Successful Response
  */
 export type CreateShiftSwapApiV1HrShiftSwapsPost201 = ShiftSwapRequestPublic;

@@ -1,4 +1,50 @@
+# Imports below the DB-isolation bootstrap are intentionally not at the top of
+# the file (env must be set before any `src` import), so E402 is disabled here.
+# ruff: noqa: E402
+import os
 from collections.abc import AsyncGenerator, Generator
+
+# --- Test database isolation -------------------------------------------------
+# Every test truncates all application tables between runs, so the suite MUST
+# NOT point at the development database. Force a dedicated "<db>_test" database
+# BEFORE any `src` module is imported (settings are read at import time), then
+# create and migrate it on demand. This makes it impossible for a stray
+# `POSTGRES_SERVER=localhost` run to wipe dev data.
+os.environ.setdefault("POSTGRES_SERVER", "localhost")
+_base_db = os.environ.get("POSTGRES_DB") or "app"
+if not _base_db.endswith("_test"):
+    os.environ["POSTGRES_DB"] = f"{_base_db}_test"
+
+
+def _bootstrap_test_database() -> None:
+    import psycopg
+
+    from src.config import settings
+
+    target = settings.POSTGRES_DB
+    if not target.endswith("_test"):  # hard safety net — never migrate a dev DB
+        raise RuntimeError(
+            f"Refusing to run tests against non-test database {target!r}"
+        )
+    admin_dsn = (
+        f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
+        f"@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/postgres"
+    )
+    with psycopg.connect(admin_dsn, autocommit=True) as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s", (target,)
+        ).fetchone()
+        if not exists:
+            conn.execute(f'CREATE DATABASE "{target}"')
+
+    from alembic.config import Config
+
+    from alembic import command
+
+    command.upgrade(Config("alembic.ini"), "head")
+
+
+_bootstrap_test_database()
 
 import httpx
 import pytest
@@ -6,7 +52,12 @@ from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Session, SQLModel
 
-from src.database import async_session_factory, engine, init_db, init_db_async
+from src.database import (
+    async_session_factory,
+    engine,
+    init_db,
+    init_db_async,
+)
 from src.email_config import email_settings
 from src.main import app
 from src.rate_limit import limiter

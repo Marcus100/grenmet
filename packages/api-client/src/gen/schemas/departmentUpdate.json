@@ -1,0 +1,9 @@
+{
+  "properties": {
+    "name": { "type": "string", "maxLength": 255, "title": "Name" }
+  },
+  "type": "object",
+  "required": ["name"],
+  "title": "DepartmentUpdate",
+  "x-readme-ref-name": "DepartmentUpdate"
+}

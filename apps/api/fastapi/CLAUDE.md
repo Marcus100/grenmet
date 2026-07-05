@@ -240,6 +240,10 @@ async def test_create_leave_request(
 - Use `app.dependency_overrides` to replace auth and external service deps in tests.
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
+- Running from the agent dev container? There's no docker CLI and `grenmet-postgres`
+  isn't reachable — run `uv sync` once, then
+  `POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run pytest`
+  against the host stack. See `AGENTS.md` → FastAPI.
 
 ## Anti-Patterns
 

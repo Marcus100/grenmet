@@ -55,7 +55,7 @@
         "type": "object",
         "required": ["value_name", "value"],
         "title": "CapNameValue",
-        "x-readme-ref-name": "CapNameValue-Input"
+        "x-readme-ref-name": "CapNameValue"
       },
       "type": "array",
       "title": "Event Codes"
@@ -158,7 +158,7 @@
         "type": "object",
         "required": ["value_name", "value"],
         "title": "CapNameValue",
-        "x-readme-ref-name": "CapNameValue-Input"
+        "x-readme-ref-name": "CapNameValue"
       },
       "type": "array",
       "title": "Parameters"
@@ -285,7 +285,7 @@
               "type": "object",
               "required": ["value_name", "value"],
               "title": "CapNameValue",
-              "x-readme-ref-name": "CapNameValue-Input"
+              "x-readme-ref-name": "CapNameValue"
             },
             "type": "array",
             "title": "Geocodes"

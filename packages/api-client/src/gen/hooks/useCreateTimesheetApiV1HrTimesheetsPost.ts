@@ -24,7 +24,7 @@ import type {
 } from "../models/CreateTimesheetApiV1HrTimesheetsPost.js";
 
 export const createTimesheetApiV1HrTimesheetsPostMutationKey = () =>
-  [{ url: "/api/v1/hr/timesheets/" }] as const;
+  [{ url: "/api/v1/hr/timesheets" }] as const;
 
 export type CreateTimesheetApiV1HrTimesheetsPostMutationKey = ReturnType<
   typeof createTimesheetApiV1HrTimesheetsPostMutationKey
@@ -57,7 +57,7 @@ export function createTimesheetApiV1HrTimesheetsPostMutationOptions<
 /**
  * @description Create a new timesheet (self or proxy). Policy controls self/proxy submission.
  * @summary Create timesheet
- * {@link /api/v1/hr/timesheets/}
+ * {@link /api/v1/hr/timesheets}
  */
 export function useCreateTimesheetApiV1HrTimesheetsPost<TContext>(
   options: {

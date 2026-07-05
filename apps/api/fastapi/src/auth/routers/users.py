@@ -25,7 +25,6 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
     SUCCESS_USER_DELETED,
 )
-from src.auth.dependencies import get_current_active_superuser
 from src.auth.models import User
 from src.auth.schemas import (
     UpdatePassword,
@@ -35,7 +34,12 @@ from src.auth.schemas import (
     UserUpdate,
     UserUpdateMe,
 )
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import (
+    CurrentUser,
+    SessionDep,
+    get_current_user_manager,
+    is_user_manager,
+)
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
 from src.models import Message
@@ -45,11 +49,11 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
 
 
 @router.get(
-    "/",
-    dependencies=[Depends(get_current_active_superuser)],
+    "",
+    dependencies=[Depends(get_current_user_manager)],
     response_model=PaginatedResponse[UserPublic],
     summary="List users",
-    description="Return users (superuser only). Uses standard pagination (page, size, total_pages).",
+    description="Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).",
     responses={status.HTTP_200_OK: {"description": "Users returned"}},
 )
 async def read_users(
@@ -71,23 +75,30 @@ async def read_users(
 
 
 @router.post(
-    "/",
-    dependencies=[Depends(get_current_active_superuser)],
+    "",
     response_model=UserPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create user",
-    description="Create a user (superuser only).",
+    description="Create a user (superuser or user.manage). Only superusers can create superuser accounts.",
     responses={
         status.HTTP_201_CREATED: {"description": "User created"},
         status.HTTP_400_BAD_REQUEST: {
             "description": "User with this email already exists"
         },
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
     },
 )
-async def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+async def create_user(
+    *,
+    session: SessionDep,
+    user_in: UserCreate,
+    current_user: Annotated[User, Depends(get_current_user_manager)],
+) -> Any:
     """
     Create new user.
     """
+    if user_in.is_superuser and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
     user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
@@ -257,7 +268,7 @@ async def read_user_by_id(
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user.id == current_user.id:
         return user
-    if not current_user.is_superuser:
+    if not is_user_manager(current_user):
         raise HTTPException(
             status_code=403,
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
@@ -267,12 +278,12 @@ async def read_user_by_id(
 
 @router.patch(
     "/{user_id}",
-    dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user by ID (superuser only).",
+    description="Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
         status.HTTP_409_CONFLICT: {"description": "Email already exists"},
     },
@@ -282,6 +293,7 @@ async def update_user(
     session: SessionDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
+    current_user: Annotated[User, Depends(get_current_user_manager)],
 ) -> Any:
     """
     Update a user.
@@ -290,6 +302,10 @@ async def update_user(
     db_user = await session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    if not current_user.is_superuser and (
+        db_user.is_superuser or "is_superuser" in user_in.model_fields_set
+    ):
+        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
     if user_in.email:
         existing_user = await service.get_user_by_email(
             session=session, email=user_in.email
@@ -301,24 +317,27 @@ async def update_user(
 
 @router.delete(
     "/{user_id}",
-    dependencies=[Depends(get_current_active_superuser)],
     summary="Delete user by ID",
-    description="Delete a user by ID (superuser only).",
+    description="Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
-            "description": "Superuser cannot delete own account"
+            "description": "Insufficient privileges or self-deletion"
         },
         status.HTTP_404_NOT_FOUND: {"description": "User not found"},
     },
 )
 async def delete_user(
-    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+    session: SessionDep,
+    current_user: Annotated[User, Depends(get_current_user_manager)],
+    user_id: uuid.UUID,
 ) -> Message:
     user = await session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if user.id == current_user.id:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
+    if user.is_superuser and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
     await service.delete_user(session=session, user=user)
     return Message(message=SUCCESS_USER_DELETED)

@@ -17,22 +17,30 @@ import type {
 } from "../../client.js";
 import fetch from "../../client.js";
 import { readMyTimesheetsApiV1HrTimesheetsMeGet } from "../clients/readMyTimesheetsApiV1HrTimesheetsMeGet.js";
-import type { ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
+import type {
+  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
+} from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 
-export const readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey = () =>
-  [{ url: "/api/v1/hr/timesheets/me" }] as const;
+export const readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey = (
+  params: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams = {}
+) =>
+  [{ url: "/api/v1/hr/timesheets/me" }, ...(params ? [params] : [])] as const;
 
 export type ReadMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey = ReturnType<
   typeof readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey
 >;
 
 export function readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryOptions(
+  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
-  const queryKey = readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey();
+  const queryKey =
+    readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey(params);
   return queryOptions<
     ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
+    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
     ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
     typeof queryKey
   >({
@@ -41,7 +49,7 @@ export function readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryOptions(
       if (!config.signal) {
         config.signal = signal;
       }
-      return readMyTimesheetsApiV1HrTimesheetsMeGet(config);
+      return readMyTimesheetsApiV1HrTimesheetsMeGet(params, config);
     },
   });
 }
@@ -56,11 +64,12 @@ export function useReadMyTimesheetsApiV1HrTimesheetsMeGetSuspense<
   TQueryKey extends
     QueryKey = ReadMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey,
 >(
+  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
   options: {
     query?: Partial<
       UseSuspenseQueryOptions<
         ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-        ResponseErrorConfig<Error>,
+        ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
         TData,
         TQueryKey
       >
@@ -72,18 +81,22 @@ export function useReadMyTimesheetsApiV1HrTimesheetsMeGetSuspense<
   const { client: queryClient, ...queryOptions } = queryConfig;
   const queryKey =
     queryOptions?.queryKey ??
-    readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey();
+    readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryKey(params);
 
   const query = useSuspenseQuery(
     {
-      ...readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryOptions(config),
+      ...readMyTimesheetsApiV1HrTimesheetsMeGetSuspenseQueryOptions(
+        params,
+        config
+      ),
       queryKey,
       ...queryOptions,
     } as unknown as UseSuspenseQueryOptions,
     queryClient
-  ) as UseSuspenseQueryResult<TData, ResponseErrorConfig<Error>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseSuspenseQueryResult<
+    TData,
+    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>
+  > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
 

@@ -14,6 +14,7 @@ export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams = {
 };
 
 /**
+ * RosterPeriodPublic
  * @description Roster period published
  */
 export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200 =

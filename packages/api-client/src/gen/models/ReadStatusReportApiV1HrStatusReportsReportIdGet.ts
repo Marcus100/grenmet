@@ -14,6 +14,7 @@ export type ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams = {
 };
 
 /**
+ * StatusReportDetails
  * @description Status report and entries returned
  */
 export type ReadStatusReportApiV1HrStatusReportsReportIdGet200 =

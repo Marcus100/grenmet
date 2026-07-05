@@ -4,5 +4,35 @@
  */
 
 import * as z from "zod";
+import { leaveTypeSchema } from "./leaveTypeSchema.js";
+import { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
+import { requestStatusSchema } from "./requestStatusSchema.js";
 
-export const leaveRequestPublicSchema = z.any();
+export const leaveRequestPublicSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  department_id: z.string(),
+  leave_type: z.lazy(() => leaveTypeSchema),
+  start_date: z.string().date(),
+  end_date: z.string().date(),
+  days_requested: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  days_with_pay: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  days_without_pay: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  professional_appointment_subtype: z.optional(
+    z.union([z.lazy(() => profAppointmentTypeSchema), z.null()])
+  ),
+  reason: z.optional(z.union([z.string(), z.null()])),
+  contact_phone: z.optional(z.union([z.string(), z.null()])),
+  leave_address: z.optional(z.union([z.string(), z.null()])),
+  travel_from_date: z.optional(z.union([z.string().date(), z.null()])),
+  travel_to_date: z.optional(z.union([z.string().date(), z.null()])),
+  salary_in_advance: z.boolean(),
+  requires_acting_appointment: z.boolean(),
+  acting_officer_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  expected_return_date: z.optional(z.union([z.string().date(), z.null()])),
+  head_of_dept_comments: z.optional(z.union([z.string(), z.null()])),
+  status: z.lazy(() => requestStatusSchema),
+  workflow_instance_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  created_at: z.string(),
+  updated_at: z.string(),
+});

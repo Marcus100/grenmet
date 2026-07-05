@@ -5,4 +5,6 @@
 
 import * as z from "zod";
 
-export const twoFactorStatusPublicSchema = z.any();
+export const twoFactorStatusPublicSchema = z.object({
+  enabled: z.boolean(),
+});

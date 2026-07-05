@@ -5,4 +5,7 @@
 
 import * as z from "zod";
 
-export const twoFactorSetupResponseSchema = z.any();
+export const twoFactorSetupResponseSchema = z.object({
+  secret: z.string(),
+  provisioning_uri: z.string(),
+});

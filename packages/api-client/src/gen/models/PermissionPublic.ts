@@ -3,4 +3,38 @@
  * Do not edit manually.
  */
 
-export type PermissionPublic = any;
+/**
+ * PermissionPublic
+ */
+export type PermissionPublic = {
+  key?: string | null;
+  /**
+   * @type string
+   */
+  action: string;
+  /**
+   * @type string
+   */
+  entity: string;
+  /**
+   * @type string
+   */
+  access: string;
+  /**
+   * @default ""
+   * @type string | undefined
+   */
+  description?: string;
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+  /**
+   * @type string
+   */
+  updated_at: string;
+};

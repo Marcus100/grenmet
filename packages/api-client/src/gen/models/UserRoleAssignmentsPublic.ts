@@ -3,4 +3,18 @@
  * Do not edit manually.
  */
 
-export type UserRoleAssignmentsPublic = any;
+import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
+
+/**
+ * UserRoleAssignmentsPublic
+ */
+export type UserRoleAssignmentsPublic = {
+  /**
+   * @type array
+   */
+  data: UserRoleAssignmentPublic[];
+  /**
+   * @type integer
+   */
+  count: number;
+};

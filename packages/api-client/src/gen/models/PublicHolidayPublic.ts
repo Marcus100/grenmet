@@ -3,4 +3,36 @@
  * Do not edit manually.
  */
 
-export type PublicHolidayPublic = any;
+/**
+ * PublicHolidayPublic
+ */
+export type PublicHolidayPublic = {
+  /**
+   * @type string, uuid
+   */
+  id: string;
+  /**
+   * @type string
+   */
+  name: string;
+  /**
+   * @type string, date
+   */
+  holiday_date: string;
+  /**
+   * @type boolean
+   */
+  is_recurring: boolean;
+  /**
+   * @type string
+   */
+  country_code: string;
+  /**
+   * @type string, uuid
+   */
+  created_by_user_id: string;
+  /**
+   * @type string
+   */
+  created_at: string;
+};

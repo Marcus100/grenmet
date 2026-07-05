@@ -4,5 +4,9 @@
  */
 
 import * as z from "zod";
+import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 
-export const publicHolidaysPublicSchema = z.any();
+export const publicHolidaysPublicSchema = z.object({
+  data: z.array(z.lazy(() => publicHolidayPublicSchema)),
+  count: z.number().int(),
+});

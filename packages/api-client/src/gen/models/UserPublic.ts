@@ -46,11 +46,11 @@ export type UserPublic = {
    */
   id: string;
   /**
-   * @type string, date-time
+   * @type string
    */
   created_at: string;
   /**
-   * @type string, date-time
+   * @type string
    */
   updated_at: string;
   last_login_at?: string | null;

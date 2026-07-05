@@ -8,6 +8,7 @@ import type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
 import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 
 /**
+ * RosterCsvImportResponse
  * @description Import job created
  */
 export type ImportCsvApiV1HrRostersImportCsvPost200 = RosterCsvImportResponse;
