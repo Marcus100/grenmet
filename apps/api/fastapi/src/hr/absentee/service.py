@@ -219,9 +219,7 @@ async def list_absentee_reports(
         statement = statement.where(col(AbsenteeReport.department_id) == department_id)
     else:
         statement = statement.where(col(AbsenteeReport.user_id) == current_user.id)
-    total = await session.scalar(
-        select(func.count()).select_from(statement.subquery())
-    )
+    total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
         statement.order_by(col(AbsenteeReport.created_at).desc())
         .offset(skip)

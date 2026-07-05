@@ -19,9 +19,4 @@ export type ValidationError = {
    * @type string
    */
   type: string;
-  input?: any;
-  /**
-   * @type object | undefined
-   */
-  ctx?: object;
 };

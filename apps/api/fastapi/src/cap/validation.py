@@ -33,7 +33,9 @@ def validate_import_url(url: str) -> None:
     if not host:
         raise CapImportError("import URL has no host")
     lowered = host.lower()
-    if lowered == "localhost" or lowered.endswith((".local", ".internal", ".localhost")):
+    if lowered == "localhost" or lowered.endswith(
+        (".local", ".internal", ".localhost")
+    ):
         raise CapImportError(f"host '{host}' is not permitted")
     try:
         ip = ipaddress.ip_address(host)

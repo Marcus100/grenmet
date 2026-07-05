@@ -43,24 +43,54 @@ PASSWORD = "demo-pass-123"
 # email, username, first, last, role, scope, needs_employment, position
 DEMO_USERS = [
     (
-        "demo.requester@barrels.gd", "demo_requester", "Rita", "Requester",
-        "staff", RoleAssignmentScope.SELF, True, "Meteorological Officer",
+        "demo.requester@barrels.gd",
+        "demo_requester",
+        "Rita",
+        "Requester",
+        "staff",
+        RoleAssignmentScope.SELF,
+        True,
+        "Meteorological Officer",
     ),
     (
-        "demo.peer1@barrels.gd", "demo_peer1", "Peter", "Peer",
-        "staff", RoleAssignmentScope.SELF, True, "Meteorological Officer",
+        "demo.peer1@barrels.gd",
+        "demo_peer1",
+        "Peter",
+        "Peer",
+        "staff",
+        RoleAssignmentScope.SELF,
+        True,
+        "Meteorological Officer",
     ),
     (
-        "demo.peer2@barrels.gd", "demo_peer2", "Paula", "Peer",
-        "staff", RoleAssignmentScope.SELF, True, "Meteorological Officer",
+        "demo.peer2@barrels.gd",
+        "demo_peer2",
+        "Paula",
+        "Peer",
+        "staff",
+        RoleAssignmentScope.SELF,
+        True,
+        "Meteorological Officer",
     ),
     (
-        "demo.supervisor@barrels.gd", "demo_supervisor", "Sam", "Supervisor",
-        "hr-supervisor", RoleAssignmentScope.ALL, False, "Supervisor",
+        "demo.supervisor@barrels.gd",
+        "demo_supervisor",
+        "Sam",
+        "Supervisor",
+        "hr-supervisor",
+        RoleAssignmentScope.ALL,
+        False,
+        "Supervisor",
     ),
     (
-        "demo.manager@barrels.gd", "demo_manager", "Mary", "Manager",
-        "management", RoleAssignmentScope.ALL, False, "Manager",
+        "demo.manager@barrels.gd",
+        "demo_manager",
+        "Mary",
+        "Manager",
+        "management",
+        RoleAssignmentScope.ALL,
+        False,
+        "Manager",
     ),
 ]
 
@@ -126,9 +156,7 @@ def _ensure_role_assignment(
                 role_id=role.id,
                 scope=scope,
                 department_id=(
-                    department_id
-                    if scope == RoleAssignmentScope.DEPARTMENT
-                    else None
+                    department_id if scope == RoleAssignmentScope.DEPARTMENT else None
                 ),
             )
         )
@@ -179,9 +207,7 @@ def _ensure_template(
             "%s template already exists for %s", workflow_type.value, department_id
         )
         return
-    supervisor = session.exec(
-        select(Role).where(Role.name == "hr-supervisor")
-    ).first()
+    supervisor = session.exec(select(Role).where(Role.name == "hr-supervisor")).first()
     manager = session.exec(select(Role).where(Role.name == "management")).first()
     if not (supervisor and manager):
         logger.warning("supervisor/management roles missing — skipping template")
@@ -209,9 +235,7 @@ def _ensure_template(
             required_scope=RoleAssignmentScope.ALL,
         )
     )
-    logger.info(
-        "Created %s template (supervisor -> management)", workflow_type.value
-    )
+    logger.info("Created %s template (supervisor -> management)", workflow_type.value)
 
 
 def main() -> None:

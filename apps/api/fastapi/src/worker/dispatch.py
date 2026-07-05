@@ -35,6 +35,7 @@ def _retry_delay_seconds(attempts: int) -> int:
     exponent = max(attempts - 1, 0)
     return min(_RETRY_BASE_SECONDS << exponent, _RETRY_MAX_SECONDS)
 
+
 KIND_HANDLERS: dict[str, Handler] = {
     "publish.webhooks": publishers.publish_webhooks,
     "publish.mqtt": publishers.publish_mqtt,

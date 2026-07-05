@@ -249,12 +249,12 @@ async def import_alert(
             response.raise_for_status()
             content = response.content
             if len(content) > MAX_IMPORT_BYTES:
-                raise CapImportError(
-                    f"import exceeds {MAX_IMPORT_BYTES} byte limit"
-                )
+                raise CapImportError(f"import exceeds {MAX_IMPORT_BYTES} byte limit")
             raw_xml: str | bytes = content
         except httpx.HTTPError as exc:
-            raise CapImportError(f"could not fetch source: {type(exc).__name__}") from exc
+            raise CapImportError(
+                f"could not fetch source: {type(exc).__name__}"
+            ) from exc
         finally:
             if owns_client:
                 await client.aclose()

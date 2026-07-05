@@ -43,9 +43,7 @@ async def create_absentee_report(
     description="Submit a previously-saved DRAFT absentee report, attaching named co-approvers. Requires absentee.report.create permission and ownership of the report.",
     responses={
         status.HTTP_200_OK: {"description": "Absentee report submitted"},
-        status.HTTP_400_BAD_REQUEST: {
-            "description": "Absentee report is not a draft"
-        },
+        status.HTTP_400_BAD_REQUEST: {"description": "Absentee report is not a draft"},
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed to submit this absentee report"
         },
