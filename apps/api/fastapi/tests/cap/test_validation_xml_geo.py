@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 from src.cap.geo import alerts_to_feature_collection
@@ -56,7 +56,7 @@ def test_geojson_contains_alert_area_features() -> None:
 
 
 def _alert(msg_type: CapMessageType = CapMessageType.ALERT) -> CapAlertPublic:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     info = CapInfoPublic(
         id=uuid4(),
         sequence=0,
