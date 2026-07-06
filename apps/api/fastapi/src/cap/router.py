@@ -14,7 +14,7 @@ from src.cap.schemas import (
     CapAlertListPublic,
     CapAlertPublic,
     CapAlertUpdate,
-    CapAuditEventPublic,
+    CapAuditEventListPublic,
     CapCatalogsPublic,
     CapFeedImportCreate,
     CapFeedImportPublic,
@@ -27,6 +27,7 @@ from src.cap.schemas import (
     CapValidationResult,
 )
 from src.dependencies import CurrentUser, SessionDep
+from src.pagination import PaginationDep
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
@@ -37,12 +38,18 @@ async def read_alerts(
     *,
     session: SessionDep,
     current_user: CurrentUser,
+    pagination: PaginationDep,
     lifecycle_state: CapLifecycleState | None = Query(default=None),
 ) -> CapAlertListPublic:
-    return await service.list_alerts(
+    alerts, total = await service.list_alerts(
         session=session,
         current_user=current_user,
         lifecycle_state=lifecycle_state,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return CapAlertListPublic(
+        data=alerts, count=total, page=pagination.page, size=pagination.size
     )
 
 
@@ -257,15 +264,23 @@ async def read_integrations(
     return await service.list_integrations(session=session, current_user=current_user)
 
 
-@router.get("/audit", response_model=list[CapAuditEventPublic])
+@router.get("/audit", response_model=CapAuditEventListPublic)
 async def read_audit(
     *,
     session: SessionDep,
     current_user: CurrentUser,
+    pagination: PaginationDep,
     alert_id: uuid.UUID | None = Query(default=None),
-) -> list[CapAuditEventPublic]:
-    return await service.list_audit_events(
-        session=session, current_user=current_user, alert_id=alert_id
+) -> CapAuditEventListPublic:
+    events, total = await service.list_audit_events(
+        session=session,
+        current_user=current_user,
+        alert_id=alert_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return CapAuditEventListPublic(
+        data=events, count=total, page=pagination.page, size=pagination.size
     )
 
 

@@ -9,4 +9,6 @@ import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 export const capAlertListPublicSchema = z.object({
   data: z.array(z.lazy(() => capAlertPublicSchema)),
   count: z.number().int(),
+  page: z.optional(z.number().int().default(1)),
+  size: z.optional(z.number().int().default(100)),
 });

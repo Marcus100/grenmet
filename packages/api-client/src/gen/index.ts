@@ -1343,6 +1343,7 @@ export type {
 } from "./models/CapAreaKind.js";
 export { capAreaKindCapAreaKindEnum } from "./models/CapAreaKind.js";
 export type { CapAreaPublic } from "./models/CapAreaPublic.js";
+export type { CapAuditEventListPublic } from "./models/CapAuditEventListPublic.js";
 export type { CapAuditEventPublic } from "./models/CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./models/CapCatalogsPublic.js";
 export type {
@@ -2755,6 +2756,7 @@ export { capAlertUpdateSchema } from "./zod/capAlertUpdateSchema.js";
 export { capAreaCreateSchema } from "./zod/capAreaCreateSchema.js";
 export { capAreaKindSchema } from "./zod/capAreaKindSchema.js";
 export { capAreaPublicSchema } from "./zod/capAreaPublicSchema.js";
+export { capAuditEventListPublicSchema } from "./zod/capAuditEventListPublicSchema.js";
 export { capAuditEventPublicSchema } from "./zod/capAuditEventPublicSchema.js";
 export { capCatalogsPublicSchema } from "./zod/capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./zod/capCategorySchema.js";

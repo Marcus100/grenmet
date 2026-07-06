@@ -66,6 +66,7 @@ export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
 export { capAreaCreateSchema } from "./capAreaCreateSchema.js";
 export { capAreaKindSchema } from "./capAreaKindSchema.js";
 export { capAreaPublicSchema } from "./capAreaPublicSchema.js";
+export { capAuditEventListPublicSchema } from "./capAuditEventListPublicSchema.js";
 export { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
