@@ -63,6 +63,9 @@ Read by `infra/docker/docker-compose.yml` only. FastAPI variables do **not** bel
 | `JANITORIAL_DB_NAME` | Database name for the janitorial cleaning-spec catalogue |
 | `JANITORIAL_DB_USER` | Database user for janitorial |
 | `JANITORIAL_DB_PASSWORD` | Password for the janitorial DB user |
+| `TRANSPORT_DB_NAME` | Database name for the staff transportation timetable |
+| `TRANSPORT_DB_USER` | Database user for transport |
+| `TRANSPORT_DB_PASSWORD` | Password for the transport DB user |
 | `ADMINER_DESIGN` | Adminer UI theme (e.g. `pepa-linha-dark`) |
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)
@@ -157,6 +160,7 @@ admin-gms hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (202
 | `WXWATCH_DATABASE_URL` | Postgres connection string for the wxwatch database (Drizzle) |
 | `WXPRODUCTS_DATABASE_URL` | Postgres connection string for the wxproducts database (Drizzle) |
 | `JANITORIAL_DATABASE_URL` | Postgres connection string for the janitorial database (Drizzle) |
+| `TRANSPORT_DATABASE_URL` | Postgres connection string for the transport database (Drizzle) |
 
 ### signal (`apps/web/signal/.env.local`)
 

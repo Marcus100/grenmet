@@ -252,9 +252,8 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "bus",
         title: "Bus",
-        url: COMING_SOON_URL,
+        url: "/bus",
         icon: Bus,
-        badge: "soon",
       },
       {
         id: "tickets",

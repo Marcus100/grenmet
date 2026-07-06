@@ -44,7 +44,7 @@ RUN mkdir -p apps/web/admin-gms/public
 # node_modules (drizzle-orm + pg + migrator) and the committed drizzle/ SQL.
 FROM builder AS migrate
 WORKDIR /app
-CMD ["sh", "-c", "node apps/web/admin-gms/scripts/migrate-wxwatch.mjs && node apps/web/admin-gms/scripts/migrate-wxproducts.mjs && node apps/web/admin-gms/scripts/migrate-janitorial.mjs"]
+CMD ["sh", "-c", "node apps/web/admin-gms/scripts/migrate-wxwatch.mjs && node apps/web/admin-gms/scripts/migrate-wxproducts.mjs && node apps/web/admin-gms/scripts/migrate-janitorial.mjs && node apps/web/admin-gms/scripts/migrate-transport.mjs"]
 
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
