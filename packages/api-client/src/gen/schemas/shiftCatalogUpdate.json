@@ -1,0 +1,50 @@
+{
+  "properties": {
+    "label": {
+      "anyOf": [{ "type": "string", "maxLength": 120 }, { "type": "null" }],
+      "title": "Label"
+    },
+    "category": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["WORK", "OFF", "LEAVE", "HOLIDAY"],
+          "title": "ShiftCategory",
+          "x-readme-ref-name": "ShiftCategory"
+        },
+        { "type": "null" }
+      ]
+    },
+    "start_time": {
+      "anyOf": [{ "type": "string", "maxLength": 5 }, { "type": "null" }],
+      "title": "Start Time"
+    },
+    "end_time": {
+      "anyOf": [{ "type": "string", "maxLength": 5 }, { "type": "null" }],
+      "title": "End Time"
+    },
+    "ends_next_day": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Ends Next Day"
+    },
+    "counts_as_work_hours": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Counts As Work Hours"
+    },
+    "needs_reason": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Needs Reason"
+    },
+    "needs_approval": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Needs Approval"
+    },
+    "is_active": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Is Active"
+    }
+  },
+  "type": "object",
+  "title": "ShiftCatalogUpdate",
+  "x-readme-ref-name": "ShiftCatalogUpdate"
+}

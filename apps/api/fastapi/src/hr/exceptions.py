@@ -32,6 +32,11 @@ class RosterPeriodNotFoundError(NotFoundError):
         super().__init__(hr_constants.ERROR_ROSTER_PERIOD_NOT_FOUND)
 
 
+class ShiftCatalogNotFoundError(NotFoundError):
+    def __init__(self) -> None:
+        super().__init__(hr_constants.ERROR_SHIFT_NOT_FOUND)
+
+
 class PublicHolidayNotFoundError(NotFoundError):
     def __init__(self) -> None:
         super().__init__(hr_constants.ERROR_PUBLIC_HOLIDAY_NOT_FOUND)
