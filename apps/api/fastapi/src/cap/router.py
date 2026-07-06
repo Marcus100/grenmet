@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 from xml.etree import ElementTree as ET
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Query, Request, Response, status
 
 from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
@@ -28,6 +28,7 @@ from src.cap.schemas import (
 )
 from src.dependencies import CurrentUser, SessionDep
 from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
@@ -72,9 +73,16 @@ async def create_alert(
     status_code=status.HTTP_201_CREATED,
     summary="Import a CAP alert from a URL or pasted XML",
 )
+@limiter.limit("10/minute")
 async def import_alert(
-    *, session: SessionDep, current_user: CurrentUser, payload: CapAlertImportRequest
+    request: Request,
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: CapAlertImportRequest,
 ) -> CapAlertPublic:
+    # Throttle the outbound-fetch import endpoint per IP (slowapi reads `request`).
+    _ = request
     return await service.import_alert(
         session=session,
         current_user=current_user,
@@ -371,8 +379,16 @@ async def read_alerts_geojson(*, session: SessionDep) -> Any:
 
 @public_router.get("/active-map")
 async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
-    alerts = await service.public_latest_active(session=session)
-    return alerts_to_feature_collection(alerts.data)
+    # Same payload as /alerts.geojson — share its 30s cache instead of
+    # recomputing the FeatureCollection on every hit.
+    async def _produce() -> dict[str, Any]:
+        alerts = await service.public_latest_active(session=session)
+        return alerts_to_feature_collection(alerts.data)
+
+    result: dict[str, Any] = await cache.cached_json(
+        cache.PUBLIC_GEOJSON, 30, _produce
+    )
+    return result
 
 
 @public_router.get("/rss.xml")
