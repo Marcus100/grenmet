@@ -16,6 +16,7 @@ import { Plus, RotateCcw, Send, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
+import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
   EMPTY_TIMESHEET,
   EMPTY_TIMESHEET_ROW,
@@ -48,6 +49,13 @@ export function TimesheetEditor() {
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const departmentId = profileQuery.data?.employment?.department?.id;
   const createMutation = useCreateTimesheetApiV1HrTimesheetsPost();
+
+  // Prefill the (blank) department field with the current user's department.
+  useEditorPrefill((ctx) => {
+    if (!form.getFieldValue("department")) {
+      form.setFieldValue("department", ctx.department);
+    }
+  });
 
   async function submitToHr(values: typeof EMPTY_TIMESHEET) {
     const rows = values.rows.filter((row) => !isRowEmpty(row));
