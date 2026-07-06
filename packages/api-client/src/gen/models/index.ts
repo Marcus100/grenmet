@@ -84,6 +84,7 @@ export type {
 } from "./CapAreaKind.js";
 export { capAreaKindCapAreaKindEnum } from "./CapAreaKind.js";
 export type { CapAreaPublic } from "./CapAreaPublic.js";
+export type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 export type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type {

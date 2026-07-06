@@ -4,10 +4,10 @@
  */
 
 import * as z from "zod";
-import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
+import { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
 
-export const capAlertListPublicSchema = z.object({
-  data: z.array(z.lazy(() => capAlertPublicSchema)),
+export const capAuditEventListPublicSchema = z.object({
+  data: z.array(z.lazy(() => capAuditEventPublicSchema)),
   count: z.number().int(),
   page: z.optional(z.number().int().default(1)),
   size: z.optional(z.number().int().default(100)),

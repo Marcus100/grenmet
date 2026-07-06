@@ -3,16 +3,16 @@
  * Do not edit manually.
  */
 
-import type { CapAlertPublic } from "./CapAlertPublic.js";
+import type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 
 /**
- * CapAlertListPublic
+ * CapAuditEventListPublic
  */
-export type CapAlertListPublic = {
+export type CapAuditEventListPublic = {
   /**
    * @type array
    */
-  data: CapAlertPublic[];
+  data: CapAuditEventPublic[];
   /**
    * @type integer
    */
