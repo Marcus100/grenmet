@@ -9,6 +9,49 @@ interface AuthApiErrorPayload {
   detail?: unknown;
 }
 
+/** Default cap on how long an auth-API request may block before aborting. */
+const DEFAULT_AUTH_API_TIMEOUT_MS = 10_000;
+
+/**
+ * `AbortSignal.timeout` aborts with a DOMException whose `name` is
+ * "TimeoutError". Detected structurally so this stays independent of the
+ * DOMException lib typing.
+ */
+function isTimeoutError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { name?: unknown }).name === "TimeoutError"
+  );
+}
+
+/**
+ * Fetch the auth API with a bounded timeout. A cold/slow/unreachable backend
+ * must fail fast rather than hang the request (e.g. the admin SSR session
+ * exchange). On timeout this throws a plain Error — deliberately *not* an
+ * AuthApiError — so callers route it through their existing "auth service
+ * unavailable / retry" branch instead of mistaking it for an expired session.
+ */
+async function fetchAuthApi(
+  config: AuthConfig,
+  url: string,
+  init: RequestInit
+): Promise<Response> {
+  const timeoutMs = config.authApiTimeoutMs ?? DEFAULT_AUTH_API_TIMEOUT_MS;
+  try {
+    return await fetch(url, {
+      ...init,
+      cache: "no-store",
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      throw new Error(`Auth API did not respond within ${timeoutMs}ms: ${url}`);
+    }
+    throw error;
+  }
+}
+
 function buildCookieOptions(config: AuthConfig, expires?: Date) {
   return {
     ...(config.sessionCookieDomain
@@ -129,13 +172,13 @@ export async function authApiFormFetch<T>(
   const requestHeaders = await getForwardHeaders();
   requestHeaders.set("content-type", "application/x-www-form-urlencoded");
 
-  const response = await fetch(
+  const response = await fetchAuthApi(
+    config,
     `${config.authApiBaseUrl}${config.authApiPrefix}${path}`,
     {
       ...init,
       method: "POST",
       body: new URLSearchParams(formFields).toString(),
-      cache: "no-store",
       headers: requestHeaders,
     }
   );
@@ -156,12 +199,12 @@ export async function authApiFetch<T>(
 ): Promise<T> {
   const requestHeaders = await getForwardHeaders();
   const hasBody = init.body !== undefined;
-  const response = await fetch(
+  const response = await fetchAuthApi(
+    config,
     `${config.authApiBaseUrl}${config.authApiPrefix}${path}`,
     {
       ...init,
       body: hasBody ? JSON.stringify(init.body) : undefined,
-      cache: "no-store",
       headers: buildRequestHeaders(requestHeaders, hasBody),
     }
   );

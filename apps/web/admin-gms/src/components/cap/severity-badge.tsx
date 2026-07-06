@@ -13,6 +13,9 @@ const VARIANTS: Record<
   Unknown: "light-light",
 };
 
-export function SeverityBadge({ severity }: { severity: CapSeverity }) {
+export function SeverityBadge({ severity }: { severity?: CapSeverity }) {
+  if (!severity) {
+    return null;
+  }
   return <Badge variant={VARIANTS[severity]}>{severity}</Badge>;
 }

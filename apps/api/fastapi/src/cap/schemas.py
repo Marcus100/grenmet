@@ -236,6 +236,8 @@ class CapAlertPublic(BaseModel):
 class CapAlertListPublic(BaseModel):
     data: list[CapAlertPublic]
     count: int
+    page: int = 1
+    size: int = 100
 
 
 class CapAlertAction(BaseModel):
@@ -335,3 +337,10 @@ class CapAuditEventPublic(BaseModel):
     note: str | None = None
     payload: dict[str, Any] = Field(default_factory=dict)
     created_at: UtcDateTime
+
+
+class CapAuditEventListPublic(BaseModel):
+    data: list[CapAuditEventPublic]
+    count: int
+    page: int = 1
+    size: int = 100

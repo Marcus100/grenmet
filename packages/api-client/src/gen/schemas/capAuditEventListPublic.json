@@ -1,0 +1,57 @@
+{
+  "properties": {
+    "data": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "format": "uuid", "title": "Id" },
+          "alert_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Alert Id"
+          },
+          "actor_user_id": {
+            "anyOf": [
+              { "type": "string", "format": "uuid" },
+              { "type": "null" }
+            ],
+            "title": "Actor User Id"
+          },
+          "action": { "type": "string", "title": "Action" },
+          "previous_state": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Previous State"
+          },
+          "next_state": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Next State"
+          },
+          "note": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Note"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          },
+          "created_at": { "type": "string", "title": "Created At" }
+        },
+        "type": "object",
+        "required": ["id", "action", "created_at"],
+        "title": "CapAuditEventPublic",
+        "x-readme-ref-name": "CapAuditEventPublic"
+      },
+      "type": "array",
+      "title": "Data"
+    },
+    "count": { "type": "integer", "title": "Count" },
+    "page": { "type": "integer", "title": "Page", "default": 1 },
+    "size": { "type": "integer", "title": "Size", "default": 100 }
+  },
+  "type": "object",
+  "required": ["data", "count"],
+  "title": "CapAuditEventListPublic",
+  "x-readme-ref-name": "CapAuditEventListPublic"
+}

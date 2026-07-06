@@ -2,6 +2,12 @@ export interface AuthConfig {
   appName: string;
   authApiBaseUrl: string;
   authApiPrefix: string;
+  /**
+   * Max time (ms) a server-side auth-API request may block before it is
+   * aborted. Guards against a cold/slow/unreachable backend hanging an SSR
+   * render indefinitely. Optional — defaults to DEFAULT_AUTH_API_TIMEOUT_MS.
+   */
+  authApiTimeoutMs?: number;
   authAppUrl: string;
   sessionCookieDomain?: string;
   sessionCookieName: string;
