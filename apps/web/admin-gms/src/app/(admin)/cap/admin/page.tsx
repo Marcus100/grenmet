@@ -92,7 +92,7 @@ export default async function AdminPage() {
               key={alert.id}
             >
               <span className="min-w-0 truncate text-gm-text-primary">
-                {alert.info[0]?.headline ?? alert.identifier}
+                {alert.info?.[0]?.headline ?? alert.identifier}
               </span>
               <span className="text-gm-text-secondary">
                 {alert.lifecycle_state}

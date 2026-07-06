@@ -1,74 +1,20 @@
+import type {
+  CapAlertListPublic,
+  CapAlertPublic,
+  CapAreaPublic,
+  CapInfoPublic,
+} from "@grenmet/api-client";
 import { notFound } from "next/navigation";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 
-export type CapSeverity =
-  | "Extreme"
-  | "Severe"
-  | "Moderate"
-  | "Minor"
-  | "Unknown";
-export type CapLifecycleState =
-  | "DRAFT"
-  | "SUBMITTED"
-  | "APPROVED"
-  | "PUBLISHED"
-  | "EXPIRED"
-  | "CANCELLED";
+// CAP data types come from the OpenAPI-generated client so they can never drift
+// from the FastAPI schemas. The cap UI refers to them by these local aliases.
+export type { CapLifecycleState, CapSeverity } from "@grenmet/api-client";
 
-export interface CapArea {
-  area_desc: string;
-  circles: Record<string, number>[];
-  geocodes: { value_name: string; value: string }[];
-  geometry: GeoJSONGeometry | null;
-  id: string;
-  multipolygons: number[][][][];
-  polygons: number[][][];
-}
-
-export interface CapInfo {
-  areas: CapArea[];
-  certainty: string;
-  contact: string | null;
-  description: string;
-  effective: string | null;
-  event: string;
-  expires: string | null;
-  headline: string;
-  id: string;
-  instruction: string | null;
-  language: string;
-  onset: string | null;
-  resources: {
-    id: string;
-    resource_desc: string;
-    mime_type: string;
-    uri: string | null;
-  }[];
-  sender_name: string | null;
-  severity: CapSeverity;
-  urgency: string;
-  web: string | null;
-}
-
-export interface CapAlert {
-  id: string;
-  identifier: string;
-  incidents: string[];
-  info: CapInfo[];
-  lifecycle_state: CapLifecycleState;
-  msg_type: string;
-  note: string | null;
-  scope: string;
-  sender: string;
-  sent: string;
-  status: string;
-  xml_url: string | null;
-}
-
-export interface CapAlertList {
-  count: number;
-  data: CapAlert[];
-}
+export type CapArea = CapAreaPublic;
+export type CapInfo = CapInfoPublic;
+export type CapAlert = CapAlertPublic;
+export type CapAlertList = CapAlertListPublic;
 
 export interface GeoJSONGeometry {
   coordinates?: unknown;
@@ -172,5 +118,5 @@ export function formatDateTime(value: string | null): string {
 }
 
 export function primaryInfo(alert: CapAlert): CapInfo | undefined {
-  return alert.info[0];
+  return alert.info?.[0];
 }
