@@ -1,5 +1,16 @@
 "use client";
 
+import {
+  type CapAlertCreate,
+  type CapAreaCreate,
+  type CapCertainty,
+  type CapMessageType,
+  type CapScope,
+  type CapSeverity,
+  type CapStatus,
+  type CapUrgency,
+  createAlertApiV1CapAlertsPost,
+} from "@grenmet/api-client";
 import { Button } from "@grenmet/ui/components/ui/button";
 import { Input } from "@grenmet/ui/components/ui/input";
 import { Label } from "@grenmet/ui/components/ui/label";
@@ -13,11 +24,44 @@ import {
 import { Textarea } from "@grenmet/ui/components/ui/textarea";
 import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 interface AreaRow {
   desc: string;
   id: string;
+}
+
+const INITIAL_FORM = {
+  headline: "",
+  event: "",
+  msgType: "Alert",
+  status: "Actual",
+  scope: "Public",
+  severity: "",
+  urgency: "",
+  certainty: "",
+  language: "en",
+  description: "",
+  instruction: "",
+  note: "",
+  effective: "",
+  onset: "",
+  expires: "",
+  senderName: "",
+  contact: "",
+  web: "",
+};
+
+type FormState = typeof INITIAL_FORM;
+
+/** datetime-local (naive local) → UTC ISO string the CAP API expects, or null. */
+function toIsoOrNull(local: string): string | null {
+  if (!local) {
+    return null;
+  }
+  const date = new Date(local);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
 function Field({
@@ -49,10 +93,18 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 }
 
 export default function NewAlertPage() {
+  const router = useRouter();
+  const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [areas, setAreas] = useState<AreaRow[]>([{ id: "1", desc: "" }]);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function update<K extends keyof FormState>(key: K, value: string) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
 
   function addArea() {
-    setAreas((prev) => [...prev, { id: String(Date.now()), desc: "" }]);
+    setAreas((prev) => [...prev, { id: String(prev.length + 1), desc: "" }]);
   }
 
   function removeArea(id: string) {
@@ -61,6 +113,60 @@ export default function NewAlertPage() {
 
   function updateArea(id: string, desc: string) {
     setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, desc } : a)));
+  }
+
+  async function handleSubmit() {
+    if (
+      !(form.headline.trim() && form.event.trim() && form.description.trim())
+    ) {
+      setError("Headline, event, and description are required.");
+      return;
+    }
+    setError(null);
+    setSubmitting(true);
+
+    const areaPayload: CapAreaCreate[] = areas
+      .filter((a) => a.desc.trim())
+      .map((a) => ({ kind: "AREA", area_desc: a.desc.trim() }));
+
+    const payload: CapAlertCreate = {
+      status: form.status as CapStatus,
+      msg_type: form.msgType as CapMessageType,
+      scope: form.scope as CapScope,
+      note: form.note.trim() || null,
+      info: [
+        {
+          language: form.language.trim() || "en",
+          event: form.event.trim(),
+          headline: form.headline.trim(),
+          description: form.description.trim(),
+          instruction: form.instruction.trim() || null,
+          ...(form.severity ? { severity: form.severity as CapSeverity } : {}),
+          ...(form.urgency ? { urgency: form.urgency as CapUrgency } : {}),
+          ...(form.certainty
+            ? { certainty: form.certainty as CapCertainty }
+            : {}),
+          effective: toIsoOrNull(form.effective),
+          onset: toIsoOrNull(form.onset),
+          expires: toIsoOrNull(form.expires),
+          sender_name: form.senderName.trim() || null,
+          contact: form.contact.trim() || null,
+          web: form.web.trim() || null,
+          areas: areaPayload,
+        },
+      ],
+    };
+
+    try {
+      await createAlertApiV1CapAlertsPost(payload);
+      router.push("/cap/admin");
+      router.refresh();
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to save the alert."
+      );
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -83,12 +189,21 @@ export default function NewAlertPage() {
           <Button asChild size="sm" variant="outline">
             <Link href="/cap/admin">Cancel</Link>
           </Button>
-          <Button size="sm">
+          <Button disabled={submitting} onClick={handleSubmit} size="sm">
             <Save aria-hidden="true" />
-            Save Draft
+            {submitting ? "Saving…" : "Save Draft"}
           </Button>
         </div>
       </div>
+
+      {error ? (
+        <div
+          className="mt-4 border border-gm-risk-red/40 bg-gm-risk-red/[0.06] px-4 py-3 text-gm-body-sm text-gm-risk-red leading-gm-body-sm"
+          role="alert"
+        >
+          {error}
+        </div>
+      ) : null}
 
       {/* Form body */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -99,16 +214,27 @@ export default function NewAlertPage() {
             <SectionHeading>Message</SectionHeading>
 
             <Field label="Headline" required>
-              <Input placeholder="e.g. Tropical Storm Warning for Grenada" />
+              <Input
+                onChange={(e) => update("headline", e.target.value)}
+                placeholder="e.g. Tropical Storm Warning for Grenada"
+                value={form.headline}
+              />
             </Field>
 
             <Field label="Event" required>
-              <Input placeholder="e.g. Tropical Storm" />
+              <Input
+                onChange={(e) => update("event", e.target.value)}
+                placeholder="e.g. Tropical Storm"
+                value={form.event}
+              />
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Message type" required>
-                <Select defaultValue="Alert">
+                <Select
+                  onValueChange={(v) => update("msgType", v ?? "")}
+                  value={form.msgType}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -123,7 +249,10 @@ export default function NewAlertPage() {
               </Field>
 
               <Field label="Status" required>
-                <Select defaultValue="Actual">
+                <Select
+                  onValueChange={(v) => update("status", v ?? "")}
+                  value={form.status}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -138,7 +267,10 @@ export default function NewAlertPage() {
               </Field>
 
               <Field label="Scope" required>
-                <Select defaultValue="Public">
+                <Select
+                  onValueChange={(v) => update("scope", v ?? "")}
+                  value={form.scope}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -157,8 +289,11 @@ export default function NewAlertPage() {
             <SectionHeading>Classification</SectionHeading>
 
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Severity" required>
-                <Select>
+              <Field label="Severity">
+                <Select
+                  onValueChange={(v) => update("severity", v ?? "")}
+                  value={form.severity}
+                >
                   <SelectTrigger>
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
@@ -172,8 +307,11 @@ export default function NewAlertPage() {
                 </Select>
               </Field>
 
-              <Field label="Urgency" required>
-                <Select>
+              <Field label="Urgency">
+                <Select
+                  onValueChange={(v) => update("urgency", v ?? "")}
+                  value={form.urgency}
+                >
                   <SelectTrigger>
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
@@ -187,8 +325,11 @@ export default function NewAlertPage() {
                 </Select>
               </Field>
 
-              <Field label="Certainty" required>
-                <Select>
+              <Field label="Certainty">
+                <Select
+                  onValueChange={(v) => update("certainty", v ?? "")}
+                  value={form.certainty}
+                >
                   <SelectTrigger>
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
@@ -204,7 +345,11 @@ export default function NewAlertPage() {
             </div>
 
             <Field label="Language">
-              <Input defaultValue="en" placeholder="e.g. en" />
+              <Input
+                onChange={(e) => update("language", e.target.value)}
+                placeholder="e.g. en"
+                value={form.language}
+              />
             </Field>
           </section>
 
@@ -215,19 +360,27 @@ export default function NewAlertPage() {
             <Field label="Description" required>
               <Textarea
                 className="min-h-28 resize-y"
+                onChange={(e) => update("description", e.target.value)}
                 placeholder="Describe the hazard and expected impact…"
+                value={form.description}
               />
             </Field>
 
             <Field label="Instruction">
               <Textarea
                 className="min-h-20 resize-y"
+                onChange={(e) => update("instruction", e.target.value)}
                 placeholder="Actions the public should take…"
+                value={form.instruction}
               />
             </Field>
 
             <Field label="Note">
-              <Input placeholder="Internal note (not published)" />
+              <Input
+                onChange={(e) => update("note", e.target.value)}
+                placeholder="Internal note (not published)"
+                value={form.note}
+              />
             </Field>
           </section>
 
@@ -281,13 +434,25 @@ export default function NewAlertPage() {
             </p>
             <div className="space-y-4">
               <Field label="Effective">
-                <Input type="datetime-local" />
+                <Input
+                  onChange={(e) => update("effective", e.target.value)}
+                  type="datetime-local"
+                  value={form.effective}
+                />
               </Field>
               <Field label="Onset">
-                <Input type="datetime-local" />
+                <Input
+                  onChange={(e) => update("onset", e.target.value)}
+                  type="datetime-local"
+                  value={form.onset}
+                />
               </Field>
               <Field label="Expires">
-                <Input type="datetime-local" />
+                <Input
+                  onChange={(e) => update("expires", e.target.value)}
+                  type="datetime-local"
+                  value={form.expires}
+                />
               </Field>
             </div>
           </div>
@@ -298,13 +463,26 @@ export default function NewAlertPage() {
             </p>
             <div className="space-y-4">
               <Field label="Sender name">
-                <Input placeholder="e.g. Grenada Meteorological Service" />
+                <Input
+                  onChange={(e) => update("senderName", e.target.value)}
+                  placeholder="e.g. Grenada Meteorological Service"
+                  value={form.senderName}
+                />
               </Field>
               <Field label="Contact">
-                <Input placeholder="e.g. alerts@met.gd" />
+                <Input
+                  onChange={(e) => update("contact", e.target.value)}
+                  placeholder="e.g. alerts@met.gd"
+                  value={form.contact}
+                />
               </Field>
               <Field label="Web URL">
-                <Input placeholder="https://…" type="url" />
+                <Input
+                  onChange={(e) => update("web", e.target.value)}
+                  placeholder="https://…"
+                  type="url"
+                  value={form.web}
+                />
               </Field>
             </div>
           </div>
@@ -316,9 +494,9 @@ export default function NewAlertPage() {
         <Button asChild variant="outline">
           <Link href="/cap/admin">Cancel</Link>
         </Button>
-        <Button>
+        <Button disabled={submitting} onClick={handleSubmit}>
           <Save aria-hidden="true" />
-          Save Draft
+          {submitting ? "Saving…" : "Save Draft"}
         </Button>
       </div>
     </div>
