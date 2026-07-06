@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN apk upgrade --no-cache && corepack enable pnpm
@@ -34,7 +34,7 @@ COPY . .
 RUN pnpm exec turbo run build --filter=@grenmet/web-spicewx
 RUN mkdir -p apps/web/spicewx/public
 
-FROM node:22-alpine AS runner
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

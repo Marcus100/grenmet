@@ -271,7 +271,7 @@ services:
 
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
-    image: traefik:v3
+    image: traefik:v3.7@sha256:21a3d83696379bac6434bb32e1dde0aff0e84ef2abd053ed3db87d3f45e749b2
     restart: always
     ports:
       - "80:80"

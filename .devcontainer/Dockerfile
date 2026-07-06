@@ -1,7 +1,7 @@
 # Dev container image for running coding agents (Claude Code, Codex) fully
 # inside Docker. Everything the agent edits or executes happens in here, not
 # on your Windows host.
-FROM node:22-bookworm
+FROM node:24-bookworm
 
 # System tools the agents commonly shell out to (git, search, curl, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
