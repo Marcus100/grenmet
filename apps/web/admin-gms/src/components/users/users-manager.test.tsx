@@ -5,6 +5,11 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { UsersManager } from "./users-manager";
+import {
+  roleFilterOptions,
+  statusFilterOptions,
+  toUserRows,
+} from "./users-row";
 
 const BASE = "http://localhost";
 const NEW_USER_LABEL = /New user/;
@@ -58,6 +63,42 @@ const USERS = {
       is_active: true,
       is_superuser: true,
     },
+    {
+      id: "u-3",
+      email: "iframe@example.com",
+      username: "iframe",
+      first_name: "Ilene",
+      last_name: "Frame",
+      is_active: false,
+      is_superuser: false,
+    },
+  ],
+  count: 3,
+  page: 1,
+  size: 100,
+};
+
+// u-1 → staff, u-2 → hr-admin. u-3 has no assignment (renders "—").
+const ROLE_ASSIGNMENTS = {
+  data: [
+    {
+      id: "a-1",
+      user_id: "u-1",
+      role_id: "r-staff",
+      scope: "SELF",
+      effective_from: "2026-01-01T00:00:00+0000",
+      created_at: "2026-01-01T00:00:00+0000",
+      updated_at: "2026-01-01T00:00:00+0000",
+    },
+    {
+      id: "a-2",
+      user_id: "u-2",
+      role_id: "r-admin",
+      scope: "ALL",
+      effective_from: "2026-01-01T00:00:00+0000",
+      created_at: "2026-01-01T00:00:00+0000",
+      updated_at: "2026-01-01T00:00:00+0000",
+    },
   ],
   count: 2,
   page: 1,
@@ -72,6 +113,9 @@ const DEPARTMENTS = {
 const server = setupServer(
   http.get(`${BASE}/api/v1/auth/users`, () => HttpResponse.json(USERS)),
   http.get(`${BASE}/api/v1/auth/roles`, () => HttpResponse.json(ROLES)),
+  http.get(`${BASE}/api/v1/auth/role-assignments`, () =>
+    HttpResponse.json(ROLE_ASSIGNMENTS)
+  ),
   http.get(`${BASE}/api/v1/hr/departments`, () =>
     HttpResponse.json(DEPARTMENTS)
   )
@@ -96,12 +140,20 @@ function renderUsers() {
 }
 
 describe("UsersManager", () => {
-  it("lists users with status and superuser badges, and filters by search", async () => {
+  it("lists users with roles, status pills, and superuser badge; filters by search", async () => {
     renderUsers();
 
     expect(await screen.findByText("Gerard Tamar")).toBeInTheDocument();
     expect(screen.getByText("Eugine Whint")).toBeInTheDocument();
     expect(screen.getByText("superuser")).toBeInTheDocument();
+
+    // Roles are joined client-side from the role-assignments query.
+    expect(await screen.findByText("staff")).toBeInTheDocument();
+    expect(screen.getByText("hr-admin")).toBeInTheDocument();
+
+    // Status pills reflect is_active (u-3 is deactivated).
+    expect(screen.getAllByText("Active").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("Deactivated")).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Search users"), {
       target: { value: "tamar" },
@@ -200,4 +252,64 @@ describe("UsersManager", () => {
       position: "Forecaster (Senior Supervisor)",
     });
   }, 20_000);
+});
+
+describe("toUserRows", () => {
+  const roles = [
+    { id: "r-staff", name: "staff", description: "" },
+    { id: "r-admin", name: "hr-admin", description: "" },
+  ] as Parameters<typeof toUserRows>[1];
+
+  const users = [
+    {
+      id: "u-1",
+      email: "gtamar@example.com",
+      username: "gtamar",
+      first_name: "Gerard",
+      last_name: "Tamar",
+      full_name: "",
+      is_active: true,
+      is_superuser: false,
+      created_at: "2024-06-24T09:23:00+0000",
+      updated_at: "2024-06-24T09:23:00+0000",
+    },
+    {
+      id: "u-2",
+      email: "ewhint@example.com",
+      username: "ewhint",
+      first_name: "Eugine",
+      last_name: "Whint",
+      full_name: "Eugine Whint",
+      is_active: false,
+      is_superuser: true,
+      created_at: "2023-03-15T14:45:00+0000",
+      updated_at: "2023-03-15T14:45:00+0000",
+    },
+  ] as Parameters<typeof toUserRows>[0];
+
+  const assignments = [
+    { id: "a-1", user_id: "u-1", role_id: "r-staff" },
+    { id: "a-2", user_id: "u-1", role_id: "r-admin" },
+  ] as Parameters<typeof toUserRows>[2];
+
+  it("joins roles, maps status, and falls back to first+last for the name", () => {
+    const rows = toUserRows(users, roles, assignments);
+
+    const gerard = rows.find((r) => r.user.id === "u-1");
+    expect(gerard?.name).toBe("Gerard Tamar"); // full_name empty → fallback
+    expect(gerard?.roles).toEqual(["staff", "hr-admin"]);
+    expect(gerard?.status).toBe("Active");
+    expect(gerard?.joinedAt).toBeGreaterThan(0);
+
+    const eugine = rows.find((r) => r.user.id === "u-2");
+    expect(eugine?.name).toBe("Eugine Whint");
+    expect(eugine?.roles).toEqual([]); // no assignments
+    expect(eugine?.status).toBe("Deactivated");
+    expect(eugine?.isSuperuser).toBe(true);
+  });
+
+  it("derives filter options from the live role list", () => {
+    expect(roleFilterOptions(roles)).toEqual(["All", "staff", "hr-admin"]);
+    expect(statusFilterOptions).toEqual(["All", "Active", "Deactivated"]);
+  });
 });
