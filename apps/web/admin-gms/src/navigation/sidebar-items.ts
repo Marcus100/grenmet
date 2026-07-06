@@ -26,6 +26,7 @@ import {
   Rss,
   ScrollText,
   Server,
+  Settings2,
   ShoppingBag,
   SquareKanban,
   SquarePen,
@@ -126,6 +127,12 @@ export const sidebarItems: NavGroup[] = [
         title: "Approvals",
         url: "/hr/approvals",
         icon: CheckSquare,
+      },
+      {
+        id: "hr-setup",
+        title: "HR Setup",
+        url: "/hr-setup",
+        icon: Settings2,
       },
       {
         id: "salesbus",

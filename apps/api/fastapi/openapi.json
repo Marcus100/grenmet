@@ -2564,8 +2564,25 @@
           "hr-rosters"
         ],
         "summary": "List shift catalog",
-        "description": "Return the active shift catalog for roster assignment.",
+        "description": "Return the shift catalog for roster assignment. Pass include_inactive=true (requires roster.manage) to include deactivated shift types for management screens.",
         "operationId": "list_shift_catalog_api_v1_hr_rosters_shifts_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "include_inactive",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Inactive"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Shift catalog returned",
@@ -2579,13 +2596,133 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Create shift type",
+        "description": "Create a shift catalog entry. Requires roster.manage permission.",
+        "operationId": "create_shift_api_v1_hr_rosters_shifts_post",
         "security": [
           {
             "OAuth2PasswordBearer": []
           }
-        ]
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftCatalogCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shift type created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftCatalogPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "A shift with this code exists"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/shifts/{code}": {
+      "patch": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Update or deactivate shift type",
+        "description": "Update a shift catalog entry; set is_active=false to deactivate it (historical rosters are preserved). Requires roster.manage permission.",
+        "operationId": "update_shift_api_v1_hr_rosters_shifts__code__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftCatalogUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift type updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftCatalogPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Shift type not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/hr/rosters/periods": {
@@ -12532,6 +12669,92 @@
         ],
         "title": "SessionTokenRequest"
       },
+      "ShiftCatalogCreate": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 10,
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 120,
+            "title": "Label"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ShiftCategory"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "ends_next_day": {
+            "type": "boolean",
+            "title": "Ends Next Day",
+            "default": false
+          },
+          "counts_as_work_hours": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counts As Work Hours"
+          },
+          "needs_reason": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Reason"
+          },
+          "needs_approval": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Approval"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "category"
+        ],
+        "title": "ShiftCatalogCreate"
+      },
       "ShiftCatalogPublic": {
         "properties": {
           "code": {
@@ -12600,6 +12823,113 @@
           "is_active"
         ],
         "title": "ShiftCatalogPublic"
+      },
+      "ShiftCatalogUpdate": {
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ShiftCategory"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "end_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Time"
+          },
+          "ends_next_day": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends Next Day"
+          },
+          "counts_as_work_hours": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Counts As Work Hours"
+          },
+          "needs_reason": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Reason"
+          },
+          "needs_approval": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Needs Approval"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "title": "ShiftCatalogUpdate"
       },
       "ShiftCatalogsPublic": {
         "properties": {

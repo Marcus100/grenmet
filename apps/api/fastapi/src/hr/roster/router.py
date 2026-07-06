@@ -22,8 +22,10 @@ from .schemas import (
     RosterPeriodsPublic,
     RosterRevisionPublic,
     RosterRevisionsPublic,
+    ShiftCatalogCreate,
     ShiftCatalogPublic,
     ShiftCatalogsPublic,
+    ShiftCatalogUpdate,
 )
 
 router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
@@ -33,15 +35,25 @@ router = APIRouter(prefix="/hr/rosters", tags=["hr-rosters"])
     "/shifts",
     response_model=ShiftCatalogsPublic,
     summary="List shift catalog",
-    description="Return the active shift catalog for roster assignment.",
+    description=(
+        "Return the shift catalog for roster assignment. Pass "
+        "include_inactive=true (requires roster.manage) to include deactivated "
+        "shift types for management screens."
+    ),
     responses={
         status.HTTP_200_OK: {"description": "Shift catalog returned"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
-async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> Any:
+async def list_shift_catalog(
+    session: SessionDep,
+    current_user: CurrentUser,
+    include_inactive: bool = False,
+) -> Any:
     shifts = await service.read_shift_catalog(
-        session=session, current_user=current_user
+        session=session,
+        current_user=current_user,
+        include_inactive=include_inactive,
     )
     return ShiftCatalogsPublic(
         data=[
@@ -50,6 +62,54 @@ async def list_shift_catalog(session: SessionDep, current_user: CurrentUser) -> 
         ],
         count=len(shifts),
     )
+
+
+@router.post(
+    "/shifts",
+    response_model=ShiftCatalogPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create shift type",
+    description="Create a shift catalog entry. Requires roster.manage permission.",
+    responses={
+        status.HTTP_201_CREATED: {"description": "Shift type created"},
+        status.HTTP_400_BAD_REQUEST: {"description": "A shift with this code exists"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def create_shift(
+    *, session: SessionDep, current_user: CurrentUser, payload: ShiftCatalogCreate
+) -> Any:
+    shift = await service.create_shift(
+        session=session, current_user=current_user, shift_in=payload
+    )
+    return ShiftCatalogPublic.model_validate(shift, from_attributes=True)
+
+
+@router.patch(
+    "/shifts/{code}",
+    response_model=ShiftCatalogPublic,
+    summary="Update or deactivate shift type",
+    description=(
+        "Update a shift catalog entry; set is_active=false to deactivate it "
+        "(historical rosters are preserved). Requires roster.manage permission."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Shift type updated"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {"description": "Shift type not found"},
+    },
+)
+async def update_shift(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    code: str,
+    payload: ShiftCatalogUpdate,
+) -> Any:
+    shift = await service.update_shift(
+        session=session, current_user=current_user, code=code, shift_in=payload
+    )
+    return ShiftCatalogPublic.model_validate(shift, from_attributes=True)
 
 
 @router.get(

@@ -207,6 +207,14 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponseSchema,
 } from "./createRoleAssignmentApiV1AuthRoleAssignmentsPostSchema.js";
 export {
+  createShiftApiV1HrRostersShiftsPost201Schema,
+  createShiftApiV1HrRostersShiftsPost400Schema,
+  createShiftApiV1HrRostersShiftsPost403Schema,
+  createShiftApiV1HrRostersShiftsPost422Schema,
+  createShiftApiV1HrRostersShiftsPostMutationRequestSchema,
+  createShiftApiV1HrRostersShiftsPostMutationResponseSchema,
+} from "./createShiftApiV1HrRostersShiftsPostSchema.js";
+export {
   createShiftSwapApiV1HrShiftSwapsPost200Schema,
   createShiftSwapApiV1HrShiftSwapsPost201Schema,
   createShiftSwapApiV1HrShiftSwapsPost403Schema,
@@ -449,6 +457,8 @@ export {
 export {
   listShiftCatalogApiV1HrRostersShiftsGet200Schema,
   listShiftCatalogApiV1HrRostersShiftsGet403Schema,
+  listShiftCatalogApiV1HrRostersShiftsGet422Schema,
+  listShiftCatalogApiV1HrRostersShiftsGetQueryParamsSchema,
   listShiftCatalogApiV1HrRostersShiftsGetQueryResponseSchema,
 } from "./listShiftCatalogApiV1HrRostersShiftsGetSchema.js";
 export {
@@ -808,8 +818,10 @@ export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 export { sessionPublicSchema } from "./sessionPublicSchema.js";
 export { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
+export { shiftCatalogCreateSchema } from "./shiftCatalogCreateSchema.js";
 export { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 export { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
+export { shiftCatalogUpdateSchema } from "./shiftCatalogUpdateSchema.js";
 export { shiftCategorySchema } from "./shiftCategorySchema.js";
 export { shiftHoursSummarySchema } from "./shiftHoursSummarySchema.js";
 export { shiftPatternSchema } from "./shiftPatternSchema.js";
@@ -1034,6 +1046,15 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponseSchema,
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParamsSchema,
 } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchSchema.js";
+export {
+  updateShiftApiV1HrRostersShiftsCodePatch200Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch403Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch404Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch422Schema,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationRequestSchema,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationResponseSchema,
+  updateShiftApiV1HrRostersShiftsCodePatchPathParamsSchema,
+} from "./updateShiftApiV1HrRostersShiftsCodePatchSchema.js";
 export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200Schema,
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400Schema,

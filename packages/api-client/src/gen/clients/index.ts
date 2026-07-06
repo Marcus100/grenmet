@@ -19,6 +19,7 @@ export { createPermissionApiV1AuthPermissionsPost } from "./createPermissionApiV
 export { createPredefinedAreaApiV1CapAreasPredefinedPost } from "./createPredefinedAreaApiV1CapAreasPredefinedPost.js";
 export { createRoleApiV1AuthRolesPost } from "./createRoleApiV1AuthRolesPost.js";
 export { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "./createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export { createShiftApiV1HrRostersShiftsPost } from "./createShiftApiV1HrRostersShiftsPost.js";
 export { createShiftSwapApiV1HrShiftSwapsPost } from "./createShiftSwapApiV1HrShiftSwapsPost.js";
 export { createStatusReportApiV1HrStatusReportsPost } from "./createStatusReportApiV1HrStatusReportsPost.js";
 export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./createTemplateApiV1HrWorkflowsTemplatesPost.js";
@@ -124,6 +125,7 @@ export { updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch } from "./upd
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export { updateRoleApiV1AuthRolesRoleIdPatch } from "./updateRoleApiV1AuthRolesRoleIdPatch.js";
 export { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export { updateShiftApiV1HrRostersShiftsCodePatch } from "./updateShiftApiV1HrRostersShiftsCodePatch.js";
 export { updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch } from "./updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export { updateStatusReportApiV1HrStatusReportsReportIdPatch } from "./updateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./updateUserApiV1AuthUsersUserIdPatch.js";
