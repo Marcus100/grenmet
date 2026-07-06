@@ -2,7 +2,7 @@
 name = "fast-back"
 version = "0.1.0"
 description = ""
-requires-python = ">=3.10,<4.0"
+requires-python = ">=3.11,<4.0"
 dependencies = [
     # Hold the FastAPI/Starlette HTTP layer at the current line: jumping FastAPI to
     # 0.139 (and Starlette to 0.52+/1.0) makes our test suite error out and hang.
@@ -58,10 +58,11 @@ packages = ["src"]
 
 [tool.mypy]
 strict = true
+python_version = "3.11"
 exclude = ["venv", ".venv", "alembic"]
 
 [tool.ruff]
-target-version = "py310"
+target-version = "py311"
 exclude = ["alembic"]
 
 [tool.ruff.lint]
@@ -87,6 +88,7 @@ ignore = [
     "S104",  # binding 0.0.0.0 is intentional inside containers
     "S105",  # only false-positives here: token-type/error-message label constants
     "S311",  # non-crypto random is fine; crypto paths use `secrets`
+    "UP042", # deliberately keep `str, Enum` over 3.11's `StrEnum` — different str() semantics (see CLAUDE.md → Enums)
 ]
 
 [tool.ruff.lint.per-file-ignores]

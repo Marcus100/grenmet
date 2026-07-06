@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
@@ -81,7 +81,7 @@ async def test_cap_workflow_publish_public_outputs_and_jobs(
 
 
 def _alert_payload() -> dict[str, Any]:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     return {
         "sender": "cap@weather.gd",
         "sent": now.isoformat(),
