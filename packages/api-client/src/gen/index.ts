@@ -68,6 +68,7 @@ export { readCapXmlApiCapIdentifierXmlGet } from "./clients/readCapXmlApiCapIden
 export { readCatalogsApiV1CapCatalogsGet } from "./clients/readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export { readFeedsApiV1CapFeedsGet } from "./clients/readFeedsApiV1CapFeedsGet.js";
+export { readHrEmploymentApiV1HrEmploymentUserIdGet } from "./clients/readHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./clients/readHrProfileMeApiV1HrProfileMeGet.js";
 export { readInboxApiV1HrWorkflowsInstancesInboxGet } from "./clients/readInboxApiV1HrWorkflowsInstancesInboxGet.js";
 export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
@@ -674,6 +675,18 @@ export {
   readFeedsApiV1CapFeedsGetSuspenseQueryOptions,
   useReadFeedsApiV1CapFeedsGetSuspense,
 } from "./hooks/useReadFeedsApiV1CapFeedsGetSuspense.js";
+export type { ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryKey } from "./hooks/useReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
+export {
+  readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
+  readHrEmploymentApiV1HrEmploymentUserIdGetQueryOptions,
+  useReadHrEmploymentApiV1HrEmploymentUserIdGet,
+} from "./hooks/useReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
+export type { ReadHrEmploymentApiV1HrEmploymentUserIdGetSuspenseQueryKey } from "./hooks/useReadHrEmploymentApiV1HrEmploymentUserIdGetSuspense.js";
+export {
+  readHrEmploymentApiV1HrEmploymentUserIdGetSuspenseQueryKey,
+  readHrEmploymentApiV1HrEmploymentUserIdGetSuspenseQueryOptions,
+  useReadHrEmploymentApiV1HrEmploymentUserIdGetSuspense,
+} from "./hooks/useReadHrEmploymentApiV1HrEmploymentUserIdGetSuspense.js";
 export type { ReadHrProfileMeApiV1HrProfileMeGetQueryKey } from "./hooks/useReadHrProfileMeApiV1HrProfileMeGet.js";
 export {
   readHrProfileMeApiV1HrProfileMeGetQueryKey,
@@ -1986,6 +1999,15 @@ export type {
   ReadFeedsApiV1CapFeedsGetQueryResponse,
 } from "./models/ReadFeedsApiV1CapFeedsGet.js";
 export type {
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+} from "./models/ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
+export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,
   ReadHrProfileMeApiV1HrProfileMeGetQuery,
@@ -3261,6 +3283,14 @@ export {
   readFeedsApiV1CapFeedsGet200Schema,
   readFeedsApiV1CapFeedsGetQueryResponseSchema,
 } from "./zod/readFeedsApiV1CapFeedsGetSchema.js";
+export {
+  readHrEmploymentApiV1HrEmploymentUserIdGet200Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGet403Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGet404Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGet422Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGetPathParamsSchema,
+  readHrEmploymentApiV1HrEmploymentUserIdGetQueryResponseSchema,
+} from "./zod/readHrEmploymentApiV1HrEmploymentUserIdGetSchema.js";
 export {
   readHrProfileMeApiV1HrProfileMeGet200Schema,
   readHrProfileMeApiV1HrProfileMeGet404Schema,

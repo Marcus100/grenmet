@@ -1976,6 +1976,59 @@
           }
         }
       },
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Get employment record (admin)",
+        "description": "Return a user's employment record (department, status, position) so an admin can review or edit it. Supervisor or admin only.",
+        "operationId": "read_hr_employment_api_v1_hr_employment__user_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Employment record returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmploymentRecordPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "User has no employment record, or user not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
       "patch": {
         "tags": [
           "hr"
