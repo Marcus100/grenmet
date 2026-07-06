@@ -286,6 +286,12 @@ export {
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
 } from "./useImportCsvApiV1HrRostersImportCsvPost.js";
+export type { ImportGridApiV1HrRostersImportGridPostMutationKey } from "./useImportGridApiV1HrRostersImportGridPost.js";
+export {
+  importGridApiV1HrRostersImportGridPostMutationKey,
+  importGridApiV1HrRostersImportGridPostMutationOptions,
+  useImportGridApiV1HrRostersImportGridPost,
+} from "./useImportGridApiV1HrRostersImportGridPost.js";
 export type { IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey } from "./useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey,
@@ -1096,3 +1102,9 @@ export {
   validateCsvApiV1HrRostersImportCsvValidatePostMutationKey,
   validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions,
 } from "./useValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type { ValidateGridApiV1HrRostersImportGridValidatePostMutationKey } from "./useValidateGridApiV1HrRostersImportGridValidatePost.js";
+export {
+  useValidateGridApiV1HrRostersImportGridValidatePost,
+  validateGridApiV1HrRostersImportGridValidatePostMutationKey,
+  validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
+} from "./useValidateGridApiV1HrRostersImportGridValidatePost.js";

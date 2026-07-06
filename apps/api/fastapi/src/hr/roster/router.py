@@ -16,6 +16,9 @@ from .schemas import (
     RosterCsvImportResponse,
     RosterCsvValidationRequest,
     RosterCsvValidationResponse,
+    RosterGridImportRequest,
+    RosterGridImportResult,
+    RosterGridPreview,
     RosterPeriodCreate,
     RosterPeriodDetails,
     RosterPeriodPublic,
@@ -216,6 +219,53 @@ async def get_period(
             RosterAssignmentPublic.model_validate(assignment, from_attributes=True)
             for assignment in assignments
         ],
+    )
+
+
+@router.post(
+    "/import-grid/validate",
+    response_model=RosterGridPreview,
+    summary="Preview a grid roster import",
+    description="Parse a name×day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Preview returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+    },
+)
+async def validate_grid(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: RosterGridImportRequest,
+) -> Any:
+    return await service.validate_roster_grid(
+        session=session, current_user=current_user, payload=payload
+    )
+
+
+@router.post(
+    "/import-grid",
+    response_model=RosterGridImportResult,
+    summary="Import a grid roster",
+    description="Import a name×day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.",
+    responses={
+        status.HTTP_200_OK: {"description": "Roster imported"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Grid has unmatched names or invalid codes"
+        },
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+    },
+)
+async def import_grid(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: RosterGridImportRequest,
+) -> Any:
+    return await service.import_roster_grid(
+        session=session, current_user=current_user, payload=payload
     )
 
 

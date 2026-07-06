@@ -498,6 +498,16 @@ export type {
   ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
 } from "./ImportCsvApiV1HrRostersImportCsvPost.js";
 export type {
+  ImportGridApiV1HrRostersImportGridPost200,
+  ImportGridApiV1HrRostersImportGridPost400,
+  ImportGridApiV1HrRostersImportGridPost403,
+  ImportGridApiV1HrRostersImportGridPost404,
+  ImportGridApiV1HrRostersImportGridPost422,
+  ImportGridApiV1HrRostersImportGridPostMutation,
+  ImportGridApiV1HrRostersImportGridPostMutationRequest,
+  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+} from "./ImportGridApiV1HrRostersImportGridPost.js";
+export type {
   ImportStatus,
   ImportStatusImportStatusEnumKey,
 } from "./ImportStatus.js";
@@ -980,6 +990,9 @@ export type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
 export type { RosterCsvRowValidation } from "./RosterCsvRowValidation.js";
 export type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 export type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
+export type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
+export type { RosterGridImportResult } from "./RosterGridImportResult.js";
+export type { RosterGridPreview } from "./RosterGridPreview.js";
 export type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 export type { RosterPeriodDetails } from "./RosterPeriodDetails.js";
 export type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
@@ -1357,6 +1370,15 @@ export type {
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
 } from "./ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type {
+  ValidateGridApiV1HrRostersImportGridValidatePost200,
+  ValidateGridApiV1HrRostersImportGridValidatePost403,
+  ValidateGridApiV1HrRostersImportGridValidatePost404,
+  ValidateGridApiV1HrRostersImportGridValidatePost422,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutation,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+} from "./ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./ValidationError.js";
 export type {
   WorkflowAction,

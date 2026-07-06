@@ -43,6 +43,7 @@ export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./g
 export { healthCheckApiV1UtilsHealthCheckGet } from "./healthCheckApiV1UtilsHealthCheckGet.js";
 export { importAlertApiV1CapAlertsImportPost } from "./importAlertApiV1CapAlertsImportPost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./importCsvApiV1HrRostersImportCsvPost.js";
+export { importGridApiV1HrRostersImportGridPost } from "./importGridApiV1HrRostersImportGridPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "./listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./listDepartmentsEndpointApiV1HrDepartmentsGet.js";
@@ -132,3 +133,4 @@ export { updateUserApiV1AuthUsersUserIdPatch } from "./updateUserApiV1AuthUsersU
 export { updateUserMeApiV1AuthUsersMePatch } from "./updateUserMeApiV1AuthUsersMePatch.js";
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./validateCsvApiV1HrRostersImportCsvValidatePost.js";
+export { validateGridApiV1HrRostersImportGridValidatePost } from "./validateGridApiV1HrRostersImportGridValidatePost.js";
