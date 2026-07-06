@@ -24,6 +24,15 @@ updates:
     commit-message:
       prefix: ⬆
 
+  # Docker (Web apps — keeps the pinned node:24-alpine digest fresh)
+  - package-ecosystem: docker
+    directories:
+      - /apps/web/*
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ⬆
+
   # Docker Compose (API)
   - package-ecosystem: docker-compose
     directory: /apps/api/fastapi
