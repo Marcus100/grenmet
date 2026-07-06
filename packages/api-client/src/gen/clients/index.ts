@@ -68,6 +68,7 @@ export { readCapXmlApiCapIdentifierXmlGet } from "./readCapXmlApiCapIdentifierXm
 export { readCatalogsApiV1CapCatalogsGet } from "./readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export { readFeedsApiV1CapFeedsGet } from "./readFeedsApiV1CapFeedsGet.js";
+export { readHrEmploymentApiV1HrEmploymentUserIdGet } from "./readHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./readHrProfileMeApiV1HrProfileMeGet.js";
 export { readInboxApiV1HrWorkflowsInstancesInboxGet } from "./readInboxApiV1HrWorkflowsInstancesInboxGet.js";
 export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";

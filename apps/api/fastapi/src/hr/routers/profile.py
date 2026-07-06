@@ -126,6 +126,29 @@ async def create_hr_employment(
 
 
 @router.get(
+    "/employment/{user_id}",
+    response_model=EmploymentRecordPublic,
+    summary="Get employment record (admin)",
+    description="Return a user's employment record (department, status, position) so an admin can review or edit it. Supervisor or admin only.",
+    responses={
+        status.HTTP_200_OK: {"description": "Employment record returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {
+            "description": "User has no employment record, or user not found"
+        },
+    },
+)
+async def read_hr_employment(
+    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
+) -> Any:
+    return await service.get_employment_for_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=user_id,
+    )
+
+
+@router.get(
     "/departments/{department_id}/members",
     response_model=DepartmentMembersPublic,
     summary="List department members",

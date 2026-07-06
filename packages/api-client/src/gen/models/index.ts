@@ -731,6 +731,15 @@ export type {
   ReadFeedsApiV1CapFeedsGetQueryResponse,
 } from "./ReadFeedsApiV1CapFeedsGet.js";
 export type {
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+} from "./ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
+export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,
   ReadHrProfileMeApiV1HrProfileMeGetQuery,
