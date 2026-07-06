@@ -24,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { invalidateAfterRosterImport } from "@/lib/hr-invalidation";
 
 const MONTH_RE = /^(\d{4})-(\d{2})$/;
 
@@ -118,7 +119,10 @@ export function ImportRosterDialog() {
           publish,
         },
       });
-      await queryClient.invalidateQueries();
+      await invalidateAfterRosterImport(queryClient, {
+        departmentId: deptId,
+        periodId: result.roster_period_id,
+      });
       toast.success(
         `Imported ${result.total_assignments} assignments${result.published ? " (published)" : " as a draft"}`
       );
