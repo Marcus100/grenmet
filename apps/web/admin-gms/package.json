@@ -23,6 +23,9 @@
     "db:janitorial:generate": "drizzle-kit generate --config=drizzle.janitorial.config.ts",
     "db:janitorial:migrate": "dotenv -e .env.local -- drizzle-kit migrate --config=drizzle.janitorial.config.ts",
     "db:janitorial:seed": "dotenv -e .env.local -- node scripts/seed-janitorial.mjs",
+    "db:transport:generate": "drizzle-kit generate --config=drizzle.transport.config.ts",
+    "db:transport:migrate": "dotenv -e .env.local -- drizzle-kit migrate --config=drizzle.transport.config.ts",
+    "db:transport:seed": "dotenv -e .env.local -- node scripts/seed-transport.mjs",
     "pdf:wxproducts:morning": "node scripts/wxproducts-export-pdf.mjs /wxproducts/pdf/morning artifacts/wxproducts/pdf/morning.pdf"
   },
   "dependencies": {
