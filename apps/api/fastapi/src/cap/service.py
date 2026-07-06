@@ -677,7 +677,8 @@ async def update_settings(
     return CapSettingsPublic.model_validate(settings, from_attributes=True)
 
 
-def get_catalogs() -> CapCatalogsPublic:
+def get_catalogs(*, current_user: User) -> CapCatalogsPublic:
+    require_permission(current_user=current_user, permission_key="cap.alert.read")
     return CapCatalogsPublic(
         categories=[item.value for item in CapCategory],
         response_types=[item.value for item in CapResponseType],
@@ -833,6 +834,8 @@ async def public_alert_by_identifier(
                 }
             )
         )
+        # Public-scope only — Restricted/Private alerts are not anonymously readable.
+        .where(col(CapAlert.scope) == CapScope.PUBLIC)
     )
     alert = result.scalars().first()
     if not alert:
@@ -845,7 +848,11 @@ async def latest_snapshot_for_identifier(
 ) -> CapSnapshot:
     result = await session.execute(
         select(CapSnapshot)
+        # Gate the raw signed-XML snapshot on the parent alert's scope so
+        # Restricted/Private alerts are not served on the anonymous endpoint.
+        .join(CapAlert, col(CapSnapshot.alert_id) == col(CapAlert.id))
         .where(CapSnapshot.identifier == identifier)
+        .where(col(CapAlert.scope) == CapScope.PUBLIC)
         .order_by(col(CapSnapshot.generated_at).desc())
     )
     snapshot = result.scalars().first()
@@ -916,6 +923,10 @@ async def _public_alerts_by_state(
     stmt = (
         select(CapAlert)
         .where(col(CapAlert.lifecycle_state).in_(states))
+        # Only Public-scope alerts are distributable on the anonymous feeds.
+        # Restricted/Private alerts must never surface here (they carry
+        # restriction/addresses targeting fields).
+        .where(col(CapAlert.scope) == CapScope.PUBLIC)
         .order_by(col(CapAlert.sent).desc())
         .limit(100)
         .options(*_alert_selectinload_options())
