@@ -29,14 +29,29 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 interface ManageUserDialogProps {
+  onOpenChange?: (open: boolean) => void;
+  /** Controlled open state. When provided, the built-in trigger is hidden. */
+  open?: boolean;
   roles: RolePublic[];
   user: UserPublic;
 }
 
-export function ManageUserDialog({ user, roles }: ManageUserDialogProps) {
+export function ManageUserDialog({
+  user,
+  roles,
+  open: controlledOpen,
+  onOpenChange,
+}: ManageUserDialogProps) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [roleToAdd, setRoleToAdd] = useState("");
+
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    if (!isControlled) setInternalOpen(next);
+    onOpenChange?.(next);
+  };
 
   const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
     { user_id: user.id },
@@ -92,12 +107,14 @@ export function ManageUserDialog({ user, roles }: ManageUserDialogProps) {
 
   return (
     <Dialog onOpenChange={setOpen} open={open}>
-      <DialogTrigger
-        render={<Button size="sm" type="button" variant="outline" />}
-      >
-        <UserRoundCog data-icon="inline-start" />
-        Manage
-      </DialogTrigger>
+      {isControlled ? null : (
+        <DialogTrigger
+          render={<Button size="sm" type="button" variant="outline" />}
+        >
+          <UserRoundCog data-icon="inline-start" />
+          Manage
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>

@@ -31,7 +31,7 @@ the PascalCase entity (e.g. `ParkingPermit`) throughout.
   - `workflow_instance_id: uuid.UUID | None` → FK `hr.workflow_instance.id`
   - `submitted_by_user_id: uuid.UUID` → FK `user.id`
   - `created_at` / `updated_at` defaulting to `utc_now` (`src.utils.datetime`).
-- Use `str, Enum` enums (not `StrEnum` — repo targets 3.10 syntax).
+- Use `str, Enum` enums (not `StrEnum`) — kept for consistency; on Python 3.11 `StrEnum` is available but has different `str()` semantics.
 
 ## 3. Schemas (`schemas.py`)
 

@@ -1,6 +1,12 @@
 name: Build Web App Images
 
 on:
+  # Web images build on push (fast) AND after "CI — Web Apps" completes. Images may
+  # build from any commit — the CI gate lives at DEPLOY time: deploy-staging's
+  # check-builds requires CI + both build workflows to be green for the commit SHA,
+  # so a red commit's images are built but never deployed. Building on push (not
+  # only via workflow_run) also keeps the build run present early, so the deploy
+  # guard waits for it instead of racing ahead with stale images.
   workflow_run:
     workflows: ["CI — Web Apps"]
     types: [completed]
@@ -37,6 +43,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     strategy:
       fail-fast: false
@@ -109,6 +116,7 @@ jobs:
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
       - name: Build and push
+        id: build
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
@@ -126,6 +134,26 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.app }}
           cache-to: type=gha,scope=${{ matrix.app }},mode=max,ignore-error=true
           platforms: linux/amd64
+
+      # Report-only vulnerability scan (mirrors the API pipeline). continue-on-error
+      # keeps it non-blocking for now; results land in the Security tab per app.
+      - name: Scan image for vulnerabilities
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ghcr.io/${{ github.repository_owner }}/grenmet-${{ matrix.app }}@${{ steps.build.outputs.digest }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          scanners: vuln
+
+      - name: Upload Trivy results to GitHub Security tab
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-${{ matrix.app }}
 
       - name: Summary
         run: echo "Built and pushed ${{ steps.meta.outputs.tags }}"
