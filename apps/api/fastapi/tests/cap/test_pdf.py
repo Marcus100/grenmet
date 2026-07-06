@@ -1,6 +1,6 @@
 """CAP PDF renderer tests (pure — no DB, no storage)."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 
 def test_render_alert_pdf_returns_pdf_bytes() -> None:
@@ -8,7 +8,7 @@ def test_render_alert_pdf_returns_pdf_bytes() -> None:
 
     pdf = render_alert_pdf(
         identifier="GRD-2026-001",
-        sent=datetime(2026, 6, 28, 12, 0, tzinfo=timezone.utc),
+        sent=datetime(2026, 6, 28, 12, 0, tzinfo=UTC),
         info_blocks=[
             {
                 "headline": "Flash Flood Warning",
@@ -31,7 +31,7 @@ def test_render_alert_pdf_handles_unicode_and_empty_info() -> None:
 
     pdf = render_alert_pdf(
         identifier="GRD-2026-002",
-        sent=datetime(2026, 6, 28, 12, 0, tzinfo=timezone.utc),
+        sent=datetime(2026, 6, 28, 12, 0, tzinfo=UTC),
         info_blocks=[{"headline": "Tempête — Grenâda", "description": "Café ☂"}],
     )
     assert pdf[:4] == b"%PDF"

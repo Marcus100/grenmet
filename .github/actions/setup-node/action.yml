@@ -4,7 +4,7 @@ description: Install pnpm, set up Node.js with cache, and install dependencies
 inputs:
   node-version:
     description: Node.js version to use
-    default: "22"
+    default: "24"
   strict-peer-dependencies:
     description: Fail if peer dependency conflicts are detected
     default: "false"
