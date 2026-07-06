@@ -43,6 +43,7 @@ export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./c
 export { healthCheckApiV1UtilsHealthCheckGet } from "./clients/healthCheckApiV1UtilsHealthCheckGet.js";
 export { importAlertApiV1CapAlertsImportPost } from "./clients/importAlertApiV1CapAlertsImportPost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./clients/importCsvApiV1HrRostersImportCsvPost.js";
+export { importGridApiV1HrRostersImportGridPost } from "./clients/importGridApiV1HrRostersImportGridPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./clients/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "./clients/listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./clients/listDepartmentsEndpointApiV1HrDepartmentsGet.js";
@@ -132,6 +133,7 @@ export { updateUserApiV1AuthUsersUserIdPatch } from "./clients/updateUserApiV1Au
 export { updateUserMeApiV1AuthUsersMePatch } from "./clients/updateUserMeApiV1AuthUsersMePatch.js";
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./clients/validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./clients/validateCsvApiV1HrRostersImportCsvValidatePost.js";
+export { validateGridApiV1HrRostersImportGridValidatePost } from "./clients/validateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey } from "./hooks/useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export {
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey,
@@ -420,6 +422,12 @@ export {
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
 } from "./hooks/useImportCsvApiV1HrRostersImportCsvPost.js";
+export type { ImportGridApiV1HrRostersImportGridPostMutationKey } from "./hooks/useImportGridApiV1HrRostersImportGridPost.js";
+export {
+  importGridApiV1HrRostersImportGridPostMutationKey,
+  importGridApiV1HrRostersImportGridPostMutationOptions,
+  useImportGridApiV1HrRostersImportGridPost,
+} from "./hooks/useImportGridApiV1HrRostersImportGridPost.js";
 export type { IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey } from "./hooks/useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey,
@@ -1230,6 +1238,12 @@ export {
   validateCsvApiV1HrRostersImportCsvValidatePostMutationKey,
   validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions,
 } from "./hooks/useValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type { ValidateGridApiV1HrRostersImportGridValidatePostMutationKey } from "./hooks/useValidateGridApiV1HrRostersImportGridValidatePost.js";
+export {
+  useValidateGridApiV1HrRostersImportGridValidatePost,
+  validateGridApiV1HrRostersImportGridValidatePostMutationKey,
+  validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
+} from "./hooks/useValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type {
   AbsenceReason,
   AbsenceReasonAbsenceReasonEnumKey,
@@ -1736,6 +1750,16 @@ export type {
   ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
 } from "./models/ImportCsvApiV1HrRostersImportCsvPost.js";
 export type {
+  ImportGridApiV1HrRostersImportGridPost200,
+  ImportGridApiV1HrRostersImportGridPost400,
+  ImportGridApiV1HrRostersImportGridPost403,
+  ImportGridApiV1HrRostersImportGridPost404,
+  ImportGridApiV1HrRostersImportGridPost422,
+  ImportGridApiV1HrRostersImportGridPostMutation,
+  ImportGridApiV1HrRostersImportGridPostMutationRequest,
+  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+} from "./models/ImportGridApiV1HrRostersImportGridPost.js";
+export type {
   ImportStatus,
   ImportStatusImportStatusEnumKey,
 } from "./models/ImportStatus.js";
@@ -2221,6 +2245,9 @@ export type { RosterCsvImportResponse } from "./models/RosterCsvImportResponse.j
 export type { RosterCsvRowValidation } from "./models/RosterCsvRowValidation.js";
 export type { RosterCsvValidationRequest } from "./models/RosterCsvValidationRequest.js";
 export type { RosterCsvValidationResponse } from "./models/RosterCsvValidationResponse.js";
+export type { RosterGridImportRequest } from "./models/RosterGridImportRequest.js";
+export type { RosterGridImportResult } from "./models/RosterGridImportResult.js";
+export type { RosterGridPreview } from "./models/RosterGridPreview.js";
 export type { RosterPeriodCreate } from "./models/RosterPeriodCreate.js";
 export type { RosterPeriodDetails } from "./models/RosterPeriodDetails.js";
 export type { RosterPeriodPublic } from "./models/RosterPeriodPublic.js";
@@ -2601,6 +2628,15 @@ export type {
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
 } from "./models/ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type {
+  ValidateGridApiV1HrRostersImportGridValidatePost200,
+  ValidateGridApiV1HrRostersImportGridValidatePost403,
+  ValidateGridApiV1HrRostersImportGridValidatePost404,
+  ValidateGridApiV1HrRostersImportGridValidatePost422,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutation,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+} from "./models/ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./models/ValidationError.js";
 export type {
   WorkflowAction,
@@ -3035,6 +3071,15 @@ export {
   importCsvApiV1HrRostersImportCsvPostMutationRequestSchema,
   importCsvApiV1HrRostersImportCsvPostMutationResponseSchema,
 } from "./zod/importCsvApiV1HrRostersImportCsvPostSchema.js";
+export {
+  importGridApiV1HrRostersImportGridPost200Schema,
+  importGridApiV1HrRostersImportGridPost400Schema,
+  importGridApiV1HrRostersImportGridPost403Schema,
+  importGridApiV1HrRostersImportGridPost404Schema,
+  importGridApiV1HrRostersImportGridPost422Schema,
+  importGridApiV1HrRostersImportGridPostMutationRequestSchema,
+  importGridApiV1HrRostersImportGridPostMutationResponseSchema,
+} from "./zod/importGridApiV1HrRostersImportGridPostSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
 export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200Schema,
@@ -3434,6 +3479,9 @@ export { rosterCsvImportResponseSchema } from "./zod/rosterCsvImportResponseSche
 export { rosterCsvRowValidationSchema } from "./zod/rosterCsvRowValidationSchema.js";
 export { rosterCsvValidationRequestSchema } from "./zod/rosterCsvValidationRequestSchema.js";
 export { rosterCsvValidationResponseSchema } from "./zod/rosterCsvValidationResponseSchema.js";
+export { rosterGridImportRequestSchema } from "./zod/rosterGridImportRequestSchema.js";
+export { rosterGridImportResultSchema } from "./zod/rosterGridImportResultSchema.js";
+export { rosterGridPreviewSchema } from "./zod/rosterGridPreviewSchema.js";
 export { rosterPeriodCreateSchema } from "./zod/rosterPeriodCreateSchema.js";
 export { rosterPeriodDetailsSchema } from "./zod/rosterPeriodDetailsSchema.js";
 export { rosterPeriodPublicSchema } from "./zod/rosterPeriodPublicSchema.js";
@@ -3749,6 +3797,14 @@ export {
   validateCsvApiV1HrRostersImportCsvValidatePostMutationRequestSchema,
   validateCsvApiV1HrRostersImportCsvValidatePostMutationResponseSchema,
 } from "./zod/validateCsvApiV1HrRostersImportCsvValidatePostSchema.js";
+export {
+  validateGridApiV1HrRostersImportGridValidatePost200Schema,
+  validateGridApiV1HrRostersImportGridValidatePost403Schema,
+  validateGridApiV1HrRostersImportGridValidatePost404Schema,
+  validateGridApiV1HrRostersImportGridValidatePost422Schema,
+  validateGridApiV1HrRostersImportGridValidatePostMutationRequestSchema,
+  validateGridApiV1HrRostersImportGridValidatePostMutationResponseSchema,
+} from "./zod/validateGridApiV1HrRostersImportGridValidatePostSchema.js";
 export { validationErrorSchema } from "./zod/validationErrorSchema.js";
 export { workflowActionRequestSchema } from "./zod/workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./zod/workflowActionSchema.js";

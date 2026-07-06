@@ -2955,6 +2955,115 @@
         }
       }
     },
+    "/api/v1/hr/rosters/import-grid/validate": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Preview a grid roster import",
+        "description": "Parse a name\u00d7day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.",
+        "operationId": "validate_grid_api_v1_hr_rosters_import_grid_validate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterGridImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Preview returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterGridPreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/rosters/import-grid": {
+      "post": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Import a grid roster",
+        "description": "Import a name\u00d7day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.",
+        "operationId": "import_grid_api_v1_hr_rosters_import_grid_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterGridImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Roster imported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterGridImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Grid has unmatched names or invalid codes"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/rosters/import-csv/validate": {
       "post": {
         "tags": [
@@ -12157,6 +12266,114 @@
           "rows"
         ],
         "title": "RosterCsvValidationResponse"
+      },
+      "RosterGridImportRequest": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "csv_text": {
+            "type": "string",
+            "title": "Csv Text"
+          },
+          "file_name": {
+            "type": "string",
+            "title": "File Name",
+            "default": "roster.csv"
+          },
+          "publish": {
+            "type": "boolean",
+            "title": "Publish",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "period_start",
+          "period_end",
+          "csv_text"
+        ],
+        "title": "RosterGridImportRequest"
+      },
+      "RosterGridImportResult": {
+        "properties": {
+          "roster_period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Period Id"
+          },
+          "total_assignments": {
+            "type": "integer",
+            "title": "Total Assignments"
+          },
+          "published": {
+            "type": "boolean",
+            "title": "Published"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_period_id",
+          "total_assignments",
+          "published"
+        ],
+        "title": "RosterGridImportResult"
+      },
+      "RosterGridPreview": {
+        "properties": {
+          "total_people": {
+            "type": "integer",
+            "title": "Total People"
+          },
+          "matched_people": {
+            "type": "integer",
+            "title": "Matched People"
+          },
+          "unmatched_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Unmatched Names"
+          },
+          "total_assignments": {
+            "type": "integer",
+            "title": "Total Assignments"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "can_import": {
+            "type": "boolean",
+            "title": "Can Import"
+          }
+        },
+        "type": "object",
+        "required": [
+          "total_people",
+          "matched_people",
+          "unmatched_names",
+          "total_assignments",
+          "errors",
+          "can_import"
+        ],
+        "title": "RosterGridPreview"
       },
       "RosterPeriodCreate": {
         "properties": {

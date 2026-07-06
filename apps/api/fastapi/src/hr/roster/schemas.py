@@ -58,6 +58,30 @@ class ShiftCatalogUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class RosterGridImportRequest(BaseModel):
+    department_id: str
+    period_start: date
+    period_end: date
+    csv_text: str
+    file_name: str = "roster.csv"
+    publish: bool = False
+
+
+class RosterGridPreview(BaseModel):
+    total_people: int
+    matched_people: int
+    unmatched_names: list[str]
+    total_assignments: int
+    errors: list[str]
+    can_import: bool
+
+
+class RosterGridImportResult(BaseModel):
+    roster_period_id: uuid.UUID
+    total_assignments: int
+    published: bool
+
+
 class RosterPeriodCreate(BaseModel):
     department_id: str
     period_start: date
