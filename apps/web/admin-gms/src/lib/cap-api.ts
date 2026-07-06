@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCapApiBaseUrl } from "@/lib/auth-config";
+import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 
 export type CapSeverity =
   | "Extreme"
@@ -123,6 +123,30 @@ export async function getAlertByIdentifier(
 
 export function getActiveMap(): Promise<GeoJSONFeatureCollection> {
   return fetchCapJson("/api/cap/active-map", EMPTY_FEATURE_COLLECTION);
+}
+
+/**
+ * Fetch the authenticated CAP editor alert list. Unlike the public `/api/cap/*`
+ * feeds, `/api/v1/cap/alerts` requires a Bearer access token — the caller
+ * exchanges the session cookie for one (see the CAP admin page). Throws on a
+ * non-OK response so backend/permission failures surface instead of silently
+ * rendering an empty dashboard.
+ */
+export async function fetchAdminAlerts(
+  accessToken: string
+): Promise<CapAlertList> {
+  const response = await fetch(
+    new URL(`${getAuthApiPrefix()}/cap/alerts`, getCapApiBaseUrl()),
+    {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to load CAP alerts (${response.status})`);
+  }
+  return (await response.json()) as CapAlertList;
 }
 
 async function fetchCapJson<T>(path: string, fallback: T): Promise<T> {
