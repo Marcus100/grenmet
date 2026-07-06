@@ -2,9 +2,7 @@
 
 import {
   type EmploymentStatus,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey,
   type SrcAuthSchemasRolePublic as RolePublic,
-  readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
   readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
   readUsersApiV1AuthUsersGetQueryKey,
   type UserPublic,
@@ -36,6 +34,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { invalidateAfterEmploymentChange } from "@/lib/hr-invalidation";
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -206,25 +205,10 @@ export function ManageUserDialog({
     }
     // Refresh this user's employment, the users table, and the roster member
     // lists for both the old and new department (moving a person shows in both).
-    const affectedDepartments = new Set(
-      [previousDepartmentId, emp.department_id].filter(Boolean) as string[]
-    );
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey(user.id),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: readUsersApiV1AuthUsersGetQueryKey(),
-      }),
-      ...Array.from(affectedDepartments).map((departmentId) =>
-        queryClient.invalidateQueries({
-          queryKey:
-            listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-              departmentId
-            ),
-        })
-      ),
-    ]);
+    await invalidateAfterEmploymentChange(queryClient, {
+      userId: user.id,
+      departmentIds: [previousDepartmentId, emp.department_id],
+    });
     toast.success(`Updated employment for ${user.username}`);
   }
 
