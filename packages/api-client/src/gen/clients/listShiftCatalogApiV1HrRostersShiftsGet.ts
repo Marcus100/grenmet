@@ -11,6 +11,8 @@ import type {
 import fetch from "../../client.js";
 import type {
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
@@ -20,22 +22,27 @@ function getListShiftCatalogApiV1HrRostersShiftsGetUrl() {
 }
 
 /**
- * @description Return the active shift catalog for roster assignment.
+ * @description Return the shift catalog for roster assignment. Pass include_inactive=true (requires roster.manage) to include deactivated shift types for management screens.
  * @summary List shift catalog
  * {@link /api/v1/hr/rosters/shifts}
  */
 export async function listShiftCatalogApiV1HrRostersShiftsGet(
+  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
   const { client: request = fetch, ...requestConfig } = config;
 
   const res = await request<
     ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-    ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>,
+    ResponseErrorConfig<
+      | ListShiftCatalogApiV1HrRostersShiftsGet403
+      | ListShiftCatalogApiV1HrRostersShiftsGet422
+    >,
     unknown
   >({
     method: "GET",
     url: getListShiftCatalogApiV1HrRostersShiftsGetUrl().url.toString(),
+    params,
     ...requestConfig,
   });
   return res.data;

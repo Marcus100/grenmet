@@ -124,6 +124,12 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
 } from "./useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export type { CreateShiftApiV1HrRostersShiftsPostMutationKey } from "./useCreateShiftApiV1HrRostersShiftsPost.js";
+export {
+  createShiftApiV1HrRostersShiftsPostMutationKey,
+  createShiftApiV1HrRostersShiftsPostMutationOptions,
+  useCreateShiftApiV1HrRostersShiftsPost,
+} from "./useCreateShiftApiV1HrRostersShiftsPost.js";
 export type { CreateShiftSwapApiV1HrShiftSwapsPostMutationKey } from "./useCreateShiftSwapApiV1HrShiftSwapsPost.js";
 export {
   createShiftSwapApiV1HrShiftSwapsPostMutationKey,
@@ -1048,6 +1054,12 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions,
   useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch,
 } from "./useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type { UpdateShiftApiV1HrRostersShiftsCodePatchMutationKey } from "./useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
+export {
+  updateShiftApiV1HrRostersShiftsCodePatchMutationKey,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationOptions,
+  useUpdateShiftApiV1HrRostersShiftsCodePatch,
+} from "./useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type { UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey } from "./useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey,

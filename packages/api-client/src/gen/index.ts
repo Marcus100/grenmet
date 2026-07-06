@@ -19,6 +19,7 @@ export { createPermissionApiV1AuthPermissionsPost } from "./clients/createPermis
 export { createPredefinedAreaApiV1CapAreasPredefinedPost } from "./clients/createPredefinedAreaApiV1CapAreasPredefinedPost.js";
 export { createRoleApiV1AuthRolesPost } from "./clients/createRoleApiV1AuthRolesPost.js";
 export { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "./clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export { createShiftApiV1HrRostersShiftsPost } from "./clients/createShiftApiV1HrRostersShiftsPost.js";
 export { createShiftSwapApiV1HrShiftSwapsPost } from "./clients/createShiftSwapApiV1HrShiftSwapsPost.js";
 export { createStatusReportApiV1HrStatusReportsPost } from "./clients/createStatusReportApiV1HrStatusReportsPost.js";
 export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./clients/createTemplateApiV1HrWorkflowsTemplatesPost.js";
@@ -124,6 +125,7 @@ export { updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch } from "./cli
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export { updateRoleApiV1AuthRolesRoleIdPatch } from "./clients/updateRoleApiV1AuthRolesRoleIdPatch.js";
 export { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "./clients/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export { updateShiftApiV1HrRostersShiftsCodePatch } from "./clients/updateShiftApiV1HrRostersShiftsCodePatch.js";
 export { updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch } from "./clients/updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export { updateStatusReportApiV1HrStatusReportsReportIdPatch } from "./clients/updateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./clients/updateUserApiV1AuthUsersUserIdPatch.js";
@@ -256,6 +258,12 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
 } from "./hooks/useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export type { CreateShiftApiV1HrRostersShiftsPostMutationKey } from "./hooks/useCreateShiftApiV1HrRostersShiftsPost.js";
+export {
+  createShiftApiV1HrRostersShiftsPostMutationKey,
+  createShiftApiV1HrRostersShiftsPostMutationOptions,
+  useCreateShiftApiV1HrRostersShiftsPost,
+} from "./hooks/useCreateShiftApiV1HrRostersShiftsPost.js";
 export type { CreateShiftSwapApiV1HrShiftSwapsPostMutationKey } from "./hooks/useCreateShiftSwapApiV1HrShiftSwapsPost.js";
 export {
   createShiftSwapApiV1HrShiftSwapsPostMutationKey,
@@ -1180,6 +1188,12 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions,
   useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch,
 } from "./hooks/useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type { UpdateShiftApiV1HrRostersShiftsCodePatchMutationKey } from "./hooks/useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
+export {
+  updateShiftApiV1HrRostersShiftsCodePatchMutationKey,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationOptions,
+  useUpdateShiftApiV1HrRostersShiftsCodePatch,
+} from "./hooks/useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type { UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey } from "./hooks/useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey,
@@ -1491,6 +1505,15 @@ export type {
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
 } from "./models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 export type {
+  CreateShiftApiV1HrRostersShiftsPost201,
+  CreateShiftApiV1HrRostersShiftsPost400,
+  CreateShiftApiV1HrRostersShiftsPost403,
+  CreateShiftApiV1HrRostersShiftsPost422,
+  CreateShiftApiV1HrRostersShiftsPostMutation,
+  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
+  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+} from "./models/CreateShiftApiV1HrRostersShiftsPost.js";
+export type {
   CreateShiftSwapApiV1HrShiftSwapsPost200,
   CreateShiftSwapApiV1HrShiftSwapsPost201,
   CreateShiftSwapApiV1HrShiftSwapsPost403,
@@ -1779,7 +1802,9 @@ export type {
 export type {
   ListShiftCatalogApiV1HrRostersShiftsGet200,
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
   ListShiftCatalogApiV1HrRostersShiftsGetQuery,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "./models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 export type {
@@ -2219,8 +2244,10 @@ export type { SessionLoginRequest } from "./models/SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./models/SessionLoginResponse.js";
 export type { SessionPublic } from "./models/SessionPublic.js";
 export type { SessionTokenRequest } from "./models/SessionTokenRequest.js";
+export type { ShiftCatalogCreate } from "./models/ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./models/ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./models/ShiftCatalogsPublic.js";
+export type { ShiftCatalogUpdate } from "./models/ShiftCatalogUpdate.js";
 export type {
   ShiftCategory,
   ShiftCategoryShiftCategoryEnumKey,
@@ -2491,6 +2518,16 @@ export type {
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
 } from "./models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type {
+  UpdateShiftApiV1HrRostersShiftsCodePatch200,
+  UpdateShiftApiV1HrRostersShiftsCodePatch403,
+  UpdateShiftApiV1HrRostersShiftsCodePatch404,
+  UpdateShiftApiV1HrRostersShiftsCodePatch422,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutation,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+} from "./models/UpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type {
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200,
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400,
@@ -2801,6 +2838,14 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponseSchema,
 } from "./zod/createRoleAssignmentApiV1AuthRoleAssignmentsPostSchema.js";
 export {
+  createShiftApiV1HrRostersShiftsPost201Schema,
+  createShiftApiV1HrRostersShiftsPost400Schema,
+  createShiftApiV1HrRostersShiftsPost403Schema,
+  createShiftApiV1HrRostersShiftsPost422Schema,
+  createShiftApiV1HrRostersShiftsPostMutationRequestSchema,
+  createShiftApiV1HrRostersShiftsPostMutationResponseSchema,
+} from "./zod/createShiftApiV1HrRostersShiftsPostSchema.js";
+export {
   createShiftSwapApiV1HrShiftSwapsPost200Schema,
   createShiftSwapApiV1HrShiftSwapsPost201Schema,
   createShiftSwapApiV1HrShiftSwapsPost403Schema,
@@ -3043,6 +3088,8 @@ export {
 export {
   listShiftCatalogApiV1HrRostersShiftsGet200Schema,
   listShiftCatalogApiV1HrRostersShiftsGet403Schema,
+  listShiftCatalogApiV1HrRostersShiftsGet422Schema,
+  listShiftCatalogApiV1HrRostersShiftsGetQueryParamsSchema,
   listShiftCatalogApiV1HrRostersShiftsGetQueryResponseSchema,
 } from "./zod/listShiftCatalogApiV1HrRostersShiftsGetSchema.js";
 export {
@@ -3402,8 +3449,10 @@ export { sessionLoginRequestSchema } from "./zod/sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./zod/sessionLoginResponseSchema.js";
 export { sessionPublicSchema } from "./zod/sessionPublicSchema.js";
 export { sessionTokenRequestSchema } from "./zod/sessionTokenRequestSchema.js";
+export { shiftCatalogCreateSchema } from "./zod/shiftCatalogCreateSchema.js";
 export { shiftCatalogPublicSchema } from "./zod/shiftCatalogPublicSchema.js";
 export { shiftCatalogsPublicSchema } from "./zod/shiftCatalogsPublicSchema.js";
+export { shiftCatalogUpdateSchema } from "./zod/shiftCatalogUpdateSchema.js";
 export { shiftCategorySchema } from "./zod/shiftCategorySchema.js";
 export { shiftHoursSummarySchema } from "./zod/shiftHoursSummarySchema.js";
 export { shiftPatternSchema } from "./zod/shiftPatternSchema.js";
@@ -3628,6 +3677,15 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponseSchema,
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParamsSchema,
 } from "./zod/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchSchema.js";
+export {
+  updateShiftApiV1HrRostersShiftsCodePatch200Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch403Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch404Schema,
+  updateShiftApiV1HrRostersShiftsCodePatch422Schema,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationRequestSchema,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationResponseSchema,
+  updateShiftApiV1HrRostersShiftsCodePatchPathParamsSchema,
+} from "./zod/updateShiftApiV1HrRostersShiftsCodePatchSchema.js";
 export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200Schema,
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400Schema,

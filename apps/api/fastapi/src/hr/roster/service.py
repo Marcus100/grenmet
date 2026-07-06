@@ -17,6 +17,7 @@ from src.hr.constants import (
     ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED,
     ERROR_ROSTER_PERIOD_END_BEFORE_START,
     ERROR_ROSTER_PERIOD_NOT_PUBLISHED,
+    ERROR_SHIFT_CODE_ALREADY_EXISTS,
 )
 from src.hr.dependencies import (
     get_public_holiday_or_404,
@@ -24,6 +25,7 @@ from src.hr.dependencies import (
 )
 from src.hr.exceptions import (
     HRValidationError,
+    ShiftCatalogNotFoundError,
 )
 from src.utils.datetime import utc_now
 
@@ -38,6 +40,7 @@ from .models import (
     RosterRevision,
     RosterRevisionAction,
     ShiftCatalog,
+    ShiftCategory,
 )
 from .schemas import (
     PublicHolidayCreate,
@@ -47,6 +50,8 @@ from .schemas import (
     RosterCsvValidationRequest,
     RosterCsvValidationResponse,
     RosterPeriodCreate,
+    ShiftCatalogCreate,
+    ShiftCatalogUpdate,
 )
 
 REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
@@ -226,13 +231,68 @@ async def close_roster_period(
 
 
 async def read_shift_catalog(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, include_inactive: bool = False
 ) -> list[ShiftCatalog]:
-    require_permission(current_user=current_user, permission_key="roster.view")
-    result = await session.execute(
-        select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
-    )
+    # Listing inactive shifts is a management view; gate it on roster.manage.
+    if include_inactive:
+        require_permission(current_user=current_user, permission_key="roster.manage")
+    else:
+        require_permission(current_user=current_user, permission_key="roster.view")
+    statement = select(ShiftCatalog).order_by(col(ShiftCatalog.code))
+    if not include_inactive:
+        statement = statement.where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+    result = await session.execute(statement)
     return list(result.scalars().all())
+
+
+def _default_shift_flags(category: ShiftCategory) -> dict[str, bool]:
+    """Category-derived defaults for the advanced flags (overridable per shift)."""
+    is_work = category == ShiftCategory.WORK
+    is_leave = category == ShiftCategory.LEAVE
+    return {
+        "counts_as_work_hours": is_work,
+        "needs_reason": is_leave,
+        "needs_approval": is_leave,
+    }
+
+
+async def create_shift(
+    *, session: AsyncSession, current_user: User, shift_in: ShiftCatalogCreate
+) -> ShiftCatalog:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    existing = await session.get(ShiftCatalog, shift_in.code)
+    if existing is not None:
+        raise HRValidationError(ERROR_SHIFT_CODE_ALREADY_EXISTS)
+    data = shift_in.model_dump()
+    # Fill any advanced flag left unset with the category-derived default.
+    for key, default_value in _default_shift_flags(shift_in.category).items():
+        if data.get(key) is None:
+            data[key] = default_value
+    db_shift = ShiftCatalog(**data)
+    session.add(db_shift)
+    await session.commit()
+    await session.refresh(db_shift)
+    return db_shift
+
+
+async def update_shift(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    code: str,
+    shift_in: ShiftCatalogUpdate,
+) -> ShiftCatalog:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    db_shift = await session.get(ShiftCatalog, code)
+    if db_shift is None:
+        raise ShiftCatalogNotFoundError()
+    for key, value in shift_in.model_dump(exclude_unset=True).items():
+        setattr(db_shift, key, value)
+    db_shift.updated_at = utc_now()
+    session.add(db_shift)
+    await session.commit()
+    await session.refresh(db_shift)
+    return db_shift
 
 
 async def list_roster_periods(

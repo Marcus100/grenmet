@@ -31,6 +31,33 @@ class ShiftCatalogsPublic(BaseModel):
     count: int
 
 
+class ShiftCatalogCreate(BaseModel):
+    code: str = Field(max_length=10)
+    label: str = Field(max_length=120)
+    category: ShiftCategory
+    start_time: str | None = Field(default=None, max_length=5)
+    end_time: str | None = Field(default=None, max_length=5)
+    ends_next_day: bool = False
+    # Advanced overrides — when None, the service derives them from the category.
+    counts_as_work_hours: bool | None = None
+    needs_reason: bool | None = None
+    needs_approval: bool | None = None
+
+
+class ShiftCatalogUpdate(BaseModel):
+    # All optional — only fields explicitly sent are applied (exclude_unset).
+    # `code` (the primary key) is immutable and intentionally not updatable.
+    label: str | None = Field(default=None, max_length=120)
+    category: ShiftCategory | None = None
+    start_time: str | None = Field(default=None, max_length=5)
+    end_time: str | None = Field(default=None, max_length=5)
+    ends_next_day: bool | None = None
+    counts_as_work_hours: bool | None = None
+    needs_reason: bool | None = None
+    needs_approval: bool | None = None
+    is_active: bool | None = None
+
+
 class RosterPeriodCreate(BaseModel):
     department_id: str
     period_start: date

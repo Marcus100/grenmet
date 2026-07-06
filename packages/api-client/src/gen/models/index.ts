@@ -267,6 +267,15 @@ export type {
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
 } from "./CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 export type {
+  CreateShiftApiV1HrRostersShiftsPost201,
+  CreateShiftApiV1HrRostersShiftsPost400,
+  CreateShiftApiV1HrRostersShiftsPost403,
+  CreateShiftApiV1HrRostersShiftsPost422,
+  CreateShiftApiV1HrRostersShiftsPostMutation,
+  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
+  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+} from "./CreateShiftApiV1HrRostersShiftsPost.js";
+export type {
   CreateShiftSwapApiV1HrShiftSwapsPost200,
   CreateShiftSwapApiV1HrShiftSwapsPost201,
   CreateShiftSwapApiV1HrShiftSwapsPost403,
@@ -552,7 +561,9 @@ export type {
 export type {
   ListShiftCatalogApiV1HrRostersShiftsGet200,
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
   ListShiftCatalogApiV1HrRostersShiftsGetQuery,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "./ListShiftCatalogApiV1HrRostersShiftsGet.js";
 export type {
@@ -992,8 +1003,10 @@ export type { SessionLoginRequest } from "./SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./SessionLoginResponse.js";
 export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
+export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
+export type { ShiftCatalogUpdate } from "./ShiftCatalogUpdate.js";
 export type {
   ShiftCategory,
   ShiftCategoryShiftCategoryEnumKey,
@@ -1264,6 +1277,16 @@ export type {
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
 } from "./UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type {
+  UpdateShiftApiV1HrRostersShiftsCodePatch200,
+  UpdateShiftApiV1HrRostersShiftsCodePatch403,
+  UpdateShiftApiV1HrRostersShiftsCodePatch404,
+  UpdateShiftApiV1HrRostersShiftsCodePatch422,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutation,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+} from "./UpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type {
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200,
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400,

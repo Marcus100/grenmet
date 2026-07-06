@@ -4,7 +4,13 @@
  */
 
 import * as z from "zod";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
+
+export const listShiftCatalogApiV1HrRostersShiftsGetQueryParamsSchema =
+  z.object({
+    include_inactive: z.boolean().default(false),
+  });
 
 /**
  * @description Shift catalog returned
@@ -17,6 +23,13 @@ export const listShiftCatalogApiV1HrRostersShiftsGet200Schema = z.lazy(
  * @description Insufficient permission
  */
 export const listShiftCatalogApiV1HrRostersShiftsGet403Schema = z.any();
+
+/**
+ * @description Validation Error
+ */
+export const listShiftCatalogApiV1HrRostersShiftsGet422Schema = z.lazy(
+  () => HTTPValidationErrorSchema
+);
 
 export const listShiftCatalogApiV1HrRostersShiftsGetQueryResponseSchema =
   z.lazy(() => listShiftCatalogApiV1HrRostersShiftsGet200Schema);
