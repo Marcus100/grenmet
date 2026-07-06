@@ -385,9 +385,7 @@ async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
         return alerts_to_feature_collection(alerts.data)
 
-    result: dict[str, Any] = await cache.cached_json(
-        cache.PUBLIC_GEOJSON, 30, _produce
-    )
+    result: dict[str, Any] = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
     return result
 
 
