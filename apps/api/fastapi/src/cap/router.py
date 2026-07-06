@@ -217,8 +217,8 @@ async def update_cap_settings(
 
 
 @router.get("/catalogs", response_model=CapCatalogsPublic)
-async def read_catalogs() -> CapCatalogsPublic:
-    return service.get_catalogs()
+async def read_catalogs(*, current_user: CurrentUser) -> CapCatalogsPublic:
+    return service.get_catalogs(current_user=current_user)
 
 
 @router.get("/areas/predefined", response_model=list[CapPredefinedAreaPublic])
