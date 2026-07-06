@@ -124,6 +124,12 @@ export {
   createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
 } from "./useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export type { CreateShiftApiV1HrRostersShiftsPostMutationKey } from "./useCreateShiftApiV1HrRostersShiftsPost.js";
+export {
+  createShiftApiV1HrRostersShiftsPostMutationKey,
+  createShiftApiV1HrRostersShiftsPostMutationOptions,
+  useCreateShiftApiV1HrRostersShiftsPost,
+} from "./useCreateShiftApiV1HrRostersShiftsPost.js";
 export type { CreateShiftSwapApiV1HrShiftSwapsPostMutationKey } from "./useCreateShiftSwapApiV1HrShiftSwapsPost.js";
 export {
   createShiftSwapApiV1HrShiftSwapsPostMutationKey,
@@ -280,6 +286,12 @@ export {
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
 } from "./useImportCsvApiV1HrRostersImportCsvPost.js";
+export type { ImportGridApiV1HrRostersImportGridPostMutationKey } from "./useImportGridApiV1HrRostersImportGridPost.js";
+export {
+  importGridApiV1HrRostersImportGridPostMutationKey,
+  importGridApiV1HrRostersImportGridPostMutationOptions,
+  useImportGridApiV1HrRostersImportGridPost,
+} from "./useImportGridApiV1HrRostersImportGridPost.js";
 export type { IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey } from "./useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey,
@@ -1048,6 +1060,12 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions,
   useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch,
 } from "./useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export type { UpdateShiftApiV1HrRostersShiftsCodePatchMutationKey } from "./useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
+export {
+  updateShiftApiV1HrRostersShiftsCodePatchMutationKey,
+  updateShiftApiV1HrRostersShiftsCodePatchMutationOptions,
+  useUpdateShiftApiV1HrRostersShiftsCodePatch,
+} from "./useUpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type { UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey } from "./useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey,
@@ -1084,3 +1102,9 @@ export {
   validateCsvApiV1HrRostersImportCsvValidatePostMutationKey,
   validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions,
 } from "./useValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type { ValidateGridApiV1HrRostersImportGridValidatePostMutationKey } from "./useValidateGridApiV1HrRostersImportGridValidatePost.js";
+export {
+  useValidateGridApiV1HrRostersImportGridValidatePost,
+  validateGridApiV1HrRostersImportGridValidatePostMutationKey,
+  validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
+} from "./useValidateGridApiV1HrRostersImportGridValidatePost.js";

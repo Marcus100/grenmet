@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "roster_period_id": {
+      "type": "string",
+      "format": "uuid",
+      "title": "Roster Period Id"
+    },
+    "total_assignments": { "type": "integer", "title": "Total Assignments" },
+    "published": { "type": "boolean", "title": "Published" }
+  },
+  "type": "object",
+  "required": ["roster_period_id", "total_assignments", "published"],
+  "title": "RosterGridImportResult",
+  "x-readme-ref-name": "RosterGridImportResult"
+}
