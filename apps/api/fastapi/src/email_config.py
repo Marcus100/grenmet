@@ -1,8 +1,9 @@
 """Email-domain settings. Decoupled from global Settings (fastapi-best-practices)."""
 
+from typing import Self
+
 from pydantic import EmailStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
 
 
 class EmailConfig(BaseSettings):
