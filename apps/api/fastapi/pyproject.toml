@@ -88,6 +88,7 @@ ignore = [
     "S104",  # binding 0.0.0.0 is intentional inside containers
     "S105",  # only false-positives here: token-type/error-message label constants
     "S311",  # non-crypto random is fine; crypto paths use `secrets`
+    "UP042", # deliberately keep `str, Enum` over 3.11's `StrEnum` — different str() semantics (see CLAUDE.md → Enums)
 ]
 
 [tool.ruff.lint.per-file-ignores]
