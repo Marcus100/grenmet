@@ -1,10 +1,9 @@
 import secrets
 import warnings
-from typing import Literal
+from typing import Literal, Self
 
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing_extensions import Self
 
 
 class AuthConfig(BaseSettings):

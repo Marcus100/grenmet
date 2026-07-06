@@ -1,7 +1,7 @@
 import logging
 import smtplib
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
@@ -143,7 +143,7 @@ render_email_template = _render_jinja2
 def generate_password_reset_token(email: str) -> str:
     """Generate a signed JWT for password reset."""
     delta = timedelta(hours=email_settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     expires = now + delta
     return jwt.encode(
         {"exp": expires.timestamp(), "nbf": now, "sub": email},

@@ -1,96 +1,238 @@
 "use client";
+"use no memo";
 
 import {
+  useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
   useReadRolesApiV1AuthRolesGet,
   useReadUsersApiV1AuthUsersGet,
 } from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { Search } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@grenmet/ui/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@grenmet/ui/components/ui/card";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@grenmet/ui/components/ui/input-group";
+import { Kbd } from "@grenmet/ui/components/ui/kbd";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@grenmet/ui/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@grenmet/ui/components/ui/tabs";
+import {
+  type ColumnFiltersState,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  type PaginationState,
+  type SortingState,
+  useReactTable,
+  type VisibilityState,
+} from "@tanstack/react-table";
+import {
+  Cog,
+  Download,
+  Grid,
+  Rows3,
+  Search,
+  SlidersHorizontal,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+
 import { CreateUserDialog } from "./create-user-dialog";
-import { ManageUserDialog } from "./manage-user-dialog";
+import { usersColumns } from "./users-columns";
+import {
+  roleFilterOptions,
+  statusFilterOptions,
+  toUserRows,
+} from "./users-row";
+import { UsersTable } from "./users-table";
 
 export function UsersManager() {
-  const [search, setSearch] = useState("");
-
   const usersQuery = useReadUsersApiV1AuthUsersGet({ page: 1, size: 100 });
   const rolesQuery = useReadRolesApiV1AuthRolesGet({ page: 1, size: 100 });
-  const roles = rolesQuery.data?.data ?? [];
+  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet();
 
-  const term = search.trim().toLowerCase();
-  const users = (usersQuery.data?.data ?? []).filter((user) => {
-    if (!term) return true;
-    return [user.first_name, user.last_name, user.username, user.email]
-      .join(" ")
-      .toLowerCase()
-      .includes(term);
+  const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data]);
+  const rows = useMemo(
+    () =>
+      toUserRows(
+        usersQuery.data?.data ?? [],
+        roles,
+        assignmentsQuery.data?.data ?? []
+      ),
+    [usersQuery.data, roles, assignmentsQuery.data]
+  );
+
+  const [rowSelection, setRowSelection] = useState({});
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "joinedDate", desc: true },
+  ]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    search: false,
+  });
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
   });
 
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="relative">
-          <Search className="absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            aria-label="Search users"
-            className="w-64 pl-8"
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, username, email…"
-            value={search}
-          />
-        </div>
-        <CreateUserDialog roles={roles} />
-      </div>
+  const table = useReactTable({
+    data: rows,
+    columns: usersColumns,
+    meta: { roles },
+    state: {
+      rowSelection,
+      sorting,
+      columnFilters,
+      columnVisibility,
+      pagination,
+    },
+    getRowId: (row) => row.user.id,
+    autoResetPageIndex: false,
+    enableRowSelection: true,
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onPaginationChange: setPagination,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
-      <div className="overflow-x-auto rounded-xl border">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-muted/50 text-left">
-            <tr>
-              <th className="px-3 py-2 font-semibold">Name</th>
-              <th className="px-3 py-2 font-semibold">Username</th>
-              <th className="px-3 py-2 font-semibold">Email</th>
-              <th className="px-3 py-2 font-semibold">Status</th>
-              <th className="px-3 py-2 text-right font-semibold">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr className="border-border border-t" key={user.id}>
-                <td className="px-3 py-2 font-medium">
-                  {user.first_name} {user.last_name}
-                  {user.is_superuser ? (
-                    <Badge className="ml-2" variant="outline">
-                      superuser
-                    </Badge>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  {user.username}
-                </td>
-                <td className="px-3 py-2 text-muted-foreground">
-                  {user.email}
-                </td>
-                <td className="px-3 py-2">
-                  <Badge variant={user.is_active ? "default" : "secondary"}>
-                    {user.is_active ? "active" : "inactive"}
-                  </Badge>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <ManageUserDialog roles={roles} user={user} />
-                </td>
-              </tr>
-            ))}
-            {users.length === 0 && !usersQuery.isLoading ? (
-              <tr>
-                <td className="px-3 py-6 text-muted-foreground" colSpan={5}>
-                  No users match.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
-    </div>
+  const roleOptions = roleFilterOptions(roles);
+  const searchQuery =
+    (table.getColumn("search")?.getFilterValue() as string) ?? "";
+  const roleFilter =
+    (table.getColumn("role")?.getFilterValue() as string) ?? roleOptions[0];
+  const statusFilter =
+    (table.getColumn("status")?.getFilterValue() as string) ??
+    statusFilterOptions[0];
+  const selectedCount = table.getFilteredSelectedRowModel().rows.length;
+
+  function setColumnSelectFilter(columnId: string, value: string | null) {
+    table
+      .getColumn(columnId)
+      ?.setFilterValue(!value || value === "All" ? undefined : value);
+    table.setPageIndex(0);
+  }
+
+  return (
+    <Card>
+      <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
+        <CardTitle className="text-xl leading-none">Users</CardTitle>
+        <CardDescription className="max-w-sm leading-snug">
+          Onboard staff, assign roles, and manage account access.
+        </CardDescription>
+        <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
+          <InputGroup className="h-7 w-full md:w-64">
+            <InputGroupAddon align="inline-start">
+              <Search className="size-3.5" />
+            </InputGroupAddon>
+            <InputGroupInput
+              aria-label="Search users"
+              className="h-7"
+              onChange={(event) => {
+                table
+                  .getColumn("search")
+                  ?.setFilterValue(event.target.value || undefined);
+                table.setPageIndex(0);
+              }}
+              placeholder="Search users..."
+              value={searchQuery}
+            />
+            <InputGroupAddon align="inline-end">
+              <Kbd className="h-4 text-[10px]">⌘K</Kbd>
+            </InputGroupAddon>
+          </InputGroup>
+          <Button size="sm" variant="outline">
+            <SlidersHorizontal /> Hide
+          </Button>
+          <Button size="sm" variant="outline">
+            <Cog /> Customize
+          </Button>
+          <Button size="sm" variant="outline">
+            <Download /> Export
+          </Button>
+          <CreateUserDialog roles={roles} />
+        </CardAction>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 px-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <Select
+              onValueChange={(value) => setColumnSelectFilter("role", value)}
+              value={roleFilter}
+            >
+              <SelectTrigger size="sm">
+                <span className="text-muted-foreground">Role:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                <SelectGroup>
+                  {roleOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+
+            <Select
+              onValueChange={(value) => setColumnSelectFilter("status", value)}
+              value={statusFilter}
+            >
+              <SelectTrigger size="sm">
+                <span className="text-muted-foreground">Status:</span>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="start" alignItemWithTrigger={false}>
+                <SelectGroup>
+                  {statusFilterOptions.map((option) => (
+                    <SelectItem key={option} value={option}>
+                      {option}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 px-4">
+          <div className="text-muted-foreground text-sm tabular-nums">
+            {selectedCount} selected
+          </div>
+
+          <Tabs defaultValue="list">
+            <TabsList>
+              <TabsTrigger aria-label="List view" value="list">
+                <Rows3 />
+              </TabsTrigger>
+              <TabsTrigger aria-label="Grid view" value="grid">
+                <Grid />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <UsersTable table={table} />
+      </CardContent>
+    </Card>
   );
 }
