@@ -1,8 +1,12 @@
 import { Button } from "@grenmet/ui/components/ui/button";
 import { BadgeCheck, CircleAlert, FilePlus, Settings } from "lucide-react";
 import Link from "next/link";
-import { getCapApiBaseUrl } from "@/lib/auth-config";
-import type { CapAlertList } from "@/lib/cap-api";
+import { redirect } from "next/navigation";
+import { type CapAlertList, fetchAdminAlerts } from "@/lib/cap-api";
+import {
+  exchangeSessionForAccessToken,
+  readSessionCookie,
+} from "@/lib/server-session";
 
 export const dynamic = "force-dynamic";
 
@@ -88,7 +92,7 @@ export default async function AdminPage() {
               key={alert.id}
             >
               <span className="min-w-0 truncate text-gm-text-primary">
-                {alert.info[0]?.headline ?? alert.identifier}
+                {alert.info?.[0]?.headline ?? alert.identifier}
               </span>
               <span className="text-gm-text-secondary">
                 {alert.lifecycle_state}
@@ -105,13 +109,22 @@ export default async function AdminPage() {
 }
 
 async function getAdminAlerts(): Promise<CapAlertList> {
-  const response = await fetch(
-    new URL("/api/v1/cap/alerts", getCapApiBaseUrl()),
-    { cache: "no-store" }
-  );
-
-  if (!response.ok) {
-    return { count: 0, data: [] };
+  // The editor list hits the authenticated `/api/v1/cap/alerts`, so exchange the
+  // session cookie for a Bearer access token (same handshake as the admin
+  // layout). An expired/revoked session redirects to sign-in rather than
+  // silently showing an empty dashboard.
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) {
+    redirect("/signin");
   }
-  return (await response.json()) as CapAlertList;
+
+  let accessToken: string;
+  try {
+    const session = await exchangeSessionForAccessToken(sessionToken);
+    accessToken = session.access_token;
+  } catch {
+    redirect("/signin");
+  }
+
+  return fetchAdminAlerts(accessToken);
 }

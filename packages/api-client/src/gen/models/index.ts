@@ -84,6 +84,7 @@ export type {
 } from "./CapAreaKind.js";
 export { capAreaKindCapAreaKindEnum } from "./CapAreaKind.js";
 export type { CapAreaPublic } from "./CapAreaPublic.js";
+export type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 export type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type {
@@ -730,6 +731,15 @@ export type {
   ReadFeedsApiV1CapFeedsGetQuery,
   ReadFeedsApiV1CapFeedsGetQueryResponse,
 } from "./ReadFeedsApiV1CapFeedsGet.js";
+export type {
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+} from "./ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,

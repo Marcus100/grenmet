@@ -106,7 +106,9 @@ Deployment smoke checks currently use liveness. Operational diagnosis should use
 
 ## Public CAP Feed Contract
 
-Public CAP routes are mounted outside `/api/v1`:
+Public CAP routes are mounted outside `/api/v1`. They expose **only `scope == Public`
+alerts** — Restricted/Private alerts (and their raw XML snapshots) are never served on
+these anonymous endpoints:
 
 | Endpoint | Purpose |
 | --- | --- |

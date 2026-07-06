@@ -1,13 +1,18 @@
 "use client";
 
 import {
+  type EmploymentStatus,
   type SrcAuthSchemasRolePublic as RolePublic,
   readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
   readUsersApiV1AuthUsersGetQueryKey,
   type UserPublic,
+  useCreateHrEmploymentApiV1HrEmploymentUserIdPost,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
   useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete,
+  useListDepartmentsEndpointApiV1HrDepartmentsGet,
+  useReadHrEmploymentApiV1HrEmploymentUserIdGet,
   useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
+  useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch,
   useUpdateUserApiV1AuthUsersUserIdPatch,
 } from "@grenmet/api-client";
 import { Badge } from "@grenmet/ui/components/ui/badge";
@@ -21,12 +26,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@grenmet/ui/components/ui/dialog";
+import { Field, FieldLabel } from "@grenmet/ui/components/ui/field";
+import { Input } from "@grenmet/ui/components/ui/input";
 import { NativeSelect } from "@grenmet/ui/components/ui/native-select";
 import { Separator } from "@grenmet/ui/components/ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { invalidateAfterEmploymentChange } from "@/lib/hr-invalidation";
 
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
@@ -67,6 +75,64 @@ export function ManageUserDialog({
     useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete();
   const updateUserMutation = useUpdateUserApiV1AuthUsersUserIdPatch();
 
+  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet({
+    query: { enabled: open },
+  });
+  const departments = departmentsQuery.data?.data ?? [];
+  // 404 (no record yet) is expected — retry:false so it doesn't refetch.
+  const employmentQuery = useReadHrEmploymentApiV1HrEmploymentUserIdGet(
+    user.id,
+    {
+      query: { enabled: open, retry: false },
+    }
+  );
+  const currentEmployment = employmentQuery.data;
+  const createEmploymentMutation =
+    useCreateHrEmploymentApiV1HrEmploymentUserIdPost();
+  const updateEmploymentMutation =
+    useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch();
+
+  const [emp, setEmp] = useState({
+    department_id: "",
+    employee_number: "",
+    position: "",
+    status: "ACTIVE" as EmploymentStatus,
+  });
+  const [empSeeded, setEmpSeeded] = useState(false);
+  const employmentBusy =
+    createEmploymentMutation.isPending || updateEmploymentMutation.isPending;
+
+  // Seed the employment form once per open, after the read + departments settle.
+  // A 404 leaves currentEmployment undefined → blank fields, "assign" (create) mode.
+  useEffect(() => {
+    if (!open) {
+      setEmpSeeded(false);
+      return;
+    }
+    if (
+      empSeeded ||
+      employmentQuery.isFetching ||
+      departmentsQuery.isFetching
+    ) {
+      return;
+    }
+    setEmp({
+      department_id:
+        currentEmployment?.department_id ?? departments[0]?.id ?? "",
+      employee_number: currentEmployment?.employee_number ?? "",
+      position: currentEmployment?.position ?? "",
+      status: currentEmployment?.status ?? "ACTIVE",
+    });
+    setEmpSeeded(true);
+  }, [
+    open,
+    empSeeded,
+    employmentQuery.isFetching,
+    departmentsQuery.isFetching,
+    currentEmployment,
+    departments,
+  ]);
+
   async function refresh() {
     await queryClient.invalidateQueries({
       queryKey: readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({
@@ -103,6 +169,47 @@ export function ManageUserDialog({
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`
     );
+  }
+
+  async function saveEmployment() {
+    if (!emp.department_id) {
+      toast.error("Select a department first");
+      return;
+    }
+    const previousDepartmentId = currentEmployment?.department_id;
+    if (currentEmployment) {
+      await updateEmploymentMutation.mutateAsync({
+        user_id: user.id,
+        data: {
+          employment: {
+            department_id: emp.department_id,
+            employee_number: emp.employee_number.trim() || null,
+            position: emp.position.trim() || null,
+            status: emp.status,
+          },
+        },
+      });
+    } else {
+      if (!emp.employee_number.trim()) {
+        toast.error("Employee number is required to assign a department");
+        return;
+      }
+      await createEmploymentMutation.mutateAsync({
+        user_id: user.id,
+        data: {
+          employee_number: emp.employee_number.trim(),
+          department_id: emp.department_id,
+          position: emp.position.trim() || null,
+        },
+      });
+    }
+    // Refresh this user's employment, the users table, and the roster member
+    // lists for both the old and new department (moving a person shows in both).
+    await invalidateAfterEmploymentChange(queryClient, {
+      userId: user.id,
+      departmentIds: [previousDepartmentId, emp.department_id],
+    });
+    toast.success(`Updated employment for ${user.username}`);
   }
 
   return (
@@ -174,6 +281,88 @@ export function ManageUserDialog({
             >
               Assign
             </Button>
+          </div>
+
+          <Separator />
+
+          <div className="flex flex-col gap-3">
+            <span className="font-medium text-sm">Department & employment</span>
+            {employmentQuery.isFetching && !empSeeded ? (
+              <span className="text-muted-foreground text-sm">Loading…</span>
+            ) : (
+              <>
+                <Field>
+                  <FieldLabel htmlFor="mu-dept">Department</FieldLabel>
+                  <NativeSelect
+                    id="mu-dept"
+                    onChange={(e) =>
+                      setEmp((s) => ({ ...s, department_id: e.target.value }))
+                    }
+                    value={emp.department_id}
+                  >
+                    <option value="">Select department…</option>
+                    {departments.map((d) => (
+                      <option key={d.id} value={d.id}>
+                        {d.name}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field>
+                    <FieldLabel htmlFor="mu-empno">Employee #</FieldLabel>
+                    <Input
+                      id="mu-empno"
+                      onChange={(e) =>
+                        setEmp((s) => ({
+                          ...s,
+                          employee_number: e.target.value,
+                        }))
+                      }
+                      value={emp.employee_number}
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="mu-status">Status</FieldLabel>
+                    <NativeSelect
+                      id="mu-status"
+                      onChange={(e) =>
+                        setEmp((s) => ({
+                          ...s,
+                          status: e.target.value as EmploymentStatus,
+                        }))
+                      }
+                      value={emp.status}
+                    >
+                      <option value="ACTIVE">Active</option>
+                      <option value="INACTIVE">Inactive</option>
+                      <option value="TERMINATED">Terminated</option>
+                    </NativeSelect>
+                  </Field>
+                </div>
+                <Field>
+                  <FieldLabel htmlFor="mu-position">Position</FieldLabel>
+                  <Input
+                    id="mu-position"
+                    onChange={(e) =>
+                      setEmp((s) => ({ ...s, position: e.target.value }))
+                    }
+                    value={emp.position}
+                  />
+                </Field>
+                <Button
+                  disabled={employmentBusy || !emp.department_id}
+                  onClick={saveEmployment}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  {currentEmployment
+                    ? "Save employment"
+                    : "Assign to department"}
+                </Button>
+              </>
+            )}
           </div>
 
           <Separator />

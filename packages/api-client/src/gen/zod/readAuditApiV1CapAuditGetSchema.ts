@@ -4,20 +4,31 @@
  */
 
 import * as z from "zod";
-import { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
+import { capAuditEventListPublicSchema } from "./capAuditEventListPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAuditApiV1CapAuditGetQueryParamsSchema = z
-  .object({
-    alert_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  })
-  .optional();
+export const readAuditApiV1CapAuditGetQueryParamsSchema = z.object({
+  alert_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(100)
+    .describe("Items per page"),
+});
 
 /**
  * @description Successful Response
  */
-export const readAuditApiV1CapAuditGet200Schema = z.array(
-  z.lazy(() => capAuditEventPublicSchema)
+export const readAuditApiV1CapAuditGet200Schema = z.lazy(
+  () => capAuditEventListPublicSchema
 );
 
 /**

@@ -159,3 +159,50 @@ async def test_supervisor_cannot_update_other_department(
     )
 
     assert response.status_code == 403
+
+
+async def test_read_employment_admin(
+    async_client: httpx.AsyncClient,
+    db_async: AsyncSession,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    staff = await create_user(
+        session=db_async,
+        user_create=UserCreate(
+            email=random_email(),
+            username=f"empread_{random_lower_string()}",
+            password="password123",
+            first_name="Read",
+            last_name="Employment",
+        ),
+    )
+
+    # No employment record yet -> 404 (UI treats this as "create on save").
+    missing = await async_client.get(
+        f"{settings.API_V1_STR}/hr/employment/{staff.id}",
+        headers=superuser_token_headers_async,
+    )
+    assert missing.status_code == 404
+
+    if not await db_async.get(Department, "dept_read"):
+        db_async.add(Department(id="dept_read", name="Dept Read"))
+        await db_async.commit()
+    db_async.add(
+        EmploymentRecord(
+            user_id=staff.id,
+            employee_number=f"RD-{random_lower_string()}",
+            department_id="dept_read",
+            position="Officer",
+        )
+    )
+    await db_async.commit()
+
+    response = await async_client.get(
+        f"{settings.API_V1_STR}/hr/employment/{staff.id}",
+        headers=superuser_token_headers_async,
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["user_id"] == str(staff.id)
+    assert payload["department_id"] == "dept_read"
+    assert payload["position"] == "Officer"

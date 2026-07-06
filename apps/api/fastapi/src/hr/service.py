@@ -127,6 +127,31 @@ async def create_employment_for_user(
     return record
 
 
+async def get_employment_for_user(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    target_user_id: uuid.UUID,
+) -> EmploymentRecord:
+    """Read a user's employment record for the admin employment editor.
+
+    Returns the record when the caller may manage the target's employment;
+    raises ``EmploymentNotFoundError`` (404) when the user has no record yet so
+    the UI can decide to POST (create) rather than PATCH (update).
+    """
+    target_user = await session.get(User, target_user_id)
+    if not target_user:
+        raise HRProfileNotFoundError()
+    if not await _can_manage_employment(
+        session=session, current_user=current_user, target_user_id=target_user_id
+    ):
+        raise HRPermissionDeniedError(hr_constants.ERROR_ONLY_SUPERVISOR_OR_ADMIN)
+    employment = await _get_employment_record(session=session, user_id=target_user_id)
+    if not employment:
+        raise EmploymentNotFoundError()
+    return employment
+
+
 async def list_departments(
     *, session: AsyncSession, current_user: User
 ) -> list[Department]:

@@ -2,7 +2,7 @@ import uuid
 from typing import Any
 from xml.etree import ElementTree as ET
 
-from fastapi import APIRouter, Query, Response, status
+from fastapi import APIRouter, Query, Request, Response, status
 
 from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
@@ -14,7 +14,7 @@ from src.cap.schemas import (
     CapAlertListPublic,
     CapAlertPublic,
     CapAlertUpdate,
-    CapAuditEventPublic,
+    CapAuditEventListPublic,
     CapCatalogsPublic,
     CapFeedImportCreate,
     CapFeedImportPublic,
@@ -27,6 +27,8 @@ from src.cap.schemas import (
     CapValidationResult,
 )
 from src.dependencies import CurrentUser, SessionDep
+from src.pagination import PaginationDep
+from src.rate_limit import limiter
 
 router = APIRouter(prefix="/cap", tags=["cap"])
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
@@ -37,12 +39,18 @@ async def read_alerts(
     *,
     session: SessionDep,
     current_user: CurrentUser,
+    pagination: PaginationDep,
     lifecycle_state: CapLifecycleState | None = Query(default=None),
 ) -> CapAlertListPublic:
-    return await service.list_alerts(
+    alerts, total = await service.list_alerts(
         session=session,
         current_user=current_user,
         lifecycle_state=lifecycle_state,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return CapAlertListPublic(
+        data=alerts, count=total, page=pagination.page, size=pagination.size
     )
 
 
@@ -65,9 +73,16 @@ async def create_alert(
     status_code=status.HTTP_201_CREATED,
     summary="Import a CAP alert from a URL or pasted XML",
 )
+@limiter.limit("10/minute")
 async def import_alert(
-    *, session: SessionDep, current_user: CurrentUser, payload: CapAlertImportRequest
+    request: Request,
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: CapAlertImportRequest,
 ) -> CapAlertPublic:
+    # Throttle the outbound-fetch import endpoint per IP (slowapi reads `request`).
+    _ = request
     return await service.import_alert(
         session=session,
         current_user=current_user,
@@ -217,8 +232,8 @@ async def update_cap_settings(
 
 
 @router.get("/catalogs", response_model=CapCatalogsPublic)
-async def read_catalogs() -> CapCatalogsPublic:
-    return service.get_catalogs()
+async def read_catalogs(*, current_user: CurrentUser) -> CapCatalogsPublic:
+    return service.get_catalogs(current_user=current_user)
 
 
 @router.get("/areas/predefined", response_model=list[CapPredefinedAreaPublic])
@@ -257,15 +272,23 @@ async def read_integrations(
     return await service.list_integrations(session=session, current_user=current_user)
 
 
-@router.get("/audit", response_model=list[CapAuditEventPublic])
+@router.get("/audit", response_model=CapAuditEventListPublic)
 async def read_audit(
     *,
     session: SessionDep,
     current_user: CurrentUser,
+    pagination: PaginationDep,
     alert_id: uuid.UUID | None = Query(default=None),
-) -> list[CapAuditEventPublic]:
-    return await service.list_audit_events(
-        session=session, current_user=current_user, alert_id=alert_id
+) -> CapAuditEventListPublic:
+    events, total = await service.list_audit_events(
+        session=session,
+        current_user=current_user,
+        alert_id=alert_id,
+        skip=pagination.skip,
+        limit=pagination.limit,
+    )
+    return CapAuditEventListPublic(
+        data=events, count=total, page=pagination.page, size=pagination.size
     )
 
 
@@ -356,8 +379,14 @@ async def read_alerts_geojson(*, session: SessionDep) -> Any:
 
 @public_router.get("/active-map")
 async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
-    alerts = await service.public_latest_active(session=session)
-    return alerts_to_feature_collection(alerts.data)
+    # Same payload as /alerts.geojson — share its 30s cache instead of
+    # recomputing the FeatureCollection on every hit.
+    async def _produce() -> dict[str, Any]:
+        alerts = await service.public_latest_active(session=session)
+        return alerts_to_feature_collection(alerts.data)
+
+    result: dict[str, Any] = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
+    return result
 
 
 @public_router.get("/rss.xml")
