@@ -2,16 +2,17 @@ name: Deploy to Staging
 
 on:
   workflow_run:
-    workflows: ["Build and Push Docker Images", "Build Web App Images"]
+    workflows: ["Build and Push Docker Images", "Build Web App Images", "CI — Web Apps", "CI"]
     types: [completed]
     branches: [staging]
   workflow_dispatch:
 
 jobs:
-  # Guard: both build workflows must have succeeded on the staging branch before
-  # we deploy. workflow_run fires once per workflow that finishes, so without this
-  # check the deploy would start as soon as the first build completes, potentially
-  # pulling a stale image for the other set.
+  # Guard: CI (both suites) AND both build workflows must have succeeded for THIS
+  # commit before we deploy. The deploy is triggered whenever any of the four
+  # finishes (workflow_run fires once per workflow), and this check skips until
+  # all four are green for the SHA — so it can't deploy a red commit, and can't
+  # race ahead and pull a stale image for a set that hasn't finished building.
   check-builds:
     runs-on: ubuntu-latest
     if: |
@@ -31,7 +32,7 @@ jobs:
             }
             const sha = context.payload.workflow_run.head_sha;
             const branch = context.payload.workflow_run.head_branch;
-            const workflows = ['Build and Push Docker Images', 'Build Web App Images'];
+            const workflows = ['Build and Push Docker Images', 'Build Web App Images', 'CI — Web Apps', 'CI'];
             for (const name of workflows) {
               const { data } = await github.rest.actions.listWorkflowRunsForRepo({
                 owner: context.repo.owner,
