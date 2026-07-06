@@ -78,6 +78,8 @@ jobs:
           FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
           WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
           WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+          JANITORIAL_DB_PASSWORD: ${{ secrets.JANITORIAL_DB_PASSWORD }}
+          TRANSPORT_DB_PASSWORD: ${{ secrets.TRANSPORT_DB_PASSWORD }}
           SESSION_COOKIE_NAME: ${{ secrets.SESSION_COOKIE_NAME }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           EMAIL: ${{ secrets.EMAIL }}
@@ -106,6 +108,12 @@ jobs:
           WXPRODUCTS_DB_NAME=wxproducts_staging
           WXPRODUCTS_DB_USER=wxproducts
           WXPRODUCTS_DB_PASSWORD=${WXPRODUCTS_DB_PASSWORD}
+          JANITORIAL_DB_NAME=janitorial_staging
+          JANITORIAL_DB_USER=janitorial
+          JANITORIAL_DB_PASSWORD=${JANITORIAL_DB_PASSWORD}
+          TRANSPORT_DB_NAME=transport_staging
+          TRANSPORT_DB_USER=transport
+          TRANSPORT_DB_PASSWORD=${TRANSPORT_DB_PASSWORD}
           SECRET_KEY=${SECRET_KEY}
           FIRST_SUPERUSER=${FIRST_SUPERUSER}
           FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD}
@@ -118,6 +126,8 @@ jobs:
           RESEND_API_KEY=${RESEND_API_KEY}
           WXWATCH_DB_URL=postgresql://wxwatch:${WXWATCH_DB_PASSWORD}@db:5432/wxwatch_staging
           WXPRODUCTS_DB_URL=postgresql://wxproducts:${WXPRODUCTS_DB_PASSWORD}@db:5432/wxproducts_staging
+          JANITORIAL_DB_URL=postgresql://janitorial:${JANITORIAL_DB_PASSWORD}@db:5432/janitorial_staging
+          TRANSPORT_DB_URL=postgresql://transport:${TRANSPORT_DB_PASSWORD}@db:5432/transport_staging
           EMAIL=${EMAIL}
           USERNAME=${USERNAME}
           HASHED_PASSWORD=${HASHED_PASSWORD}
