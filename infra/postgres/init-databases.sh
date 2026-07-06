@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Runs once on first Postgres volume init (skipped on restarts).
-# Creates databases for the app (FastAPI), wxwatch, and wxproducts.
+# Creates databases for the app (FastAPI), wxwatch, wxproducts, and janitorial.
 set -euo pipefail
 
 create_db() {
@@ -35,4 +35,9 @@ fi
 if [[ -n "${WXPRODUCTS_DB_USER:-}" && -n "${WXPRODUCTS_DB_PASSWORD:-}" && -n "${WXPRODUCTS_DB_NAME:-}" ]]; then
   echo "Creating wxproducts database..."
   create_db "$WXPRODUCTS_DB_USER" "$WXPRODUCTS_DB_PASSWORD" "$WXPRODUCTS_DB_NAME"
+fi
+
+if [[ -n "${JANITORIAL_DB_USER:-}" && -n "${JANITORIAL_DB_PASSWORD:-}" && -n "${JANITORIAL_DB_NAME:-}" ]]; then
+  echo "Creating janitorial database..."
+  create_db "$JANITORIAL_DB_USER" "$JANITORIAL_DB_PASSWORD" "$JANITORIAL_DB_NAME"
 fi

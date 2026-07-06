@@ -20,6 +20,9 @@
     "db:wxwatch:migrate": "dotenv -e .env.local -- drizzle-kit migrate --config=drizzle.wxwatch.config.ts",
     "db:wxproducts:generate": "drizzle-kit generate --config=drizzle.wxproducts.config.ts",
     "db:wxproducts:migrate": "dotenv -e .env.local -- drizzle-kit migrate --config=drizzle.wxproducts.config.ts",
+    "db:janitorial:generate": "drizzle-kit generate --config=drizzle.janitorial.config.ts",
+    "db:janitorial:migrate": "dotenv -e .env.local -- drizzle-kit migrate --config=drizzle.janitorial.config.ts",
+    "db:janitorial:seed": "dotenv -e .env.local -- node scripts/seed-janitorial.mjs",
     "pdf:wxproducts:morning": "node scripts/wxproducts-export-pdf.mjs /wxproducts/pdf/morning artifacts/wxproducts/pdf/morning.pdf"
   },
   "dependencies": {
