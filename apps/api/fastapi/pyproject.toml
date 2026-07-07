@@ -7,7 +7,7 @@ dependencies = [
     # Hold the FastAPI/Starlette HTTP layer at the current line: jumping FastAPI to
     # 0.139 (and Starlette to 0.52+/1.0) makes our test suite error out and hang.
     # This framework upgrade is its own dedicated batch, not a routine bump.
-    "fastapi[standard]>=0.114.2,<0.116.0",
+    "fastapi[standard]>=0.139.0,<0.140.0",
     "starlette<0.47.0",
     "pydantic>=2.7,<3.0.0",
     "pydantic-settings>=2.4,<3.0.0",
