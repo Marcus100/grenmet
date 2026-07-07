@@ -104,7 +104,10 @@ jobs:
           echo "Deploying $DEPLOY_ENV with image tag: $TAG"
 
           # DB names/users come from the committed env file — single source.
-          set -a; source "$DEPLOY_ENV.env"; set +a
+          # Values are quoted before sourcing: compose env-file syntax allows
+          # unquoted spaces (PROJECT_NAME=Grenmet API), which raw bash `source`
+          # would execute as a command — observed on the first Phase 4 run.
+          set -a; source <(sed -E 's/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/\1="\2"/' "$DEPLOY_ENV.env"); set +a
 
           cat > .env.secrets <<EOF
           TAG=$TAG
@@ -157,7 +160,7 @@ jobs:
         # CREATE with IF NOT EXISTS. Note: it does not rotate existing passwords.
         run: |
           set -euo pipefail
-          set -a; source "$DEPLOY_ENV.env"; set +a
+          set -a; source <(sed -E 's/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/\1="\2"/' "$DEPLOY_ENV.env"); set +a
           docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
             -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" exec -T \
             db bash /docker-entrypoint-initdb.d/init-databases.sh
@@ -179,7 +182,7 @@ jobs:
       - name: Health checks
         run: |
           set -uo pipefail
-          set -a; source "$DEPLOY_ENV.env"; set +a
+          set -a; source <(sed -E 's/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/\1="\2"/' "$DEPLOY_ENV.env"); set +a
           COMPOSE="docker compose --env-file $DEPLOY_ENV.env --env-file .env.secrets -f docker-compose.deploy.yml -p $COMPOSE_PROJECT"
 
           echo "=== API health (fatal) ==="
@@ -217,6 +220,8 @@ jobs:
       - name: Show logs on failure
         if: failure()
         run: |
+          # The secrets file may not exist if the job failed before writing it.
+          [ -f .env.secrets ] || touch .env.secrets
           docker compose -p "$COMPOSE_PROJECT" ps || true
           for svc in prestart api web-migrate db; do
             docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
