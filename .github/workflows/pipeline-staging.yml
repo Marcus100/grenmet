@@ -113,9 +113,13 @@ jobs:
     # Explicit allowlist: CI must have SUCCEEDED (a cancelled dependency slips
     # through `!failure() && !cancelled()` — observed on pipeline run #1), and a
     # build must be success or skipped (skipped = no relevant changes, the
-    # existing image is still valid).
+    # existing image is still valid). The leading !cancelled() is load-bearing:
+    # without a status-check function GitHub implicitly prepends success(),
+    # which is false when a needed job was skipped — observed on run #3, where
+    # the deploy was silently skipped despite all-green CI.
     if: >-
       ${{
+        !cancelled() &&
         needs.ci-api.result == 'success' &&
         needs.ci-web.result == 'success' &&
         needs.api-client.result == 'success' &&
