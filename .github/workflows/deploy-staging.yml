@@ -7,6 +7,12 @@ on:
     branches: [staging]
   workflow_dispatch:
 
+# The workflow_run trigger fires once per upstream workflow, so several deploy
+# runs can start near-simultaneously; serialize them (and manual dispatches).
+concurrency:
+  group: staging-deploy
+  cancel-in-progress: false
+
 jobs:
   # Guard: CI (both suites) AND both build workflows must have succeeded for THIS
   # commit before we deploy. The deploy is triggered whenever any of the four
@@ -15,6 +21,7 @@ jobs:
   # race ahead and pull a stale image for a set that hasn't finished building.
   check-builds:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: |
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
@@ -31,16 +38,20 @@ jobs:
               return;
             }
             const sha = context.payload.workflow_run.head_sha;
-            const branch = context.payload.workflow_run.head_branch;
-            const workflows = ['Build and Push Docker Images', 'Build Web App Images', 'CI — Web Apps', 'CI'];
-            for (const name of workflows) {
-              const { data } = await github.rest.actions.listWorkflowRunsForRepo({
+            // Query each workflow directly with the API's head_sha filter — unlike
+            // the previous repo-wide listing (per_page 20, unpaginated), a run for
+            // this SHA can never fall outside the window on a busy branch.
+            const workflows = ['build-api-image.yml', 'build-web-images.yml', 'ci-web.yml', 'ci-api.yml'];
+            for (const workflow_id of workflows) {
+              const { data } = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                branch: branch,
-                per_page: 20,
+                workflow_id,
+                head_sha: sha,
+                per_page: 100,
               });
-              const run = data.workflow_runs.find(r => r.name === name && r.head_sha === sha);
+              // Most recent run for this SHA wins (covers re-runs).
+              const run = data.workflow_runs[0];
               if (run && run.conclusion !== 'success') {
                 core.setOutput('ready', 'false');
                 return;

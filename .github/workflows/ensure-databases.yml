@@ -1,0 +1,78 @@
+name: Ensure Databases
+
+# Idempotently creates any missing databases/roles inside the running Postgres
+# container by re-running infra/postgres/init-databases.sh (which normally only
+# runs on first volume init). Safe to dispatch at any time: the script guards
+# every CREATE with IF NOT EXISTS, so existing databases are untouched.
+#
+# Passwords come from the selected GitHub environment's secrets — nothing is
+# typed on a droplet. Note: this creates roles/DBs but does not rotate an
+# existing role's password (no ALTER ROLE).
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        type: choice
+        required: true
+        options:
+          - staging
+          - production
+
+jobs:
+  ensure:
+    name: Ensure databases (${{ inputs.environment }})
+    runs-on: [self-hosted, "${{ inputs.environment }}"]
+    timeout-minutes: 10
+    environment:
+      name: ${{ inputs.environment }}
+    permissions:
+      contents: read
+    steps:
+      - name: Run init-databases.sh inside the db container
+        env:
+          JANITORIAL_DB_PASSWORD: ${{ secrets.JANITORIAL_DB_PASSWORD }}
+          TRANSPORT_DB_PASSWORD: ${{ secrets.TRANSPORT_DB_PASSWORD }}
+          WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
+          WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            PROJECT="grenmet"; SUFFIX=""
+          else
+            PROJECT="grenmet-staging"; SUFFIX="_staging"
+          fi
+
+          # The script is mounted read-only at /docker-entrypoint-initdb.d/ by
+          # compose; the running container's env lacks the newer *_DB_* vars
+          # (it predates them), so pass them explicitly to the exec.
+          docker compose -p "$PROJECT" exec -T \
+            -e WXWATCH_DB_USER=wxwatch \
+            -e WXWATCH_DB_NAME="wxwatch${SUFFIX}" \
+            -e WXWATCH_DB_PASSWORD="$WXWATCH_DB_PASSWORD" \
+            -e WXPRODUCTS_DB_USER=wxproducts \
+            -e WXPRODUCTS_DB_NAME="wxproducts${SUFFIX}" \
+            -e WXPRODUCTS_DB_PASSWORD="$WXPRODUCTS_DB_PASSWORD" \
+            -e JANITORIAL_DB_USER=janitorial \
+            -e JANITORIAL_DB_NAME="janitorial${SUFFIX}" \
+            -e JANITORIAL_DB_PASSWORD="$JANITORIAL_DB_PASSWORD" \
+            -e TRANSPORT_DB_USER=transport \
+            -e TRANSPORT_DB_NAME="transport${SUFFIX}" \
+            -e TRANSPORT_DB_PASSWORD="$TRANSPORT_DB_PASSWORD" \
+            db bash /docker-entrypoint-initdb.d/init-databases.sh
+
+      - name: Verify databases exist
+        run: |
+          set -euo pipefail
+          if [ "${{ inputs.environment }}" = "production" ]; then
+            PROJECT="grenmet"; SUFFIX=""
+          else
+            PROJECT="grenmet-staging"; SUFFIX="_staging"
+          fi
+          for db in "wxwatch${SUFFIX}" "wxproducts${SUFFIX}" "janitorial${SUFFIX}" "transport${SUFFIX}"; do
+            docker compose -p "$PROJECT" exec -T db bash -c \
+              "psql -U \"\$POSTGRES_USER\" -d postgres -Atc \"SELECT 1 FROM pg_database WHERE datname = '$db'\"" \
+              | grep -q 1 || { echo "::error::database $db missing"; exit 1; }
+            echo "$db present"
+          done
