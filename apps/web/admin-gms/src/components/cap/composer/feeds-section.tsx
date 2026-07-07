@@ -2,10 +2,6 @@ import { Button } from "@grenmet/ui/components/ui/button";
 import { FileText, MapIcon, Rss } from "lucide-react";
 import { capPublicUrl } from "@/lib/cap-api";
 
-export const metadata = {
-  title: "Feeds",
-};
-
 const FEEDS = [
   {
     href: "/api/cap/rss.xml",
@@ -27,12 +23,12 @@ const FEEDS = [
   },
 ];
 
-export default function IntegrationsPage() {
+export function FeedsSection() {
   return (
-    <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
-      <h1 className="text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+    <div className="max-w-5xl">
+      <h2 className="text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
         Public Feeds
-      </h1>
+      </h2>
       <div className="mt-6 grid gap-3">
         {FEEDS.map((feed) => (
           <article
@@ -44,9 +40,9 @@ export default function IntegrationsPage() {
                 <feed.icon aria-hidden="true" className="size-5" />
               </span>
               <div className="min-w-0">
-                <h2 className="text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+                <h3 className="text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
                   {feed.label}
-                </h2>
+                </h3>
                 <p className="text-gm-body text-gm-text-secondary leading-gm-body">
                   {feed.value}
                 </p>
@@ -58,6 +54,6 @@ export default function IntegrationsPage() {
           </article>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

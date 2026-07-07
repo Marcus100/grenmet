@@ -1,82 +1,150 @@
 import { Paper } from "@/components/document/paper";
 
-export interface ForecastImpact {
-  details: string;
-  hazard: string;
-  id: string;
-  impactLevel: string;
-  likelihoodLevel: string;
-  responseLevel: string;
-}
+// Impact-Based Forecast model — a modern take on the ForecastBook text product.
+// Print-only (no persistence): the editor drives this document, nothing more.
+
+export const IBF_LEVELS = [
+  "Minimal",
+  "Minor",
+  "Significant",
+  "Severe",
+] as const;
+export type IbfLevel = (typeof IBF_LEVELS)[number];
+
+export const IBF_HAZARDS = [
+  { id: "rainfall", label: "Rainfall" },
+  { id: "wind", label: "Wind" },
+  { id: "seas", label: "Seas" },
+  { id: "heat", label: "Heat" },
+  { id: "dust", label: "Dust" },
+] as const;
+export type IbfHazard = (typeof IBF_HAZARDS)[number]["id"];
+
+export const LIKELIHOODS = [
+  "Unlikely",
+  "Possible",
+  "Likely",
+  "Very Likely",
+] as const;
+
+export const WX_WARNINGS = [
+  "No Weather-related Alert",
+  "Heavy Rainfall Advisory",
+  "Flash Flood Watch",
+  "Flash Flood Warning",
+  "Thunderstorm Advisory",
+];
+export const WIND_WARNINGS = [
+  "No Wind-related Alert",
+  "Wind Advisory",
+  "Small Craft Advisory",
+];
+export const MARINE_WARNINGS = [
+  "No Marine-related Alert",
+  "Small Craft Advisory",
+  "High Surf Advisory",
+  "Marine Warning",
+];
+export const TIDE_RISKS = ["Low", "Moderate", "High"];
 
 export interface ForecastValues {
   dateIssued: string;
   forecasterName: string;
-  headline: string;
-  impacts: ForecastImpact[];
+  highTide: string;
+  ibf: Record<IbfHazard, IbfLevel>;
+  issueTime: string;
+  likelihood: string;
   location: string;
-  marineAdvisory: string;
+  lowTide: string;
+  marineImpact: string;
+  marineWarning: string;
   maxTemperature: string;
   minTemperature: string;
-  nextUpdate: string;
+  seaState: string;
   summary: string;
+  sunrise: string;
+  sunset: string;
+  tideRisk: string;
+  validity: string;
+  weatherImpact1: string;
+  weatherImpact2: string;
+  windDirection: string;
+  windImpact1: string;
+  windImpact2: string;
+  windSpeed: string;
+  windWarning: string;
+  wxWarning: string;
 }
-
-export const IMPACT_LEVELS = ["Minor", "Moderate", "Severe", "Extreme"];
-export const LIKELIHOOD_LEVELS = [
-  "Very Low",
-  "Low",
-  "Medium",
-  "High",
-  "Very High",
-];
-export const RESPONSE_LEVELS = ["Be Aware", "Be Prepared", "Take Action"];
-
-export const EMPTY_IMPACT: ForecastImpact = {
-  id: "",
-  hazard: "",
-  impactLevel: "Minor",
-  likelihoodLevel: "Low",
-  responseLevel: "Be Aware",
-  details: "",
-};
 
 export const EMPTY_FORECAST: ForecastValues = {
   dateIssued: "",
+  issueTime: "",
+  validity: "Today & tonight (6:00 am – 6:00 am)",
   location: "Grenada, Carriacou & Petite Martinique",
-  headline: "",
-  summary: "",
-  minTemperature: "",
-  maxTemperature: "",
-  marineAdvisory: "",
-  nextUpdate: "",
   forecasterName: "",
-  impacts: [],
+  likelihood: "Likely",
+  ibf: {
+    rainfall: "Minimal",
+    wind: "Minimal",
+    seas: "Minimal",
+    heat: "Minimal",
+    dust: "Minimal",
+  },
+  summary: "",
+  wxWarning: "No Weather-related Alert",
+  maxTemperature: "",
+  minTemperature: "",
+  weatherImpact1: "",
+  weatherImpact2: "",
+  windDirection: "",
+  windSpeed: "",
+  windWarning: "No Wind-related Alert",
+  windImpact1: "",
+  windImpact2: "",
+  seaState: "",
+  marineWarning: "No Marine-related Alert",
+  marineImpact: "",
+  highTide: "",
+  lowTide: "",
+  tideRisk: "Low",
+  sunrise: "",
+  sunset: "",
 };
 
-const responseTone: Record<string, string> = {
-  "be aware":
-    "border-gm-warning-yellow-border bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
-  "be prepared":
-    "border-gm-warning-amber-border bg-gm-warning-amber-bg text-gm-warning-amber-fg",
-  "take action":
-    "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg",
+// Impact-severity tone for the printed level chips. Papers stay light in both
+// themes, so these use the light `--gm-warning-*` token pairs.
+export const levelTone: Record<string, string> = {
+  Minimal: "bg-gm-warning-green-bg text-gm-warning-green-fg",
+  Minor: "bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
+  Significant: "bg-gm-warning-amber-bg text-gm-warning-amber-fg",
+  Severe: "bg-gm-warning-red-bg text-gm-warning-red-fg",
 };
 
-function Field({ label, value }: { label: string; value: string }) {
+const IBF_LABEL: Record<string, string> = {
+  rainfall: "Rainfall",
+  wind: "Wind",
+  seas: "Seas",
+  heat: "Heat",
+  dust: "Dust",
+};
+
+function isActiveWarning(warning: string): boolean {
+  return warning !== "" && !warning.startsWith("No ");
+}
+
+function Line({ label, value }: { label: string; value: string }) {
+  if (!value) {
+    return null;
+  }
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-xs text-zinc-500 uppercase tracking-wide">
-        {label}
-      </span>
-      <span className="border-zinc-200 border-b pb-0.5 font-medium text-zinc-900">
-        {value || " "}
-      </span>
+    <div className="flex gap-2 text-sm">
+      <span className="w-28 shrink-0 font-semibold text-zinc-500">{label}</span>
+      <span className="whitespace-pre-wrap text-zinc-900">{value}</span>
     </div>
   );
 }
 
-/** Static public weather forecast document, driven by `values` — no backend. */
+/** Static impact-based forecast product, driven by `values` — no backend. */
 export function ForecastDocument({
   period,
   values,
@@ -85,88 +153,102 @@ export function ForecastDocument({
   values: ForecastValues;
 }) {
   return (
-    <Paper className="px-12 py-10 text-sm">
-      <header className="mb-6">
+    <Paper className="px-12 py-10 text-sm text-zinc-900">
+      <header className="mb-5">
         <div className="font-semibold text-lg tracking-wide">
           GRENADA METEOROLOGICAL SERVICE
         </div>
-        <h1 className="mt-1 font-bold text-xl">{period} Weather Forecast</h1>
+        <h1 className="mt-1 font-bold text-xl">
+          {period} Impact-Based Forecast
+        </h1>
         <div className="mt-1 text-sm text-zinc-600">{values.location}</div>
       </header>
 
-      <div className="grid grid-cols-3 gap-6 text-sm">
-        <Field label="Date Issued" value={values.dateIssued} />
-        <Field label="Min Temp" value={values.minTemperature} />
-        <Field label="Max Temp" value={values.maxTemperature} />
+      <div className="grid grid-cols-3 gap-4 border-zinc-200 border-y py-3">
+        <Line label="Date" value={values.dateIssued} />
+        <Line label="Issued" value={values.issueTime} />
+        <Line label="Validity" value={values.validity} />
       </div>
 
-      {values.headline ? (
-        <p className="mt-6 font-semibold text-base">{values.headline}</p>
-      ) : null}
-
-      <section className="mt-4">
-        <div className="mb-1 font-semibold text-sm">Summary</div>
-        <p className="min-h-16 whitespace-pre-wrap rounded-md bg-zinc-50 p-3 text-sm">
-          {values.summary || " "}
-        </p>
+      <section className="mt-5">
+        <div className="mb-2 font-semibold">Impact outlook</div>
+        <div className="flex flex-wrap gap-2">
+          {IBF_HAZARDS.map((hz) => (
+            <span
+              className={`rounded-full px-2.5 py-0.5 font-medium text-xs ${
+                levelTone[values.ibf[hz.id]] ?? ""
+              }`}
+              key={hz.id}
+            >
+              {IBF_LABEL[hz.id]}: {values.ibf[hz.id]}
+            </span>
+          ))}
+        </div>
       </section>
 
-      <section className="mt-6">
-        <div className="mb-2 font-semibold text-sm">Impacts</div>
-        {values.impacts.length === 0 ? (
-          <p className="text-sm text-zinc-400">No impacts added.</p>
-        ) : (
-          <div className="space-y-3">
-            {values.impacts.map((imp) => {
-              const tone =
-                responseTone[imp.responseLevel.toLowerCase()] ??
-                "border-zinc-300 bg-zinc-50";
-              return (
-                <div
-                  className={`rounded-md border p-3 text-sm ${tone}`}
-                  key={imp.id}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold">
-                      {imp.hazard || "Untitled hazard"}
-                    </span>
-                    <span className="font-medium text-xs">
-                      {imp.responseLevel}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-xs">
-                    Impact: {imp.impactLevel} · Likelihood:{" "}
-                    {imp.likelihoodLevel}
-                  </div>
-                  {imp.details ? (
-                    <p className="mt-1 whitespace-pre-wrap">{imp.details}</p>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        )}
+      <section className="mt-5 flex flex-col gap-1.5">
+        <div className="font-semibold">Weather</div>
+        <Line label="Summary" value={values.summary} />
+        {isActiveWarning(values.wxWarning) ? (
+          <Line label="Warning" value={values.wxWarning} />
+        ) : null}
+        <div className="flex gap-2 text-sm">
+          <span className="w-28 shrink-0 font-semibold text-zinc-500">
+            Temperature
+          </span>
+          <span className="text-zinc-900">
+            Max {values.maxTemperature || "—"} · Min{" "}
+            {values.minTemperature || "—"}
+          </span>
+        </div>
+        <Line label="Impact 1" value={values.weatherImpact1} />
+        <Line label="Impact 2" value={values.weatherImpact2} />
       </section>
 
-      {values.marineAdvisory ? (
-        <section className="mt-6">
-          <div className="mb-1 font-semibold text-sm">Marine Advisory</div>
-          <p className="whitespace-pre-wrap text-sm">{values.marineAdvisory}</p>
-        </section>
-      ) : null}
+      <section className="mt-5 flex flex-col gap-1.5">
+        <div className="font-semibold">Winds</div>
+        <div className="flex gap-2 text-sm">
+          <span className="w-28 shrink-0 font-semibold text-zinc-500">
+            Wind
+          </span>
+          <span className="text-zinc-900">
+            {values.windDirection || "—"} at {values.windSpeed || "—"}
+          </span>
+        </div>
+        {isActiveWarning(values.windWarning) ? (
+          <Line label="Warning" value={values.windWarning} />
+        ) : null}
+        <Line label="Impact 1" value={values.windImpact1} />
+        <Line label="Impact 2" value={values.windImpact2} />
+      </section>
 
-      <footer className="mt-10 flex items-end justify-between gap-4">
+      <section className="mt-5 flex flex-col gap-1.5">
+        <div className="font-semibold">Seas &amp; Marine</div>
+        <Line label="Sea state" value={values.seaState} />
+        {isActiveWarning(values.marineWarning) ? (
+          <Line label="Warning" value={values.marineWarning} />
+        ) : null}
+        <Line label="Impact" value={values.marineImpact} />
+      </section>
+
+      <section className="mt-5 flex flex-col gap-1.5">
+        <div className="font-semibold">Tides &amp; Astronomy</div>
+        <Line label="High tide" value={values.highTide} />
+        <Line label="Low tide" value={values.lowTide} />
+        <div className="flex gap-2 text-sm">
+          <span className="w-28 shrink-0 font-semibold text-zinc-500">Sun</span>
+          <span className="text-zinc-900">
+            Rise {values.sunrise || "—"} · Set {values.sunset || "—"}
+          </span>
+        </div>
+      </section>
+
+      <footer className="mt-8 flex items-end justify-between gap-4 border-zinc-200 border-t pt-4">
         <div className="flex flex-col gap-1">
-          <span className="h-6 w-64 border-zinc-400 border-b">
+          <span className="h-6 w-64 border-zinc-400 border-b font-medium">
             {values.forecasterName}
           </span>
           <span className="text-xs text-zinc-500">Forecaster on Duty</span>
-        </div>
-        <div className="text-right text-xs text-zinc-500">
-          Next update:{" "}
-          <span className="font-medium text-zinc-800">
-            {values.nextUpdate || "—"}
-          </span>
         </div>
       </footer>
     </Paper>
