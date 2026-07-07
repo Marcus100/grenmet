@@ -1,74 +1,20 @@
+import type {
+  CapAlertListPublic,
+  CapAlertPublic,
+  CapAreaPublic,
+  CapInfoPublic,
+} from "@grenmet/api-client";
 import { notFound } from "next/navigation";
-import { getCapApiBaseUrl } from "@/lib/auth-config";
+import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 
-export type CapSeverity =
-  | "Extreme"
-  | "Severe"
-  | "Moderate"
-  | "Minor"
-  | "Unknown";
-export type CapLifecycleState =
-  | "DRAFT"
-  | "SUBMITTED"
-  | "APPROVED"
-  | "PUBLISHED"
-  | "EXPIRED"
-  | "CANCELLED";
+// CAP data types come from the OpenAPI-generated client so they can never drift
+// from the FastAPI schemas. The cap UI refers to them by these local aliases.
+export type { CapLifecycleState, CapSeverity } from "@grenmet/api-client";
 
-export interface CapArea {
-  area_desc: string;
-  circles: Record<string, number>[];
-  geocodes: { value_name: string; value: string }[];
-  geometry: GeoJSONGeometry | null;
-  id: string;
-  multipolygons: number[][][][];
-  polygons: number[][][];
-}
-
-export interface CapInfo {
-  areas: CapArea[];
-  certainty: string;
-  contact: string | null;
-  description: string;
-  effective: string | null;
-  event: string;
-  expires: string | null;
-  headline: string;
-  id: string;
-  instruction: string | null;
-  language: string;
-  onset: string | null;
-  resources: {
-    id: string;
-    resource_desc: string;
-    mime_type: string;
-    uri: string | null;
-  }[];
-  sender_name: string | null;
-  severity: CapSeverity;
-  urgency: string;
-  web: string | null;
-}
-
-export interface CapAlert {
-  id: string;
-  identifier: string;
-  incidents: string[];
-  info: CapInfo[];
-  lifecycle_state: CapLifecycleState;
-  msg_type: string;
-  note: string | null;
-  scope: string;
-  sender: string;
-  sent: string;
-  status: string;
-  xml_url: string | null;
-}
-
-export interface CapAlertList {
-  count: number;
-  data: CapAlert[];
-}
+export type CapArea = CapAreaPublic;
+export type CapInfo = CapInfoPublic;
+export type CapAlert = CapAlertPublic;
+export type CapAlertList = CapAlertListPublic;
 
 export interface GeoJSONGeometry {
   coordinates?: unknown;
@@ -125,6 +71,30 @@ export function getActiveMap(): Promise<GeoJSONFeatureCollection> {
   return fetchCapJson("/api/cap/active-map", EMPTY_FEATURE_COLLECTION);
 }
 
+/**
+ * Fetch the authenticated CAP editor alert list. Unlike the public `/api/cap/*`
+ * feeds, `/api/v1/cap/alerts` requires a Bearer access token — the caller
+ * exchanges the session cookie for one (see the CAP admin page). Throws on a
+ * non-OK response so backend/permission failures surface instead of silently
+ * rendering an empty dashboard.
+ */
+export async function fetchAdminAlerts(
+  accessToken: string
+): Promise<CapAlertList> {
+  const response = await fetch(
+    new URL(`${getAuthApiPrefix()}/cap/alerts`, getCapApiBaseUrl()),
+    {
+      cache: "no-store",
+      headers: { Authorization: `Bearer ${accessToken}` },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to load CAP alerts (${response.status})`);
+  }
+  return (await response.json()) as CapAlertList;
+}
+
 async function fetchCapJson<T>(path: string, fallback: T): Promise<T> {
   try {
     const response = await fetch(capPublicUrl(path), { cache: "no-store" });
@@ -148,5 +118,5 @@ export function formatDateTime(value: string | null): string {
 }
 
 export function primaryInfo(alert: CapAlert): CapInfo | undefined {
-  return alert.info[0];
+  return alert.info?.[0];
 }

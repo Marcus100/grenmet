@@ -32,6 +32,7 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
   DailyStatusDocument,
   type DailyStatusValues,
@@ -135,6 +136,19 @@ export function DailyStatusEditor() {
       loadedDraftRef.current = draftParam;
     }
   }, [draftParam, myReportsQuery.data, form]);
+
+  // Prefill blank fields with the current user's department and today's date.
+  useEditorPrefill(
+    (ctx) => {
+      if (!form.getFieldValue("department")) {
+        form.setFieldValue("department", ctx.department);
+      }
+      if (!form.getFieldValue("date")) {
+        form.setFieldValue("date", ctx.today);
+      }
+    },
+    { skip: Boolean(draftParam) }
+  );
 
   function handleReset() {
     form.reset();

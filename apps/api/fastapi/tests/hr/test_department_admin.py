@@ -139,3 +139,45 @@ async def test_create_employment_unknown_department_or_user(
                 employee_number="GMD-XX2", department_id="dept_emp_test"
             ),
         )
+
+
+async def test_get_employment_for_user(db_async: AsyncSession) -> None:
+    admin = await _superuser(db_async)
+    staff = await create_user(
+        session=db_async,
+        user_create=UserCreate(
+            email=random_email(),
+            username=f"empget_{random_lower_string()}",
+            password="password123",
+            first_name="Read",
+            last_name="Me",
+        ),
+    )
+
+    # No employment record yet -> 404 so the UI knows to create (POST) not update.
+    with pytest.raises(NotFoundError):
+        await hr_service.get_employment_for_user(
+            session=db_async, current_user=admin, target_user_id=staff.id
+        )
+
+    if not await db_async.get(Department, "dept_get_test"):
+        db_async.add(Department(id="dept_get_test", name="Dept Get Test"))
+        await db_async.commit()
+    created = await hr_service.create_employment_for_user(
+        session=db_async,
+        current_user=admin,
+        target_user_id=staff.id,
+        payload=EmploymentCreate(
+            employee_number=f"GMD-{random_lower_string()[:6].upper()}",
+            department_id="dept_get_test",
+            position="Forecaster",
+            employment_type=EmploymentType.FULL_TIME,
+        ),
+    )
+
+    fetched = await hr_service.get_employment_for_user(
+        session=db_async, current_user=admin, target_user_id=staff.id
+    )
+    assert fetched.id == created.id
+    assert fetched.department_id == "dept_get_test"
+    assert fetched.position == "Forecaster"

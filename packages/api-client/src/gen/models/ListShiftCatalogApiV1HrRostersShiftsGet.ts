@@ -3,7 +3,16 @@
  * Do not edit manually.
  */
 
+import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
+
+export type ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  include_inactive?: boolean;
+};
 
 /**
  * ShiftCatalogsPublic
@@ -16,10 +25,19 @@ export type ListShiftCatalogApiV1HrRostersShiftsGet200 = ShiftCatalogsPublic;
  */
 export type ListShiftCatalogApiV1HrRostersShiftsGet403 = any;
 
+/**
+ * HTTPValidationError
+ * @description Validation Error
+ */
+export type ListShiftCatalogApiV1HrRostersShiftsGet422 = HTTPValidationError;
+
 export type ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse =
   ListShiftCatalogApiV1HrRostersShiftsGet200;
 
 export type ListShiftCatalogApiV1HrRostersShiftsGetQuery = {
   Response: ListShiftCatalogApiV1HrRostersShiftsGet200;
-  Errors: ListShiftCatalogApiV1HrRostersShiftsGet403;
+  QueryParams: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams;
+  Errors:
+    | ListShiftCatalogApiV1HrRostersShiftsGet403
+    | ListShiftCatalogApiV1HrRostersShiftsGet422;
 };

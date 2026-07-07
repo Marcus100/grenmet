@@ -1,0 +1,135 @@
+name: Staging Pipeline
+
+# Phase 3 restructure: one push-triggered pipeline replaces the four-workflow
+# workflow_run chain. Because this executes from the pushed ref (not the default
+# branch) and gates deploy with `needs:`, it structurally eliminates both the
+# split-brain (workflow file from main, code from staging) and the check-builds
+# "no run yet = OK" race.
+#
+# Path filtering happens in the `changes` job instead of workflow-level `paths:`
+# — a build skipped for "no relevant changes" is a definitive job state the
+# deploy can reason about, not an absent workflow run.
+#
+# Coexistence note: while the legacy workflow_run chain still exists, a staging
+# push triggers both paths. Deploys are idempotent (same images, same tag) and
+# the single staging runner serializes them. Remove the legacy triggers after
+# two clean pipeline runs (Phase 3c).
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: staging-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # On workflow_dispatch there is no push diff to filter against — treat
+    # everything as changed (rebuild all, then deploy). The string 'false' is
+    # truthy in expressions, so the fallbacks below only fire on non-push events.
+    outputs:
+      api: ${{ github.event_name == 'push' && steps.filter.outputs.api || 'true' }}
+      web: ${{ github.event_name == 'push' && steps.filter.outputs.web || 'true' }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+      - name: Filter changed paths
+        id: filter
+        if: github.event_name == 'push'
+        uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
+        with:
+          # Without an explicit base, push events diff against the repo DEFAULT
+          # branch (main) — staging always differs from main in app code, so
+          # every push would rebuild everything. Base = the pushed branch gives
+          # true push-range semantics (observed on pipeline run #2).
+          base: ${{ github.ref_name }}
+          # Mirrors the legacy build workflows' push paths filters.
+          filters: |
+            api:
+              - 'apps/api/fastapi/**'
+              - '.github/workflows/build-api-image.yml'
+            web:
+              - 'apps/web/**'
+              - 'packages/**'
+              - '.github/workflows/build-web-images.yml'
+
+  ci-api:
+    name: CI (API)
+    uses: ./.github/workflows/ci-api.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write
+
+  ci-web:
+    name: CI (Web)
+    uses: ./.github/workflows/ci-web.yml
+    secrets: inherit
+    permissions:
+      contents: read
+
+  api-client:
+    name: API client drift
+    uses: ./.github/workflows/ci-api-client.yml
+    secrets: inherit
+    permissions:
+      contents: read
+
+  build-api:
+    name: Build API image
+    needs: [changes, ci-api]
+    if: needs.changes.outputs.api == 'true'
+    uses: ./.github/workflows/build-api-image.yml
+    with:
+      tag: staging
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+
+  build-web:
+    name: Build web images
+    needs: [changes, ci-web]
+    if: needs.changes.outputs.web == 'true'
+    uses: ./.github/workflows/build-web-images.yml
+    with:
+      tag: staging
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+  deploy:
+    name: Deploy
+    needs: [ci-api, ci-web, api-client, build-api, build-web]
+    # Explicit allowlist: CI must have SUCCEEDED (a cancelled dependency slips
+    # through `!failure() && !cancelled()` — observed on pipeline run #1), and a
+    # build must be success or skipped (skipped = no relevant changes, the
+    # existing image is still valid). The leading !cancelled() is load-bearing:
+    # without a status-check function GitHub implicitly prepends success(),
+    # which is false when a needed job was skipped — observed on run #3, where
+    # the deploy was silently skipped despite all-green CI.
+    if: >-
+      ${{
+        !cancelled() &&
+        needs.ci-api.result == 'success' &&
+        needs.ci-web.result == 'success' &&
+        needs.api-client.result == 'success' &&
+        contains(fromJSON('["success","skipped"]'), needs.build-api.result) &&
+        contains(fromJSON('["success","skipped"]'), needs.build-web.result)
+      }}
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read

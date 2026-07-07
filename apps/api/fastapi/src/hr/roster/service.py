@@ -12,21 +12,27 @@ from src.hr.constants import (
     ERROR_CSV_IMPORT_INVALID_ROWS,
     ERROR_CSV_MISSING_COLUMNS,
     ERROR_CSV_NO_HEADER,
+    ERROR_GRID_NOT_IMPORTABLE,
     ERROR_PUBLIC_HOLIDAY_DUPLICATE_DATE,
     ERROR_ROSTER_PERIOD_ALREADY_CLOSED,
     ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED,
     ERROR_ROSTER_PERIOD_END_BEFORE_START,
     ERROR_ROSTER_PERIOD_NOT_PUBLISHED,
+    ERROR_SHIFT_CODE_ALREADY_EXISTS,
 )
 from src.hr.dependencies import (
     get_public_holiday_or_404,
     get_roster_period_or_404,
 )
 from src.hr.exceptions import (
+    DepartmentNotFoundError,
     HRValidationError,
+    ShiftCatalogNotFoundError,
 )
+from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.utils.datetime import utc_now
 
+from .grid import parse_grid, resolve_user
 from .models import (
     ImportStatus,
     PublicHoliday,
@@ -38,6 +44,7 @@ from .models import (
     RosterRevision,
     RosterRevisionAction,
     ShiftCatalog,
+    ShiftCategory,
 )
 from .schemas import (
     PublicHolidayCreate,
@@ -46,7 +53,12 @@ from .schemas import (
     RosterCsvRowValidation,
     RosterCsvValidationRequest,
     RosterCsvValidationResponse,
+    RosterGridImportRequest,
+    RosterGridImportResult,
+    RosterGridPreview,
     RosterPeriodCreate,
+    ShiftCatalogCreate,
+    ShiftCatalogUpdate,
 )
 
 REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
@@ -226,13 +238,68 @@ async def close_roster_period(
 
 
 async def read_shift_catalog(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, include_inactive: bool = False
 ) -> list[ShiftCatalog]:
-    require_permission(current_user=current_user, permission_key="roster.view")
-    result = await session.execute(
-        select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
-    )
+    # Listing inactive shifts is a management view; gate it on roster.manage.
+    if include_inactive:
+        require_permission(current_user=current_user, permission_key="roster.manage")
+    else:
+        require_permission(current_user=current_user, permission_key="roster.view")
+    statement = select(ShiftCatalog).order_by(col(ShiftCatalog.code))
+    if not include_inactive:
+        statement = statement.where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+    result = await session.execute(statement)
     return list(result.scalars().all())
+
+
+def _default_shift_flags(category: ShiftCategory) -> dict[str, bool]:
+    """Category-derived defaults for the advanced flags (overridable per shift)."""
+    is_work = category == ShiftCategory.WORK
+    is_leave = category == ShiftCategory.LEAVE
+    return {
+        "counts_as_work_hours": is_work,
+        "needs_reason": is_leave,
+        "needs_approval": is_leave,
+    }
+
+
+async def create_shift(
+    *, session: AsyncSession, current_user: User, shift_in: ShiftCatalogCreate
+) -> ShiftCatalog:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    existing = await session.get(ShiftCatalog, shift_in.code)
+    if existing is not None:
+        raise HRValidationError(ERROR_SHIFT_CODE_ALREADY_EXISTS)
+    data = shift_in.model_dump()
+    # Fill any advanced flag left unset with the category-derived default.
+    for key, default_value in _default_shift_flags(shift_in.category).items():
+        if data.get(key) is None:
+            data[key] = default_value
+    db_shift = ShiftCatalog(**data)
+    session.add(db_shift)
+    await session.commit()
+    await session.refresh(db_shift)
+    return db_shift
+
+
+async def update_shift(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    code: str,
+    shift_in: ShiftCatalogUpdate,
+) -> ShiftCatalog:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    db_shift = await session.get(ShiftCatalog, code)
+    if db_shift is None:
+        raise ShiftCatalogNotFoundError()
+    for key, value in shift_in.model_dump(exclude_unset=True).items():
+        setattr(db_shift, key, value)
+    db_shift.updated_at = utc_now()
+    session.add(db_shift)
+    await session.commit()
+    await session.refresh(db_shift)
+    return db_shift
 
 
 async def list_roster_periods(
@@ -385,6 +452,144 @@ def _validate_csv_rows(
             )
         )
     return validations, valid_assignments
+
+
+# ---------------------------------------------------------------------------
+# Grid import (name × day-of-month CSV)
+# ---------------------------------------------------------------------------
+
+
+async def _dept_active_users(session: AsyncSession, department_id: str) -> list[User]:
+    result = await session.execute(
+        select(User)
+        .join(EmploymentRecord, col(EmploymentRecord.user_id) == col(User.id))
+        .where(
+            col(EmploymentRecord.department_id) == department_id,
+            col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
+        )
+    )
+    return list(result.scalars().all())
+
+
+async def _resolve_grid(
+    session: AsyncSession, payload: RosterGridImportRequest
+) -> tuple[list[RosterAssignmentInput], RosterGridPreview]:
+    """Parse the grid, match names to department staff, validate codes.
+
+    Names are matched only within the department's active members. Unmatched
+    names and unknown shift codes are reported, never silently dropped.
+    """
+    department = await session.get(Department, payload.department_id)
+    if department is None:
+        raise DepartmentNotFoundError()
+
+    try:
+        grid = parse_grid(payload.csv_text, payload.period_end.day)
+    except ValueError as exc:
+        return [], RosterGridPreview(
+            total_people=0,
+            matched_people=0,
+            unmatched_names=[],
+            total_assignments=0,
+            errors=[str(exc)],
+            can_import=False,
+        )
+
+    users = await _dept_active_users(session, payload.department_id)
+    catalog = await session.execute(
+        select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+    )
+    valid_codes = {shift.code for shift in catalog.scalars().all()}
+
+    assignments: list[RosterAssignmentInput] = []
+    unmatched: list[str] = []
+    errors: list[str] = []
+    matched = 0
+    for name, codes in grid.items():
+        user = resolve_user(name, users)
+        if user is None:
+            unmatched.append(name)
+            continue
+        matched += 1
+        for day, code in codes.items():
+            if code not in valid_codes:
+                errors.append(f"{name} day {day}: unknown shift code {code!r}")
+                continue
+            assignments.append(
+                RosterAssignmentInput(
+                    user_id=user.id,
+                    assignment_date=payload.period_start.replace(day=day),
+                    shift_code=code,
+                )
+            )
+
+    preview = RosterGridPreview(
+        total_people=len(grid),
+        matched_people=matched,
+        unmatched_names=unmatched,
+        total_assignments=len(assignments),
+        errors=errors,
+        can_import=not (unmatched or errors),
+    )
+    return assignments, preview
+
+
+async def validate_roster_grid(
+    *, session: AsyncSession, current_user: User, payload: RosterGridImportRequest
+) -> RosterGridPreview:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    _, preview = await _resolve_grid(session, payload)
+    return preview
+
+
+async def import_roster_grid(
+    *, session: AsyncSession, current_user: User, payload: RosterGridImportRequest
+) -> RosterGridImportResult:
+    require_permission(current_user=current_user, permission_key="roster.manage")
+    if payload.period_end < payload.period_start:
+        raise HRValidationError(ERROR_ROSTER_PERIOD_END_BEFORE_START)
+    assignments, preview = await _resolve_grid(session, payload)
+    if not preview.can_import:
+        raise HRValidationError(ERROR_GRID_NOT_IMPORTABLE)
+
+    result = await session.execute(
+        select(RosterPeriod).where(
+            col(RosterPeriod.department_id) == payload.department_id,
+            col(RosterPeriod.period_start) == payload.period_start,
+        )
+    )
+    period = result.scalars().first()
+    if period is None:
+        period = await create_roster_period(
+            session=session,
+            current_user=current_user,
+            period_in=RosterPeriodCreate(
+                department_id=payload.department_id,
+                period_start=payload.period_start,
+                period_end=payload.period_end,
+            ),
+        )
+
+    await bulk_upsert_roster_assignments(
+        session=session,
+        current_user=current_user,
+        payload=RosterAssignmentBulkCreate(
+            roster_period_id=period.id, assignments=assignments
+        ),
+    )
+
+    published = False
+    if payload.publish and period.status == RosterPeriodStatus.DRAFT:
+        await publish_roster_period(
+            session=session, current_user=current_user, period_id=period.id
+        )
+        published = True
+
+    return RosterGridImportResult(
+        roster_period_id=period.id,
+        total_assignments=len(assignments),
+        published=published,
+    )
 
 
 async def validate_roster_csv(
