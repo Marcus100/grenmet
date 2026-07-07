@@ -4,6 +4,7 @@ import {
   Inter,
   JetBrains_Mono,
   Noto_Sans,
+  Schibsted_Grotesk,
 } from "next/font/google";
 
 /**
@@ -35,10 +36,15 @@ const jetBrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-jetbrains-mono",
 });
+const schibstedGrotesk = Schibsted_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-schibsted-grotesk",
+});
 
 export const fontRegistry = {
   inter: { label: "Inter", font: inter },
   geist: { label: "Geist", font: geist },
+  schibstedGrotesk: { label: "Schibsted Grotesk", font: schibstedGrotesk },
   notoSans: { label: "Noto Sans", font: notoSans },
   geistMono: { label: "Geist Mono", font: geistMono },
   jetBrainsMono: { label: "JetBrains Mono", font: jetBrainsMono },
