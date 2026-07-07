@@ -8,18 +8,16 @@ Port **3001**. The heaviest app in the monorepo.
 
 | Package | Purpose |
 | --- | --- |
-| `@fullcalendar/react` (v7) | Calendar views — v7 consolidated package; plugins via `@fullcalendar/react/{daygrid,timegrid,list,interaction,multimonth}` subpaths + `useCalendarController`. Shared component: `components/calendar/event-calendar.tsx` (used by `/calendar` + `/studio/calendar`) |
+| `@fullcalendar/react` (v7) | Calendar views — v7 consolidated package; plugins via `@fullcalendar/react/{daygrid,timegrid,list,interaction,multimonth}` subpaths + `useCalendarController`. Shared component: `components/calendar/event-calendar.tsx` (used by `/calendar`) |
 | `recharts` | Charts (bar, area, statistics) — colors via `var(--gm-*)` tokens directly |
 | `@tanstack/react-form` + `zod-form-adapter` | Forms with Zod validation |
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |
 | `@tanstack/react-table` | Data tables with `Pagination` component |
-| `@tanstack/react-virtual` | Virtualised lists |
 | `react-error-boundary` | Error boundaries around data-heavy sections |
 | `sonner` | Toast notifications |
 | `date-fns` | Date formatting |
 | `resend` | Email (server-side) |
 | `msw` | API mocking in tests |
-| `@faker-js/faker` | Test data generation |
 
 ## Auth
 
@@ -43,7 +41,7 @@ src/app/
     page.tsx         ← GMS operations dashboard (HomeMetricCards + RainfallChart)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
     (others-pages)/  ← calendar, profile
-    studio/          ← Studio-Admin template demo dashboards (kept as reference)
+    coming-soon/     ← placeholder page for target-IA nav items with no page yet
   (full-width-pages)/
     (auth)/          ← signin, signup (full-width, no sidebar)
     (error-pages)/   ← 404
