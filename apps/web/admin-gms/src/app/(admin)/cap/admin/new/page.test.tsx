@@ -96,7 +96,7 @@ describe("NewAlertPage", () => {
       { kind: "AREA", area_desc: "Saint George" },
     ]);
 
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/cap/admin"));
+    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/cap"));
   });
 
   it("blocks submission and shows an error when required fields are empty", async () => {
