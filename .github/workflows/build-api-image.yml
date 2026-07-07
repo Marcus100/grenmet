@@ -25,6 +25,14 @@ on:
         options:
           - staging
           - latest
+  # Callable from pipeline workflows (Phase 3 restructure). When called, the
+  # caller's event context drives tag resolution; `tag` overrides it explicitly.
+  workflow_call:
+    inputs:
+      tag:
+        description: "Image tag override (staging or latest)"
+        required: false
+        type: string
 
 jobs:
   build-and-push:
@@ -61,10 +69,11 @@ jobs:
         id: ctx
         run: |
           EVENT="${{ github.event_name }}"
-          if [ "$EVENT" == "workflow_run" ]; then
+          # inputs.tag covers both workflow_dispatch and workflow_call callers.
+          if [ -n "${{ inputs.tag }}" ]; then
+            BRANCH="${{ inputs.tag }}"
+          elif [ "$EVENT" == "workflow_run" ]; then
             BRANCH="${{ github.event.workflow_run.head_branch }}"
-          elif [ "$EVENT" == "workflow_dispatch" ]; then
-            BRANCH="${{ github.event.inputs.tag }}"
           else
             BRANCH="${{ github.ref_name }}"
           fi
