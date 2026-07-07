@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "department_id": { "type": "string", "title": "Department Id" },
+    "period_start": {
+      "type": "string",
+      "format": "date",
+      "title": "Period Start"
+    },
+    "period_end": { "type": "string", "format": "date", "title": "Period End" },
+    "csv_text": { "type": "string", "title": "Csv Text" },
+    "file_name": {
+      "type": "string",
+      "title": "File Name",
+      "default": "roster.csv"
+    },
+    "publish": { "type": "boolean", "title": "Publish", "default": false }
+  },
+  "type": "object",
+  "required": ["department_id", "period_start", "period_end", "csv_text"],
+  "title": "RosterGridImportRequest",
+  "x-readme-ref-name": "RosterGridImportRequest"
+}

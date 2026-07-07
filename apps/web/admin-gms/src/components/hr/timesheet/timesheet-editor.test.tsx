@@ -1,4 +1,5 @@
 import { configureApiClient } from "@grenmet/api-client";
+import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -41,7 +42,17 @@ function renderEditor() {
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <TimesheetEditor />
+      <SessionUserProvider
+        user={{
+          id: "u-1",
+          email: "tester@barrels.gd",
+          full_name: "Tester",
+          is_active: true,
+          is_superuser: false,
+        }}
+      >
+        <TimesheetEditor />
+      </SessionUserProvider>
     </QueryClientProvider>
   );
 }
@@ -64,7 +75,15 @@ describe("TimesheetEditor", () => {
     const user = userEvent.setup();
     renderEditor();
 
-    await user.type(screen.getByLabelText("Department"), "Meteorology");
+    // Wait for prefill to seed the department, then replace it so the assertion
+    // isn't racing the profile-driven prefill (which fills "Meteorological
+    // Department" and would otherwise concatenate with the typed value).
+    const department = screen.getByLabelText("Department") as HTMLInputElement;
+    await waitFor(() =>
+      expect(department.value).toBe("Meteorological Department")
+    );
+    await user.clear(department);
+    await user.type(department, "Meteorology");
 
     expect(screen.getAllByText("Meteorology").length).toBeGreaterThanOrEqual(1);
   });

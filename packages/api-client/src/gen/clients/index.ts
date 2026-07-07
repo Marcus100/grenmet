@@ -19,6 +19,7 @@ export { createPermissionApiV1AuthPermissionsPost } from "./createPermissionApiV
 export { createPredefinedAreaApiV1CapAreasPredefinedPost } from "./createPredefinedAreaApiV1CapAreasPredefinedPost.js";
 export { createRoleApiV1AuthRolesPost } from "./createRoleApiV1AuthRolesPost.js";
 export { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "./createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export { createShiftApiV1HrRostersShiftsPost } from "./createShiftApiV1HrRostersShiftsPost.js";
 export { createShiftSwapApiV1HrShiftSwapsPost } from "./createShiftSwapApiV1HrShiftSwapsPost.js";
 export { createStatusReportApiV1HrStatusReportsPost } from "./createStatusReportApiV1HrStatusReportsPost.js";
 export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./createTemplateApiV1HrWorkflowsTemplatesPost.js";
@@ -42,6 +43,7 @@ export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./g
 export { healthCheckApiV1UtilsHealthCheckGet } from "./healthCheckApiV1UtilsHealthCheckGet.js";
 export { importAlertApiV1CapAlertsImportPost } from "./importAlertApiV1CapAlertsImportPost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./importCsvApiV1HrRostersImportCsvPost.js";
+export { importGridApiV1HrRostersImportGridPost } from "./importGridApiV1HrRostersImportGridPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "./listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./listDepartmentsEndpointApiV1HrDepartmentsGet.js";
@@ -66,6 +68,7 @@ export { readCapXmlApiCapIdentifierXmlGet } from "./readCapXmlApiCapIdentifierXm
 export { readCatalogsApiV1CapCatalogsGet } from "./readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export { readFeedsApiV1CapFeedsGet } from "./readFeedsApiV1CapFeedsGet.js";
+export { readHrEmploymentApiV1HrEmploymentUserIdGet } from "./readHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./readHrProfileMeApiV1HrProfileMeGet.js";
 export { readInboxApiV1HrWorkflowsInstancesInboxGet } from "./readInboxApiV1HrWorkflowsInstancesInboxGet.js";
 export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
@@ -124,9 +127,11 @@ export { updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch } from "./upd
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export { updateRoleApiV1AuthRolesRoleIdPatch } from "./updateRoleApiV1AuthRolesRoleIdPatch.js";
 export { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
+export { updateShiftApiV1HrRostersShiftsCodePatch } from "./updateShiftApiV1HrRostersShiftsCodePatch.js";
 export { updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch } from "./updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export { updateStatusReportApiV1HrStatusReportsReportIdPatch } from "./updateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./updateUserApiV1AuthUsersUserIdPatch.js";
 export { updateUserMeApiV1AuthUsersMePatch } from "./updateUserMeApiV1AuthUsersMePatch.js";
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./validateCsvApiV1HrRostersImportCsvValidatePost.js";
+export { validateGridApiV1HrRostersImportGridValidatePost } from "./validateGridApiV1HrRostersImportGridValidatePost.js";

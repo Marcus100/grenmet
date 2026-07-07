@@ -1,0 +1,369 @@
+# GrenMet — Deploy Stack (staging AND production)
+# Used by: .github/workflows/deploy.yml
+#
+# One compose file for both environments (Phase 4 single-source-of-truth).
+# Environment differences live in the committed env files:
+#   staging.env / production.env   — non-secret config (domains, DB names,
+#                                    volume/network names, router suffix, profiles)
+# plus a runtime-only .env.secrets written by the deploy workflow (secrets +
+# image tags + DB URLs) and deleted afterwards. Invocation:
+#   docker compose --env-file <env>.env --env-file .env.secrets \
+#     -f docker-compose.deploy.yml -p <project> ...
+#
+# IMPORTANT: the explicit `name:` fields on volumes/networks pin the exact
+# Docker object names that already exist on the droplets (they predate this
+# merged file and embed the old per-env compose keys). Changing them would
+# detach the stack from its data — especially PGDATA_VOLUME.
+#
+# adminer is staging-only: it sits behind `profiles: ["staging"]`, activated by
+# COMPOSE_PROFILES=staging in staging.env.
+
+services:
+  # ── Database ────────────────────────────────────────────────────────────────
+  db:
+    image: postgres:17
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      WXWATCH_DB_NAME: ${WXWATCH_DB_NAME}
+      WXWATCH_DB_USER: ${WXWATCH_DB_USER}
+      WXWATCH_DB_PASSWORD: ${WXWATCH_DB_PASSWORD}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
+      WXPRODUCTS_DB_USER: ${WXPRODUCTS_DB_USER}
+      WXPRODUCTS_DB_PASSWORD: ${WXPRODUCTS_DB_PASSWORD}
+      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
+      JANITORIAL_DB_USER: ${JANITORIAL_DB_USER}
+      JANITORIAL_DB_PASSWORD: ${JANITORIAL_DB_PASSWORD}
+      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
+      TRANSPORT_DB_USER: ${TRANSPORT_DB_USER}
+      TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: ${DB_HEALTH_START_PERIOD:-30s}
+      timeout: 10s
+    networks:
+      - grenmet
+
+  # ── FastAPI ─────────────────────────────────────────────────────────────────
+  prestart:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: "no"
+    command: bash scripts/prestart.sh
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
+    networks:
+      - grenmet
+
+  api:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      DOMAIN: ${DOMAIN}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      PROJECT_NAME: ${PROJECT_NAME}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      FRONTEND_HOST: ${FRONTEND_HOST:-}
+      REDIS_URL: ${REDIS_URL:-}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.rule=Host(`api.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
+    networks:
+      - grenmet
+
+  # ── Redis + Background worker (CAP outbox) ───────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - grenmet
+
+  worker:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: uv run arq src.worker.main.WorkerSettings
+    environment:
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
+    networks:
+      - grenmet
+
+  # ── Drizzle migrations ───────────────────────────────────────────────────────
+  # The consolidated admin apps' databases are migrated by the admin-migrate
+  # image (built target=migrate), which carries all schema folders and runs all
+  # migration scripts.
+  web-migrate:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG}
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
+      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
+    networks:
+      - grenmet
+
+  # ── Web Apps ─────────────────────────────────────────────────────────────────
+  web-auth:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-auth${ROUTER_SUFFIX}.loadbalancer.server.port=3000"
+    networks:
+      - grenmet
+
+  web-admin:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    depends_on:
+      web-migrate:
+        condition: service_completed_successfully
+    environment:
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
+      # Consolidated apps' dedicated Postgres databases.
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
+      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
+      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
+      CAP_API_URL: https://api.${BASE_DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
+    networks:
+      - grenmet
+
+  web-hurricaneplan:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.rule=Host(`hurricane.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-hurricaneplan${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
+    networks:
+      - grenmet
+
+  web-spicewx:
+    image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_API_V1_STR: /api/v1
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.rule=Host(`spice.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-spicewx${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
+    networks:
+      - grenmet
+
+  # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
+  adminer:
+    image: adminer:5.4.2@sha256:983261ecc40a4aaf11e25aeda8ef821f5a43a9f024b3967c81cbcc0e6ce43ba3
+    restart: always
+    profiles: ["staging"]
+    environment:
+      ADMINER_DESIGN: pepa-linha-dark
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.rule=Host(`adminer.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.adminer${ROUTER_SUFFIX}.loadbalancer.server.port=8080"
+      - "traefik.http.routers.adminer${ROUTER_SUFFIX}.middlewares=adminer-auth${ROUTER_SUFFIX}"
+      - "traefik.http.middlewares.adminer-auth${ROUTER_SUFFIX}.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
+    depends_on:
+      - db
+    networks:
+      - grenmet
+
+  # ── Reverse proxy ────────────────────────────────────────────────────────────
+  proxy:
+    image: traefik:v3.7@sha256:21a3d83696379bac6434bb32e1dde0aff0e84ef2abd053ed3db87d3f45e749b2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-certificates:/certificates
+    command:
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
+      - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
+      - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      - --accesslog
+      - --log
+      - --api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.rule=Host(`traefik.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.middlewares=dashboard-auth${ROUTER_SUFFIX}"
+      - "traefik.http.middlewares.dashboard-auth${ROUTER_SUFFIX}.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
+      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.rule=HostRegexp(`.+`)"
+      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.entrypoints=web"
+      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.middlewares=https-redirect${ROUTER_SUFFIX}"
+      - "traefik.http.middlewares.https-redirect${ROUTER_SUFFIX}.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.https-redirect${ROUTER_SUFFIX}.redirectscheme.permanent=true"
+    networks:
+      - grenmet
+
+networks:
+  # Not name-pinned: compose validates the com.docker.compose.network label, so
+  # adopting a network created under a different key is impossible. Networks are
+  # wiring, not data — compose creates <project>_grenmet and moves services onto
+  # it in one `up`. (Prod's existing network already used the key `grenmet`, so
+  # nothing changes there; staging's old *_grenmet-staging network is orphaned
+  # after the first deploy and can be pruned.)
+  grenmet:
+    driver: bridge
+
+volumes:
+  # DATA-CRITICAL: external + name pins the exact existing volumes on each
+  # droplet, bypassing compose's created-by-me label check — and if a volume is
+  # missing (fresh droplet), the deploy FAILS instead of silently starting an
+  # empty database. Bootstrap for a new droplet:
+  #   docker volume create <value of PGDATA_VOLUME/CERTS_VOLUME/REDIS_VOLUME>
+  pgdata:
+    external: true
+    name: ${PGDATA_VOLUME}
+  traefik-certificates:
+    external: true
+    name: ${CERTS_VOLUME}
+  redis-data:
+    external: true
+    name: ${REDIS_VOLUME}

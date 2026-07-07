@@ -2,7 +2,6 @@
 
 import {
   type SrcAuthSchemasRolePublic as RolePublic,
-  readUsersApiV1AuthUsersGetQueryKey,
   useCreateHrEmploymentApiV1HrEmploymentUserIdPost,
   useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
   useCreateUserApiV1AuthUsersPost,
@@ -25,6 +24,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { invalidateAfterUserOnboard } from "@/lib/hr-invalidation";
 import {
   GMS_POSITIONS,
   rolesToAssign,
@@ -123,9 +123,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
         },
       });
 
-      await queryClient.invalidateQueries({
-        queryKey: readUsersApiV1AuthUsersGetQueryKey(),
-      });
+      await invalidateAfterUserOnboard(queryClient, { departmentId });
       toast.success(
         `${form.first_name} ${form.last_name} onboarded as ${form.position}`
       );
