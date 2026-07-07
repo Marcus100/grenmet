@@ -8,11 +8,9 @@ import {
   readSessionCookie,
 } from "@/lib/server-session";
 
-export const dynamic = "force-dynamic";
-
 const FILTERS = ["DRAFT", "SUBMITTED", "APPROVED", "PUBLISHED"];
 
-export default async function AdminPage() {
+export async function EditorSection() {
   const alerts = await getAdminAlerts();
   const counts = Object.fromEntries(
     FILTERS.map((state) => [
@@ -22,16 +20,11 @@ export default async function AdminPage() {
   );
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="font-semibold text-gm-body-sm text-gm-navy leading-gm-body-sm">
-            CAP editor
-          </p>
-          <h1 className="mt-2 text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
-            Alert Dashboard
-          </h1>
-        </div>
+        <h2 className="text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+          Alert Dashboard
+        </h2>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" variant="outline">
             <Link href="/cap/admin/new">
@@ -46,7 +39,7 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {FILTERS.map((state) => (
           <div
             className="border border-gm-border bg-white p-4 shadow-gm-card"
@@ -75,7 +68,7 @@ export default async function AdminPage() {
         ))}
       </div>
 
-      <div className="mt-8 overflow-hidden border border-gm-border bg-white shadow-gm-card">
+      <div className="overflow-hidden border border-gm-border bg-white shadow-gm-card">
         <div className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b bg-gm-surface px-4 py-3 text-gm-label text-gm-text-muted uppercase leading-gm-label">
           <span>Alert</span>
           <span>State</span>
@@ -104,7 +97,7 @@ export default async function AdminPage() {
           ))
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
