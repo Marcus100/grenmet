@@ -5,13 +5,13 @@ import type {
 } from "@grenmet/api-client";
 import { format } from "date-fns";
 
-/** Studio-styled status vocabulary mapped from the real `is_active` flag. */
+/** Display status vocabulary mapped from the real `is_active` flag. */
 export type UserRowStatus = "Active" | "Deactivated";
 
 /**
- * View-model for a row in the users table. Mirrors the studio `UserRow` shape
- * for the columns/table components, but carries the real `UserPublic` so row
- * actions (manage roles, activate/deactivate) can operate on the live record.
+ * View-model for a row in the users table. Presentation shape consumed by the
+ * columns/table components; carries the real `UserPublic` so row actions
+ * (manage roles, activate/deactivate) can operate on the live record.
  */
 export interface UserRow {
   email: string;
