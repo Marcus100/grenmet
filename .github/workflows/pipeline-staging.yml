@@ -105,9 +105,18 @@ jobs:
   deploy:
     name: Deploy
     needs: [ci-api, ci-web, api-client, build-api, build-web]
-    # A SKIPPED build (no relevant changes — existing image still valid) must not
-    # block the deploy, but any failure or cancellation upstream must.
-    if: ${{ !failure() && !cancelled() }}
+    # Explicit allowlist: CI must have SUCCEEDED (a cancelled dependency slips
+    # through `!failure() && !cancelled()` — observed on pipeline run #1), and a
+    # build must be success or skipped (skipped = no relevant changes, the
+    # existing image is still valid).
+    if: >-
+      ${{
+        needs.ci-api.result == 'success' &&
+        needs.ci-web.result == 'success' &&
+        needs.api-client.result == 'success' &&
+        contains(fromJSON('["success","skipped"]'), needs.build-api.result) &&
+        contains(fromJSON('["success","skipped"]'), needs.build-web.result)
+      }}
     uses: ./.github/workflows/deploy-staging.yml
     secrets: inherit
     permissions:
