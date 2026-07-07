@@ -159,7 +159,7 @@ export default function NewAlertPage() {
 
     try {
       await createAlertApiV1CapAlertsPost(payload);
-      router.push("/cap/admin");
+      router.push("/cap");
       router.refresh();
     } catch (err) {
       setError(
@@ -176,7 +176,7 @@ export default function NewAlertPage() {
         <div>
           <Link
             className="inline-flex items-center gap-1.5 text-gm-body-sm text-gm-navy leading-gm-body-sm hover:underline"
-            href="/cap/admin"
+            href="/cap"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" />
             Alert Dashboard
@@ -187,7 +187,7 @@ export default function NewAlertPage() {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" variant="outline">
-            <Link href="/cap/admin">Cancel</Link>
+            <Link href="/cap">Cancel</Link>
           </Button>
           <Button disabled={submitting} onClick={handleSubmit} size="sm">
             <Save aria-hidden="true" />
@@ -492,7 +492,7 @@ export default function NewAlertPage() {
       {/* Bottom actions */}
       <div className="mt-6 flex justify-end gap-2 border-gm-border border-t pt-6">
         <Button asChild variant="outline">
-          <Link href="/cap/admin">Cancel</Link>
+          <Link href="/cap">Cancel</Link>
         </Button>
         <Button disabled={submitting} onClick={handleSubmit}>
           <Save aria-hidden="true" />
