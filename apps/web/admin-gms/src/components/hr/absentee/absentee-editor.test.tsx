@@ -133,6 +133,17 @@ describe("AbsenteeEditor (wired)", () => {
     ).toBeGreaterThan(0);
   }, 20_000);
 
+  it("prefills the employee name and department from the profile", async () => {
+    wrap(<AbsenteeEditor />);
+    const nameInput = (await screen.findByLabelText(
+      "Employee Name"
+    )) as HTMLInputElement;
+    await waitFor(() => expect(nameInput.value).toBe("Tester"));
+    expect(
+      (screen.getByLabelText("Department") as HTMLInputElement).value
+    ).toBe("Met");
+  }, 20_000);
+
   it("submits a filled report to HR with the mapped payload", async () => {
     const posted: unknown[] = [];
     server.use(

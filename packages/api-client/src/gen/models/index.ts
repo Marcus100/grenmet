@@ -84,6 +84,7 @@ export type {
 } from "./CapAreaKind.js";
 export { capAreaKindCapAreaKindEnum } from "./CapAreaKind.js";
 export type { CapAreaPublic } from "./CapAreaPublic.js";
+export type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 export type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 export type {
@@ -266,6 +267,15 @@ export type {
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
   CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
 } from "./CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
+export type {
+  CreateShiftApiV1HrRostersShiftsPost201,
+  CreateShiftApiV1HrRostersShiftsPost400,
+  CreateShiftApiV1HrRostersShiftsPost403,
+  CreateShiftApiV1HrRostersShiftsPost422,
+  CreateShiftApiV1HrRostersShiftsPostMutation,
+  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
+  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+} from "./CreateShiftApiV1HrRostersShiftsPost.js";
 export type {
   CreateShiftSwapApiV1HrShiftSwapsPost200,
   CreateShiftSwapApiV1HrShiftSwapsPost201,
@@ -489,6 +499,16 @@ export type {
   ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
 } from "./ImportCsvApiV1HrRostersImportCsvPost.js";
 export type {
+  ImportGridApiV1HrRostersImportGridPost200,
+  ImportGridApiV1HrRostersImportGridPost400,
+  ImportGridApiV1HrRostersImportGridPost403,
+  ImportGridApiV1HrRostersImportGridPost404,
+  ImportGridApiV1HrRostersImportGridPost422,
+  ImportGridApiV1HrRostersImportGridPostMutation,
+  ImportGridApiV1HrRostersImportGridPostMutationRequest,
+  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+} from "./ImportGridApiV1HrRostersImportGridPost.js";
+export type {
   ImportStatus,
   ImportStatusImportStatusEnumKey,
 } from "./ImportStatus.js";
@@ -552,7 +572,9 @@ export type {
 export type {
   ListShiftCatalogApiV1HrRostersShiftsGet200,
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
   ListShiftCatalogApiV1HrRostersShiftsGetQuery,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "./ListShiftCatalogApiV1HrRostersShiftsGet.js";
 export type {
@@ -709,6 +731,15 @@ export type {
   ReadFeedsApiV1CapFeedsGetQuery,
   ReadFeedsApiV1CapFeedsGetQueryResponse,
 } from "./ReadFeedsApiV1CapFeedsGet.js";
+export type {
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+} from "./ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export type {
   ReadHrProfileMeApiV1HrProfileMeGet200,
   ReadHrProfileMeApiV1HrProfileMeGet404,
@@ -969,6 +1000,9 @@ export type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
 export type { RosterCsvRowValidation } from "./RosterCsvRowValidation.js";
 export type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 export type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
+export type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
+export type { RosterGridImportResult } from "./RosterGridImportResult.js";
+export type { RosterGridPreview } from "./RosterGridPreview.js";
 export type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 export type { RosterPeriodDetails } from "./RosterPeriodDetails.js";
 export type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
@@ -992,8 +1026,10 @@ export type { SessionLoginRequest } from "./SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./SessionLoginResponse.js";
 export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
+export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
+export type { ShiftCatalogUpdate } from "./ShiftCatalogUpdate.js";
 export type {
   ShiftCategory,
   ShiftCategoryShiftCategoryEnumKey,
@@ -1265,6 +1301,16 @@ export type {
   UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
 } from "./UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 export type {
+  UpdateShiftApiV1HrRostersShiftsCodePatch200,
+  UpdateShiftApiV1HrRostersShiftsCodePatch403,
+  UpdateShiftApiV1HrRostersShiftsCodePatch404,
+  UpdateShiftApiV1HrRostersShiftsCodePatch422,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutation,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
+  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+} from "./UpdateShiftApiV1HrRostersShiftsCodePatch.js";
+export type {
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200,
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400,
   UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403,
@@ -1334,6 +1380,15 @@ export type {
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
   ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
 } from "./ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
+export type {
+  ValidateGridApiV1HrRostersImportGridValidatePost200,
+  ValidateGridApiV1HrRostersImportGridValidatePost403,
+  ValidateGridApiV1HrRostersImportGridValidatePost404,
+  ValidateGridApiV1HrRostersImportGridValidatePost422,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutation,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
+  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+} from "./ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./ValidationError.js";
 export type {
   WorkflowAction,

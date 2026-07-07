@@ -19,23 +19,31 @@ import fetch from "../../client.js";
 import { listShiftCatalogApiV1HrRostersShiftsGet } from "../clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
 import type {
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
-export const listShiftCatalogApiV1HrRostersShiftsGetQueryKey = () =>
-  [{ url: "/api/v1/hr/rosters/shifts" }] as const;
+export const listShiftCatalogApiV1HrRostersShiftsGetQueryKey = (
+  params: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {}
+) =>
+  [{ url: "/api/v1/hr/rosters/shifts" }, ...(params ? [params] : [])] as const;
 
 export type ListShiftCatalogApiV1HrRostersShiftsGetQueryKey = ReturnType<
   typeof listShiftCatalogApiV1HrRostersShiftsGetQueryKey
 >;
 
 export function listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(
+  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
-  const queryKey = listShiftCatalogApiV1HrRostersShiftsGetQueryKey();
+  const queryKey = listShiftCatalogApiV1HrRostersShiftsGetQueryKey(params);
   return queryOptions<
     ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-    ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>,
+    ResponseErrorConfig<
+      | ListShiftCatalogApiV1HrRostersShiftsGet403
+      | ListShiftCatalogApiV1HrRostersShiftsGet422
+    >,
     ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
     typeof queryKey
   >({
@@ -44,13 +52,13 @@ export function listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(
       if (!config.signal) {
         config.signal = signal;
       }
-      return listShiftCatalogApiV1HrRostersShiftsGet(config);
+      return listShiftCatalogApiV1HrRostersShiftsGet(params, config);
     },
   });
 }
 
 /**
- * @description Return the active shift catalog for roster assignment.
+ * @description Return the shift catalog for roster assignment. Pass include_inactive=true (requires roster.manage) to include deactivated shift types for management screens.
  * @summary List shift catalog
  * {@link /api/v1/hr/rosters/shifts}
  */
@@ -59,11 +67,15 @@ export function useListShiftCatalogApiV1HrRostersShiftsGet<
   TQueryData = ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
   TQueryKey extends QueryKey = ListShiftCatalogApiV1HrRostersShiftsGetQueryKey,
 >(
+  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   options: {
     query?: Partial<
       QueryObserverOptions<
         ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-        ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>,
+        ResponseErrorConfig<
+          | ListShiftCatalogApiV1HrRostersShiftsGet403
+          | ListShiftCatalogApiV1HrRostersShiftsGet422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -75,18 +87,22 @@ export function useListShiftCatalogApiV1HrRostersShiftsGet<
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...queryOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? listShiftCatalogApiV1HrRostersShiftsGetQueryKey();
+    queryOptions?.queryKey ??
+    listShiftCatalogApiV1HrRostersShiftsGetQueryKey(params);
 
   const query = useQuery(
     {
-      ...listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(config),
+      ...listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(params, config),
       queryKey,
       ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>
+    ResponseErrorConfig<
+      | ListShiftCatalogApiV1HrRostersShiftsGet403
+      | ListShiftCatalogApiV1HrRostersShiftsGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;

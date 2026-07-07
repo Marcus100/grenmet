@@ -1,7 +1,7 @@
 import { configureApiClient } from "@grenmet/api-client";
 import { SessionUserProvider } from "@grenmet/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import {
@@ -130,6 +130,21 @@ describe("LeaveApplicationEditor (wired)", () => {
     expect(
       screen.getAllByRole("button", { name: "Download PDF" }).length
     ).toBeGreaterThan(0);
+  }, 20_000);
+
+  it("prefills the employee name and department, still editable", async () => {
+    wrap(<LeaveApplicationEditor />);
+    const nameInput = (await screen.findByLabelText(
+      "Employee Name"
+    )) as HTMLInputElement;
+    // Seeded from the session user + HR profile department.
+    await waitFor(() => expect(nameInput.value).toBe("Tester"));
+    expect(
+      (screen.getByLabelText("Department") as HTMLInputElement).value
+    ).toBe("Met");
+    // Fields remain editable — a user edit overrides the prefill.
+    fireEvent.change(nameInput, { target: { value: "Someone Else" } });
+    expect(nameInput.value).toBe("Someone Else");
   }, 20_000);
 });
 

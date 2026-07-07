@@ -27,6 +27,12 @@ services:
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
       WXPRODUCTS_DB_USER: ${WXPRODUCTS_DB_USER:-wxproducts}
       WXPRODUCTS_DB_PASSWORD: ${WXPRODUCTS_DB_PASSWORD:-changethis}
+      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME:-janitorial}
+      JANITORIAL_DB_USER: ${JANITORIAL_DB_USER:-janitorial}
+      JANITORIAL_DB_PASSWORD: ${JANITORIAL_DB_PASSWORD:-changethis}
+      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME:-transport}
+      TRANSPORT_DB_USER: ${TRANSPORT_DB_USER:-transport}
+      TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD:-changethis}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
       interval: 10s

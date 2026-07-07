@@ -3,18 +3,33 @@
  * Do not edit manually.
  */
 
-import type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
+import type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 export type ReadAuditApiV1CapAuditGetQueryParams = {
   alert_id?: string | null;
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
 };
 
 /**
- * Response Read Audit Api V1 Cap Audit Get
+ * CapAuditEventListPublic
  * @description Successful Response
  */
-export type ReadAuditApiV1CapAuditGet200 = CapAuditEventPublic[];
+export type ReadAuditApiV1CapAuditGet200 = CapAuditEventListPublic;
 
 /**
  * HTTPValidationError

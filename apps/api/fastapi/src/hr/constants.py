@@ -21,6 +21,11 @@ ERROR_EMPLOYMENT_ALREADY_EXISTS = "An employment record already exists for this 
 # --- Roster (hr/roster/service.py) ---
 ERROR_ROSTER_PERIOD_END_BEFORE_START = "period_end must be after period_start"
 ERROR_ROSTER_PERIOD_NOT_FOUND = "Roster period not found"
+ERROR_SHIFT_CODE_ALREADY_EXISTS = "A shift type with this code already exists"
+ERROR_SHIFT_NOT_FOUND = "Shift type not found"
+ERROR_GRID_NOT_IMPORTABLE = (
+    "Grid has unmatched names or invalid shift codes — resolve them before importing"
+)
 ERROR_CSV_NO_HEADER = "CSV has no header"
 ERROR_CSV_MISSING_COLUMNS = (
     "CSV missing columns: {}"  # .format(", ".join(sorted(cols)))

@@ -1,0 +1,29 @@
+{
+  "properties": {
+    "total_people": { "type": "integer", "title": "Total People" },
+    "matched_people": { "type": "integer", "title": "Matched People" },
+    "unmatched_names": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Unmatched Names"
+    },
+    "total_assignments": { "type": "integer", "title": "Total Assignments" },
+    "errors": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Errors"
+    },
+    "can_import": { "type": "boolean", "title": "Can Import" }
+  },
+  "type": "object",
+  "required": [
+    "total_people",
+    "matched_people",
+    "unmatched_names",
+    "total_assignments",
+    "errors",
+    "can_import"
+  ],
+  "title": "RosterGridPreview",
+  "x-readme-ref-name": "RosterGridPreview"
+}

@@ -19,22 +19,31 @@ import fetch from "../../client.js";
 import { listShiftCatalogApiV1HrRostersShiftsGet } from "../clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
 import type {
   ListShiftCatalogApiV1HrRostersShiftsGet403,
+  ListShiftCatalogApiV1HrRostersShiftsGet422,
+  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
-export const listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey = () =>
-  [{ url: "/api/v1/hr/rosters/shifts" }] as const;
+export const listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey = (
+  params: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {}
+) =>
+  [{ url: "/api/v1/hr/rosters/shifts" }, ...(params ? [params] : [])] as const;
 
 export type ListShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey =
   ReturnType<typeof listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey>;
 
 export function listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryOptions(
+  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   config: Partial<RequestConfig> & { client?: Client } = {}
 ) {
-  const queryKey = listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey();
+  const queryKey =
+    listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey(params);
   return queryOptions<
     ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-    ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>,
+    ResponseErrorConfig<
+      | ListShiftCatalogApiV1HrRostersShiftsGet403
+      | ListShiftCatalogApiV1HrRostersShiftsGet422
+    >,
     ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
     typeof queryKey
   >({
@@ -43,13 +52,13 @@ export function listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryOptions(
       if (!config.signal) {
         config.signal = signal;
       }
-      return listShiftCatalogApiV1HrRostersShiftsGet(config);
+      return listShiftCatalogApiV1HrRostersShiftsGet(params, config);
     },
   });
 }
 
 /**
- * @description Return the active shift catalog for roster assignment.
+ * @description Return the shift catalog for roster assignment. Pass include_inactive=true (requires roster.manage) to include deactivated shift types for management screens.
  * @summary List shift catalog
  * {@link /api/v1/hr/rosters/shifts}
  */
@@ -58,11 +67,15 @@ export function useListShiftCatalogApiV1HrRostersShiftsGetSuspense<
   TQueryKey extends
     QueryKey = ListShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey,
 >(
+  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
   options: {
     query?: Partial<
       UseSuspenseQueryOptions<
         ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-        ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>,
+        ResponseErrorConfig<
+          | ListShiftCatalogApiV1HrRostersShiftsGet403
+          | ListShiftCatalogApiV1HrRostersShiftsGet422
+        >,
         TData,
         TQueryKey
       >
@@ -74,18 +87,24 @@ export function useListShiftCatalogApiV1HrRostersShiftsGetSuspense<
   const { client: queryClient, ...queryOptions } = queryConfig;
   const queryKey =
     queryOptions?.queryKey ??
-    listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey();
+    listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryKey(params);
 
   const query = useSuspenseQuery(
     {
-      ...listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryOptions(config),
+      ...listShiftCatalogApiV1HrRostersShiftsGetSuspenseQueryOptions(
+        params,
+        config
+      ),
       queryKey,
       ...queryOptions,
     } as unknown as UseSuspenseQueryOptions,
     queryClient
   ) as UseSuspenseQueryResult<
     TData,
-    ResponseErrorConfig<ListShiftCatalogApiV1HrRostersShiftsGet403>
+    ResponseErrorConfig<
+      | ListShiftCatalogApiV1HrRostersShiftsGet403
+      | ListShiftCatalogApiV1HrRostersShiftsGet422
+    >
   > & { queryKey: TQueryKey };
 
   query.queryKey = queryKey as TQueryKey;
