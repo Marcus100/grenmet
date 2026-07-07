@@ -1,23 +1,10 @@
 name: Build Web App Images
 
+# Phase 3c cutover: no standalone push/workflow_run triggers anymore. Staging
+# builds run as workflow_call children of pipeline-staging (which gates them on
+# CI via `needs:` and path-filters via its `changes` job). Release/dispatch
+# remain for prod tags and manual rebuilds.
 on:
-  # Web images build on push (fast) AND after "CI — Web Apps" completes. Images may
-  # build from any commit — the CI gate lives at DEPLOY time: deploy-staging's
-  # check-builds requires CI + both build workflows to be green for the commit SHA,
-  # so a red commit's images are built but never deployed. Building on push (not
-  # only via workflow_run) also keeps the build run present early, so the deploy
-  # guard waits for it instead of racing ahead with stale images.
-  workflow_run:
-    workflows: ["CI — Web Apps"]
-    types: [completed]
-    branches: [main, staging]
-  push:
-    branches:
-      - staging
-    paths:
-      - "apps/web/**"
-      - "packages/**"
-      - ".github/workflows/build-web-images.yml"
   release:
     types: [published]
   workflow_dispatch:
@@ -42,11 +29,11 @@ jobs:
   build:
     name: Build ${{ matrix.app }}
     runs-on: ubuntu-latest
+    # push = called from pipeline-staging on a staging push (caller's event).
     if: |
       github.event_name == 'push' ||
       github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'release' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      github.event_name == 'release'
     timeout-minutes: 30
     permissions:
       contents: read

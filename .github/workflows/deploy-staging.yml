@@ -1,73 +1,20 @@
 name: Deploy to Staging
 
+# Phase 3c cutover: no workflow_run trigger anymore. Staging deploys run as a
+# workflow_call child of pipeline-staging, whose `needs:` chain guarantees CI
+# and builds are green for this exact SHA — the old check-builds polling gate
+# (and its "no run yet = OK" race) is gone. workflow_dispatch remains as the
+# manual escape hatch.
 on:
-  workflow_run:
-    workflows: ["Build and Push Docker Images", "Build Web App Images", "CI — Web Apps", "CI"]
-    types: [completed]
-    branches: [staging]
   workflow_dispatch:
-  # Callable from pipeline-staging (Phase 3 restructure). A workflow_call runs
-  # with the caller's event (push), which check-builds treats as ready — the
-  # pipeline's own `needs:` chain is the build gate in that path.
   workflow_call:
 
-# The workflow_run trigger fires once per upstream workflow, so several deploy
-# runs can start near-simultaneously; serialize them (and manual dispatches).
 concurrency:
   group: staging-deploy
   cancel-in-progress: false
 
 jobs:
-  # Guard: CI (both suites) AND both build workflows must have succeeded for THIS
-  # commit before we deploy. The deploy is triggered whenever any of the four
-  # finishes (workflow_run fires once per workflow), and this check skips until
-  # all four are green for the SHA — so it can't deploy a red commit, and can't
-  # race ahead and pull a stale image for a set that hasn't finished building.
-  check-builds:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    if: |
-      github.event_name == 'workflow_dispatch' ||
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
-    outputs:
-      ready: ${{ steps.check.outputs.ready }}
-    steps:
-      - name: Check both build workflows succeeded
-        id: check
-        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
-        with:
-          script: |
-            if (context.eventName !== 'workflow_run') {
-              core.setOutput('ready', 'true');
-              return;
-            }
-            const sha = context.payload.workflow_run.head_sha;
-            // Query each workflow directly with the API's head_sha filter — unlike
-            // the previous repo-wide listing (per_page 20, unpaginated), a run for
-            // this SHA can never fall outside the window on a busy branch.
-            const workflows = ['build-api-image.yml', 'build-web-images.yml', 'ci-web.yml', 'ci-api.yml'];
-            for (const workflow_id of workflows) {
-              const { data } = await github.rest.actions.listWorkflowRuns({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id,
-                head_sha: sha,
-                per_page: 100,
-              });
-              // Most recent run for this SHA wins (covers re-runs).
-              const run = data.workflow_runs[0];
-              if (run && run.conclusion !== 'success') {
-                core.setOutput('ready', 'false');
-                return;
-              }
-              // No run for this sha means no relevant files changed — existing image is valid
-            }
-            core.setOutput('ready', 'true');
-
   deploy:
-    needs: check-builds
-    if: needs.check-builds.outputs.ready == 'true'
     runs-on: [self-hosted, staging]
     timeout-minutes: 20
     environment:
@@ -82,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
-          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          ref: ${{ github.ref }}
           clean: false
 
       - name: Setup environment
