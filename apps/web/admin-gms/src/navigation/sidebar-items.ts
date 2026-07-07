@@ -6,7 +6,6 @@ import {
   CalendarDays,
   CheckSquare,
   ClipboardList,
-  CloudSun,
   Compass,
   FileText,
   Fingerprint,
@@ -19,7 +18,6 @@ import {
   Plane,
   Radar,
   Rss,
-  Settings2,
   SprayCan,
   SquarePen,
   Sun,
@@ -75,27 +73,23 @@ export interface NavGroup {
 // while advertising the intended structure via a "soon" badge.
 const COMING_SOON_URL = "/coming-soon";
 
-// Group order is deliberate: staff/back-office first (the actively built
-// surface), then the weather production groups, then the product catalogue.
-// "Products" mirrors the service areas in docs/internal product catalogue
-// (Public Weather / Tropical Cyclone / Marine / Aviation / Sectors) so the
-// nav grows with the catalogue instead of being restructured per product.
+// Group order is deliberate: daily coordination (ungrouped) and HR first (the
+// actively built surface), then the weather production groups, then station
+// operations. "Products" mirrors the service areas in the internal product
+// catalogue so the nav grows with the catalogue instead of being restructured
+// per product. HR Setup has no nav row — it is reached from the HR dashboard.
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
-    items: [{ id: "home", title: "Home", url: "/", icon: House }],
-  },
-  {
-    id: 2,
-    label: "Admin",
     items: [
+      { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       { id: "roster", title: "Roster", url: "/roster", icon: CalendarDays },
       { id: "staff", title: "Staff", url: "/users", icon: Users },
     ],
   },
   {
-    id: 3,
+    id: 2,
     label: "Human Resources",
     items: [
       {
@@ -103,6 +97,13 @@ export const sidebarItems: NavGroup[] = [
         title: "Dashboard",
         url: "/hr",
         icon: LayoutDashboard,
+      },
+      {
+        id: "hr-clock-in",
+        title: "Clock In",
+        url: COMING_SOON_URL,
+        icon: Fingerprint,
+        badge: "soon",
       },
       {
         id: "hr-daily-forms",
@@ -133,23 +134,103 @@ export const sidebarItems: NavGroup[] = [
         url: "/hr/approvals",
         icon: CheckSquare,
       },
+    ],
+  },
+  {
+    id: 3,
+    label: "Observations",
+    items: [
       {
-        id: "hr-clock-in",
-        title: "Clock In",
-        url: COMING_SOON_URL,
-        icon: Fingerprint,
-        badge: "soon",
+        id: "eregister",
+        title: "eRegister (Hourly)",
+        url: "/wxproducts/hourly",
+        icon: NotebookPen,
       },
+      { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
-        id: "hr-setup",
-        title: "HR Setup",
-        url: "/hr-setup",
-        icon: Settings2,
+        id: "climate-data",
+        title: "Climate & Data",
+        url: COMING_SOON_URL,
+        icon: Thermometer,
+        badge: "soon",
       },
     ],
   },
   {
     id: 4,
+    label: "Warnings",
+    items: [
+      { id: "cap-alerts", title: "Alerts", url: "/cap", icon: AlertTriangle },
+      { id: "cap-map", title: "Map", url: "/cap/map", icon: MapIcon },
+      { id: "cap-feeds", title: "Feeds", url: "/cap/integrations", icon: Rss },
+      { id: "cap-editor", title: "Editor", url: "/cap/admin", icon: SquarePen },
+    ],
+  },
+  {
+    id: 5,
+    label: "Forecasts",
+    items: [
+      {
+        id: "fcst-morning",
+        title: "Morning",
+        url: "/wxproducts/fcsts/morning",
+        icon: Sunrise,
+      },
+      {
+        id: "fcst-midday",
+        title: "Midday",
+        url: "/wxproducts/fcsts/midday",
+        icon: Sun,
+      },
+      {
+        id: "fcst-evening",
+        title: "Evening",
+        url: "/wxproducts/fcsts/evening",
+        icon: Sunset,
+      },
+    ],
+  },
+  {
+    id: 6,
+    label: "Products",
+    items: [
+      {
+        id: "products-tc-outlook",
+        title: "Tropical Weather Outlook",
+        url: COMING_SOON_URL,
+        icon: Tornado,
+        badge: "soon",
+      },
+      {
+        id: "products-marine",
+        title: "Marine",
+        icon: Waves,
+        subItems: [
+          {
+            id: "bulletin-marine",
+            title: "Marine Bulletin",
+            url: "/wxproducts/bulletins/marine",
+          },
+        ],
+      },
+      {
+        id: "products-aviation",
+        title: "Aviation",
+        url: COMING_SOON_URL,
+        icon: Plane,
+        badge: "soon",
+      },
+      {
+        id: "products-sectors",
+        title: "Other Sectors",
+        url: COMING_SOON_URL,
+        icon: Compass,
+        badge: "soon",
+      },
+    ],
+  },
+  {
+    id: 7,
     label: "Operations",
     items: [
       {
@@ -185,111 +266,6 @@ export const sidebarItems: NavGroup[] = [
         icon: Ticket,
         badge: "soon",
       },
-    ],
-  },
-  {
-    id: 5,
-    label: "Warnings",
-    items: [
-      { id: "cap-alerts", title: "Alerts", url: "/cap", icon: AlertTriangle },
-      { id: "cap-map", title: "Map", url: "/cap/map", icon: MapIcon },
-      { id: "cap-feeds", title: "Feeds", url: "/cap/integrations", icon: Rss },
-      { id: "cap-editor", title: "Editor", url: "/cap/admin", icon: SquarePen },
-    ],
-  },
-  {
-    id: 6,
-    label: "Observations",
-    items: [
-      {
-        id: "eregister",
-        title: "eRegister (Hourly)",
-        url: "/wxproducts/hourly",
-        icon: NotebookPen,
-      },
-      { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
-      {
-        id: "climate-data",
-        title: "Climate & Data",
-        url: COMING_SOON_URL,
-        icon: Thermometer,
-        badge: "soon",
-      },
-    ],
-  },
-  {
-    id: 7,
-    label: "Forecasts",
-    items: [
-      {
-        id: "fcst-morning",
-        title: "Morning",
-        url: "/wxproducts/fcsts/morning",
-        icon: Sunrise,
-      },
-      {
-        id: "fcst-midday",
-        title: "Midday",
-        url: "/wxproducts/fcsts/midday",
-        icon: Sun,
-      },
-      {
-        id: "fcst-evening",
-        title: "Evening",
-        url: "/wxproducts/fcsts/evening",
-        icon: Sunset,
-      },
-    ],
-  },
-  {
-    id: 8,
-    label: "Products",
-    items: [
-      {
-        id: "products-public",
-        title: "Public Weather",
-        url: COMING_SOON_URL,
-        icon: CloudSun,
-        badge: "soon",
-      },
-      {
-        id: "products-tc",
-        title: "Tropical Cyclone",
-        url: COMING_SOON_URL,
-        icon: Tornado,
-        badge: "soon",
-      },
-      {
-        id: "products-marine",
-        title: "Marine",
-        icon: Waves,
-        subItems: [
-          {
-            id: "bulletin-marine",
-            title: "Marine Bulletin",
-            url: "/wxproducts/bulletins/marine",
-          },
-        ],
-      },
-      {
-        id: "products-aviation",
-        title: "Aviation",
-        url: COMING_SOON_URL,
-        icon: Plane,
-        badge: "soon",
-      },
-      {
-        id: "products-sectors",
-        title: "Sectors",
-        url: COMING_SOON_URL,
-        icon: Compass,
-        badge: "soon",
-      },
-    ],
-  },
-  {
-    id: 9,
-    items: [
       {
         id: "resources",
         title: "Resources",
