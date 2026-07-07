@@ -24,8 +24,11 @@ on:
       - dev
 
 # Cancel in-progress runs when a new workflow on the same PR is triggered
+# Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
+# CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
+# each other. PR runs dedupe per PR; push/called runs are unique per run.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-api-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 env:
