@@ -45,6 +45,11 @@ jobs:
         if: github.event_name == 'push'
         uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         with:
+          # Without an explicit base, push events diff against the repo DEFAULT
+          # branch (main) — staging always differs from main in app code, so
+          # every push would rebuild everything. Base = the pushed branch gives
+          # true push-range semantics (observed on pipeline run #2).
+          base: ${{ github.ref_name }}
           # Mirrors the legacy build workflows' push paths filters.
           filters: |
             api:
