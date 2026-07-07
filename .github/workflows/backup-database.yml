@@ -6,6 +6,12 @@ on:
     - cron: "0 2 * * *"
   workflow_dispatch:
 
+# Shares a group with Deploy to Production so a backup and a deploy never
+# run concurrently on the production runner.
+concurrency:
+  group: prod-droplet
+  cancel-in-progress: false
+
 jobs:
   backup:
     name: Database Backup
@@ -155,6 +161,88 @@ jobs:
           [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
           echo "wxproducts integrity OK ($TABLE_COUNT tables)"
 
+      # ── janitorial ───────────────────────────────────────────────────────────────
+
+      - name: Backup janitorial
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="janitorial_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
+
+          docker compose -p "grenmet" exec -T db pg_dump \
+            -U "$POSTGRES_USER" -d janitorial \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
+
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
+
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "janitorial: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "JANITORIAL_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify janitorial backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TEMP_DB="verify_$(date +%s)"
+          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$JANITORIAL_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker compose -p "grenmet" exec -T db pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "janitorial integrity OK ($TABLE_COUNT tables)"
+
+      # ── transport ────────────────────────────────────────────────────────────────
+
+      - name: Backup transport
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="transport_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
+
+          docker compose -p "grenmet" exec -T db pg_dump \
+            -U "$POSTGRES_USER" -d transport \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
+
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
+
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "transport: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "TRANSPORT_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify transport backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TEMP_DB="verify_$(date +%s)"
+          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$TRANSPORT_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker compose -p "grenmet" exec -T db pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "transport integrity OK ($TABLE_COUNT tables)"
+
       # ── Offsite upload ───────────────────────────────────────────────────────────
 
       - name: Upload backups to DigitalOcean Spaces
@@ -201,6 +289,8 @@ jobs:
           upload_backup "$APP_BACKUP_PATH"
           upload_backup "$WXWATCH_BACKUP_PATH"
           upload_backup "$WXPRODUCTS_BACKUP_PATH"
+          upload_backup "$JANITORIAL_BACKUP_PATH"
+          upload_backup "$TRANSPORT_BACKUP_PATH"
 
       # ── Retention & summary ──────────────────────────────────────────────────────
 
@@ -209,6 +299,8 @@ jobs:
           find "$BACKUP_DIR" -name "app_prod_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           find "$BACKUP_DIR" -name "wxwatch_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           find "$BACKUP_DIR" -name "wxproducts_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          find "$BACKUP_DIR" -name "janitorial_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          find "$BACKUP_DIR" -name "transport_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           echo "Remaining backups:"
           ls -lah "$BACKUP_DIR"/*.dump 2>/dev/null || echo "(none)"
 
@@ -217,4 +309,6 @@ jobs:
           echo "app_prod:   $(du -h "$APP_BACKUP_PATH" | cut -f1)"
           echo "wxwatch:    $(du -h "$WXWATCH_BACKUP_PATH" | cut -f1)"
           echo "wxproducts: $(du -h "$WXPRODUCTS_BACKUP_PATH" | cut -f1)"
+          echo "janitorial: $(du -h "$JANITORIAL_BACKUP_PATH" | cut -f1)"
+          echo "transport:  $(du -h "$TRANSPORT_BACKUP_PATH" | cut -f1)"
           echo "Retention: $BACKUP_RETENTION_DAYS days"
