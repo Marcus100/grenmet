@@ -10,7 +10,10 @@
       "**",
       "!.claude",
       "!apps/api/fastapi",
-      "!**/.content-collections"
+      "!**/.content-collections",
+      // Vendored upstream copy of the Studio-Admin template (gitignored, kept
+      // for reference only) — never lint/format it.
+      "!next-shadcn-admin-dashboard-baseui"
     ]
   },
   "linter": {
@@ -98,11 +101,10 @@
       }
     },
     {
-      // Vendored Studio-Admin template code (demo pages + lifted components like
-      // the calendar + date-range-picker). Additive; relax vendored-code patterns
-      // only, same as the shadcn primitives above.
+      // Components lifted from the Studio-Admin template (calendar +
+      // date-range-picker). Additive; relax vendored-code patterns only, same
+      // as the shadcn primitives above.
       "includes": [
-        "apps/web/admin-gms/src/app/(admin)/studio/**",
         "apps/web/admin-gms/src/components/calendar/**",
         "apps/web/admin-gms/src/components/date-range-picker.tsx"
       ],
