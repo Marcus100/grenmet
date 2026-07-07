@@ -28,14 +28,22 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "grenmet",
-  project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-  silent: !process.env.CI,
-  widenClientFileUpload: true,
+// Skip the Sentry build plugin when Sentry isn't in play (local dev without a
+// DSN) — it wraps every compile otherwise. CI and DSN-configured runs keep it.
+const sentryEnabled = Boolean(
+  process.env.NEXT_PUBLIC_SENTRY_DSN || process.env.CI
+);
 
-  webpack: {
-    treeshake: { removeDebugLogging: true },
-    automaticVercelMonitors: false,
-  },
-});
+export default sentryEnabled
+  ? withSentryConfig(nextConfig, {
+      org: "grenmet",
+      project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
+      silent: !process.env.CI,
+      widenClientFileUpload: true,
+
+      webpack: {
+        treeshake: { removeDebugLogging: true },
+        automaticVercelMonitors: false,
+      },
+    })
+  : nextConfig;
