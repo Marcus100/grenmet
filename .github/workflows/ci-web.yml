@@ -9,10 +9,16 @@ on:
     branches: [main, staging, dev]
   pull_request:
     branches: [main, staging, dev]
+  # Callable from pipeline workflows (Phase 3 restructure); inert until a
+  # pipeline invokes it.
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   # Job 1: Biome lint/format check (fast, runs on all web code)

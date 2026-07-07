@@ -8,6 +8,9 @@ on:
       - main
       - staging
       - dev
+  # Callable from pipeline workflows (Phase 3 restructure); inert until a
+  # pipeline invokes it.
+  workflow_call:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
