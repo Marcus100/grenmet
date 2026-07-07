@@ -1,0 +1,58 @@
+name: Production Pipeline
+
+# Phase 3d: publishing a vN.M release builds ALL images at that tag and then
+# deploys production — one `needs:` chain, no GHCR manifest-polling (the old
+# deploy-prod race guard), no workflow_run indirection. Release events execute
+# the workflow file from the TAGGED commit, so this behaves like the staging
+# pipeline: what you tagged is what runs.
+#
+# Re-deploying an EXISTING release (rollback or retry) does not need builds:
+# use the "Deploy" workflow's manual dispatch with environment=production and
+# the release tag instead.
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: prod-pipeline
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-api:
+    name: Build API image
+    uses: ./.github/workflows/build-api-image.yml
+    with:
+      tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+
+  build-web:
+    name: Build web images
+    uses: ./.github/workflows/build-web-images.yml
+    with:
+      tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+  deploy:
+    name: Deploy
+    # Default needs semantics: runs only when BOTH builds succeeded — a release
+    # always builds everything, so no skip-arm is needed here.
+    needs: [build-api, build-web]
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      image_tag: ${{ github.event.release.tag_name }}
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read
