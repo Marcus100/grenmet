@@ -3,13 +3,12 @@ name: API Client Generation
 on:
   pull_request:
     branches: [ main, staging, dev ]
+  # No staging push trigger: pipeline-staging calls this workflow on staging
+  # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
       - main
-      - staging
       - dev
-  # Callable from pipeline workflows (Phase 3 restructure); inert until a
-  # pipeline invokes it.
   workflow_call:
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the

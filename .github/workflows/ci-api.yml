@@ -9,13 +9,12 @@ on:
   # let backend contract/format drift through, and a required check that gets
   # path-skipped deadlocks the PR. Running the full suite on every push and PR
   # to a long-lived branch keeps the gates honest and safe to mark "required".
+  # No staging push trigger: pipeline-staging calls this workflow on staging
+  # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
       - main
-      - staging
       - dev
-  # Callable from pipeline workflows (Phase 3 restructure); inert until a
-  # pipeline invokes it.
   workflow_call:
   pull_request:
     branches:

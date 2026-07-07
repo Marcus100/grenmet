@@ -32,12 +32,12 @@ git push origin feature/your-feature-name
 
 Merges go: `feature/* → dev → staging → main`. Never merge directly to `main` or `staging`.
 
-> **Interim rule (until the pipeline restructure lands):** changes to
-> `build-api-image.yml`, `build-web-images.yml`, `deploy-staging.yml`, `smokeshow.yml`,
-> or `backup-database.yml` only take effect once they reach **`main`** — these are
-> `workflow_run`/`schedule`-triggered and GitHub executes them from the default
-> branch, regardless of what is on `staging`. Always promote such changes to `main`
-> before expecting them to run. (This caused the 2026-07-06 staging deploy failure.)
+> **Workflow-trigger note:** the staging pipeline (`pipeline-staging.yml`) and
+> everything it calls run from the **pushed ref**, so staging workflow changes take
+> effect on the branch itself. The exceptions are `schedule`/`workflow_run`-triggered
+> workflows (`backup-database.yml`, `smokeshow.yml`) and `workflow_dispatch` defaults —
+> GitHub executes those from **`main`**, so promote changes to them before expecting
+> effect.
 
 ---
 

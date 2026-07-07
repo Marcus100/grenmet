@@ -5,12 +5,12 @@ on:
   # promotion PRs are integration gates that must not skip checks (a path-skipped
   # required check also deadlocks the PR). Full suite on every push and PR to a
   # long-lived branch keeps the gates honest and safe to mark "required".
+  # No staging push trigger: pipeline-staging calls this workflow on staging
+  # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
-    branches: [main, staging, dev]
+    branches: [main, dev]
   pull_request:
     branches: [main, staging, dev]
-  # Callable from pipeline workflows (Phase 3 restructure); inert until a
-  # pipeline invokes it.
   workflow_call:
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
