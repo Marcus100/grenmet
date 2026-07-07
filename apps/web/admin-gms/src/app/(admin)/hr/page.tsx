@@ -10,6 +10,7 @@ import {
   CalendarOff,
   ClipboardList,
   Clock,
+  Settings2,
   UserX,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -56,6 +57,12 @@ const FORMS = [
     title: "Meteorological Duty Roster",
     description: "Assign monthly shifts across the department.",
     icon: CalendarDays,
+  },
+  {
+    href: "/hr-setup",
+    title: "HR Setup",
+    description: "Departments, staff records and shift types.",
+    icon: Settings2,
   },
 ] as const;
 
