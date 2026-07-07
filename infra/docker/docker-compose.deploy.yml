@@ -343,16 +343,27 @@ services:
       - grenmet
 
 networks:
+  # Not name-pinned: compose validates the com.docker.compose.network label, so
+  # adopting a network created under a different key is impossible. Networks are
+  # wiring, not data — compose creates <project>_grenmet and moves services onto
+  # it in one `up`. (Prod's existing network already used the key `grenmet`, so
+  # nothing changes there; staging's old *_grenmet-staging network is orphaned
+  # after the first deploy and can be pruned.)
   grenmet:
-    # Pinned to the pre-merge per-env network names (see header).
-    name: ${NETWORK_NAME}
     driver: bridge
 
 volumes:
+  # DATA-CRITICAL: external + name pins the exact existing volumes on each
+  # droplet, bypassing compose's created-by-me label check — and if a volume is
+  # missing (fresh droplet), the deploy FAILS instead of silently starting an
+  # empty database. Bootstrap for a new droplet:
+  #   docker volume create <value of PGDATA_VOLUME/CERTS_VOLUME/REDIS_VOLUME>
   pgdata:
-    # DATA-CRITICAL: must resolve to the existing volume on each droplet.
+    external: true
     name: ${PGDATA_VOLUME}
   traefik-certificates:
+    external: true
     name: ${CERTS_VOLUME}
   redis-data:
+    external: true
     name: ${REDIS_VOLUME}
