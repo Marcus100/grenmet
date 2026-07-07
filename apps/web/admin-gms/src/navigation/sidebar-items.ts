@@ -1,43 +1,33 @@
 import {
   AlertTriangle,
-  Banknote,
   BookOpen,
   Bus,
   Calendar,
   CalendarDays,
-  ChartBar,
   CheckSquare,
-  Clock,
+  ClipboardList,
+  CloudSun,
   Compass,
   FileText,
   Fingerprint,
-  Gauge,
-  GraduationCap,
-  History,
   House,
   LayoutDashboard,
-  ListTodo,
   type LucideIcon,
-  Mail,
   Map as MapIcon,
-  MessagesSquare,
+  NotebookPen,
+  Package,
   Plane,
   Radar,
-  Rocket,
   Rss,
-  ScrollText,
-  Server,
   Settings2,
-  ShoppingBag,
   SprayCan,
-  SquareKanban,
   SquarePen,
   Sun,
   Sunrise,
   Sunset,
   Thermometer,
   Ticket,
-  Truck,
+  Tornado,
   Users,
   Waves,
 } from "lucide-react";
@@ -83,46 +73,58 @@ export interface NavGroup {
 // Placeholder destination for target-IA sections that have no page yet.
 // Keeps the "still beta" nav honest: every item lands somewhere real (no 404s)
 // while advertising the intended structure via a "soon" badge.
-const COMING_SOON_URL = "/studio/coming-soon";
+const COMING_SOON_URL = "/coming-soon";
 
+// Group order is deliberate: staff/back-office first (the actively built
+// surface), then the weather production groups, then the product catalogue.
+// "Products" mirrors the service areas in docs/internal product catalogue
+// (Public Weather / Tropical Cyclone / Marine / Aviation / Sectors) so the
+// nav grows with the catalogue instead of being restructured per product.
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
+    items: [{ id: "home", title: "Home", url: "/", icon: House }],
+  },
+  {
+    id: 2,
     label: "Admin",
     items: [
-      { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       { id: "roster", title: "Roster", url: "/roster", icon: CalendarDays },
       { id: "staff", title: "Staff", url: "/users", icon: Users },
     ],
   },
   {
-    id: 2,
-    label: "Human Resource",
+    id: 3,
+    label: "Human Resources",
     items: [
       {
         id: "hr-overview",
-        title: "Overview",
+        title: "Dashboard",
         url: "/hr",
         icon: LayoutDashboard,
       },
       {
-        id: "hr-forms",
-        title: "Forms",
+        id: "hr-daily-forms",
+        title: "Daily Forms",
         icon: FileText,
+        subItems: [
+          {
+            id: "hr-status",
+            title: "Daily Status Report",
+            url: "/hr/status",
+          },
+          { id: "hr-timesheet", title: "Timesheet", url: "/hr/timesheet" },
+        ],
+      },
+      {
+        id: "hr-requests",
+        title: "Requests",
+        icon: ClipboardList,
         subItems: [
           { id: "hr-leave", title: "Leave Application", url: "/hr/leave" },
           { id: "hr-shift", title: "Shift Exchange", url: "/hr/shift" },
           { id: "hr-absentee", title: "Absentee Report", url: "/hr/absentee" },
-        ],
-      },
-      {
-        id: "hr-other-forms",
-        title: "Other forms",
-        icon: ScrollText,
-        subItems: [
-          { id: "hr-status", title: "Daily Airport Status", url: "/hr/status" },
-          { id: "hr-timesheet", title: "Time Sheet", url: "/hr/timesheet" },
         ],
       },
       {
@@ -132,53 +134,93 @@ export const sidebarItems: NavGroup[] = [
         icon: CheckSquare,
       },
       {
+        id: "hr-clock-in",
+        title: "Clock In",
+        url: COMING_SOON_URL,
+        icon: Fingerprint,
+        badge: "soon",
+      },
+      {
         id: "hr-setup",
         title: "HR Setup",
         url: "/hr-setup",
         icon: Settings2,
       },
+    ],
+  },
+  {
+    id: 4,
+    label: "Operations",
+    items: [
       {
-        id: "salesbus",
-        title: "SalesBus",
-        icon: ShoppingBag,
+        // Repurposed salesbus module: internal stores/supplies requisition.
+        // Routes keep the /salesbus prefix until the pages are reworked.
+        id: "stores",
+        title: "Stores",
+        icon: Package,
         subItems: [
-          { id: "salesbus-sales", title: "Sales", url: "/salesbus/sales" },
           {
-            id: "salesbus-inventory",
+            id: "stores-requisition",
+            title: "Requisition",
+            url: "/salesbus/sales",
+          },
+          {
+            id: "stores-inventory",
             title: "Inventory",
             url: "/salesbus/inventory",
           },
           {
-            id: "salesbus-settlements",
-            title: "Settlements",
+            id: "stores-delivered",
+            title: "Delivered",
             url: "/salesbus/settlements",
           },
-          { id: "salesbus-cart", title: "Cart", url: "/salesbus/sales/cart" },
         ],
+      },
+      { id: "bus", title: "Bus", url: "/bus", icon: Bus },
+      { id: "janitor", title: "Janitor", url: "/janitor", icon: SprayCan },
+      {
+        id: "it-tickets",
+        title: "IT Tickets",
+        url: COMING_SOON_URL,
+        icon: Ticket,
+        badge: "soon",
       },
     ],
   },
   {
-    id: 3,
+    id: 5,
     label: "Warnings",
     items: [
       { id: "cap-alerts", title: "Alerts", url: "/cap", icon: AlertTriangle },
-      { id: "cap-map", title: "Alert Map", url: "/cap/map", icon: MapIcon },
+      { id: "cap-map", title: "Map", url: "/cap/map", icon: MapIcon },
       { id: "cap-feeds", title: "Feeds", url: "/cap/integrations", icon: Rss },
       { id: "cap-editor", title: "Editor", url: "/cap/admin", icon: SquarePen },
     ],
   },
   {
-    id: 4,
-    label: "Weather & Forecasts",
+    id: 6,
+    label: "Observations",
     items: [
+      {
+        id: "eregister",
+        title: "eRegister (Hourly)",
+        url: "/wxproducts/hourly",
+        icon: NotebookPen,
+      },
       { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
-        id: "fcst-hourly",
-        title: "Hourly",
-        url: "/wxproducts/hourly",
-        icon: Clock,
+        id: "climate-data",
+        title: "Climate & Data",
+        url: COMING_SOON_URL,
+        icon: Thermometer,
+        badge: "soon",
       },
+    ],
+  },
+  {
+    id: 7,
+    label: "Forecasts",
+    items: [
       {
         id: "fcst-morning",
         title: "Morning",
@@ -200,200 +242,60 @@ export const sidebarItems: NavGroup[] = [
     ],
   },
   {
-    id: 5,
+    id: 8,
     label: "Products",
     items: [
       {
-        id: "bulletin-marine",
-        title: "Marine Bulletin",
-        url: "/wxproducts/bulletins/marine",
-        icon: Waves,
-      },
-    ],
-  },
-  {
-    id: 6,
-    label: "Coming soon",
-    items: [
-      {
-        id: "sectors",
-        title: "Sectors",
+        id: "products-public",
+        title: "Public Weather",
         url: COMING_SOON_URL,
-        icon: Compass,
+        icon: CloudSun,
         badge: "soon",
       },
       {
-        id: "aviation",
+        id: "products-tc",
+        title: "Tropical Cyclone",
+        url: COMING_SOON_URL,
+        icon: Tornado,
+        badge: "soon",
+      },
+      {
+        id: "products-marine",
+        title: "Marine",
+        icon: Waves,
+        subItems: [
+          {
+            id: "bulletin-marine",
+            title: "Marine Bulletin",
+            url: "/wxproducts/bulletins/marine",
+          },
+        ],
+      },
+      {
+        id: "products-aviation",
         title: "Aviation",
         url: COMING_SOON_URL,
         icon: Plane,
         badge: "soon",
       },
       {
-        id: "climate-data",
-        title: "Climate & Data",
+        id: "products-sectors",
+        title: "Sectors",
         url: COMING_SOON_URL,
-        icon: Thermometer,
+        icon: Compass,
         badge: "soon",
       },
+    ],
+  },
+  {
+    id: 9,
+    items: [
       {
         id: "resources",
         title: "Resources",
         url: COMING_SOON_URL,
         icon: BookOpen,
         badge: "soon",
-      },
-      {
-        id: "janitor",
-        title: "Janitor",
-        url: "/janitor",
-        icon: SprayCan,
-      },
-      {
-        id: "bus",
-        title: "Bus",
-        url: "/bus",
-        icon: Bus,
-      },
-      {
-        id: "tickets",
-        title: "Tickets",
-        url: COMING_SOON_URL,
-        icon: Ticket,
-        badge: "soon",
-      },
-      {
-        id: "clock-in",
-        title: "Clock In",
-        url: COMING_SOON_URL,
-        icon: Fingerprint,
-        badge: "soon",
-      },
-    ],
-  },
-  {
-    id: 7,
-    label: "Studio (demo)",
-    items: [
-      {
-        id: "studio-default",
-        title: "Default",
-        url: "/studio/default",
-        icon: LayoutDashboard,
-      },
-      { id: "studio-crm", title: "CRM", url: "/studio/crm", icon: ChartBar },
-      {
-        id: "studio-analytics",
-        title: "Analytics",
-        url: "/studio/analytics",
-        icon: Gauge,
-      },
-      {
-        id: "studio-finance",
-        title: "Finance",
-        url: "/studio/finance",
-        icon: Banknote,
-      },
-      {
-        id: "studio-ecommerce",
-        title: "E-commerce",
-        url: "/studio/ecommerce",
-        icon: ShoppingBag,
-      },
-      {
-        id: "studio-academy",
-        title: "Academy",
-        url: "/studio/academy",
-        icon: GraduationCap,
-      },
-      {
-        id: "studio-productivity",
-        title: "Productivity",
-        url: "/studio/productivity",
-        icon: CheckSquare,
-      },
-      {
-        id: "studio-infrastructure",
-        title: "Infrastructure",
-        url: "/studio/infrastructure",
-        icon: Server,
-      },
-      { id: "studio-users", title: "Users", url: "/studio/users", icon: Users },
-      {
-        id: "studio-roles",
-        title: "Roles",
-        url: "/studio/roles",
-        icon: Fingerprint,
-      },
-      {
-        id: "studio-tasks",
-        title: "Tasks",
-        url: "/studio/tasks",
-        icon: ListTodo,
-      },
-      {
-        id: "studio-invoice",
-        title: "Invoice",
-        url: "/studio/invoice",
-        icon: FileText,
-      },
-      {
-        id: "studio-kanban",
-        title: "Kanban",
-        url: "/studio/kanban",
-        icon: SquareKanban,
-      },
-      {
-        id: "studio-logistics",
-        title: "Logistics",
-        url: "/studio/logistics",
-        icon: Truck,
-      },
-      {
-        id: "studio-calendar",
-        title: "Calendar",
-        url: "/studio/calendar",
-        icon: Calendar,
-      },
-      { id: "studio-mail", title: "Mail", url: "/studio/mail", icon: Mail },
-      {
-        id: "studio-chat",
-        title: "Chat",
-        url: "/studio/chat",
-        icon: MessagesSquare,
-      },
-      {
-        id: "studio-coming-soon",
-        title: "Coming Soon",
-        url: "/studio/coming-soon",
-        icon: Rocket,
-      },
-      {
-        id: "studio-legacy",
-        title: "Legacy Dashboards",
-        icon: History,
-        subItems: [
-          {
-            id: "studio-legacy-default",
-            title: "Default v1",
-            url: "/studio/legacy/default-v1",
-          },
-          {
-            id: "studio-legacy-crm",
-            title: "CRM v1",
-            url: "/studio/legacy/crm-v1",
-          },
-          {
-            id: "studio-legacy-analytics",
-            title: "Analytics v1",
-            url: "/studio/legacy/analytics-v1",
-          },
-          {
-            id: "studio-legacy-finance",
-            title: "Finance v1",
-            url: "/studio/legacy/finance-v1",
-          },
-        ],
       },
     ],
   },
