@@ -5,6 +5,12 @@ on:
     types: [ published ]
   workflow_dispatch:
 
+# Shares a group with Database Backup so a deploy and a backup never run
+# concurrently on the production runner; also serializes back-to-back releases.
+concurrency:
+  group: prod-droplet
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: [ self-hosted, production ]
