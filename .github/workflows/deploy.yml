@@ -1,0 +1,230 @@
+name: Deploy
+
+# Reusable deploy for BOTH environments (Phase 4 single-source-of-truth).
+# Replaces the ~120 duplicated lines across deploy-staging.yml / deploy-prod.yml.
+#
+# Config layering:
+#   infra/docker/<environment>.env  — committed non-secret config (reviewable)
+#   .env.secrets                    — written here at runtime from GitHub
+#                                     environment secrets + image tags, deleted after
+#   docker-compose.deploy.yml       — one compose file for both environments
+#
+# Called by pipeline-staging (and later pipeline-prod) with `needs:`-guaranteed
+# green CI/builds — so there is no image-polling gate here. On manual dispatch,
+# `up --pull always` fails loudly if a tag doesn't exist in GHCR.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "Target environment (staging | production)"
+        required: true
+        type: string
+      image_tag:
+        description: "Image tag override (defaults: staging→'staging'; production→release tag or 'latest')"
+        required: false
+        type: string
+        default: ""
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        type: choice
+        required: true
+        options:
+          - staging
+          - production
+      image_tag:
+        description: "Image tag (production: use a release tag like v0.12)"
+        required: false
+        type: string
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.environment }}
+    runs-on: [self-hosted, "${{ inputs.environment }}"]
+    timeout-minutes: 30
+    # Job-level so it applies on BOTH the workflow_call and dispatch paths
+    # (workflow-level concurrency is ignored inside called workflows).
+    # Production shares `prod-droplet` with Database Backup.
+    concurrency:
+      group: ${{ inputs.environment == 'production' && 'prod-droplet' || 'staging-deploy' }}
+      cancel-in-progress: false
+    environment:
+      name: ${{ inputs.environment }}
+    permissions:
+      contents: read
+      packages: read
+    defaults:
+      run:
+        working-directory: infra/docker
+    env:
+      DEPLOY_ENV: ${{ inputs.environment }}
+      COMPOSE_PROJECT: ${{ inputs.environment == 'production' && 'grenmet' || 'grenmet-staging' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ github.ref }}
+          clean: false
+
+      - name: Write runtime secrets env
+        env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          FIRST_SUPERUSER: ${{ secrets.FIRST_SUPERUSER }}
+          FIRST_SUPERUSER_PASSWORD: ${{ secrets.FIRST_SUPERUSER_PASSWORD }}
+          WXWATCH_DB_PASSWORD: ${{ secrets.WXWATCH_DB_PASSWORD }}
+          WXPRODUCTS_DB_PASSWORD: ${{ secrets.WXPRODUCTS_DB_PASSWORD }}
+          JANITORIAL_DB_PASSWORD: ${{ secrets.JANITORIAL_DB_PASSWORD }}
+          TRANSPORT_DB_PASSWORD: ${{ secrets.TRANSPORT_DB_PASSWORD }}
+          SESSION_COOKIE_NAME: ${{ secrets.SESSION_COOKIE_NAME }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL: ${{ secrets.EMAIL }}
+          USERNAME: ${{ secrets.USERNAME }}
+          HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL }}
+          STORAGE_REGION: ${{ secrets.STORAGE_REGION }}
+          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
+          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
+          STORAGE_PUBLIC_BASE_URL: ${{ secrets.STORAGE_PUBLIC_BASE_URL }}
+          INPUT_IMAGE_TAG: ${{ inputs.image_tag }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          # Tag resolution: explicit input > release tag (when the caller ran on
+          # a release event) > environment default.
+          if [ -n "$INPUT_IMAGE_TAG" ]; then TAG="$INPUT_IMAGE_TAG"
+          elif [ -n "${RELEASE_TAG:-}" ]; then TAG="$RELEASE_TAG"
+          elif [ "$DEPLOY_ENV" = "staging" ]; then TAG="staging"
+          else TAG="latest"; fi
+          echo "Deploying $DEPLOY_ENV with image tag: $TAG"
+
+          # DB names/users come from the committed env file — single source.
+          set -a; source "$DEPLOY_ENV.env"; set +a
+
+          cat > .env.secrets <<EOF
+          TAG=$TAG
+          WEB_TAG=$TAG
+          POSTGRES_USER=$POSTGRES_USER
+          POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+          SECRET_KEY=$SECRET_KEY
+          FIRST_SUPERUSER=$FIRST_SUPERUSER
+          FIRST_SUPERUSER_PASSWORD=$FIRST_SUPERUSER_PASSWORD
+          WXWATCH_DB_PASSWORD=$WXWATCH_DB_PASSWORD
+          WXPRODUCTS_DB_PASSWORD=$WXPRODUCTS_DB_PASSWORD
+          JANITORIAL_DB_PASSWORD=$JANITORIAL_DB_PASSWORD
+          TRANSPORT_DB_PASSWORD=$TRANSPORT_DB_PASSWORD
+          WXWATCH_DB_URL=postgresql://$WXWATCH_DB_USER:$WXWATCH_DB_PASSWORD@db:5432/$WXWATCH_DB_NAME
+          WXPRODUCTS_DB_URL=postgresql://$WXPRODUCTS_DB_USER:$WXPRODUCTS_DB_PASSWORD@db:5432/$WXPRODUCTS_DB_NAME
+          JANITORIAL_DB_URL=postgresql://$JANITORIAL_DB_USER:$JANITORIAL_DB_PASSWORD@db:5432/$JANITORIAL_DB_NAME
+          TRANSPORT_DB_URL=postgresql://$TRANSPORT_DB_USER:$TRANSPORT_DB_PASSWORD@db:5432/$TRANSPORT_DB_NAME
+          SESSION_COOKIE_NAME=$SESSION_COOKIE_NAME
+          RESEND_API_KEY=$RESEND_API_KEY
+          EMAIL=$EMAIL
+          USERNAME=$USERNAME
+          HASHED_PASSWORD=$HASHED_PASSWORD
+          SENTRY_DSN=${SENTRY_DSN:-}
+          STORAGE_ENDPOINT_URL=${STORAGE_ENDPOINT_URL:-}
+          STORAGE_REGION=${STORAGE_REGION:-}
+          STORAGE_BUCKET=${STORAGE_BUCKET:-}
+          STORAGE_ACCESS_KEY_ID=${STORAGE_ACCESS_KEY_ID:-}
+          STORAGE_SECRET_ACCESS_KEY=${STORAGE_SECRET_ACCESS_KEY:-}
+          STORAGE_PUBLIC_BASE_URL=${STORAGE_PUBLIC_BASE_URL:-}
+          EOF
+          sed -i 's/^[[:space:]]*//' .env.secrets
+
+      - name: Validate compose configuration
+        run: |
+          docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+            -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config >/dev/null
+
+      - name: Authenticate with GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Start database
+        run: |
+          set -euo pipefail
+          docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+            -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" up -d --wait db
+
+      - name: Ensure databases exist (idempotent)
+        # Phase 5: re-runs the first-boot init script on EVERY deploy, so adding
+        # a database = env vars + secret, never SSH. The script guards every
+        # CREATE with IF NOT EXISTS. Note: it does not rotate existing passwords.
+        run: |
+          set -euo pipefail
+          set -a; source "$DEPLOY_ENV.env"; set +a
+          docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+            -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" exec -T \
+            db bash /docker-entrypoint-initdb.d/init-databases.sh
+
+      - name: Pull images
+        run: |
+          docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+            -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" pull || true
+
+      - name: Deploy full stack
+        run: |
+          set -euo pipefail
+          # --pull always: never reuse a stale cached image; always fetch the
+          # freshly-built tag so the droplet runs the intended code.
+          docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+            -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" up -d --pull always --remove-orphans
+          echo "=== Service status ===" ; docker compose -p "$COMPOSE_PROJECT" ps || true
+
+      - name: Health checks
+        run: |
+          set -uo pipefail
+          set -a; source "$DEPLOY_ENV.env"; set +a
+          COMPOSE="docker compose --env-file $DEPLOY_ENV.env --env-file .env.secrets -f docker-compose.deploy.yml -p $COMPOSE_PROJECT"
+
+          echo "=== API health (fatal) ==="
+          PASSED=false
+          for i in {1..10}; do
+            if curl -f -s "https://api.${BASE_DOMAIN}/api/v1/utils/health-check/" >/dev/null; then
+              echo "API healthy"; PASSED=true; break
+            fi
+            echo "attempt $i/10..."; sleep 10
+          done
+          [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
+
+          echo "=== Web app container health (fatal) ==="
+          for svc in web-auth web-admin web-hurricaneplan web-spicewx; do
+            cid=$($COMPOSE ps -q "$svc" 2>/dev/null || true)
+            [ -n "$cid" ] || { echo "::error::$svc has no running container"; exit 1; }
+            ok=false
+            for i in {1..20}; do
+              status=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$cid" 2>/dev/null || echo missing)
+              case "$status" in
+                healthy) ok=true; break ;;
+                none) echo "$svc: no healthcheck defined — skipping gate"; ok=true; break ;;
+                *) echo "$svc: $status ($i/20)"; sleep 6 ;;
+              esac
+            done
+            [ "$ok" = true ] || { echo "::error::$svc did not become healthy"; exit 1; }
+          done
+
+          echo "=== External smoke (non-fatal) ==="
+          for host in auth admin hurricane spice; do
+            code=$(curl -4 -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host.${BASE_DOMAIN}/" || echo 000)
+            echo "  $host.${BASE_DOMAIN} → $code"
+          done
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose -p "$COMPOSE_PROJECT" ps || true
+          for svc in prestart api web-migrate db; do
+            docker compose --env-file "$DEPLOY_ENV.env" --env-file .env.secrets \
+              -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" logs --no-color --tail=100 "$svc" || true
+          done
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker image prune -f || true
+          rm -f .env.secrets
