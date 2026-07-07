@@ -378,6 +378,9 @@
   html[data-font="geist"] body {
     --font-sans: var(--font-geist);
   }
+  html[data-font="schibstedGrotesk"] body {
+    --font-sans: var(--font-schibsted-grotesk);
+  }
   html[data-font="notoSans"] body {
     --font-sans: var(--font-noto-sans);
   }
