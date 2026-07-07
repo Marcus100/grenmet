@@ -1,8 +1,10 @@
 name: Deploy to Production
 
+# LEGACY (Phase 3d cutover): releases now deploy via pipeline-prod.yml →
+# deploy.yml. This file remains dispatch-only as a fallback using the old
+# per-env compose, and will be deleted once the pipeline has shipped a couple
+# of releases. Prefer the "Deploy" workflow's dispatch for redeploys.
 on:
-  release:
-    types: [ published ]
   workflow_dispatch:
 
 # Shares a group with Database Backup so a deploy and a backup never run
