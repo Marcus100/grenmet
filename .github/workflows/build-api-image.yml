@@ -1,19 +1,10 @@
 name: Build and Push Docker Images
 
+# Phase 3c cutover: no standalone push/workflow_run triggers anymore. Staging
+# builds run as workflow_call children of pipeline-staging (which gates them on
+# CI via `needs:` and path-filters via its `changes` job). Release/dispatch
+# remain for prod tags and manual rebuilds.
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches:
-      - main
-      - staging
-  push:
-    branches:
-      - staging
-    paths:
-      - "apps/api/fastapi/**"
-      - ".github/workflows/build-api-image.yml"
   release:
     types: [published]
   workflow_dispatch:
@@ -38,10 +29,10 @@ jobs:
   build-and-push:
     name: Build and Push Images
     runs-on: ubuntu-latest
+    # push = called from pipeline-staging on a staging push (caller's event).
     if: |
       (github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch') ||
-      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success') ||
       (github.event_name == 'release' && github.event.action == 'published')
     timeout-minutes: 30
     permissions:
