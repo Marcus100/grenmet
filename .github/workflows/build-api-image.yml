@@ -1,12 +1,9 @@
 name: Build and Push Docker Images
 
-# Phase 3c cutover: no standalone push/workflow_run triggers anymore. Staging
-# builds run as workflow_call children of pipeline-staging (which gates them on
-# CI via `needs:` and path-filters via its `changes` job). Release/dispatch
-# remain for prod tags and manual rebuilds.
+# Phase 3c/3d cutover: no standalone triggers except manual dispatch. Staging
+# builds run as workflow_call children of pipeline-staging; release builds as
+# children of pipeline-prod (which passes the release tag).
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       tag:
