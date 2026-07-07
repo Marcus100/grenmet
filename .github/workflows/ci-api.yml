@@ -14,6 +14,9 @@ on:
       - main
       - staging
       - dev
+  # Callable from pipeline workflows (Phase 3 restructure); inert until a
+  # pipeline invokes it.
+  workflow_call:
   pull_request:
     branches:
       - main
@@ -350,6 +353,9 @@ jobs:
     name: CI Success
     needs: [quality, security, test, docker, docs]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
     if: always()
 
     steps:
