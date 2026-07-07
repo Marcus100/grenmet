@@ -8,13 +8,24 @@ import { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
 import { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAlertsApiV1CapAlertsGetQueryParamsSchema = z
-  .object({
-    lifecycle_state: z.optional(
-      z.union([z.lazy(() => capLifecycleStateSchema), z.null()])
-    ),
-  })
-  .optional();
+export const readAlertsApiV1CapAlertsGetQueryParamsSchema = z.object({
+  lifecycle_state: z.optional(
+    z.union([z.lazy(() => capLifecycleStateSchema), z.null()])
+  ),
+  page: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .default(1)
+    .describe("Page number (1-indexed)"),
+  size: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(1000)
+    .default(100)
+    .describe("Items per page"),
+});
 
 /**
  * @description Successful Response

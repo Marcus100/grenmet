@@ -15,6 +15,10 @@ export const env = createEnv({
     WXWATCH_DATABASE_URL: z.string().min(1).optional(),
     // Dedicated Postgres connection for the wxproducts forecast products.
     WXPRODUCTS_DATABASE_URL: z.string().min(1).optional(),
+    // Dedicated Postgres connection for the janitorial cleaning-spec catalogue.
+    JANITORIAL_DATABASE_URL: z.string().min(1).optional(),
+    // Dedicated Postgres connection for the staff transportation timetable.
+    TRANSPORT_DATABASE_URL: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_API_URL: z.string().optional().default(""),
@@ -39,6 +43,8 @@ export const env = createEnv({
     CAP_API_URL: process.env.CAP_API_URL,
     WXWATCH_DATABASE_URL: process.env.WXWATCH_DATABASE_URL,
     WXPRODUCTS_DATABASE_URL: process.env.WXPRODUCTS_DATABASE_URL,
+    JANITORIAL_DATABASE_URL: process.env.JANITORIAL_DATABASE_URL,
+    TRANSPORT_DATABASE_URL: process.env.TRANSPORT_DATABASE_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,

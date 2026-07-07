@@ -9,11 +9,13 @@ on:
   # let backend contract/format drift through, and a required check that gets
   # path-skipped deadlocks the PR. Running the full suite on every push and PR
   # to a long-lived branch keeps the gates honest and safe to mark "required".
+  # No staging push trigger: pipeline-staging calls this workflow on staging
+  # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
     branches:
       - main
-      - staging
       - dev
+  workflow_call:
   pull_request:
     branches:
       - main
@@ -21,8 +23,11 @@ on:
       - dev
 
 # Cancel in-progress runs when a new workflow on the same PR is triggered
+# Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
+# CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
+# each other. PR runs dedupe per PR; push/called runs are unique per run.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-api-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: true
 
 env:

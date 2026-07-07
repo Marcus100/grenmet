@@ -1,0 +1,474 @@
+kind,route,route_name,shift,direction,day_type,depart,arrive,group_time,stop
+
+trip,1,St. Patrick (Western Main Road),morning,inbound,daily,3:30 a.m.,5:30 a.m.,,
+stop,,,,,,,,3:30 a.m.,St. Patrick's Anglican Primary School
+stop,,,,,,,,3:30 a.m.,Victoria Police Station
+stop,,,,,,,,3:30 a.m.,Gouyave
+stop,,,,,,,,3:30 a.m.,Grand Roy
+stop,,,,,,,,3:30 a.m.,Concord
+stop,,,,,,,,4:45 a.m.,Beausejour
+stop,,,,,,,,4:45 a.m.,Cherry Hill
+stop,,,,,,,,4:45 a.m.,Mt. Rush
+stop,,,,,,,,4:45 a.m.,River Road
+stop,,,,,,,,4:45 a.m.,Melville Street
+stop,,,,,,,,5:30 a.m.,MBIA
+
+trip,1,St. Patrick (Western Main Road),morning,outbound,mon_sat,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Melville Street
+
+trip,1,St. Patrick (Western Main Road),morning,outbound,sun_hol,6:15 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse
+stop,,,,,,,,,Lagoon Road
+stop,,,,,,,,,Melville Street
+stop,,,,,,,,,River Road
+stop,,,,,,,,,Mt. Rush
+stop,,,,,,,,,Cherry Hill
+stop,,,,,,,,,Beausejour
+stop,,,,,,,,,Concord
+stop,,,,,,,,,Grand Roy
+stop,,,,,,,,,Gouyave
+stop,,,,,,,,,Victoria Police Station
+stop,,,,,,,,,St. Patrick's Anglican Primary School
+
+trip,1,St. Patrick (Western Main Road),afternoon,inbound,sun_hol,12:00 noon,2:00 p.m.,,
+stop,,,,,,,,12:00 noon,St. Patrick's Anglican Primary School
+stop,,,,,,,,12:00 noon,Victoria Police Station
+stop,,,,,,,,12:00 noon,Gouyave
+stop,,,,,,,,12:00 noon,Grand Roy
+stop,,,,,,,,12:00 noon,Concord
+stop,,,,,,,,1:15 p.m.,Beausejour
+stop,,,,,,,,1:15 p.m.,Cherry Hill
+stop,,,,,,,,1:15 p.m.,Mt. Rush
+stop,,,,,,,,1:15 p.m.,River Road
+stop,,,,,,,,1:15 p.m.,Melville Street
+stop,,,,,,,,2:00 p.m.,MBIA
+
+trip,1,St. Patrick (Western Main Road),afternoon,outbound,mon_sat,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Melville Street
+
+trip,1,St. Patrick (Western Main Road),afternoon,outbound,sun_hol,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse
+stop,,,,,,,,,Lagoon Road
+stop,,,,,,,,,Melville Street
+stop,,,,,,,,,River Road
+stop,,,,,,,,,Mt. Rush
+stop,,,,,,,,,Cherry Hill
+stop,,,,,,,,,Beausejour
+stop,,,,,,,,,Concord
+stop,,,,,,,,,Grand Roy
+stop,,,,,,,,,Gouyave
+stop,,,,,,,,,Victoria Police Station
+stop,,,,,,,,,St. Patrick's Anglican Primary School
+
+trip,1,St. Patrick (Western Main Road),night,inbound,daily,8:30 p.m.,10:30 p.m.,,
+stop,,,,,,,,8:30 p.m.,St. Patrick's Anglican Primary School
+stop,,,,,,,,8:30 p.m.,Victoria Police Station
+stop,,,,,,,,8:30 p.m.,Gouyave
+stop,,,,,,,,8:30 p.m.,Grand Roy
+stop,,,,,,,,8:30 p.m.,Concord
+stop,,,,,,,,9:45 p.m.,Beausejour
+stop,,,,,,,,9:45 p.m.,Cherry Hill
+stop,,,,,,,,9:45 p.m.,Mt. Rush
+stop,,,,,,,,9:45 p.m.,River Road
+stop,,,,,,,,9:45 p.m.,Melville Street
+stop,,,,,,,,10:30 p.m.,MBIA
+
+trip,1,St. Patrick (Western Main Road),night,outbound,daily,10:45 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse
+stop,,,,,,,,,Lagoon Road
+stop,,,,,,,,,Melville Street
+stop,,,,,,,,,River Road
+stop,,,,,,,,,Mt. Rush
+stop,,,,,,,,,Cherry Hill
+stop,,,,,,,,,Beausejour
+stop,,,,,,,,,Concord
+stop,,,,,,,,,Grand Roy
+stop,,,,,,,,,Gouyave
+stop,,,,,,,,,Victoria Police Station
+stop,,,,,,,,,St. Patrick's Anglican Primary School
+
+trip,2,Grand Bras via Grand Etang,morning,inbound,daily,3:30 a.m.,5:30 a.m.,,
+stop,,,,,,,,3:30 a.m.,Grand Bras
+stop,,,,,,,,3:30 a.m.,Birch Grove
+stop,,,,,,,,3:30 a.m.,Constantine
+stop,,,,,,,,3:30 a.m.,Willis
+stop,,,,,,,,3:30 a.m.,Grenville Vale
+stop,,,,,,,,3:30 a.m.,Mt. Kuma
+stop,,,,,,,,3:30 a.m.,Boca
+stop,,,,,,,,3:30 a.m.,Snug Corner
+stop,,,,,,,,3:30 a.m.,Beaulieu
+stop,,,,,,,,3:30 a.m.,Tempe Roundabout
+stop,,,,,,,,4:45 a.m.,Mt. Parnassus
+stop,,,,,,,,4:45 a.m.,Creighton
+stop,,,,,,,,4:45 a.m.,Richmond Hill
+stop,,,,,,,,4:45 a.m.,White Gun
+stop,,,,,,,,4:45 a.m.,The Lane
+stop,,,,,,,,4:45 a.m.,Springs
+stop,,,,,,,,4:45 a.m.,Woodlands
+stop,,,,,,,,5:30 a.m.,MBIA
+
+trip,2,Grand Bras via Grand Etang,morning,outbound,mon_sat,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Melville Street
+
+trip,2,Grand Bras via Grand Etang,morning,outbound,sun_hol,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Springs
+stop,,,,,,,,,The Lane
+stop,,,,,,,,,Richmond Hill
+stop,,,,,,,,,Creighton
+stop,,,,,,,,,Mt. Parnassus
+stop,,,,,,,,,Tempe Roundabout
+stop,,,,,,,,,Beaulieu
+stop,,,,,,,,,Snug Corner
+stop,,,,,,,,,Boca
+stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Grenville Vale
+stop,,,,,,,,,Willis
+stop,,,,,,,,,Constantine
+stop,,,,,,,,,Birch Grove
+stop,,,,,,,,,Grand Bras
+
+trip,2,Grand Bras via Grand Etang,afternoon,inbound,sun_hol,12:00 noon,2:00 p.m.,,
+stop,,,,,,,,12:00 noon,Grand Bras
+stop,,,,,,,,12:00 noon,Birch Grove
+stop,,,,,,,,12:00 noon,Constantine
+stop,,,,,,,,12:00 noon,Willis
+stop,,,,,,,,12:00 noon,Grenville Vale
+stop,,,,,,,,12:00 noon,Mt. Kuma
+stop,,,,,,,,12:00 noon,Boca
+stop,,,,,,,,12:00 noon,Snug Corner
+stop,,,,,,,,12:00 noon,Beaulieu
+stop,,,,,,,,12:00 noon,Tempe Roundabout
+stop,,,,,,,,1:15 p.m.,Mt. Parnassus
+stop,,,,,,,,1:15 p.m.,Creighton
+stop,,,,,,,,1:15 p.m.,Richmond Hill
+stop,,,,,,,,1:15 p.m.,White Gun
+stop,,,,,,,,1:15 p.m.,The Lane
+stop,,,,,,,,1:15 p.m.,Springs
+stop,,,,,,,,1:15 p.m.,Woodlands
+stop,,,,,,,,2:00 p.m.,MBIA
+
+trip,2,Grand Bras via Grand Etang,afternoon,outbound,mon_sat,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Melville Street
+
+trip,2,Grand Bras via Grand Etang,afternoon,outbound,sun_hol,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Springs
+stop,,,,,,,,,The Lane
+stop,,,,,,,,,Richmond Hill
+stop,,,,,,,,,Creighton
+stop,,,,,,,,,Mt. Parnassus
+stop,,,,,,,,,Tempe Roundabout
+stop,,,,,,,,,Beaulieu
+stop,,,,,,,,,Snug Corner
+stop,,,,,,,,,Boca
+stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Grenville Vale
+stop,,,,,,,,,Willis
+stop,,,,,,,,,Constantine
+stop,,,,,,,,,Birch Grove
+stop,,,,,,,,,Grand Bras
+
+trip,2,Grand Bras via Grand Etang,night,inbound,daily,8:30 p.m.,10:30 p.m.,,
+stop,,,,,,,,8:30 p.m.,Grand Bras
+stop,,,,,,,,8:30 p.m.,Birch Grove
+stop,,,,,,,,8:30 p.m.,Constantine
+stop,,,,,,,,8:30 p.m.,Willis
+stop,,,,,,,,8:30 p.m.,Grenville Vale
+stop,,,,,,,,8:30 p.m.,Mt. Kuma
+stop,,,,,,,,8:30 p.m.,Boca
+stop,,,,,,,,8:30 p.m.,Snug Corner
+stop,,,,,,,,8:30 p.m.,Beaulieu
+stop,,,,,,,,8:30 p.m.,Tempe Roundabout
+stop,,,,,,,,9:45 p.m.,Mt. Parnassus
+stop,,,,,,,,9:45 p.m.,Creighton
+stop,,,,,,,,9:45 p.m.,Richmond Hill
+stop,,,,,,,,9:45 p.m.,White Gun
+stop,,,,,,,,9:45 p.m.,The Lane
+stop,,,,,,,,9:45 p.m.,Springs
+stop,,,,,,,,9:45 p.m.,Woodlands
+stop,,,,,,,,10:30 p.m.,MBIA
+
+trip,2,Grand Bras via Grand Etang,night,outbound,daily,10:45 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Springs
+stop,,,,,,,,,The Lane
+stop,,,,,,,,,Richmond Hill
+stop,,,,,,,,,Creighton
+stop,,,,,,,,,Mt. Parnassus
+stop,,,,,,,,,Tempe Roundabout
+stop,,,,,,,,,Beaulieu
+stop,,,,,,,,,Snug Corner
+stop,,,,,,,,,Boca
+stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Grenville Vale
+stop,,,,,,,,,Willis
+stop,,,,,,,,,Constantine
+stop,,,,,,,,,Birch Grove
+stop,,,,,,,,,Grand Bras
+
+trip,3,Tivoli (Eastern Main Road),morning,inbound,daily,3:30 a.m.,5:30 a.m.,,
+stop,,,,,,,,3:30 a.m.,Tivoli Junction
+stop,,,,,,,,3:30 a.m.,Grenville Town
+stop,,,,,,,,3:30 a.m.,Marquis
+stop,,,,,,,,3:30 a.m.,Hope
+stop,,,,,,,,3:30 a.m.,Grand Bacolet Junction
+stop,,,,,,,,3:30 a.m.,Corinth
+stop,,,,,,,,4:45 a.m.,Red Gate
+stop,,,,,,,,4:45 a.m.,Westerhall
+stop,,,,,,,,4:45 a.m.,Calivigny
+stop,,,,,,,,4:45 a.m.,Gap Gospel Hall
+stop,,,,,,,,4:45 a.m.,Upper Woburn
+stop,,,,,,,,4:45 a.m.,Lower Woburn
+stop,,,,,,,,4:45 a.m.,Grand Anse Valley
+stop,,,,,,,,5:30 a.m.,MBIA
+
+trip,3,Tivoli (Eastern Main Road),morning,outbound,mon_sat,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Melville Street
+
+trip,3,Tivoli (Eastern Main Road),morning,outbound,sun_hol,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Lower Woburn
+stop,,,,,,,,,Upper Woburn
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Gap Gospel Hall
+stop,,,,,,,,,Westerhall
+stop,,,,,,,,,Red Gate
+stop,,,,,,,,,Corinth
+stop,,,,,,,,,Grand Bacolet Junction
+stop,,,,,,,,,Hope
+stop,,,,,,,,,Marquis
+stop,,,,,,,,,Grenville Town
+stop,,,,,,,,,Tivoli Junction
+
+trip,3,Tivoli (Eastern Main Road),afternoon,inbound,sun_hol,12:00 noon,2:00 p.m.,,
+stop,,,,,,,,12:00 noon,Tivoli Junction
+stop,,,,,,,,12:00 noon,Grenville Town
+stop,,,,,,,,12:00 noon,Marquis
+stop,,,,,,,,12:00 noon,Hope
+stop,,,,,,,,12:00 noon,Grand Bacolet Junction
+stop,,,,,,,,12:00 noon,Corinth
+stop,,,,,,,,1:15 p.m.,Red Gate
+stop,,,,,,,,1:15 p.m.,Westerhall
+stop,,,,,,,,1:15 p.m.,Calivigny
+stop,,,,,,,,1:15 p.m.,Gap Gospel Hall
+stop,,,,,,,,1:15 p.m.,Upper Woburn
+stop,,,,,,,,1:15 p.m.,Lower Woburn
+stop,,,,,,,,1:15 p.m.,Grand Anse Valley
+stop,,,,,,,,2:00 p.m.,MBIA
+
+trip,3,Tivoli (Eastern Main Road),afternoon,outbound,mon_sat,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Melville Street
+
+trip,3,Tivoli (Eastern Main Road),afternoon,outbound,sun_hol,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Lower Woburn
+stop,,,,,,,,,Upper Woburn
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Gap Gospel Hall
+stop,,,,,,,,,Westerhall
+stop,,,,,,,,,Red Gate
+stop,,,,,,,,,Corinth
+stop,,,,,,,,,Grand Bacolet Junction
+stop,,,,,,,,,Hope
+stop,,,,,,,,,Marquis
+stop,,,,,,,,,Grenville Town
+stop,,,,,,,,,Tivoli Junction
+
+trip,3,Tivoli (Eastern Main Road),night,inbound,daily,8:30 p.m.,10:30 p.m.,,
+stop,,,,,,,,8:30 p.m.,Tivoli Junction
+stop,,,,,,,,8:30 p.m.,Grenville Town
+stop,,,,,,,,8:30 p.m.,Marquis
+stop,,,,,,,,8:30 p.m.,Hope
+stop,,,,,,,,8:30 p.m.,Grand Bacolet Junction
+stop,,,,,,,,8:30 p.m.,Corinth
+stop,,,,,,,,9:45 p.m.,Red Gate
+stop,,,,,,,,9:45 p.m.,Westerhall
+stop,,,,,,,,9:45 p.m.,Calivigny
+stop,,,,,,,,9:45 p.m.,Gap Gospel Hall
+stop,,,,,,,,9:45 p.m.,Upper Woburn
+stop,,,,,,,,9:45 p.m.,Lower Woburn
+stop,,,,,,,,9:45 p.m.,Grand Anse Valley
+stop,,,,,,,,10:30 p.m.,MBIA
+
+trip,3,Tivoli (Eastern Main Road),night,outbound,daily,10:45 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Lower Woburn
+stop,,,,,,,,,Upper Woburn
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Gap Gospel Hall
+stop,,,,,,,,,Westerhall
+stop,,,,,,,,,Red Gate
+stop,,,,,,,,,Corinth
+stop,,,,,,,,,Grand Bacolet Junction
+stop,,,,,,,,,Hope
+stop,,,,,,,,,Marquis
+stop,,,,,,,,,Grenville Town
+stop,,,,,,,,,Tivoli Junction
+
+trip,4,Town of St. George via Lagoon Road,non_shift,inbound,daily,7:25 a.m.,8:00 a.m.,,
+stop,,,,,,,,7:25 a.m.,Melville Street
+stop,,,,,,,,7:25 a.m.,Lagoon Road
+stop,,,,,,,,7:25 a.m.,Grand Anse
+stop,,,,,,,,7:25 a.m.,Sugar Mill Roundabout
+stop,,,,,,,,8:00 a.m.,MBIA
+
+trip,4,Town of St. George via Lagoon Road,non_shift,outbound,daily,4:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Sugar Mill Roundabout
+stop,,,,,,,,,Grand Anse
+stop,,,,,,,,,Melville Street
+
+trip,5,Town of St. George via Woodlands,non_shift,inbound,daily,7:25 a.m.,8:00 a.m.,,
+stop,,,,,,,,7:25 a.m.,Melville Street
+stop,,,,,,,,7:25 a.m.,Springs
+stop,,,,,,,,7:25 a.m.,Woodlands
+stop,,,,,,,,8:00 a.m.,MBIA
+
+trip,5,Town of St. George via Woodlands,non_shift,outbound,daily,4:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Sugar Mill Roundabout
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Springs
+stop,,,,,,,,,Melville Street
+
+trip,6,Mardigras and Surrounding Areas,morning,inbound,daily,4:30 a.m.,5:30 a.m.,,
+stop,,,,,,,,4:30 a.m.,Mardigras
+stop,,,,,,,,4:30 a.m.,Antoine Hill
+stop,,,,,,,,4:30 a.m.,Predmotempts
+stop,,,,,,,,4:30 a.m.,Winsor Forest
+stop,,,,,,,,4:30 a.m.,Vincennse
+stop,,,,,,,,4:30 a.m.,Toco Bay
+stop,,,,,,,,4:30 a.m.,Laura
+stop,,,,,,,,4:30 a.m.,Beaton
+stop,,,,,,,,4:30 a.m.,St. Paul's Main Rd
+stop,,,,,,,,5:00 a.m.,The Bocas
+stop,,,,,,,,5:00 a.m.,Morne Jaloux
+stop,,,,,,,,5:00 a.m.,Marian
+stop,,,,,,,,5:00 a.m.,Calivigny
+stop,,,,,,,,5:00 a.m.,Cliff
+stop,,,,,,,,5:00 a.m.,Woodlands
+stop,,,,,,,,5:00 a.m.,Grand Anse Valley
+stop,,,,,,,,5:30 a.m.,MBIA
+
+trip,6,Mardigras and Surrounding Areas,morning,outbound,mon_sat,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Melville Street
+
+trip,6,Mardigras and Surrounding Areas,morning,outbound,sun_hol,6:10 a.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Cliff
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Marian
+stop,,,,,,,,,Morne Jaloux
+stop,,,,,,,,,The Bocas
+stop,,,,,,,,,St. Paul's Main Rd
+stop,,,,,,,,,Beaton
+stop,,,,,,,,,Laura
+stop,,,,,,,,,Toco Bay
+stop,,,,,,,,,Vincennse
+stop,,,,,,,,,Winsor Forest
+stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Antoine Hill
+stop,,,,,,,,,Mardigras
+
+trip,6,Mardigras and Surrounding Areas,afternoon,inbound,sun_hol,1:00 p.m.,2:00 p.m.,,
+stop,,,,,,,,1:00 p.m.,Mardigras
+stop,,,,,,,,1:00 p.m.,Antoine Hill
+stop,,,,,,,,1:00 p.m.,Predmotempts
+stop,,,,,,,,1:00 p.m.,Winsor Forest
+stop,,,,,,,,1:00 p.m.,Vincennse
+stop,,,,,,,,1:00 p.m.,Toco Bay
+stop,,,,,,,,1:00 p.m.,Laura
+stop,,,,,,,,1:00 p.m.,Beaton
+stop,,,,,,,,1:00 p.m.,St. Paul's Main Rd
+stop,,,,,,,,1:30 p.m.,The Bocas
+stop,,,,,,,,1:30 p.m.,Morne Jaloux
+stop,,,,,,,,1:30 p.m.,Marian
+stop,,,,,,,,1:30 p.m.,Calivigny
+stop,,,,,,,,1:30 p.m.,Cliff
+stop,,,,,,,,1:30 p.m.,Woodlands
+stop,,,,,,,,1:30 p.m.,Grand Anse Valley
+stop,,,,,,,,2:00 p.m.,MBIA
+
+trip,6,Mardigras and Surrounding Areas,afternoon,outbound,mon_sat,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Melville Street
+
+trip,6,Mardigras and Surrounding Areas,afternoon,outbound,sun_hol,2:15 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Cliff
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Marian
+stop,,,,,,,,,Morne Jaloux
+stop,,,,,,,,,The Bocas
+stop,,,,,,,,,St. Paul's Main Rd
+stop,,,,,,,,,Beaton
+stop,,,,,,,,,Laura
+stop,,,,,,,,,Toco Bay
+stop,,,,,,,,,Vincennse
+stop,,,,,,,,,Winsor Forest
+stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Antoine Hill
+stop,,,,,,,,,Mardigras
+
+trip,6,Mardigras and Surrounding Areas,night,inbound,daily,9:30 p.m.,10:30 p.m.,,
+stop,,,,,,,,9:30 p.m.,Mardigras
+stop,,,,,,,,9:30 p.m.,Antoine Hill
+stop,,,,,,,,9:30 p.m.,Predmotempts
+stop,,,,,,,,9:30 p.m.,Winsor Forest
+stop,,,,,,,,9:30 p.m.,Vincennse
+stop,,,,,,,,9:30 p.m.,Toco Bay
+stop,,,,,,,,9:30 p.m.,Laura
+stop,,,,,,,,9:30 p.m.,Beaton
+stop,,,,,,,,9:30 p.m.,St. Paul's Main Rd
+stop,,,,,,,,10:00 p.m.,The Bocas
+stop,,,,,,,,10:00 p.m.,Morne Jaloux
+stop,,,,,,,,10:00 p.m.,Marian
+stop,,,,,,,,10:00 p.m.,Calivigny
+stop,,,,,,,,10:00 p.m.,Cliff
+stop,,,,,,,,10:00 p.m.,Woodlands
+stop,,,,,,,,10:00 p.m.,Grand Anse Valley
+stop,,,,,,,,10:30 p.m.,MBIA
+
+trip,6,Mardigras and Surrounding Areas,night,outbound,daily,10:45 p.m.,,,
+stop,,,,,,,,,MBIA
+stop,,,,,,,,,Grand Anse Valley
+stop,,,,,,,,,Woodlands
+stop,,,,,,,,,Cliff
+stop,,,,,,,,,Calivigny
+stop,,,,,,,,,Marian
+stop,,,,,,,,,Morne Jaloux
+stop,,,,,,,,,The Bocas
+stop,,,,,,,,,St. Paul's Main Rd
+stop,,,,,,,,,Beaton
+stop,,,,,,,,,Laura
+stop,,,,,,,,,Toco Bay
+stop,,,,,,,,,Vincennse
+stop,,,,,,,,,Winsor Forest
+stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Antoine Hill
+stop,,,,,,,,,Mardigras

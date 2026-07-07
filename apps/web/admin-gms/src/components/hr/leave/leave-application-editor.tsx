@@ -30,6 +30,7 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import { EMPTY_LEAVE, LEAVE_TYPES, LeaveDocument } from "./leave-document";
 
 /** Paper-form labels → API LeaveType values. */
@@ -120,6 +121,22 @@ export function LeaveApplicationEditor() {
       loadedDraftRef.current = draftParam;
     }
   }, [draftParam, myRequestsQuery.data, form]);
+
+  // Prefill blank fields with the current user, their department, and today.
+  useEditorPrefill(
+    (ctx) => {
+      if (!form.getFieldValue("employeeName")) {
+        form.setFieldValue("employeeName", ctx.fullName);
+      }
+      if (!form.getFieldValue("department")) {
+        form.setFieldValue("department", ctx.department);
+      }
+      if (!form.getFieldValue("startDate")) {
+        form.setFieldValue("startDate", ctx.today);
+      }
+    },
+    { skip: Boolean(draftParam) }
+  );
 
   function handleReset() {
     form.reset();
