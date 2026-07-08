@@ -45,6 +45,22 @@ Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`
 | Traefik dashboard | 8090 |
 | MailCatcher (web UI / SMTP) | 1080 / 1025 |
 
+## Vendored ops apps (host Docker stacks — see `VENDORED.md`)
+
+| Service | Port(s) | Source |
+|---|---|---|
+| SURFACE web (nginx) | 8081 | `surface/.env` (`NGINX_PORT`) |
+| SURFACE postgres (timescaledb) | 5433 | `surface/docker-compose.yml` |
+| wis2box nginx | 80 | `wis2box/docker-compose.override.yml` |
+| wis2box UI (direct) | 9999 | same |
+| wis2box minio (S3 / console / sftp) | 9000 / 9001 / 8022 | same |
+| wis2box mosquitto (MQTT / WS) | 1883 / 8884 | same |
+| wis2box prometheus | 8001 | `wis2box/docker-compose.monitoring.yml` |
+| wis2box grafana | 3100 | same |
+
+SURFACE originally shipped on 8080 and 5432; both were remapped to coexist with
+Adminer and grenmet-postgres.
+
 ## Where each web-app port lives
 
 Changing a web app's port means editing **all** of these so they agree:
