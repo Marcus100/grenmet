@@ -9,13 +9,35 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
+  // Docker CLI + compose inside the container, talking to the HOST daemon
+  // (docker-outside-of-docker). Lets the agent drive the vendored ops stacks
+  // (surface/, wis2box/) and the pnpm-start infra. Containers still run on
+  // the host — nothing is nested.
+  "features": {
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
+  },
+
   // Named volumes so Claude/Codex logins persist across rebuilds — log in once.
+  // The second repo mount mirrors the HOST path: compose files use relative
+  // bind mounts (e.g. surface/docker-compose.yml -> ./data), and the host
+  // daemon needs paths that exist on the host. Run all `docker compose`
+  // commands from ${localWorkspaceFolder}/<app>, never /workspace/<app>.
   "mounts": [
     "source=grenmet-claude-config,target=/home/node/.claude,type=volume",
     "source=grenmet-codex-config,target=/home/node/.codex,type=volume",
     "source=grenmet-config,target=/home/node/.config,type=volume",
-    "source=grenmet-cache,target=/home/node/.cache,type=volume"
+    "source=grenmet-cache,target=/home/node/.cache,type=volume",
+    "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind,consistency=cached",
+    // wis2box operational data (station lists, discovery metadata) — lives
+    // outside the repo (WIS2BOX_HOST_DATADIR in wis2box/wis2box.env), mounted
+    // at its mirror host path for the same reason as the repo mirror above.
+    "source=${localEnv:HOME}/wis2box-data,target=${localEnv:HOME}/wis2box-data,type=bind,consistency=cached"
   ],
+
+  // Lets in-container health checks reach host-published ports (SURFACE :8081,
+  // wis2box :80, grenmet infra) as host.docker.internal on any Docker engine,
+  // not just Docker Desktop.
+  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
 
   // No appPort: the app stack (Docker infra via `pnpm start` and the web dev
   // servers via `pnpm dev:web:*`) runs on the HOST, which owns ports 3000-3004,

@@ -146,6 +146,26 @@ artifacts/
 
 
 # =======================
+# Personal inbox files dropped at repo root (PDFs, screenshots, chat images).
+# Root-scoped only — legitimate assets under packages/, geonetcast/, etc. are
+# unaffected. Keep the workspace root clean; move real docs into docs/.
+# =======================
+/*.pdf
+/*.png
+/*.jpg
+/*.jpeg
+
+
+# =======================
+# Vendored GMS ops apps (SURFACE CDMS, wis2box) — see VENDORED.md
+# Runtime data and real env files stay out; *.example templates are committed.
+# =======================
+/surface/data/
+/surface/backup_restore_dumps/
+/surface/api/production.env
+/wis2box/wis2box.env
+
+# =======================
 # Kubb generated SDK policy
 # =======================
 # This repository commits generated SDK code from packages/api-client.
