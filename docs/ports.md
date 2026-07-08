@@ -55,7 +55,7 @@ Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`
 | wis2box UI (direct) | 9999 | same |
 | wis2box minio (S3 / console / sftp) | 9000 / 9001 / 8022 | same |
 | wis2box mosquitto (MQTT / WS) | 1883 / 8884 | same |
-| wis2box prometheus | 8001 | `wis2box/docker-compose.monitoring.yml` |
+| wis2box mqtt metrics collector | 8001 | `wis2box/docker-compose.monitoring.yml` (prometheus itself is internal-only, 9090) |
 | wis2box grafana | 3100 | same |
 
 SURFACE originally shipped on 8080 and 5432; both were remapped to coexist with

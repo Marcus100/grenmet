@@ -1,0 +1,79 @@
+wis2box:
+    retention: P30D
+    topic_hierarchy: gd-metservice/data/core/weather/surface-based-observations/synop
+    country: grd
+    centre_id: gd-metservice
+    data_mappings:
+        plugins:
+            csv:
+                - plugin: wis2box.data.csv2bufr.ObservationDataCSV2BUFR
+                  template: Surface-RA-IV-100
+                  notify: true
+                  file-pattern: '^.*\.csv$'
+            bufr4:
+                - plugin: wis2box.data.bufr2geojson.ObservationDataBUFR2GeoJSON
+                  buckets:
+                    - ${WIS2BOX_STORAGE_PUBLIC}
+                  file-pattern: '^.*\.bufr4$'
+
+mcf:
+    version: 2.0
+
+metadata:
+    identifier: urn:wmo:md:gd-metservice:surface-weather-observations
+    language: en
+    charset: utf8
+    hierarchylevel: dataset
+    dates:
+        creation: 2026-07-08
+        publication: 2026-07-08
+
+identification:
+    language: en
+    charset: utf8
+    title: Surface weather observations from Grenada
+    abstract: Hourly surface weather observations from Grenada Meteorological
+        Service synoptic and automatic weather stations, published in BUFR via
+        the GMS wis2box node.
+    keywords:
+        default:
+            keywords:
+                - surface weather
+                - temperature
+                - observations
+                - Grenada
+        wmo:
+            keywords:
+                - weather
+            keywords_type: theme
+            vocabulary:
+                name: WMO WIS2 Topic Hierarchy
+                url: https://codes.wmo.int/topic-hierarchy/earth-system-discipline
+    extents:
+        spatial:
+            - bbox: [-61.82, 11.95, -61.35, 12.55]
+              crs: 4326
+        temporal:
+            - begin: 2026-07-08
+              end: null
+              resolution: PT1H
+    url: https://weather.gd
+    wmo_data_policy: core
+
+contact:
+    host:
+        organization: Grenada Meteorological Service
+        url: https://weather.gd
+        # Set the real duty contact before production cutover (ADR-0010 gate)
+        individualname: Duty Forecaster
+        positionname: Digital Transformation Officer
+        phone: null
+        fax: null
+        address: null
+        city: null
+        administrativearea: null
+        postalcode: null
+        country: Grenada
+        email: info@weather.gd
+        hoursofservice: 24 hours
+        contactinstructions: email
