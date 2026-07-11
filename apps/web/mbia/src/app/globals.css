@@ -1,0 +1,97 @@
+@import "tailwindcss";
+@import "@grenmet/ui/styles/globals";
+@plugin "@tailwindcss/typography";
+
+/* Tailwind v4 only auto-scans this app's own source. The reused @grenmet/ui
+   primitives (sheet, dialog, accordion, …) use utilities found nowhere in this
+   app's own pages, so scan the shared package explicitly or those classes are
+   never generated. */
+@source "../../node_modules/@grenmet/ui/src";
+
+/*
+  Grenada Airports Authority (GAA) brand layer.
+
+  Consumes the @grenmet/ui foundation (shadcn semantic @theme mapping) and
+  overrides the semantic :root tokens to the GAA palette so reused primitives
+  reskin automatically.
+
+  Palette: deep aviation navy (from the GAA wordmark #011963), Caribbean sea
+  teal (from the MBIA aerial photography), and spice gold ("Gateway to the
+  Spice of the Caribbean"). Light mode only — a public info site whose
+  documents must stay printable.
+*/
+@layer base {
+  :root {
+    --gaa-navy: #0a1e5e;
+    --gaa-navy-deep: #011963;
+    --gaa-navy-ink: #071240;
+    --gaa-sea: #0e7fa8;
+    --gaa-sea-bright: #48a4d8;
+    --gaa-gold: #f0b429;
+    --gaa-gold-deep: #de911d;
+    --gaa-ink: #101828;
+    --gaa-muted: #52627d;
+    --gaa-mist: #f4f7fb;
+    --gaa-rule: #e2e9f3;
+    --gaa-paper: #ffffff;
+    /* Flight-status colors (board only, not general UI) */
+    --gaa-status-ontime: #15803d;
+    --gaa-status-delayed: #b45309;
+    --gaa-status-cancelled: #b91c1c;
+
+    /* Override @grenmet/ui shadcn semantics -> GAA */
+    --background: var(--gaa-paper);
+    --foreground: var(--gaa-ink);
+    --card: var(--gaa-paper);
+    --card-foreground: var(--gaa-ink);
+    --popover: var(--gaa-paper);
+    --popover-foreground: var(--gaa-ink);
+    --primary: var(--gaa-navy);
+    --primary-foreground: #ffffff;
+    --secondary: var(--gaa-mist);
+    --secondary-foreground: var(--gaa-navy-ink);
+    --muted: var(--gaa-mist);
+    --muted-foreground: var(--gaa-muted);
+    --accent: var(--gaa-gold);
+    --accent-foreground: var(--gaa-navy-ink);
+    --destructive: var(--gaa-status-cancelled);
+    --destructive-foreground: #ffffff;
+    --border: var(--gaa-rule);
+    --input: var(--gaa-rule);
+    --ring: var(--gaa-sea);
+    --radius: 0.75rem;
+
+    color-scheme: light;
+  }
+}
+
+/* GAA-specific Tailwind utilities + font tokens */
+@theme inline {
+  --font-display: var(--font-manrope, var(--font-sans));
+
+  --color-gaa-navy: var(--gaa-navy);
+  --color-gaa-navy-deep: var(--gaa-navy-deep);
+  --color-gaa-navy-ink: var(--gaa-navy-ink);
+  --color-gaa-sea: var(--gaa-sea);
+  --color-gaa-sea-bright: var(--gaa-sea-bright);
+  --color-gaa-gold: var(--gaa-gold);
+  --color-gaa-gold-deep: var(--gaa-gold-deep);
+  --color-gaa-ink: var(--gaa-ink);
+  --color-gaa-muted: var(--gaa-muted);
+  --color-gaa-mist: var(--gaa-mist);
+  --color-gaa-rule: var(--gaa-rule);
+  --color-gaa-status-ontime: var(--gaa-status-ontime);
+  --color-gaa-status-delayed: var(--gaa-status-delayed);
+  --color-gaa-status-cancelled: var(--gaa-status-cancelled);
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Flight boards and schedules read as signage: aligned, tabular digits. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
