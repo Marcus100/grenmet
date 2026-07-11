@@ -54,8 +54,15 @@ docs/
 
 # Unrelated services / data (not part of web builds)
 notebooks/
+geonetcast/
 scripts/scrapy-wxwatch/
 artifacts/
+
+# Vendored ops apps — run on the host, never part of web images.
+# Also keeps their env-file secrets (production.env, wis2box.env) out of
+# every build context.
+surface/
+wis2box/
 
 # Security
 secrets/

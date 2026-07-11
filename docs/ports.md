@@ -25,6 +25,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | hurricaneplan | `@grenmet/web-hurricaneplan` | 3002 | yes |
 | spicewx | `@grenmet/web-spicewx` | 3003 | yes |
 | signal | `@grenmet/web-signal` | 3004 | dev only (no Dockerfile yet) |
+| mbia | `@grenmet/web-mbia` | 3005 | dev only (no Dockerfile yet) |
 
 Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`.
 
@@ -44,6 +45,22 @@ Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`
 | Adminer (DB browser) | 8080 |
 | Traefik dashboard | 8090 |
 | MailCatcher (web UI / SMTP) | 1080 / 1025 |
+
+## Vendored ops apps (host Docker stacks — see `VENDORED.md`)
+
+| Service | Port(s) | Source |
+|---|---|---|
+| SURFACE web (nginx) | 8081 | `surface/.env` (`NGINX_PORT`) |
+| SURFACE postgres (timescaledb) | 5433 | `surface/docker-compose.yml` |
+| wis2box nginx | 80 | `wis2box/docker-compose.override.yml` |
+| wis2box UI (direct) | 9999 | same |
+| wis2box minio (S3 / console / sftp) | 9000 / 9001 / 8022 | same |
+| wis2box mosquitto (MQTT / WS) | 1883 / 8884 | same |
+| wis2box mqtt metrics collector | 8001 | `wis2box/docker-compose.monitoring.yml` (prometheus itself is internal-only, 9090) |
+| wis2box grafana | 3100 | same |
+
+SURFACE originally shipped on 8080 and 5432; both were remapped to coexist with
+Adminer and grenmet-postgres.
 
 ## Where each web-app port lives
 

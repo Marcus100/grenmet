@@ -15,6 +15,7 @@ This directory records durable architecture decisions for GrenMet. ADRs should d
 | [0007](0007-cap-warning-lifecycle.md) | Model warning operations with a CAP-aware lifecycle |
 | [0008](0008-hr-approval-workflow.md) | Route HR forms through a named-approver approval workflow |
 | [0009](0009-gaa-staff-platform.md) | Build a GAA-wide staff platform, piloted in Meteorology |
+| [0010](0010-wis2-publishing-via-surface-builtin.md) | Publish observations to WIS2 via SURFACE's built-in publisher |
 
 ## Template
 

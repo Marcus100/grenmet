@@ -1,0 +1,773 @@
+{
+  "conformsTo": "csv2bufr-template-v2.json",
+  "metadata": {
+    "label": "Surface-RA-IV-100",
+    "description": "Mapping template for converting CSV data extracted from SURFACE to sequence 301150, 307084. Additional BUFR descriptors added for WBT, soil moisture, soil temp. and manual precipitation.",
+    "version": "1",
+    "author": "David I. Berry",
+    "editor": "",
+    "dateCreated": "2025-04-23",
+    "dateModified": "2026-05-20",
+    "id": "b94866e0-6026-4142-9621-a87a17ae5c5e"
+  },
+  "inputShortDelayedDescriptorReplicationFactor": [],
+  "inputDelayedDescriptorReplicationFactor": [4, 0, 0, 2],
+  "inputExtendedDelayedDescriptorReplicationFactor": [],
+  "number_header_rows": 1,
+  "column_names_row": 1,
+  "quoting": "QUOTE_NONE",
+  "header": [
+    { "eccodes_key": "edition", "value": "const:4" },
+    { "eccodes_key": "masterTableNumber", "value": "const:0" },
+    { "eccodes_key": "updateSequenceNumber", "value": "const:0" },
+    { "eccodes_key": "dataCategory", "value": "const:0" },
+    { "eccodes_key": "internationalDataSubCategory", "value": "const:2" },
+    { "eccodes_key": "masterTablesVersionNumber", "value": "const:30" },
+    { "eccodes_key": "numberOfSubsets", "value": "const:1" },
+    { "eccodes_key": "observedData", "value": "const:1" },
+    { "eccodes_key": "compressedData", "value": "const:0" },
+    { "eccodes_key": "typicalYear", "value": "data:year" },
+    { "eccodes_key": "typicalMonth", "value": "data:month" },
+    { "eccodes_key": "typicalDay", "value": "data:day" },
+    { "eccodes_key": "typicalHour", "value": "data:hour" },
+    { "eccodes_key": "typicalMinute", "value": "data:minute" },
+    {
+      "eccodes_key": "unexpandedDescriptors",
+      "value": "array:301150, 307084, 014018, 007032, 013155, 007032, 103000, 031001, 007061, 012030, 013111, 007032, 012102, 007032, 004024, 013011"
+    }
+  ],
+  "data": [
+    {
+      "eccodes_key": "#1#wigosIdentifierSeries",
+      "value": "data:wsi_series",
+      "valid_min": "const:0",
+      "valid_max": "const:0"
+    },
+    {
+      "eccodes_key": "#1#wigosIssuerOfIdentifier",
+      "value": "data:wsi_issuer",
+      "valid_min": "const:0",
+      "valid_max": "const:65534"
+    },
+    {
+      "eccodes_key": "#1#wigosIssueNumber",
+      "value": "data:wsi_issue_number",
+      "valid_min": "const:0",
+      "valid_max": "const:65534"
+    },
+    {
+      "eccodes_key": "#1#wigosLocalIdentifierCharacter",
+      "value": "data:wsi_local"
+    },
+    {
+      "eccodes_key": "#1#blockNumber",
+      "value": "data:wmo_block_number",
+      "valid_min": "const:0",
+      "valid_max": "const:99"
+    },
+    {
+      "eccodes_key": "#1#stationNumber",
+      "value": "data:wmo_station_number",
+      "valid_min": "const:0",
+      "valid_max": "const:999"
+    },
+    {
+      "eccodes_key": "#1#stationType",
+      "value": "data:station_type",
+      "valid_min": "const:0",
+      "valid_max": "const:3"
+    },
+    {
+      "eccodes_key": "#1#year",
+      "value": "data:year",
+      "valid_min": "const:1600",
+      "valid_max": "const:2200"
+    },
+    {
+      "eccodes_key": "#1#month",
+      "value": "data:month",
+      "valid_min": "const:1",
+      "valid_max": "const:12"
+    },
+    {
+      "eccodes_key": "#1#day",
+      "value": "data:day",
+      "valid_min": "const:1",
+      "valid_max": "const:31"
+    },
+    {
+      "eccodes_key": "#1#hour",
+      "value": "data:hour",
+      "valid_min": "const:0",
+      "valid_max": "const:23"
+    },
+    {
+      "eccodes_key": "#1#minute",
+      "value": "data:minute",
+      "valid_min": "const:0",
+      "valid_max": "const:59"
+    },
+    {
+      "eccodes_key": "#1#latitude",
+      "value": "data:latitude",
+      "valid_min": "const:-90.0",
+      "valid_max": "const:90.0"
+    },
+    {
+      "eccodes_key": "#1#longitude",
+      "value": "data:longitude",
+      "valid_min": "const:-180.0",
+      "valid_max": "const:180.0"
+    },
+    {
+      "eccodes_key": "#1#heightOfStationGroundAboveMeanSeaLevel",
+      "value": "data:station_height_above_msl",
+      "valid_min": "const:-400",
+      "valid_max": "const:9000"
+    },
+    {
+      "eccodes_key": "#1#heightOfBarometerAboveMeanSeaLevel",
+      "value": "data:barometer_height_above_msl",
+      "valid_min": "const:-400",
+      "valid_max": "const:9000"
+    },
+    {
+      "eccodes_key": "#1#nonCoordinatePressure",
+      "value": "data:station_pressure",
+      "valid_min": "const:50000",
+      "valid_max": "const:150000",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#pressureReducedToMeanSeaLevel",
+      "value": "data:msl_pressure",
+      "valid_min": "const:50000",
+      "valid_max": "const:150000",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#24HourPressureChange",
+      "value": "data:24_hour_barometric_change",
+      "valid_min": "const:-10000",
+      "valid_max": "const:10470",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#nonCoordinateGeopotentialHeight",
+      "value": "data:geopotential_height",
+      "valid_min": "const:-1000",
+      "valid_max": "const:130071"
+    },
+    {
+      "eccodes_key": "#1#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:thermometer_height",
+      "valid_min": "const:0",
+      "valid_max": "const:655.35"
+    },
+    {
+      "eccodes_key": "#1#airTemperature",
+      "value": "data:air_temperature",
+      "valid_min": "const:193.15",
+      "valid_max": "const:333.15",
+      "scale": "const:0",
+      "offset": "const:0.0"
+    },
+    {
+      "eccodes_key": "#1#dewpointTemperature",
+      "value": "data:dewpoint_temperature",
+      "valid_min": "const:193.15",
+      "valid_max": "const:308.15",
+      "scale": "const:0",
+      "offset": "const:0.0"
+    },
+    {
+      "eccodes_key": "#1#relativeHumidity",
+      "value": "data:relative_humidity",
+      "valid_min": "const:0",
+      "valid_max": "const:100"
+    },
+    {
+      "eccodes_key": "#2#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "const:1.7",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#horizontalVisibility",
+      "value": "data:visibility",
+      "valid_min": "const:0",
+      "valid_max": "const:81910",
+      "scale": "const:3",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#3#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:rain_sensor_height",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#totalPrecipitationPast24Hours",
+      "value": "data:total_precipitation_24_hours",
+      "valid_min": "const:-0.1",
+      "valid_max": "const:1638.2",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#cloudCoverTotal",
+      "value": "data:cloud_cover_tot",
+      "valid_min": "const:0",
+      "valid_max": "const:127",
+      "scale": "const:1.096910013",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#verticalSignificanceSurfaceObservations",
+      "value": "const:0",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#cloudAmount",
+      "value": "data:observed_cloud_coverage",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#heightOfBaseOfCloud",
+      "value": "data:lowest_cloud_height",
+      "valid_min": "const:-400",
+      "valid_max": "const:20070",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#cloudType",
+      "value": "data:low_cloud_type",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:30"
+    },
+    {
+      "eccodes_key": "#2#cloudType",
+      "value": "data:middle_cloud_type",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:20"
+    },
+    {
+      "eccodes_key": "#3#cloudType",
+      "value": "data:high_cloud_type",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:10"
+    },
+    {
+      "eccodes_key": "#2#verticalSignificanceSurfaceObservations",
+      "value": "const:1",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#cloudAmount",
+      "value": "data:cloud_coverage_l1",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#4#cloudType",
+      "value": "data:genus_of_cloud_l1",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#heightOfBaseOfCloud",
+      "value": "data:height_of_cloud_base_l1",
+      "valid_min": "const:-400",
+      "valid_max": "const:20070",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#3#verticalSignificanceSurfaceObservations",
+      "value": "const:2",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#3#cloudAmount",
+      "value": "data:cloud_coverage_l2",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#5#cloudType",
+      "value": "data:genus_of_cloud_l2",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#3#heightOfBaseOfCloud",
+      "value": "data:height_of_cloud_base_l2",
+      "valid_min": "const:-400",
+      "valid_max": "const:20070",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#4#verticalSignificanceSurfaceObservations",
+      "value": "const:3",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#4#cloudAmount",
+      "value": "data:cloud_coverage_l3",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#6#cloudType",
+      "value": "data:genus_of_cloud_l3",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#4#heightOfBaseOfCloud",
+      "value": "data:height_of_cloud_base_l3",
+      "valid_min": "const:-400",
+      "valid_max": "const:20070",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#5#verticalSignificanceSurfaceObservations",
+      "value": "const:4",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#5#cloudAmount",
+      "value": "data:cloud_coverage_l4",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#7#cloudType",
+      "value": "data:genus_of_cloud_l4",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#5#heightOfBaseOfCloud",
+      "value": "data:height_of_cloud_base_l4",
+      "valid_min": "const:-400",
+      "valid_max": "const:20070",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#6#verticalSignificanceSurfaceObservations",
+      "value": "const:7",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#trueDirectionFromWhichAPhenomenonOrCloudsAreMovingOrInWhichTheyAreObserved",
+      "value": "data:direction_of_cl_clouds",
+      "valid_min": "const:0",
+      "valid_max": "const:511",
+      "scale": "const:1.653212514",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#7#verticalSignificanceSurfaceObservations",
+      "value": "const:8",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#trueDirectionFromWhichAPhenomenonOrCloudsAreMovingOrInWhichTheyAreObserved",
+      "value": "data:direction_of_cm_clouds",
+      "valid_min": "const:0",
+      "valid_max": "const:511",
+      "scale": "const:1.653212514",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#8#verticalSignificanceSurfaceObservations",
+      "value": "const:9",
+      "valid_min": "const:0",
+      "valid_max": "const:63",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#3#trueDirectionFromWhichAPhenomenonOrCloudsAreMovingOrInWhichTheyAreObserved",
+      "value": "data:direction_of_ch_clouds",
+      "valid_min": "const:0",
+      "valid_max": "const:511",
+      "scale": "const:1.653212514",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#stateOfGround",
+      "value": "data:ground_state",
+      "valid_min": "const:0",
+      "valid_max": "const:31"
+    },
+    {
+      "eccodes_key": "#1#totalSnowDepth",
+      "value": "data:snow_depth",
+      "valid_min": "const:-0.02",
+      "valid_max": "const:655.33"
+    },
+    {
+      "eccodes_key": "#1#stateOfSkyInTropics",
+      "value": "data:state_of_sky",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#presentWeather",
+      "value": "data:present_weather",
+      "valid_min": "const:0",
+      "valid_max": "const:511",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#timePeriod",
+      "value": "const:-1",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#pastWeather1",
+      "value": "data:past_weather_w_1",
+      "valid_min": "const:0",
+      "valid_max": "const:31",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#pastWeather2",
+      "value": "data:past_weather_w_2",
+      "valid_min": "const:0",
+      "valid_max": "const:31",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#5#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:rain_sensor_height",
+      "valid_min": "const:0",
+      "valid_max": "const:655.35"
+    },
+    {
+      "eccodes_key": "#4#timePeriod",
+      "value": "const:-1",
+      "valid_min": "const:-24",
+      "valid_max": "const:-1"
+    },
+    {
+      "eccodes_key": "#1#totalPrecipitationOrTotalWaterEquivalent",
+      "value": "data:total_precipitation_1_hour",
+      "valid_min": "const:-0.1",
+      "valid_max": "const:1638.2"
+    },
+    {
+      "eccodes_key": "#5#timePeriod",
+      "value": "const:-6",
+      "valid_min": "const:-24",
+      "valid_max": "const:-1"
+    },
+    {
+      "eccodes_key": "#2#totalPrecipitationOrTotalWaterEquivalent",
+      "value": "data:total_precipitation_6_hours",
+      "valid_min": "const:-0.1",
+      "valid_max": "const:1638.2"
+    },
+    {
+      "eccodes_key": "#6#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:thermometer_height",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#6#timePeriod",
+      "value": "const:-12",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#7#timePeriod",
+      "value": "const:0",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#maximumTemperatureAtHeightAndOverPeriodSpecified",
+      "value": "data:maximum_air_temperature",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0.0"
+    },
+    {
+      "eccodes_key": "#8#timePeriod",
+      "value": "const:-12",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#9#timePeriod",
+      "value": "const:0",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#minimumTemperatureAtHeightAndOverPeriodSpecified",
+      "value": "data:minimum_air_temperature",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0.0"
+    },
+    {
+      "eccodes_key": "#7#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:anemometer_height",
+      "valid_min": "const:0",
+      "valid_max": "const:655.35"
+    },
+    {
+      "eccodes_key": "#1#instrumentationForWindMeasurement",
+      "value": "const:3",
+      "valid_min": "const:0",
+      "valid_max": "const:15",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#timeSignificance",
+      "value": "const:2",
+      "valid_min": "const:2",
+      "valid_max": "const:2"
+    },
+    {
+      "eccodes_key": "#10#timePeriod",
+      "value": "data:time_period_of_wind",
+      "valid_min": "const:-10",
+      "valid_max": "const:0"
+    },
+    {
+      "eccodes_key": "#1#windDirection",
+      "value": "data:wind_direction",
+      "valid_min": "const:0",
+      "valid_max": "const:360"
+    },
+    {
+      "eccodes_key": "#1#windSpeed",
+      "value": "data:wind_speed",
+      "valid_min": "const:0",
+      "valid_max": "const:409.5"
+    },
+    {
+      "eccodes_key": "#11#timePeriod",
+      "value": "const:-10",
+      "valid_min": "const:-10",
+      "valid_max": "const:-10"
+    },
+    {
+      "eccodes_key": "#1#maximumWindGustDirection",
+      "value": "data:maximum_wind_gust_direction_10_minutes",
+      "valid_min": "const:0",
+      "valid_max": "const:360"
+    },
+    {
+      "eccodes_key": "#1#maximumWindGustSpeed",
+      "value": "data:maximum_wind_gust_speed_10_minutes",
+      "valid_min": "const:0",
+      "valid_max": "const:409.5"
+    },
+    {
+      "eccodes_key": "#12#timePeriod",
+      "value": "const:-60",
+      "valid_min": "const:-60",
+      "valid_max": "const:-60"
+    },
+    {
+      "eccodes_key": "#2#maximumWindGustDirection",
+      "value": "data:maximum_wind_gust_direction_1_hour",
+      "valid_min": "const:0",
+      "valid_max": "const:360"
+    },
+    {
+      "eccodes_key": "#2#maximumWindGustSpeed",
+      "value": "data:maximum_wind_gust_speed_1_hour",
+      "valid_min": "const:0",
+      "valid_max": "const:409.5"
+    },
+    {
+      "eccodes_key": "#1#instantaneousShortWaveRadiation",
+      "value": "data:solar_radiation",
+      "valid_min": "const:-2048",
+      "valid_max": "const:2047",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#9#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:rain_sensor_height",
+      "valid_min": "const:0.0",
+      "valid_max": "const:655.35",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#precipitationIntensityHighAccuracy",
+      "value": "data:precipitation_intensity",
+      "valid_min": "const:-0.00001",
+      "valid_max": "const:0.65534",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#depthBelowLandSurface",
+      "value": "data:soil_temperature_depth_1",
+      "valid_min": "const:0.0",
+      "valid_max": "const:163.83",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#soilTemperature",
+      "value": "data:soil_temperature_1",
+      "valid_min": "const:0.0",
+      "valid_max": "const:409.5",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#1#soilMoisture",
+      "value": "data:soil_moisture_1",
+      "valid_min": "const:0",
+      "valid_max": "const:1023",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#depthBelowLandSurface",
+      "value": "data:soil_temperature_depth_2",
+      "valid_min": "const:0.0",
+      "valid_max": "const:163.83",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#soilTemperature",
+      "value": "data:soil_temperature_2",
+      "valid_min": "const:0.0",
+      "valid_max": "const:409.5",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#2#soilMoisture",
+      "value": "data:soil_moisture_2",
+      "valid_min": "const:0",
+      "valid_max": "const:1023",
+      "scale": "const:0",
+      "offset": "const:0"
+    },
+    {
+      "eccodes_key": "#11#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:thermometer_height",
+      "valid_min": "const:0",
+      "valid_max": "const:655.35"
+    },
+    {
+      "eccodes_key": "#1#wetBulbTemperature",
+      "value": "data:wetbulb_temperature",
+      "valid_min": "const:193.15",
+      "valid_max": "const:308.15",
+      "scale": "const:0",
+      "offset": "const:0.0"
+    },
+    {
+      "eccodes_key": "#12#heightOfSensorAboveLocalGroundOrDeckOfMarinePlatform",
+      "value": "data:rain_sensor_height",
+      "valid_min": "const:0",
+      "valid_max": "const:655.35"
+    },
+    {
+      "eccodes_key": "#13#timePeriod",
+      "value": "data:precipitation_period_duration",
+      "valid_min": "const:-24",
+      "valid_max": "const:-1"
+    },
+    {
+      "eccodes_key": "#3#totalPrecipitationOrTotalWaterEquivalent",
+      "value": "data:precipitation",
+      "valid_min": "const:-0.1",
+      "valid_max": "const:1638.2"
+    }
+  ]
+}

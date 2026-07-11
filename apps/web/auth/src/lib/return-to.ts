@@ -6,11 +6,21 @@ function firstValue(value: string | string[] | undefined): string | null {
 
 import { env } from "./env";
 
-function getAllowedReturnHosts(): Set<string> {
-  return new Set(
-    env.AUTH_ALLOWED_RETURN_HOSTS.split(",")
-      .map((value: string) => value.trim())
-      .filter(Boolean)
+function getAllowedReturnHosts(): string[] {
+  return env.AUTH_ALLOWED_RETURN_HOSTS.split(",")
+    .map((value: string) => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+// A leading-dot entry (".barrels.gd") allows the apex domain and any subdomain,
+// mirroring cookie Domain semantics. Entries without a leading dot must match
+// the URL host (including any port) exactly.
+function isAllowedReturnHost(host: string): boolean {
+  const candidate = host.toLowerCase();
+  return getAllowedReturnHosts().some((entry) =>
+    entry.startsWith(".")
+      ? candidate === entry.slice(1) || candidate.endsWith(entry)
+      : candidate === entry
   );
 }
 
@@ -35,9 +45,10 @@ export function getSafeReturnTo(
 
   try {
     const parsedUrl = new URL(value);
-    return getAllowedReturnHosts().has(parsedUrl.host)
-      ? parsedUrl.toString()
-      : null;
+    if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
+      return null;
+    }
+    return isAllowedReturnHost(parsedUrl.host) ? parsedUrl.toString() : null;
   } catch {
     return null;
   }
