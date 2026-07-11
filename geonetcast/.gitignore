@@ -32,3 +32,7 @@ img_*.png
 *.tif
 *.tiff
 *.mp4
+
+# Natural Earth boundary shapefiles (~36 MB) — re-downloadable, kept out of
+# git. Restore per the "Shared data" section in README.md.
+shared/ne_10m_admin_1_states_provinces.*
