@@ -25,7 +25,7 @@
     "@grenmet/ui": "workspace:*",
     "@headlessui/react": "catalog:",
     "@sentry/nextjs": "catalog:",
-    "@sindresorhus/slugify": "^2.2.1",
+    "@sindresorhus/slugify": "^3.0.0",
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "@types/react-highlight-words": "^0.20.0",
