@@ -104,6 +104,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.grenmet-api.rule=Host(`api.barrels.gd`)"
+      # weather.gd cutover (DORMANT — enable only after weather.gd DNS points at this
+      # droplet; see docs/weather-gd-golive.md). Replace the rule line above with:
+      # - "traefik.http.routers.grenmet-api.rule=Host(`api.barrels.gd`) || Host(`api.weather.gd`)"
       - "traefik.http.routers.grenmet-api.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api.loadbalancer.server.port=8000"
@@ -188,7 +191,7 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .barrels.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd,.weather.gd
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth.rule=Host(`auth.barrels.gd`)"
@@ -247,10 +250,13 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .barrels.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd,.weather.gd
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-hurricaneplan.rule=Host(`hurricane.barrels.gd`)"
+      # weather.gd cutover (DORMANT — see docs/weather-gd-golive.md). Replace the rule
+      # line above with:
+      # - "traefik.http.routers.web-hurricaneplan.rule=Host(`hurricane.barrels.gd`) || Host(`hurricane.weather.gd`)"
       - "traefik.http.routers.web-hurricaneplan.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hurricaneplan.loadbalancer.server.port=3002"
@@ -271,10 +277,13 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .barrels.gd
-      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd
+      AUTH_ALLOWED_RETURN_HOSTS: .barrels.gd,.weather.gd
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-spicewx.rule=Host(`spice.barrels.gd`)"
+      # weather.gd cutover (DORMANT — see docs/weather-gd-golive.md). Replace the rule
+      # line above with:
+      # - "traefik.http.routers.web-spicewx.rule=Host(`spice.barrels.gd`) || Host(`weather.gd`) || Host(`www.weather.gd`)"
       - "traefik.http.routers.web-spicewx.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx.loadbalancer.server.port=3003"
@@ -295,13 +304,28 @@ services:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
+      # Entrypoint-level HTTP→HTTPS redirect (idiomatic Traefik v3; replaces the
+      # old http-catchall router labels).
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
+      # Security headers applied to every HTTPS response (middleware defined in
+      # labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --accesslog
       - --log
       - --api
+      - --ping
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.barrels.gd`)"
@@ -310,11 +334,13 @@ services:
       - "traefik.http.routers.traefik-dashboard.service=api@internal"
       - "traefik.http.routers.traefik-dashboard.middlewares=dashboard-auth"
       - "traefik.http.middlewares.dashboard-auth.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-      - "traefik.http.routers.http-catchall.rule=HostRegexp(`.+`)"
-      - "traefik.http.routers.http-catchall.entrypoints=web"
-      - "traefik.http.routers.http-catchall.middlewares=https-redirect"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect.redirectscheme.permanent=true"
+      # Global security headers. HSTS starts at 30 days (raise once proven);
+      # SAMEORIGIN (not DENY) so apps can iframe their own pages (print previews).
+      - "traefik.http.middlewares.secure-headers.headers.stsSeconds=2592000"
+      - "traefik.http.middlewares.secure-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secure-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secure-headers.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.secure-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
     networks:
       - grenmet
 
