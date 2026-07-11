@@ -103,6 +103,8 @@ When adding to this file, follow this structure:
 - **`@grenmet/ui` for UI primitives** — import as `@grenmet/ui/components/ui/<name>`.
 - **Generated files are committed** — never edit `packages/api-client/src/gen/`
   manually; always regenerate via `pnpm generate:api-client`.
+- **geonetcast runs devcontainer-first** — its `gdal` pin tracks the devcontainer
+  image's libgdal (Debian), not the host; never `uv sync` `geonetcast/` on the host.
 
 ## CI/CD Conventions
 
@@ -152,6 +154,7 @@ When adding to this file, follow this structure:
 | Adding a new HR form module        | `docs/hr/adding-a-form-module.md`  |
 | FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
 | FastAPI dev workflow               | `docs/api/development.md`          |
+| Vendored ops apps (SURFACE, wis2box) | `VENDORED.md`                    |
 | Dev commands                       | `AGENTS.md`                        |
 
 ## Agent skills
