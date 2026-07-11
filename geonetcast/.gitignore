@@ -1,0 +1,38 @@
+# =======================
+# GNC-A (GeoNetCast) training repo — generated artifacts
+# Python junk (__pycache__, .venv) is already ignored by the repo root
+# .gitignore. This file covers Jupyter checkpoints plus the satellite
+# data and rendered outputs the scripts produce when run.
+# =======================
+
+.ipynb_checkpoints
+
+# Downloaded satellite data — scripts create these via os.makedirs("Samples").
+# Ignore the contents (not the dir) so the committed links reference survives.
+**/Samples/*
+!**/Samples/Links_to_Download_Samples.txt
+
+# Rendered figures — scripts create these via os.makedirs("Output")
+Output/
+**/Output/
+
+# Root-level savefig outputs from the example scripts
+Image_*.png
+DCP_RGB.png
+
+# Animation frames (Animation/HTML/.gitignore covers the HTML subdir; this
+# catches frames written at the Animation/ root)
+img_*.png
+
+# Downloaded / generated data formats
+*.nc
+*.nc4
+*.grib
+*.grib2
+*.tif
+*.tiff
+*.mp4
+
+# Natural Earth boundary shapefiles (~36 MB) — re-downloadable, kept out of
+# git. Restore per the "Shared data" section in README.md.
+shared/ne_10m_admin_1_states_provinces.*

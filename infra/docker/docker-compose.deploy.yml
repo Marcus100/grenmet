@@ -107,7 +107,10 @@ services:
       STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.rule=Host(`api.${BASE_DOMAIN}`)"
+      # ${*_EXTRA_HOSTS_RULE} vars are the weather.gd coexistence hook: unset (the
+      # default) they add nothing; production.env sets them at DNS cutover to append
+      # `|| Host(...)` aliases. Staging never sets them. See docs/weather-gd-golive.md.
+      - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.rule=Host(`api.${BASE_DOMAIN}`)${API_EXTRA_HOSTS_RULE:-}"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
@@ -192,7 +195,7 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
-      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-auth${ROUTER_SUFFIX}.rule=Host(`auth.${BASE_DOMAIN}`)"
@@ -251,10 +254,10 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
-      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.rule=Host(`hurricane.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.rule=Host(`hurricane.${BASE_DOMAIN}`)${HURRICANEPLAN_EXTRA_HOSTS_RULE:-}"
       - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-hurricaneplan${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
@@ -275,10 +278,10 @@ services:
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
-      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}
+      AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.rule=Host(`spice.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.rule=Host(`spice.${BASE_DOMAIN}`)${SPICEWX_EXTRA_HOSTS_RULE:-}"
       - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-spicewx${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
@@ -319,13 +322,28 @@ services:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
+      # Entrypoint-level HTTP→HTTPS redirect (idiomatic Traefik v3; replaces the
+      # old http-catchall router labels).
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
+      # Security headers applied to every HTTPS response (middleware defined in
+      # labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers${ROUTER_SUFFIX}@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --accesslog
       - --log
       - --api
+      - --ping
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.rule=Host(`traefik.${BASE_DOMAIN}`)"
@@ -334,11 +352,13 @@ services:
       - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.service=api@internal"
       - "traefik.http.routers.traefik-dashboard${ROUTER_SUFFIX}.middlewares=dashboard-auth${ROUTER_SUFFIX}"
       - "traefik.http.middlewares.dashboard-auth${ROUTER_SUFFIX}.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.rule=HostRegexp(`.+`)"
-      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.entrypoints=web"
-      - "traefik.http.routers.http-catchall${ROUTER_SUFFIX}.middlewares=https-redirect${ROUTER_SUFFIX}"
-      - "traefik.http.middlewares.https-redirect${ROUTER_SUFFIX}.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect${ROUTER_SUFFIX}.redirectscheme.permanent=true"
+      # Global security headers. HSTS starts at 30 days (raise once proven);
+      # SAMEORIGIN (not DENY) so apps can iframe their own pages (print previews).
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.stsSeconds=2592000"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.secure-headers${ROUTER_SUFFIX}.headers.referrerPolicy=strict-origin-when-cross-origin"
     networks:
       - grenmet
 

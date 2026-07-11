@@ -1,0 +1,23 @@
+[project]
+name = "geonetcast"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.43.42",
+    "cartopy>=0.25.0",
+    # Pinned to the devcontainer image's libgdal (Debian bookworm ships 3.6.2).
+    # Used via `from osgeo import gdal` in the GOES scripts. Do not bump without
+    # bumping libgdal-dev in .devcontainer/Dockerfile to match.
+    "gdal==3.6.2",
+    "imageio>=2.37.3",
+    "matplotlib>=3.11.0",
+    "metpy>=1.7.1",
+    "netcdf4>=1.7.4",
+    "numpy>=2.5.1",
+    "pygrib>=2.1.8",
+    # HDF4 reader (`from pyhdf.SD import SD`) — builds against libhdf4-alt-dev.
+    "pyhdf>=0.11.6",
+    "pyproj>=3.7.2",
+    "requests>=2.34.2",
+    "scipy>=1.18.0",
+]

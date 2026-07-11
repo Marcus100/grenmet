@@ -15,6 +15,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
+# Geospatial C libraries for geonetcast/ — the GDAL and HDF4 Python bindings
+# compile against these at `uv sync` time (no wheels on PyPI). The gdal pin in
+# geonetcast/pyproject.toml must match this image's libgdal version.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libgdal-dev \
+      gdal-bin \
+      libhdf4-alt-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh

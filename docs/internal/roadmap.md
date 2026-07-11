@@ -2,7 +2,7 @@
 
 This roadmap covers the implementation of the GMS Digital Services Programme, led by the Digital Transformation Officer (DTO). It tracks both the **technical build** (what is being developed in this monorepo) and the **programme phases** (the operational milestones from the DTO Terms of Reference).
 
-The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the [DTO Terms of Reference](./dto-terms-of-reference.md).
+The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the [DTO Terms of Reference](./dto-terms-of-reference.md). Cross-system integration (SURFACE, wis2box, geonetcast, dashboards, SSO) is tracked separately in the [Systems Integration Roadmap](./integration-roadmap.md).
 
 **Current date:** May 2026 | **Next major milestone:** July 2026 end-of-period review
 

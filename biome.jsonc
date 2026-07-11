@@ -13,7 +13,11 @@
       "!**/.content-collections",
       // Vendored upstream copy of the Studio-Admin template (gitignored, kept
       // for reference only) — never lint/format it.
-      "!next-shadcn-admin-dashboard-baseui"
+      "!next-shadcn-admin-dashboard-baseui",
+      // Vendored GMS ops apps — keep upstream formatting so future upstream
+      // diffs stay clean (see VENDORED.md).
+      "!surface",
+      "!wis2box"
     ]
   },
   "linter": {
