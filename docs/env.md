@@ -123,16 +123,16 @@ Port map: 3001=admin-gms, 3002=hurricaneplan, 3003=spicewx, 3004=signal. See [`p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Current active domain (`barrels.gd`):**
+**Production (both domains — `barrels.gd` + `weather.gd` coexist; see [`weather-gd-golive.md`](./weather-gd-golive.md)):**
 ```
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
+AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd,.weather.gd
 ```
-A leading-dot domain matches every `*.barrels.gd` subdomain (admin, hurricane, spice, signal), so no per-app maintenance is needed — this is exactly what the prod/staging compose files set.
-
-**Planned production domain (`weather.gd`) — update when DNS cutover is complete:**
-```
-AUTH_ALLOWED_RETURN_HOSTS=.weather.gd
-```
+A leading-dot entry matches the apex domain and every subdomain (cookie `Domain`
+semantics), so no per-app maintenance is needed. Suffix matching is implemented in
+`apps/web/auth/src/lib/return-to.ts` (`getSafeReturnTo`) and covered by
+`apps/web/auth/src/test/return-to.test.ts`. In the new deploy stack this value is
+assembled as `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS}` — see
+`infra/docker/production.env`. Staging uses `.staging.barrels.gd` only.
 
 ### Apps that delegate auth (hurricaneplan, spicewx)
 

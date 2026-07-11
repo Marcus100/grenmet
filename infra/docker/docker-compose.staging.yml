@@ -314,13 +314,28 @@ services:
       - --providers.docker
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
+      # Entrypoint-level HTTP→HTTPS redirect (idiomatic Traefik v3; replaces the
+      # old http-catchall router labels).
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --entrypoints.websecure.address=:443
+      # Security headers applied to every HTTPS response (middleware defined in
+      # labels below).
+      - --entrypoints.websecure.http.middlewares=secure-headers-staging@docker
       - --certificatesresolvers.letsencrypt.acme.email=${EMAIL}
       - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
       - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
       - --accesslog
       - --log
       - --api
+      - --ping
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik-dashboard-staging.rule=Host(`traefik.staging.barrels.gd`)"
@@ -329,11 +344,13 @@ services:
       - "traefik.http.routers.traefik-dashboard-staging.service=api@internal"
       - "traefik.http.routers.traefik-dashboard-staging.middlewares=dashboard-auth-staging"
       - "traefik.http.middlewares.dashboard-auth-staging.basicauth.users=${USERNAME}:${HASHED_PASSWORD}"
-      - "traefik.http.routers.http-catchall-staging.rule=HostRegexp(`.+`)"
-      - "traefik.http.routers.http-catchall-staging.entrypoints=web"
-      - "traefik.http.routers.http-catchall-staging.middlewares=https-redirect-staging"
-      - "traefik.http.middlewares.https-redirect-staging.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.https-redirect-staging.redirectscheme.permanent=true"
+      # Global security headers. HSTS starts at 30 days (raise once proven);
+      # SAMEORIGIN (not DENY) so apps can iframe their own pages (print previews).
+      - "traefik.http.middlewares.secure-headers-staging.headers.stsSeconds=2592000"
+      - "traefik.http.middlewares.secure-headers-staging.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.secure-headers-staging.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.secure-headers-staging.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.secure-headers-staging.headers.referrerPolicy=strict-origin-when-cross-origin"
     networks:
       - grenmet-staging
 
