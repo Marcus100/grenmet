@@ -90,7 +90,7 @@ catalog:
   dotenv-cli: "^11.0.0"
 
   # Headless UI — used in spicewx and hurricaneplan (migrate to Base UI eventually)
-  "@headlessui/react": "^2.2.9"
+  "@headlessui/react": "^2.2.10"
 
   # MDX — content-collections stack (hurricaneplan, signal) + @grenmet/mdx
   "@content-collections/core": "^0.10.0"
