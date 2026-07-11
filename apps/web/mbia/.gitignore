@@ -1,0 +1,33 @@
+# dependencies
+/node_modules
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/build
+
+# content-collections (generated at dev/build time)
+/.content-collections
+
+# misc
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# env files
+.env*
+!.env.example
+!.env.*.example
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# MBIA scraped WordPress source material (218MB, reference only) — also in root .gitignore
+/.source/
