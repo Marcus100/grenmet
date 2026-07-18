@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM python:3.11-slim@sha256:b596083aa14d47c78a652138aa9b98607585499d7c7ec343ae378f6c5770822d
+FROM python:3.13-slim-bookworm@sha256:9d7f287598e1a5a978c015ee176d8216435aaf335ed69ac3c38dd1bbb10e8d64
 
 # Install uv
 COPY --from=ghcr.io/astral-sh/uv:0.11.26@sha256:3d868e555f8f1dbc324afa005066cd11e1053fc4743b9808ca8025283e65efa5 /uv /bin/uv

@@ -173,7 +173,7 @@ async def ok():
 
 ## Enums
 
-Use `str, Enum` (not `StrEnum`) — kept for consistency with existing enums; on the pinned Python 3.11 `StrEnum` is available but changes `str()` semantics (`str(member)` yields the value, not `Class.MEMBER`), so don't mix the two:
+Use `str, Enum` (not `StrEnum`) — kept for consistency with existing enums; `StrEnum` changes `str()` semantics (`str(member)` yields the value, not `Class.MEMBER`), so don't mix the two:
 
 ```python
 from enum import Enum
