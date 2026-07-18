@@ -42,9 +42,9 @@ class TrackTheTropicsSpider(WeatherSpider):
     # Domains handled by dedicated spiders - skip to avoid duplicates
     excluded_domains = {
         "cdn.star.nesdis.noaa.gov",  # goes19 spider
-        "tropic.ssec.wisc.edu",      # cimss spider
-        "cimss.ssec.wisc.edu",       # cimss spider
-        "ocean.weather.gov",         # sfcana spider
+        "tropic.ssec.wisc.edu",  # cimss spider
+        "cimss.ssec.wisc.edu",  # cimss spider
+        "ocean.weather.gov",  # sfcana spider
     }
 
     # URL patterns to skip (no download, no JSON)
@@ -108,12 +108,12 @@ class TrackTheTropicsSpider(WeatherSpider):
         "whole_as.png",
         "whole_ds.png",
         # Dynamic/ephemeral images that often 404
-        "98L_tracks.png",           # Only exists during active invest
-        "98L/imagery/rbtop",        # Tropical floater imagery (OSPO)
-        "genprob.aeperts",          # Genesis probability (date-dependent)
-        "genprob.4enscon",          # Ensemble consensus (date-dependent)
+        "98L_tracks.png",  # Only exists during active invest
+        "98L/imagery/rbtop",  # Tropical floater imagery (OSPO)
+        "genprob.aeperts",  # Genesis probability (date-dependent)
+        "genprob.4enscon",  # Ensemble consensus (date-dependent)
         # Blocked by server (403)
-        "000hr_AOR_00Z.jpg",        # Navy METOC - blocks bot requests
+        "000hr_AOR_00Z.jpg",  # Navy METOC - blocks bot requests
     ]
 
     def parse(self, response):
@@ -149,7 +149,9 @@ class TrackTheTropicsSpider(WeatherSpider):
             item = ImageItem()
             item["name"] = name
             item["parent_url"] = response.url
-            item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
+            item["page_title"] = self._clean_text(
+                response.xpath("//title/text()").get()
+            )
             item["fetched_at"] = datetime.now(timezone.utc).isoformat()
             item["image_urls"] = [image_url]
             item["etag"] = None
