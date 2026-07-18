@@ -110,7 +110,6 @@ async def create_user(
         email_data = await generate_new_account_email(
             email_to=user_in.email,
             username=user_in.email,
-            password=user_in.password,
         )
         await run_in_threadpool(
             send_email,
@@ -227,7 +226,6 @@ async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
             email_data = await generate_new_account_email(
                 email_to=user_in.email,
                 username=user_in.username,
-                password=user_in.password,
                 first_name=user_in.first_name,
             )
             await run_in_threadpool(
