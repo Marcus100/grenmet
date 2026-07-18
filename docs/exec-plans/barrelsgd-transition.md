@@ -6,37 +6,61 @@
 
 ## Goal
 
-Turn the existing GrenMet monorepo into the Barrels Grenada platform while
-retaining GrenMet/GMS as one product within that platform. The repository will
-continue to contain all Barrels-operated websites, services, and shared
-packages.
+Turn the existing repository into the primary Barrels Grenada software
+monorepo while retaining GrenMet as the main digital product built for the
+Grenada Meteorological Service (GMS). Barrels Grenada begins with products and
+client software relevant to Grenada, with a longer-term market across the OECS,
+CARICOM, and other companies.
 
 This document records future work only. It does not authorize a repository
 rename, deployment, DNS change, infrastructure mutation, or removal of an
 existing service.
 
+## Why
+
+The current repository, package scope, and infrastructure names make the
+GrenMet product appear to own software that now belongs to the wider Barrels
+portfolio. The transition must establish company ownership without erasing
+GrenMet or conflating it with the institution it serves.
+
+## Scope
+
+This plan covers company and product naming, repository and package ownership,
+GrenMet consolidation, shared platform services, application deployment,
+domains, and fresh infrastructure. It does not build Events/Tickets or the
+future reusable HR product, decide software licensing or client ownership, or
+activate custom domains before access is available.
+
 ## Canonical terminology
 
-- Human organization and brand: **Barrels Grenada**.
+- Software company and umbrella brand: **Barrels Grenada**.
 - Technical slug, repository name, infrastructure prefix, and package owner:
   `barrelsgd`.
-- Weather and meteorological-management product: **GrenMet** or **GMS**.
+- Meteorological institution served by GrenMet: **Grenada Meteorological
+  Service (GMS)**.
+- GMS digital portal developed within the Barrels portfolio: **GrenMet**.
+- Public GrenMet surface: the GMS website at `weather.gd`.
+- Internal GrenMet surface: the authenticated **GMS Dashboard**.
 - GitHub repository target: `Marcus100/barrelsgd`.
 - Workspace scope target: `@barrelsgd/*`.
-- One monorepo remains the source of truth for current and future Barrels
-  websites.
+- This monorepo is the default home for Barrels-operated products and closely
+  related client applications. Use another repository when ownership,
+  confidentiality, deployment, or team independence requires it.
 
 GrenMet is a product identity, not the owner of generic shared packages or
-infrastructure. Intentional GrenMet identifiers that should remain are:
+infrastructure. Intentional GrenMet identifiers that should remain include:
 
-- GrenMet/GMS user-facing product copy.
-- The future `@barrelsgd/grenmet` product package.
+- GrenMet product names and GMS user-facing copy.
+- Product-explicit technical names such as `@barrelsgd/web-grenmet` and
+  `@barrelsgd/grenmet`.
 - Existing GMS `--gm-*` design tokens and assets.
 - GMS-specific Figma integration.
-- CAP identifiers beginning with `urn:grenmet:cap`.
+- GMS product codes and CAP identifiers beginning with `urn:grenmet:cap`.
+- GrenMet capabilities and module names such as CAP and WxWatch.
 
-All other uses of `grenmet` must be reviewed during implementation and either
-renamed to `barrelsgd` or added explicitly to the intentional-remnant list.
+Every use of `grenmet` must be classified during implementation. Preserve it
+when it identifies the GrenMet product; replace it when it incorrectly claims
+ownership of company-wide infrastructure or unrelated Barrels products.
 
 ## Governance gates for future implementation
 
@@ -66,12 +90,15 @@ document is not approval to bypass repository gates while reaching it.
 | --- | --- | ---: | --- |
 | Authentication | `@barrelsgd/web-auth` | 3000 | `auth.barrels.gd` |
 | Barrels admin | `@barrelsgd/web-admin` | 3001 | `admin.barrels.gd` |
-| Hurricane Plan | `@barrelsgd/web-hurricaneplan` | 3002 | `hurricane.barrels.gd` |
-| Weather and GMS admin | `@barrelsgd/web-weather` | 3003 | `weather.barrels.gd`, later `weather.gd` |
+| GrenMet public site and GMS Dashboard | `@barrelsgd/web-grenmet` | 3003 | `weather.barrels.gd`, later `weather.gd` |
 | Signal | `@barrelsgd/web-signal` | 3004 | `signal.barrels.gd` |
-| MBIA/GAA | `@barrelsgd/web-mbia` | 3005 | `mbia.barrels.gd`, later `gaa.gd` |
+| MBIA public airport site | `@barrelsgd/web-mbia` | 3005 | `mbia.barrels.gd` until a dedicated domain is chosen |
 | Barrels corporate hub | `@barrelsgd/web-barrels` | 3006 | `barrels.gd` |
+| GAA corporate site | `@barrelsgd/web-gaa` | 3007 | `gaa.barrels.gd`, later `gaa.gd` |
 | FastAPI | Barrels API identity | Existing API port | `api.barrels.gd` |
+
+The existing Hurricane Plan app remains transitional on port 3002 only until
+its content and workflows are accepted within GrenMet SOPs.
 
 Staging mirrors these applications beneath `*.staging.barrels.gd`. The hub is
 served from `staging.barrels.gd`. Custom production domains such as
@@ -79,7 +106,11 @@ served from `staging.barrels.gd`. Custom production domains such as
 
 ## Package and design-system boundaries
 
-Rename all workspace packages from `@grenmet/*` to `@barrelsgd/*`.
+Use the company-owned `@barrelsgd/*` scope for packages published from this
+monorepo. Company scope does not replace product identity: application and
+domain package names must identify their product explicitly, such as
+`@barrelsgd/web-grenmet`, `@barrelsgd/web-signal`, and
+`@barrelsgd/web-mbia`.
 
 The intended package responsibilities are:
 
@@ -90,8 +121,8 @@ The intended package responsibilities are:
 - `@barrelsgd/grenmet` contains GMS assets, `--gm-*` tokens, GrenMet theme
   presets, alert cards, and weather-product/status variants.
 - `@barrelsgd/barrels` contains the supplied Barrels assets, typography,
-  colors, favicons, and theme presets used by the hub, authentication app, and
-  Barrels admin.
+  colors, favicons, and theme presets used by the hub, Barrels admin, and the
+  authentication service's default shell. Initiating-product context selects
 
 Product packages may depend on shared UI and theme packages. Shared packages
 must not depend on either product package.
@@ -118,20 +149,36 @@ The Barrels visual implementation is gated on receipt of the approved logo,
 colors, typography, favicons, headline, company description, and contact copy.
 Do not invent final brand values in their absence.
 
-## Weather and GMS admin merger
+## GrenMet portal consolidation
 
-Rename `apps/web/spicewx` to `apps/web/weather` and use the package name
-`@barrelsgd/web-weather`.
+Rename `apps/web/spicewx` to `apps/web/grenmet` and use the package name
+`@barrelsgd/web-grenmet`. GrenMet encompasses both the public GMS website and
+the authenticated GMS Dashboard; it is not merely a weather page.
 
-Move all existing `admin-gms` functionality, database clients, migrations,
-tests, and operational code into Weather. Public Weather pages remain at the
-root. Existing GMS interfaces move beneath an authenticated `/admin` layout,
-including:
+Move the existing `admin-gms` functionality, database clients, migrations,
+tests, and operational code into the GMS Dashboard. Core GrenMet capabilities
+include public forecasts, CAP warnings, WxWatch automation, meteorological
+operations, published SOPs, and the internal forecaster workspace.
+
+Existing organization-wide modules remain available during the transition:
+
+- HR, roster, calendar, transport, janitorial, users, and related modules stay
+  in the GMS Dashboard until equivalent reusable Barrels products exist.
+- The future Barrels HR product treats GMS as a customer or tenant. Extraction
+  must preserve GMS workflows before the old modules are retired.
+- WxProducts is a retiring capability. Preserve required behavior and data
+  during consolidation, but do not establish it as a permanent GrenMet
+  boundary without a separate decision.
+- Move the standalone Hurricane Plan content and workflows into GrenMet SOPs.
+  Published SOPs use `/sops`; editing and operational controls remain
+  authenticated.
+
+The consolidated route set includes:
 
 - `/admin`
 - `/admin/cap`
 - `/admin/wxwatch`
-- `/admin/wxproducts`
+- `/admin/wxproducts` during its retirement period
 - `/admin/hr`
 - `/admin/hr-setup`
 - `/admin/roster`
@@ -142,42 +189,50 @@ including:
 - `/admin/salesbus`
 - `/admin/users`
 - `/admin/profile`
+- `/sops` for published GMS SOPs
 
 Handlers such as `/signin`, `/auth/*`, and required `/api/*` routes may remain
-outside `/admin`. Remove the old `admin-gms` application only after every
-callsite, migration, script, test, container, and deployment reference has
-moved. The migration image becomes `barrelsgd-web-weather-migrate`.
+outside `/admin`. Remove the old `admin-gms` and Hurricane Plan applications
+only after every callsite, migration, script, test, container, route, and
+deployment reference has moved and redirects are verified. The migration
+image becomes `barrelsgd-web-grenmet-migrate`.
 
-### Weather host behavior
+### GrenMet host behavior
 
-Before access to `weather.gd` is available, `weather.barrels.gd` serves both
-the public Weather site and authenticated GMS administration.
+Before access to `weather.gd` is available, `weather.barrels.gd` serves the
+public GMS site, `/sops`, and the authenticated GMS Dashboard.
 
 After the custom domain is enabled:
 
-- `weather.gd` is canonical for public Weather routes.
+- `weather.gd` is canonical for public GrenMet routes and published SOPs at
+  `weather.gd/sops`.
 - Public requests to `weather.barrels.gd` permanently redirect with status
   `308` to the equivalent path and query on `weather.gd`.
 - `/admin`, `/signin`, `/auth/*`, and private/internal API routes remain
   canonical on `weather.barrels.gd`.
-- Requests for those private routes on `weather.gd` permanently redirect to
-  the equivalent `weather.barrels.gd` URL.
+- Protected SOP editing remains part of the GMS Dashboard even though published
+  SOPs are available on `weather.gd/sops`.
+- Requests for private routes on `weather.gd` permanently redirect to the
+  equivalent `weather.barrels.gd` URL.
+- The former standalone Hurricane Plan URL permanently redirects to `/sops`
+  after the SOP migration is accepted.
 - Validated environment configuration enables custom-domain mode without a
   further code change.
 - Middleware must prevent redirect loops and preserve paths and queries.
 
 ## Barrels hub and administration
 
-Create `apps/web/barrels` as a corporate holding page at `barrels.gd`.
-Permanently redirect `www.barrels.gd` to `barrels.gd`. The page should use the
-approved Barrels brand kit and copy once supplied.
+Create `apps/web/barrels` as the company site at `barrels.gd`. Permanently
+redirect `www.barrels.gd` to `barrels.gd`. The page should use the approved
+Barrels brand kit and copy once supplied.
 
 Create `apps/web/admin` as a separate Barrels-wide control plane at
 `admin.barrels.gd`:
 
 - Require Barrels authentication.
-- Show a minimal dashboard with launch/status cards for the hub, Weather,
-  Hurricane Plan, Signal, MBIA, authentication, and API.
+- Show a minimal dashboard with launch/status cards for the hub, GrenMet,
+  Signal, MBIA, GAA, authentication, and API.
+- Add Events/Tickets and HR cards only when those products are deployed.
 - Support optional operational links to GitHub Actions, Sentry, and the
   DigitalOcean project through validated `src/env.ts` configuration.
 - Do not place GMS business modules in this application.
@@ -190,15 +245,36 @@ on `admin.barrels.gd` to their equivalents beneath
 `/salesbus`, `/users`, and `/profile`. The Barrels admin root and its new
 control-plane routes remain local.
 
+## Out-of-scope follow-ups
+
+- Begin Barrels Events and Barrels Tickets as one future product with event
+  discovery and ticketing modules. Split them only if branding or operations
+  materially diverge. They are not part of this infrastructure migration.
+- Build reusable Barrels HR as a future product. GMS becomes a customer or
+  tenant only after the replacement covers its current HR and roster workflows.
+- Treat Grenada Signal as a separate Barrels media product, not a GrenMet
+  module.
+- Keep the MBIA passenger website and GAA corporate website distinct while
+  sharing airport data, administration, and platform services where useful.
+- Add future Grenada-focused products according to evidence, operating
+  capacity, and customer demand; expand to OECS and CARICOM markets without
+  forcing unrelated products into GrenMet.
+
 ## Repository and platform rename
 
 - Rename the root project to `barrelsgd-monorepo`.
-- Update workspace package names, imports, Turbo filters, scripts, TypeScript
-  references, test aliases, lockfile workspace entries, and documentation.
-- Change the OpenAPI title to `Barrels Grenada API`.
-- Change generic email and TOTP issuer wording to `Barrels Grenada`.
-- Replace `grenmet_session` with `barrelsgd_session` and intentionally reset
-  all sessions.
+- Update company-owned workspace scopes to `@barrelsgd/*`, while retaining
+  product-explicit names such as `web-grenmet`, `web-signal`, `web-mbia`, and
+  `web-gaa`.
+- Update imports, Turbo filters, scripts, TypeScript references, test aliases,
+  lockfile workspace entries, and documentation atomically.
+- Change the shared OpenAPI title to `Barrels Grenada API` while keeping
+  GrenMet-specific route and schema terminology where it represents GMS.
+- Make shared authentication product-aware: each application supplies its
+  display name, email branding, sign-in presentation, roles, and access policy.
+  Use Barrels branding only for Barrels company surfaces.
+- Replace `grenmet_session` with the company-owned technical cookie
+  `barrelsgd_session` and intentionally reset all sessions.
 - Regenerate `openapi.json` before regenerating the TypeScript API client.
   Never edit generated client files manually.
 - Rename the repository in place to `Marcus100/barrelsgd` and update local
@@ -207,8 +283,9 @@ control-plane routes remain local.
   repository. GitHub redirects normal web and Git traffic after a rename, but
   hosted Actions references to the previous `owner/repository` do not redirect.
 
-The final case-insensitive `grenmet` scan must contain only documented product
-identifiers.
+The final case-insensitive `grenmet` scan is a classification audit, not a
+deletion target. Every remaining occurrence must identify the GrenMet product
+or GMS domain intentionally.
 
 ## Images and deployment services
 
@@ -217,12 +294,15 @@ Build and publish these target images:
 - `ghcr.io/marcus100/barrelsgd`
 - `ghcr.io/marcus100/barrelsgd-web-auth`
 - `ghcr.io/marcus100/barrelsgd-web-admin`
-- `ghcr.io/marcus100/barrelsgd-web-hurricaneplan`
-- `ghcr.io/marcus100/barrelsgd-web-weather`
-- `ghcr.io/marcus100/barrelsgd-web-weather-migrate`
+- `ghcr.io/marcus100/barrelsgd-web-grenmet`
+- `ghcr.io/marcus100/barrelsgd-web-grenmet-migrate`
 - `ghcr.io/marcus100/barrelsgd-web-signal`
 - `ghcr.io/marcus100/barrelsgd-web-mbia`
+- `ghcr.io/marcus100/barrelsgd-web-gaa`
 - `ghcr.io/marcus100/barrelsgd-web-barrels`
+
+Retain the existing Hurricane Plan image only during its migration into
+GrenMet SOPs; it is not part of the final image set.
 
 Add every application to the Docker build matrix, Compose services, Traefik
 routing, health checks, deployment smoke tests, Sentry configuration, and
@@ -266,11 +346,13 @@ the existing access-control approach.
 - Run scheduled restore verification into an isolated temporary database.
 - Enable weekly DigitalOcean backups for production only.
 - Create the Sentry organization `barrelsgd` with per-application projects:
-  `api`, `web-auth`, `web-admin`, `web-hurricaneplan`, `web-weather`,
-  `web-signal`, `web-mbia`, and `web-barrels`.
+  `api`, `web-auth`, `web-admin`, `web-grenmet`, `web-signal`, `web-mbia`,
+  `web-gaa`, and `web-barrels`.
+- Keep the Hurricane Plan project only through its SOP migration.
 - Use `staging` and `production` Sentry environments and separate DSNs stored
   as deployment secrets.
-- Do not reuse the old GrenMet Sentry organization or projects.
+- Do not reuse the old infrastructure-level GrenMet Sentry organization or
+  projects; GrenMet remains a product name within the Barrels organization.
 
 ## DNS map and rollout
 
@@ -280,10 +362,11 @@ Initial production records are:
 - `auth.barrels.gd`
 - `admin.barrels.gd`
 - `api.barrels.gd`
-- `hurricane.barrels.gd`
 - `weather.barrels.gd`
+- `hurricane.barrels.gd` as a redirect-only hostname after SOP migration
 - `signal.barrels.gd`
 - `mbia.barrels.gd`
+- `gaa.barrels.gd`
 
 Staging records are:
 
@@ -291,53 +374,67 @@ Staging records are:
 - `auth.staging.barrels.gd`
 - `admin.staging.barrels.gd`
 - `api.staging.barrels.gd`
-- `hurricane.staging.barrels.gd`
 - `weather.staging.barrels.gd`
+- `hurricane.staging.barrels.gd` until SOP redirect verification is complete
 - `signal.staging.barrels.gd`
 - `mbia.staging.barrels.gd`
+- `gaa.staging.barrels.gd`
 
 The rollout order is:
 
 1. Provision and secure fresh staging.
-2. Deploy every image and initialize empty databases.
+2. Deploy every target image and initialize empty databases.
 3. Complete staging functional, authentication, migration, backup, and restore
    verification.
-4. Provision production and deploy without changing public DNS.
-5. Lower applicable DNS TTLs.
-6. Point `*.barrels.gd` records to the new production droplet.
-7. Verify HTTPS, host routing, authentication, GMS redirects, health checks,
-   Sentry, and backups.
-8. Retire the old GrenMet infrastructure immediately after every acceptance
-   check passes and the owner explicitly confirms destruction. This choice
-   intentionally provides no extended infrastructure rollback window.
-9. Add `weather.gd` later and enable its canonical-host behavior.
-10. Add `gaa.gd` later, make it canonical, and permanently redirect
-    `mbia.barrels.gd` to the equivalent GAA path.
+4. Complete the Hurricane Plan to GrenMet SOP migration, then retain the old
+   hostname, TLS certificate, and lightweight permanent redirect until its
+   approved redirect-retention period ends.
+5. Provision production and deploy without changing public DNS.
+6. Lower applicable DNS TTLs.
+7. Point `*.barrels.gd` records to the new production droplet.
+8. Verify HTTPS, host routing, product-branded authentication, GMS redirects,
+   health checks, Sentry, and backups.
+9. Retire the legacy infrastructure resources named for GrenMet immediately
+   after every acceptance check passes and the owner explicitly confirms
+   destruction. The GrenMet product itself continues.
+10. Add `weather.gd` later and enable its canonical-host behavior.
+11. Add `gaa.gd` later, make it canonical for the GAA corporate site, and
+    permanently redirect `gaa.barrels.gd` to it.
+12. Keep MBIA as a distinct passenger website; never redirect it to GAA merely
+    because the corporate domain becomes available.
 
 ## Reviewable implementation sequence
 
 Repository agents must not create commits. The following are small review
 boundaries that an authorized human may commit separately:
 
-1. Document canonical terminology, domains, and intentional GrenMet remnants.
-2. Rename the workspace scope and generic platform identifiers.
-3. Add neutral UI and theme contracts without changing application appearance.
-4. Extract the GrenMet product package and migrate GMS consumers.
-5. Add the Barrels product package with placeholder-safe brand interfaces.
-6. Rename SpiceWX to Weather.
-7. Move GMS admin routes, tests, migrations, and data layers into Weather.
-8. Add Weather host-aware routing and legacy admin redirects.
-9. Remove the old `admin-gms` workspace.
-10. Add the Barrels admin shell.
-11. Add the Barrels corporate hub.
-12. Containerize Signal, MBIA, Barrels Admin, and Barrels Hub.
-13. Rename Docker, Compose, backup, Sentry, and workflow identities.
-14. Regenerate OpenAPI and the API client.
-15. Update operational documentation and run the final remnant audit.
-16. Perform the separately authorized GitHub repository rename.
-17. Provision and validate staging, then provision and cut over production.
-18. Complete the `weather.gd` and `gaa.gd` cutovers independently when access
+1. [x] Correct canonical company, product, institution, and domain terminology.
+2. [ ] Rename company-owned workspace scopes and generic platform identifiers while
+   retaining product-explicit package names.
+3. [ ] Add neutral UI and theme contracts without changing application appearance.
+4. [ ] Extract the GrenMet product package and migrate GMS consumers.
+5. [ ] Add the Barrels product package with placeholder-safe brand interfaces.
+6. [ ] Rename SpiceWX to GrenMet.
+7. [ ] Move GMS admin routes, tests, migrations, and data layers into the GMS
+   Dashboard.
+8. [ ] Move Hurricane Plan content and workflows into GrenMet SOPs, then add
+   permanent redirects.
+9. [ ] Audit WxProducts consumers and create a separate retirement boundary.
+10. [ ] Remove the old `admin-gms` and Hurricane Plan workspaces only after their
+    replacements pass acceptance checks.
+11. [ ] Add the Barrels admin shell and corporate hub.
+12. [ ] Separate GAA from the MBIA passenger site and containerize both.
+13. [ ] Containerize Signal and every remaining target application.
+14. [ ] Make shared authentication product-aware.
+15. [ ] Rename Docker, Compose, backup, Sentry, and workflow identities.
+16. [ ] Regenerate OpenAPI and the API client where contracts change.
+17. [ ] Update operational documentation and run the classified remnant audit.
+18. [ ] Perform the separately authorized GitHub repository rename.
+19. [ ] Provision and validate staging, then provision and cut over production.
+20. [ ] Complete the `weather.gd` and `gaa.gd` cutovers independently when access
     is available.
+21. [ ] Plan Events/Tickets and reusable HR as later product initiatives, not as
+    hidden additions to this transition.
 
 Each boundary must preserve a runnable workspace, pass its focused checks, run
 `pnpm fix` followed by `pnpm type-check`, and complete the Blast-Radius Gate
@@ -349,31 +446,38 @@ before continuing.
 
 - Run `pnpm fix` and `pnpm type-check`.
 - Run package checks and tests for every changed workspace.
-- Run the migrated Weather and GMS admin test suites.
+- Run the migrated GrenMet and GMS Dashboard test suites.
 - Run FastAPI pytest, lint, and mypy checks.
 - Regenerate OpenAPI and the client, then run `pnpm check:drift`.
 - Confirm generated client files were not manually edited.
 
 ### Routes and authentication
 
-- Public Weather works on `weather.barrels.gd` before custom-domain mode.
-- Every GMS `/admin` route requires authentication.
-- Authentication retains the intended return URL.
-- Former GMS paths on `admin.barrels.gd` redirect to Weather administration.
+- Public GrenMet works on `weather.barrels.gd` before custom-domain mode.
+- Every GMS Dashboard `/admin` route requires authentication.
+- Published SOPs resolve at `/sops`; protected editing remains authenticated.
+- The former Hurricane Plan URL redirects permanently to GrenMet SOPs after
+  migration.
+- Authentication retains the intended return URL and presents the calling
+  product's branding and roles.
+- Former GMS paths on `admin.barrels.gd` redirect to the GMS Dashboard.
 - The Barrels admin root remains a distinct protected dashboard.
-- Custom-domain mode canonicalizes public and private Weather routes correctly,
+- Custom-domain mode canonicalizes public and private GrenMet routes correctly,
   preserves paths and queries, and cannot form loops.
+- MBIA and GAA remain separately routable websites.
 - `grenmet_session` no longer authenticates; `barrelsgd_session` does.
 
 ### Branding and package ownership
 
 - Shared UI renders without a product package.
 - Shared UI contains no GMS assets or concrete `--gm-*` values.
-- Weather renders GMS styling through `@barrelsgd/grenmet`.
-- Barrels applications consume `@barrelsgd/barrels`.
-- Signal and MBIA retain their intended identities.
-- No unauthorized `@grenmet`, `grenmet-*`, old image, cookie, runner, or
-  Compose identifier remains.
+- GrenMet renders GMS styling through `@barrelsgd/grenmet`.
+- Barrels company surfaces consume `@barrelsgd/barrels`.
+- Signal, MBIA, and GAA retain their intended identities.
+- No company-wide package remains under `@grenmet/*`; GrenMet remains explicit
+  in the names of product-specific packages, modules, assets, and copy.
+- The final remnant audit distinguishes intentional product identity from stale
+  infrastructure ownership.
 
 ### Deployment
 
@@ -388,13 +492,20 @@ before continuing.
 ## Assumptions and prerequisites
 
 - `Marcus100` remains the GitHub repository owner.
+- Barrels Grenada is the software company responsible for this repository;
 - No existing users, application data, sessions, or database history require
   migration.
 - DNS control for `barrels.gd` is available.
 - Access to `weather.gd` and `gaa.gd` is a later prerequisite and does not block
   the first Barrels deployment.
-- `admin.barrels.gd` is the Barrels-wide control plane. All current GMS
-  administration belongs to Weather.
-- `mbia.barrels.gd` is temporary and will redirect to `gaa.gd`.
+- `admin.barrels.gd` is the Barrels-wide control plane. GrenMet business
+  administration belongs to the GMS Dashboard.
+- Existing GMS HR, roster, and organization-wide modules remain until reusable
+  Barrels replacements meet their workflows.
+- MBIA and GAA are separate websites. MBIA is not a temporary alias for GAA.
+- Barrels Events/Tickets and reusable HR are future product initiatives, not
+  hidden scope in this transition.
+- Shared authentication infrastructure presents product-specific branding,
+  roles, and access.
 - DNS changes, repository renames, secret creation, infrastructure provisioning,
   deployment, and resource deletion require separate explicit authorization.
