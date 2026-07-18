@@ -95,6 +95,11 @@ Read by `infra/docker/docker-compose.yml` only. FastAPI variables do **not** bel
 | `EMAIL_RENDER_SECRET` | Optional shared secret sent to the email render endpoint |
 | `EMAIL_RESET_TOKEN_EXPIRE_HOURS` | Password reset link lifetime |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
+| `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
+| `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
+| `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
+| `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
+| `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
 | `SENTRY_DSN` | Sentry error tracking DSN (leave empty to disable) |
 | `DOCKER_IMAGE_BACKEND` | Image name used by CI/CD (default: `backend`) |
 

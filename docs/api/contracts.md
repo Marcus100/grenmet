@@ -104,6 +104,40 @@ Some older auth endpoints still use `skip` and `limit`. New list endpoints shoul
 
 Deployment smoke checks currently use liveness. Operational diagnosis should use readiness when database access matters.
 
+## Billing
+
+The first billing vertical slice uses Stripe-hosted Checkout for one configured
+recurring Price. It proves subscription Checkout and signed webhook delivery; it
+does not persist customers/subscriptions or provision paid access yet.
+
+| Endpoint | Authentication | Contract |
+| --- | --- | --- |
+| `POST /api/v1/billing/checkout-sessions` | Bearer token required | Creates a Stripe Checkout Session in `subscription` mode and returns `{"id":"cs_...","url":"https://checkout.stripe.com/..."}` |
+
+The Checkout Session associates the authenticated user with Stripe using
+`client_reference_id` plus `user_id` metadata on both the Session and resulting
+Subscription. Stripe API failures return 502. Missing billing configuration returns
+503.
+
+Local Stripe test-mode flow:
+
+1. In the Stripe test Dashboard, create a recurring Price (the product brief's test
+   target is XCD 5/month) and set its `price_...` ID as
+   `BILLING_STRIPE_PRICE_ID`.
+2. Set `BILLING_STRIPE_SECRET_KEY` to the test `sk_test_...` key.
+3. Forward Stripe events to the local API:
+
+   ```bash
+   stripe listen \
+     --events checkout.session.completed,customer.subscription.created,customer.subscription.updated,customer.subscription.deleted,invoice.paid,invoice.payment_failed \
+     --forward-to localhost:8000/api/v1/billing/webhooks/stripe
+   ```
+
+4. Set `BILLING_STRIPE_WEBHOOK_SECRET` to the `whsec_...` value printed by the
+   listener, restart FastAPI, authenticate in Scalar, and call the Checkout endpoint.
+5. Open the returned URL and use Stripe's interactive test card
+   `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
+
 ## Public CAP Feed Contract
 
 Public CAP routes are mounted outside `/api/v1`. They expose **only `scope == Public`
@@ -126,6 +160,13 @@ CAP management routes are under `/api/v1/cap` and require authenticated users pl
 ## Webhooks
 
 `POST /api/v1/webhooks/resend` receives Resend delivery events. It is excluded from OpenAPI. If `RESEND_WEBHOOK_SECRET` is set, Svix signature headers are required and verified. If the secret is not set, the endpoint accepts events and logs a warning.
+
+- `POST /api/v1/billing/webhooks/stripe` receives Stripe snapshot events and is
+  excluded from OpenAPI. It verifies the raw request body against the
+  `Stripe-Signature` header with `BILLING_STRIPE_WEBHOOK_SECRET`, including Stripe's
+  five-minute timestamp tolerance. Missing configuration returns 503; unsigned,
+  stale, malformed, or tampered events return 400. Valid events are logged only in
+  this proof—there is no subscription persistence or entitlement provisioning yet.
 
 ## Current Gaps
 
