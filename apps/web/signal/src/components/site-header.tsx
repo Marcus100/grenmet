@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
+import { buttonVariants } from "@grenmet/ui/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -8,6 +8,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@grenmet/ui/components/ui/sheet";
+import { cn } from "@grenmet/ui/lib/utils";
 import { Menu, RadioTower } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -44,9 +45,9 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <Button asChild size="sm">
-            <Link href="/#subscribe">Subscribe</Link>
-          </Button>
+          <Link className={buttonVariants({ size: "sm" })} href="/#subscribe">
+            Subscribe
+          </Link>
         </nav>
 
         <Sheet onOpenChange={setOpen} open={open}>
@@ -73,11 +74,13 @@ export function SiteHeader() {
                   {link.label}
                 </Link>
               ))}
-              <Button asChild className="mt-3">
-                <Link href="/#subscribe" onClick={() => setOpen(false)}>
-                  Subscribe
-                </Link>
-              </Button>
+              <Link
+                className={cn(buttonVariants(), "mt-3")}
+                href="/#subscribe"
+                onClick={() => setOpen(false)}
+              >
+                Subscribe
+              </Link>
             </nav>
           </SheetContent>
         </Sheet>
