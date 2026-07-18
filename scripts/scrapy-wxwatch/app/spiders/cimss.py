@@ -85,7 +85,9 @@ class CimssSpider(WeatherSpider):
             item = ImageItem()
             item["name"] = filename
             item["parent_url"] = response.url
-            item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
+            item["page_title"] = self._clean_text(
+                response.xpath("//title/text()").get()
+            )
             item["source_modified"] = source_modified
             item["observation_time"] = self._round_to_hour(source_modified)
             item["fetched_at"] = datetime.now(timezone.utc).isoformat()
