@@ -63,7 +63,7 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
     yield

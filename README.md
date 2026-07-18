@@ -178,7 +178,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.11 (FastAPI) and Python 3.13+ (notebooks and scrapy-wxwatch)
+- Python 3.13+ (FastAPI, notebooks, and scrapy-wxwatch)
 - Node.js 24 (for Web)
 - pnpm 10+ (for Web)
 
