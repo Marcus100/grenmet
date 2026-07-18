@@ -28,6 +28,10 @@
     "design-system:contrast": "node scripts/design-system/design-system-contrast.mjs",
     "design-system:audit": "node scripts/design-system/design-system-audit.mjs",
     "design-system:audit:full": "node scripts/design-system/design-system-audit.mjs --all",
+    "guardrails": "node scripts/guardrails/check-blast-radius.mjs",
+    "guardrails:staged": "node scripts/guardrails/check-blast-radius.mjs --staged",
+    "test:guardrails": "node --test scripts/guardrails/*.test.mjs",
+    "prepare": "husky",
     "lint": "turbo run lint",
     "check": "turbo run check",
     "check:fix": "turbo run check:fix",
@@ -41,6 +45,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "husky": "catalog:",
+    "lint-staged": "catalog:",
     "turbo": "^2.9.14",
     "ultracite": "^7.6.0"
   },

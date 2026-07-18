@@ -8,6 +8,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
 ### Always (no confirmation needed)
 - Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
 - Include tests with every new feature or significant logic change

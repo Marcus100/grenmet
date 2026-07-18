@@ -81,13 +81,14 @@ pnpm generate:api-client    # Regenerate TS client from FastAPI OpenAPI
 pnpm check:drift            # Verify API client is in sync with openapi.json
 ```
 
-## Top 5 Conventions
+## Top 6 Conventions
 
 1. Run `pnpm fix` then `pnpm type-check` before marking any task done — no exceptions.
-2. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
-3. Import UI primitives from `@grenmet/ui/components/ui/<name>`, utils from `@grenmet/ui/lib/utils`.
-4. Access env vars through the app's `src/env.ts` — never `process.env` directly.
-5. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
+2. Use Biome/Ultracite through `pnpm fix` for linting and formatting — never invoke Prettier.
+3. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
+4. Import UI primitives from `@grenmet/ui/components/ui/<name>`, utils from `@grenmet/ui/lib/utils`.
+5. Access env vars through the app's `src/env.ts` — never `process.env` directly.
+6. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
 
 ## Top 6 Anti-Patterns
 
