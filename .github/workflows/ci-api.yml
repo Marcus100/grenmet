@@ -61,20 +61,22 @@ jobs:
           enable-cache: true
           cache-local-path: ~/.cache/uv
 
+      - name: Verify workspace lockfile is current
+        run: uv lock --check
+
       - name: Install dependencies
-        # --frozen: install exactly what's in uv.lock (same as the prod image).
-        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
-        # dependency drift that otherwise only surfaces as a crash in production.
-        run: uv sync --frozen
+        # --frozen installs exactly what's in the lockfile after the explicit
+        # freshness check above, matching the production image.
+        run: uv sync --frozen --package fast-back
 
       - name: Run Ruff (Linter)
-        run: uv run ruff check src scripts
+        run: uv run --frozen --package fast-back ruff check src scripts
 
       - name: Run Ruff (Formatter Check)
-        run: uv run ruff format src scripts --check
+        run: uv run --frozen --package fast-back ruff format src scripts --check
 
       - name: Run mypy (Type Checker)
-        run: uv run mypy src
+        run: uv run --frozen --package fast-back mypy src
 
   # Job 2: Security Checks
   security:
@@ -158,20 +160,19 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        # --frozen: install exactly what's in uv.lock (same as the prod image).
-        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
-        # dependency drift that otherwise only surfaces as a crash in production.
-        run: uv sync --frozen
+        # Lockfile freshness is enforced by the lint job; --frozen keeps this
+        # job on that exact resolution.
+        run: uv sync --frozen --package fast-back
 
       - name: Run migrations
-        run: uv run alembic upgrade head
+        run: uv run --frozen --package fast-back alembic upgrade head
 
       - name: Run tests with coverage
         run: |
-          uv run coverage run --source=src -m pytest -v --tb=short
-          uv run coverage report --show-missing
-          uv run coverage xml
-          uv run coverage html
+          uv run --frozen --package fast-back coverage run --source=src -m pytest -v --tb=short
+          uv run --frozen --package fast-back coverage report --show-missing
+          uv run --frozen --package fast-back coverage xml
+          uv run --frozen --package fast-back coverage html
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -206,7 +207,7 @@ jobs:
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
 
         with:
-          context: apps/api/fastapi
+          context: .
           file: apps/api/fastapi/Dockerfile.prod
           push: false
           tags: test-image:latest
@@ -232,7 +233,7 @@ jobs:
             -e POSTGRES_USER=app -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
             -e FIRST_SUPERUSER=ci@weather.gd -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
             test-image:latest \
-            -lc 'uv run python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
+            -lc 'uv run --frozen --no-dev --package fast-back python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true
@@ -309,10 +310,9 @@ jobs:
           cache-local-path: ~/.cache/uv
 
       - name: Install dependencies
-        # --frozen: install exactly what's in uv.lock (same as the prod image).
-        # Fails CI if uv.lock is out of sync with pyproject.toml — catching the
-        # dependency drift that otherwise only surfaces as a crash in production.
-        run: uv sync --frozen
+        # Lockfile freshness is enforced by the lint job; --frozen keeps this
+        # job on that exact resolution.
+        run: uv sync --frozen --package fast-back
 
       - name: Generate OpenAPI schema
         env:
@@ -329,7 +329,7 @@ jobs:
           # diff below would always trip on the title alone (not a real change).
           PROJECT_NAME: "Grenmet API"
         run: |
-          uv run python -c "
+          uv run --frozen --package fast-back python -c "
           from src.main import app
           import json
           with open('openapi.json', 'w') as f:

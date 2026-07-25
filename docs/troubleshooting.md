@@ -157,7 +157,7 @@ Commit both the schema file and the generated migration.
 
 `pnpm reset` wipes volumes. You need to re-run seed scripts if you need test data:
 
-- FastAPI: `cd apps/api/fastapi && uv run python -m scripts.seed_data`
+- FastAPI: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
 - wxproducts: `cd apps/web/wxproducts && pnpm db:migrate` (seeds are in `src/db/seed.ts`)
 
 ---

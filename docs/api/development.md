@@ -13,6 +13,7 @@ Use this for daily development when you want shared infra and API together.
 ```bash
 # from repo root
 pnpm install
+cp infra/docker/.env.local.example infra/docker/.env.local
 cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 pnpm start
 ```
@@ -30,12 +31,14 @@ Use this when iterating only on FastAPI.
 
 ```bash
 # from repo root (one time per session)
-docker compose -f infra/docker/docker-compose.yml --profile tools up -d
+docker compose -p grenmet --env-file infra/docker/.env.local \
+  -f infra/docker/docker-compose.yml --profile tools up -d
 
 # then
 cd apps/api/fastapi
 cp .env.local.example .env.local
-docker compose watch
+docker compose -p grenmet-api --env-file .env.local \
+  -f docker-compose.yml watch
 ```
 
 Important: `apps/api/fastapi/docker-compose.yml` expects an external Docker network named `grenmet`, created by the shared infra compose file.
@@ -56,32 +59,34 @@ The API compose file currently defines:
 
 - `prestart`
 - `api`
+- `redis`
+- `worker`
 
 It does not define `db`, `adminer`, or `mailcatcher`; those come from `infra/docker/docker-compose.yml`.
 
 Live-reload details:
 
 - Source, alembic, scripts, tests, and templates are bind-mounted into the API container.
-- `develop.watch` is configured to rebuild when `pyproject.toml` changes.
+- `develop.watch` rebuilds when the root lock/workspace or FastAPI `pyproject.toml` changes.
 
 ## Development Commands (inside `apps/api/fastapi`)
 
 ```bash
 # Logs
-docker compose logs -f api
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml logs -f api
 
 # Shell
-docker compose exec api bash
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api bash
 
 # Migrations
-docker compose exec api uv run alembic upgrade head
-docker compose exec api uv run alembic revision --autogenerate -m "message"
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic upgrade head
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "message"
 
 # Tests
-docker compose exec api uv run pytest
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest
 
 # Quick smoke script
-docker compose exec api python scripts/quick_test.py
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/quick_test.py
 ```
 
 ## Helper Scripts
@@ -101,13 +106,14 @@ Notes:
 - Use the shared infra compose to inspect Postgres:
 
 ```bash
-docker compose -f ../../infra/docker/docker-compose.yml --profile tools logs -f postgres
+docker compose -p grenmet --env-file ../../../infra/docker/.env.local \
+  -f ../../../infra/docker/docker-compose.yml --profile tools logs -f postgres
 ```
 
 ## Database Seeding
 
 ```bash
-docker compose exec api python scripts/seed_data.py --reset
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/seed_data.py --reset
 ```
 
 Related scripts:
@@ -122,7 +128,7 @@ Regenerate `openapi.json` from the app object:
 
 ```bash
 cd apps/api/fastapi
-uv run python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
 ```
 
 This is useful before regenerating `packages/api-client`.
@@ -134,7 +140,8 @@ This is useful before regenerating `packages/api-client`.
 Start shared infra first:
 
 ```bash
-docker compose -f infra/docker/docker-compose.yml --profile tools up -d
+docker compose -p grenmet --env-file infra/docker/.env.local \
+  -f infra/docker/docker-compose.yml --profile tools up -d
 ```
 
 ### Docs not found at `/docs`
@@ -149,7 +156,7 @@ Stop conflicting service or change the API host port in `apps/api/fastapi/docker
 
 ```bash
 cd apps/api/fastapi
-docker compose down
-docker compose build --no-cache
-docker compose watch
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml down --remove-orphans
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml build --no-cache
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml watch
 ```

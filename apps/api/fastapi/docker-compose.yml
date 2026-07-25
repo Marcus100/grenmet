@@ -13,17 +13,18 @@
 services:
   prestart:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../..
+      dockerfile: apps/api/fastapi/Dockerfile
     restart: "no"
     command: bash scripts/prestart.sh
     volumes:
-      - ./scripts:/app/scripts
-      - ./src:/app/src
-      - ./alembic:/app/alembic
-      - ./alembic.ini:/app/alembic.ini
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./uv.lock:/app/uv.lock
+      - ./scripts:/app/apps/api/fastapi/scripts
+      - ./src:/app/apps/api/fastapi/src
+      - ./alembic:/app/apps/api/fastapi/alembic
+      - ./alembic.ini:/app/apps/api/fastapi/alembic.ini
+      - ./pyproject.toml:/app/apps/api/fastapi/pyproject.toml
+      - ../../../pyproject.toml:/app/pyproject.toml
+      - ../../../uv.lock:/app/uv.lock
     env_file:
       - .env.local
     environment:
@@ -37,8 +38,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../..
+      dockerfile: apps/api/fastapi/Dockerfile
     restart: "no"
     depends_on:
       prestart:
@@ -61,19 +62,24 @@ services:
       - EMAILS_FROM_EMAIL=noreply@barrels.gd
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
-      - ./src:/app/src
-      - ./alembic:/app/alembic
-      - ./email-templates:/app/email-templates
-      - ./scripts:/app/scripts
-      - ./tests:/app/tests
-      - ./alembic.ini:/app/alembic.ini
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./uv.lock:/app/uv.lock
-    command: uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+      - ./src:/app/apps/api/fastapi/src
+      - ./alembic:/app/apps/api/fastapi/alembic
+      - ./email-templates:/app/apps/api/fastapi/email-templates
+      - ./scripts:/app/apps/api/fastapi/scripts
+      - ./tests:/app/apps/api/fastapi/tests
+      - ./alembic.ini:/app/apps/api/fastapi/alembic.ini
+      - ./pyproject.toml:/app/apps/api/fastapi/pyproject.toml
+      - ../../../pyproject.toml:/app/pyproject.toml
+      - ../../../uv.lock:/app/uv.lock
+    command: uv run --frozen --package fast-back uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     develop:
       watch:
         - action: rebuild
           path: ./pyproject.toml
+        - action: rebuild
+          path: ../../../pyproject.toml
+        - action: rebuild
+          path: ../../../uv.lock
     healthcheck:
       test:
         - CMD
@@ -116,8 +122,8 @@ services:
 
   worker:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../../..
+      dockerfile: apps/api/fastapi/Dockerfile
     restart: "no"
     depends_on:
       prestart:
@@ -134,12 +140,13 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
-      - ./src:/app/src
-      - ./alembic:/app/alembic
-      - ./scripts:/app/scripts
-      - ./pyproject.toml:/app/pyproject.toml
-      - ./uv.lock:/app/uv.lock
-    command: uv run arq src.worker.main.WorkerSettings
+      - ./src:/app/apps/api/fastapi/src
+      - ./alembic:/app/apps/api/fastapi/alembic
+      - ./scripts:/app/apps/api/fastapi/scripts
+      - ./pyproject.toml:/app/apps/api/fastapi/pyproject.toml
+      - ../../../pyproject.toml:/app/pyproject.toml
+      - ../../../uv.lock:/app/uv.lock
+    command: uv run --frozen --package fast-back arq src.worker.main.WorkerSettings
     networks:
       - grenmet
 

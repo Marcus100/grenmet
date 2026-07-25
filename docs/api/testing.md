@@ -16,10 +16,10 @@ Run from `apps/api/fastapi`:
 ./scripts/lint.sh
 
 # Full pytest suite
-docker compose exec api uv run pytest
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest
 
 # Fast smoke suite (HTTP-level)
-docker compose exec api python scripts/quick_test.py
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/quick_test.py
 ```
 
 ## Targeted Test Commands
@@ -27,15 +27,15 @@ docker compose exec api python scripts/quick_test.py
 ### Unit and integration tests
 
 ```bash
-docker compose exec api uv run pytest -v
-docker compose exec api uv run pytest tests/auth/routers/test_login.py
-docker compose exec api uv run pytest tests/hr/test_workflow.py
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest -v
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest tests/auth/routers/test_login.py
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest tests/hr/test_workflow.py
 ```
 
 ### Coverage
 
 ```bash
-docker compose exec api uv run pytest --cov=src --cov-report=term --cov-report=html
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest --cov=src --cov-report=term --cov-report=html
 ```
 
 Coverage HTML output: `apps/api/fastapi/htmlcov/index.html`
@@ -43,9 +43,9 @@ Coverage HTML output: `apps/api/fastapi/htmlcov/index.html`
 ### Type checks and linting (container)
 
 ```bash
-docker compose exec api uv run mypy src
-docker compose exec api uv run ruff check src scripts
-docker compose exec api uv run ruff format src scripts --check
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back mypy src
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back ruff check src scripts
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back ruff format src scripts --check
 ```
 
 ### Local (non-container) fallback
@@ -53,18 +53,18 @@ docker compose exec api uv run ruff format src scripts --check
 If you run tools locally instead of in the container:
 
 ```bash
-uv sync
-uv run pytest
-uv run mypy src
-uv run ruff check src scripts
+uv sync --frozen --package fast-back
+uv run --frozen --package fast-back pytest
+uv run --frozen --package fast-back mypy src
+uv run --frozen --package fast-back ruff check src scripts
 ```
 
 ## Migration Safety Checks
 
 ```bash
-docker compose exec api uv run alembic current
-docker compose exec api uv run alembic upgrade head
-docker compose exec api uv run alembic downgrade -1
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic current
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic upgrade head
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic downgrade -1
 ```
 
 ## API Smoke Checks
@@ -83,9 +83,9 @@ Before promoting an API build:
 
 1. `./scripts/format.sh`
 2. `./scripts/lint.sh`
-3. `docker compose exec api uv run pytest --cov=src --cov-report=term`
-4. `docker compose exec api python scripts/quick_test.py`
-5. `docker compose exec api uv run alembic current`
+3. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest --cov=src --cov-report=term`
+4. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/quick_test.py`
+5. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic current`
 
 ## Current Test Layout
 
@@ -104,7 +104,8 @@ Shared fixtures and setup live in `tests/conftest.py`.
 Start shared infra first from repo root:
 
 ```bash
-docker compose -f infra/docker/docker-compose.yml --profile tools up -d
+docker compose -p grenmet --env-file infra/docker/.env.local \
+  -f infra/docker/docker-compose.yml --profile tools up -d
 ```
 
 ### Tests fail due DB state
@@ -120,6 +121,6 @@ docker compose exec api uv run alembic upgrade head
 Confirm API is reachable:
 
 ```bash
-docker compose ps
-docker compose logs -f api
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml ps
+docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml logs -f api
 ```

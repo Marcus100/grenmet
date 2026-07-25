@@ -27,7 +27,7 @@ Current FastAPI domains:
 Rules:
 
 - Use Alembic for schema changes.
-- Run `docker compose exec api uv run alembic upgrade head` to apply migrations in the API container.
+- Run `docker compose exec api uv run --frozen --package fast-back alembic upgrade head` to apply migrations in the API container.
 - Run API tests after migration changes.
 - Keep migration files committed with the model change.
 
@@ -222,4 +222,3 @@ The CAP domain audit model should be extended to all official product domains as
 | [Cybersecurity and Continuity Plan](./operations/cybersecurity-continuity.md) | Data access controls and backup |
 | [Warning Operations](./internal/warning-operations.md) | CAP audit trail implementation |
 | [Infrastructure](./infrastructure.md) | Backup commands and restore procedures |
-
