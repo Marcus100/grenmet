@@ -136,7 +136,7 @@ services:
         condition: service_completed_successfully
       redis:
         condition: service_healthy
-    command: uv run arq src.worker.main.WorkerSettings
+    command: uv run --frozen --no-dev --package fast-back arq src.worker.main.WorkerSettings
     environment:
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
