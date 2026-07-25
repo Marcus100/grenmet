@@ -418,6 +418,35 @@ human-reviewed pull requests, verifying staging between each. Do **not** publish
 a production release to establish the baseline; production release remains a
 separately authorized action.
 
+#### Gate result (2026-07-25) — passed
+
+Every item green against the committed tree: `git status` clean, `uv lock
+--check` 287 packages, `git diff --check` clean, `pnpm fix` 1895 files with no
+fixes applied, `pnpm type-check` 13/13, `pnpm test` 7/7, `pnpm test:docs`,
+`pnpm docs:check-links` 201 files, `pnpm test:guardrails`,
+`pnpm design-system:check` in sync, FastAPI 262 passed in-container (7:42) plus
+ruff/format/mypy clean, WxWatch 27 passed, Sutron 8 passed with strict mypy.
+
+Pushed `beb2e18..aeb6135` to `dev`. All three workflows succeeded — `CI`,
+`CI — Web Apps`, `API Client Generation` — with all seven `CI — Web Apps` jobs
+green, including the new `Repository Drift` job on its first CI run.
+
+#### Open: the new drift checks are not yet enforcing
+
+Commit 5 describes the documentation and design-system checks as *blocking*, and
+they are not. It added a genuinely new job (`drift` / name `Repository Drift`);
+it renamed nothing, so the ruleset trap was **not** triggered and the six
+existing required names are intact: `Biome Check`, `Type Check`,
+`Peer Dependencies`, `Repository Guardrails`, `TypeScript Tests`,
+`Build Web Apps`.
+
+But a job only blocks a merge when the branch ruleset lists it as required.
+Until `Repository Drift` is added to the required checks on `staging` and
+`main`, commit 5 is advisory: it will go red without stopping anything. Adding
+it is a GitHub settings change needing Administration scope on the PAT, not
+Contents/Workflows/Pull-requests. It has now passed one clean CI run, which was
+the precondition for making it required.
+
 ## Phase 3 — Execute the transition
 
 [barrelsgd-transition.md](barrelsgd-transition.md) holds the 21 numbered
