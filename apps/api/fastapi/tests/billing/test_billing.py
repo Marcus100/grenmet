@@ -47,7 +47,7 @@ class FakeStripeGateway:
 
 
 @pytest.fixture
-def current_user() -> Generator[User, None, None]:
+def current_user() -> Generator[User]:
     user = User(
         email="subscriber@example.com",
         username="subscriber",
@@ -61,7 +61,7 @@ def current_user() -> Generator[User, None, None]:
 
 
 @pytest.fixture
-def fake_stripe_gateway() -> Generator[FakeStripeGateway, None, None]:
+def fake_stripe_gateway() -> Generator[FakeStripeGateway]:
     gateway = FakeStripeGateway()
     app.dependency_overrides[get_stripe_gateway] = lambda: gateway
     yield gateway
@@ -76,7 +76,7 @@ def stripe_webhook_secret() -> str:
 @pytest.fixture
 def configured_stripe_gateway(
     stripe_webhook_secret: str,
-) -> Generator[StripeSdkGateway, None, None]:
+) -> Generator[StripeSdkGateway]:
     gateway = StripeSdkGateway(
         BillingConfig(
             _env_file=None,
@@ -89,15 +89,22 @@ def configured_stripe_gateway(
 
 
 @pytest.fixture
-def unconfigured_stripe_gateway() -> Generator[StripeSdkGateway, None, None]:
-    gateway = StripeSdkGateway(BillingConfig(_env_file=None))
+def unconfigured_stripe_gateway() -> Generator[StripeSdkGateway]:
+    gateway = StripeSdkGateway(
+        BillingConfig(
+            _env_file=None,
+            STRIPE_SECRET_KEY=None,
+            STRIPE_WEBHOOK_SECRET=None,
+            STRIPE_PRICE_ID=None,
+        )
+    )
     app.dependency_overrides[get_stripe_gateway] = lambda: gateway
     yield gateway
     app.dependency_overrides.pop(get_stripe_gateway, None)
 
 
 @pytest.fixture
-def configured_checkout_gateway() -> Generator[StripeSdkGateway, None, None]:
+def configured_checkout_gateway() -> Generator[StripeSdkGateway]:
     gateway = StripeSdkGateway(
         BillingConfig(
             _env_file=None,
