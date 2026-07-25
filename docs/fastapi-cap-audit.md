@@ -85,7 +85,7 @@ then, every autogenerate must be hand-stripped of `cap.*` noise (as was done for
 HR migrations).
 
 **P1 — regenerate the API contract** after HR + any cap changes:
-`uv run python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json','w'), indent=2)"` then `pnpm generate:api-client`.
+`uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json','w'), indent=2)"` then `pnpm generate:api-client`.
 
 **P2 — decide the worker story now.** Either (a) add `arq` + a `worker.py` consuming
 `CapJobEvent`, or (b) explicitly document that publish side-effects are deferred so the

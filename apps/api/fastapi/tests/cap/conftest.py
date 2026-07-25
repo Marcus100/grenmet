@@ -4,6 +4,6 @@ import pytest
 
 
 @pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[None, None, None]:
+def db() -> Generator[None]:
     """CAP unit tests do not need the legacy sync database fixture."""
     yield

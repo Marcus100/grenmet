@@ -82,7 +82,7 @@ params. Delegate to `service`; never put business logic in the route.
 ## 7. Migration
 
 ```
-docker compose exec api uv run alembic revision --autogenerate -m "hr <form>"
+docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "hr <form>"
 ```
 
 Then **review the generated file** — autogenerate currently also surfaces unrelated
@@ -90,7 +90,7 @@ pre-existing CAP-domain drift; strip those `cap.*` operations out. Hand-edit for
 PostgreSQL enum gotchas below, then:
 
 ```
-docker compose exec api uv run alembic upgrade head
+docker compose exec api uv run --frozen --package fast-back alembic upgrade head
 ```
 
 ### PostgreSQL enum gotchas (important)
@@ -133,7 +133,7 @@ Add `tests/hr/test_<form>_service.py` (async, use `db_async` + the factories). C
 permission-required, happy path, list scoping, and any business rules. Run:
 
 ```
-docker compose exec api uv run pytest tests/hr/test_<form>_service.py -q
+docker compose exec api uv run --frozen --package fast-back pytest tests/hr/test_<form>_service.py -q
 ```
 
 ## 11. Contract sync (Ask-First)

@@ -5,9 +5,9 @@ Data and exploration notebooks for Grenmet (e.g. cartopy, ECMWF Open Data). Requ
 From this directory:
 
 ```bash
-uv sync
-uv run jupyter lab
-# or: uv run notebook
+uv sync --frozen --package notebooks
+uv run --frozen --package notebooks jupyter lab
+# or: uv run --frozen --package notebooks notebook
 ```
 
 See [pyproject.toml](pyproject.toml) for dependencies.

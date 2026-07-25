@@ -15,9 +15,9 @@ one column per day of the month):
 
 Usage (inside the api container):
 
-    uv run python scripts/import_roster.py --month 2026-08 --csv scripts/data/roster_2026-08.csv
-    uv run python scripts/import_roster.py --month 2026-07 --csv scripts/data/roster_2026-07.csv --publish
-    uv run python scripts/import_roster.py --month 2026-08 --csv ... --dry-run
+    uv run --frozen --package fast-back python scripts/import_roster.py --month 2026-08 --csv scripts/data/roster_2026-08.csv
+    uv run --frozen --package fast-back python scripts/import_roster.py --month 2026-07 --csv scripts/data/roster_2026-07.csv --publish
+    uv run --frozen --package fast-back python scripts/import_roster.py --month 2026-08 --csv ... --dry-run
 """
 
 import argparse
