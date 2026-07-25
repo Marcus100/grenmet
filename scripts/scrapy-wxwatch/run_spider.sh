@@ -12,5 +12,6 @@ if [[ -z "$SPIDER_NAME" ]]; then
   echo "Spiders: cimss, goes19, sfcana, trackthetropics, uwyo" >&2
   exit 1
 fi
+shift
 
-uv run scrapy crawl "$SPIDER_NAME"
+exec uv run --frozen --package wxwatch python run_crawlers.py "$SPIDER_NAME" "$@"

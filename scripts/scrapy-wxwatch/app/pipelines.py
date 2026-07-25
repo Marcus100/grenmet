@@ -17,6 +17,10 @@ from itemadapter import ItemAdapter
 from scrapy.pipelines.images import ImagesPipeline
 
 
+class ConcurrentCrawlError(RuntimeError):
+    """Raised when the same spider already owns its database run lock."""
+
+
 def parse_iso_datetime(value):
     """Parse ISO datetime string to timezone-aware datetime.
 
@@ -181,13 +185,25 @@ class PostgresPipeline:
     def open_spider(self, spider):
         """Connect to PostgreSQL when spider opens."""
         try:
-            self.conn = psycopg.connect(
+            connection = psycopg.connect(
                 host=self.db_host,
                 port=self.db_port,
                 dbname=self.db_name,
                 user=self.db_user,
                 password=self.db_password,
             )
+            self.conn = connection
+            lock_name = f"wxwatch-run:{spider.name}"
+            lock_row = connection.execute(
+                "SELECT pg_try_advisory_lock(hashtextextended(%s, 0))",
+                (lock_name,),
+            ).fetchone()
+            if not lock_row or not lock_row[0]:
+                connection.close()
+                self.conn = None
+                raise ConcurrentCrawlError(
+                    f"Crawler {spider.name!r} is already running"
+                )
             spider.logger.info(
                 "PostgresPipeline: Connected to %s@%s:%s/%s",
                 self.db_user,

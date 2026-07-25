@@ -13,7 +13,11 @@ from scrapy.settings import Settings
 from twisted.internet.defer import Deferred
 
 from app.items import ImageItem
-from app.pipelines import MinutePathImagesPipeline, PostgresPipeline
+from app.pipelines import (
+    ConcurrentCrawlError,
+    MinutePathImagesPipeline,
+    PostgresPipeline,
+)
 
 
 def test_image_key_is_deterministic_partitioned_and_safe():
@@ -105,7 +109,7 @@ def test_complete_object_storage_configuration_maps_to_scrapy_settings():
         "AWS_REGION_NAME": "nyc3",
         "AWS_ACCESS_KEY_ID": "access-key",
         "AWS_SECRET_ACCESS_KEY": "secret-key",
-        "FILES_STORE_S3_ACL": "public-read",
+        "IMAGES_STORE_S3_ACL": "public-read",
     }
 
 
@@ -204,6 +208,33 @@ class FakeCursor:
 
     def fetchone(self):
         return self.row
+
+
+class AlreadyLockedConnection:
+    def __init__(self):
+        self.closed = False
+
+    def execute(self, query, params=None):
+        return FakeCursor((False,))
+
+    def close(self):
+        self.closed = True
+
+
+def test_concurrent_run_of_the_same_spider_fails_fast(monkeypatch):
+    connection = AlreadyLockedConnection()
+    monkeypatch.setattr(psycopg, "connect", lambda **kwargs: connection)
+    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
+    spider = SimpleNamespace(
+        name="goes19",
+        logger=logging.getLogger("test"),
+    )
+
+    with pytest.raises(ConcurrentCrawlError, match="already running"):
+        pipeline.open_spider(spider)
+
+    assert connection.closed is True
+    assert pipeline.conn is None
 
 
 class InMemoryWeatherImagesConnection:
@@ -322,3 +353,32 @@ def test_crawl_outcome_watches_bootstrap_failures():
     deferred.errback(RuntimeError("pipeline bootstrap failed"))
 
     assert outcome.exit_code == 1
+
+
+class ClosableConnection:
+    def __init__(self):
+        self.closed = False
+
+    def close(self):
+        self.closed = True
+
+
+def test_closing_the_pipeline_releases_its_run_lock_with_the_connection():
+    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
+    connection = ClosableConnection()
+    pipeline.conn = connection
+    spider = SimpleNamespace(
+        name="goes19",
+        logger=logging.getLogger("test"),
+    )
+
+    pipeline.close_spider(spider)
+
+    assert connection.closed is True
+    assert pipeline.conn is None
+
+
+def test_production_crawls_do_not_reuse_stale_http_cache():
+    from app.settings import HTTPCACHE_ENABLED
+
+    assert HTTPCACHE_ENABLED is False

@@ -118,6 +118,7 @@ class TrackTheTropicsSpider(WeatherSpider):
 
     def parse(self, response):
         seen = set()
+        expected_images = 0
 
         for src in response.xpath("//img/@src").getall():
             if not src:
@@ -166,4 +167,9 @@ class TrackTheTropicsSpider(WeatherSpider):
                 meta={"item": item},
                 dont_filter=True,
             )
+            expected_images += 1
             yield request
+        stats = self.crawler.stats
+        if stats is None:
+            raise RuntimeError("Scrapy stats collector is unavailable")
+        stats.set_value("wxwatch/expected_images", expected_images)

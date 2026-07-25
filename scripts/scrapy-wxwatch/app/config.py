@@ -76,7 +76,7 @@ class ImageStorageConfig:
                 "AWS_REGION_NAME": self.region or "us-east-1",
                 "AWS_ACCESS_KEY_ID": self.access_key_id or "",
                 "AWS_SECRET_ACCESS_KEY": self.secret_access_key or "",
-                "FILES_STORE_S3_ACL": self.object_acl,
+                "IMAGES_STORE_S3_ACL": self.object_acl,
             }
         )
         return settings
