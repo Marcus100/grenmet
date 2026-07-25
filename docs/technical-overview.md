@@ -144,7 +144,7 @@ The `infra/docker/docker-compose.yml` provisions all three databases (and their 
 
 ### Drizzle workflow (wxwatch / wxproducts)
 
-Run from `apps/web/admin-gms`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-wxproducts--wxwatch) for the rule on committing migrations.
+Run from `apps/web/admin-gms`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-admin-gms) for the rule on committing migrations.
 
 ---
 

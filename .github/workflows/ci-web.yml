@@ -106,7 +106,29 @@ jobs:
           }
           pnpm guardrails --base "$base" --head "$GITHUB_SHA"
 
-  # Job 5: TypeScript unit tests across every workspace package
+  # Job 5: Repository documentation and design-system drift
+  drift:
+    name: Repository Drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Test documentation links
+        run: pnpm test:docs
+
+      - name: Check documentation links
+        run: pnpm docs:check-links
+
+      - name: Check design-system drift and contrast
+        run: |
+          pnpm design-system:check
+          pnpm design-system:contrast
+
+  # Job 6: TypeScript unit tests across every workspace package
   tests:
     name: TypeScript Tests
     runs-on: ubuntu-latest
@@ -120,10 +142,10 @@ jobs:
       - name: Run all TypeScript unit tests
         run: pnpm test
 
-  # Job 6: Build all web apps (validates no build errors)
+  # Job 7: Build all web apps (validates no build errors)
   build:
     name: Build Web Apps
-    needs: [biome, type-check, peer-check, guardrails, tests]
+    needs: [biome, type-check, peer-check, guardrails, drift, tests]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
