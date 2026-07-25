@@ -110,10 +110,12 @@ docker compose -p grenmet --env-file infra/docker/.env.local \
 
 ### Tests fail due DB state
 
+From the repository root, reset only when you intend to destroy all local
+infrastructure data:
+
 ```bash
-docker compose down -v
-docker compose up -d
-docker compose exec api uv run alembic upgrade head
+pnpm reset
+pnpm start
 ```
 
 ### Quick smoke script fails to connect
