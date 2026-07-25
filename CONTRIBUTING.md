@@ -179,7 +179,7 @@ pass silently.
 ## Pull requests
 
 - Open PRs against `dev`, not `main` or `staging`
-- Keep PRs focused ��� one feature or fix per PR
+- Keep PRs focused — one feature or fix per PR
 - Fill in the PR description: what changed, why, how to test it
 - Link any related issue if one exists
 - Make sure the PR title follows the commit convention (GitHub squash-merges use it)
@@ -188,6 +188,8 @@ The CI pipeline runs automatically on every PR:
 - Biome lint and format check
 - TypeScript type check
 - Repository blast-radius guardrails
+- Documentation local-link and heading checks
+- Design-system generated-block drift and warning contrast checks
 - TypeScript unit tests across all workspace packages
 - Build (all apps)
 - For FastAPI: lint, type check, tests
