@@ -21,17 +21,41 @@
   "[css]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
+  },
   "[graphql]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
-  "emmet.showExpandedAbbreviation": "never",
+  "emmet.showExpandedAbbreviation": "inMarkupAndStylesheetFilesOnly",
+  "emmet.includeLanguages": {
+    "javascriptreact": "html",
+    "typescriptreact": "html",
+    "mdx": "html"
+  },
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
     "source.organizeImports.biome": "explicit"
   },
+  "ruff.importStrategy": "fromEnvironment",
+  "python.analysis.typeCheckingMode": "off",
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "mypy-type-checker.cwd": "${nearestConfig}",
+  "auto-close-tag.activationOnLanguage": ["mdx", "xml"],
+  "auto-rename-tag.activationOnLanguage": [
+    "javascriptreact",
+    "typescriptreact",
+    "mdx",
+    "xml"
+  ],
   "tailwindCSS.files.exclude": [
     "**/.git/**",
     "**/.hg/**",

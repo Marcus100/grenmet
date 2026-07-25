@@ -4,6 +4,33 @@
     "dockerfile": "Dockerfile"
   },
 
+  // Language and repository tooling must run in the remote extension host so
+  // it can see the container's runtimes, dependencies, and workspace paths.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "biomejs.biome",
+        "bradlc.vscode-tailwindcss",
+        "charliermarsh.ruff",
+        "eamodio.gitlens",
+        "editorconfig.editorconfig",
+        "formulahendry.auto-close-tag",
+        "formulahendry.auto-rename-tag",
+        "github.vscode-github-actions",
+        "github.vscode-pull-request-github",
+        "ms-python.mypy-type-checker",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "unifiedjs.vscode-mdx",
+        "vitest.explorer",
+        "yoavbls.pretty-ts-errors"
+      ]
+    }
+  },
+
   // Mount your repo into the container at /workspace. Files edited by the
   // agent inside the container are the same files on your host copy.
   "workspaceFolder": "/workspace",
