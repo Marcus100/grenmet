@@ -100,9 +100,10 @@ AUTOTHROTTLE_START_DELAY = 1
 AUTOTHROTTLE_MAX_DELAY = 10
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
-# Enable and configure HTTP caching (useful for development)
+# Keep production one-shot runs fresh. Developers may opt in with
+# `-s HTTPCACHE_ENABLED=1` when invoking Scrapy directly.
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
 HTTPCACHE_EXPIRATION_SECS = 3600  # 1 hour
 HTTPCACHE_DIR = ".scrapy/httpcache"
 HTTPCACHE_IGNORE_HTTP_CODES = [500, 502, 503, 504]
