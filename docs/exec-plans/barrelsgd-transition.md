@@ -2,7 +2,12 @@
 
 **Status:** Proposed — not yet implemented
 **Recorded:** 2026-07-18
+**Amended:** 2026-07-25
 **Owner:** Repository maintainers
+
+This document describes the destination architecture. The execution order,
+baseline freeze, commit boundaries, and rollout sequencing live in
+[Barrels Grenada Migration Plan](barrelsgd-migration-plan.md).
 
 ## Goal
 
@@ -62,6 +67,14 @@ Every use of `grenmet` must be classified during implementation. Preserve it
 when it identifies the GrenMet product; replace it when it incorrectly claims
 ownership of company-wide infrastructure or unrelated Barrels products.
 
+The same classification rule applies to the Python and ops workspaces
+(`apps/api/fastapi`, `scripts/scrapy-wxwatch`, `scripts/sutron-collector`,
+`scripts/wis2-setup`, `geonetcast`, `notebooks`). Rename identifiers that claim
+company or infrastructure ownership; keep capability names such as WxWatch and
+CAP, and keep GMS domain terminology. The vendored `surface/` and `wis2box/`
+trees are not renamed — see [VENDORED.md](../../VENDORED.md) — because renaming
+them increases divergence from upstream without establishing any ownership.
+
 ## Governance gates for future implementation
 
 The architecture in this document records the desired destination, but the
@@ -99,6 +112,19 @@ document is not approval to bypass repository gates while reaching it.
 
 The existing Hurricane Plan app remains transitional on port 3002 only until
 its content and workflows are accepted within GrenMet SOPs.
+
+Two further identities are reserved but not built, so the port map, image list,
+and DNS map never need re-cutting:
+
+| Application | Package | Port | Host | Image |
+| --- | --- | ---: | --- | --- |
+| Barrels Shop (ecommerce) | `@barrelsgd/web-shop` | 3008 | `shop.barrels.gd` | `ghcr.io/marcus100/barrelsgd-web-shop` |
+| Weather-data proxy | `@barrelsgd/api-hono` | 4000 | `proxy.barrels.gd` | `ghcr.io/marcus100/barrelsgd-api-hono` |
+
+Neither is built during this transition. Reserving an identity creates no DNS
+record, Compose service, Traefik route, image build, or Sentry project.
+`apps/api/honoapi` currently serves only `GET /health` and is consumed by no
+application; it receives the workspace scope rename and nothing else.
 
 Staging mirrors these applications beneath `*.staging.barrels.gd`. The hub is
 served from `staging.barrels.gd`. Custom production domains such as
@@ -164,8 +190,10 @@ Existing organization-wide modules remain available during the transition:
 
 - HR, roster, calendar, transport, janitorial, users, and related modules stay
   in the GMS Dashboard until equivalent reusable Barrels products exist.
-- The future Barrels HR product treats GMS as a customer or tenant. Extraction
-  must preserve GMS workflows before the old modules are retired.
+- The future Barrels HR product is a single multi-tenant product, not one
+  deployment per business. GMS, MBIA, GAA, and future clients are organizations
+  within one codebase and deployment, with data scoped by tenant. Extraction must
+  preserve GMS workflows before the old modules are retired.
 - WxProducts is a retiring capability. Preserve required behavior and data
   during consolidation, but do not establish it as a permanent GrenMet
   boundary without a separate decision.
@@ -336,6 +364,18 @@ provided out of band.
 Adminer remains restricted to staging. Operational Traefik dashboards retain
 the existing access-control approach.
 
+### Meteorological ops stacks are out of the platform estate
+
+SURFACE and wis2box run on their own host with their own lifecycle and Compose
+stacks, and are not folded into the Barrels application topology. They are
+upstream WMO and CDMS software on independent release cycles, and SURFACE carries
+a live TimescaleDB. Integration with the platform happens at the data layer,
+through FastAPI, and nowhere else.
+
+Barrels ownership applies to their DigitalOcean project, backups, and monitoring
+— not to their container names, Compose projects, or deployment pipeline. The
+legacy-infrastructure retirement step must not reach this host.
+
 ### Backups and observability
 
 - Create a new private Spaces bucket, preferably
@@ -503,8 +543,13 @@ before continuing.
 - Existing GMS HR, roster, and organization-wide modules remain until reusable
   Barrels replacements meet their workflows.
 - MBIA and GAA are separate websites. MBIA is not a temporary alias for GAA.
-- Barrels Events/Tickets and reusable HR are future product initiatives, not
-  hidden scope in this transition.
+- `apps/web/dowden` and `apps/web/gdbank` are out of scope. Both are empty
+  untracked directories moving to their own repository; they receive no Barrels
+  package, port, host, or image identity here, and the remnant audit records them
+  as intentionally absent rather than missing.
+- Barrels Events/Tickets, reusable HR, and Barrels Shop are future product
+  initiatives, not hidden scope in this transition. Shop's identity is reserved;
+  its implementation is not.
 - Shared authentication infrastructure presents product-specific branding,
   roles, and access.
 - DNS changes, repository renames, secret creation, infrastructure provisioning,
