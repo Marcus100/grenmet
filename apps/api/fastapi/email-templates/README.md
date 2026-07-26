@@ -53,7 +53,6 @@ Preview templates live at [mjml.io/try-it-live](https://mjml.io/try-it-live).
 |---|---|
 | `{{ project_name }}` | Project name from settings |
 | `{{ username }}` | User's username |
-| `{{ password }}` | User's password |
 | `{{ email }}` | User's email |
 | `{{ link }}` | Link to dashboard/app |
 

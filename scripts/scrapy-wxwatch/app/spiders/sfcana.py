@@ -14,7 +14,9 @@ class SfcanaSpider(WeatherSpider):
     def parse(self, response):
         row = response.xpath(f"//tr[td/a[text()='{self.target_filename}']]")
         if not row:
-            self.logger.warning("Target file %s not found on %s", self.target_filename, response.url)
+            self.logger.warning(
+                "Target file %s not found on %s", self.target_filename, response.url
+            )
             return
 
         image_url = response.urljoin(row.xpath(".//a/@href").get())
@@ -24,7 +26,7 @@ class SfcanaSpider(WeatherSpider):
         # For sfcana, observation time is ~3-4 hours before source modification
         # Subtract 3 hours, then round down to nearest 3-hour synoptic time (00, 03, 06, 09, 12, 15, 18, 21z)
         source_modified = self._parse_datetime_iso(last_modified_raw)
-        
+
         # Subtract 3 hours from source_modified to get approximate observation time
         if source_modified:
             try:

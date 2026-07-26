@@ -59,19 +59,19 @@ docker exec grenmet-postgres psql -U postgres -d app -c \
 
 # 3. Remove old versions and autogenerate a single baseline:
 rm alembic/versions/*.py
-docker compose exec api uv run alembic revision --autogenerate -m "baseline schema"
+docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "baseline schema"
 #    Review the generated file (enum creation, schemas hr/cap, indexes).
-docker compose exec api uv run alembic upgrade head
+docker compose exec api uv run --frozen --package fast-back alembic upgrade head
 
 # 4. Reseed:
-docker compose exec api uv run python scripts/initial_data.py   # superuser + permissions + roles
-docker compose exec api uv run alembic check                    # must report no drift
+docker compose exec api uv run --frozen --package fast-back python scripts/initial_data.py   # superuser + permissions + roles
+docker compose exec api uv run --frozen --package fast-back alembic check                    # must report no drift
 ```
 
 After the squash, regenerate the API contract and client (Ask-First gate):
 
 ```bash
-docker compose exec api uv run python -c \
+docker compose exec api uv run --frozen --package fast-back python -c \
   "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json','w'), indent=2)"
 pnpm generate:api-client
 ```

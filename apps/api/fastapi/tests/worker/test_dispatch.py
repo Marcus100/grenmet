@@ -117,6 +117,7 @@ async def test_failed_job_backoff_gates_immediate_retry(
 ) -> None:
     """After a failure the job is scheduled for a future retry, so an immediate
     re-poll does not pick it up again."""
+
     def handler(_request: httpx.Request) -> httpx.Response:
         return httpx.Response(503)
 

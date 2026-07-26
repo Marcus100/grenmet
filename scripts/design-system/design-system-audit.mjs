@@ -18,29 +18,18 @@ const webApps = [
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
   },
   { name: "auth", root: "apps/web/auth" },
-  { name: "cap", root: "apps/web/cap" },
-  {
-    name: "hr",
-    root: "apps/web/hr",
-    note: "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
-  },
   {
     name: "hurricaneplan",
     root: "apps/web/hurricaneplan",
     note: "Docs-template styling is expected to be noisy; review global shell colors first.",
   },
-  { name: "salesbus", root: "apps/web/salesbus" },
+  { name: "mbia", root: "apps/web/mbia" },
+  { name: "signal", root: "apps/web/signal" },
   {
     name: "spicewx",
     root: "apps/web/spicewx",
     note: "Pilot app for the first foundation cleanup pass.",
   },
-  {
-    name: "wxproducts",
-    root: "apps/web/wxproducts",
-    note: "Fixed print/PDF measurements can be valid exceptions; review app chrome first.",
-  },
-  { name: "wxwatch", root: "apps/web/wxwatch" },
 ];
 
 const generatedBlockPattern =
@@ -58,6 +47,7 @@ const sourceExtensions = new Set([
 const ignoredDirectories = new Set([
   ".git",
   ".next",
+  ".source",
   ".turbo",
   "build",
   "coverage",

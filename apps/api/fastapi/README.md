@@ -1,6 +1,7 @@
 # FastAPI Backend (`grenmet-api`)
 
-FastAPI backend for the GMS platform. Runs in Docker only — not managed by pnpm.
+Containerized FastAPI backend for the GMS platform. The root `pnpm start`
+command orchestrates its Compose stack together with shared infrastructure.
 
 Domains: **Auth** (`/api/v1/auth/`, `/api/v1/login/`), **HR** (`/api/v1/hr/`), **CAP** (`/api/v1/cap/`, `/api/cap/`), **Webhooks** (`/api/v1/webhooks/`).
 
@@ -11,7 +12,8 @@ Domains: **Auth** (`/api/v1/auth/`, `/api/v1/login/`), **HR** (`/api/v1/hr/`), *
 pnpm start
 
 # From this directory (API-only — shared infra must already be running)
-docker compose watch
+docker compose -p grenmet-api --env-file .env.local \
+  -f docker-compose.yml watch
 ```
 
 Service endpoints: Swagger `http://localhost:8000/swagger` · ReDoc `http://localhost:8000/redoc` · Adminer `http://localhost:8080` · MailCatcher `http://localhost:1080`

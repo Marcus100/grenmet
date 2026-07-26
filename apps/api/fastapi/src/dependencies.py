@@ -59,7 +59,7 @@ def _unauthorized(detail: str) -> HTTPException:
     )
 
 
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
+async def get_db() -> AsyncGenerator[AsyncSession]:
     """
     Async database session dependency.
 

@@ -72,7 +72,7 @@ function db_shell() {
 
 function migrate() {
     echo -e "${GREEN}Running database migrations...${NC}"
-    docker compose exec api uv run alembic upgrade head
+    docker compose exec api uv run --frozen --package fast-back alembic upgrade head
 }
 
 function migration() {
@@ -82,17 +82,17 @@ function migration() {
         exit 1
     fi
     echo -e "${GREEN}Creating new migration: $2${NC}"
-    docker compose exec api uv run alembic revision --autogenerate -m "$2"
+    docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "$2"
 }
 
 function test() {
     echo -e "${GREEN}Running tests...${NC}"
-    docker compose exec api uv run pytest tests/
+    docker compose exec api uv run --frozen --package fast-back pytest tests/
 }
 
 function test_cov() {
     echo -e "${GREEN}Running tests with coverage...${NC}"
-    docker compose exec api uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
+    docker compose exec api uv run --frozen --package fast-back pytest tests/ --cov=src --cov-report=html --cov-report=term
     echo -e "${GREEN}Coverage report generated in htmlcov/index.html${NC}"
 }
 

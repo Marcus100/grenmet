@@ -173,7 +173,7 @@ async def ok():
 
 ## Enums
 
-Use `str, Enum` (not `StrEnum`) — kept for consistency with existing enums; on the pinned Python 3.11 `StrEnum` is available but changes `str()` semantics (`str(member)` yields the value, not `Class.MEMBER`), so don't mix the two:
+Use `str, Enum` (not `StrEnum`) — kept for consistency with existing enums; `StrEnum` changes `str()` semantics (`str(member)` yields the value, not `Class.MEMBER`), so don't mix the two:
 
 ```python
 from enum import Enum
@@ -241,8 +241,8 @@ async def test_create_leave_request(
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
 - Running from the agent dev container? There's no docker CLI and `grenmet-postgres`
-  isn't reachable — run `uv sync` once, then
-  `POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run pytest`
+  isn't reachable — run `uv sync --frozen --package fast-back` once, then
+  `POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run --frozen --package fast-back pytest`
   against the host stack. See `AGENTS.md` → FastAPI.
 
 ## Anti-Patterns

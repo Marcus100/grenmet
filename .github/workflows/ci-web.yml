@@ -65,10 +65,87 @@ jobs:
         with:
           strict-peer-dependencies: "true"
 
-  # Job 4: Build all web apps (validates no build errors)
+  # Job 4: Repository blast-radius rules across the complete change range
+  guardrails:
+    name: Repository Guardrails
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Test repository guardrails
+        run: pnpm test:guardrails
+
+      - name: Check pull request range
+        if: github.event_name == 'pull_request'
+        run: |
+          base="$(git merge-base "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")" || {
+              echo "Unable to determine the pull request merge base." >&2
+              exit 1
+            }
+          pnpm guardrails --base "$base" --head "${{ github.event.pull_request.head.sha }}"
+
+      - name: Check push range
+        if: github.event_name == 'push'
+        run: >-
+          pnpm guardrails
+          --base "${{ github.event.before }}"
+          --head "${{ github.sha }}"
+
+      - name: Check manually dispatched range
+        if: github.event_name != 'pull_request' && github.event_name != 'push'
+        run: |
+          base="$(git rev-parse "${GITHUB_SHA}^")" || {
+            echo "Unable to determine a base commit for the manual guardrail run." >&2
+            exit 1
+          }
+          pnpm guardrails --base "$base" --head "$GITHUB_SHA"
+
+  # Job 5: Repository documentation and design-system drift
+  drift:
+    name: Repository Drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Test documentation links
+        run: pnpm test:docs
+
+      - name: Check documentation links
+        run: pnpm docs:check-links
+
+      - name: Check design-system drift and contrast
+        run: |
+          pnpm design-system:check
+          pnpm design-system:contrast
+
+  # Job 6: TypeScript unit tests across every workspace package
+  tests:
+    name: TypeScript Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Run all TypeScript unit tests
+        run: pnpm test
+
+  # Job 7: Build all web apps (validates no build errors)
   build:
     name: Build Web Apps
-    needs: [biome, type-check, peer-check]
+    needs: [biome, type-check, peer-check, guardrails, drift, tests]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

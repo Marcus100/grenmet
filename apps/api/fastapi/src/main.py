@@ -22,6 +22,7 @@ from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
+from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
@@ -62,7 +63,7 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
+async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
     yield
@@ -140,6 +141,7 @@ app.include_router(twofa_router, prefix="/api/v1")
 app.include_router(roles_router, prefix="/api/v1")
 app.include_router(permissions_router, prefix="/api/v1")
 app.include_router(role_assignments_router, prefix="/api/v1")
+app.include_router(billing_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")

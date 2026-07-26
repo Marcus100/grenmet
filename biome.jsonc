@@ -10,6 +10,10 @@
       "**",
       "!.claude",
       "!apps/api/fastapi",
+      // Legacy standalone XHTML players with large inline CSS/JS blocks that
+      // predate and are not maintained by the modern Biome toolchain.
+      "!geonetcast/Animation/HTML/my_animation.html",
+      "!geonetcast/Animation/my_animation.html",
       "!**/.content-collections",
       // Vendored upstream copy of the Studio-Admin template (gitignored, kept
       // for reference only) — never lint/format it.
