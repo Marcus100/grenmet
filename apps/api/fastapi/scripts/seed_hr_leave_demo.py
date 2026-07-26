@@ -11,7 +11,7 @@ Idempotently creates:
   ABSENTEE_REPORT, and STATUS_REPORT.
 
 Run from apps/api/fastapi:
-    uv run python scripts/seed_hr_leave_demo.py
+    uv run --frozen --package fast-back python scripts/seed_hr_leave_demo.py
 """
 
 import logging

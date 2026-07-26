@@ -5,15 +5,13 @@ This module provides standard pagination for all list endpoints,
 ensuring consistent API behavior and better user experience.
 """
 
-from typing import Annotated, Generic, TypeVar
+from typing import Annotated
 
 from fastapi import Depends, Query
 from pydantic import BaseModel, Field
 
-T = TypeVar("T")
 
-
-class PaginatedResponse(BaseModel, Generic[T]):
+class PaginatedResponse[T](BaseModel):
     """Generic paginated response model."""
 
     data: list[T]

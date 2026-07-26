@@ -28,16 +28,16 @@ class Goes19Spider(WeatherSpider):
     # Example: 20253302126_GOES19-ABI-taw-13-7200x4320.jpg 26-Nov-2025 21:26 11234567
     line_pattern = re.compile(
         r'<a[^>]*href="([^"]*7200x4320\.jpg)"[^>]*>([^<]+)</a>\s+'
-        r'(\d{2}-\w{3}-\d{4}\s+\d{2}:\d{2})\s+(\d+)'
+        r"(\d{2}-\w{3}-\d{4}\s+\d{2}:\d{2})\s+(\d+)"
     )
 
     # GOES filename pattern: YYYYDDDHHmm (Julian date + HHMM time)
     # Example: 20253392040_GOES19-ABI-taw-02.jpg = Dec 5, 2025 at 20:40z
-    goes_time_pattern = re.compile(r'^(\d{4})(\d{3})(\d{2})(\d{2})_')
+    goes_time_pattern = re.compile(r"^(\d{4})(\d{3})(\d{2})(\d{2})_")
 
     def _extract_observation_time(self, filename):
         """Extract observation time from GOES filename.
-        
+
         GOES filenames encode the observation time as:
         - YYYY: 4-digit year
         - DDD: 3-digit Julian day (001-366)
@@ -52,9 +52,7 @@ class Goes19Spider(WeatherSpider):
         try:
             dt = datetime.strptime(f"{year}{julian_day}", "%Y%j")
             return dt.replace(
-                hour=int(hour),
-                minute=int(minute),
-                tzinfo=timezone.utc
+                hour=int(hour), minute=int(minute), tzinfo=timezone.utc
             ).isoformat()
         except ValueError:
             return None
@@ -81,9 +79,7 @@ class Goes19Spider(WeatherSpider):
                 latest_match = (href, filename, date_str, size_str)
 
         if latest_match is None:
-            self.logger.warning(
-                "Could not determine latest file in %s", response.url
-            )
+            self.logger.warning("Could not determine latest file in %s", response.url)
             return
 
         href, filename, date_str, size_str = latest_match

@@ -6,8 +6,10 @@ set -e
 echo "🚀 Running prestart script..."
 echo ""
 
-# Ensure we're in the right directory
-if [ -d /app ]; then
+# Ensure we're in the FastAPI workspace member.
+if [ -d /app/apps/api/fastapi ]; then
+    cd /app/apps/api/fastapi
+elif [ -d /app ]; then
     cd /app
 fi
 
@@ -28,11 +30,11 @@ fi
 
 # Sync dependencies (install package + all dependencies)
 echo "📦 Syncing dependencies..."
-"${UV_CMD[@]}" sync --frozen
+"${UV_CMD[@]}" sync --frozen --no-dev --package fast-back
 
 # Let the DB start
 echo "🗄️  Checking database connection..."
-if "${UV_CMD[@]}" run python scripts/backend_pre_start.py; then
+if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/backend_pre_start.py; then
     echo "✅ Database is ready"
 else
     echo "❌ Database connection failed"
@@ -42,7 +44,7 @@ echo ""
 
 # Run database migrations
 echo "🔄 Running database migrations..."
-if "${UV_CMD[@]}" run alembic upgrade head; then
+if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back alembic upgrade head; then
     echo "✅ Migrations applied"
 else
     echo "❌ Migration failed"
@@ -52,7 +54,7 @@ echo ""
 
 # Initialize database with first superuser
 echo "👤 Initializing database..."
-if "${UV_CMD[@]}" run python scripts/initial_data.py; then
+if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/initial_data.py; then
     echo "✅ Initial data created"
 else
     echo "⚠️  Initial data creation failed (may already exist)"
@@ -61,7 +63,7 @@ echo ""
 
 # Seed custom user accounts (idempotent — skips users that already exist)
 echo "👥 Seeding custom users..."
-if "${UV_CMD[@]}" run python scripts/seed_data.py; then
+if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/seed_data.py; then
     echo "✅ Custom users seeded"
 else
     echo "⚠️  User seeding failed (may already exist)"

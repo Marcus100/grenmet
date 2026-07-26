@@ -95,7 +95,7 @@ Priority v1 product families:
 
 The full catalogue is a strategy reference. It can be phased, revised, and governed before every service becomes a product surface.
 
-For full service definitions, product tables, purpose statements, risk frameworks, and implementation notes, see **[GMS Service and Product Catalogue](./service-catalogue.md)**.
+For full service definitions, product tables, purpose statements, risk frameworks, and implementation notes, see **[GMS Service and Product Catalogue](./internal/service-catalogue.md)**.
 
 | Service | Primary scope |
 | --- | --- |
@@ -118,7 +118,7 @@ For full service definitions, product tables, purpose statements, risk framework
 
 ## Strategic Product Catalogue
 
-Products are how services become repeatable decisions, content, data, and workflows. This catalogue is a reference set, not a build order. See [GMS Service and Product Catalogue](./service-catalogue.md) for the detailed per-service product tables.
+Products are how services become repeatable decisions, content, data, and workflows. This catalogue is a reference set, not a build order. See [GMS Service and Product Catalogue](./internal/service-catalogue.md) for the detailed per-service product tables.
 
 | Service area | Product catalogue reference |
 | --- | --- |

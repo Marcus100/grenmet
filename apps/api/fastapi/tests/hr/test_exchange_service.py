@@ -45,7 +45,9 @@ async def test_create_shift_swap_with_permission(db_async: AsyncSession) -> None
     user = await make_user(db_async)
     counterpart = await make_user(db_async)
     dept = await make_department(db_async, "dept_swap_ok")
-    role, _ = await make_role_with_permission(db_async, "shift_swap.request.create.self")
+    role, _ = await make_role_with_permission(
+        db_async, "shift_swap.request.create.self"
+    )
     await assign_role(db_async, user=user, role=role)
 
     request = await create_shift_swap_request(

@@ -1,6 +1,6 @@
 """arq worker entrypoint.
 
-Run with:  uv run arq src.worker.main.WorkerSettings
+Run with:  uv run --frozen --package fast-back arq src.worker.main.WorkerSettings
 
 Polls the CAP durable outbox (cap.job_event) on a schedule and dispatches publish
 side-effects. The dispatch logic lives in ``src/worker/dispatch.py`` (unit-tested

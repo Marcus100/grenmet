@@ -23,7 +23,7 @@ Kubb reads the spec from `../../apps/api/fastapi/openapi.json` via `kubb.config.
 - From `apps/api/fastapi`:
 
 ```bash
-uv run python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
 ```
 
 Full client generation flow:

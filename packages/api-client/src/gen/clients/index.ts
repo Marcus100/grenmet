@@ -22,6 +22,7 @@ export { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "./createRoleAs
 export { createShiftApiV1HrRostersShiftsPost } from "./createShiftApiV1HrRostersShiftsPost.js";
 export { createShiftSwapApiV1HrShiftSwapsPost } from "./createShiftSwapApiV1HrShiftSwapsPost.js";
 export { createStatusReportApiV1HrStatusReportsPost } from "./createStatusReportApiV1HrStatusReportsPost.js";
+export { createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost } from "./createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost.js";
 export { createTemplateApiV1HrWorkflowsTemplatesPost } from "./createTemplateApiV1HrWorkflowsTemplatesPost.js";
 export { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "./createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 export { createTimesheetApiV1HrTimesheetsPost } from "./createTimesheetApiV1HrTimesheetsPost.js";

@@ -1,0 +1,39 @@
+[project]
+name = "sutron-collector"
+version = "0.1.0"
+description = "Edge collector for Sutron automatic weather stations"
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "pyserial>=3.5,<4.0",
+]
+
+[project.scripts]
+sutron-collector = "sutron_collector.cli:main"
+
+[dependency-groups]
+dev = [
+    "mypy>=1.17.0",
+    "pytest>=8.4.0",
+    "ruff>=0.12.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sutron_collector"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+strict = true
+python_version = "3.13"
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["B", "C4", "E", "F", "I", "UP"]

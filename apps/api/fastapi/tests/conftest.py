@@ -88,7 +88,7 @@ async def _clear_database_async(session: AsyncSession) -> None:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def disable_rate_limiting() -> Generator[None, None, None]:
+def disable_rate_limiting() -> Generator[None]:
     """Disable rate limiting during tests to prevent 429 errors from rapid login calls."""
     limiter.enabled = False
     yield
@@ -96,7 +96,7 @@ def disable_rate_limiting() -> Generator[None, None, None]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Session, None, None]:
+def db() -> Generator[Session]:
     """Sync database session (legacy). Prefer async db_async for new tests."""
     with Session(engine) as session:
         _clear_database(session)
@@ -106,7 +106,7 @@ def db() -> Generator[Session, None, None]:
 
 
 @pytest.fixture
-async def db_async() -> AsyncGenerator[AsyncSession, None]:
+async def db_async() -> AsyncGenerator[AsyncSession]:
     """Async database session. Ensures superuser exists; cleans up users on teardown."""
     async with async_session_factory() as session:
         await _clear_database_async(session)
@@ -116,14 +116,14 @@ async def db_async() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(scope="module")
-def client() -> Generator[TestClient, None, None]:
+def client() -> Generator[TestClient]:
     """Synchronous FastAPI test client. Prefer async_client for new tests (async routes and DB)."""
     with TestClient(app) as c:
         yield c
 
 
 @pytest.fixture
-async def async_client() -> AsyncGenerator[httpx.AsyncClient, None]:
+async def async_client() -> AsyncGenerator[httpx.AsyncClient]:
     """Preferred client for new tests: async HTTP client with ASGI transport (avoids event loop issues)."""
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app),
