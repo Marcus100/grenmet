@@ -1,15 +1,15 @@
 "use client";
 
-import { useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
+import { useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@grenmet/ui/components/ui/popover";
-import { Spinner } from "@grenmet/ui/components/ui/spinner";
+} from "@barrelsgd/ui/components/ui/popover";
+import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import { UserPlus, X } from "lucide-react";
 import type { ReactNode } from "react";
 

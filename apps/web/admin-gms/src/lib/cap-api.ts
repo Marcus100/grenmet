@@ -3,13 +3,13 @@ import type {
   CapAlertPublic,
   CapAreaPublic,
   CapInfoPublic,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import { notFound } from "next/navigation";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 
 // CAP data types come from the OpenAPI-generated client so they can never drift
 // from the FastAPI schemas. The cap UI refers to them by these local aliases.
-export type { CapLifecycleState, CapSeverity } from "@grenmet/api-client";
+export type { CapLifecycleState, CapSeverity } from "@barrelsgd/api-client";
 
 export type CapArea = CapAreaPublic;
 export type CapInfo = CapInfoPublic;

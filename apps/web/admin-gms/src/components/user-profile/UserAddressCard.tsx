@@ -4,15 +4,15 @@ import type {
   Parish,
   UserProfilePublic,
   UserProfileUpdateMe,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Dialog, DialogContent } from "@grenmet/ui/components/ui/dialog";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Dialog, DialogContent } from "@barrelsgd/ui/components/ui/dialog";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
-} from "@grenmet/ui/components/ui/native-select";
+} from "@barrelsgd/ui/components/ui/native-select";
 import { useState } from "react";
 
 const PARISH_OPTIONS: { label: string; value: Parish }[] = [

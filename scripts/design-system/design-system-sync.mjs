@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url";
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const foundationPath = join(rootDir, "packages/ui/src/styles/globals.css");
 // signal is intentionally absent: it consumes the foundation via
-// `@import "@grenmet/ui/styles/globals"` (import-based) instead of inlining the
+// `@import "@barrelsgd/ui/styles/globals"` (import-based) instead of inlining the
 // generated block, so it is always in sync by construction.
 const targetPaths = [
   "apps/web/admin-gms/src/app/globals.css",
@@ -118,7 +118,7 @@ function validateContent(text, block) {
   }
 
   if (normalize(matches[0]) !== normalize(block)) {
-    return "generated GrenMet block is not in sync with @grenmet/ui";
+    return "generated GrenMet block is not in sync with @barrelsgd/ui";
   }
 
   const outsideGeneratedBlock = text.replace(blockPattern, "");

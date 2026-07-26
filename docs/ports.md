@@ -20,12 +20,12 @@ uses **one port across local dev and its container** (no dev/prod skew).
 
 | App | Package | Port | Deployed |
 |---|---|---|---|
-| auth | `@grenmet/web-auth` | 3000 | yes |
-| admin-gms | `@grenmet/web-admin` | 3001 | yes |
-| hurricaneplan | `@grenmet/web-hurricaneplan` | 3002 | yes |
-| spicewx | `@grenmet/web-spicewx` | 3003 | yes |
-| signal | `@grenmet/web-signal` | 3004 | dev only (no Dockerfile yet) |
-| mbia | `@grenmet/web-mbia` | 3005 | dev only (no Dockerfile yet) |
+| auth | `@barrelsgd/web-auth` | 3000 | yes |
+| admin-gms | `@barrelsgd/web-admin` | 3001 | yes |
+| hurricaneplan | `@barrelsgd/web-hurricaneplan` | 3002 | yes |
+| spicewx | `@barrelsgd/web-spicewx` | 3003 | yes |
+| signal | `@barrelsgd/web-signal` | 3004 | dev only (no Dockerfile yet) |
+| mbia | `@barrelsgd/web-mbia` | 3005 | dev only (no Dockerfile yet) |
 
 Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`.
 

@@ -1,4 +1,4 @@
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Image, { type StaticImageData } from "next/image";
 import iconColor from "../../assets/logo/logo-icon-color.png";
 import primaryWhite from "../../assets/logo/logo-primary-all-white.png";

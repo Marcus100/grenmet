@@ -1,5 +1,5 @@
 {
-  "extends": "@grenmet/tsconfig/tsconfig.json",
+  "extends": "@barrelsgd/tsconfig/tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",

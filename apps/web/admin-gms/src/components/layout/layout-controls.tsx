@@ -1,33 +1,33 @@
 "use client";
 
-import { usePreferencesStore } from "@grenmet/theme/components/preferences-provider";
+import { usePreferencesStore } from "@barrelsgd/theme/components/preferences-provider";
 import type {
   ContentLayout,
   NavbarStyle,
   SidebarCollapsible,
   SidebarVariant,
-} from "@grenmet/theme/lib/layout";
+} from "@barrelsgd/theme/lib/layout";
 import {
   applyContentLayout,
   applyNavbarStyle,
   applySidebarCollapsible,
   applySidebarVariant,
-} from "@grenmet/theme/lib/layout-utils";
-import { PREFERENCE_DEFAULTS } from "@grenmet/theme/lib/preferences-config";
-import { persistPreference } from "@grenmet/theme/lib/preferences-storage";
+} from "@barrelsgd/theme/lib/layout-utils";
+import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
+import { persistPreference } from "@barrelsgd/theme/lib/preferences-storage";
 import {
   THEME_PRESET_OPTIONS,
   type ThemeMode,
   type ThemePreset,
-} from "@grenmet/theme/lib/theme";
-import { applyThemePreset } from "@grenmet/theme/lib/theme-utils";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Label } from "@grenmet/ui/components/ui/label";
+} from "@barrelsgd/theme/lib/theme";
+import { applyThemePreset } from "@barrelsgd/theme/lib/theme-utils";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@grenmet/ui/components/ui/popover";
+} from "@barrelsgd/ui/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -35,11 +35,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@grenmet/ui/components/ui/select";
+} from "@barrelsgd/ui/components/ui/select";
 import {
   ToggleGroup,
   ToggleGroupItem,
-} from "@grenmet/ui/components/ui/toggle-group";
+} from "@barrelsgd/ui/components/ui/toggle-group";
 import { Settings } from "lucide-react";
 import { fontOptions } from "@/lib/fonts/registry";
 

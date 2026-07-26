@@ -91,7 +91,7 @@ pnpm type-check   # TypeScript across all packages
 To scope to just the package you changed (faster):
 
 ```bash
-turbo run check:fix type-check --filter=@grenmet/web-admin
+turbo run check:fix type-check --filter=@barrelsgd/web-admin
 ```
 
 If you changed FastAPI:
@@ -217,8 +217,8 @@ These are enforced by Biome and TypeScript — you'll get errors if you break th
 | Rule | Detail |
 |---|---|
 | Shared deps use `catalog:` | Reference versions from `pnpm-workspace.yaml` catalog, never hardcode |
-| UI from `@grenmet/ui` | Don't reimplement primitives; import from the shared library |
-| API calls via `@grenmet/api-client` | Don't write raw fetch calls to FastAPI endpoints in web apps |
+| UI from `@barrelsgd/ui` | Don't reimplement primitives; import from the shared library |
+| API calls via `@barrelsgd/api-client` | Don't write raw fetch calls to FastAPI endpoints in web apps |
 
 ### Database (owned by admin-gms)
 
@@ -255,7 +255,7 @@ If you're ever scaffolding a new app:
 ### App README template
 
 ```markdown
-# AppName (`@grenmet/web-appname`)
+# AppName (`@barrelsgd/web-appname`)
 
 One-paragraph description of what this app does and who it's for. Port **XXXX**.
 

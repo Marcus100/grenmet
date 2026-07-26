@@ -5,8 +5,8 @@ import {
   useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
   useReadRolesApiV1AuthRolesGet,
   useReadUsersApiV1AuthUsersGet,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
   CardAction,
@@ -14,13 +14,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@grenmet/ui/components/ui/card";
+} from "@barrelsgd/ui/components/ui/card";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@grenmet/ui/components/ui/input-group";
-import { Kbd } from "@grenmet/ui/components/ui/kbd";
+} from "@barrelsgd/ui/components/ui/input-group";
+import { Kbd } from "@barrelsgd/ui/components/ui/kbd";
 import {
   Select,
   SelectContent,
@@ -28,8 +28,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@grenmet/ui/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@grenmet/ui/components/ui/tabs";
+} from "@barrelsgd/ui/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@barrelsgd/ui/components/ui/tabs";
 import {
   type ColumnFiltersState,
   getCoreRowModel,

@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-signal",
+  "name": "@barrelsgd/web-signal",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -23,7 +23,7 @@
     "@content-collections/core": "catalog:",
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",
-    "@grenmet/ui": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",
@@ -35,7 +35,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/dom": "catalog:",
     "@testing-library/jest-dom": "catalog:",

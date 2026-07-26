@@ -1,9 +1,9 @@
 import "./globals.css";
 
-import { PreferencesStoreProvider } from "@grenmet/theme/components/preferences-provider";
-import { ThemeBootScript } from "@grenmet/theme/components/theme-boot";
-import { PREFERENCE_DEFAULTS } from "@grenmet/theme/lib/preferences-config";
-import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
+import { PreferencesStoreProvider } from "@barrelsgd/theme/components/preferences-provider";
+import { ThemeBootScript } from "@barrelsgd/theme/components/theme-boot";
+import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
+import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
 import { env } from "@/lib/env";
@@ -54,7 +54,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <head>
-        {/* Applies theme/layout prefs before hydration to avoid flicker (see @grenmet/theme). */}
+        {/* Applies theme/layout prefs before hydration to avoid flicker (see @barrelsgd/theme). */}
         <ThemeBootScript />
       </head>
       <body>

@@ -5,8 +5,8 @@ import {
   readUsersApiV1AuthUsersGetQueryKey,
   type UserPublic,
   useUpdateUserApiV1AuthUsersUserIdPatch,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@grenmet/ui/components/ui/dropdown-menu";
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
 import { useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal } from "lucide-react";
 import { useState } from "react";

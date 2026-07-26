@@ -31,7 +31,7 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
-RUN pnpm exec turbo run build --filter=@grenmet/web-hurricaneplan
+RUN pnpm exec turbo run build --filter=@barrelsgd/web-hurricaneplan
 RUN mkdir -p apps/web/hurricaneplan/public
 
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner

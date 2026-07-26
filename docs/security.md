@@ -18,15 +18,15 @@ This guide records the current GrenMet security posture and the rules that keep 
 | Webhooks | The Resend webhook verifies Svix signatures when `RESEND_WEBHOOK_SECRET` is set. If unset, it logs a warning and accepts events. |
 | Vulnerability scanning | API CI runs Trivy filesystem and image scans and uploads SARIF. |
 | Error tracking | FastAPI initializes Sentry outside local environments when `SENTRY_DSN` is set. Next.js apps include Sentry instrumentation files and build-time Sentry configuration. |
-| Analytics | Several apps use PostHog through `@grenmet/ui/components/posthog-provider` when public PostHog env vars are configured. |
+| Analytics | Several apps use PostHog through `@barrelsgd/ui/components/posthog-provider` when public PostHog env vars are configured. |
 
 ## Rules For Engineers
 
 - Never commit populated `.env`, `.env.local`, or `.env.*.local` files.
 - Do not place secrets in docs, screenshots, fixtures, seed data, or console output.
 - Access env vars through the app's typed env module, except shared packages that cannot depend on app-local env files.
-- Use `@grenmet/auth/server` helpers for browser session cookies.
-- Use generated `@grenmet/api-client` code for FastAPI calls from web apps.
+- Use `@barrelsgd/auth/server` helpers for browser session cookies.
+- Use generated `@barrelsgd/api-client` code for FastAPI calls from web apps.
 - Protect new FastAPI endpoints with `CurrentUser`, `CurrentSuperUser`, or explicit permission checks unless the endpoint is intentionally public.
 - Keep public endpoints documented in `docs/api/contracts.md`.
 - Add rate limiting to new password, login, token, webhook, or public write endpoints.

@@ -1,11 +1,11 @@
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@grenmet/ui/components/ui/card";
+} from "@barrelsgd/ui/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@grenmet/ui/components/ui/table";
+} from "@barrelsgd/ui/components/ui/table";
 import {
   CloudSun,
   Droplets,

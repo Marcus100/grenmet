@@ -2,7 +2,7 @@ import {
   configureApiClient,
   type SrcAuthSchemasRolePublic as RolePublic,
   type UserPublic,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";

@@ -49,8 +49,8 @@ Everything built to establish the platform before domain-specific features.
 - ✅ Kubb-generated TypeScript API client from FastAPI OpenAPI schema
 
 ### Shared Platform
-- ✅ Shared authentication (`@grenmet/auth`) — session cookies, sign-in/sign-up, session exchange
-- ✅ Shared UI component library (`@grenmet/ui`) — 20+ shadcn-style primitives built on Base UI
+- ✅ Shared authentication (`@barrelsgd/auth`) — session cookies, sign-in/sign-up, session exchange
+- ✅ Shared UI component library (`@barrelsgd/ui`) — 20+ shadcn-style primitives built on Base UI
 - ✅ GrenMet Design System v1 — `--gm-*` CSS custom properties, Tailwind v4 aliases, Figma variable contract
 - ✅ `design-system:sync`, `design-system:check`, and `design-system:audit` tooling
 - ✅ Figma `GrenMet v1 Foundation Contract` — color, spacing, radius, typography, shadow tokens
@@ -86,7 +86,7 @@ Everything built to establish the platform before domain-specific features.
 ### In Progress
 - 🔄 CAP alert composition UI — internal tool for forecasters to author and review CAP alerts
 - 🔄 Standard Operating Procedures (SOPs) for CAP alert production
-- 🔄 Warning display components in `@grenmet/ui` (Warning/IBF design system lane)
+- 🔄 Warning display components in `@barrelsgd/ui` (Warning/IBF design system lane)
 - 🔄 CAP export (structured XML / JSON output)
 
 ### Planned
@@ -300,7 +300,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | Dark mode design tokens | Requires dedicated Figma design pass; v1 is light-mode only |
 | Figma Code Connect publish | Figma Education account lacks the required publish capability |
 | Runtime schema reconciliation (wxproducts ↔ GMS product catalogue) | Requires GMS leadership review before runtime interfaces change |
-| Full cross-app component migration to `@grenmet/ui` | Phased; gated on design system component depth |
+| Full cross-app component migration to `@barrelsgd/ui` | Phased; gated on design system component depth |
 | Test suites for non-admin apps | Only admin-gms has Vitest + Playwright today |
 | AI/ML operational tools | Year 2+ — gated on stable data infrastructure |
 

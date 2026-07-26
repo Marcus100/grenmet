@@ -4,7 +4,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "@grenmet/ui/components/ui/avatar";
+} from "@barrelsgd/ui/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,14 +12,14 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@grenmet/ui/components/ui/dropdown-menu";
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@grenmet/ui/components/ui/sidebar";
-import { getInitials } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/sidebar";
+import { getInitials } from "@barrelsgd/ui/lib/utils";
 import { CircleUser, EllipsisVertical, LogOut } from "lucide-react";
 import Link from "next/link";
 

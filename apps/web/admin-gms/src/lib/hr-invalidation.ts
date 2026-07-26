@@ -5,7 +5,7 @@ import {
   readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
   readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
   readUsersApiV1AuthUsersGetQueryKey,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import type { QueryClient } from "@tanstack/react-query";
 
 /**

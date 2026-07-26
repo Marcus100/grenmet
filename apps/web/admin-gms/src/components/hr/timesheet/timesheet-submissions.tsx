@@ -1,7 +1,7 @@
 "use client";
 
-import { useReadMyTimesheetsApiV1HrTimesheetsMeGet } from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
+import { useReadMyTimesheetsApiV1HrTimesheetsMeGet } from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   DRAFT: "outline",
