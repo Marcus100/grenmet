@@ -1,7 +1,7 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { mergeProps } from "@base-ui/react/merge-props";
 import { useRender } from "@base-ui/react/use-render";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { cn } from "@grenmet/ui/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
 

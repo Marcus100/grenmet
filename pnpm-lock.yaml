@@ -225,7 +225,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@total-typescript/ts-reset':
@@ -255,16 +255,16 @@ importers:
       '@fullcalendar/react':
         specifier: 'catalog:'
         version: 7.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(temporal-polyfill@1.0.1)
-      '@grenmet/api-client':
+      '@barrelsgd/api-client':
         specifier: workspace:*
         version: link:../../../packages/api-client
-      '@grenmet/auth':
+      '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
-      '@grenmet/theme':
+      '@barrelsgd/theme':
         specifier: workspace:*
         version: link:../../../packages/theme
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@hookform/resolvers':
@@ -346,7 +346,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.14(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@playwright/test':
@@ -427,13 +427,13 @@ importers:
 
   apps/web/auth:
     dependencies:
-      '@grenmet/auth':
+      '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
-      '@grenmet/email-templates':
+      '@barrelsgd/email-templates':
         specifier: workspace:*
         version: link:../../../packages/email-templates
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@sentry/nextjs':
@@ -458,7 +458,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@playwright/test':
@@ -524,7 +524,7 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@headlessui/react':
@@ -600,7 +600,7 @@ importers:
         specifier: ^5.0.6
         version: 5.0.11(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -642,7 +642,7 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@sentry/nextjs':
@@ -673,7 +673,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -733,7 +733,7 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@sentry/nextjs':
@@ -764,7 +764,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -815,7 +815,7 @@ importers:
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.6.0(@date-fns/tz@1.5.0)(@types/react@19.2.9)(date-fns@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@sentry/nextjs':
@@ -849,7 +849,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -880,7 +880,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@kubb/cli':
@@ -919,7 +919,7 @@ importers:
 
   packages/auth:
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -947,7 +947,7 @@ importers:
         specifier: ^2.0.8
         version: 2.0.8(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -972,7 +972,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.14(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -1050,7 +1050,7 @@ importers:
       '@figma/code-connect':
         specifier: ^1.4.5
         version: 1.4.5
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':

@@ -5,7 +5,7 @@ import {
   type UserProfileUpdateMe,
   useReadHrProfileMeApiV1HrProfileMeGet,
   useUpdateHrProfileMeApiV1HrProfileMePatch,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import { useQueryClient } from "@tanstack/react-query";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";

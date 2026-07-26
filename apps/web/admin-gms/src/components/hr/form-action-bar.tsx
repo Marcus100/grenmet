@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Spinner } from "@grenmet/ui/components/ui/spinner";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import { Download, RotateCcw, Save, Send } from "lucide-react";
 import type { ReactNode } from "react";
 

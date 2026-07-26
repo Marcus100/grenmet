@@ -5,7 +5,7 @@
 // Idempotent: truncates and reloads every run. Node natively strips the types
 // from the imported .ts modules (Node >= 22.18), so no build step / tsx needed.
 //
-//   pnpm --filter @grenmet/web-admin db:janitorial:seed
+//   pnpm --filter @barrelsgd/web-admin db:janitorial:seed
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

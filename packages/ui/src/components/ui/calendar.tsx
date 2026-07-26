@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, buttonVariants } from "@grenmet/ui/components/ui/button";
-import { cn } from "@grenmet/ui/lib/utils";
+import { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   ChevronDownIcon,
   ChevronLeftIcon,

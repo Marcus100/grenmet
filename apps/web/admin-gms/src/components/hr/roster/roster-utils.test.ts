@@ -1,7 +1,7 @@
 import type {
   RosterPeriodPublic,
   ShiftCatalogPublic,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
 import {
   buildCycleCodes,

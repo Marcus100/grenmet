@@ -10,7 +10,7 @@ The web apps need typed access to FastAPI endpoints without duplicating schemas 
 
 ## Decision
 
-Generate `@grenmet/api-client` with Kubb from `apps/api/fastapi/openapi.json`. Commit generated files under `packages/api-client/src/gen`.
+Generate `@barrelsgd/api-client` with Kubb from `apps/api/fastapi/openapi.json`. Commit generated files under `packages/api-client/src/gen`.
 
 ## Consequences
 

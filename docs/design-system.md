@@ -1,6 +1,6 @@
 # GrenMet Design System
 
-GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in small, verified passes. Figma owns design intent; `@grenmet/ui` owns repo enforcement. Token changes must be reconciled in both places before they are considered part of the v1 contract.
+GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in small, verified passes. Figma owns design intent; `@barrelsgd/ui` owns repo enforcement. Token changes must be reconciled in both places before they are considered part of the v1 contract.
 
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
@@ -45,7 +45,7 @@ The `13 Components` page is the repo handoff map for v1:
 |---|---|---|
 | `00 Guide / Component Rules` | Component operating rules and 2026-05-31 drift snapshot. | Keep this aligned with the audit summary below. |
 | `01 Core UI` | Production core primitives. Figma documents `Button` (42 variants, including `size=touch`) and `Input` (3 states, including `invalid`) — 45 variants across 2 component sets. | `Button` has local Code Connect. `Input` exists in Figma and code; local Code Connect remains next. |
-| `02 Weather Domain` | Alert cards, compact alert cards, forecast headline, metrics, metric grid, and IBF matrix. | Weather warning and IBF components should graduate through `@grenmet/ui` only after APIs are stable. |
+| `02 Weather Domain` | Alert cards, compact alert cards, forecast headline, metrics, metric grid, and IBF matrix. | Weather warning and IBF components should graduate through `@barrelsgd/ui` only after APIs are stable. |
 | `03 Product PDF` | A4 report shell/body/header/footer, product badges, alert grid, alert section, and forecast details with IBF. | Keep fixed A4 dimensions and Noto Sans in the Document Templates lane. |
 | `04 Website / Shared` | Shared public website components: logo, accent line, social button, footer link, author row, section header, warning rows/accordion, summary/news cards, and 44px icon buttons. | Public website patterns should be validated in `spicewx` before broad reuse. |
 | `05 Website / Desktop` | Desktop site header, desktop navigation menu, forecast date rail, and forecast date tab. | Desktop navigation should stay public-weather-specific unless reused outside the website lane. |
@@ -68,7 +68,7 @@ The design system has three layers:
 
 **1. CSS custom properties (`--gm-*`)**
 
-Defined in `packages/ui/src/styles/globals.css`. These are the canonical values — colors, spacing steps, radius values, type sizes. Every app receives this block automatically when it imports `@grenmet/ui`.
+Defined in `packages/ui/src/styles/globals.css`. These are the canonical values — colors, spacing steps, radius values, type sizes. Every app receives this block automatically when it imports `@barrelsgd/ui`.
 
 ```css
 --gm-blue: #2478f2;
@@ -97,7 +97,7 @@ This means you can write `text-gm-blue`, `p-gm-4`, `text-gm-heading-md` etc. as 
 
 | Use | How |
 |---|---|
-| Standard UI elements | Import from `@grenmet/ui/components/ui/<name>` |
+| Standard UI elements | Import from `@barrelsgd/ui/components/ui/<name>` |
 | Color, spacing, type scale | Use `--gm-*` CSS variables or their Tailwind aliases |
 | Semantic colors (backgrounds, borders) | Use `--background`, `--border`, etc. |
 | Official document typography | Use `font-gm-document`; keep fixed document sizes inside document templates |
@@ -115,7 +115,7 @@ pnpm design-system:audit
 
 Keep the design system split clear while it grows:
 
-- **Core UI** is the reusable primitive surface in `@grenmet/ui`: `Button`, `Input`, `Badge`, `Card`, `Dialog`, `Select`, `Table`, `Tabs`, `Tooltip`, and similar app-agnostic building blocks.
+- **Core UI** is the reusable primitive surface in `@barrelsgd/ui`: `Button`, `Input`, `Badge`, `Card`, `Dialog`, `Select`, `Table`, `Tabs`, `Tooltip`, and similar app-agnostic building blocks.
 - **Public Weather/Product UI** is the public product layer: forecast cards, warning cards, current conditions, navigation, weather news, mobile menus, alert summaries, and product badges.
 - **Document Templates** are fixed-output A4/PDF/bulletin layouts, official forecast templates, HR forms, and official reports. This lane may use Noto Sans and fixed dimensions that normal web components should not inherit.
 
@@ -130,7 +130,7 @@ The v1 bridge is intentionally CSS-first:
 1. Figma variables define the GrenMet foundation contract and their WEB code syntax.
 2. `packages/ui/src/styles/globals.css` defines the repo-enforced `--gm-*` custom properties and shadcn-compatible semantic tokens.
 3. Tailwind v4 `@theme` aliases expose GrenMet color, spacing, and radius utilities.
-4. App stylesheets receive the generated `GrenMet Design System V1` block from `@grenmet/ui`.
+4. App stylesheets receive the generated `GrenMet Design System V1` block from `@barrelsgd/ui`.
 
 Run the sync command after editing the canonical block:
 
@@ -150,7 +150,7 @@ The check fails if an app has a stale generated block or declares `--gm-*` token
 
 ## Governance
 
-Public `--gm-*` tokens are a contract across Figma, `@grenmet/ui`, and the web apps. During v1, new public tokens and token value changes require user approval before they become part of the contract.
+Public `--gm-*` tokens are a contract across Figma, `@barrelsgd/ui`, and the web apps. During v1, new public tokens and token value changes require user approval before they become part of the contract.
 
 Approved token changes must land in Figma and `packages/ui/src/styles/globals.css` together. After editing the canonical block, run `pnpm design-system:sync` so generated app blocks stay aligned, then verify with `pnpm design-system:check`.
 
@@ -162,7 +162,7 @@ The next v1 milestone is foundation compliance, not component migration. Apps sh
 
 Inter is the GrenMet v1 web UI font and must flow through `--gm-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
 
-Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@grenmet/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
+Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@barrelsgd/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
 
 Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the GrenMet foundation.
 
@@ -204,7 +204,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 ### Migration Order
 
 1. `spicewx`, because it is the public web reference.
-2. `@grenmet/ui`, because shared primitives must stay token-clean.
+2. `@barrelsgd/ui`, because shared primitives must stay token-clean.
 3. `admin-gms`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
 4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
 5. `auth`, `wxwatch`, `salesbus`, and `hurricaneplan`, guided by audit output and app-specific risk.
@@ -247,7 +247,7 @@ The current audit verified the collection includes the v1 color, spacing, radius
 
 Repo-side audit status as of 2026-06-13 (the `design-system:*` scripts were broken from 2026-05-31 until 2026-06-13 by a `rootDir` path bug after they moved under `scripts/design-system/`; fixed, and `cap` added to sync and audit coverage):
 
-- `pnpm design-system:check` passes. Generated app foundation blocks match `@grenmet/ui` across all nine web apps, including `cap`.
+- `pnpm design-system:check` passes. Generated app foundation blocks match `@barrelsgd/ui` across all nine web apps, including `cap`.
 - `pnpm design-system:contrast` passes for all five warning foreground/background pairs.
 - `pnpm design-system:audit` remains warning-only. It reports expected migration debt, not CI failures.
 
@@ -262,7 +262,7 @@ Current audit summary:
 | `salesbus` | Small product-specific sizing exceptions. |
 | `wxproducts` | Fixed A4/PDF dimensions in the document lane. |
 | `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
-| `@grenmet/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
+| `@barrelsgd/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
 | `admin-gms` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
 | `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
 
@@ -284,7 +284,7 @@ pnpm design-system:contrast
 
 Dark mode is supported via the class-based `dark` variant. The foundation defines `.dark` token overrides (background, foreground, card, popover, primary, secondary, muted, accent, border, ring, chart-1..5, sidebar-*), so semantic tokens (`bg-background`, `text-foreground`, `border-border`) adapt automatically and most primitives need no `dark:*` branches.
 
-Apps may follow the user's theme preference (light / dark / system) via the `@grenmet/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
+Apps may follow the user's theme preference (light / dark / system) via the `@barrelsgd/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
 
 `admin-gms` ships the GrenMet `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
 

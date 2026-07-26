@@ -1,4 +1,4 @@
-import { configureApiClient } from "@grenmet/api-client";
+import { configureApiClient } from "@barrelsgd/api-client";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";

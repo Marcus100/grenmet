@@ -1,4 +1,4 @@
-# Grenada Signal (`@grenmet/web-signal`)
+# Grenada Signal (`@barrelsgd/web-signal`)
 
 Mobile-first civic-media front door for **Grenada Signal** — a Morning Brew-style
 single-column reader. Port **3004**, domain `signal.barrels.gd`.
@@ -6,9 +6,9 @@ single-column reader. Port **3004**, domain `signal.barrels.gd`.
 MVP scope: static MDX content, light mode, no auth, no database.
 
 ```bash
-pnpm --filter @grenmet/web-signal dev     # http://localhost:3004
-pnpm --filter @grenmet/web-signal build
-pnpm --filter @grenmet/web-signal test
+pnpm --filter @barrelsgd/web-signal dev     # http://localhost:3004
+pnpm --filter @barrelsgd/web-signal build
+pnpm --filter @barrelsgd/web-signal test
 ```
 
 ## Content
@@ -27,9 +27,9 @@ schema in `content-collections.ts` requires (`title`, `dek`, `section`, `author`
 
 ## Design
 
-Tailwind v4 on the `@grenmet/ui` foundation, reskinned to the Signal palette in
+Tailwind v4 on the `@barrelsgd/ui` foundation, reskinned to the Signal palette in
 `src/app/globals.css` (Grenada green + gold, ink text; red reserved for alerts).
-Source Serif 4 headlines + Inter body. UI primitives come from `@grenmet/ui`.
+Source Serif 4 headlines + Inter body. UI primitives come from `@barrelsgd/ui`.
 
 ## Subscribe
 

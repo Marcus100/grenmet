@@ -7,8 +7,8 @@ GrenMet currently uses a modular-monolith data model: several applications share
 | Database | Owner | Main code | Migration tool | Notes |
 | --- | --- | --- | --- | --- |
 | FastAPI DB: local `app`, staging `app_staging`, production `app_prod` | FastAPI | `apps/api/fastapi/src` | Alembic | Auth, HR, and FastAPI CAP domain tables |
-| `wxwatch` | `@grenmet/web-admin` (admin-gms) + Scrapy pipeline | `apps/web/admin-gms/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
-| `wxproducts` | `@grenmet/web-admin` (admin-gms) | `apps/web/admin-gms/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
+| `wxwatch` | `@barrelsgd/web-admin` (admin-gms) + Scrapy pipeline | `apps/web/admin-gms/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
+| `wxproducts` | `@barrelsgd/web-admin` (admin-gms) | `apps/web/admin-gms/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
 
 > Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **admin-gms**. Their migrations run in production via the `web-migrate` service (built from admin-gms's `migrate` Dockerfile stage). The databases and their backups are otherwise unchanged.
 

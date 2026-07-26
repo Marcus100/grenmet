@@ -1,1 +1,1 @@
-export { signOut, signOutEverywhere } from "@grenmet/auth";
+export { signOut, signOutEverywhere } from "@barrelsgd/auth";

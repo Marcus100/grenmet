@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { cn } from "@grenmet/ui/lib/utils";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { type FormEvent, useId, useState } from "react";
 
 type Status = "idle" | "loading" | "success" | "error";

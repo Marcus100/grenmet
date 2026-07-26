@@ -85,7 +85,7 @@ pnpm generate:api-client
 pnpm build
 ```
 
-### `Cannot find module '@grenmet/ui/...'` or `'@grenmet/auth/...'`
+### `Cannot find module '@barrelsgd/ui/...'` or `'@barrelsgd/auth/...'`
 
 The shared package needs to be built first:
 
@@ -96,8 +96,8 @@ pnpm build
 For a faster rebuild of just the affected packages:
 
 ```bash
-turbo run build --filter=@grenmet/ui
-turbo run build --filter=@grenmet/auth
+turbo run build --filter=@barrelsgd/ui
+turbo run build --filter=@barrelsgd/auth
 ```
 
 ### Type errors only on CI, not locally

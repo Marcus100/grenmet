@@ -1,4 +1,4 @@
-# admin-gms (`@grenmet/web-admin`)
+# admin-gms (`@barrelsgd/web-admin`)
 
 Internal GMS operations dashboard. Port **3001**. Requires `pnpm start` (FastAPI + Postgres).
 

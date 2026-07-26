@@ -7,7 +7,7 @@ import {
   logoutAllSessions as _logoutAllSessions,
   logoutSession as _logoutSession,
   readSessionCookie as _readSessionCookie,
-} from "@grenmet/auth/server";
+} from "@barrelsgd/auth/server";
 import type { NextResponse } from "next/server";
 import { getAuthConfig } from "@/lib/auth-config";
 
@@ -15,8 +15,8 @@ export type {
   SessionAccessTokenResponse,
   SessionPublic,
   SessionUserPublic,
-} from "@grenmet/auth";
-export { AuthApiError, isAuthApiError } from "@grenmet/auth";
+} from "@barrelsgd/auth";
+export { AuthApiError, isAuthApiError } from "@barrelsgd/auth";
 
 export function clearSessionCookieOnResponse(response: NextResponse): void {
   _clearSessionCookieOnResponse(getAuthConfig(), response);

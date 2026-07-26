@@ -8,7 +8,7 @@ follow-up.
 
 ```bash
 # Run tests for admin-gms
-turbo run test --filter=@grenmet/web-admin
+turbo run test --filter=@barrelsgd/web-admin
 
 # Run a single file (from within the app directory)
 pnpm vitest run src/path/to/test.test.ts

@@ -1,4 +1,4 @@
-# Hono API (`@grenmet/api-hono`)
+# Hono API (`@barrelsgd/api-hono`)
 
 Hono Node.js service in the Grenmet monorepo. Currently a small foundation for
 a future weather-data proxy layer.

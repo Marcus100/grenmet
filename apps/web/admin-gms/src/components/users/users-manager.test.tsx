@@ -1,4 +1,4 @@
-import { configureApiClient } from "@grenmet/api-client";
+import { configureApiClient } from "@barrelsgd/api-client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";

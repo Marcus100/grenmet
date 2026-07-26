@@ -4,14 +4,14 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@grenmet/ui/components/ui/collapsible";
+} from "@barrelsgd/ui/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@grenmet/ui/components/ui/dropdown-menu";
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -24,8 +24,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from "@grenmet/ui/components/ui/sidebar";
-import { cn } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/sidebar";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

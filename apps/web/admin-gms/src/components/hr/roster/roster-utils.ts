@@ -2,7 +2,7 @@ import type {
   RosterAssignmentPublic,
   RosterPeriodPublic,
   ShiftCatalogPublic,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 
 /** Preferred cell-cycling order; filtered to codes present in the catalog. */
 const PREFERRED_CYCLE = ["M", "E", "N", "D", "O", "V", "S", "L"];

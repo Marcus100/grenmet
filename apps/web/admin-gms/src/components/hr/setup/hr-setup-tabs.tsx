@@ -5,7 +5,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@grenmet/ui/components/ui/tabs";
+} from "@barrelsgd/ui/components/ui/tabs";
 import { DepartmentsManager } from "./departments-manager";
 import { ShiftTypesManager } from "./shift-types-manager";
 
