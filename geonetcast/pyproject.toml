@@ -8,7 +8,7 @@ dependencies = [
     # Pinned to the devcontainer image's libgdal (Debian bookworm ships 3.6.2).
     # Used via `from osgeo import gdal` in the GOES scripts. Do not bump without
     # bumping libgdal-dev in .devcontainer/Dockerfile to match.
-    "gdal==3.6.2",
+    "gdal==3.13.2",
     "imageio>=2.37.3",
     "matplotlib>=3.11.0",
     "metpy>=1.7.1",
