@@ -1,6 +1,6 @@
 ---
 description: Pre-merge verification — types, lint, Docker, env drift, API client sync, GH Actions pinning. Analysis only, no edits.
-allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *)
+allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(uv run *), Bash(cd apps/api/fastapi *)
 ---
 
 ## Pre-Merge Check
@@ -20,7 +20,14 @@ Read every `*.yml` file under `.github/workflows/`. Verify all Docker image name
 For each app's `.env.local.example`, verify every variable is either referenced in `docker-compose.yml`, the relevant workflow, or the app's `env.ts`. Flag variables defined in `.env.local.example` but missing from runtime config, and vice versa.
 
 **5. API client sync**
-Compare the modification time of `apps/api/fastapi/openapi.json` against `packages/api-client/src/gen/`. If `openapi.json` is newer, flag as drift — regeneration is needed (`pnpm generate:api-client`).
+Two layers — `pnpm check:drift` only covers the first, so check both:
+- a. **Spec ↔ generated client**: run `pnpm check:drift`.
+- b. **Code ↔ spec** (the known blind spot): generate the spec in memory and
+  compare it with the working-tree file without editing either one —
+  `cd apps/api/fastapi && uv run --frozen --package fast-back python -c "from src.main import app; import difflib, json, pathlib, sys; path = pathlib.Path('openapi.json'); committed = path.read_text(encoding='utf-8'); generated = json.dumps(app.openapi(), indent=2); diff = ''.join(difflib.unified_diff(committed.splitlines(keepends=True), generated.splitlines(keepends=True), fromfile=str(path), tofile='generated from src')); print(diff, end=''); sys.exit(committed != generated)"`.
+  A nonzero exit means a route changed without regeneration — flag it and show
+  the generated diff. The check must never overwrite or restore
+  `apps/api/fastapi/openapi.json`.
 
 **6. GitHub Actions pinning**
 Grep all workflow YAMLs for `uses:` lines. Flag any action pinned to a tag (e.g. `@v3`) rather than a SHA.

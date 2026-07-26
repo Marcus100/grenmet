@@ -8,9 +8,9 @@ updates:
     commit-message:
       prefix: ⬆
 
-  # Python uv (API)
+  # Python uv (root workspace)
   - package-ecosystem: uv
-    directory: /apps/api/fastapi
+    directory: /
     schedule:
       interval: daily
     commit-message:

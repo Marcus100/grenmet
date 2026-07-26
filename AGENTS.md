@@ -42,13 +42,13 @@ pnpm vitest run src/path/to/test.test.ts          # Single file (from app dir)
 
 ```bash
 pnpm start                                                    # Start shared infra + FastAPI (from repo root)
-docker compose exec api uv run pytest                        # Full test suite
-docker compose exec api uv run pytest tests/auth/            # Single domain
-docker compose exec api uv run pytest --cov=src --cov-report=term  # With coverage
-docker compose exec api uv run alembic upgrade head          # Apply migrations
-docker compose exec api uv run alembic revision --autogenerate -m "message"  # New migration
+docker compose exec api uv run --frozen --package fast-back pytest                        # Full test suite
+docker compose exec api uv run --frozen --package fast-back pytest tests/auth/            # Single domain
+docker compose exec api uv run --frozen --package fast-back pytest --cov=src --cov-report=term  # With coverage
+docker compose exec api uv run --frozen --package fast-back alembic upgrade head          # Apply migrations
+docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "message"  # New migration
 docker compose exec api python scripts/seed_data.py --reset  # Seed data
-docker compose exec api uv run mypy src                      # Type-check
+docker compose exec api uv run --frozen --package fast-back mypy src                      # Type-check
 ./scripts/lint.sh                                            # Ruff lint + format check
 ./scripts/format.sh                                          # Ruff fix + format
 ```
@@ -60,17 +60,17 @@ be up):
 
 ```bash
 cd apps/api/fastapi
-uv sync                                                      # one-time: build the venv (needs network)
+uv sync --frozen --package fast-back                         # one-time: build the shared venv (needs network)
 POSTGRES_SERVER=host.docker.internal \
   REDIS_URL=redis://host.docker.internal:6379/0 \
-  uv run pytest
+  uv run --frozen --package fast-back pytest
 ```
 
 Regenerate `openapi.json` before running `pnpm generate:api-client`:
 
 ```bash
 cd apps/api/fastapi
-uv run python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
 ```
 
 ### Build & Generate
@@ -81,13 +81,14 @@ pnpm generate:api-client    # Regenerate TS client from FastAPI OpenAPI
 pnpm check:drift            # Verify API client is in sync with openapi.json
 ```
 
-## Top 5 Conventions
+## Top 6 Conventions
 
 1. Run `pnpm fix` then `pnpm type-check` before marking any task done — no exceptions.
-2. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
-3. Import UI primitives from `@grenmet/ui/components/ui/<name>`, utils from `@grenmet/ui/lib/utils`.
-4. Access env vars through the app's `src/env.ts` — never `process.env` directly.
-5. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
+2. Use Biome/Ultracite through `pnpm fix` for linting and formatting — never invoke Prettier.
+3. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
+4. Import UI primitives from `@grenmet/ui/components/ui/<name>`, utils from `@grenmet/ui/lib/utils`.
+5. Access env vars through the app's `src/env.ts` — never `process.env` directly.
+6. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
 
 ## Top 6 Anti-Patterns
 
@@ -97,6 +98,18 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 4. Never touch a file not explicitly named in the request without stopping and asking first.
 5. Never implement after analysis — stop and wait for explicit approval before writing code.
 6. Never declare a task done after editing only the named file — grep every callsite of changed symbols and verify each affected layer first (see the Blast-Radius Gate in `CLAUDE.md`).
+
+## Playbooks
+
+Reusable step-by-step playbooks live in `.claude/skills/*/SKILL.md` and
+`.claude/commands/*.md` — plain markdown, not Claude-specific. Before improvising
+a multi-step workflow (CI triage, pre-merge checks, release promotion, environment
+diagnosis, teaching), check whether a playbook already covers it and follow it.
+
+## Communication & Diagnosis
+
+1. Lead with the answer or next step in plain language; keep responses short and offer deeper technical detail only when asked. Teach one concept at a time with a hands-on command.
+2. Before acting on any setup/diagnosis theory, confirm the environment with a cheap check (host vs devcontainer, which Docker daemon, which port) and state the assumption being tested. Never bundle a speculative environment change with a fix.
 
 ## Where to Look Next
 
@@ -111,6 +124,7 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 | API contracts and public routes  | `docs/api/contracts.md`      |
 | Environment variables            | `docs/env.md`                |
 | Deployment                       | `docs/deployment.md`         |
+| Release promotion runbook        | `docs/operations/release-runbook.md` |
 | A specific app                   | `apps/web/<app>/CLAUDE.md`   |
 | FastAPI conventions              | `apps/api/fastapi/CLAUDE.md` |
 | Design system tokens             | `docs/design-system.md`      |

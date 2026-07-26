@@ -25,9 +25,9 @@ def parse_iso_datetime(value):
 def main():
     import psycopg
 
-    # Load .env from scrapy-wxwatch project root
+    # Load local development settings from the project root
     project_root = Path(__file__).resolve().parent.parent
-    load_dotenv(project_root / ".env")
+    load_dotenv(project_root / ".env.local")
 
     data_dir = Path(__file__).parent.parent / "data"
     if not data_dir.exists():
@@ -43,7 +43,10 @@ def main():
     db_port = int(os.getenv("DB_PORT", "5432"))
     db_name = os.getenv("DB_NAME", "wxwatch")
     db_user = os.getenv("DB_USER", "wxwatch")
-    db_password = os.getenv("DB_PASSWORD", "changethis")
+    db_password = os.getenv("DB_PASSWORD")
+    if not db_password:
+        print("DB_PASSWORD is required", file=sys.stderr)
+        sys.exit(2)
 
     conn = psycopg.connect(
         host=db_host,

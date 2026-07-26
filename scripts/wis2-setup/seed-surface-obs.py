@@ -8,7 +8,7 @@ Idempotent — re-run any hour to keep the pilot publishable. quality_flag=1
 
 Run (devcontainer):  MINIO unused; DB via host.docker.internal:5433
   export DBPW=$(grep '^SURFACE_DB_PASSWORD=' surface/api/production.env | cut -d= -f2)
-  uv run --with 'psycopg[binary]' python3 scripts/wis2-setup/seed-surface-obs.py
+  uv run --no-project --with 'psycopg[binary]' python3 scripts/wis2-setup/seed-surface-obs.py
 Run (host): same, with SURFACE_DB_HOST=localhost
 """
 

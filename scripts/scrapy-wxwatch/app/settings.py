@@ -11,16 +11,17 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
+from app.config import ImageStorageConfig
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(dotenv_path=_PROJECT_ROOT / ".env")
+load_dotenv(dotenv_path=_PROJECT_ROOT / ".env.local")
 
 BOT_NAME = "app"
 
 SPIDER_MODULES = ["app.spiders"]
 NEWSPIDER_MODULE = "app.spiders"
 
-ADDONS = {}
+ADDONS: dict[str, object] = {}
 
 
 # Crawl responsibly by identifying yourself
@@ -65,17 +66,24 @@ DOWNLOAD_DELAY = 1
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/media-pipeline.html
-# Pipeline order matters: SpiderName first, then download, then metadata, then DB
+# Pipeline order matters: identify the source, then download/inspect, then record.
 ITEM_PIPELINES = {
-    "app.pipelines.SpiderNamePipeline": 0,  # Add spider name to items
-    "app.pipelines.MinutePathImagesPipeline": 1,  # Download images
-    "app.pipelines.ImageMetadataPipeline": 2,  # Extract metadata with Pillow
-    "app.pipelines.PostgresPipeline": 3,  # Write to PostgreSQL
+    "app.pipelines.SpiderNamePipeline": 100,  # Add spider name to items
+    "app.pipelines.MinutePathImagesPipeline": 200,  # Download images
+    "app.pipelines.PostgresPipeline": 300,  # Write to PostgreSQL
 }
 
-# Resolve to absolute path: scrapy-wxwatch -> scripts -> repo root -> apps/web/wxwatch/public/wxwatch
-_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-IMAGES_STORE = str(_REPO_ROOT / "apps" / "web" / "wxwatch" / "public" / "wxwatch")
+# Local development stores images under this project; a complete STORAGE_*
+# configuration switches Scrapy to its native S3-compatible storage adapter.
+_STORAGE = ImageStorageConfig.from_env(
+    os.environ, default_local_store=_PROJECT_ROOT / "data" / "images"
+)
+IMAGES_STORE = _STORAGE.images_store
+AWS_ENDPOINT_URL = _STORAGE.endpoint_url
+AWS_REGION_NAME = _STORAGE.region
+AWS_ACCESS_KEY_ID = _STORAGE.access_key_id
+AWS_SECRET_ACCESS_KEY = _STORAGE.secret_access_key
+FILES_STORE_S3_ACL = _STORAGE.object_acl
 
 # Allow redirects for image downloads (fixes http->https redirects)
 MEDIA_ALLOW_REDIRECTS = True
@@ -92,9 +100,10 @@ AUTOTHROTTLE_START_DELAY = 1
 AUTOTHROTTLE_MAX_DELAY = 10
 AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
 
-# Enable and configure HTTP caching (useful for development)
+# Keep production one-shot runs fresh. Developers may opt in with
+# `-s HTTPCACHE_ENABLED=1` when invoking Scrapy directly.
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-HTTPCACHE_ENABLED = True
+HTTPCACHE_ENABLED = False
 HTTPCACHE_EXPIRATION_SECS = 3600  # 1 hour
 HTTPCACHE_DIR = ".scrapy/httpcache"
 HTTPCACHE_IGNORE_HTTP_CODES = [500, 502, 503, 504]
@@ -114,4 +123,4 @@ DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "wxwatch")
 DB_USER = os.getenv("DB_USER", "wxwatch")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "changethis")
+DB_PASSWORD = os.getenv("DB_PASSWORD")

@@ -1,0 +1,23 @@
+[project]
+name = "grenmet-workspace"
+version = "0.1.0"
+requires-python = ">=3.13,<4.0"
+dependencies = []
+
+[tool.uv]
+package = false
+# GDAL 3.6.2 has no Python dependencies, but its legacy setup.py requires the
+# native gdal-config binary even to read package metadata. Supplying that known
+# metadata keeps workspace locking portable; installation still requires GDAL.
+dependency-metadata = [
+    { name = "gdal", version = "3.6.2", requires-dist = [] },
+]
+
+[tool.uv.workspace]
+members = [
+    "apps/api/fastapi",
+    "scripts/scrapy-wxwatch",
+    "scripts/sutron-collector",
+    "notebooks",
+    "geonetcast",
+]

@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Guidance for Claude Code in this monorepo.
+Guidance for Claude Code and Codex in this monorepo.
 For monorepo structure, auth flow, and deployment: see `docs/`.
 For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
@@ -8,6 +8,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
 ### Always (no confirmation needed)
 - Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
 - Include tests with every new feature or significant logic change
@@ -34,6 +35,15 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 Only touch files explicitly named in the request. If working on a task reveals
 related changes needed in other files, finish the requested task first, then
 describe the finding and ask before continuing.
+
+### Host/Container Boundary
+For both Claude Code and Codex, run `pnpm start` and `pnpm dev:web:*` on the host, never inside the devcontainer; use the devcontainer for editing, agents, linting, type-checking, and tests.
+
+### Communication
+Lead with the answer or the next step in plain language; keep responses short and offer deeper technical detail only when asked. When teaching, go one concept at a time with a hands-on command — never a comprehensive architecture dump.
+
+### Verify Environment Before Theorizing
+Before acting on any setup/diagnosis theory, confirm the environment with a cheap check (host vs devcontainer, which Docker daemon, which port/config file) and state the assumption being tested. Never bundle a speculative environment change with a fix.
 
 ### Blast-Radius Gate
 A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
@@ -104,7 +114,7 @@ When adding to this file, follow this structure:
 - **Generated files are committed** — never edit `packages/api-client/src/gen/`
   manually; always regenerate via `pnpm generate:api-client`.
 - **geonetcast runs devcontainer-first** — its `gdal` pin tracks the devcontainer
-  image's libgdal (Debian), not the host; never `uv sync` `geonetcast/` on the host.
+  image's libgdal (Debian), not the host; never `uv sync --package geonetcast` on the host.
 
 ## CI/CD Conventions
 
@@ -154,6 +164,7 @@ When adding to this file, follow this structure:
 | Adding a new HR form module        | `docs/hr/adding-a-form-module.md`  |
 | FastAPI conventions                | `apps/api/fastapi/CLAUDE.md`       |
 | FastAPI dev workflow               | `docs/api/development.md`          |
+| Release promotion (dev→staging→prod) | `docs/operations/release-runbook.md` — or run `/release` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md`                    |
 | Dev commands                       | `AGENTS.md`                        |
 

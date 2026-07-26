@@ -220,7 +220,7 @@ async def generate_reset_password_email(
 
 
 async def generate_new_account_email(
-    email_to: str, username: str, password: str, first_name: str = ""
+    email_to: str, username: str, first_name: str = ""
 ) -> EmailData:
     """Generate a welcome / new-account email.
 
@@ -255,7 +255,6 @@ async def generate_new_account_email(
         context={
             "project_name": settings.PROJECT_NAME,
             "username": username,
-            "password": password,
             "email": email_to,
             "link": sign_in_link,
         },

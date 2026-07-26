@@ -1,8 +1,8 @@
 # GMS Service and Product Catalogue
 
-This document defines the full catalogue of potential GMS services and their associated products. It is the detailed operational reference that accompanies the strategic framing in [GMS Digital Service Architecture](./architecture.md).
+This document defines the full catalogue of potential GMS services and their associated products. It is the detailed operational reference that accompanies the strategic framing in [GMS Digital Service Architecture](../architecture.md).
 
-> **Status:** Planning and governance reference. These are potential services, not a committed build order. Each service and product must be phased, resourced, and approved by GMS leadership and relevant stakeholders before it becomes an operational commitment. The [programme roadmap](./internal/roadmap.md) tracks what is actively in scope.
+> **Status:** Planning and governance reference. These are potential services, not a committed build order. Each service and product must be phased, resourced, and approved by GMS leadership and relevant stakeholders before it becomes an operational commitment. The [programme roadmap](./roadmap.md) tracks what is actively in scope.
 
 ---
 
@@ -75,7 +75,7 @@ One of GMS's most important services. Warnings should use impact-based language:
 | **Impact** | Minor · Moderate · Severe · Extreme |
 | **Response** | Be Aware · Be Prepared · Take Action |
 
-This aligns with the IBF framework GMS is already moving toward. See [architecture.md — Draft Warning Model](./architecture.md#draft-warning-model) for the full warning content contract and CAP mapping.
+This aligns with the IBF framework GMS is already moving toward. See [architecture.md — Draft Warning Model](../architecture.md#draft-warning-model) for the full warning content contract and CAP mapping.
 
 ---
 
@@ -352,7 +352,7 @@ Often underestimated, but it builds the public trust that makes warnings effecti
 
 | Document | Relationship |
 |---|---|
-| [GMS Digital Service Architecture](./architecture.md) | Strategic framing, design system lanes, warning model, product metadata direction |
-| [Programme Roadmap](./internal/roadmap.md) | What is actively in scope and what is phased/deferred |
-| [Design System](./design-system.md) | Component and token strategy for implementing product UIs |
+| [GMS Digital Service Architecture](../architecture.md) | Strategic framing, design system lanes, warning model, product metadata direction |
+| [Programme Roadmap](./roadmap.md) | What is actively in scope and what is phased/deferred |
+| [Design System](../design-system.md) | Component and token strategy for implementing product UIs |
 | [WxProducts schema](../data-architecture.md#wxproducts-database) | Current implemented product database (morning, midday, evening, METAR/SPECI, TAF, SYNOP, CAP, IBF, BUFR, marine, outlook, hourly) — owned by admin-gms since the 2026-06 consolidation |
