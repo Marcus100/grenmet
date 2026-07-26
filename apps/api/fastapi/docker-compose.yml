@@ -40,7 +40,7 @@ services:
     build:
       context: ../../..
       dockerfile: apps/api/fastapi/Dockerfile
-    restart: "no"
+    restart: unless-stopped
     depends_on:
       prestart:
         condition: service_completed_successfully
@@ -124,7 +124,7 @@ services:
     build:
       context: ../../..
       dockerfile: apps/api/fastapi/Dockerfile
-    restart: "no"
+    restart: unless-stopped
     depends_on:
       prestart:
         condition: service_completed_successfully
