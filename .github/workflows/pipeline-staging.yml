@@ -54,6 +54,12 @@ jobs:
           filters: |
             api:
               - 'apps/api/fastapi/**'
+              - 'pyproject.toml'
+              - 'uv.lock'
+              - 'scripts/scrapy-wxwatch/pyproject.toml'
+              - 'scripts/sutron-collector/pyproject.toml'
+              - 'notebooks/pyproject.toml'
+              - 'geonetcast/pyproject.toml'
               - '.github/workflows/build-api-image.yml'
             web:
               - 'apps/web/**'

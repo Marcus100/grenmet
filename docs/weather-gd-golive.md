@@ -1,5 +1,16 @@
 # weather.gd go-live runbook
 
+> **Superseded on 2026-07-25** by the
+> [Barrels Grenada Migration Plan](exec-plans/barrelsgd-migration-plan.md).
+> Two assignments below are no longer correct: `api.barrels.gd` is the canonical
+> API host, not `api.weather.gd`; and Hurricane Plan folds into GrenMet `/sops`
+> rather than serving from `hurricane.weather.gd`. GrenMet goes live on
+> `weather.barrels.gd`, which `weather.gd` later masks as the public GMS face.
+> The cookie constraint recorded here still holds and is carried forward:
+> authenticated surfaces cannot span registrable domains, so `/admin`,
+> `/signin`, and `/auth/*` stay canonical on `*.barrels.gd`. Keep this file for
+> the DNS blocker history and the WordPress coordination notes.
+
 Decision (2026-07-11): `weather.gd` and `barrels.gd` **coexist** — no cutover of
 the whole stack. `weather.gd` is the public Met Service face; `barrels.gd` keeps
 auth, admin, staging, ops tools, and the non-GMS apps. Both domains are served

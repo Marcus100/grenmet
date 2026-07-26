@@ -1761,6 +1761,42 @@
         }
       }
     },
+    "/api/v1/billing/checkout-sessions": {
+      "post": {
+        "tags": [
+          "billing"
+        ],
+        "summary": "Create subscription Checkout Session",
+        "description": "Create a Stripe-hosted Checkout Session for the current user.",
+        "operationId": "create_subscription_checkout_api_v1_billing_checkout_sessions_post",
+        "responses": {
+          "201": {
+            "description": "Checkout Session created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutSessionPublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "502": {
+            "description": "Stripe request failed"
+          },
+          "503": {
+            "description": "Billing is not configured"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/departments": {
       "get": {
         "tags": [
@@ -9983,6 +10019,27 @@
           "is_valid"
         ],
         "title": "CapValidationResult"
+      },
+      "CheckoutSessionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2083,
+            "minLength": 1,
+            "format": "uri",
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "url"
+        ],
+        "title": "CheckoutSessionPublic"
       },
       "DepartmentCreate": {
         "properties": {

@@ -1,0 +1,16 @@
+{
+  "properties": {
+    "id": { "type": "string", "title": "Id" },
+    "url": {
+      "type": "string",
+      "maxLength": 2083,
+      "minLength": 1,
+      "format": "uri",
+      "title": "Url"
+    }
+  },
+  "type": "object",
+  "required": ["id", "url"],
+  "title": "CheckoutSessionPublic",
+  "x-readme-ref-name": "CheckoutSessionPublic"
+}

@@ -25,17 +25,14 @@ pnpm status    # check which containers are unhealthy
 pnpm reset     # wipe volumes and restart fresh (destroys all local data)
 ```
 
-If `pnpm reset` doesn't help, try removing the volume manually:
-
-```bash
-docker compose -f infra/docker/docker-compose.yml down -v
-pnpm start
-```
+`pnpm reset` already removes the local infrastructure volumes. Do not run it
+unless the data loss is intentional.
 
 ### FastAPI container exits immediately
 
 1. Check `.env.local` in `apps/api/fastapi/` exists and has `POSTGRES_*` values filled in.
-2. Run `pnpm status` and look at the FastAPI container logs: `docker logs grenmet-fastapi-1`.
+2. Run `pnpm status`, then inspect the API service from the repository root:
+   `docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml logs api`.
 3. Common cause: Postgres isn't ready yet — wait 5–10 seconds and try `pnpm start` again.
 
 ### Can't reach `http://localhost:8000`
@@ -157,7 +154,7 @@ Commit both the schema file and the generated migration.
 
 `pnpm reset` wipes volumes. You need to re-run seed scripts if you need test data:
 
-- FastAPI: `cd apps/api/fastapi && uv run python -m scripts.seed_data`
+- FastAPI: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
 - wxproducts: `cd apps/web/wxproducts && pnpm db:migrate` (seeds are in `src/db/seed.ts`)
 
 ---

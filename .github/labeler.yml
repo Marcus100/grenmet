@@ -71,7 +71,12 @@ dependencies:
   - changed-files:
       - any-glob-to-any-file:
           - apps/api/fastapi/pyproject.toml
-          - apps/api/fastapi/uv.lock
+          - pyproject.toml
+          - uv.lock
+          - scripts/scrapy-wxwatch/pyproject.toml
+          - scripts/sutron-collector/pyproject.toml
+          - notebooks/pyproject.toml
+          - geonetcast/pyproject.toml
           - package.json
           - pnpm-lock.yaml
           - pnpm-workspace.yaml

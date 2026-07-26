@@ -17,7 +17,7 @@ cp apps/api/fastapi/.env.local.example apps/api/fastapi/.env.local
 ## Build Production Image
 
 ```bash
-docker build -f apps/api/fastapi/Dockerfile.prod -t grenmet-api:prod apps/api/fastapi
+docker build -f apps/api/fastapi/Dockerfile.prod -t grenmet-api:prod .
 ```
 
 ## Run Database Migrations
@@ -30,7 +30,7 @@ docker run --rm \
 	--env-file apps/api/fastapi/.env.local \
 	-e POSTGRES_SERVER=grenmet-postgres \
 	grenmet-api:prod \
-	uv run alembic upgrade head
+	uv run --frozen --no-dev --package fast-back alembic upgrade head
 ```
 
 ## Start API Container

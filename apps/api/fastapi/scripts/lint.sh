@@ -3,12 +3,14 @@
 
 set -e
 
+UV_RUN=(uv run --frozen --package fast-back)
+
 echo "🔍 Running code quality checks..."
 echo ""
 
 # Type checking
 echo "📋 Type checking with mypy..."
-if mypy src; then
+if "${UV_RUN[@]}" mypy src; then
     echo "✅ Type checking passed"
 else
     echo "❌ Type checking failed"
@@ -18,7 +20,7 @@ echo ""
 
 # Linting
 echo "🔎 Linting with ruff..."
-if ruff check src scripts; then
+if "${UV_RUN[@]}" ruff check src scripts; then
     echo "✅ Linting passed"
 else
     echo "❌ Linting failed"
@@ -28,7 +30,7 @@ echo ""
 
 # Format checking
 echo "🎨 Checking code formatting..."
-if ruff format src scripts --check; then
+if "${UV_RUN[@]}" ruff format src scripts --check; then
     echo "✅ Format checking passed"
 else
     echo "❌ Format checking failed - run ./scripts/format.sh"

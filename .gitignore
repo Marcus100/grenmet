@@ -155,6 +155,9 @@ artifacts/
 /*.jpg
 /*.jpeg
 
+# Private legacy AWS migration bundles (may contain credentials).
+/ppcr-maurice-*.tar.gz
+
 
 # =======================
 # Vendored GMS ops apps (SURFACE CDMS, wis2box) — see VENDORED.md

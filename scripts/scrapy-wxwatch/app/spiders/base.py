@@ -9,7 +9,7 @@ import scrapy
 class WeatherSpider(scrapy.Spider):
     """
     Base class with shared utilities for weather image spiders.
-    
+
     Provides common methods for:
     - Parsing HTTP headers (ETag, Content-Type, etc.)
     - Handling request errors
@@ -19,7 +19,7 @@ class WeatherSpider(scrapy.Spider):
     def parse_headers(self, response):
         """
         Parse HTTP headers from a HEAD request and yield the item.
-        
+
         Expects response.meta["item"] to contain the ImageItem.
         """
         item = response.meta["item"]
@@ -37,9 +37,7 @@ class WeatherSpider(scrapy.Spider):
         item["raw_metadata"]["server"] = self._decode_header(
             response.headers.get("Server")
         )
-        last_modified_http = self._decode_header(
-            response.headers.get("Last-Modified")
-        )
+        last_modified_http = self._decode_header(response.headers.get("Last-Modified"))
         item["raw_metadata"]["last_modified_http"] = last_modified_http
 
         # If source_modified not already set, derive from Last-Modified HTTP header
@@ -55,18 +53,15 @@ class WeatherSpider(scrapy.Spider):
     def handle_error(self, failure):
         """
         Handle request errors gracefully, still yielding the item.
-        
+
         Expects failure.request.meta["item"] to contain the ImageItem.
         """
         item = failure.request.meta["item"]
         self.logger.error(
             "Failed to fetch headers for %s: %s", item["image_urls"][0], failure
         )
-        item["raw_metadata"]["http_status"] = (
-            getattr(failure.value, "response", None).status
-            if getattr(failure.value, "response", None)
-            else None
-        )
+        response = getattr(failure.value, "response", None)
+        item["raw_metadata"]["http_status"] = response.status if response else None
         yield item
 
     @staticmethod
@@ -101,7 +96,7 @@ class WeatherSpider(scrapy.Spider):
     @staticmethod
     def _parse_http_date_iso(value):
         """Parse HTTP date format and return ISO 8601 string.
-        
+
         HTTP dates follow RFC 7231 format, e.g.:
         - "Fri, 05 Dec 2025 20:52:31 GMT"
         """
@@ -162,7 +157,7 @@ class WeatherSpider(scrapy.Spider):
     @staticmethod
     def _round_to_hour(iso_str):
         """Round ISO datetime string down to the nearest hour.
-        
+
         Used for CIMSS images where upload time is ~45 min after observation.
         Example: 12:45 → 12:00
         """
@@ -178,7 +173,7 @@ class WeatherSpider(scrapy.Spider):
     @staticmethod
     def _round_to_synoptic(iso_str):
         """Round ISO datetime string down to the nearest 3-hour synoptic time.
-        
+
         Used for surface analysis charts issued at synoptic times (00, 03, 06, 09, 12, 15, 18, 21z).
         Example: 21:47 → 18:00
         """
@@ -192,4 +187,3 @@ class WeatherSpider(scrapy.Spider):
             return rounded.isoformat()
         except (ValueError, TypeError):
             return None
-
