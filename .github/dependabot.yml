@@ -1,8 +1,15 @@
 version: 2
+
+# target-branch: dev on every ecosystem — version updates must enter the promotion
+# flow (dev → staging → main) like all other work. Without it Dependabot targets the
+# default branch, so merged bumps land above staging and leave main permanently
+# ahead, which conflicts the next staging → main promotion. Security updates still
+# target the default branch by design; those are meant to reach production fast.
 updates:
   # GitHub Actions
   - package-ecosystem: github-actions
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
@@ -11,6 +18,7 @@ updates:
   # Python uv (root workspace)
   - package-ecosystem: uv
     directory: /
+    target-branch: dev
     schedule:
       interval: daily
     commit-message:
@@ -19,6 +27,7 @@ updates:
   # Docker (API)
   - package-ecosystem: docker
     directory: /apps/api/fastapi
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
@@ -28,6 +37,7 @@ updates:
   - package-ecosystem: docker
     directories:
       - /apps/web/*
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
@@ -36,6 +46,7 @@ updates:
   # Docker Compose (API)
   - package-ecosystem: docker-compose
     directory: /apps/api/fastapi
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
@@ -44,6 +55,7 @@ updates:
   # Docker Compose (infra — postgres, traefik, adminer)
   - package-ecosystem: docker-compose
     directory: /infra/docker
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
@@ -53,6 +65,7 @@ updates:
   # Dependabot uses the "npm" ecosystem for pnpm; it detects pnpm-lock.yaml automatically.
   - package-ecosystem: npm
     directory: /
+    target-branch: dev
     schedule:
       interval: weekly
     commit-message:
