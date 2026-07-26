@@ -13,7 +13,7 @@ sutron-collector = "sutron_collector.cli:main"
 
 [dependency-groups]
 dev = [
-    "mypy>=1.17.0",
+    "mypy>=2.3.0",
     "pytest>=8.4.0",
     "ruff>=0.12.0",
 ]
