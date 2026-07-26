@@ -5,6 +5,12 @@ version: 2
 # default branch, so merged bumps land above staging and leave main permanently
 # ahead, which conflicts the next staging → main promotion. Security updates still
 # target the default branch by design; those are meant to reach production fast.
+#
+# groups: collapse routine minor/patch bumps into one PR per ecosystem. Majors stay
+# ungrouped so each gets its own review — they are the ones that break things.
+#
+# ignore: pins that are deliberate and must not be bumped by a bot. Each carries the
+# reason and the condition for lifting it.
 updates:
   # GitHub Actions
   - package-ecosystem: github-actions
@@ -14,6 +20,13 @@ updates:
       interval: weekly
     commit-message:
       prefix: ⬆
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   # Python uv (root workspace)
   - package-ecosystem: uv
@@ -23,6 +36,18 @@ updates:
       interval: daily
     commit-message:
       prefix: ⬆
+    groups:
+      python-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # geonetcast's gdal pin tracks the devcontainer image's libgdal (Debian), not
+      # upstream PyPI. Bumping it independently breaks the build. Change it by hand,
+      # in lockstep with the devcontainer image, never by bot.
+      - dependency-name: gdal
 
   # Docker (API)
   - package-ecosystem: docker
@@ -32,6 +57,15 @@ updates:
       interval: weekly
     commit-message:
       prefix: ⬆
+    ignore:
+      # The interpreter is standardized on 3.13 across the uv workspace (root
+      # pyproject.toml, .python-version, uv.lock). A bot bump here would silently
+      # desync the image from the lockfile. Lift when 3.14 is adopted deliberately,
+      # as one tested cycle across all three.
+      - dependency-name: python
+        update-types:
+          - version-update:semver-major
+          - version-update:semver-minor
 
   # Docker (Web apps — keeps the pinned node:24-alpine digest fresh)
   - package-ecosystem: docker
@@ -42,6 +76,14 @@ updates:
       interval: weekly
     commit-message:
       prefix: ⬆
+    ignore:
+      # Node stays on Active LTS. Node 26 does not enter LTS until October 2026;
+      # taking it now moves the whole chain onto Current. Digest and minor refreshes
+      # of node:24-alpine still flow through. Revisit in October 2026, when 24 also
+      # shifts to Maintenance.
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
 
   # Docker Compose (API)
   - package-ecosystem: docker-compose
@@ -70,3 +112,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: ⬆
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
