@@ -3,7 +3,7 @@ name = "geonetcast"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "boto3>=1.43.42",
+    "boto3>=1.43.56",
     "cartopy>=0.25.0",
     # Pinned to the devcontainer image's libgdal (Debian bookworm ships 3.6.2).
     # Used via `from osgeo import gdal` in the GOES scripts. Do not bump without
