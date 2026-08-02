@@ -117,7 +117,7 @@ catalog:
 
   # Analytics
   "posthog-js": "^1.273.0"
-  "posthog-node": "^4.9.2"
+  "posthog-node": "^5.46.1"
 
   # Testing
   vitest: "^4.0.17"
