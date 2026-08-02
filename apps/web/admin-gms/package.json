@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-admin",
+  "name": "@barrelsgd/web-admin",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -31,10 +31,10 @@
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
     "@fullcalendar/react": "catalog:",
-    "@grenmet/api-client": "workspace:*",
-    "@grenmet/auth": "workspace:*",
-    "@grenmet/theme": "workspace:*",
-    "@grenmet/ui": "workspace:*",
+    "@barrelsgd/api-client": "workspace:*",
+    "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/theme": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "@hookform/resolvers": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
@@ -63,7 +63,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@playwright/test": "catalog:",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/forms": "^0.5.11",

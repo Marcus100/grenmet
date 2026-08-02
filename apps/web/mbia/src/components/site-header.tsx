@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -8,14 +8,14 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-} from "@grenmet/ui/components/ui/navigation-menu";
+} from "@barrelsgd/ui/components/ui/navigation-menu";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@grenmet/ui/components/ui/sheet";
+} from "@barrelsgd/ui/components/ui/sheet";
 import { Mail, Menu, Phone, PlaneTakeoff } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

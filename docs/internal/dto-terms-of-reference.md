@@ -472,7 +472,7 @@ The following technologies are in active use as of May 2026. All systems have be
 | **Database** | PostgreSQL | Multiple isolated databases per application domain |
 | **ORM** | Drizzle ORM (TypeScript), SQLModel (Python) | Drizzle for web apps; SQLModel + asyncpg for FastAPI |
 | **Design system** | GrenMet v1 (CSS custom properties + Tailwind v4) | Established May 2026; Figma-to-code bridge in place |
-| **UI component library** | @grenmet/ui (Base UI + shadcn-style primitives) | Shared across all web apps |
+| **UI component library** | @barrelsgd/ui (Base UI + shadcn-style primitives) | Shared across all web apps |
 | **Package manager** | pnpm v10 with workspaces | Monorepo dependency management |
 | **Build orchestration** | Turborepo v2 | Parallel builds, caching, task pipelines |
 | **CI/CD** | GitHub Actions | 10 workflows: builds, deployments, backups, quality checks |

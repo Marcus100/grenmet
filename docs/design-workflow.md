@@ -4,14 +4,14 @@ The end-to-end loop for designing and building web UI in this monorepo: Figma �
 
 ## Mental model
 
-This is a **CSS-first, bidirectional bridge**. Figma owns design intent; `@grenmet/ui` owns repo enforcement. Tokens flow one direction; components map both.
+This is a **CSS-first, bidirectional bridge**. Figma owns design intent; `@barrelsgd/ui` owns repo enforcement. Tokens flow one direction; components map both.
 
 ```
 Figma (GrenMet v1)  ──tokens──►  packages/ui/src/styles/globals.css  ──@theme──►  Tailwind v4 utils
    design intent                   --gm-* custom props + shadcn semantics         text-gm-blue, p-gm-4
         ▲                                    │
         │ Code Connect (deferred)            ▼
-        └──────────────────────────  @grenmet/ui components  ──imported by──►  apps/web/<app>
+        └──────────────────────────  @barrelsgd/ui components  ──imported by──►  apps/web/<app>
 ```
 
 Two non-negotiables, both backed by `CLAUDE.md` gates:
@@ -23,7 +23,7 @@ Two non-negotiables, both backed by `CLAUDE.md` gates:
 
 ### 1. Design in Figma — compose from existing components
 
-Canonical source: **GrenMet v1** (`fileKey kfVRAcgxzhs4Sj6aCRyOz4`). The `30 Website` page is built entirely from `13 Components` instances. Design new screens by composing from that library so they map cleanly to `@grenmet/ui` later.
+Canonical source: **GrenMet v1** (`fileKey kfVRAcgxzhs4Sj6aCRyOz4`). The `30 Website` page is built entirely from `13 Components` instances. Design new screens by composing from that library so they map cleanly to `@barrelsgd/ui` later.
 
 Query pages **by node ID** — the MCP page listing for this file is stale and returns only a subset. Node IDs are in the [File Map](./design-system.md#current-figma-file-map).
 
@@ -39,7 +39,7 @@ Do **not** move pages between Figma files programmatically — instruct the user
 ### 3. Build in the app
 
 - **Server Components by default.** Add `"use client"` only for interactivity or browser hooks. Fetch server-fetchable data directly in Server Components — no React Query for it.
-- Compose from `@grenmet/ui/components/ui/<name>` (per-file import, no barrel). Only write new markup when a primitive genuinely does not exist.
+- Compose from `@barrelsgd/ui/components/ui/<name>` (per-file import, no barrel). Only write new markup when a primitive genuinely does not exist.
 - Style with token utilities (`text-gm-blue`, `p-gm-4`, `text-gm-heading-md`, `bg-gm-warning-red-bg`) or shadcn semantics (`bg-background`, `border-border`).
 - **Dark mode is supported** via the class-based `dark` variant + `.dark` token overrides. Prefer semantic tokens (`bg-background`, `text-foreground`, `border-border`) so primitives adapt automatically; avoid one-off `dark:*` branches. Printable document papers stay light in both modes.
 - One-off inline measurements are allowed but are treated as migration debt — keep them local, never promote them to tokens.
@@ -81,7 +81,7 @@ Pick where to build based on the app's design-system lane (full table in [Design
 
 - **`spicewx`** — public web **reference app**. Prototype and validate new public-facing patterns here first; it is the lowest-drift baseline.
 - **`admin-gms`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to GrenMet tokens. Charts use `var(--gm-*)` directly.
-- **`wxproducts`, `hr`** — **document / print** lane. Use `font-gm-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@grenmet/ui` primitives.
+- **`wxproducts`, `hr`** — **document / print** lane. Use `font-gm-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@barrelsgd/ui` primitives.
 - Other apps follow the [migration order](./design-system.md#migration-order), guided by audit output.
 
 ## What requires approval first

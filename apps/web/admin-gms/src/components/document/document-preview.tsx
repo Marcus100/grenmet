@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
-import { ButtonGroup } from "@grenmet/ui/components/ui/button-group";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { ButtonGroup } from "@barrelsgd/ui/components/ui/button-group";
 import { Download, Printer } from "lucide-react";
 import { type ReactNode, useRef } from "react";
 import { PAPER_HEIGHT, PAPER_SCALE, PAPER_WIDTH } from "./paper";

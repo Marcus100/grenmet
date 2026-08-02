@@ -1,7 +1,7 @@
 /*
   GrenMet Design System V1 foundation.
 
-  This file is the canonical repo-side token contract for @grenmet/ui and all
+  This file is the canonical repo-side token contract for @barrelsgd/ui and all
   web apps. App stylesheets receive the generated block below through
   `pnpm design-system:sync`; do not hand-edit the copied app blocks.
 */

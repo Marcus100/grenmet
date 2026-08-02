@@ -12,11 +12,11 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@grenmet/ui/components",
-    "utils": "@grenmet/ui/lib/utils",
-    "ui": "@grenmet/ui/components/ui",
-    "lib": "@grenmet/ui/lib",
-    "hooks": "@grenmet/ui/hooks"
+    "components": "@barrelsgd/ui/components",
+    "utils": "@barrelsgd/ui/lib/utils",
+    "ui": "@barrelsgd/ui/components/ui",
+    "lib": "@barrelsgd/ui/lib",
+    "hooks": "@barrelsgd/ui/hooks"
   },
   "registries": {}
 }

@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 
 const PostHogProvider = dynamic(
   () =>
-    import("@grenmet/ui/components/posthog-provider").then((m) => ({
+    import("@barrelsgd/ui/components/posthog-provider").then((m) => ({
       default: m.PostHogProvider,
     })),
   { ssr: false }

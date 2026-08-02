@@ -1,14 +1,14 @@
 "use client";
 
-import { useSessionUser } from "@grenmet/auth";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button, buttonVariants } from "@grenmet/ui/components/ui/button";
+import { useSessionUser } from "@barrelsgd/auth";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "@grenmet/ui/components/ui/card";
+} from "@barrelsgd/ui/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,8 +17,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@grenmet/ui/components/ui/dropdown-menu";
-import { cn } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   ChevronDown,
   FileBarChart,

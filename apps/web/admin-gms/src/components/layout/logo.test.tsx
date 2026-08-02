@@ -1,8 +1,8 @@
-import { Logo } from "@grenmet/ui/components/ui/logo";
+import { Logo } from "@barrelsgd/ui/components/ui/logo";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-// `Logo` is a shared `@grenmet/ui` primitive; it is exercised here because
+// `Logo` is a shared `@barrelsgd/ui` primitive; it is exercised here because
 // admin-gms hosts the repo's only test harness. next/image is mocked to a plain
 // <img> — under Vite, static PNG imports resolve to bare URL strings with no
 // intrinsic dimensions, which the real next/image rejects.

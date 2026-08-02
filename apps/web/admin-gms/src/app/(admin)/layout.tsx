@@ -1,4 +1,4 @@
-import { SessionUserProvider } from "@grenmet/auth";
+import { SessionUserProvider } from "@barrelsgd/auth";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
 import {

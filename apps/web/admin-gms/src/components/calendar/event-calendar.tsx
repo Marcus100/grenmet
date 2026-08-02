@@ -1,13 +1,7 @@
 "use client";
 
-import { useCalendarController } from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/react/daygrid";
-import interactionPlugin from "@fullcalendar/react/interaction";
-import listPlugin from "@fullcalendar/react/list";
-import multiMonthPlugin from "@fullcalendar/react/multimonth";
-import timeGridPlugin from "@fullcalendar/react/timegrid";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { ButtonGroup } from "@grenmet/ui/components/ui/button-group";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { ButtonGroup } from "@barrelsgd/ui/components/ui/button-group";
 import {
   Select,
   SelectContent,
@@ -15,7 +9,13 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@grenmet/ui/components/ui/select";
+} from "@barrelsgd/ui/components/ui/select";
+import { useCalendarController } from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/react/daygrid";
+import interactionPlugin from "@fullcalendar/react/interaction";
+import listPlugin from "@fullcalendar/react/list";
+import multiMonthPlugin from "@fullcalendar/react/multimonth";
+import timeGridPlugin from "@fullcalendar/react/timegrid";
 import {
   differenceInCalendarDays,
   endOfMonth,

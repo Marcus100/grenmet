@@ -1,4 +1,4 @@
-# mbia (`@grenmet/web-mbia`) — Claude context
+# mbia (`@barrelsgd/web-mbia`) — Claude context
 
 Port **3005**. Public website for the **Grenada Airports Authority** (GAA) —
 Maurice Bishop International Airport (GND) + Lauriston Airport, Carriacou (CRU).
@@ -41,7 +41,7 @@ consume it via `flightsFor()`.
 
 ## Design system
 
-- `src/app/globals.css` imports `@grenmet/ui/styles/globals` then **overrides**
+- `src/app/globals.css` imports `@barrelsgd/ui/styles/globals` then **overrides**
   shadcn semantic tokens to the GAA palette: navy `--gaa-navy(-deep/-ink)` from
   the logo, sea teal `--gaa-sea`, spice gold `--gaa-gold`. Status colors
   (`--gaa-status-*`) are for the flight board only. Light mode only.
@@ -50,8 +50,8 @@ consume it via `flightsFor()`.
   numerals).
 - Signature moves: navy `SectionHero` with gold runway rule on every interior
   page; full-bleed photo heroes on home/airport pages; dark navy flight board.
-- Use `@grenmet/ui` primitives per-file (`@grenmet/ui/components/ui/<name>`),
-  `cn` from `@grenmet/ui/lib/utils`. Button uses `asChild` for links.
+- Use `@barrelsgd/ui` primitives per-file (`@barrelsgd/ui/components/ui/<name>`),
+  `cn` from `@barrelsgd/ui/lib/utils`. Button uses `asChild` for links.
 
 ## Contact form
 
@@ -65,5 +65,5 @@ Vitest + Testing Library + jsdom. Tests cover `lib/*` pure logic and
 `FlightBoard` behaviour.
 
 ```bash
-pnpm --filter @grenmet/web-mbia test
+pnpm --filter @barrelsgd/web-mbia test
 ```

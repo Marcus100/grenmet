@@ -1,7 +1,7 @@
 "use client";
 
-import { useReadHrProfileMeApiV1HrProfileMeGet } from "@grenmet/api-client";
-import { useSessionUser } from "@grenmet/auth";
+import { useReadHrProfileMeApiV1HrProfileMeGet } from "@barrelsgd/api-client";
+import { useSessionUser } from "@barrelsgd/auth";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
 

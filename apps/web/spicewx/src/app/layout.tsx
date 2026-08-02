@@ -1,4 +1,4 @@
-import { PostHogProvider } from "@grenmet/ui/components/posthog-provider";
+import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Footer } from "@/components/footer";

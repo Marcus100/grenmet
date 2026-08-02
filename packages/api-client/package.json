@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/api-client",
+  "name": "@barrelsgd/api-client",
   "version": "0.1.0",
   "description": "TypeScript client generated from FastAPI OpenAPI schema",
   "type": "module",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@tanstack/react-query": "catalog:",
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@kubb/cli": "^4.37.8",
     "@kubb/core": "^4.29.1",
     "@kubb/plugin-client": "^4.29.1",

@@ -1,11 +1,11 @@
-import { Badge } from "@grenmet/ui/components/ui/badge";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@grenmet/ui/components/ui/card";
+} from "@barrelsgd/ui/components/ui/card";
 import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,

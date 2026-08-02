@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/theme",
+  "name": "@barrelsgd/theme",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -33,7 +33,7 @@
     "react-dom": "*"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "next": "catalog:",

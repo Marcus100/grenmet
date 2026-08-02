@@ -6,13 +6,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@grenmet/ui/components/ui/dialog";
+} from "@barrelsgd/ui/components/ui/dialog";
 import {
   InputGroup,
   InputGroupAddon,
-} from "@grenmet/ui/components/ui/input-group";
+} from "@barrelsgd/ui/components/ui/input-group";
 
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Command as CommandPrimitive } from "cmdk";
 import { CheckIcon, SearchIcon } from "lucide-react";
 import type * as React from "react";

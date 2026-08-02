@@ -20,11 +20,11 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 
 | App | Package | Port | Auth model | Database |
 |---|---|---|---|---|
-| `auth` | `@grenmet/web-auth` | 3000 | Owns sign-in/sign-up | — |
-| `admin-gms` | `@grenmet/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
-| `hurricaneplan` | `@grenmet/web-hurricaneplan` | 3002 | Delegates to auth | — |
-| `spicewx` | `@grenmet/web-spicewx` | 3003 | Delegates to auth | — |
-| `signal` | `@grenmet/web-signal` | 3004 | None (static MDX) | — |
+| `auth` | `@barrelsgd/web-auth` | 3000 | Owns sign-in/sign-up | — |
+| `admin-gms` | `@barrelsgd/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
+| `hurricaneplan` | `@barrelsgd/web-hurricaneplan` | 3002 | Delegates to auth | — |
+| `spicewx` | `@barrelsgd/web-spicewx` | 3003 | Delegates to auth | — |
+| `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
 
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
 
@@ -56,11 +56,11 @@ User visits wxwatch (unauthenticated)
   → wxwatch reads the session cookie to identify the user
 ```
 
-These apps use `buildSharedSignInUrl()` from `@grenmet/auth/server` to construct the redirect.
+These apps use `buildSharedSignInUrl()` from `@barrelsgd/auth/server` to construct the redirect.
 
 **Deep integration (admin-gms)**
 
-`admin-gms` uses `@grenmet/auth/server` directly to manage sessions — it reads cookies, calls FastAPI auth endpoints, and proxies API requests with access tokens. It does not redirect to `web-auth` for sign-in; it handles sign-in within its own route group.
+`admin-gms` uses `@barrelsgd/auth/server` directly to manage sessions — it reads cookies, calls FastAPI auth endpoints, and proxies API requests with access tokens. It does not redirect to `web-auth` for sign-in; it handles sign-in within its own route group.
 
 ### The session cookie
 
@@ -92,27 +92,27 @@ For the full API — `AuthConfig`, all cookie/session helpers, redirect helpers,
 
 ## Shared packages
 
-### `@grenmet/auth`
+### `@barrelsgd/auth`
 
 Session management and auth helpers shared across all apps.
 
-- **Client export** (`@grenmet/auth`): `SessionUserProvider`, `useSessionUser`, `signOut()`, `signOutEverywhere()`
-- **Server export** (`@grenmet/auth/server`): `authApiFetch`, cookie helpers, session helpers, redirect helpers
+- **Client export** (`@barrelsgd/auth`): `SessionUserProvider`, `useSessionUser`, `signOut()`, `signOutEverywhere()`
+- **Server export** (`@barrelsgd/auth/server`): `authApiFetch`, cookie helpers, session helpers, redirect helpers
 
 See [`packages/auth/README.md`](../packages/auth/README.md).
 
-### `@grenmet/ui`
+### `@barrelsgd/ui`
 
 Shared UI component library. All web apps import from this package.
 
 ```ts
-import { Button } from "@grenmet/ui/components/ui/button";
-import { cn } from "@grenmet/ui/lib/utils";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 ```
 
 Built on Base UI primitives with shadcn-style component patterns and GrenMet v1 design tokens. See [`packages/ui/README.md`](../packages/ui/README.md).
 
-### `@grenmet/api-client`
+### `@barrelsgd/api-client`
 
 Kubb-generated TypeScript client from the FastAPI OpenAPI schema. Provides:
 - TypeScript types for all API entities
@@ -122,7 +122,7 @@ Kubb-generated TypeScript client from the FastAPI OpenAPI schema. Provides:
 
 **Never edit files in `packages/api-client/src/gen/` directly.** When FastAPI routes change, regenerate the client and commit both `openapi.json` and the updated `src/gen/` files together. See [CONTRIBUTING.md — Generated files](../CONTRIBUTING.md#generated-files) for the exact steps.
 
-### `@grenmet/tsconfig`
+### `@barrelsgd/tsconfig`
 
 Two presets: `tsconfig.json` (base, for packages/API) and `tsconfig.nextjs.json` (for Next.js apps). Apps extend the appropriate preset and add only app-specific overrides.
 

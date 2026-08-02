@@ -15,8 +15,8 @@
     "components": "@/components",
     "lib": "@/lib",
     "hooks": "@/hooks",
-    "ui": "@grenmet/ui/components/ui",
-    "utils": "@grenmet/ui/lib/utils"
+    "ui": "@barrelsgd/ui/components/ui",
+    "utils": "@barrelsgd/ui/lib/utils"
   },
   "registries": {}
 }

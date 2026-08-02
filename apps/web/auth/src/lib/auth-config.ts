@@ -1,4 +1,4 @@
-import type { AuthConfig } from "@grenmet/auth";
+import type { AuthConfig } from "@barrelsgd/auth";
 import { env } from "./env";
 
 function normalizeUrlSegment(value: string): string {

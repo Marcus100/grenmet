@@ -1,15 +1,15 @@
 "use client";
 "use no memo";
 
-import type { SrcAuthSchemasRolePublic as RolePublic } from "@grenmet/api-client";
+import type { SrcAuthSchemasRolePublic as RolePublic } from "@barrelsgd/api-client";
 import {
   Avatar,
   AvatarBadge,
   AvatarFallback,
-} from "@grenmet/ui/components/ui/avatar";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
-import { cn, getInitials } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/avatar";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
+import { cn, getInitials } from "@barrelsgd/ui/lib/utils";
 import type { ColumnDef, RowData } from "@tanstack/react-table";
 import { Check, Clock, X } from "lucide-react";
 import { UserRowActions } from "./user-row-actions";

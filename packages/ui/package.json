@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/ui",
+  "name": "@barrelsgd/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@figma/code-connect": "^1.4.5",
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "react": "catalog:",
