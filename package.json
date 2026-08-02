@@ -22,6 +22,7 @@
     "dev:web:spicewx": "turbo run dev --filter=@barrelsgd/web-spicewx",
     "dev:web:signal": "turbo run dev --filter=@barrelsgd/web-signal",
     "dev:web:mbia": "turbo run dev --filter=@barrelsgd/web-mbia",
+    "dev:web:events": "turbo run dev --filter=@barrelsgd/web-events",
     "dev:honoapi": "turbo run dev --filter=@barrelsgd/api-hono",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",
