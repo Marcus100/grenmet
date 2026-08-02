@@ -26,6 +26,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | spicewx | `@barrelsgd/web-spicewx` | 3003 | yes |
 | signal | `@barrelsgd/web-signal` | 3004 | dev only (no Dockerfile yet) |
 | mbia | `@barrelsgd/web-mbia` | 3005 | dev only (no Dockerfile yet) |
+| events | `@barrelsgd/web-events` | 3009 | dev only (prototype, no Dockerfile) |
 
 Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`.
 

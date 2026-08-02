@@ -449,7 +449,7 @@ Repository agents must not create commits. The following are small review
 boundaries that an authorized human may commit separately:
 
 1. [x] Correct canonical company, product, institution, and domain terminology.
-2. [ ] Rename company-owned workspace scopes and generic platform identifiers while
+2. [x] Rename company-owned workspace scopes and generic platform identifiers while
    retaining product-explicit package names.
 3. [ ] Add neutral UI and theme contracts without changing application appearance.
 4. [ ] Extract the GrenMet product package and migrate GMS consumers.
@@ -474,7 +474,9 @@ boundaries that an authorized human may commit separately:
 20. [ ] Complete the `weather.gd` and `gaa.gd` cutovers independently when access
     is available.
 21. [ ] Plan Events/Tickets and reusable HR as later product initiatives, not as
-    hidden additions to this transition.
+    hidden additions to this transition. Events has an early non-shipping
+    prototype in the workspace; keep it out of the deployment estate until it is
+    planned as a product.
 
 Each boundary must preserve a runnable workspace, pass its focused checks, run
 `pnpm fix` followed by `pnpm type-check`, and complete the Blast-Radius Gate
@@ -550,6 +552,14 @@ before continuing.
 - Barrels Events/Tickets, reusable HR, and Barrels Shop are future product
   initiatives, not hidden scope in this transition. Shop's identity is reserved;
   its implementation is not.
+- `apps/web/events` (`@barrelsgd/web-events`, port 3009) is an early
+  organiser-console prototype that landed ahead of that product initiative. It is
+  static, has no environment, database, authentication, or API dependency, and
+  every control is disabled. It receives the workspace scope rename and the
+  neutral token contracts, but no Dockerfile, Compose service, Traefik route,
+  image build, Sentry project, DNS record, or staging and production host until
+  Events is planned as a product. The remnant audit records it as an intentional
+  prototype rather than an unfinished target application.
 - Shared authentication infrastructure presents product-specific branding,
   roles, and access.
 - DNS changes, repository renames, secret creation, infrastructure provisioning,
