@@ -29,7 +29,7 @@ catalog:
   "@tanstack/react-query": "^5.90.16"
 
   # UI
-  lucide-react: "^0.562.0"
+  lucide-react: "^1.27.0"
   geist: "^1.7.2"
   "@base-ui/react": "^1.6.0"
   class-variance-authority: "^0.7.1"
