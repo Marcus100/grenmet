@@ -127,6 +127,18 @@
     --accent-foreground: var(--gm-text-inverse);
     --destructive: var(--gm-risk-red);
     --destructive-foreground: var(--gm-text-inverse);
+
+    /* Status semantics. Shared primitives reference these, never a brand
+       primitive directly, so each brand can map its own palette onto them.
+       Deliberately not overridden in .dark: these derive from hazard colours,
+       whose meaning must not shift between themes. */
+    --success: var(--gm-risk-green);
+    --success-foreground: var(--gm-text-inverse);
+    --warning: var(--gm-risk-amber);
+    --warning-foreground: var(--gm-text-primary);
+    --info: var(--gm-blue);
+    --info-foreground: var(--gm-text-inverse);
+
     --border: var(--gm-border);
     --input: var(--gm-border);
     --ring: var(--gm-blue);
@@ -219,6 +231,12 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);

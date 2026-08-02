@@ -10,13 +10,16 @@ const alertVariants = cva(
         default: "bg-card text-card-foreground",
         destructive:
           "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
-        // GrenMet semantic variants
+        // Status variants
         success:
-          "border-gm-warning-green-border bg-gm-warning-green-bg text-gm-warning-green-fg *:data-[slot=alert-description]:text-current *:[svg]:text-current",
+          "border-success bg-success text-success-foreground *:data-[slot=alert-description]:text-current *:[svg]:text-current",
         warning:
-          "border-gm-warning-amber-border bg-gm-warning-amber-bg text-gm-warning-amber-fg *:data-[slot=alert-description]:text-current *:[svg]:text-current",
+          "border-warning bg-warning text-warning-foreground *:data-[slot=alert-description]:text-current *:[svg]:text-current",
         error:
-          "border-gm-warning-red-border bg-gm-warning-red-bg text-gm-warning-red-fg *:data-[slot=alert-description]:text-current *:[svg]:text-current",
+          "border-destructive bg-destructive text-destructive-foreground *:data-[slot=alert-description]:text-current *:[svg]:text-current",
+        // TODO(boundary-4): unlike the others this is a tinted surface with
+        // brand-coloured border, icon and secondary text. It needs surface-level
+        // semantics that do not exist yet, so it stays on brand tokens.
         info: "border-gm-blue bg-gm-surface text-gm-navy *:data-[slot=alert-description]:text-gm-text-secondary *:[svg]:text-gm-blue",
       },
     },
