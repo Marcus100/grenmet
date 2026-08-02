@@ -1,4 +1,4 @@
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { BadgeCheck, CircleAlert, FilePlus, Settings } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";

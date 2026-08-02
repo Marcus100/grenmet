@@ -1,4 +1,4 @@
-# signal (`@grenmet/web-signal`) — Claude context
+# signal (`@barrelsgd/web-signal`) — Claude context
 
 Port **3004**. Mobile-first, Morning Brew-style civic-media reader for **Grenada
 Signal**. Domain `signal.barrels.gd`. MVP: static MDX, light mode, no auth, no DB.
@@ -18,7 +18,7 @@ Same pattern as `hurricaneplan`, trimmed (no Shiki/search). MDX is compiled via
 - Generated output lands in `.content-collections/` (gitignored — regenerated on
   `dev`/`build`). The `content-collections` import alias is set in `tsconfig.json`.
 - **`type-check` and `test` require a `build` first** (or `dev`) so the generated
-  module exists. Run `pnpm --filter @grenmet/web-signal build` before type-check.
+  module exists. Run `pnpm --filter @barrelsgd/web-signal build` before type-check.
 
 ## Content model
 
@@ -30,13 +30,13 @@ Same pattern as `hurricaneplan`, trimmed (no Shiki/search). MDX is compiled via
 
 ## Design system
 
-- `src/app/globals.css` imports `@grenmet/ui/styles/globals` then **overrides** the
+- `src/app/globals.css` imports `@barrelsgd/ui/styles/globals` then **overrides** the
   shadcn semantic tokens to the Signal palette (`--signal-green`/`--signal-gold`/
   ink). Red (`--signal-alert`) is for alerts only.
 - Fonts: Source Serif 4 (headlines, `--font-serif`) + Inter (body, `--font-sans`),
   wired in `src/app/layout.tsx` via `next/font/google`.
-- Use `@grenmet/ui` primitives (`button`, `input`, `sheet`, …) — imported per-file
-  (`@grenmet/ui/components/ui/<name>`), `cn` from `@grenmet/ui/lib/utils`.
+- Use `@barrelsgd/ui` primitives (`button`, `input`, `sheet`, …) — imported per-file
+  (`@barrelsgd/ui/components/ui/<name>`), `cn` from `@barrelsgd/ui/lib/utils`.
 
 ## Subscribe
 
@@ -51,5 +51,5 @@ Tests cover `lib/*` pure logic and key component renders. Component tests must n
 import `src/lib/content.ts` (it pulls the generated module) — use `content-utils.ts`.
 
 ```bash
-pnpm --filter @grenmet/web-signal test
+pnpm --filter @barrelsgd/web-signal test
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-auth",
+  "name": "@barrelsgd/web-auth",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -18,9 +18,9 @@
     "type-check": "rm -f next-env.d.ts && tsc --noEmit"
   },
   "dependencies": {
-    "@grenmet/auth": "workspace:*",
-    "@grenmet/email-templates": "workspace:*",
-    "@grenmet/ui": "workspace:*",
+    "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/email-templates": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "next": "catalog:",
     "posthog-node": "catalog:",
     "react": "catalog:",
@@ -30,7 +30,7 @@
     "@t3-oss/env-nextjs": "catalog:"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@playwright/test": "catalog:",
     "@tailwindcss/postcss": "catalog:",
     "@testing-library/jest-dom": "catalog:",

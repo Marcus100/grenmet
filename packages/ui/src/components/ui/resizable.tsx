@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import * as ResizablePrimitive from "react-resizable-panels";
 
 function ResizablePanelGroup({

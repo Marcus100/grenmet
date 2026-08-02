@@ -2,7 +2,7 @@ import type {
   SrcAuthSchemasRolePublic as RolePublic,
   UserPublic,
   UserRoleAssignmentPublic,
-} from "@grenmet/api-client";
+} from "@barrelsgd/api-client";
 import { format } from "date-fns";
 
 /** Display status vocabulary mapped from the real `is_active` flag. */

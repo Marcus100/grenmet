@@ -27,14 +27,14 @@ pnpm dev:web:signal     # signal         :3004
 ```bash
 pnpm fix                                          # Auto-fix lint + format
 pnpm type-check                                   # TypeScript across all packages
-turbo run check --filter=@grenmet/<package>       # Single package
-turbo run type-check --filter=@grenmet/<package>  # Single package
+turbo run check --filter=@barrelsgd/<package>       # Single package
+turbo run type-check --filter=@barrelsgd/<package>  # Single package
 ```
 
 ### Test
 
 ```bash
-turbo run test --filter=@grenmet/web-admin        # Unit tests (admin-gms)
+turbo run test --filter=@barrelsgd/web-admin        # Unit tests (admin-gms)
 pnpm vitest run src/path/to/test.test.ts          # Single file (from app dir)
 ```
 
@@ -86,7 +86,7 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 1. Run `pnpm fix` then `pnpm type-check` before marking any task done — no exceptions.
 2. Use Biome/Ultracite through `pnpm fix` for linting and formatting — never invoke Prettier.
 3. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
-4. Import UI primitives from `@grenmet/ui/components/ui/<name>`, utils from `@grenmet/ui/lib/utils`.
+4. Import UI primitives from `@barrelsgd/ui/components/ui/<name>`, utils from `@barrelsgd/ui/lib/utils`.
 5. Access env vars through the app's `src/env.ts` — never `process.env` directly.
 6. Default to Server Components — only add `"use client"` when interactivity or browser hooks are required.
 

@@ -12,9 +12,9 @@ import {
   useListPeriodsApiV1HrRostersPeriodsGet,
   useListShiftCatalogApiV1HrRostersShiftsGet,
   usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch,
-} from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Dialog,
   DialogClose,
@@ -24,9 +24,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@grenmet/ui/components/ui/dialog";
-import { NativeSelect } from "@grenmet/ui/components/ui/native-select";
-import { cn } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/dialog";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   CalendarPlus,

@@ -1,15 +1,15 @@
 import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
-} from "@grenmet/theme/lib/layout";
-import { getPreference } from "@grenmet/theme/lib/server-actions";
-import { Separator } from "@grenmet/ui/components/ui/separator";
+} from "@barrelsgd/theme/lib/layout";
+import { getPreference } from "@barrelsgd/theme/lib/server-actions";
+import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
-} from "@grenmet/ui/components/ui/sidebar";
-import { cn } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/sidebar";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
 import { AppSidebar } from "./app-sidebar";

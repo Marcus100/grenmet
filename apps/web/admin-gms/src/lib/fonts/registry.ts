@@ -13,7 +13,7 @@ import {
  * Every font listed here is loaded in the root layout and its CSS variable
  * applied to `<html>` via `fontVars`, so each additional family is downloaded
  * on every cold compile — keep this list small. The active one is chosen by
- * the `data-font` attribute (set by `@grenmet/theme`'s preferences system)
+ * the `data-font` attribute (set by `@barrelsgd/theme`'s preferences system)
  * through the `html[data-font="…"] body` rules in `globals.css`. The default
  * is Inter (GrenMet brand); printed documents always use `--gm-font-document`
  * (Noto Sans), independent of this. Stale saved preferences for removed fonts

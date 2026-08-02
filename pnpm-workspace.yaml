@@ -81,7 +81,7 @@ catalog:
   # Themes
   next-themes: "^0.4.6"
 
-  # State management — @grenmet/theme preferences store
+  # State management — @barrelsgd/theme preferences store
   zustand: "^5.0.14"
 
   # Database (pg) — used in wxwatch and wxproducts
@@ -96,7 +96,7 @@ catalog:
   # Headless UI — used in spicewx and hurricaneplan (migrate to Base UI eventually)
   "@headlessui/react": "^2.2.10"
 
-  # MDX — content-collections stack (hurricaneplan, signal) + @grenmet/mdx
+  # MDX — content-collections stack (hurricaneplan, signal) + @barrelsgd/mdx
   "@content-collections/core": "^0.10.0"
   "@content-collections/cli": "^0.1.9"
   "@content-collections/mdx": "^0.2.2"

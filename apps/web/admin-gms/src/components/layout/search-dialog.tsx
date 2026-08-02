@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Command,
   CommandDialog,
@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
   CommandSeparator,
-} from "@grenmet/ui/components/ui/command";
+} from "@barrelsgd/ui/components/ui/command";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";

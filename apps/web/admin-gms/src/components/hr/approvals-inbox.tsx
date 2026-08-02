@@ -6,10 +6,10 @@ import {
   useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost,
   type WorkflowAction,
   type WorkflowType,
-} from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Spinner } from "@grenmet/ui/components/ui/spinner";
+} from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import {
   Table,
   TableBody,
@@ -17,7 +17,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@grenmet/ui/components/ui/table";
+} from "@barrelsgd/ui/components/ui/table";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
 import { useState } from "react";

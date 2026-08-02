@@ -1,4 +1,4 @@
-# @grenmet/auth
+# @barrelsgd/auth
 
 Shared authentication and session package for all Grenmet web apps.
 
@@ -6,8 +6,8 @@ Two entry points — client and server — with a strict boundary between them:
 
 | Import | Runtime | Use when |
 |---|---|---|
-| `@grenmet/auth` | Client (browser) | Reading the current user in a component, signing out |
-| `@grenmet/auth/server` | Server only | Middleware, Server Components, Route Handlers, API routes |
+| `@barrelsgd/auth` | Client (browser) | Reading the current user in a component, signing out |
+| `@barrelsgd/auth/server` | Server only | Middleware, Server Components, Route Handlers, API routes |
 
 The server entry point imports `server-only` and will throw a build error if imported in a Client Component.
 
@@ -23,7 +23,7 @@ For the full auth flow, see [docs/technical-overview.md — Auth architecture](.
 
 ## Client API
 
-Import from `@grenmet/auth`:
+Import from `@barrelsgd/auth`:
 
 ```ts
 import {
@@ -31,7 +31,7 @@ import {
   useSessionUser,
   signOut,
   signOutEverywhere,
-} from "@grenmet/auth";
+} from "@barrelsgd/auth";
 ```
 
 ### `SessionUserProvider`
@@ -40,7 +40,7 @@ Wrap your app (or a subtree) to make the current user available via `useSessionU
 
 ```tsx
 // In your root layout or provider tree
-import { SessionUserProvider } from "@grenmet/auth";
+import { SessionUserProvider } from "@barrelsgd/auth";
 
 export default function Layout({ children, user }) {
   return (
@@ -59,7 +59,7 @@ Read the current user in any Client Component.
 
 ```tsx
 "use client";
-import { useSessionUser } from "@grenmet/auth";
+import { useSessionUser } from "@barrelsgd/auth";
 
 export function UserMenu() {
   const user = useSessionUser();
@@ -77,7 +77,7 @@ Revoke the current session and redirect to sign-in.
 
 ```tsx
 "use client";
-import { signOut } from "@grenmet/auth";
+import { signOut } from "@barrelsgd/auth";
 
 <button onClick={() => signOut()}>Sign out</button>
 
@@ -95,7 +95,7 @@ Same as `signOut` but revokes all sessions for the user, not just the current on
 
 ## Server API
 
-Import from `@grenmet/auth/server`:
+Import from `@barrelsgd/auth/server`:
 
 ```ts
 import {
@@ -119,14 +119,14 @@ import {
 
   // Typed fetch
   authApiFetch,
-} from "@grenmet/auth/server";
+} from "@barrelsgd/auth/server";
 ```
 
 All server functions take an `AuthConfig` object as their first argument. Define this once per app:
 
 ```ts
 // src/lib/auth-config.ts
-import type { AuthConfig } from "@grenmet/auth";
+import type { AuthConfig } from "@barrelsgd/auth";
 import { env } from "@/env";
 
 export const authConfig: AuthConfig = {
@@ -187,7 +187,7 @@ clearSessionCookieOnResponse(authConfig, response);
 Exchange a session token for a short-lived access token and the current user. This is the primary way to authenticate a server request.
 
 ```ts
-import { readSessionCookie, exchangeSessionForAccessToken } from "@grenmet/auth/server";
+import { readSessionCookie, exchangeSessionForAccessToken } from "@barrelsgd/auth/server";
 import { redirect } from "next/navigation";
 
 export default async function ProtectedPage() {
@@ -237,7 +237,7 @@ Build a redirect URL to `web-auth` that includes the return destination. Use thi
 
 ```ts
 import { headers } from "next/headers";
-import { buildSharedSignInUrl, getRequestOrigin } from "@grenmet/auth/server";
+import { buildSharedSignInUrl, getRequestOrigin } from "@barrelsgd/auth/server";
 import { redirect } from "next/navigation";
 
 const requestHeaders = await headers();
@@ -280,7 +280,7 @@ import type {
   SessionAccessTokenResponse,
   SessionLoginResponse,
   AuthApiError,
-} from "@grenmet/auth";
+} from "@barrelsgd/auth";
 ```
 
 ### `SessionUserPublic`
@@ -300,7 +300,7 @@ interface SessionUserPublic {
 Thrown by `authApiFetch` and all session helpers on non-2xx responses.
 
 ```ts
-import { isAuthApiError } from "@grenmet/auth";
+import { isAuthApiError } from "@barrelsgd/auth";
 
 try {
   await exchangeSessionForAccessToken(authConfig, token);

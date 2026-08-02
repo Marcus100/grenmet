@@ -4,9 +4,9 @@ export type {
   SessionLoginResponse,
   Token,
   UserPublic,
-} from "@grenmet/auth";
+} from "@barrelsgd/auth";
 
-export { AuthApiError, isAuthApiError } from "@grenmet/auth";
+export { AuthApiError, isAuthApiError } from "@barrelsgd/auth";
 
 import type {
   MessageResponse,
@@ -14,7 +14,7 @@ import type {
   SessionLoginResponse,
   Token,
   UserPublic,
-} from "@grenmet/auth";
+} from "@barrelsgd/auth";
 import {
   clearSessionCookie as _clearSessionCookie,
   createSession as _createSession,
@@ -28,7 +28,7 @@ import {
   resetPassword as _resetPassword,
   signUp as _signUp,
   writeSessionCookie as _writeSessionCookie,
-} from "@grenmet/auth/server";
+} from "@barrelsgd/auth/server";
 import { getAuthConfig } from "./auth-config";
 
 // ---------------------------------------------------------------------------

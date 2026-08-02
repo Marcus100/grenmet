@@ -1,4 +1,4 @@
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { ReactNode } from "react";
 
 /** US Letter at 96dpi. The fixed pixel size the paper renders at; DocumentPreview
