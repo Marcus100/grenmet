@@ -1,4 +1,4 @@
-import { Badge } from "@grenmet/ui/components/ui/badge";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import type * as React from "react";
 import type { CapSeverity } from "@/lib/cap-api";
 

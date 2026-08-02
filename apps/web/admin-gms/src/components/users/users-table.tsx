@@ -9,7 +9,7 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from "@grenmet/ui/components/ui/pagination";
+} from "@barrelsgd/ui/components/ui/pagination";
 import {
   Select,
   SelectContent,
@@ -17,8 +17,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@grenmet/ui/components/ui/select";
-import { Separator } from "@grenmet/ui/components/ui/separator";
+} from "@barrelsgd/ui/components/ui/select";
+import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import {
   Table,
   TableBody,
@@ -26,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@grenmet/ui/components/ui/table";
+} from "@barrelsgd/ui/components/ui/table";
 import { flexRender, type Table as TableType } from "@tanstack/react-table";
 import type { MouseEvent } from "react";
 

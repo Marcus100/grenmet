@@ -1,4 +1,4 @@
-# @grenmet/ui
+# @barrelsgd/ui
 
 Shared UI component library for all Grenmet web apps. Built on [Base UI](https://base-ui.com) primitives with shadcn-style component patterns and the [GrenMet v1 design system](../../docs/design-system.md).
 
@@ -9,15 +9,15 @@ Shared UI component library for all Grenmet web apps. Built on [Base UI](https:/
 Every component is a named export from its own path:
 
 ```ts
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Card, CardHeader, CardContent } from "@grenmet/ui/components/ui/card";
-import { Input } from "@grenmet/ui/components/ui/input";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Card, CardHeader, CardContent } from "@barrelsgd/ui/components/ui/card";
+import { Input } from "@barrelsgd/ui/components/ui/input";
 ```
 
 The `cn` utility (tailwind-merge + clsx) is available from:
 
 ```ts
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 ```
 
 Use `cn` any time you need to merge Tailwind classes conditionally:
@@ -80,7 +80,7 @@ Use `cn` any time you need to merge Tailwind classes conditionally:
 
 ## Design system tokens
 
-All apps receive the GrenMet v1 foundation block when they import `@grenmet/ui`. It provides `--gm-*` CSS custom properties, Tailwind v4 utility aliases (`text-gm-heading-md`, `h-gm-header`, etc.), and shadcn-compatible semantic tokens (`--primary`, `--background`, etc.).
+All apps receive the GrenMet v1 foundation block when they import `@barrelsgd/ui`. It provides `--gm-*` CSS custom properties, Tailwind v4 utility aliases (`text-gm-heading-md`, `h-gm-header`, etc.), and shadcn-compatible semantic tokens (`--primary`, `--background`, etc.).
 
 Use tokens instead of hardcoded values. Run `pnpm design-system:audit` to find drift in your app.
 
@@ -90,22 +90,22 @@ Full token reference, the three-layer explanation, and compliance guide: [docs/d
 
 ---
 
-## When to use `@grenmet/ui` vs a local component
+## When to use `@barrelsgd/ui` vs a local component
 
-**Use `@grenmet/ui`** for general-purpose UI primitives: buttons, cards, inputs, dialogs, tables, etc. If the component would make sense in any app, it belongs in the shared library.
+**Use `@barrelsgd/ui`** for general-purpose UI primitives: buttons, cards, inputs, dialogs, tables, etc. If the component would make sense in any app, it belongs in the shared library.
 
-**Use a local component** for app-specific UI: a weather product card, a forecast strip, a roster table row. App-specific components can import and compose `@grenmet/ui` primitives but shouldn't live in the shared package until they're genuinely reusable.
+**Use a local component** for app-specific UI: a weather product card, a forecast strip, a roster table row. App-specific components can import and compose `@barrelsgd/ui` primitives but shouldn't live in the shared package until they're genuinely reusable.
 
-If you find yourself reimplementing a button or input from scratch in an app, stop and use `@grenmet/ui`.
+If you find yourself reimplementing a button or input from scratch in an app, stop and use `@barrelsgd/ui`.
 
 ---
 
-## Adding a new component to `@grenmet/ui`
+## Adding a new component to `@barrelsgd/ui`
 
 1. Add the component file to `packages/ui/src/components/ui/<name>.tsx`
 2. Follow the existing pattern: named exports, `cn` for className merging, `data-slot` attribute on the root element
 3. No `forwardRef` — React 19 passes `ref` as a prop directly
-4. Import it in the consuming app using the full path (`@grenmet/ui/components/ui/<name>`)
+4. Import it in the consuming app using the full path (`@barrelsgd/ui/components/ui/<name>`)
 5. There is no barrel export — each component has its own path
 
 ---
@@ -115,7 +115,7 @@ If you find yourself reimplementing a button or input from scratch in an app, st
 The `Slot` utility (used internally by `Button` via `asChild`) is available if you need it:
 
 ```ts
-import { Slot } from "@grenmet/ui/lib/slot";
+import { Slot } from "@barrelsgd/ui/lib/slot";
 ```
 
 `Slot` merges its props onto its single child element. It's how `asChild` works — instead of rendering a `<button>`, it renders whatever you pass as the child with the button's props merged in.

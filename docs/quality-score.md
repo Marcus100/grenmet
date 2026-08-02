@@ -19,10 +19,10 @@ Last updated: 2026-07-19 (repository drift checks added to CI)
 
 | Package | Tests | Types | Docs | Grade |
 |---|---|---|---|---|
-| `@grenmet/ui` | D (none) | A | B | C+ |
-| `@grenmet/auth` | B (Vitest) | A | A | B+ |
-| `@grenmet/api-client` | — (generated) | A | B | A |
-| `@grenmet/tsconfig` | — (config only) | — | B | A |
+| `@barrelsgd/ui` | D (none) | A | B | C+ |
+| `@barrelsgd/auth` | B (Vitest) | A | A | B+ |
+| `@barrelsgd/api-client` | — (generated) | A | B | A |
+| `@barrelsgd/tsconfig` | — (config only) | — | B | A |
 
 ## Agent Harness
 
@@ -39,5 +39,5 @@ Last updated: 2026-07-19 (repository drift checks added to CI)
 ## Priority gaps
 
 1. Test coverage — 2 of 5 apps have no tests at all (`hurricaneplan`, `spicewx`)
-2. Design system — migration to `@grenmet/ui` in progress, not complete
+2. Design system — migration to `@barrelsgd/ui` in progress, not complete
 3. Dependency direction lints — package and app import boundaries are not mechanically enforced

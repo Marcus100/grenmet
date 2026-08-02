@@ -1,4 +1,4 @@
-# @grenmet/api-client
+# @barrelsgd/api-client
 
 Generated TypeScript API client for the FastAPI backend.
 
@@ -12,9 +12,9 @@ This package follows a **commit generated code** workflow:
 
 ## Common commands
 
-- `pnpm --filter @grenmet/api-client run generate` - one-time generation.
-- `pnpm --filter @grenmet/api-client run generate:watch` - regenerate on spec changes.
-- `pnpm --filter @grenmet/api-client run generate:debug` - generate with debug logs.
+- `pnpm --filter @barrelsgd/api-client run generate` - one-time generation.
+- `pnpm --filter @barrelsgd/api-client run generate:watch` - regenerate on spec changes.
+- `pnpm --filter @barrelsgd/api-client run generate:debug` - generate with debug logs.
 
 ## Source OpenAPI document
 

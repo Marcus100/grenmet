@@ -1,4 +1,4 @@
-# spicewx (`@grenmet/web-spicewx`) — Claude context
+# spicewx (`@barrelsgd/web-spicewx`) — Claude context
 
 Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
 
@@ -26,11 +26,11 @@ src/app/
 
 ## Key dependencies (unique to this app)
 
-- `@headlessui/react` — nav drawer and accordion. **Migration target:** move to `@base-ui-components/react` (already in `@grenmet/ui`) when refactoring. Do not add new `@headlessui/react` usage.
+- `@headlessui/react` — nav drawer and accordion. **Migration target:** move to `@base-ui-components/react` (already in `@barrelsgd/ui`) when refactoring. Do not add new `@headlessui/react` usage.
 - `lucide-react` — icons (migrated off `@heroicons/react`)
 
 ## Special conventions
 
 - Forecast components are static per-day files in `src/components/forecasts/` — not generated dynamically. Date-based routing maps to these components via `src/lib/forecast-days.ts`.
 - `src/lib/utils.ts` contains date utilities shared across components.
-- Keep `@headlessui/react` usage isolated to existing components — new interactive components should use Base UI primitives from `@grenmet/ui`.
+- Keep `@headlessui/react` usage isolated to existing components — new interactive components should use Base UI primitives from `@barrelsgd/ui`.

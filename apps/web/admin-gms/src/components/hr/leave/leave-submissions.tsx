@@ -4,9 +4,9 @@ import {
   readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
   useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete,
   useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet,
-} from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";

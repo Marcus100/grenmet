@@ -1,14 +1,14 @@
 "use client";
 
-import { buttonVariants } from "@grenmet/ui/components/ui/button";
+import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@grenmet/ui/components/ui/sheet";
-import { cn } from "@grenmet/ui/lib/utils";
+} from "@barrelsgd/ui/components/ui/sheet";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Menu, RadioTower } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";

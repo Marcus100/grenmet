@@ -1,4 +1,4 @@
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { FileText, MapIcon, Rss } from "lucide-react";
 import { capPublicUrl } from "@/lib/cap-api";
 

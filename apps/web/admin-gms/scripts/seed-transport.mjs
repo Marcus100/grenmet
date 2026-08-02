@@ -5,7 +5,7 @@
 // Idempotent: truncates and reloads every run. Node natively strips the types
 // from the imported .ts modules (Node >= 22.18), so no build step / tsx needed.
 //
-//   pnpm --filter @grenmet/web-admin db:transport:seed
+//   pnpm --filter @barrelsgd/web-admin db:transport:seed
 //
 // Transcription note: place names were canonicalised from the source PDF so
 // slug-dedup merges the same stop across routes/directions. OCR spelling fixes

@@ -4,10 +4,10 @@ import {
   readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey,
   useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete,
   useReadAbsenteeReportsApiV1HrAbsenteeReportsGet,
-} from "@grenmet/api-client";
-import { useSessionUser } from "@grenmet/auth";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { useSessionUser } from "@barrelsgd/auth";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";

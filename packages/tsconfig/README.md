@@ -1,4 +1,4 @@
-# @grenmet/tsconfig
+# @barrelsgd/tsconfig
 
 Shared TypeScript configs for the monorepo.
 
@@ -15,7 +15,7 @@ In your app `tsconfig.json`:
 
 ```json
 {
-  "extends": "@grenmet/tsconfig/tsconfig.nextjs.json",
+  "extends": "@barrelsgd/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
     "paths": { "@/*": ["./*"] }
   },

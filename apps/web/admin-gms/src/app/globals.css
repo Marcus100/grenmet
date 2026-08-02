@@ -3,19 +3,19 @@
 
 /* Theme presets — override CSS variables based on [data-theme-preset].
    GrenMet ("default") needs no file; it is the :root baseline below.
-   Imported from @grenmet/theme WITHOUT the .css extension (the package's
-   "./styles/*" export appends it), matching how signal imports @grenmet/ui.
+   Imported from @barrelsgd/theme WITHOUT the .css extension (the package's
+   "./styles/*" export appends it), matching how signal imports @barrelsgd/ui.
    All @import rules must precede @source (CSS: imports come first). */
-@import "@grenmet/theme/styles/presets/brutalist";
-@import "@grenmet/theme/styles/presets/soft-pop";
-@import "@grenmet/theme/styles/presets/tangerine";
+@import "@barrelsgd/theme/styles/presets/brutalist";
+@import "@barrelsgd/theme/styles/presets/soft-pop";
+@import "@barrelsgd/theme/styles/presets/tangerine";
 
-/* Tailwind v4 only auto-scans this app's own source. The promoted @grenmet/ui
+/* Tailwind v4 only auto-scans this app's own source. The promoted @barrelsgd/ui
    primitives (sidebar, etc.) use utilities found nowhere in app code, so scan
    the shared package explicitly or those classes are never generated. Use the
    node_modules symlink path (stays inside the app tree for turbopack; the
    explicit @source overrides Tailwind's default node_modules ignore). */
-@source "../../node_modules/@grenmet/ui/src";
+@source "../../node_modules/@barrelsgd/ui/src";
 
 /* BEGIN GRENMET DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -348,7 +348,7 @@
 }
 /* END GRENMET DESIGN SYSTEM V1 */
 
-/* Suppress transitions during theme-mode flips (see @grenmet/theme theme-utils). */
+/* Suppress transitions during theme-mode flips (see @barrelsgd/theme theme-utils). */
 .disable-transitions * {
   transition: none !important;
 }
@@ -368,7 +368,7 @@
   }
 }
 
-/* Font switcher — the `data-font` attribute (set by @grenmet/theme's preferences
+/* Font switcher — the `data-font` attribute (set by @barrelsgd/theme's preferences
    system) selects the active UI font from the registry loaded in layout.tsx.
    Printed documents are unaffected — they use --gm-font-document (Noto Sans). */
 @layer base {

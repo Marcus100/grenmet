@@ -1,13 +1,13 @@
 "use client";
 
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import {
   NativeSelect,
   NativeSelectOption,
-} from "@grenmet/ui/components/ui/native-select";
-import { Textarea } from "@grenmet/ui/components/ui/textarea";
+} from "@barrelsgd/ui/components/ui/native-select";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
 import { CONTACT_SUBJECTS, contactSchema } from "@/lib/contact";
 

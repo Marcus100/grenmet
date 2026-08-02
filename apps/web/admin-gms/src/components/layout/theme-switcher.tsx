@@ -1,8 +1,8 @@
 "use client";
 
-import { usePreferencesStore } from "@grenmet/theme/components/preferences-provider";
-import { persistPreference } from "@grenmet/theme/lib/preferences-storage";
-import { Button } from "@grenmet/ui/components/ui/button";
+import { usePreferencesStore } from "@barrelsgd/theme/components/preferences-provider";
+import { persistPreference } from "@barrelsgd/theme/lib/preferences-storage";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Monitor, Moon, Sun } from "lucide-react";
 
 const THEME_CYCLE = ["light", "dark", "system"] as const;

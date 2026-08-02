@@ -1,4 +1,4 @@
-# spicewx (`@grenmet/web-spicewx`)
+# spicewx (`@barrelsgd/web-spicewx`)
 
 Public weather dashboard for the Grenada Meteorological Service. Port **3003**. No database. No `pnpm start` required.
 

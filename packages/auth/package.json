@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/auth",
+  "name": "@barrelsgd/auth",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -28,7 +28,7 @@
     "react": "*"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@types/react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

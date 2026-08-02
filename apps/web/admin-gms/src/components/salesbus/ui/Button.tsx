@@ -1,1 +1,1 @@
-export { Button, buttonVariants } from "@grenmet/ui/components/ui/button";
+export { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";

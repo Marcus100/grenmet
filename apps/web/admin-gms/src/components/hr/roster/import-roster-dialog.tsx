@@ -5,9 +5,9 @@ import {
   useImportGridApiV1HrRostersImportGridPost,
   useListDepartmentsEndpointApiV1HrDepartmentsGet,
   useValidateGridApiV1HrRostersImportGridValidatePost,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -16,10 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@grenmet/ui/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { NativeSelect } from "@grenmet/ui/components/ui/native-select";
+} from "@barrelsgd/ui/components/ui/dialog";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@barrelsgd/ui/components/ui/field";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import { useQueryClient } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useState } from "react";

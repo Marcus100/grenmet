@@ -1,4 +1,4 @@
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { formatRelativeTime } from "@/lib/format";
 
 export function ArticleMeta({

@@ -1,4 +1,4 @@
-# admin-gms (`@grenmet/web-admin`) — Claude context
+# admin-gms (`@barrelsgd/web-admin`) — Claude context
 
 Port **3001**. The heaviest app in the monorepo.
 
@@ -21,7 +21,7 @@ Port **3001**. The heaviest app in the monorepo.
 
 ## Auth
 
-Uses `@grenmet/auth/server` directly — not a redirect-delegating app.
+Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
 
 - Session management: `src/lib/server-session.ts`
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
@@ -31,7 +31,7 @@ Uses `@grenmet/auth/server` directly — not a redirect-delegating app.
 
 ## API consumption
 
-Consumes FastAPI HR + Auth endpoints via `@grenmet/api-client`. Initialised in `src/components/providers/ApiProvider.tsx`. Configured via `src/lib/api.ts`.
+Consumes FastAPI HR + Auth endpoints via `@barrelsgd/api-client`. Initialised in `src/components/providers/ApiProvider.tsx`. Configured via `src/lib/api.ts`.
 
 ## Route groups
 
@@ -47,7 +47,7 @@ src/app/
     (error-pages)/   ← 404
 ```
 
-The UI font is user-selectable via `@grenmet/theme`'s font switcher (registry in
+The UI font is user-selectable via `@barrelsgd/theme`'s font switcher (registry in
 `src/lib/fonts/registry.ts`, `data-font` CSS in `globals.css`); default Inter,
 print documents always Noto Sans.
 
@@ -79,7 +79,7 @@ This is the **only app with tests**. Run from the app directory or via turbo fil
 
 ```bash
 # From repo root
-turbo run test --filter=@grenmet/web-admin
+turbo run test --filter=@barrelsgd/web-admin
 
 # Unit tests only (from apps/web/admin-gms)
 pnpm vitest run
@@ -97,7 +97,7 @@ Test setup: `src/test/setup.ts`. Uses `jsdom`, `@testing-library/react`, `msw` f
 ## Important conventions
 
 - **No direct `process.env`** — use `src/env.ts` (typed via `@t3-oss/env-nextjs`)
-- **`@grenmet/ui` for primitives** — import per-file as `@grenmet/ui/components/ui/<name>`; there is no app-local `src/components/ui/`
+- **`@barrelsgd/ui` for primitives** — import per-file as `@barrelsgd/ui/components/ui/<name>`; there is no app-local `src/components/ui/`
 - **React Query for client-side server state** — initialised in `QueryProvider`, not for data that can be Server Component fetches
 - **`src/lib/query-client.ts`** — shared query client config; do not create new instances
 - **Type-check mirrors CI on purpose** — `type-check` deletes the gitignored,

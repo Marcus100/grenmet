@@ -48,10 +48,10 @@ jobs:
         run: git diff --exit-code -- packages/api-client/src/gen
 
       - name: Type-check API client package
-        run: pnpm --filter @grenmet/api-client run type-check
+        run: pnpm --filter @barrelsgd/api-client run type-check
 
       - name: Build API client package
-        run: pnpm --filter @grenmet/api-client run build
+        run: pnpm --filter @barrelsgd/api-client run build
 
       - name: Type-check admin consumer
-        run: pnpm --filter @grenmet/web-admin run type-check
+        run: pnpm --filter @barrelsgd/web-admin run type-check

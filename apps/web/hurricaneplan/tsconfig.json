@@ -1,5 +1,5 @@
 {
-  "extends": "@grenmet/tsconfig/tsconfig.nextjs.json",
+  "extends": "@barrelsgd/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],

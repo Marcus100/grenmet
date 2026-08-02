@@ -1,6 +1,6 @@
-import { buildSharedSignInUrl as _buildSharedSignInUrl } from "@grenmet/auth/server";
+import { buildSharedSignInUrl as _buildSharedSignInUrl } from "@barrelsgd/auth/server";
 
-export { getRequestOrigin, getSafeLocalReturnTo } from "@grenmet/auth/server";
+export { getRequestOrigin, getSafeLocalReturnTo } from "@barrelsgd/auth/server";
 
 import { getAuthConfig } from "@/lib/auth-config";
 

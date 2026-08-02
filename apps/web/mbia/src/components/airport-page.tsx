@@ -1,4 +1,4 @@
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";

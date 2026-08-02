@@ -1,17 +1,17 @@
 @import "tailwindcss";
-@import "@grenmet/ui/styles/globals";
+@import "@barrelsgd/ui/styles/globals";
 @plugin "@tailwindcss/typography";
 
-/* Tailwind v4 only auto-scans this app's own source. The reused @grenmet/ui
+/* Tailwind v4 only auto-scans this app's own source. The reused @barrelsgd/ui
    primitives (sheet, dialog, accordion, …) use utilities found nowhere in this
    app's own pages, so scan the shared package explicitly or those classes are
    never generated. */
-@source "../../node_modules/@grenmet/ui/src";
+@source "../../node_modules/@barrelsgd/ui/src";
 
 /*
   Grenada Airports Authority (GAA) brand layer.
 
-  Consumes the @grenmet/ui foundation (shadcn semantic @theme mapping) and
+  Consumes the @barrelsgd/ui foundation (shadcn semantic @theme mapping) and
   overrides the semantic :root tokens to the GAA palette so reused primitives
   reskin automatically.
 
@@ -39,7 +39,7 @@
     --gaa-status-delayed: #b45309;
     --gaa-status-cancelled: #b91c1c;
 
-    /* Override @grenmet/ui shadcn semantics -> GAA */
+    /* Override @barrelsgd/ui shadcn semantics -> GAA */
     --background: var(--gaa-paper);
     --foreground: var(--gaa-ink);
     --card: var(--gaa-paper);

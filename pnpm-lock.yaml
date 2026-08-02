@@ -225,7 +225,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@total-typescript/ts-reset':
@@ -249,24 +249,24 @@ importers:
 
   apps/web/admin-gms:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
+      '@barrelsgd/auth':
+        specifier: workspace:*
+        version: link:../../../packages/auth
+      '@barrelsgd/theme':
+        specifier: workspace:*
+        version: link:../../../packages/theme
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
       '@epic-web/invariant':
         specifier: ^1.0.0
         version: 1.0.0
       '@fullcalendar/react':
         specifier: 'catalog:'
         version: 7.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(temporal-polyfill@1.0.1)
-      '@grenmet/api-client':
-        specifier: workspace:*
-        version: link:../../../packages/api-client
-      '@grenmet/auth':
-        specifier: workspace:*
-        version: link:../../../packages/auth
-      '@grenmet/theme':
-        specifier: workspace:*
-        version: link:../../../packages/theme
-      '@grenmet/ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
       '@hookform/resolvers':
         specifier: 'catalog:'
         version: 5.4.0(react-hook-form@7.80.0(react@19.2.3))
@@ -346,7 +346,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.14(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@playwright/test':
@@ -427,13 +427,13 @@ importers:
 
   apps/web/auth:
     dependencies:
-      '@grenmet/auth':
+      '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
-      '@grenmet/email-templates':
+      '@barrelsgd/email-templates':
         specifier: workspace:*
         version: link:../../../packages/email-templates
-      '@grenmet/ui':
+      '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../../../packages/ui
       '@sentry/nextjs':
@@ -458,7 +458,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@playwright/test':
@@ -507,11 +507,69 @@ importers:
         specifier: 'catalog:'
         version: 4.0.18(@opentelemetry/api@1.9.1)(@types/node@22.19.11)(jiti@2.7.0)(jsdom@27.4.0)(lightningcss@1.30.2)(msw@2.12.10(@types/node@22.19.11)(typescript@5.9.3))(terser@5.48.0)(tsx@4.21.0)(yaml@2.9.0)
 
+  apps/web/events:
+    dependencies:
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
+      lucide-react:
+        specifier: 'catalog:'
+        version: 0.562.0(react@19.2.3)
+      next:
+        specifier: 'catalog:'
+        version: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.3
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.3(react@19.2.3)
+    devDependencies:
+      '@barrelsgd/tsconfig':
+        specifier: workspace:*
+        version: link:../../../packages/tsconfig
+      '@tailwindcss/postcss':
+        specifier: 'catalog:'
+        version: 4.1.18
+      '@testing-library/jest-dom':
+        specifier: 'catalog:'
+        version: 6.9.1
+      '@testing-library/react':
+        specifier: 'catalog:'
+        version: 16.3.2(@testing-library/dom@10.4.1)(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@total-typescript/ts-reset':
+        specifier: 'catalog:'
+        version: 0.6.1
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.19.11
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.9
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.9)
+      jsdom:
+        specifier: 'catalog:'
+        version: 27.4.0
+      tailwindcss:
+        specifier: 'catalog:'
+        version: 4.1.18
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.0.18(@opentelemetry/api@1.9.1)(@types/node@22.19.11)(jiti@2.7.0)(jsdom@27.4.0)(lightningcss@1.30.2)(msw@2.12.10(@types/node@22.19.11)(typescript@5.9.3))(terser@5.48.0)(tsx@4.21.0)(yaml@2.9.0)
+
   apps/web/hurricaneplan:
     dependencies:
       '@algolia/autocomplete-core':
         specifier: ^1.19.2
         version: 1.19.6(@algolia/client-search@5.49.2)(algoliasearch@5.49.2)(search-insights@2.17.3)
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
       '@content-collections/cli':
         specifier: 'catalog:'
         version: 0.1.9(@content-collections/core@0.10.0(typescript@5.9.3))
@@ -524,9 +582,6 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
       '@headlessui/react':
         specifier: 'catalog:'
         version: 2.2.10(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -600,7 +655,7 @@ importers:
         specifier: ^5.0.6
         version: 5.0.11(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -630,6 +685,9 @@ importers:
 
   apps/web/mbia:
     dependencies:
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
       '@content-collections/cli':
         specifier: 'catalog:'
         version: 0.1.9(@content-collections/core@0.10.0(typescript@5.9.3))
@@ -642,9 +700,6 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
       '@sentry/nextjs':
         specifier: 'catalog:'
         version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
@@ -673,7 +728,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -721,6 +776,9 @@ importers:
 
   apps/web/signal:
     dependencies:
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
       '@content-collections/cli':
         specifier: 'catalog:'
         version: 0.1.9(@content-collections/core@0.10.0(typescript@5.9.3))
@@ -733,9 +791,6 @@ importers:
       '@content-collections/next':
         specifier: 'catalog:'
         version: 0.2.11(@content-collections/core@0.10.0(typescript@5.9.3))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))
-      '@grenmet/ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
       '@sentry/nextjs':
         specifier: 'catalog:'
         version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2(lightningcss@1.30.2))
@@ -764,7 +819,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -812,12 +867,12 @@ importers:
 
   apps/web/spicewx:
     dependencies:
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../../../packages/ui
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.6.0(@date-fns/tz@1.5.0)(@types/react@19.2.9)(date-fns@4.1.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      '@grenmet/ui':
-        specifier: workspace:*
-        version: link:../../../packages/ui
       '@sentry/nextjs':
         specifier: 'catalog:'
         version: 10.62.0(@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(next@16.1.1(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)(webpack@5.107.2)
@@ -849,7 +904,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../../../packages/tsconfig
       '@tailwindcss/postcss':
@@ -880,7 +935,7 @@ importers:
         specifier: 'catalog:'
         version: 4.3.6
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@kubb/cli':
@@ -919,7 +974,7 @@ importers:
 
   packages/auth:
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -947,7 +1002,7 @@ importers:
         specifier: ^2.0.8
         version: 2.0.8(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -972,7 +1027,7 @@ importers:
         specifier: 'catalog:'
         version: 5.0.14(@types/react@19.2.9)(immer@11.1.8)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     devDependencies:
-      '@grenmet/tsconfig':
+      '@barrelsgd/tsconfig':
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
@@ -1047,12 +1102,12 @@ importers:
         specifier: 'catalog:'
         version: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
     devDependencies:
+      '@barrelsgd/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       '@figma/code-connect':
         specifier: ^1.4.5
         version: 1.4.5
-      '@grenmet/tsconfig':
-        specifier: workspace:*
-        version: link:../tsconfig
       '@types/react':
         specifier: 'catalog:'
         version: 19.2.9

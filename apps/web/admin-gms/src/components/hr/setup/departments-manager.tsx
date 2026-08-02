@@ -6,8 +6,8 @@ import {
   useCreateDepartmentEndpointApiV1HrDepartmentsPost,
   useListDepartmentsEndpointApiV1HrDepartmentsGet,
   useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,9 +16,13 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@grenmet/ui/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
-import { Input } from "@grenmet/ui/components/ui/input";
+} from "@barrelsgd/ui/components/ui/dialog";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@barrelsgd/ui/components/ui/field";
+import { Input } from "@barrelsgd/ui/components/ui/input";
 import {
   Table,
   TableBody,
@@ -26,7 +30,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@grenmet/ui/components/ui/table";
+} from "@barrelsgd/ui/components/ui/table";
 import { useQueryClient } from "@tanstack/react-query";
 import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";

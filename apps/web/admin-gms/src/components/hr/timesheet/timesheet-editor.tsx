@@ -5,11 +5,15 @@ import {
   type TimesheetEntryInput,
   useCreateTimesheetApiV1HrTimesheetsPost,
   useReadHrProfileMeApiV1HrProfileMeGet,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { Separator } from "@grenmet/ui/components/ui/separator";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@barrelsgd/ui/components/ui/field";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, RotateCcw, Send, Trash2 } from "lucide-react";

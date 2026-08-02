@@ -1,7 +1,7 @@
 "use client";
 
-import { usePreferencesStore } from "@grenmet/theme/components/preferences-provider";
-import { Logo } from "@grenmet/ui/components/ui/logo";
+import { usePreferencesStore } from "@barrelsgd/theme/components/preferences-provider";
+import { Logo } from "@barrelsgd/ui/components/ui/logo";
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@grenmet/ui/components/ui/sidebar";
+} from "@barrelsgd/ui/components/ui/sidebar";
 import Link from "next/link";
 import { useShallow } from "zustand/react/shallow";
 import { sidebarItems } from "@/navigation/sidebar-items";

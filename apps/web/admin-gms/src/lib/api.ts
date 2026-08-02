@@ -1,6 +1,6 @@
 "use client";
 
-import { configureApiClient } from "@grenmet/api-client";
+import { configureApiClient } from "@barrelsgd/api-client";
 
 let initialized = false;
 

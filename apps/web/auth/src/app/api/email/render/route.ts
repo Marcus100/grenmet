@@ -1,4 +1,4 @@
-import { renderTemplate, type TemplateName } from "@grenmet/email-templates";
+import { renderTemplate, type TemplateName } from "@barrelsgd/email-templates";
 import { captureException } from "@sentry/nextjs";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
