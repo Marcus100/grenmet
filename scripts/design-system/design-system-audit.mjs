@@ -8,7 +8,7 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 
 const webApps = [
   {
-    name: "@grenmet/ui",
+    name: "@barrelsgd/ui",
     root: "packages/ui",
     note: "Shared primitives should stay token-clean; generated foundation blocks are masked before scanning.",
   },

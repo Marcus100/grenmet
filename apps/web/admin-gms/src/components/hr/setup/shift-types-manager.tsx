@@ -6,15 +6,15 @@ import {
   useCreateShiftApiV1HrRostersShiftsPost,
   useListShiftCatalogApiV1HrRostersShiftsGet,
   useUpdateShiftApiV1HrRostersShiftsCodePatch,
-} from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Checkbox } from "@grenmet/ui/components/ui/checkbox";
+} from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@grenmet/ui/components/ui/collapsible";
+} from "@barrelsgd/ui/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +23,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@grenmet/ui/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@grenmet/ui/components/ui/field";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { NativeSelect } from "@grenmet/ui/components/ui/native-select";
+} from "@barrelsgd/ui/components/ui/dialog";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@barrelsgd/ui/components/ui/field";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
 import {
   Table,
   TableBody,
@@ -34,7 +38,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@grenmet/ui/components/ui/table";
+} from "@barrelsgd/ui/components/ui/table";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Pencil, Plus } from "lucide-react";
 import { useState } from "react";

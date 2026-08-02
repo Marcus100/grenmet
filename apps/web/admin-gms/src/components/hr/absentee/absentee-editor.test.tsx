@@ -1,5 +1,5 @@
-import { configureApiClient } from "@grenmet/api-client";
-import { SessionUserProvider } from "@grenmet/auth";
+import { configureApiClient } from "@barrelsgd/api-client";
+import { SessionUserProvider } from "@barrelsgd/auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";

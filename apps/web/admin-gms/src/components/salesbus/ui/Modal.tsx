@@ -5,7 +5,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@grenmet/ui/components/ui/sheet";
+} from "@barrelsgd/ui/components/ui/sheet";
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
 

@@ -1,5 +1,5 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import figma from "@figma/code-connect/react";
-import { Button } from "@grenmet/ui/components/ui/button";
 
 figma.connect(
   Button,

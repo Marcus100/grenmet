@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/api-hono",
+  "name": "@barrelsgd/api-hono",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -24,7 +24,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@vitest/coverage-v8": "catalog:",

@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@grenmet/ui/lib/utils";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { PlaneLanding, PlaneTakeoff } from "lucide-react";
 import { useState } from "react";
 import {

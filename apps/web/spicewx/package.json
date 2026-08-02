@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-spicewx",
+  "name": "@barrelsgd/web-spicewx",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@grenmet/ui": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",
@@ -29,7 +29,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",

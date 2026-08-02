@@ -5,13 +5,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@grenmet/ui/components/ui/card";
+} from "@barrelsgd/ui/components/ui/card";
 import {
   type ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@grenmet/ui/components/ui/chart";
+} from "@barrelsgd/ui/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 const data = [

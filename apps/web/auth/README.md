@@ -1,4 +1,4 @@
-# auth (`@grenmet/web-auth`)
+# auth (`@barrelsgd/web-auth`)
 
 Shared sign-in gateway for all Grenmet web apps. Port **3000**. No database. No `pnpm start` required.
 

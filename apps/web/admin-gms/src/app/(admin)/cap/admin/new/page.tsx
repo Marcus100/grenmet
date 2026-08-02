@@ -10,18 +10,18 @@ import {
   type CapStatus,
   type CapUrgency,
   createAlertApiV1CapAlertsPost,
-} from "@grenmet/api-client";
-import { Button } from "@grenmet/ui/components/ui/button";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { Label } from "@grenmet/ui/components/ui/label";
+} from "@barrelsgd/api-client";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@grenmet/ui/components/ui/select";
-import { Textarea } from "@grenmet/ui/components/ui/textarea";
+} from "@barrelsgd/ui/components/ui/select";
+import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

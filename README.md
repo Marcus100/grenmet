@@ -19,12 +19,12 @@ grenmet/
 │       └── spicewx/            # Public GMS weather website (design system reference app)
 ├── packages/
 │   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
-│   ├── auth/                   # Shared auth/session package (@grenmet/auth)
+│   ├── auth/                   # Shared auth/session package (@barrelsgd/auth)
 │   ├── email-templates/        # Shared React Email templates
 │   ├── mdx/                    # Shared MDX processing plugins
 │   ├── theme/                  # Shared theme and preference utilities
 │   ├── tsconfig/               # Shared TypeScript config
-│   └── ui/                     # Shared UI component library (@grenmet/ui) + GrenMet design system
+│   └── ui/                     # Shared UI component library (@barrelsgd/ui) + GrenMet design system
 ├── docs/
 │   ├── api/                    # API development, testing, and deployment guides
 │   ├── architecture.md         # GMS service architecture and strategic product catalogue
@@ -226,13 +226,13 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 ### Packages
 
-- **@grenmet/api-client** - Shared API client; generate with `pnpm generate:api-client`.
-- **@grenmet/auth** - Shared auth/session package for web apps.
-- **@grenmet/email-templates** - Shared React Email templates.
-- **@grenmet/mdx** - Shared remark, rehype, and recma plugins.
-- **@grenmet/theme** - Shared theme, layout, and preference utilities.
-- **@grenmet/tsconfig** - Shared TypeScript config.
-- **@grenmet/ui** - Shared UI component library and design-system primitives.
+- **@barrelsgd/api-client** - Shared API client; generate with `pnpm generate:api-client`.
+- **@barrelsgd/auth** - Shared auth/session package for web apps.
+- **@barrelsgd/email-templates** - Shared React Email templates.
+- **@barrelsgd/mdx** - Shared remark, rehype, and recma plugins.
+- **@barrelsgd/theme** - Shared theme, layout, and preference utilities.
+- **@barrelsgd/tsconfig** - Shared TypeScript config.
+- **@barrelsgd/ui** - Shared UI component library and design-system primitives.
 
 ### Code quality
 

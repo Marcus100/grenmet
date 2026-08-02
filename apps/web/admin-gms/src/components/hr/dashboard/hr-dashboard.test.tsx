@@ -11,7 +11,7 @@ const mockUser = {
   is_superuser: false,
 };
 
-vi.mock("@grenmet/auth", () => ({
+vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => mockUser,
 }));
 

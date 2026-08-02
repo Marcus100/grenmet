@@ -1,4 +1,4 @@
-import { Button } from "@grenmet/ui/components/ui/button";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import { FileText, MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import { SeverityBadge } from "@/components/cap/severity-badge";

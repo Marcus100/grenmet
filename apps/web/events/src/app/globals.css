@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@import "@barrelsgd/ui/styles/globals";
+
+@source "../../node_modules/@barrelsgd/ui/src";
+
+body {
+  font-family: var(--gm-font-sans);
+  color: var(--foreground);
+  background: var(--background);
+}
+
+a {
+  text-decoration: none;
+}

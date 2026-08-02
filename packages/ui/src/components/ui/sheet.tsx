@@ -1,9 +1,8 @@
 "use client";
 
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Dialog as SheetPrimitive } from "@base-ui/react/dialog";
-import { Button } from "@grenmet/ui/components/ui/button";
-
-import { cn } from "@grenmet/ui/lib/utils";
 import { XIcon } from "lucide-react";
 import type * as React from "react";
 

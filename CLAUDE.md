@@ -62,7 +62,7 @@ edit it. Find and report, never silently expand scope.
 | Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, spicewx via `AUTH_API_URL`)                         |
 | A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
 | A consolidated admin route      | the other folded modules in admin-gms (cap/hr/wxwatch/wxproducts/salesbus)                       |
-| A `@grenmet/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
+| A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
 
 ### Reasoning Gate
 Before introducing any new pattern, library, abstraction, or approach not already
@@ -110,7 +110,7 @@ When adding to this file, follow this structure:
 - **No React Query for server-fetchable data** — fetch in Server Components directly.
 - **`catalog:` for shared deps** — never hardcode versions for deps in the catalog.
 - **Path aliases** — use `@/` (maps to `src/`) not relative `../../` imports.
-- **`@grenmet/ui` for UI primitives** — import as `@grenmet/ui/components/ui/<name>`.
+- **`@barrelsgd/ui` for UI primitives** — import as `@barrelsgd/ui/components/ui/<name>`.
 - **Generated files are committed** — never edit `packages/api-client/src/gen/`
   manually; always regenerate via `pnpm generate:api-client`.
 - **geonetcast runs devcontainer-first** — its `gdal` pin tracks the devcontainer

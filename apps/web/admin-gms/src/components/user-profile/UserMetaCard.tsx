@@ -1,6 +1,6 @@
 "use client";
 
-import type { UserProfilePublic } from "@grenmet/api-client";
+import type { UserProfilePublic } from "@barrelsgd/api-client";
 import Image from "next/image";
 
 interface UserMetaCardProps {

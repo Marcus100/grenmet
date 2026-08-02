@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/web-hurricaneplan",
+  "name": "@barrelsgd/web-hurricaneplan",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -22,7 +22,7 @@
     "@content-collections/core": "catalog:",
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",
-    "@grenmet/ui": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "@headlessui/react": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@sindresorhus/slugify": "^2.2.1",
@@ -49,7 +49,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",

@@ -1,4 +1,4 @@
-# @grenmet/auth — Claude context
+# @barrelsgd/auth — Claude context
 
 Agent rules for working with the shared auth package. For the full API reference (all functions, types, examples), read `packages/auth/README.md`.
 
@@ -6,10 +6,10 @@ Agent rules for working with the shared auth package. For the full API reference
 
 | Import | Runtime | Use for |
 |---|---|---|
-| `@grenmet/auth` | Client (browser) | `SessionUserProvider`, `useSessionUser`, `signOut`, `signOutEverywhere` |
-| `@grenmet/auth/server` | Server only | Everything else — cookies, sessions, redirects, `authApiFetch` |
+| `@barrelsgd/auth` | Client (browser) | `SessionUserProvider`, `useSessionUser`, `signOut`, `signOutEverywhere` |
+| `@barrelsgd/auth/server` | Server only | Everything else — cookies, sessions, redirects, `authApiFetch` |
 
-The server entry point imports `server-only`. Importing it in a Client Component is a **build error**, not a runtime error. Never import `@grenmet/auth/server` in a file with `"use client"`.
+The server entry point imports `server-only`. Importing it in a Client Component is a **build error**, not a runtime error. Never import `@barrelsgd/auth/server` in a file with `"use client"`.
 
 ## AuthConfig — define once per app
 
@@ -59,7 +59,7 @@ The client-side `signOut()` and `signOutEverywhere()` functions POST to these ro
 
 | Anti-pattern | Fix |
 |---|---|
-| Importing `@grenmet/auth/server` in a Client Component | Move the call to a Server Component or Route Handler |
+| Importing `@barrelsgd/auth/server` in a Client Component | Move the call to a Server Component or Route Handler |
 | Constructing `AuthConfig` inline at a call site | Define once in `src/lib/auth-config.ts` |
 | Using `process.env` for auth config values | Use the app's typed `env` object from `src/env.ts` |
 | Swallowing `AuthApiError` without redirecting | Redirect to sign-in on 401 — do not silently fail |

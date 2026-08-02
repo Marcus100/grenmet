@@ -14,9 +14,9 @@ import {
   useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
   useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch,
   useUpdateUserApiV1AuthUsersUserIdPatch,
-} from "@grenmet/api-client";
-import { Badge } from "@grenmet/ui/components/ui/badge";
-import { Button } from "@grenmet/ui/components/ui/button";
+} from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
+import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,11 +25,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@grenmet/ui/components/ui/dialog";
-import { Field, FieldLabel } from "@grenmet/ui/components/ui/field";
-import { Input } from "@grenmet/ui/components/ui/input";
-import { NativeSelect } from "@grenmet/ui/components/ui/native-select";
-import { Separator } from "@grenmet/ui/components/ui/separator";
+} from "@barrelsgd/ui/components/ui/dialog";
+import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { NativeSelect } from "@barrelsgd/ui/components/ui/native-select";
+import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 import { ShieldMinus, UserRoundCog, X } from "lucide-react";
 import { useEffect, useState } from "react";

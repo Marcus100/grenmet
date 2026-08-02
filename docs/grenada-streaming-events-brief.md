@@ -157,8 +157,8 @@ promoter tools.
 
 ## Technical architecture (decisions so far)
 
-- **Clients:** **Next.js PWA only**, living at **`apps/pwa`** in this monorepo. Reuses `@grenmet/auth`,
-  `@grenmet/ui`, Drizzle, DO Spaces, and the existing Redis/worker infra ("shared backbone" done
+- **Clients:** **Next.js PWA only**, living at **`apps/pwa`** in this monorepo. Reuses `@barrelsgd/auth`,
+  `@barrelsgd/ui`, Drizzle, DO Spaces, and the existing Redis/worker infra ("shared backbone" done
   literally).
 - **Offline media:** **core feature, Android-first.** Full download/offline on Android (the local
   launch audience skews Android); **iOS degraded** at launch (PWA offline is weak on iOS —

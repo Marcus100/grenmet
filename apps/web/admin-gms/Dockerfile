@@ -35,7 +35,7 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
-RUN pnpm exec turbo run build --filter=@grenmet/web-admin
+RUN pnpm exec turbo run build --filter=@barrelsgd/web-admin
 RUN mkdir -p apps/web/admin-gms/public
 
 # ── Migration runner ─────────────────────────────────────────────────────────

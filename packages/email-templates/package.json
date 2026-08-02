@@ -1,5 +1,5 @@
 {
-  "name": "@grenmet/email-templates",
+  "name": "@barrelsgd/email-templates",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -24,7 +24,7 @@
     "@react-email/render": "^2.0.8"
   },
   "devDependencies": {
-    "@grenmet/tsconfig": "workspace:*",
+    "@barrelsgd/tsconfig": "workspace:*",
     "react": "catalog:",
     "@types/react": "catalog:",
     "typescript": "catalog:"

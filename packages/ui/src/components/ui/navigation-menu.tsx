@@ -1,5 +1,5 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
-import { cn } from "@grenmet/ui/lib/utils";
 import { cva } from "class-variance-authority";
 import { ChevronDownIcon } from "lucide-react";
 
