@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory records durable architecture decisions for GrenMet. ADRs should describe choices that affect code structure, deployment, data ownership, security, or operational behavior.
+This directory records durable architecture decisions for Barrels Grenada. ADRs should describe choices that affect code structure, deployment, data ownership, security, or operational behavior.
 
 ## Index
 
