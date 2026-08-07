@@ -47,11 +47,11 @@
     "check:drift": "node scripts/api/check-api-drift.mjs"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15",
+    "@biomejs/biome": "^2.5.7",
     "husky": "catalog:",
     "lint-staged": "catalog:",
-    "turbo": "^2.9.14",
-    "ultracite": "^7.6.0"
+    "turbo": "^2.10.8",
+    "ultracite": "^7.10.0"
   },
   "pnpm": {
     "allowedDeprecatedVersions": {
