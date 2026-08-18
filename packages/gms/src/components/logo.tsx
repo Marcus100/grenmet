@@ -1,12 +1,12 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Image, { type StaticImageData } from "next/image";
-import iconColor from "../../assets/logo/logo-icon-color.png";
-import primaryWhite from "../../assets/logo/logo-primary-all-white.png";
-import primaryNavy from "../../assets/logo/logo-primary-navy.png";
-import submarkNavyBlue from "../../assets/logo/logo-submark-navy-blue.png";
-import submarkWhite from "../../assets/logo/logo-submark-white.png";
-import wordmarkNavy from "../../assets/logo/logo-wordmark-navy.png";
-import wordmarkWhite from "../../assets/logo/logo-wordmark-white.png";
+import iconColor from "../assets/logo/logo-icon-color.png";
+import primaryWhite from "../assets/logo/logo-primary-all-white.png";
+import primaryNavy from "../assets/logo/logo-primary-navy.png";
+import submarkNavyBlue from "../assets/logo/logo-submark-navy-blue.png";
+import submarkWhite from "../assets/logo/logo-submark-white.png";
+import wordmarkNavy from "../assets/logo/logo-wordmark-navy.png";
+import wordmarkWhite from "../assets/logo/logo-wordmark-white.png";
 
 export type LogoVariant = "primary" | "submark" | "wordmark" | "icon";
 
