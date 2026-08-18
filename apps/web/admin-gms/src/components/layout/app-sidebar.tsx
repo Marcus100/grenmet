@@ -1,7 +1,7 @@
 "use client";
 
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { usePreferencesStore } from "@barrelsgd/theme/components/preferences-provider";
-import { Logo } from "@barrelsgd/ui/components/ui/logo";
 import {
   Sidebar,
   SidebarContent,

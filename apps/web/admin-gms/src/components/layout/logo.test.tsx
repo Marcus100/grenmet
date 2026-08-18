@@ -1,4 +1,4 @@
-import { Logo } from "@barrelsgd/ui/components/ui/logo";
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 

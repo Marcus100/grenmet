@@ -33,6 +33,7 @@
     "@fullcalendar/react": "catalog:",
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/theme": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@hookform/resolvers": "catalog:",

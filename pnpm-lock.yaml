@@ -255,6 +255,9 @@ importers:
       '@barrelsgd/auth':
         specifier: workspace:*
         version: link:../../../packages/auth
+      '@barrelsgd/gms':
+        specifier: workspace:*
+        version: link:../../../packages/gms
       '@barrelsgd/theme':
         specifier: workspace:*
         version: link:../../../packages/theme
@@ -1011,6 +1014,37 @@ importers:
       react:
         specifier: 'catalog:'
         version: 19.2.3
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/gms:
+    dependencies:
+      '@barrelsgd/ui':
+        specifier: workspace:*
+        version: link:../ui
+      class-variance-authority:
+        specifier: 'catalog:'
+        version: 0.7.1
+    devDependencies:
+      '@barrelsgd/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.9
+      '@types/react-dom':
+        specifier: 'catalog:'
+        version: 19.2.3(@types/react@19.2.9)
+      next:
+        specifier: 'catalog:'
+        version: 16.1.1(@babel/core@7.28.6)(@opentelemetry/api@1.9.1)(@playwright/test@1.58.2)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react:
+        specifier: 'catalog:'
+        version: 19.2.3
+      react-dom:
+        specifier: 'catalog:'
+        version: 19.2.3(react@19.2.3)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3
