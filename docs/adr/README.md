@@ -11,7 +11,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0003](0003-domain-databases.md) | Keep separate domain databases on shared PostgreSQL |
 | [0004](0004-generated-api-client.md) | Generate the TypeScript API client from FastAPI OpenAPI |
 | [0005](0005-compose-traefik-deployment.md) | Deploy with Docker Compose and Traefik on dedicated droplets |
-| [0006](0006-design-system-governance.md) | Govern shared UI through GrenMet design-system tokens and packages |
+| [0006](0006-design-system-governance.md) | Govern shared UI through Barrels design-system tokens and packages |
 | [0007](0007-cap-warning-lifecycle.md) | Model warning operations with a CAP-aware lifecycle |
 | [0008](0008-hr-approval-workflow.md) | Route HR forms through a named-approver approval workflow |
 | [0009](0009-gaa-staff-platform.md) | Build a GAA-wide staff platform, piloted in Meteorology |

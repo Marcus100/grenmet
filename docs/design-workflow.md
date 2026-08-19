@@ -80,7 +80,7 @@ Include tests alongside any new component or significant logic — part of the t
 Pick where to build based on the app's design-system lane (full table in [Design System → App Roles](./design-system.md#app-roles)):
 
 - **`gms`** — public web **reference app**. Prototype and validate new public-facing patterns here first; it is the lowest-drift baseline.
-- **`gaa-admin`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to GrenMet tokens. Charts use `var(--gm-*)` directly.
+- **`gaa-admin`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to design-system tokens. Charts use `var(--gm-*)` directly.
 - **`wxproducts`, `hr`** — **document / print** lane. Use `font-gm-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@barrelsgd/ui` primitives.
 - Other apps follow the [migration order](./design-system.md#migration-order), guided by audit output.
 

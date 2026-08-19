@@ -6,7 +6,7 @@
 
 ## Goal
 
-Migrate the GrenMet v1 design system from legacy per-app styles into
+Migrate the Barrels design system v1 from legacy per-app styles into
 `@barrelsgd/ui` and apply it consistently across `gaa-admin` first, then
 roll out to remaining apps.
 

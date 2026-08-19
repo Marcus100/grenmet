@@ -152,7 +152,7 @@ If the primary digital platform is unavailable, GMS must continue to disseminate
 
 | Primary channel | Backup channel | Who activates |
 |---|---|---|
-| Website (spicewx) | GMS social media pages (Facebook, Instagram) | Duty Forecaster |
+| Website (gms) | GMS social media pages (Facebook, Instagram) | Duty Forecaster |
 | CAP feed / API | Email distribution list to NDEMA, GAA, media | Duty Forecaster |
 | Website warning banner | WhatsApp broadcast to agency contacts | Duty Forecaster |
 | Digital aviation products | Phone / AFTN backup to ATC and GAA | Aviation MET Lead |

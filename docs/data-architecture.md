@@ -1,6 +1,6 @@
 # Data Architecture
 
-GrenMet currently uses a modular-monolith data model: several applications share one deployed PostgreSQL server, but each domain owns its database or schema boundary.
+Barrels Grenada currently uses a modular-monolith data model: several applications share one deployed PostgreSQL server, but each domain owns its database or schema boundary.
 
 ## Database Ownership
 
