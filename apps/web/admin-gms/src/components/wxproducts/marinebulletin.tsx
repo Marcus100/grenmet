@@ -91,7 +91,7 @@ export default function MarineBulletin({
   const warningLevelTone = warningToneFor(warningLevel);
 
   return (
-    <div className="rounded-gm-8 bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-900/5">
+    <div className="rounded-lg bg-white p-8 font-document shadow-sm ring-1 ring-zinc-900/5">
       {/* Header Section */}
       <div className="mb-8">
         <div className="mb-4 flex items-start justify-between">
@@ -119,7 +119,7 @@ export default function MarineBulletin({
       {/* Warning Level and Synopsis Section */}
       <div className="mb-6 flex gap-4">
         <div
-          className={`flex h-20 w-24 shrink-0 items-center justify-center rounded-gm-8 border ${warningLevelTone}`}
+          className={`flex h-20 w-24 shrink-0 items-center justify-center rounded-lg border ${warningLevelTone}`}
         >
           <span className="font-bold text-lg uppercase tracking-tight">
             {warningLevel}
@@ -168,7 +168,7 @@ export default function MarineBulletin({
             LIKELIHOOD
           </span>
           <span
-            className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${likelihoodTone}`}
+            className={`rounded-full border px-2.5 py-0.5 font-bold text-xs ${likelihoodTone}`}
           >
             {likelihood}
           </span>
@@ -211,7 +211,7 @@ export default function MarineBulletin({
               IMPACT
             </span>
             <span
-              className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${impactTone}`}
+              className={`rounded-full border px-2.5 py-0.5 font-bold text-xs ${impactTone}`}
             >
               {impact}
             </span>
@@ -228,7 +228,7 @@ export default function MarineBulletin({
               RESPONSE
             </span>
             <span
-              className={`rounded-gm-full border px-2.5 py-0.5 font-bold text-xs ${responseTone}`}
+              className={`rounded-full border px-2.5 py-0.5 font-bold text-xs ${responseTone}`}
             >
               {response}
             </span>

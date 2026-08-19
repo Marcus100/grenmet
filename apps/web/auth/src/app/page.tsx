@@ -96,12 +96,12 @@ async function loadFullProfile(
 
 function MarketingPanel() {
   return (
-    <section className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-gm-card backdrop-blur md:p-10">
+    <section className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-card backdrop-blur md:p-10">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium font-mono text-(--muted) text-label uppercase tracking-widest">
           Grenmet Shared Auth
         </span>
-        <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-gm-body-sm">
+        <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-body-sm">
           FastAPI session-backed
         </span>
       </div>
@@ -110,7 +110,7 @@ function MarketingPanel() {
         <h1 className="max-w-xl font-semibold text-4xl text-foreground tracking-normal md:text-6xl">
           One login surface for every Grenmet web app.
         </h1>
-        <p className="max-w-xl text-(--muted) text-gm-body leading-7 md:text-gm-body-base">
+        <p className="max-w-xl text-(--muted) text-body leading-7 md:text-body-base">
           The browser only keeps an opaque session secret in an HttpOnly cookie.
           FastAPI stays authoritative for sign-in, token exchange, rotation, and
           logout.
@@ -118,8 +118,8 @@ function MarketingPanel() {
       </div>
 
       <div className="mt-10 grid gap-4 md:grid-cols-3">
-        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="rounded-lg border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-label uppercase tracking-widest">
             Cookie Model
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -127,8 +127,8 @@ function MarketingPanel() {
             JWT.
           </p>
         </div>
-        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="rounded-lg border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-label uppercase tracking-widest">
             Authority
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -136,8 +136,8 @@ function MarketingPanel() {
             tokens on demand.
           </p>
         </div>
-        <div className="rounded-gm-8 border border-(--line) bg-(--panel-strong) p-4">
-          <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="rounded-lg border border-(--line) bg-(--panel-strong) p-4">
+          <div className="font-mono text-(--muted) text-label uppercase tracking-widest">
             Flow
           </div>
           <p className="mt-2 text-foreground text-sm leading-6">
@@ -160,7 +160,7 @@ function ProfileField({
   if (!value) return null;
   return (
     <div className="flex flex-col gap-1 border-(--line) border-b py-3 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-      <dt className="shrink-0 font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+      <dt className="shrink-0 font-mono text-(--muted) text-label uppercase tracking-widest">
         {label}
       </dt>
       <dd className="text-foreground text-sm sm:text-right">{value}</dd>
@@ -180,7 +180,7 @@ function ProfileView({
 
   return (
     <section className="mx-auto w-full max-w-3xl space-y-6">
-      <div className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-gm-card backdrop-blur md:p-10">
+      <div className="rounded-4xl border border-(--line) bg-(--panel) p-8 shadow-card backdrop-blur md:p-10">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-(--auth-accent) font-semibold text-2xl text-white">
             {getInitials(displayName, user.email)}
@@ -194,14 +194,14 @@ function ProfileView({
               {profile?.username ? ` · @${profile.username}` : ""}
             </p>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-gm-body-sm">
+              <span className="rounded-full bg-(--auth-accent-soft) px-3 py-1 font-medium text-(--auth-accent-strong) text-body-sm">
                 {user.is_active ? "Active" : "Inactive"}
               </span>
-              <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium text-(--muted) text-gm-body-sm">
+              <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium text-(--muted) text-body-sm">
                 {user.is_superuser ? "Administrator" : "Staff"}
               </span>
               {session.app_name ? (
-                <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium text-(--muted) text-gm-body-sm">
+                <span className="rounded-full border border-(--line) bg-white/70 px-3 py-1 font-medium text-(--muted) text-body-sm">
                   Signed in via {session.app_name}
                 </span>
               ) : null}
@@ -211,8 +211,8 @@ function ProfileView({
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
-        <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-gm-card md:p-7">
-          <h2 className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-card md:p-7">
+          <h2 className="font-mono text-(--muted) text-label uppercase tracking-widest">
             Profile
           </h2>
           <dl className="mt-3">
@@ -229,8 +229,8 @@ function ProfileView({
           </dl>
         </div>
 
-        <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-gm-card md:p-7">
-          <h2 className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-card md:p-7">
+          <h2 className="font-mono text-(--muted) text-label uppercase tracking-widest">
             Session
           </h2>
           <dl className="mt-3">
@@ -250,7 +250,7 @@ function ProfileView({
         </div>
       </div>
 
-      <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-gm-card md:p-7">
+      <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-card md:p-7">
         <div className="grid gap-3 sm:grid-cols-3">
           <form action={refreshSessionAction}>
             <button
@@ -296,7 +296,7 @@ function SignedOutPanel({
   return (
     <div className="space-y-6">
       <div className="space-y-3">
-        <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+        <div className="font-mono text-(--muted) text-label uppercase tracking-widest">
           {requestedApp ? `Sign in for ${requestedApp}` : "Sign in"}
         </div>
         <h2 className="font-semibold text-3xl text-foreground tracking-normal">
@@ -310,14 +310,14 @@ function SignedOutPanel({
       </div>
 
       {pageError ? (
-        <div className="rounded-gm-8 border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
+        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
           {pageError}
         </div>
       ) : null}
 
       <SignInForm appName={requestedApp} returnTo={returnTo} />
 
-      <p className="text-(--muted) text-gm-body-sm leading-6">
+      <p className="text-(--muted) text-body-sm leading-6">
         Allowed absolute return destinations are controlled by the
         AUTH_ALLOWED_RETURN_HOSTS env var. Relative paths are always allowed.
       </p>
@@ -356,7 +356,7 @@ export default async function Home({ searchParams }: PageProps) {
       <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
         <MarketingPanel />
 
-        <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-gm-card md:p-8">
+        <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-card md:p-8">
           <SignedOutPanel
             pageError={pageError}
             requestedApp={requestedApp}

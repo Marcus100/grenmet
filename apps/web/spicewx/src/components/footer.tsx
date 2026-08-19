@@ -21,31 +21,31 @@ const SOCIAL = [
     label: "X / Twitter",
     abbr: "X",
     href: "https://x.com",
-    size: "text-gm-body",
+    size: "text-body",
   },
   {
     label: "Facebook",
     abbr: "f",
     href: "https://facebook.com",
-    size: "text-gm-heading-sm",
+    size: "text-heading-sm",
   },
   {
     label: "Instagram",
     abbr: "ig",
     href: "https://instagram.com",
-    size: "text-gm-caption",
+    size: "text-caption",
   },
   {
     label: "YouTube",
     abbr: "yt",
     href: "https://youtube.com",
-    size: "text-gm-caption",
+    size: "text-caption",
   },
   {
     label: "LinkedIn",
     abbr: "in",
     href: "https://linkedin.com",
-    size: "text-gm-body-sm",
+    size: "text-body-sm",
   },
 ];
 
@@ -64,15 +64,15 @@ export function Footer() {
       {DIVIDER}
 
       {/* Links */}
-      <div className="flex flex-col gap-gm-4 px-gm-24 py-gm-8">
+      <div className="flex flex-col gap-1 px-6 py-2">
         {LINK_ROWS.map((row) => (
           <div
-            className="flex gap-gm-16 py-1.5"
+            className="flex gap-4 py-1.5"
             key={row.map((l) => l.label).join()}
           >
             {row.map((link) => (
               <a
-                className="flex-1 text-gm-heading-sm text-gm-text-primary underline"
+                className="flex-1 text-gm-text-primary text-heading-sm underline"
                 href={link.href}
                 key={link.label}
               >
@@ -86,11 +86,11 @@ export function Footer() {
       {DIVIDER}
 
       {/* Social */}
-      <div className="flex gap-gm-12 px-gm-24 py-gm-28">
+      <div className="flex gap-3 px-6 py-7">
         {SOCIAL.map((s) => (
           <a
             aria-label={s.label}
-            className={`flex size-gm-44 items-center justify-center rounded-full bg-gm-navy font-semibold text-gm-text-inverse ${s.size}`}
+            className={`flex size-11 items-center justify-center rounded-full bg-gm-navy font-semibold text-gm-text-inverse ${s.size}`}
             href={s.href}
             key={s.label}
             rel="noopener noreferrer"
@@ -104,17 +104,17 @@ export function Footer() {
       {DIVIDER}
 
       {/* Institutional lockup */}
-      <div className="flex flex-col gap-2.5 px-gm-24 py-gm-28">
+      <div className="flex flex-col gap-2.5 px-6 py-7">
         <Image
           alt="Grenada Meteorological Service"
           height={43}
           src="/gmslogos/logo-primary-navy.png"
           width={180}
         />
-        <p className="font-semibold text-gm-body-sm text-gm-text-primary">
+        <p className="font-semibold text-body-sm text-gm-text-primary">
           Grenada Airports Authority
         </p>
-        <p className="text-gm-caption text-gm-text-muted">
+        <p className="text-caption text-gm-text-muted">
           Grenada Meteorological Service
         </p>
       </div>
@@ -122,10 +122,10 @@ export function Footer() {
       {DIVIDER}
 
       {/* Legal links */}
-      <div className="flex gap-gm-20 px-gm-24 py-gm-20">
+      <div className="flex gap-5 px-6 py-5">
         {LEGAL_LINKS.map((link) => (
           <a
-            className="shrink-0 text-gm-caption text-gm-text-muted underline"
+            className="shrink-0 text-caption text-gm-text-muted underline"
             href={link.href}
             key={link.label}
           >
@@ -137,8 +137,8 @@ export function Footer() {
       {DIVIDER}
 
       {/* Copyright */}
-      <div className="px-gm-24 pt-gm-20 pb-gm-28">
-        <p className="text-gm-label text-gm-text-muted">
+      <div className="px-6 pt-5 pb-7">
+        <p className="text-gm-text-muted text-label">
           Copyright &copy; Grenada Airports Authority {new Date().getFullYear()}
           , Grenada Meteorological Service
         </p>

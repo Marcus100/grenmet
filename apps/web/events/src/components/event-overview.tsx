@@ -146,7 +146,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
     <a
       aria-current={item.active ? "page" : undefined}
       aria-disabled={item.active ? undefined : true}
-      className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-gm-body transition-colors ${
+      className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-body transition-colors ${
         item.active
           ? "bg-background text-foreground"
           : "pointer-events-none text-primary-foreground/60"
@@ -160,7 +160,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
       {item.badge ? (
         <span
           aria-hidden="true"
-          className="flex size-5 items-center justify-center rounded-full bg-warning text-gm-caption text-warning-foreground"
+          className="flex size-5 items-center justify-center rounded-full bg-warning text-caption text-warning-foreground"
         >
           {item.badge}
         </span>
@@ -177,8 +177,8 @@ function Sidebar() {
           <Ticket className="size-5" />
         </div>
         <div>
-          <p className="font-semibold text-gm-body-base">Barrels</p>
-          <p className="text-gm-caption text-primary-foreground/70">Events</p>
+          <p className="font-semibold text-body-base">Barrels</p>
+          <p className="text-caption text-primary-foreground/70">Events</p>
         </div>
       </div>
 
@@ -196,12 +196,10 @@ function Sidebar() {
             <CalendarDays className="size-4" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-gm-caption text-primary-foreground/65">
+            <span className="block truncate text-caption text-primary-foreground/65">
               Demo event
             </span>
-            <span className="block truncate text-gm-body">
-              Feel Free: Sunset
-            </span>
+            <span className="block truncate text-body">Feel Free: Sunset</span>
           </span>
           <ChevronDown className="size-4 text-primary-foreground/65" />
         </Button>
@@ -216,7 +214,7 @@ function Sidebar() {
       <div className="space-y-1 border-primary-foreground/10 border-t p-3">
         <a
           aria-disabled="true"
-          className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-gm-body text-primary-foreground/60"
+          className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-body text-primary-foreground/60"
           href="/"
           tabIndex={-1}
           title="Available in a later step"
@@ -225,12 +223,12 @@ function Sidebar() {
           Support
         </a>
         <div className="flex items-center gap-3 px-3 py-3">
-          <div className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 font-semibold text-gm-caption">
+          <div className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 font-semibold text-caption">
             EG
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-gm-body">Eugine G.</p>
-            <p className="truncate text-gm-caption text-primary-foreground/60">
+            <p className="truncate text-body">Eugine G.</p>
+            <p className="truncate text-caption text-primary-foreground/60">
               Owner
             </p>
           </div>
@@ -250,8 +248,8 @@ function MobileHeader() {
             <Ticket className="size-4" />
           </div>
           <div>
-            <p className="font-semibold text-gm-body-base">Barrels Events</p>
-            <p className="text-gm-caption text-muted-foreground">
+            <p className="font-semibold text-body-base">Barrels Events</p>
+            <p className="text-caption text-muted-foreground">
               Feel Free: Sunset
             </p>
           </div>
@@ -274,7 +272,7 @@ function MobileHeader() {
           <a
             aria-current={item.active ? "page" : undefined}
             aria-disabled={item.active ? undefined : true}
-            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 text-gm-caption ${
+            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 text-caption ${
               item.active
                 ? "bg-primary text-primary-foreground"
                 : "pointer-events-none bg-muted text-muted-foreground opacity-60"
@@ -308,12 +306,10 @@ function MetricCard({
             <Icon className="size-4" />
           </span>
         </CardAction>
-        <CardTitle className="text-gm-heading-md tabular-nums">
-          {value}
-        </CardTitle>
+        <CardTitle className="text-heading-md tabular-nums">{value}</CardTitle>
       </CardHeader>
       <CardContent>
-        <p className="flex items-center gap-1.5 text-gm-caption text-muted-foreground">
+        <p className="flex items-center gap-1.5 text-caption text-muted-foreground">
           {label === "Gross sales" ? (
             <TrendingUp className="size-3.5 text-success-foreground" />
           ) : null}
@@ -350,8 +346,8 @@ function EventReadiness() {
               <Check className="size-4" />
             </span>
             <div>
-              <p className="font-medium text-gm-body">Event and inventory</p>
-              <p className="mt-1 text-gm-caption text-muted-foreground">
+              <p className="font-medium text-body">Event and inventory</p>
+              <p className="mt-1 text-caption text-muted-foreground">
                 Published with three ticket types and a recorded capacity.
               </p>
             </div>
@@ -361,8 +357,8 @@ function EventReadiness() {
               <Check className="size-4" />
             </span>
             <div>
-              <p className="font-medium text-gm-body">Guest journey</p>
-              <p className="mt-1 text-gm-caption text-muted-foreground">
+              <p className="font-medium text-body">Guest journey</p>
+              <p className="mt-1 text-caption text-muted-foreground">
                 Checkout, confirmation and admission credential tested.
               </p>
             </div>
@@ -372,8 +368,8 @@ function EventReadiness() {
               <WifiOff className="size-4" />
             </span>
             <div>
-              <p className="font-medium text-gm-body">Door operation</p>
-              <p className="mt-1 text-gm-caption text-muted-foreground">
+              <p className="font-medium text-body">Door operation</p>
+              <p className="mt-1 text-caption text-muted-foreground">
                 Offline device rehearsal and fallback roster still required.
               </p>
             </div>
@@ -383,8 +379,8 @@ function EventReadiness() {
               <Landmark className="size-4" />
             </span>
             <div>
-              <p className="font-medium text-gm-body">Settlement</p>
-              <p className="mt-1 text-gm-caption text-muted-foreground">
+              <p className="font-medium text-body">Settlement</p>
+              <p className="mt-1 text-caption text-muted-foreground">
                 Payout account and organiser acceptance contact are incomplete.
               </p>
             </div>
@@ -416,12 +412,12 @@ function NextActions() {
               tabIndex={-1}
               title="Available in a later step"
             >
-              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary font-semibold text-gm-caption">
+              <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary font-semibold text-caption">
                 {index + 1}
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-gm-body">{item.title}</span>
+                  <span className="font-medium text-body">{item.title}</span>
                   <Badge
                     variant={
                       item.status === "Required"
@@ -432,7 +428,7 @@ function NextActions() {
                     {item.status}
                   </Badge>
                 </span>
-                <span className="mt-1 block text-gm-caption text-muted-foreground">
+                <span className="mt-1 block text-caption text-muted-foreground">
                   {item.detail}
                 </span>
               </span>
@@ -522,12 +518,12 @@ function SettlementPreview() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-gm-heading-lg tabular-nums">$16,884.20</p>
-          <p className="mt-1 text-gm-caption text-muted-foreground">
+          <p className="text-heading-lg tabular-nums">$16,884.20</p>
+          <p className="mt-1 text-caption text-muted-foreground">
             Across recorded sales and deductions
           </p>
         </div>
-        <div className="space-y-2 text-gm-body">
+        <div className="space-y-2 text-body">
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground">Gross sales</span>
             <span className="tabular-nums">$18,420.00</span>
@@ -571,14 +567,14 @@ function OverviewHeader() {
                 <span className="size-1.5 rounded-full bg-current" />
                 On sale
               </Badge>
-              <span className="text-gm-caption text-muted-foreground">
+              <span className="text-caption text-muted-foreground">
                 Demo event
               </span>
             </div>
-            <h1 className="mt-2 font-semibold text-gm-heading-md tracking-tight">
+            <h1 className="mt-2 font-semibold text-heading-md tracking-tight">
               Feel Free: Sunset
             </h1>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-gm-body text-muted-foreground">
+            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-body text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-4" />
                 Saturday, 15 August · 4:00 PM
@@ -646,12 +642,12 @@ export function EventOverview() {
               </span>
               <div>
                 <h2
-                  className="font-semibold text-gm-body-base"
+                  className="font-semibold text-body-base"
                   id="event-status-heading"
                 >
                   Sales are healthy. Operations need attention.
                 </h2>
-                <p className="mt-1 text-gm-body text-muted-foreground">
+                <p className="mt-1 text-body text-muted-foreground">
                   The event is 17 days away. Complete the door rehearsal and
                   payout setup before expanding promotion.
                 </p>
@@ -702,8 +698,8 @@ export function EventOverview() {
                 <Clock3 className="size-4" />
               </span>
               <div>
-                <p className="font-medium text-gm-body">Last payment</p>
-                <p className="text-gm-caption text-muted-foreground">
+                <p className="font-medium text-body">Last payment</p>
+                <p className="text-caption text-muted-foreground">
                   12 minutes ago · Online
                 </p>
               </div>
@@ -713,8 +709,8 @@ export function EventOverview() {
                 <TriangleAlert className="size-4" />
               </span>
               <div>
-                <p className="font-medium text-gm-body">2 open exceptions</p>
-                <p className="text-gm-caption text-muted-foreground">
+                <p className="font-medium text-body">2 open exceptions</p>
+                <p className="text-caption text-muted-foreground">
                   Agent count and payout setup
                 </p>
               </div>
@@ -724,8 +720,8 @@ export function EventOverview() {
                 <ShieldCheck className="size-4" />
               </span>
               <div>
-                <p className="font-medium text-gm-body">Audit record current</p>
-                <p className="text-gm-caption text-muted-foreground">
+                <p className="font-medium text-body">Audit record current</p>
+                <p className="text-caption text-muted-foreground">
                   516 orders · 742 tickets
                 </p>
               </div>

@@ -75,7 +75,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label className="text-gm-label text-gm-text-primary uppercase leading-gm-label">
+      <Label className="text-gm-text-primary text-label uppercase leading-label">
         {label}
         {required && <span className="ml-0.5 text-gm-risk-red">*</span>}
       </Label>
@@ -86,7 +86,7 @@ function Field({
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+    <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
       {children}
     </h2>
   );
@@ -175,13 +175,13 @@ export default function NewAlertPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <Link
-            className="inline-flex items-center gap-1.5 text-gm-body-sm text-gm-navy leading-gm-body-sm hover:underline"
+            className="inline-flex items-center gap-1.5 text-body-sm text-navy leading-body-sm hover:underline"
             href="/cap"
           >
             <ArrowLeft aria-hidden="true" className="size-3.5" />
             Alert Dashboard
           </Link>
-          <h1 className="mt-2 text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+          <h1 className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
             New Alert
           </h1>
         </div>
@@ -198,7 +198,7 @@ export default function NewAlertPage() {
 
       {error ? (
         <div
-          className="mt-4 border border-gm-risk-red/40 bg-gm-risk-red/[0.06] px-4 py-3 text-gm-body-sm text-gm-risk-red leading-gm-body-sm"
+          className="mt-4 border border-gm-risk-red/40 bg-gm-risk-red/[0.06] px-4 py-3 text-body-sm text-gm-risk-red leading-body-sm"
           role="alert"
         >
           {error}
@@ -210,7 +210,7 @@ export default function NewAlertPage() {
         {/* Main column */}
         <div className="space-y-8">
           {/* Message block */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-gm-card">
+          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
             <SectionHeading>Message</SectionHeading>
 
             <Field label="Headline" required>
@@ -285,7 +285,7 @@ export default function NewAlertPage() {
           </section>
 
           {/* Classification */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-gm-card">
+          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
             <SectionHeading>Classification</SectionHeading>
 
             <div className="grid gap-4 sm:grid-cols-3">
@@ -354,7 +354,7 @@ export default function NewAlertPage() {
           </section>
 
           {/* Description */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-gm-card">
+          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
             <SectionHeading>Description</SectionHeading>
 
             <Field label="Description" required>
@@ -385,7 +385,7 @@ export default function NewAlertPage() {
           </section>
 
           {/* Areas */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-gm-card">
+          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
             <div className="flex items-center justify-between">
               <SectionHeading>Affected areas</SectionHeading>
               <Button
@@ -428,8 +428,8 @@ export default function NewAlertPage() {
 
         {/* Sidebar — timing & sender */}
         <div className="space-y-4">
-          <div className="border border-gm-border bg-white p-4 shadow-gm-card">
-            <p className="mb-4 text-gm-label text-gm-text-muted uppercase leading-gm-label">
+          <div className="border border-gm-border bg-white p-4 shadow-card">
+            <p className="mb-4 text-gm-text-muted text-label uppercase leading-label">
               Timing
             </p>
             <div className="space-y-4">
@@ -457,8 +457,8 @@ export default function NewAlertPage() {
             </div>
           </div>
 
-          <div className="border border-gm-border bg-white p-4 shadow-gm-card">
-            <p className="mb-4 text-gm-label text-gm-text-muted uppercase leading-gm-label">
+          <div className="border border-gm-border bg-white p-4 shadow-card">
+            <p className="mb-4 text-gm-text-muted text-label uppercase leading-label">
               Sender
             </p>
             <div className="space-y-4">

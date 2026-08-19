@@ -12,7 +12,7 @@ export default function WeatherLayout({
   return (
     // Responsive container — intentional layout exception, not a spacing token
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <h1 className="mb-gm-16 pt-gm-24 font-bold text-gm-heading-md text-gm-navy">
+      <h1 className="mb-4 pt-6 font-bold text-heading-md text-navy">
         Your spice weather
       </h1>
 

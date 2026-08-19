@@ -37,7 +37,7 @@ const posts = [
 function NewsCard({ post }: { post: (typeof posts)[number] }) {
   return (
     <a
-      className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-gm-card"
+      className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-card"
       href={post.href}
     >
       <div className="relative h-[254px] w-full shrink-0 overflow-clip bg-gm-surface">
@@ -49,14 +49,12 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
           src={post.imageUrl}
         />
       </div>
-      <div className="flex flex-col gap-gm-8 p-gm-16">
-        <p className="font-bold text-base text-gm-navy leading-6">
-          {post.title}
-        </p>
-        <p className="text-gm-body-sm text-gm-text-secondary leading-gm-body-sm">
+      <div className="flex flex-col gap-2 p-4">
+        <p className="font-bold text-base text-navy leading-6">{post.title}</p>
+        <p className="text-body-sm text-gm-text-secondary leading-body-sm">
           {post.summary}
         </p>
-        <p className="text-gm-blue text-gm-label leading-gm-label">
+        <p className="text-gm-blue text-label leading-label">
           Published {post.published}
         </p>
       </div>
@@ -66,20 +64,20 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
 
 export function News() {
   return (
-    <section className="mb-4 flex flex-col gap-gm-16">
-      <div className="flex h-gm-28 items-center justify-between">
-        <p className="font-bold text-gm-heading-sm text-gm-navy leading-gm-heading-sm">
+    <section className="mb-4 flex flex-col gap-4">
+      <div className="flex h-7 items-center justify-between">
+        <p className="font-bold text-heading-sm text-navy leading-heading-sm">
           Weather news
         </p>
         <a
-          className="font-medium text-gm-blue text-gm-body leading-gm-body"
+          className="font-medium text-body text-gm-blue leading-body"
           href="/news"
         >
           See more
         </a>
       </div>
 
-      <div className="flex flex-col gap-gm-16 lg:grid lg:grid-cols-3">
+      <div className="flex flex-col gap-4 lg:grid lg:grid-cols-3">
         {posts.map((post) => (
           <NewsCard key={post.id} post={post} />
         ))}

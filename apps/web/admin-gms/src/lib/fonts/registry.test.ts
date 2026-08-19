@@ -45,6 +45,6 @@ describe("font registry ↔ globals.css data-font rules", () => {
   it("keeps the brand default and the print-document font registered", () => {
     const keys = registryKeys();
     expect(keys).toContain("inter"); // UI default
-    expect(keys).toContain("notoSans"); // backs --gm-font-document
+    expect(keys).toContain("notoSans"); // backs --font-document
   });
 });

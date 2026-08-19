@@ -30,24 +30,24 @@ export function AlertList({
         const info = primaryInfo(alert);
         return (
           <article
-            className="border border-gm-border bg-white p-4 shadow-gm-card"
+            className="border border-gm-border bg-white p-4 shadow-card"
             key={alert.id}
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {info ? <SeverityBadge severity={info.severity} /> : null}
-                  <span className="text-gm-body-sm text-gm-text-muted leading-gm-body-sm">
+                  <span className="text-body-sm text-gm-text-muted leading-body-sm">
                     {alert.lifecycle_state}
                   </span>
-                  <span className="text-gm-body-sm text-gm-text-muted leading-gm-body-sm">
+                  <span className="text-body-sm text-gm-text-muted leading-body-sm">
                     {formatDateTime(alert.sent)}
                   </span>
                 </div>
-                <h2 className="text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+                <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
                   {info?.headline ?? alert.identifier}
                 </h2>
-                <p className="line-clamp-2 text-gm-body text-gm-text-secondary leading-gm-body">
+                <p className="line-clamp-2 text-body text-gm-text-secondary leading-body">
                   {info?.description ?? alert.note ?? "CAP alert"}
                 </p>
               </div>

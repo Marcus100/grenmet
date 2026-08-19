@@ -18,21 +18,21 @@ export function WeatherDateNav() {
         return (
           <Link
             className={cn(
-              "flex flex-1 flex-col items-center justify-center gap-gm-4 text-center",
+              "flex flex-1 flex-col items-center justify-center gap-1 text-center",
               isActive
-                ? "border-2 border-gm-navy bg-background px-[1.5px] py-[7.5px] text-gm-navy"
+                ? "border-2 border-gm-navy bg-background px-[1.5px] py-[7.5px] text-navy"
                 : "bg-gm-surface py-1.5 text-gm-text-muted"
             )}
             href={href}
             key={day.slug}
           >
-            <span className="text-gm-micro leading-gm-micro">
+            <span className="text-micro leading-micro">
               {day.isToday ? "12:00 PM" : day.dayName}
             </span>
-            <span className="font-bold text-gm-heading-lg leading-gm-heading-lg">
+            <span className="font-bold text-heading-lg leading-heading-lg">
               {day.date}
             </span>
-            <span className="text-gm-body-sm uppercase leading-[14px]">
+            <span className="text-body-sm uppercase leading-[14px]">
               {day.month}
             </span>
           </Link>

@@ -105,7 +105,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
-      <div className="flex h-gm-header shrink-0 items-center justify-between border-gm-border border-b pr-gm-20 pl-gm-24">
+      <div className="flex h-header shrink-0 items-center justify-between border-gm-border border-b pr-5 pl-6">
         <Image
           alt="Grenada Meteorological Service"
           height={36}
@@ -115,38 +115,38 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
         />
         <button
           aria-label="Close navigation"
-          className="flex size-gm-44 items-center justify-center"
+          className="flex size-11 items-center justify-center"
           onClick={onClose}
           type="button"
         >
-          <XIcon className="size-gm-24 text-gm-text-primary" />
+          <XIcon className="size-6 text-gm-text-primary" />
         </button>
       </div>
 
       {/* Brand accent line */}
-      <div className="flex h-gm-4 w-full shrink-0">
+      <div className="flex h-1 w-full shrink-0">
         <div className="h-full flex-[55] bg-gm-blue" />
         <div className="h-full flex-[25] bg-gm-sky" />
         <div className="h-full flex-[20] bg-gm-sun" />
       </div>
 
       {/* Nav body */}
-      <nav className="flex-1 overflow-y-auto pb-gm-36">
+      <nav className="flex-1 overflow-y-auto pb-9">
         <Accordion.Root multiple>
           {NAV_SECTIONS.map((section, i) => (
             <Accordion.Item key={section.label} value={section.label}>
               <Accordion.Header className="flex">
                 <Accordion.Trigger
                   className={cn(
-                    "group flex h-gm-header w-full items-center justify-between pr-gm-20 pl-gm-24",
+                    "group flex h-header w-full items-center justify-between pr-5 pl-6",
                     i > 0 && "border-gm-border border-t"
                   )}
                 >
-                  <span className="font-normal text-gm-heading-md text-gm-text-primary leading-gm-heading-md group-data-[open]:font-semibold group-data-[open]:text-gm-navy">
+                  <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-[open]:font-semibold group-data-[open]:text-navy">
                     {section.label}
                   </span>
-                  <div className="flex size-gm-44 items-center justify-center">
-                    <ChevronDownIcon className="size-gm-24 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-gm-navy" />
+                  <div className="flex size-11 items-center justify-center">
+                    <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-navy" />
                   </div>
                 </Accordion.Trigger>
               </Accordion.Header>
@@ -161,7 +161,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                 >
                   {section.links.map((link) => (
                     <a
-                      className="flex h-gm-44 items-center pr-gm-20 pl-gm-40 text-gm-nav text-gm-text-primary leading-gm-nav hover:text-gm-navy"
+                      className="flex h-11 items-center pr-5 pl-10 text-gm-text-primary text-nav leading-nav hover:text-navy"
                       href={link.href}
                       key={link.name}
                       onClick={onClose}

@@ -4,7 +4,7 @@
 @source "../../node_modules/@barrelsgd/ui/src";
 
 body {
-  font-family: var(--gm-font-sans);
+  font-family: var(--brand-font-sans);
   color: var(--foreground);
   background: var(--background);
 }

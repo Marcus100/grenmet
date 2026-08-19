@@ -1,6 +1,6 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1-4, 5a and 5b complete
+**Status:** In progress — boundaries 1-5 complete
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
@@ -613,11 +613,22 @@ boundaries that an authorized human may commit separately:
      is brand-neutral for GMS, GAA, MBIA and Events alike. And
      `design-system:contrast` read its warning pairs from shared UI, so it had to
      follow them to the GMS package or CI would fail.
-   - [ ] **5c — drop the `gm` infix from the shared scales.** `text-gm-body` →
-     `text-body`, `rounded-gm-8` → `rounded-8`, and so on: roughly 400 call sites
-     across admin-gms, spicewx, auth, hurricaneplan and Events, plus the token
-     definitions in `@barrelsgd/ui`. Mechanical, but large enough to keep out of
-     5b so the palette move stays reviewable.
+   - [x] **5c — drop the `gm` infix from the shared scales.** Typography, the card
+     shadow, the header height and the document font were renamed
+     (`text-gm-body` → `text-body`). Spacing and radius were **not** renamed: their
+     values duplicated Tailwind's own scale exactly, so the utilities were folded
+     onto it (`px-gm-24` → `px-6`, `rounded-gm-8` → `rounded-lg`) and 17 tokens
+     deleted, including three that had no usages at all.
+
+     Renaming spacing was rejected on evidence: Tailwind v4 derives `p-4` from
+     `--spacing: 0.25rem`, so declaring `--spacing-4: 4px` would shadow the
+     computed scale and silently resize **2,430** existing utilities.
+
+     `@barrelsgd/ui` now carries no brand prefix anywhere. Two latent breakages
+     surfaced: Events and auth set `font-family: var(--gm-font-sans)` directly in
+     their own stylesheets, invisible to any search for `gm-` utility classes; and
+     the audit script matched on token names 5c deletes, so it would have begun
+     flagging correctly-tokenized code.
 6. [ ] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
    `@barrelsgd/web-gms`. Public site only. Its current 25 files are a foundation
    to build on, not a sketch to replace, so this is a rename rather than a
