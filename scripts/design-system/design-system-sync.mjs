@@ -17,7 +17,7 @@ const targetPaths = [
 ].map((path) => join(rootDir, path));
 
 const blockPattern =
-  /\/\* BEGIN GRENMET DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END GRENMET DESIGN SYSTEM V1 \*\//g;
+  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//g;
 const darkVariantPattern =
   /^\s*@custom-variant\s+dark\s+\([^;]+;\s*(?:\r?\n)?/gm;
 const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/im;
@@ -37,7 +37,7 @@ async function readFoundationBlock() {
 
   if (!match || match.length !== 1) {
     throw new Error(
-      `Expected exactly one GrenMet foundation block in ${relative(
+      `Expected exactly one design-system foundation block in ${relative(
         rootDir,
         foundationPath
       )}.`
@@ -114,17 +114,17 @@ function validateContent(text, block) {
   const matches = text.match(blockPattern) ?? [];
 
   if (matches.length !== 1) {
-    return `expected one generated GrenMet block, found ${matches.length}`;
+    return `expected one generated design-system block, found ${matches.length}`;
   }
 
   if (normalize(matches[0]) !== normalize(block)) {
-    return "generated GrenMet block is not in sync with @barrelsgd/ui";
+    return "generated design-system block is not in sync with @barrelsgd/ui";
   }
 
   const outsideGeneratedBlock = text.replace(blockPattern, "");
 
   if (gmDeclarationPattern.test(outsideGeneratedBlock)) {
-    return "declares --gm-* outside the generated GrenMet block";
+    return "declares --gm-* outside the generated design-system block";
   }
 
   return null;
@@ -160,11 +160,11 @@ async function run() {
 
   if (mode === "write") {
     if (changed.length === 0) {
-      console.log("GrenMet design-system blocks are already in sync.");
+      console.log("Barrels design-system blocks are already in sync.");
       return;
     }
 
-    console.log("Synced GrenMet design-system blocks:");
+    console.log("Synced Barrels design-system blocks:");
     for (const path of changed) {
       console.log(`- ${path}`);
     }
@@ -172,7 +172,7 @@ async function run() {
   }
 
   if (failures.length > 0) {
-    console.error("GrenMet design-system check failed:");
+    console.error("Barrels design-system check failed:");
     for (const failure of failures) {
       console.error(`- ${failure}`);
     }
@@ -180,7 +180,7 @@ async function run() {
     process.exit(1);
   }
 
-  console.log("GrenMet design-system blocks are in sync.");
+  console.log("Barrels design-system blocks are in sync.");
 }
 
 run().catch((error) => {

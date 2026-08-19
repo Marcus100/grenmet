@@ -33,7 +33,7 @@ const webApps = [
 ];
 
 const generatedBlockPattern =
-  /\/\* BEGIN GRENMET DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END GRENMET DESIGN SYSTEM V1 \*\//g;
+  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//g;
 
 const sourceExtensions = new Set([
   ".css",
@@ -64,7 +64,7 @@ const categoryLabels = {
   radius: "Arbitrary radius values",
   shadows: "App-local shadows/elevation",
   darkMode: "Dark/system theme hooks",
-  localTokens: "Local theme tokens not mapped to GrenMet",
+  localTokens: "Local theme tokens not mapped to the design system",
 };
 
 const semanticTokenPattern =
@@ -153,7 +153,7 @@ function isAllowedFontValue(value) {
   );
 }
 
-function isTokenMappedToGrenMet(value) {
+function isTokenMappedToDesignSystem(value) {
   return value.includes("var(--gm-") || semanticTokenPattern.test(value);
 }
 
@@ -268,7 +268,7 @@ function scanColorFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Use a --gm-* token, semantic token, or app alias mapped to GrenMet."
+      "Use a --gm-* token, semantic token, or app alias mapped to the design system."
     );
   }
 
@@ -281,7 +281,7 @@ function scanColorFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Avoid arbitrary app-local color utilities unless the alias maps back to GrenMet."
+        "Avoid arbitrary app-local color utilities unless the alias maps back to the design system."
       );
     }
   }
@@ -302,7 +302,7 @@ function scanFontImportFindings(report, filePath, lineNumber, line) {
           filePath,
           lineNumber,
           importedFont,
-          "Inter is the GrenMet web UI font for v1; Noto Sans is reserved for the official document lane."
+          "Inter is the default web UI font for v1; Noto Sans is reserved for the official document lane."
         );
       }
     }
@@ -351,7 +351,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Consider moving repeated type scale values into GrenMet typography tokens."
+        "Consider moving repeated type scale values into shared typography tokens."
       );
     }
   }
@@ -365,12 +365,12 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Prefer the shared type scale once GrenMet typography tokens are finalized."
+        "Prefer the shared type scale once shared typography tokens are finalized."
       );
     }
   }
 
-  // Detect --font-sans overrides that bypass the GrenMet font bridge.
+  // Detect --font-sans overrides that bypass the shared font bridge.
   // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
   for (const match of line.matchAll(themeFontOverridePattern)) {
     addFinding(
@@ -379,7 +379,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "--font-sans overrides the GrenMet font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+      "--font-sans overrides the shared font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
     );
   }
 }
@@ -449,7 +449,7 @@ function scanShadowFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Define GrenMet shadow tokens before app-local elevation becomes permanent."
+      "Define shared shadow tokens before app-local elevation becomes permanent."
     );
   }
 }
@@ -476,7 +476,9 @@ function scanLocalTokenFindings(report, filePath, lineNumber, line) {
   const tokenName = localTokenMatch[1] ?? "";
   const tokenValue = localTokenMatch[2] ?? "";
 
-  if (!(tokenName.startsWith("--gm-") || isTokenMappedToGrenMet(tokenValue))) {
+  if (
+    !(tokenName.startsWith("--gm-") || isTokenMappedToDesignSystem(tokenValue))
+  ) {
     addFinding(
       report,
       "localTokens",
@@ -534,7 +536,7 @@ function printReport(reports) {
     0
   );
 
-  console.log("GrenMet foundation audit");
+  console.log("Design-system foundation audit");
   console.log("Mode: warning only; this command exits 0.");
   console.log("Web UI font: Inter.");
   console.log("Official document font: Noto Sans via --gm-font-document.");

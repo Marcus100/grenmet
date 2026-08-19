@@ -103,7 +103,7 @@ async function run() {
     });
   }
 
-  console.log("GrenMet warning contrast check");
+  console.log("GMS warning contrast check");
   console.log(`Minimum normal text contrast: ${minimumNormalTextContrast}:1`);
   console.log("");
 
