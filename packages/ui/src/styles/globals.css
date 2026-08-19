@@ -13,9 +13,9 @@
        primitives consume. Components reference these and never a brand primitive.
     3. Tailwind utilities (@theme inline) — exposes the semantic layer as classes.
 
-  The --gm-* block is GMS's palette and is transitional here; it moves to
-  @barrelsgd/gms/styles/foundation.css in transition boundary 5b. Nothing in
-  layers 1-3 may reference it.
+  The GMS palette lives in @barrelsgd/gms/styles/foundation.css, not here. The
+  remaining --gm-* names are generic scales (type, spacing, radius, elevation)
+  that every brand uses; nothing in layers 1-3 may reference a brand palette.
 */
 
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
@@ -70,29 +70,11 @@
       color-mix(in srgb, var(--brand-primary-accent) 24%, transparent);
 
     /* ---------------------------------------------------------------
-       GMS palette — transitional. Moves to @barrelsgd/gms in boundary 5b.
-       Values are duplicated from layer 1 on purpose: the two palettes are now
-       independent and are expected to diverge once Barrels has its own brand.
+       Shared scales. Typography, spacing, radius and elevation are not brand
+       assets, so they stay here and are used by GMS and Barrels alike. The GMS
+       *palette* moved to @barrelsgd/gms/styles/foundation.css in boundary 5b.
+       The `gm` infix on these names is historical and is dropped in 5c.
        --------------------------------------------------------------- */
-
-    /* GMS brand */
-    --gm-blue: #2478f2;
-    --gm-navy: #15006b;
-    --gm-sky: #39a9f5;
-    --gm-sun: #ff981e;
-
-    /* GMS surfaces */
-    --gm-surface-page: #ffffff;
-    --gm-surface: #f3f8fc;
-    --gm-surface-panel: #eaf3fb;
-    --gm-surface-secondary: #eaf2fb;
-    --gm-surface-muted: #e4eef7;
-
-    /* GMS text */
-    --gm-text-primary: #111827;
-    --gm-text-secondary: #4b5563;
-    --gm-text-muted: #6b7280;
-    --gm-text-inverse: #ffffff;
 
     /* GMS typography */
     --gm-font-size-micro: 10px;
@@ -115,37 +97,6 @@
     --gm-line-height-heading-sm: 24px;
     --gm-line-height-heading-md: 36px;
     --gm-line-height-heading-lg: 36px;
-
-    /* GMS risk */
-    --gm-risk-green: #00843d;
-    --gm-risk-yellow: #ffe923;
-    --gm-risk-amber: #ff9900;
-    --gm-risk-red: #cc0033;
-    --gm-risk-grey: #dcdcdc;
-
-    /* GMS weather severity */
-    --gm-weather-severity-low: var(--gm-risk-green);
-    --gm-weather-severity-be-aware: var(--gm-risk-yellow);
-    --gm-weather-severity-be-prepared: var(--gm-risk-amber);
-    --gm-weather-severity-take-action: var(--gm-risk-red);
-    --gm-weather-severity-expired: var(--gm-risk-grey);
-
-    /* GMS warning pairs (AA contrast when foreground is used on background) */
-    --gm-warning-green-bg: var(--gm-risk-green);
-    --gm-warning-green-fg: var(--gm-text-inverse);
-    --gm-warning-green-border: var(--gm-risk-green);
-    --gm-warning-yellow-bg: var(--gm-risk-yellow);
-    --gm-warning-yellow-fg: var(--gm-text-primary);
-    --gm-warning-yellow-border: var(--gm-risk-yellow);
-    --gm-warning-amber-bg: var(--gm-risk-amber);
-    --gm-warning-amber-fg: var(--gm-text-primary);
-    --gm-warning-amber-border: var(--gm-risk-amber);
-    --gm-warning-red-bg: var(--gm-risk-red);
-    --gm-warning-red-fg: var(--gm-text-inverse);
-    --gm-warning-red-border: var(--gm-risk-red);
-    --gm-warning-grey-bg: var(--gm-risk-grey);
-    --gm-warning-grey-fg: var(--gm-text-primary);
-    --gm-warning-grey-border: var(--gm-risk-grey);
 
     /* GMS spacing */
     --gm-spacing-4: 4px;
@@ -171,14 +122,9 @@
     --gm-radius-8: 8px;
     --gm-radius-full: 999px;
 
-    /* GMS borders */
-    --gm-border: #d0d5dd;
-
     /* GMS shadows */
     --gm-shadow-card:
       0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    --gm-shadow-focus: 0 0 0 3px
-      color-mix(in srgb, var(--gm-blue) 24%, transparent);
 
     /* ---------------------------------------------------------------
        Layer 2 — semantic contract.
@@ -353,50 +299,6 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* GMS brand utilities */
-  --color-gm-blue: var(--gm-blue);
-  --color-gm-navy: var(--gm-navy);
-  --color-gm-sky: var(--gm-sky);
-  --color-gm-sun: var(--gm-sun);
-  --color-gm-surface-page: var(--gm-surface-page);
-  --color-gm-surface: var(--gm-surface);
-  --color-gm-surface-panel: var(--gm-surface-panel);
-  --color-gm-surface-secondary: var(--gm-surface-secondary);
-  --color-gm-surface-muted: var(--gm-surface-muted);
-  --color-gm-text-primary: var(--gm-text-primary);
-  --color-gm-text-secondary: var(--gm-text-secondary);
-  --color-gm-text-muted: var(--gm-text-muted);
-  --color-gm-text-inverse: var(--gm-text-inverse);
-  --color-gm-risk-green: var(--gm-risk-green);
-  --color-gm-risk-yellow: var(--gm-risk-yellow);
-  --color-gm-risk-amber: var(--gm-risk-amber);
-  --color-gm-risk-red: var(--gm-risk-red);
-  --color-gm-risk-grey: var(--gm-risk-grey);
-  --color-gm-weather-severity-low: var(--gm-weather-severity-low);
-  --color-gm-weather-severity-be-aware: var(--gm-weather-severity-be-aware);
-  --color-gm-weather-severity-be-prepared: var(
-    --gm-weather-severity-be-prepared
-  );
-  --color-gm-weather-severity-take-action: var(
-    --gm-weather-severity-take-action
-  );
-  --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
-  --color-gm-warning-green-bg: var(--gm-warning-green-bg);
-  --color-gm-warning-green-fg: var(--gm-warning-green-fg);
-  --color-gm-warning-green-border: var(--gm-warning-green-border);
-  --color-gm-warning-yellow-bg: var(--gm-warning-yellow-bg);
-  --color-gm-warning-yellow-fg: var(--gm-warning-yellow-fg);
-  --color-gm-warning-yellow-border: var(--gm-warning-yellow-border);
-  --color-gm-warning-amber-bg: var(--gm-warning-amber-bg);
-  --color-gm-warning-amber-fg: var(--gm-warning-amber-fg);
-  --color-gm-warning-amber-border: var(--gm-warning-amber-border);
-  --color-gm-warning-red-bg: var(--gm-warning-red-bg);
-  --color-gm-warning-red-fg: var(--gm-warning-red-fg);
-  --color-gm-warning-red-border: var(--gm-warning-red-border);
-  --color-gm-warning-grey-bg: var(--gm-warning-grey-bg);
-  --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
-  --color-gm-warning-grey-border: var(--gm-warning-grey-border);
-  --color-gm-border: var(--gm-border);
   --text-gm-micro: var(--gm-font-size-micro);
   --text-gm-label: var(--gm-font-size-label);
   --text-gm-caption: var(--gm-font-size-caption);
@@ -435,7 +337,6 @@
   --radius-gm-8: var(--gm-radius-8);
   --radius-gm-full: var(--gm-radius-full);
   --shadow-gm-card: var(--gm-shadow-card);
-  --shadow-gm-focus: var(--gm-shadow-focus);
   --height-gm-header: var(--gm-height-header);
 }
 /* END BARRELS DESIGN SYSTEM V1 */

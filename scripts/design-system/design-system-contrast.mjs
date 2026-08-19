@@ -5,7 +5,9 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const sourcePath = join(rootDir, "packages/ui/src/styles/globals.css");
+// The GMS warning pairs live in the GMS brand package, not in shared UI:
+// @barrelsgd/ui carries no client palette (transition boundary 5b).
+const sourcePath = join(rootDir, "packages/gms/src/styles/foundation.css");
 const minimumNormalTextContrast = 4.5;
 const warningLevels = ["green", "yellow", "amber", "red", "grey"];
 const hexColorPattern = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i;

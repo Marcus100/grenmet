@@ -154,7 +154,14 @@ function isAllowedFontValue(value) {
 }
 
 function isTokenMappedToDesignSystem(value) {
-  return value.includes("var(--gm-") || semanticTokenPattern.test(value);
+  return (
+    // --brand-*/--status-* are @barrelsgd/ui's own primitives; --gm-* is the
+    // GMS brand layer. All three are legitimate token sources.
+    value.includes("var(--brand-") ||
+    value.includes("var(--status-") ||
+    value.includes("var(--gm-") ||
+    semanticTokenPattern.test(value)
+  );
 }
 
 function isLikelyLengthValue(value) {
@@ -202,7 +209,7 @@ function isArbitraryColorUtility(value) {
 }
 
 function isAllowedColorValue(value) {
-  return value.includes("var(--gm-") || semanticTokenPattern.test(value);
+  return isTokenMappedToDesignSystem(value);
 }
 
 async function collectFiles(dir) {
@@ -477,7 +484,12 @@ function scanLocalTokenFindings(report, filePath, lineNumber, line) {
   const tokenValue = localTokenMatch[2] ?? "";
 
   if (
-    !(tokenName.startsWith("--gm-") || isTokenMappedToDesignSystem(tokenValue))
+    !(
+      tokenName.startsWith("--gm-") ||
+      tokenName.startsWith("--brand-") ||
+      tokenName.startsWith("--status-") ||
+      isTokenMappedToDesignSystem(tokenValue)
+    )
   ) {
     addFinding(
       report,

@@ -149,7 +149,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
       className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-gm-body transition-colors ${
         item.active
           ? "bg-background text-foreground"
-          : "pointer-events-none text-gm-text-inverse/60"
+          : "pointer-events-none text-primary-foreground/60"
       }`}
       href="/"
       tabIndex={item.active ? undefined : -1}
@@ -160,7 +160,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
       {item.badge ? (
         <span
           aria-hidden="true"
-          className="flex size-5 items-center justify-center rounded-full bg-gm-warning-amber-bg text-gm-caption text-gm-warning-amber-fg"
+          className="flex size-5 items-center justify-center rounded-full bg-warning text-gm-caption text-warning-foreground"
         >
           {item.badge}
         </span>
@@ -171,39 +171,39 @@ function NavigationLink({ item }: { item: NavigationItem }) {
 
 function Sidebar() {
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-gm-navy text-gm-text-inverse lg:flex">
+    <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary text-primary-foreground lg:flex">
       <div className="flex h-20 items-center gap-3 px-5">
         <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <Ticket className="size-5" />
         </div>
         <div>
           <p className="font-semibold text-gm-body-base">Barrels</p>
-          <p className="text-gm-caption text-gm-text-inverse/70">Events</p>
+          <p className="text-gm-caption text-primary-foreground/70">Events</p>
         </div>
       </div>
 
       <div className="px-3">
         <Button
           aria-label="Select event"
-          className="h-auto w-full justify-start border-gm-text-inverse/15 bg-gm-text-inverse/5 px-3 py-3 text-left text-gm-text-inverse hover:bg-gm-text-inverse/10 hover:text-gm-text-inverse"
+          className="h-auto w-full justify-start border-primary-foreground/15 bg-primary-foreground/5 px-3 py-3 text-left text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
           disabled
           size="lg"
           title="Available in a later step"
           type="button"
           variant="outline"
         >
-          <span className="flex size-9 items-center justify-center rounded-lg bg-gm-text-inverse/10">
+          <span className="flex size-9 items-center justify-center rounded-lg bg-primary-foreground/10">
             <CalendarDays className="size-4" />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-gm-caption text-gm-text-inverse/65">
+            <span className="block truncate text-gm-caption text-primary-foreground/65">
               Demo event
             </span>
             <span className="block truncate text-gm-body">
               Feel Free: Sunset
             </span>
           </span>
-          <ChevronDown className="size-4 text-gm-text-inverse/65" />
+          <ChevronDown className="size-4 text-primary-foreground/65" />
         </Button>
       </div>
 
@@ -213,10 +213,10 @@ function Sidebar() {
         ))}
       </nav>
 
-      <div className="space-y-1 border-gm-text-inverse/10 border-t p-3">
+      <div className="space-y-1 border-primary-foreground/10 border-t p-3">
         <a
           aria-disabled="true"
-          className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-gm-body text-gm-text-inverse/60"
+          className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-gm-body text-primary-foreground/60"
           href="/"
           tabIndex={-1}
           title="Available in a later step"
@@ -225,16 +225,16 @@ function Sidebar() {
           Support
         </a>
         <div className="flex items-center gap-3 px-3 py-3">
-          <div className="flex size-9 items-center justify-center rounded-full bg-gm-text-inverse/10 font-semibold text-gm-caption">
+          <div className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 font-semibold text-gm-caption">
             EG
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-gm-body">Eugine G.</p>
-            <p className="truncate text-gm-caption text-gm-text-inverse/60">
+            <p className="truncate text-gm-caption text-primary-foreground/60">
               Owner
             </p>
           </div>
-          <MoreHorizontal className="size-4 text-gm-text-inverse/60" />
+          <MoreHorizontal className="size-4 text-primary-foreground/60" />
         </div>
       </div>
     </aside>
@@ -315,7 +315,7 @@ function MetricCard({
       <CardContent>
         <p className="flex items-center gap-1.5 text-gm-caption text-muted-foreground">
           {label === "Gross sales" ? (
-            <TrendingUp className="size-3.5 text-gm-warning-green-fg" />
+            <TrendingUp className="size-3.5 text-success-foreground" />
           ) : null}
           {detail}
         </p>
@@ -346,7 +346,7 @@ function EventReadiness() {
 
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="flex gap-3 rounded-lg border border-border p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gm-warning-green-bg text-gm-warning-green-fg">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
               <Check className="size-4" />
             </span>
             <div>
@@ -357,7 +357,7 @@ function EventReadiness() {
             </div>
           </div>
           <div className="flex gap-3 rounded-lg border border-border p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gm-warning-green-bg text-gm-warning-green-fg">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
               <Check className="size-4" />
             </span>
             <div>
@@ -367,8 +367,8 @@ function EventReadiness() {
               </p>
             </div>
           </div>
-          <div className="flex gap-3 rounded-lg border border-gm-warning-amber-border bg-gm-warning-amber-bg p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gm-warning-amber-bg text-gm-warning-amber-fg">
+          <div className="flex gap-3 rounded-lg border border-warning bg-warning p-3">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-warning text-warning-foreground">
               <WifiOff className="size-4" />
             </span>
             <div>
@@ -378,8 +378,8 @@ function EventReadiness() {
               </p>
             </div>
           </div>
-          <div className="flex gap-3 rounded-lg border border-gm-warning-amber-border bg-gm-warning-amber-bg p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gm-warning-amber-bg text-gm-warning-amber-fg">
+          <div className="flex gap-3 rounded-lg border border-warning bg-warning p-3">
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-warning text-warning-foreground">
               <Landmark className="size-4" />
             </span>
             <div>
@@ -641,7 +641,7 @@ export function EventOverview() {
             className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
           >
             <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-warning-green-bg text-gm-warning-green-fg">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
                 <CircleCheckBig className="size-5" />
               </span>
               <div>
@@ -709,7 +709,7 @@ export function EventOverview() {
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-gm-warning-amber-bg text-gm-warning-amber-fg">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-warning text-warning-foreground">
                 <TriangleAlert className="size-4" />
               </span>
               <div>
@@ -720,7 +720,7 @@ export function EventOverview() {
               </div>
             </div>
             <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-gm-warning-green-bg text-gm-warning-green-fg">
+              <span className="flex size-9 items-center justify-center rounded-lg bg-success text-success-foreground">
                 <ShieldCheck className="size-4" />
               </span>
               <div>
