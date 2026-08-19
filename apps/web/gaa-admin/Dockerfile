@@ -13,7 +13,7 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/theme/package.json packages/theme/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
-COPY apps/web/admin-gms/package.json apps/web/admin-gms/
+COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/hurricaneplan/package.json apps/web/hurricaneplan/
 COPY apps/web/gms/package.json apps/web/gms/
@@ -35,8 +35,8 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
-RUN pnpm exec turbo run build --filter=@barrelsgd/web-admin
-RUN mkdir -p apps/web/admin-gms/public
+RUN pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
+RUN mkdir -p apps/web/gaa-admin/public
 
 # ── Migration runner ─────────────────────────────────────────────────────────
 # Built as a separate image (target=migrate) and run as a one-off by the compose
@@ -44,7 +44,7 @@ RUN mkdir -p apps/web/admin-gms/public
 # node_modules (drizzle-orm + pg + migrator) and the committed drizzle/ SQL.
 FROM builder AS migrate
 WORKDIR /app
-CMD ["sh", "-c", "node apps/web/admin-gms/scripts/migrate-wxwatch.mjs && node apps/web/admin-gms/scripts/migrate-wxproducts.mjs && node apps/web/admin-gms/scripts/migrate-janitorial.mjs && node apps/web/admin-gms/scripts/migrate-transport.mjs"]
+CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs"]
 
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
@@ -54,12 +54,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/admin-gms/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/admin-gms/.next/static ./apps/web/admin-gms/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/admin-gms/public ./apps/web/admin-gms/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/gaa-admin/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/gaa-admin/.next/static ./apps/web/gaa-admin/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/gaa-admin/public ./apps/web/gaa-admin/public
 
 USER nextjs
 EXPOSE 3001
 ENV PORT=3001
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "apps/web/admin-gms/server.js"]
+CMD ["node", "apps/web/gaa-admin/server.js"]

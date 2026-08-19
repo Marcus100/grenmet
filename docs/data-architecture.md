@@ -7,10 +7,10 @@ GrenMet currently uses a modular-monolith data model: several applications share
 | Database | Owner | Main code | Migration tool | Notes |
 | --- | --- | --- | --- | --- |
 | FastAPI DB: local `app`, staging `app_staging`, production `app_prod` | FastAPI | `apps/api/fastapi/src` | Alembic | Auth, HR, and FastAPI CAP domain tables |
-| `wxwatch` | `@barrelsgd/web-admin` (admin-gms) + Scrapy pipeline | `apps/web/admin-gms/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
-| `wxproducts` | `@barrelsgd/web-admin` (admin-gms) | `apps/web/admin-gms/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
+| `wxwatch` | `@barrelsgd/web-gaa-admin` (gaa-admin) + Scrapy pipeline | `apps/web/gaa-admin/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
+| `wxproducts` | `@barrelsgd/web-gaa-admin` (gaa-admin) | `apps/web/gaa-admin/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
 
-> Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **admin-gms**. Their migrations run in production via the `web-migrate` service (built from admin-gms's `migrate` Dockerfile stage). The databases and their backups are otherwise unchanged.
+> Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **gaa-admin**. Their migrations run in production via the `web-migrate` service (built from gaa-admin's `migrate` Dockerfile stage). The databases and their backups are otherwise unchanged.
 
 The databases are provisioned by `infra/postgres/init-databases.sh` on first PostgreSQL volume initialization.
 
@@ -37,16 +37,16 @@ Rules:
 
 Rules:
 
-- Edit `apps/web/admin-gms/src/db/wxwatch/schema.ts` for schema changes.
-- Run `pnpm db:wxwatch:generate` from `apps/web/admin-gms`.
-- Run `pnpm db:wxwatch:migrate` from `apps/web/admin-gms`.
+- Edit `apps/web/gaa-admin/src/db/wxwatch/schema.ts` for schema changes.
+- Run `pnpm db:wxwatch:generate` from `apps/web/gaa-admin`.
+- Run `pnpm db:wxwatch:migrate` from `apps/web/gaa-admin`.
 - Commit schema and generated migration output together.
 
 The Scrapy pipeline writes weather image metadata into this database. Do not couple `wxwatch` data directly to FastAPI tables.
 
 ## WxProducts Database
 
-`wxproducts` owns the structured meteorological product model. The schema barrel is `apps/web/admin-gms/src/db/wxproducts/schema/index.ts`.
+`wxproducts` owns the structured meteorological product model. The schema barrel is `apps/web/gaa-admin/src/db/wxproducts/schema/index.ts`.
 
 Current schema families include:
 
@@ -59,9 +59,9 @@ Current schema families include:
 
 Rules:
 
-- Edit files under `apps/web/admin-gms/src/db/wxproducts/schema/`.
-- Run `pnpm db:wxproducts:generate` from `apps/web/admin-gms`.
-- Run `pnpm db:wxproducts:migrate` from `apps/web/admin-gms`.
+- Edit files under `apps/web/gaa-admin/src/db/wxproducts/schema/`.
+- Run `pnpm db:wxproducts:generate` from `apps/web/gaa-admin`.
+- Run `pnpm db:wxproducts:migrate` from `apps/web/gaa-admin`.
 - Keep fixed-output PDF requirements in the document lane; do not force those dimensions into generic UI tokens.
 
 ## Backups
@@ -154,10 +154,10 @@ Every dataset and product must carry the following minimum metadata:
 | CAP 1.2 (XML) | Warnings — multi-channel dissemination | Active |
 | GeoJSON | Warning polygons; mapping | Active |
 | RSS 2.0 | Alert syndication feed | Active |
-| BUFR | Observation exchange (WMO standard) | Schema exists; encoding pipeline gap |
+| BUFR | Observation exchange (WMO standard) | Sandbox csv2bufr pipeline verified; production cutover pending |
 | IWXXM | Aviation MET exchange (ICAO standard) | Schema foundations; encoding gap |
-| WCMP2 metadata | WIS2 dataset discovery records | Not yet authored |
-| GRIB / NetCDF | NWP model data | Not yet in scope |
+| WCMP2 metadata | WIS2 dataset discovery records | Sandbox dataset configured; validation and global discovery pending |
+| GRIB / NetCDF | NWP model data | Planned for read-only WIS2Downloader subscriptions |
 
 ### Retention Policy
 
@@ -180,10 +180,16 @@ WIS 2.0 is the WMO's next-generation information system for global meteorologica
 | Step | Status | Target |
 | --- | --- | --- |
 | CAP alerts available via public HTTPS endpoint | Implemented | — |
-| WIGOS station identifiers registered for AWS stations | Gap | Q4 2026 |
-| WCMP2 metadata records authored for core datasets | Gap | Year 2 |
-| WIS2Box worker deployed for automated publication | Gap | Year 2 |
-| Core observation data published to Global Cache | Gap | Year 2 |
+| WIGOS identifier coverage confirmed for international-exchange stations | Partial — MBIA pilot ID evidenced; remaining station audit and Carriacou status pending | Gates 1 and 4 |
+| WCMP2 metadata validated for core datasets | Partial — sandbox synop dataset configured; global discovery unverified | Gates 1 and 2 |
+| SURFACE → wis2box observation publisher | Verified on sandbox | Gate 2 production cutover |
+| Core observation data published to Global Cache | Gap — requires production cutover and global verification | Gate 2 |
+| WIS2Downloader operational feed | Confirmation required — no repository evidence | Gate 3 |
+| CAP alerts published to WIS2 | Gap — `publish.wis2box` job exists but its worker is not deployed | Gate 4 |
+
+Capability gates, ownership, evidence requirements, and the distinction between
+observation and CAP publishing are maintained in the
+[2026 WIS 2.0 Implementation Roadmap](./internal/wis2-implementation-roadmap-2026.md).
 
 ### Licensing
 

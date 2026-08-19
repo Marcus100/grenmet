@@ -49,7 +49,7 @@ Do **not** move pages between Figma files programmatically — instruct the user
 
 - **`/ui-check`** — implement/refine a component against its Figma node: extracts tokens, lists discrepancies, proposes changes, iterates. This is the primary fidelity tool.
 - Screenshot diffing uses the **Chrome MCP tool** (not Playwright) with the dev server running.
-- Run the dev server for the specific app on its port (see [`ports.md`](./ports.md); e.g. `gms` = 3003, `admin-gms` = 3001).
+- Run the dev server for the specific app on its port (see [`ports.md`](./ports.md); e.g. `gms` = 3003, `gaa-admin` = 3001).
 
 ### 5. Guard the token contract
 
@@ -80,7 +80,7 @@ Include tests alongside any new component or significant logic — part of the t
 Pick where to build based on the app's design-system lane (full table in [Design System → App Roles](./design-system.md#app-roles)):
 
 - **`gms`** — public web **reference app**. Prototype and validate new public-facing patterns here first; it is the lowest-drift baseline.
-- **`admin-gms`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to GrenMet tokens. Charts use `var(--gm-*)` directly.
+- **`gaa-admin`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to GrenMet tokens. Charts use `var(--gm-*)` directly.
 - **`wxproducts`, `hr`** — **document / print** lane. Use `font-gm-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@barrelsgd/ui` primitives.
 - Other apps follow the [migration order](./design-system.md#migration-order), guided by audit output.
 

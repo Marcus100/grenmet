@@ -13,8 +13,8 @@ const webApps = [
     note: "Shared primitives should stay token-clean; generated foundation blocks are masked before scanning.",
   },
   {
-    name: "admin-gms",
-    root: "apps/web/admin-gms",
+    name: "gaa-admin",
+    root: "apps/web/gaa-admin",
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
   },
   { name: "auth", root: "apps/web/auth" },

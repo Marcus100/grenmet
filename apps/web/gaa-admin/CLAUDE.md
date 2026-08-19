@@ -1,4 +1,4 @@
-# admin-gms (`@barrelsgd/web-admin`) — Claude context
+# admin-gms (`@barrelsgd/web-gaa-admin`) — Claude context
 
 Port **3001**. The heaviest app in the monorepo.
 
@@ -79,9 +79,9 @@ This is the **only app with tests**. Run from the app directory or via turbo fil
 
 ```bash
 # From repo root
-turbo run test --filter=@barrelsgd/web-admin
+turbo run test --filter=@barrelsgd/web-gaa-admin
 
-# Unit tests only (from apps/web/admin-gms)
+# Unit tests only (from apps/web/gaa-admin)
 pnpm vitest run
 pnpm vitest run src/path/to/test.test.ts   # single file
 

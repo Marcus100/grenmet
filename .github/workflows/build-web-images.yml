@@ -45,12 +45,12 @@ jobs:
             path: apps/web/auth
             port: 3000
           - app: web-admin
-            path: apps/web/admin-gms
+            path: apps/web/gaa-admin
             port: 3001
           # Migration runner image — folds the former wxwatch/wxproducts apps'
           # Drizzle migrations into a one-off image driven from admin's Dockerfile.
           - app: web-admin-migrate
-            path: apps/web/admin-gms
+            path: apps/web/gaa-admin
             target: migrate
           - app: web-hurricaneplan
             path: apps/web/hurricaneplan
