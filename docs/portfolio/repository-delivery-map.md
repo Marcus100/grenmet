@@ -47,9 +47,9 @@ transition:
 | Repository surface | Primary classification and owner | Lifecycle | Dependency rule |
 | --- | --- | --- | --- |
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
-| `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation in progress | Must not depend on product packages or select GMS branding by default |
+| `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
-| `packages/gms` | GMS client presentation package | Active extraction in current worktree | May depend on shared UI/theme; only GMS consumers use GMS assets/tokens |
+| `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |
 | `packages/mdx` | Barrels platform content processing | Active | Shared processing without owning content policy |
@@ -121,7 +121,6 @@ references rather than duplicated here.
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
 | `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
-| `.cursor/commands`, `.cursor/rules`, and `.cursor/hooks.json` | Superseded editor configuration | Being retired | Replaced by the `.agents` equivalents above; remove this row once the deletions are committed |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
 | `scripts/sutron-collector/capture` | Sutron field-capture procedure and scripts | Governed | Promoted from the former `.capture-tools` scratch directory after field validation; that scratch copy is retired |

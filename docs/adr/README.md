@@ -16,6 +16,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0008](0008-hr-approval-workflow.md) | Route HR forms through a named-approver approval workflow |
 | [0009](0009-gaa-staff-platform.md) | Build a GAA-wide staff platform, piloted in Meteorology |
 | [0010](0010-wis2-publishing-via-surface-builtin.md) | Publish observations to WIS2 via SURFACE's built-in publisher |
+| [0011](0011-brand-neutral-design-tokens.md) | Separate brand palettes from shared UI primitives (supersedes 0006) |
 
 ## Template
 

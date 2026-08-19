@@ -8,8 +8,8 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 ## Confirmed v1 decisions
 
-- Web UI uses Inter through `--gm-font-sans`.
-- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--gm-font-document` and `font-gm-document`.
+- Web UI uses Inter through `--brand-font-sans`.
+- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--brand-font-document` and `font-document`.
 - V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
 - `gms` is the public web reference implementation.
 - `gaa-admin` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
@@ -64,43 +64,75 @@ This section is the v1 handoff document for now. Create a separate `docs/figma-d
 
 ## How the design system works
 
-The design system has three layers:
+The architecture is recorded in
+[ADR-0011](adr/0011-brand-neutral-design-tokens.md). Shared UI carries no brand;
+brands are packages.
 
-**1. CSS custom properties (`--gm-*`)**
+Three layers, all in `packages/ui/src/styles/globals.css`:
 
-Defined in `packages/ui/src/styles/globals.css`. These are the canonical values — colors, spacing steps, radius values, type sizes. Every app receives this block automatically when it imports `@barrelsgd/ui`.
+**1. Brand primitives (`--brand-*`, `--status-*`)**
 
-```css
---gm-blue: #2478f2;
---gm-spacing-4: 4px;
---gm-radius-8: 8px;
---gm-weather-severity-take-action: var(--gm-risk-red);
-```
-
-**2. Tailwind v4 utility aliases (`@theme`)**
-
-Declared in the same file using `@theme`. These expose the CSS custom properties as Tailwind utility classes.
+The active brand's raw palette, plus a status palette held separately because
+status meaning must survive a rebrand — a brand may change its blue, but not what
+danger looks like. Role-named rather than colour-named, so a brand with different
+hues can override them without the names going stale. These are
+`@barrelsgd/ui`'s own defaults.
 
 ```css
-/* @theme declares these */
---color-gm-blue: var(--gm-blue);
---spacing-gm-4: var(--gm-spacing-4);
+--brand-primary: #15006b;
+--brand-accent: #39a9f5;
+--brand-surface-page: #ffffff;
+--status-negative: #cc0033;
 ```
 
-This means you can write `text-gm-blue`, `p-gm-4`, `text-gm-heading-md` etc. as Tailwind classes.
+**2. Semantic contract**
 
-**3. shadcn-compatible semantic tokens**
+`--background`, `--primary`, `--success`, `--warning` and the rest. Resolves only
+through layer 1, never through a brand-specific palette, so overriding the
+primitives rebrands every shared primitive without touching this layer. Shared
+components reference this layer and nothing below it.
 
-`--primary`, `--secondary`, `--muted`, `--background`, etc. are also defined and resolve through `--gm-*` tokens. This makes it possible to use shadcn-style components that reference semantic token names rather than specific colors.
+```css
+--primary: var(--brand-primary);
+--destructive: var(--status-negative);
+```
+
+**3. Tailwind v4 utilities (`@theme inline`)**
+
+Exposes layer 2 as classes — `bg-primary`, `text-muted-foreground`,
+`bg-success`. The shared type scale lives here too: `text-body`, `text-caption`,
+`leading-heading-md`, `shadow-card`, `h-header`.
+
+Spacing and radius are **not** in the token set. Their values duplicated
+Tailwind's own scale exactly, so the utilities use it directly (`px-6`,
+`rounded-lg`). Do not add `--spacing-<n>` tokens: Tailwind derives `p-4` from a
+single `--spacing` multiplier, and a literal `--spacing-4` shadows the computed
+scale and silently resizes every spacing utility in the repository.
+
+### Brand packages
+
+A brand owns its palette and assets in its own package. `@barrelsgd/gms` holds
+the GMS logo, the `--gm-*` palette in `styles/foundation.css`, and GMS-specific
+components. Only GMS surfaces import it:
+
+```css
+@import "@barrelsgd/gms/styles/foundation";
+```
+
+`gm` expands to *Grenada Met*, so the prefix is correct for a GMS package. The
+dependency direction is one-way: `@barrelsgd/ui` must never reference `--gm-*`,
+and a component needing a brand colour belongs in that brand's package.
 
 ### When to use what
 
 | Use | How |
 |---|---|
 | Standard UI elements | Import from `@barrelsgd/ui/components/ui/<name>` |
-| Color, spacing, type scale | Use `--gm-*` CSS variables or their Tailwind aliases |
-| Semantic colors (backgrounds, borders) | Use `--background`, `--border`, etc. |
-| Official document typography | Use `font-gm-document`; keep fixed document sizes inside document templates |
+| Colour | Semantic tokens — `bg-primary`, `text-muted-foreground`, `bg-success` |
+| Spacing and radius | Tailwind's own scale — `px-6`, `gap-4`, `rounded-lg` |
+| Type scale | `text-body`, `text-caption`, `text-heading-md` and their `leading-*` pairs |
+| Official document typography | `font-document`; keep fixed document sizes inside document templates |
+| GMS hazard colours | `--gm-risk-*` and `--gm-warning-*`, on GMS surfaces only |
 | One-off measurements | Keep inline and treat as migration debt |
 
 Avoid hardcoding values that exist in the token set. Run the audit to find drift:
@@ -160,7 +192,7 @@ App-local aliases are acceptable during migration only when they resolve back to
 
 The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
 
-Inter is the Barrels design-system web UI font and must flow through `--gm-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
+Inter is the Barrels design-system web UI font and must flow through `--brand-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
 
 Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@barrelsgd/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
 
@@ -174,16 +206,16 @@ The v1 type scale as of the current expansion:
 
 | Token | Size | Line height | Use |
 |---|---|---|---|
-| `text-gm-micro` | 10px | 16px | Timestamps, fine labels |
-| `text-gm-label` | 11px | 16px | Tag labels, pill text |
-| `text-gm-caption` | 12px | 16px | Captions, metadata |
-| `text-gm-body-sm` | 13px | 20px | Secondary body text |
-| `text-gm-body` | 14px | 20px | Primary body text |
-| `text-gm-body-base` | 16px | 24px | Card titles, prominent links |
-| `text-gm-heading-sm` | 18px | 24px | Section headings |
-| `text-gm-nav` | 20px | 28px | Navigation sub-links |
-| `text-gm-heading-md` | 30px | 36px | Page titles, nav section labels |
-| `text-gm-heading-lg` | 34px | 36px | Large display numbers (date, stats) |
+| `text-micro` | 10px | 16px | Timestamps, fine labels |
+| `text-label` | 11px | 16px | Tag labels, pill text |
+| `text-caption` | 12px | 16px | Captions, metadata |
+| `text-body-sm` | 13px | 20px | Secondary body text |
+| `text-body` | 14px | 20px | Primary body text |
+| `text-body-base` | 16px | 24px | Card titles, prominent links |
+| `text-heading-sm` | 18px | 24px | Section headings |
+| `text-nav` | 20px | 28px | Navigation sub-links |
+| `text-heading-md` | 30px | 36px | Page titles, nav section labels |
+| `text-heading-lg` | 34px | 36px | Large display numbers (date, stats) |
 
 Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[200px]`), the active-state border compensation in `WeatherDateNav` (`px-[1.5px] py-[7.5px]`), the month label tight leading (`leading-[14px]`), and the responsive container pattern (`max-w-7xl px-4 sm:px-6 lg:px-8`).
 
@@ -216,9 +248,9 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `gms` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
 | `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use shared type tokens for labels and timestamps. |
 | `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
-| `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-gm-document` for official templates and warning token pairs for impact/response displays. |
+| `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-document` for official templates and warning token pairs for impact/response displays. |
 | `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
-| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with design-system tokens. |
+| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--brand-font-sans`; replace repeated radii and shadows with design-system tokens. |
 | `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
 | `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to design-system tokens | Map template aliases to design-system tokens before removing high-volume `dark:` classes. |
 | `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with design-system tokens. |

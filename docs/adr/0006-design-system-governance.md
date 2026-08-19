@@ -2,7 +2,9 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0011](0011-brand-neutral-design-tokens.md), which separates
+brand palettes from shared UI primitives. The decision below stands except that
+`@barrelsgd/ui` no longer carries a brand palette of its own.
 
 ## Context
 
