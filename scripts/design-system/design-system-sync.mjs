@@ -12,7 +12,7 @@ const foundationPath = join(rootDir, "packages/ui/src/styles/globals.css");
 const targetPaths = [
   "apps/web/gaa-admin/src/app/globals.css",
   "apps/web/auth/src/app/globals.css",
-  "apps/web/hurricaneplan/src/styles/tailwind.css",
+  "apps/web/docs/src/styles/tailwind.css",
   "apps/web/gms/src/app/globals.css",
 ].map((path) => join(rootDir, path));
 

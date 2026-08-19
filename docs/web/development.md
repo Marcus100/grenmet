@@ -15,13 +15,13 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 pnpm start                  # Start Postgres + FastAPI (required for gaa-admin)
 pnpm dev:web:auth           # auth           :3000
 pnpm dev:web:gaa-admin          # gaa-admin      :3001
-pnpm dev:web:hurricane      # hurricaneplan  :3002
+pnpm dev:web:docs      # docs  :3002
 pnpm dev:web:gms        # gms        :3003
 pnpm dev:web:signal         # signal         :3004
 ```
 
 Apps that require `pnpm start` before running: `gaa-admin`.
-Apps that work standalone (no FastAPI): `auth`, `hurricaneplan`, `gms`,
+Apps that work standalone (no FastAPI): `auth`, `docs`, `gms`,
 `signal`.
 
 ## Environment variables
@@ -37,7 +37,7 @@ Never commit `.env.local`. Never write to it programmatically.
 
 ## Special app notes
 
-- **hurricaneplan**: Uses Turbopack. Content lives in `src/content/` via
+- **docs**: Uses Turbopack. Content lives in `src/content/` via
   `@content-collections/next`. MDX plugins run in a separate Node.js process.
 - **gaa-admin**: Owns the consolidated `wxwatch` + `wxproducts` Drizzle ORM +
   Postgres DBs (and Playwright PDF export). Run `pnpm db:wxwatch:migrate` and

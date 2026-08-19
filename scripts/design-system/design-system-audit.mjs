@@ -19,8 +19,8 @@ const webApps = [
   },
   { name: "auth", root: "apps/web/auth" },
   {
-    name: "hurricaneplan",
-    root: "apps/web/hurricaneplan",
+    name: "docs",
+    root: "apps/web/docs",
     note: "Docs-template styling is expected to be noisy; review global shell colors first.",
   },
   { name: "mbia", root: "apps/web/mbia" },

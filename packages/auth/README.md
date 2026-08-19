@@ -322,4 +322,4 @@ try {
 | `auth` | — | `createSession`, `writeSessionCookie`, `buildSharedSignInUrl` |
 | `admin-gms` | `SessionUserProvider`, `useSessionUser`, `signOut` | `readSessionCookie`, `exchangeSessionForAccessToken`, `authApiFetch` |
 | `wxwatch` | `SessionUserProvider`, `useSessionUser`, `signOut` | `readSessionCookie`, `exchangeSessionForAccessToken`, `buildSharedSignInUrl` |
-| `hr`, `hurricaneplan`, `gms` | `signOut` | `readSessionCookie`, `buildSharedSignInUrl` |
+| `hr`, `docs`, `gms` | `signOut` | `readSessionCookie`, `buildSharedSignInUrl` |

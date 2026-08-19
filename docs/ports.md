@@ -22,7 +22,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 |---|---|---|---|
 | auth | `@barrelsgd/web-auth` | 3000 | yes |
 | gaa-admin | `@barrelsgd/web-gaa-admin` | 3001 | yes |
-| hurricaneplan | `@barrelsgd/web-hurricaneplan` | 3002 | yes |
+| docs | `@barrelsgd/web-docs` | 3002 | yes |
 | gms | `@barrelsgd/web-gms` | 3003 | yes |
 | signal | `@barrelsgd/web-signal` | 3004 | dev only (no Dockerfile yet) |
 | mbia | `@barrelsgd/web-mbia` | 3005 | dev only (no Dockerfile yet) |

@@ -283,7 +283,7 @@ test("auth and shared UI changes explain required consumer validation", (t) => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Auth consumer validation required/);
-  assert.match(result.stdout, /auth, gaa-admin, hurricaneplan, gms, signal/);
+  assert.match(result.stdout, /auth, gaa-admin, docs, gms, signal/);
   assert.match(result.stdout, /AUTH_API_URL/);
   assert.match(result.stdout, /Shared UI consumer validation required/);
   assert.match(result.stdout, /every importing app/);

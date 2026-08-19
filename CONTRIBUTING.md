@@ -160,8 +160,8 @@ The checker blocks these incomplete changes:
   change in its matching `apps/web/gaa-admin/drizzle/<family>/` directory
 
 Auth and shared UI changes print consumer-validation reminders. Auth validation
-covers auth, gaa-admin, hurricaneplan, gms, and signal, including the
-`AUTH_API_URL` delegation paths in hurricaneplan and gms. Consolidated
+covers auth, gaa-admin, docs, gms, and signal, including the
+`AUTH_API_URL` delegation paths in docs and gms. Consolidated
 admin route changes similarly require checking cap, hr, wxwatch, wxproducts, and
 salesbus. Drizzle schema changes also remind you to verify the `web-migrate`
 production service and the wxwatch and wxproducts databases. CI supplies the

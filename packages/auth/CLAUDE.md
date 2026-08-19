@@ -52,7 +52,7 @@ The client-side `signOut()` and `signOutEverywhere()` functions POST to these ro
 |---|---|---|
 | `auth` | Owns sign-in | `createSession`, `writeSessionCookie`, `buildSharedSignInUrl` |
 | `admin-gms` | Deep integration | `readSessionCookie`, `exchangeSessionForAccessToken`, `authApiFetch` |
-| `wxwatch`, `hr`, `hurricaneplan`, `gms` | Delegates to auth | `readSessionCookie`, `buildSharedSignInUrl` |
+| `wxwatch`, `hr`, `docs`, `gms` | Delegates to auth | `readSessionCookie`, `buildSharedSignInUrl` |
 | `wxproducts`, `salesbus` | No auth | — |
 
 ## Anti-patterns

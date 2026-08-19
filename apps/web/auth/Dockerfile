@@ -16,7 +16,7 @@ COPY packages/email-templates/package.json packages/email-templates/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/
-COPY apps/web/hurricaneplan/package.json apps/web/hurricaneplan/
+COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/gms/package.json apps/web/gms/
 RUN pnpm install --frozen-lockfile
 

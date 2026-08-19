@@ -93,10 +93,10 @@ catalog:
   husky: "^9.1.7"
   lint-staged: "^17.0.8"
 
-  # Headless UI — used in gms and hurricaneplan (migrate to Base UI eventually)
+  # Headless UI — used in gms and docs (migrate to Base UI eventually)
   "@headlessui/react": "^2.2.10"
 
-  # MDX — content-collections stack (hurricaneplan, signal) + @barrelsgd/mdx
+  # MDX — content-collections stack (docs, signal) + @barrelsgd/mdx
   "@content-collections/core": "^0.10.0"
   "@content-collections/cli": "^0.1.9"
   "@content-collections/mdx": "^0.2.2"

@@ -60,7 +60,7 @@ edit it. Find and report, never silently expand scope.
 | If you change…                  | Also verify…                                                                                    |
 |---------------------------------|-------------------------------------------------------------------------------------------------|
 | A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
-| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, gms via `AUTH_API_URL`)                         |
+| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (docs, gms via `AUTH_API_URL`)                         |
 | A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
 | A consolidated admin route      | the other folded modules in gaa-admin (cap/hr/wxwatch/wxproducts/salesbus)                       |
 | A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
