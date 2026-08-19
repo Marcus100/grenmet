@@ -1,6 +1,6 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1-4 and 5a complete
+**Status:** In progress — boundaries 1-4, 5a and 5b complete
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
@@ -596,12 +596,28 @@ boundaries that an authorized human may commit separately:
      family needed, clearing the last four brand references in shared components.
      Design-system block markers renamed `GRENMET` → `BARRELS`. Appearance
      unchanged: all 39 pre-existing semantic tokens resolve to identical values.
-   - [ ] **5b — move the GMS palette out.** Relocate the `--gm-*` block and its
-     `--color-gm-*` / `--text-gm-*` / `--spacing-gm-*` utilities from
-     `@barrelsgd/ui/styles/globals.css` to
-     `@barrelsgd/gms/styles/foundation.css`; import it from the GMS consumers
-     (admin-gms, spicewx, hurricaneplan, auth) and convert the 78 `gm-` utility
-     usages in Events — a Barrels product — to neutral semantics.
+   - [x] **5b — move the GMS palette out.** The GMS *palette* (40 colour tokens
+     and their 40 Tailwind utilities) moved from `@barrelsgd/ui/styles/globals.css`
+     to `@barrelsgd/gms/styles/foundation.css`, imported by the two apps that
+     actually use it: admin-gms and spicewx. Generic scales — typography,
+     spacing, radius, elevation — deliberately stayed in `@barrelsgd/ui`: they are
+     not brand assets, and moving them would force auth, hurricaneplan and Events
+     to import a client's package for font sizes. Events' 38 colour utilities were
+     converted to neutral semantics. Appearance unchanged: all 81 `--gm-*` tokens
+     resolve identically, and every replacement pair is value-identical.
+
+     Two things this surfaced. `apps/web/auth` was **not** palette-free as its
+     zero utility usage suggested — it carried 12 app-local `:root` aliases onto
+     GMS tokens, which the move would have broken. Those were repointed to the
+     neutral primitives rather than to the GMS package, so the shared login shell
+     is brand-neutral for GMS, GAA, MBIA and Events alike. And
+     `design-system:contrast` read its warning pairs from shared UI, so it had to
+     follow them to the GMS package or CI would fail.
+   - [ ] **5c — drop the `gm` infix from the shared scales.** `text-gm-body` →
+     `text-body`, `rounded-gm-8` → `rounded-8`, and so on: roughly 400 call sites
+     across admin-gms, spicewx, auth, hurricaneplan and Events, plus the token
+     definitions in `@barrelsgd/ui`. Mechanical, but large enough to keep out of
+     5b so the palette move stays reviewable.
 6. [ ] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
    `@barrelsgd/web-gms`. Public site only. Its current 25 files are a foundation
    to build on, not a sketch to replace, so this is a rename rather than a
