@@ -12,7 +12,8 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "rm -f next-env.d.ts && tsc --noEmit"
+    "type-check": "rm -f next-env.d.ts && tsc --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
@@ -32,11 +33,18 @@
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/jest-dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "jsdom": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

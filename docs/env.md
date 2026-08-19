@@ -215,6 +215,7 @@ These apps redirect to `web-auth` for sign-in. They do not manage sessions direc
 | `SESSION_COOKIE_NAME` | Must match the value in the auth app |
 | `SESSION_COOKIE_DOMAIN` | Must match the shared deployment cookie domain |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
+| `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 

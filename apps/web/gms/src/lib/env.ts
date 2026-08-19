@@ -9,6 +9,9 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
     SESSION_COOKIE_DOMAIN: z.string().optional(),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
+    // Base URL for the public CAP warning endpoints (/api/cap/*). These are
+    // unauthenticated, so this is independent of the auth delegation above.
+    CAP_API_URL: z.string().url().optional().default("http://localhost:8000"),
   },
   client: {
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
@@ -28,6 +31,7 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
+    CAP_API_URL: process.env.CAP_API_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,

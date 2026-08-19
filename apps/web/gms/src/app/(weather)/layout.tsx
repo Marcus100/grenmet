@@ -2,13 +2,15 @@ import { CurrentAlertsAccordion } from "@/components/current-alerts-accordion";
 import { GmsNews } from "@/components/gms-news";
 import { News } from "@/components/news";
 import { WeatherDateNav } from "@/components/weather-date-nav";
-import { WARNINGS } from "@/lib/forecast-data";
+import { fetchActiveAlerts } from "@/lib/cap";
 
-export default function WeatherLayout({
+export default async function WeatherLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const alerts = await fetchActiveAlerts();
+
   return (
     // Responsive container — intentional layout exception, not a spacing token
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -16,7 +18,7 @@ export default function WeatherLayout({
         Your spice weather
       </h1>
 
-      <CurrentAlertsAccordion warnings={WARNINGS} />
+      <CurrentAlertsAccordion result={alerts} />
 
       <div className="mb-4 overflow-hidden border border-gm-border">
         <WeatherDateNav />
