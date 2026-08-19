@@ -123,6 +123,9 @@ jobs:
       - name: Check documentation links
         run: pnpm docs:check-links
 
+      - name: Check portfolio coverage
+        run: pnpm docs:check-portfolio
+
       - name: Check design-system drift and contrast
         run: |
           pnpm design-system:check
