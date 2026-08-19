@@ -1,30 +1,82 @@
 @import "tailwindcss";
 
-/* BEGIN GRENMET DESIGN SYSTEM V1 */
+/* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
   :root {
-    /* GrenMet brand */
+    /* ---------------------------------------------------------------
+       Layer 1 — brand primitives.
+       Default palette for @barrelsgd/ui. Role-named, not colour-named, so a
+       brand with a different hue can override without the names going stale.
+       These become Barrels' own values when the approved brand assets land;
+       until then they carry the existing palette so appearance is unchanged.
+       --------------------------------------------------------------- */
+    --brand-primary: #15006b;
+    --brand-primary-accent: #2478f2;
+    --brand-accent: #39a9f5;
+    --brand-highlight: #ff981e;
+
+    --brand-surface-page: #ffffff;
+    --brand-surface: #f3f8fc;
+    --brand-surface-panel: #eaf3fb;
+    --brand-surface-secondary: #eaf2fb;
+    --brand-surface-muted: #e4eef7;
+
+    --brand-text-primary: #111827;
+    --brand-text-secondary: #4b5563;
+    --brand-text-muted: #6b7280;
+    --brand-text-inverse: #ffffff;
+
+    --brand-border: #d0d5dd;
+
+    /* Status palette. Separate from the brand palette because status meaning
+       must survive a rebrand: a brand may change its blue, not what "danger"
+       looks like. --status-caution is the lower-severity warning tone. */
+    --status-positive: #00843d;
+    --status-caution: #ffe923;
+    --status-warning: #ff9900;
+    --status-negative: #cc0033;
+    --status-neutral: #dcdcdc;
+
+    --brand-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --brand-font-document: var(
+      --font-noto-sans,
+      "Noto Sans",
+      var(--brand-font-sans)
+    );
+
+    --brand-shadow-card:
+      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --brand-shadow-focus: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary-accent) 24%, transparent);
+
+    /* ---------------------------------------------------------------
+       GMS palette — transitional. Moves to @barrelsgd/gms in boundary 5b.
+       Values are duplicated from layer 1 on purpose: the two palettes are now
+       independent and are expected to diverge once Barrels has its own brand.
+       --------------------------------------------------------------- */
+
+    /* GMS brand */
     --gm-blue: #2478f2;
     --gm-navy: #15006b;
     --gm-sky: #39a9f5;
     --gm-sun: #ff981e;
 
-    /* GrenMet surfaces */
+    /* GMS surfaces */
     --gm-surface-page: #ffffff;
     --gm-surface: #f3f8fc;
     --gm-surface-panel: #eaf3fb;
     --gm-surface-secondary: #eaf2fb;
     --gm-surface-muted: #e4eef7;
 
-    /* GrenMet text */
+    /* GMS text */
     --gm-text-primary: #111827;
     --gm-text-secondary: #4b5563;
     --gm-text-muted: #6b7280;
     --gm-text-inverse: #ffffff;
 
-    /* GrenMet typography */
+    /* GMS typography */
     --gm-font-size-micro: 10px;
     --gm-font-size-label: 11px;
     --gm-font-size-caption: 12px;
@@ -46,21 +98,21 @@
     --gm-line-height-heading-md: 36px;
     --gm-line-height-heading-lg: 36px;
 
-    /* GrenMet risk */
+    /* GMS risk */
     --gm-risk-green: #00843d;
     --gm-risk-yellow: #ffe923;
     --gm-risk-amber: #ff9900;
     --gm-risk-red: #cc0033;
     --gm-risk-grey: #dcdcdc;
 
-    /* GrenMet weather severity */
+    /* GMS weather severity */
     --gm-weather-severity-low: var(--gm-risk-green);
     --gm-weather-severity-be-aware: var(--gm-risk-yellow);
     --gm-weather-severity-be-prepared: var(--gm-risk-amber);
     --gm-weather-severity-take-action: var(--gm-risk-red);
     --gm-weather-severity-expired: var(--gm-risk-grey);
 
-    /* GrenMet warning pairs (AA contrast when foreground is used on background) */
+    /* GMS warning pairs (AA contrast when foreground is used on background) */
     --gm-warning-green-bg: var(--gm-risk-green);
     --gm-warning-green-fg: var(--gm-text-inverse);
     --gm-warning-green-border: var(--gm-risk-green);
@@ -77,7 +129,7 @@
     --gm-warning-grey-fg: var(--gm-text-primary);
     --gm-warning-grey-border: var(--gm-risk-grey);
 
-    /* GrenMet spacing */
+    /* GMS spacing */
     --gm-spacing-4: 4px;
     --gm-spacing-8: 8px;
     --gm-spacing-12: 12px;
@@ -91,85 +143,100 @@
     --gm-spacing-44: 44px;
     --gm-spacing-72: 72px;
 
-    /* GrenMet fixed dimensions (heights — not general spacing) */
+    /* GMS fixed dimensions (heights — not general spacing) */
     --gm-height-header: 72px;
 
-    /* GrenMet radius */
+    /* GMS radius */
     --gm-radius-2: 2px;
     --gm-radius-5: 5px;
     --gm-radius-6: 6px;
     --gm-radius-8: 8px;
     --gm-radius-full: 999px;
 
-    /* GrenMet borders */
+    /* GMS borders */
     --gm-border: #d0d5dd;
 
-    /* GrenMet shadows */
+    /* GMS shadows */
     --gm-shadow-card:
       0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --gm-shadow-focus: 0 0 0 3px
       color-mix(in srgb, var(--gm-blue) 24%, transparent);
 
-    /* shadcn-compatible semantics mapped to GrenMet */
-    --background: var(--gm-surface-page);
-    --foreground: var(--gm-text-primary);
-    --card: var(--gm-surface-page);
-    --card-foreground: var(--gm-text-primary);
-    --popover: var(--gm-surface-page);
-    --popover-foreground: var(--gm-text-primary);
-    --primary: var(--gm-navy);
-    --primary-foreground: var(--gm-text-inverse);
-    --secondary: var(--gm-surface-secondary);
-    --secondary-foreground: var(--gm-navy);
-    --muted: var(--gm-surface-muted);
-    --muted-foreground: var(--gm-text-muted);
-    --accent: var(--gm-sky);
-    --accent-foreground: var(--gm-text-inverse);
-    --destructive: var(--gm-risk-red);
-    --destructive-foreground: var(--gm-text-inverse);
+    /* ---------------------------------------------------------------
+       Layer 2 — semantic contract.
+       shadcn-compatible. Resolves through layer 1 only, never through a
+       brand-specific palette, so overriding the layer 1 primitives rebrands
+       every shared primitive without touching this block.
+       --------------------------------------------------------------- */
+    --background: var(--brand-surface-page);
+    --foreground: var(--brand-text-primary);
+    --card: var(--brand-surface-page);
+    --card-foreground: var(--brand-text-primary);
+    --popover: var(--brand-surface-page);
+    --popover-foreground: var(--brand-text-primary);
+    --primary: var(--brand-primary);
+    --primary-foreground: var(--brand-text-inverse);
+    --secondary: var(--brand-surface-secondary);
+    --secondary-foreground: var(--brand-primary);
+    --muted: var(--brand-surface-muted);
+    --muted-foreground: var(--brand-text-muted);
+    --accent: var(--brand-accent);
+    --accent-foreground: var(--brand-text-inverse);
+    --destructive: var(--status-negative);
+    --destructive-foreground: var(--brand-text-inverse);
 
     /* Status semantics. Shared primitives reference these, never a brand
        primitive directly, so each brand can map its own palette onto them.
        Deliberately not overridden in .dark: these derive from hazard colours,
        whose meaning must not shift between themes. */
-    --success: var(--gm-risk-green);
-    --success-foreground: var(--gm-text-inverse);
-    --warning: var(--gm-risk-amber);
-    --warning-foreground: var(--gm-text-primary);
-    --info: var(--gm-blue);
-    --info-foreground: var(--gm-text-inverse);
+    --success: var(--status-positive);
+    --success-foreground: var(--brand-text-inverse);
+    --warning: var(--status-warning);
+    --warning-foreground: var(--brand-text-primary);
+    --info: var(--brand-primary-accent);
+    --info-foreground: var(--brand-text-inverse);
 
-    --border: var(--gm-border);
-    --input: var(--gm-border);
-    --ring: var(--gm-blue);
+    /* Soft status tier: the lower-emphasis filled treatment (badge `light-*`),
+       as opposed to the solid tier above. Only the three tiers with consumers
+       are defined; add others when something needs them. */
+    --primary-soft: var(--brand-surface-panel);
+    --primary-soft-foreground: var(--brand-primary);
+    --warning-soft: var(--status-caution);
+    --warning-soft-foreground: var(--brand-text-primary);
+    --info-soft: var(--brand-accent);
+    --info-soft-foreground: var(--brand-text-primary);
+
+    --border: var(--brand-border);
+    --input: var(--brand-border);
+    --ring: var(--brand-primary-accent);
     --radius: 0.5rem;
 
-    /* Chart palette (GrenMet brand hues) */
-    --chart-1: var(--gm-blue);
-    --chart-2: var(--gm-sky);
-    --chart-3: var(--gm-navy);
-    --chart-4: var(--gm-sun);
-    --chart-5: var(--gm-risk-green);
+    /* Chart palette */
+    --chart-1: var(--brand-primary-accent);
+    --chart-2: var(--brand-accent);
+    --chart-3: var(--brand-primary);
+    --chart-4: var(--brand-highlight);
+    --chart-5: var(--status-positive);
 
     /* Sidebar semantics used by shared/admin UI */
-    --sidebar: var(--gm-surface-page);
-    --sidebar-foreground: var(--gm-text-primary);
-    --sidebar-primary: var(--gm-navy);
-    --sidebar-primary-foreground: var(--gm-text-inverse);
-    --sidebar-accent: var(--gm-surface-secondary);
-    --sidebar-accent-foreground: var(--gm-navy);
-    --sidebar-border: var(--gm-border);
-    --sidebar-ring: var(--gm-blue);
+    --sidebar: var(--brand-surface-page);
+    --sidebar-foreground: var(--brand-text-primary);
+    --sidebar-primary: var(--brand-primary);
+    --sidebar-primary-foreground: var(--brand-text-inverse);
+    --sidebar-accent: var(--brand-surface-secondary);
+    --sidebar-accent-foreground: var(--brand-primary);
+    --sidebar-border: var(--brand-border);
+    --sidebar-ring: var(--brand-primary-accent);
 
-    /* Optional app font bridge */
-    --gm-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
-    --gm-font-document: var(--font-noto-sans, "Noto Sans", var(--gm-font-sans));
+    /* Optional app font bridge (GMS alias; moves with the GMS block) */
+    --gm-font-sans: var(--brand-font-sans);
+    --gm-font-document: var(--brand-font-document);
 
     color-scheme: light;
   }
 }
 
-/* GrenMet dark palette — first pass (V1 was light-only). Tune as desired.
+/* Dark palette — first pass (V1 was light-only). Tune as desired.
    Activated when the <html> element carries the `dark` class (theme-boot). */
 .dark {
   --background: #0b1020;
@@ -211,7 +278,7 @@
 }
 
 @theme inline {
-  --font-sans: var(--gm-font-sans);
+  --font-sans: var(--brand-font-sans);
   --font-gm-document: var(--gm-font-document);
 
   /* shadcn semantic utilities */
@@ -237,6 +304,12 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -262,7 +335,7 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  /* GrenMet brand utilities */
+  /* GMS brand utilities */
   --color-gm-blue: var(--gm-blue);
   --color-gm-navy: var(--gm-navy);
   --color-gm-sky: var(--gm-sky);
@@ -347,7 +420,7 @@
   --shadow-gm-focus: var(--gm-shadow-focus);
   --height-gm-header: var(--gm-height-header);
 }
-/* END GRENMET DESIGN SYSTEM V1 */
+/* END BARRELS DESIGN SYSTEM V1 */
 
 /*
   --auth-accent* are app-local tokens distinct from the shadcn --accent

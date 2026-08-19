@@ -17,10 +17,9 @@ const alertVariants = cva(
           "border-warning bg-warning text-warning-foreground *:data-[slot=alert-description]:text-current *:[svg]:text-current",
         error:
           "border-destructive bg-destructive text-destructive-foreground *:data-[slot=alert-description]:text-current *:[svg]:text-current",
-        // TODO(boundary-4): unlike the others this is a tinted surface with
-        // brand-coloured border, icon and secondary text. It needs surface-level
-        // semantics that do not exist yet, so it stays on brand tokens.
-        info: "border-gm-blue bg-gm-surface text-gm-navy *:data-[slot=alert-description]:text-gm-text-secondary *:[svg]:text-gm-blue",
+        // Unlike the others this is a tinted surface rather than a solid fill:
+        // neutral card background, info-coloured border and icon.
+        info: "border-info bg-card text-foreground *:data-[slot=alert-description]:text-muted-foreground *:[svg]:text-info",
       },
     },
     defaultVariants: {

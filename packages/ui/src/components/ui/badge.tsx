@@ -18,21 +18,19 @@ const badgeVariants = cva(
         ghost:
           "hover:bg-muted hover:text-muted-foreground dark:hover:bg-muted/50",
         link: "text-primary underline-offset-4 hover:underline",
-        // Status — light variants
-        // TODO(boundary-4): gm-surface-panel has no semantic equivalent yet.
-        "light-primary": "border-transparent bg-gm-surface-panel text-gm-navy",
+        // Status — light variants. These map to the soft status tier, which is
+        // the lower-emphasis filled treatment; the solid variants below use the
+        // full-strength tier.
+        "light-primary":
+          "border-transparent bg-primary-soft text-primary-soft-foreground",
         "light-success":
           "border-transparent bg-success text-success-foreground",
         "light-error":
           "border-transparent bg-destructive text-destructive-foreground",
-        // TODO(boundary-4): yellow is the CAP caution level, not the UI warning
-        // colour used everywhere else (amber). Resolving it changes appearance,
-        // so it is deliberately left on the brand token here.
         "light-warning":
-          "border-transparent bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
-        // TODO(boundary-4): sky-on-dark-text differs from every other info
-        // surface, which is blue-on-inverse. Same reason as above.
-        "light-info": "border-transparent bg-gm-sky text-gm-text-primary",
+          "border-transparent bg-warning-soft text-warning-soft-foreground",
+        "light-info":
+          "border-transparent bg-info-soft text-info-soft-foreground",
         "light-light": "border-transparent bg-muted text-foreground",
         "light-dark": "border-transparent bg-primary text-primary-foreground",
         // Status — solid variants

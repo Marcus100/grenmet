@@ -1,9 +1,8 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1 and 2 complete
+**Status:** In progress — boundaries 1-4 and 5a complete
 **Recorded:** 2026-07-18
-**Amended:** 2026-08-02 — GrenMet retired as a name; GMS is now the single name
-for the meteorological service and its software
+**Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
 
 This document describes the destination architecture. The execution order,
@@ -13,10 +12,11 @@ baseline freeze, commit boundaries, and rollout sequencing live in
 ## Goal
 
 Turn the existing repository into the primary Barrels Grenada software
-monorepo, with the Grenada Meteorological Service (GMS) platform retained as its
-largest product rather than as its owner. Barrels Grenada begins with products
-and client software relevant to Grenada, with a longer-term market across the
-OECS, CARICOM, and other companies.
+monorepo, with software delivered for the Grenada Airports Authority (GAA) and
+its Grenada Meteorological Service (GMS) department separated from
+Barrels-owned products. Barrels Grenada begins with products and client software
+relevant to Grenada, with a longer-term market across the OECS, CARICOM, and
+other organisations.
 
 This document records future work only. It does not authorize a repository
 rename, deployment, DNS change, infrastructure mutation, or removal of an
@@ -25,11 +25,12 @@ existing service.
 ## Why
 
 The current repository, package scope, and infrastructure names make the
-meteorological platform appear to own software that now belongs to the wider
-Barrels portfolio: a news site, an airport site, and an events console all
-authenticate through a cookie named for the weather service. The transition must
-establish company ownership without diminishing GMS, which remains the largest
-product in the portfolio and keeps its own packages, branding, and domain.
+meteorological programme appear to own software that belongs to the wider
+Barrels portfolio or to other GAA functions: a news site, an airport site, an
+events console, and organisation-wide staff modules all inherit weather-service
+identity. The transition must establish company and client boundaries without
+diminishing GMS, which remains a major client programme with dedicated packages,
+branding, operational authority, and domains.
 
 ## Scope
 
@@ -39,12 +40,13 @@ domains, and fresh infrastructure. It does not itself build Events/Tickets or th
 reusable HR product, decide software licensing or client ownership, or activate
 custom domains before access is available.
 
-Events/Tickets is nonetheless the **number one product priority**, with GMS
-second. This transition is the substrate those products are built on, not a
-competitor for the same time. Sequencing is recorded in
-[Barrels Grenada Product Strategy](../strategy/barrels-product-strategy.md);
-where that document and this one appear to disagree on Events, the strategy
-document governs priority and this document governs naming and ownership.
+Events/Tickets is the **number one discretionary product priority**. GMS safety,
+compliance, continuity, and live-operational needs may pre-empt it. This
+transition is the shared substrate for Barrels products and client delivery,
+not a product itself. Sequencing is recorded in the
+[Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md);
+that document governs priority and this document governs transition naming and
+ownership.
 
 ## Canonical terminology
 
@@ -86,7 +88,9 @@ Two distinct kinds of administrative surface follow from this, and they must not
 be conflated:
 
 - The **Barrels superuser admin** (`admin.barrels.gd`) is the company control
-  plane. Its users are Barrels staff and it can reach every product and client.
+  plane. Its users are Barrels staff. It may link to or monitor product and
+  client deployments, but client data access is separately granted, scoped,
+  audited, and authorized by the client institution.
 - A **client staff portal** is one organisation's internal tooling. Its users are
   that organisation's employees. GAA's is the first; others may follow, and they
   may link to the superuser admin but are never merged into it.
@@ -106,8 +110,9 @@ software. Carrying two names for one thing is what made company ownership and
 product identity hard to tell apart. GMS is now the single name for the
 meteorological service and for the software built for it.
 
-Retiring the word does not retire the product. GMS remains a Barrels product
-with its own packages, branding, and identity; only the redundant spelling goes.
+Retiring the word does not retire the client programme or the meteorological
+services. GMS retains dedicated packages, branding, identity, and operational
+authority; only the redundant spelling goes.
 
 `gm` is **not** an abbreviation of GrenMet. It expands to *Grenada Met*, so the
 `--gm-*` design tokens, their Figma integration, and the GMS assets are already
@@ -331,12 +336,11 @@ evening and outlook forecast models — across 40+ schemas, and is being integra
 into the staff portal as a first-class GMS capability. Earlier drafts of this plan
 called it a retiring capability; that label was wrong and is withdrawn.
 
-The future Barrels HR product is a single multi-tenant product, not one
-deployment per business. GAA, MBIA, and future clients are organizations within
-one codebase and deployment, with data scoped by tenant. Until that product
-exists, HR stays in the portal — but its data model must remain
-organisation-agnostic, because assumptions baked in now are paid for at the
-second customer.
+The GAA Staff & Operations Platform is client delivery, piloted in GMS and then
+available for GAA department rollout. Its data model remains organisation-aware
+so institutional boundaries are explicit. A reusable workforce product is not
+approved: it stays in Explore until GAA pilot evidence, reuse rights, demand,
+tenant isolation, support, and pricing pass a separate productization gate.
 
 ### GMS host behavior
 
@@ -368,7 +372,9 @@ Create `apps/web/admin` as a separate Barrels-wide control plane at
 - Require Barrels authentication.
 - Show a minimal dashboard with launch/status cards for the hub, GMS,
   Signal, MBIA, GAA, authentication, and API.
-- Add Events/Tickets and HR cards only when those products are deployed.
+- Add Events/Tickets only when that product is deployed. Keep the GAA staff
+  portal as a client launch/status card with separately scoped access; add a
+  workforce-product card only after the productization gate is approved.
 - Support optional operational links to GitHub Actions, Sentry, and the
   DigitalOcean project through validated `src/env.ts` configuration.
 - Do not place GMS business modules in this application.
@@ -386,8 +392,9 @@ control-plane routes remain local.
 - Begin Barrels Events and Barrels Tickets as one future product with event
   discovery and ticketing modules. Split them only if branding or operations
   materially diverge. They are not part of this infrastructure migration.
-- Build reusable Barrels HR as a future product. GMS becomes a customer or
-  tenant only after the replacement covers its current HR and roster workflows.
+- Treat external productization of the GAA staff platform as a future decision
+  gate. GAA delivery comes first; reusable workforce software becomes a Barrels
+  product only after reuse, rights, demand, isolation, and support are proven.
 - Treat Grenada Signal as a separate Barrels media product, not a GMS
   module.
 - Keep the MBIA passenger website and GAA corporate website distinct while
@@ -506,7 +513,8 @@ legacy-infrastructure retirement step must not reach this host.
 - Use `staging` and `production` Sentry environments and separate DSNs stored
   as deployment secrets.
 - Do not reuse the old infrastructure-level GMS Sentry organization or
-  projects; GMS remains a product name within the Barrels organization.
+  projects; GMS remains the client-service identity within Barrels-operated
+  observability.
 
 ## DNS map and rollout
 
@@ -554,7 +562,7 @@ The rollout order is:
    health checks, Sentry, and backups.
 9. Retire the legacy infrastructure resources named for GMS immediately
    after every acceptance check passes and the owner explicitly confirms
-   destruction. The GMS product itself continues.
+   destruction. The GMS programme and services continue.
 10. Add `weather.gd` later and enable its canonical-host behavior.
 11. Add `gaa.gd` later, make it canonical for the GAA corporate site, and
     permanently redirect `gaa.barrels.gd` to it.
@@ -569,9 +577,31 @@ boundaries that an authorized human may commit separately:
 1. [x] Correct canonical company, product, institution, and domain terminology.
 2. [x] Rename company-owned workspace scopes and generic platform identifiers while
    retaining product-explicit package names.
-3. [ ] Add neutral UI and theme contracts without changing application appearance.
-4. [ ] Extract the GMS product package and migrate GMS consumers.
-5. [ ] Add the Barrels product package with placeholder-safe brand interfaces.
+3. [x] Add neutral UI and theme contracts without changing application appearance.
+4. [x] Extract the GMS client presentation package and migrate GMS consumers.
+5. Brand-neutral shared UI, split into two reviewable commits.
+
+   A dedicated `@barrelsgd/barrels` package is **not** created here: Barrels'
+   approved brand values have not been supplied, and `@barrelsgd/ui`'s layer-1
+   defaults are the Barrels default until they are, so an empty package would add
+   an indirection with nothing in it.
+
+   Split into two steps because `@barrelsgd/ui` was found to still resolve its
+   whole semantic layer through `--gm-*`, so shared UI was GMS-branded underneath
+   and no Barrels layer could sit on top of it.
+   - [x] **5a — neutral primitive layer.** `@barrelsgd/ui` gains role-named
+     `--brand-*` / `--status-*` primitives as its own defaults; the semantic layer
+     resolves through those and never through `--gm-*`. Adds the soft status tier
+     (`--primary-soft`, `--warning-soft`, `--info-soft`) that the badge `light-*`
+     family needed, clearing the last four brand references in shared components.
+     Design-system block markers renamed `GRENMET` → `BARRELS`. Appearance
+     unchanged: all 39 pre-existing semantic tokens resolve to identical values.
+   - [ ] **5b — move the GMS palette out.** Relocate the `--gm-*` block and its
+     `--color-gm-*` / `--text-gm-*` / `--spacing-gm-*` utilities from
+     `@barrelsgd/ui/styles/globals.css` to
+     `@barrelsgd/gms/styles/foundation.css`; import it from the GMS consumers
+     (admin-gms, spicewx, hurricaneplan, auth) and convert the 78 `gm-` utility
+     usages in Events — a Barrels product — to neutral semantics.
 6. [ ] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
    `@barrelsgd/web-gms`. Public site only. Its current 25 files are a foundation
    to build on, not a sketch to replace, so this is a rename rather than a
@@ -607,8 +637,8 @@ boundaries that an authorized human may commit separately:
     it depends on have landed — it is the number one product priority, not a
     deferred initiative. Until those boundaries exist the prototype stays out of
     the deployment estate, so that Events arrives as a planned product rather than
-    as hidden scope inside this transition. Reusable HR remains a later
-    initiative.
+    as hidden scope inside this transition. A reusable workforce product remains
+    an Explore option behind its decision gate.
 
 ### Sequencing against Events
 
@@ -662,7 +692,7 @@ before continuing.
 - Signal, MBIA, and GAA retain their intended identities.
 - No package remains under `@grenmet/*`, and no identifier, directory, or
   user-facing string contains `grenmet` in any casing; GMS remains explicit in
-  the names of product-specific packages, modules, assets, and copy.
+  the names of service-specific packages, modules, assets, and copy.
 - `--gm-*` tokens, GMS assets, and the GMS Figma integration are unchanged.
 - The final remnant audit returns no `grenmet` occurrences outside vendored
   trees, and confirms `--gm-*` was left intact.
@@ -688,10 +718,9 @@ before continuing.
   the first Barrels deployment.
 - `admin.barrels.gd` is the Barrels superuser control plane, for Barrels staff.
   GAA business administration belongs to the GAA staff portal, for GAA staff.
-- GAA HR, roster, and organization-wide modules remain in the staff portal until
-  the reusable Barrels HR product meets their workflows. That product is intended
-  for sale to other organisations, so its data model must stay
-  organisation-agnostic from the outset.
+- GAA HR, roster, and organisation-wide modules remain in the staff portal.
+  Their data model stays organisation-aware, but external productization is a
+  future decision rather than a current Barrels product commitment.
 - Code ownership between Barrels Grenada and GAA is unresolved and is being
   settled with GAA directly. Data residency, the data-processing relationship,
   and exit terms are open alongside it. None of these block repository work, but
@@ -701,12 +730,13 @@ before continuing.
   untracked directories moving to their own repository; they receive no Barrels
   package, port, host, or image identity here, and the remnant audit records them
   as intentionally absent rather than missing.
-- Barrels Events/Tickets is the number one product priority and GMS is second.
-  Events is not built *by* this transition, but it is not a distant initiative
-  either: it is the next product to receive real boundaries, a Dockerfile, a host,
-  and a deployment path once the naming boundaries it depends on have landed.
-- Reusable HR and Barrels Shop remain later initiatives. Shop's identity is
-  reserved; its implementation is not.
+- Barrels Events/Tickets is the number one discretionary product priority. GMS
+  safety, compliance, continuity, and live-operational work may pre-empt it.
+  Events is not built *by* this transition, but it is the next product to receive
+  real boundaries, a Dockerfile, a host, and a deployment path once its naming
+  dependencies have landed.
+- A reusable workforce product and Barrels Shop remain Explore options. Shop's
+  identity is reserved; its implementation is not.
 - `apps/web/events` (`@barrelsgd/web-events`, port 3009) is today an
   organiser-console prototype: static, with no environment, database,
   authentication, or API dependency, and every control disabled. Its production
