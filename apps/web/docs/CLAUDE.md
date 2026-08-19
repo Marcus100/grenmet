@@ -1,4 +1,4 @@
-# hurricaneplan (`@barrelsgd/web-hurricaneplan`) — Claude context
+# docs (`@barrelsgd/web-docs`) — Claude context
 
 Port **3002**. Hurricane preparedness plan — a static MDX documentation site for airport meteorological operations.
 

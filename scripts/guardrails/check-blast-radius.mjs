@@ -162,7 +162,7 @@ const reportConsumerValidation = (changes) => {
 
   if ([...files].some((file) => file.startsWith("packages/auth/"))) {
     console.log(
-      `Auth consumer validation required: validate auth, gaa-admin, hurricaneplan, gms, signal, including hurricaneplan and gms delegation via AUTH_API_URL. CI enforces ${ciGates}.`
+      `Auth consumer validation required: validate auth, gaa-admin, docs, gms, signal, including docs and gms delegation via AUTH_API_URL. CI enforces ${ciGates}.`
     );
   }
 

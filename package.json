@@ -17,7 +17,7 @@
     "status": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools ps && docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml ps",
     "dev:web": "turbo run dev --filter=@barrelsgd/web-*",
     "dev:web:gaa-admin": "turbo run dev --filter=@barrelsgd/web-gaa-admin",
-    "dev:web:hurricane": "turbo run dev --filter=@barrelsgd/web-hurricaneplan",
+    "dev:web:docs": "turbo run dev --filter=@barrelsgd/web-docs",
     "dev:web:auth": "turbo run dev --filter=@barrelsgd/web-auth",
     "dev:web:gms": "turbo run dev --filter=@barrelsgd/web-gms",
     "dev:web:signal": "turbo run dev --filter=@barrelsgd/web-signal",

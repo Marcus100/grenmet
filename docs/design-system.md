@@ -198,7 +198,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, GrenMet radii, shadows, and semantic colors. |
 | `wxwatch` | Media/gallery cleanup lane | Keep media viewport behavior local while aligning labels, timestamps, and shell styling. |
 | `salesbus` | App-specific operational UI lane | Share foundations without forcing weather-specific product patterns. |
-| `hurricaneplan` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
+| `docs` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
 | `cap` | Public alert-viewer lane | Bridged 2026-06-13; map the initial hard-coded colors back to GrenMet tokens as the UI settles. |
 
 ### Migration Order
@@ -207,7 +207,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 2. `@barrelsgd/ui`, because shared primitives must stay token-clean.
 3. `gaa-admin`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
 4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
-5. `auth`, `wxwatch`, `salesbus`, and `hurricaneplan`, guided by audit output and app-specific risk.
+5. `auth`, `wxwatch`, `salesbus`, and `docs`, guided by audit output and app-specific risk.
 
 ### Migration Checklist
 
@@ -219,7 +219,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-gm-document` for official templates and warning token pairs for impact/response displays. |
 | `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
 | `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with GrenMet tokens. |
-| `hurricaneplan` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
+| `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
 | `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
 | `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with GrenMet tokens. |
 
@@ -264,7 +264,7 @@ Current audit summary:
 | `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
 | `@barrelsgd/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
 | `gaa-admin` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
-| `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
+| `docs` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
 
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `gaa-admin`; retained as migration debt because downstream third-party overrides depend on it.

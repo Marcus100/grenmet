@@ -17,7 +17,7 @@ pnpm start         # Start Docker services (Postgres + FastAPI)
 ```bash
 pnpm dev:web:auth       # auth           :3000
 pnpm dev:web:gaa-admin      # gaa-admin      :3001
-pnpm dev:web:hurricane  # hurricaneplan  :3002
+pnpm dev:web:docs  # docs  :3002
 pnpm dev:web:gms    # gms        :3003
 pnpm dev:web:signal     # signal         :3004
 ```

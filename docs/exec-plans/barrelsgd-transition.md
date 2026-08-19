@@ -1,6 +1,6 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1-7 complete
+**Status:** In progress — boundaries 1-8 complete; Events unblocked
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
@@ -672,9 +672,20 @@ boundaries that an authorized human may commit separately:
    relaxations for vendored calendar components and config-driven admin form
    editors. Renaming the directory without them would silently un-exempt that code
    and fail `pnpm fix`. Approved and updated as part of this boundary.
-8. [ ] Rename Hurricane Plan to docs: `apps/web/hurricaneplan` → `apps/web/docs`,
-   `@barrelsgd/web-docs`, served at `docs.weather.gd`, port 3002 retained. Add a
-   permanent redirect from the former standalone URL.
+8. [x] Rename Hurricane Plan to docs: `apps/web/hurricaneplan` → `apps/web/docs`,
+   `@barrelsgd/web-docs`, port 3002 retained. The `docs.weather.gd` host and the
+   permanent redirect from the former standalone URL are traefik configuration and
+   move with boundary 15; the codebase rename does not change routing.
+
+   `apps/web/docs` does not collide with the repository's root `docs/` tree: the
+   only `docs/**` glob is root-anchored in `.github/labeler.yml`, and the docs
+   scripts address root paths explicitly.
+
+   A bare-word sweep of `hurricaneplan` is unsafe. `-` is a word boundary, so
+   `\bhurricaneplan\b` matches inside `web-hurricaneplan` and would silently
+   rewrite the compose service and image name, orphaning the running production
+   service. The sweep must exclude that prefix — here via a `(?<!web-)`
+   lookbehind, which left `app: web-hurricaneplan` intact while `path:` moved.
 9. [ ] Complete the WxProducts integration into the staff portal as a first-class
    GMS capability. It is not retiring; treat its schemas and encodings as core
    meteorological output.
@@ -686,6 +697,38 @@ boundaries that an authorized human may commit separately:
 13. [ ] Containerize Signal and every remaining target application.
 14. [ ] Make shared authentication product-aware.
 15. [ ] Rename Docker, Compose, backup, Sentry, and workflow identities.
+
+    **The compose project name `grenmet` is a permanent exception and must not be
+    renamed.** Deploys run with `-p grenmet` (`-p grenmet-staging`), and Docker
+    namespaces volumes by project, so the live volumes are `grenmet_pgdata`,
+    `grenmet_traefik-certificates` and `grenmet_redis-data`. Renaming the project
+    does not rename a volume: it creates new empty ones, starting Postgres on a
+    blank database and discarding the Let's Encrypt certificates. The project name
+    is invisible to users and only namespaces Docker objects, so there is nothing
+    to gain against that risk. Decided 2026-08-19.
+
+    **Image renames must land before compose references them.** Deployment runs
+    `pull` and then `up -d --pull always`, so compose pointing at an image CI has
+    not published yet fails the deploy mid-flight — a failure mode `deploy-prod.yml`
+    already carries a comment about. Split into two phases: first rename in
+    `build-web-images.yml` so CI publishes the new names, then repoint compose once
+    the images exist in GHCR. Note the known staging-gate race where a check with
+    no prior run reports OK: a renamed image has no prior run.
+
+    **The health-check loops are hardcoded.** `deploy-staging.yml` and
+    `deploy-prod.yml` both iterate a literal service list
+    (`for svc in web-auth web-admin web-hurricaneplan web-spicewx`). These must be
+    updated in the same commit as the service renames, and it must be confirmed
+    whether a missing service fails the deploy or passes silently.
+
+    Service renames themselves are safe: deploys use `up -d --remove-orphans`, so
+    the superseded container is removed and the renamed one starts cleanly.
+
+    Accumulated into this boundary: `web-spicewx` → `web-gms` (boundary 6);
+    `web-admin` → `web-gaa-admin` and port 3001 → 3011 (boundary 7);
+    `web-hurricaneplan` → `web-docs` plus the `docs.weather.gd` host and the
+    redirect from the former URL (boundary 8); the five `grenmet-*` image names
+    (boundary 2); and the three health-route service strings (boundaries 6-8).
 16. [ ] Regenerate OpenAPI and the API client where contracts change.
 17. [ ] Update operational documentation and run the remnant audit: a
     case-insensitive `grenmet` scan that must return no results outside vendored

@@ -28,7 +28,7 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 |---|---|---|---|---|
 | `auth` | `@barrelsgd/web-auth` | 3000 | Owns sign-in/sign-up | — |
 | `gaa-admin` | `@barrelsgd/web-gaa-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
-| `hurricaneplan` | `@barrelsgd/web-hurricaneplan` | 3002 | Delegates to auth | — |
+| `docs` | `@barrelsgd/web-docs` | 3002 | Delegates to auth | — |
 | `gms` | `@barrelsgd/web-gms` | 3003 | Delegates to auth | — |
 | `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
 | `mbia` | `@barrelsgd/web-mbia` | 3005 | None (public content) | — |
@@ -55,7 +55,7 @@ Authentication is centralised in the `web-auth` app (`:3000`). All other apps ei
 
 **Delegation (most apps)**
 
-Apps that delegate (wxwatch, hr, hurricaneplan, gms) redirect unauthenticated users to `web-auth` for sign-in. After sign-in, `web-auth` redirects back with a shared session cookie.
+Apps that delegate (wxwatch, hr, docs, gms) redirect unauthenticated users to `web-auth` for sign-in. After sign-in, `web-auth` redirects back with a shared session cookie.
 
 ```
 User visits wxwatch (unauthenticated)

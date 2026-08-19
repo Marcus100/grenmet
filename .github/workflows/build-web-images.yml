@@ -53,7 +53,7 @@ jobs:
             path: apps/web/gaa-admin
             target: migrate
           - app: web-hurricaneplan
-            path: apps/web/hurricaneplan
+            path: apps/web/docs
             port: 3002
           - app: web-spicewx
             path: apps/web/gms

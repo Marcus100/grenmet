@@ -14,7 +14,7 @@ COPY packages/api-client/package.json packages/api-client/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/
-COPY apps/web/hurricaneplan/package.json apps/web/hurricaneplan/
+COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/gms/package.json apps/web/gms/
 RUN pnpm install --frozen-lockfile
 
@@ -31,8 +31,8 @@ ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
-RUN pnpm exec turbo run build --filter=@barrelsgd/web-hurricaneplan
-RUN mkdir -p apps/web/hurricaneplan/public
+RUN pnpm exec turbo run build --filter=@barrelsgd/web-docs
+RUN mkdir -p apps/web/docs/public
 
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
 WORKDIR /app
@@ -42,12 +42,12 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/hurricaneplan/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/hurricaneplan/.next/static ./apps/web/hurricaneplan/.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/hurricaneplan/public ./apps/web/hurricaneplan/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/docs/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/docs/.next/static ./apps/web/docs/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/docs/public ./apps/web/docs/public
 
 USER nextjs
 EXPOSE 3002
 ENV PORT=3002
 ENV HOSTNAME=0.0.0.0
-CMD ["node", "apps/web/hurricaneplan/server.js"]
+CMD ["node", "apps/web/docs/server.js"]

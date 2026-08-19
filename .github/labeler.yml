@@ -116,10 +116,10 @@ web/auth:
       - any-glob-to-any-file:
           - apps/web/auth/**/*
 
-web/hurricaneplan:
+web/docs:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/hurricaneplan/**/*
+          - apps/web/docs/**/*
 
 web/gms:
   - changed-files:

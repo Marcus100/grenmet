@@ -1,4 +1,4 @@
-# hurricaneplan (`@barrelsgd/web-hurricaneplan`)
+# docs (`@barrelsgd/web-docs`)
 
 Hurricane preparedness documentation site for GMS. Port **3002**. No database. No `pnpm start` required.
 
