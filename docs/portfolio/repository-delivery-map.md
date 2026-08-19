@@ -124,7 +124,7 @@ references rather than duplicated here.
 | `.cursor/commands`, `.cursor/rules`, and `.cursor/hooks.json` | Superseded editor configuration | Being retired | Replaced by the `.agents` equivalents above; remove this row once the deletions are committed |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
-| `.capture-tools` and `.teaching` | Local Sutron capture and operator-learning assets | Working support material | Promote into governed scripts/docs or explicitly retire after field validation |
+| `scripts/sutron-collector/capture` | Sutron field-capture procedure and scripts | Governed | Promoted from the former `.capture-tools` scratch directory after field validation; that scratch copy is retired |
 
 | Root configuration | Classification | Lifecycle rule |
 | --- | --- | --- |

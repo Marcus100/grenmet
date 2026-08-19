@@ -10,6 +10,7 @@ from sutron_collector.collector import (
     NoObservationsError,
 )
 from sutron_collector.transport import (
+    LOGGER_PROMPT,
     WAKE_SEQUENCE,
     SerialSettings,
     SerialTransport,
@@ -77,6 +78,7 @@ class FakeSerialConnection:
         self._reads = iter(reads)
         self.writes: list[bytes] = []
         self.read_sizes: list[int] = []
+        self.read_until_calls: list[tuple[bytes, int | None]] = []
         self.input_resets = 0
         self.output_resets = 0
         self.flushes = 0
@@ -99,8 +101,59 @@ class FakeSerialConnection:
         self.read_sizes.append(size)
         return next(self._reads)
 
+    def read_until(self, expected: bytes, size: int | None = None) -> bytes:
+        self.read_until_calls.append((expected, size))
+        return next(self._reads)
+
     def close(self) -> None:
         self.closed = True
+
+
+def test_serial_transport_reads_until_the_logger_prompt() -> None:
+    """Both reads must terminate on the prompt and honour the byte cap.
+
+    Waiting for a fixed byte count costs the full serial timeout on every
+    poll, because the port waits for bytes that never arrive. Terminating on
+    the prompt is what makes a poll finish as soon as the logger has spoken.
+    """
+    settings = SerialSettings(port="/dev/ttyS1")
+    connection = FakeSerialConnection(
+        [
+            b"\r\n" + LOGGER_PROMPT,
+            b"show /tag /c\r\nAT 26.1 G OK\r\n" + LOGGER_PROMPT,
+        ]
+    )
+
+    transport = SerialTransport(
+        settings=settings, opener=lambda _settings: connection
+    )
+    response = transport.query(SHOW_TAG_COMMAND)
+
+    assert connection.read_until_calls == [
+        (LOGGER_PROMPT, settings.max_bytes),
+        (LOGGER_PROMPT, settings.max_bytes),
+    ]
+    assert connection.read_sizes == []
+    assert response.endswith(LOGGER_PROMPT)
+
+
+def test_serial_transport_returns_partial_reply_when_prompt_absent() -> None:
+    """A reply with no prompt is still returned, not discarded.
+
+    This is the fallback if the prompt ever changes: the read costs the full
+    timeout again, as it always used to, but no data is lost.
+    """
+    settings = SerialSettings(port="/dev/ttyS1")
+    connection = FakeSerialConnection([b"banner", b"AT 26.1 G OK\r\n"])
+
+    transport = SerialTransport(
+        settings=settings, opener=lambda _settings: connection
+    )
+    response = transport.query(SHOW_TAG_COMMAND)
+
+    assert response == b"AT 26.1 G OK\r\n"
+    assert LOGGER_PROMPT not in response
+    assert connection.closed is True
 
 
 def test_serial_transport_wakes_logger_then_sends_command() -> None:
@@ -121,6 +174,9 @@ def test_serial_transport_wakes_logger_then_sends_command() -> None:
     assert connection.output_resets == 1
     assert connection.writes == [WAKE_SEQUENCE, SHOW_TAG_COMMAND]
     assert connection.flushes == 2
-    assert connection.read_sizes == [5000, 5000]
+    assert connection.read_until_calls == [
+        (LOGGER_PROMPT, 5000),
+        (LOGGER_PROMPT, 5000),
+    ]
     assert connection.closed is True
     assert response == b"AT 26.1 G OK\r\n"
