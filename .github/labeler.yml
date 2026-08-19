@@ -106,10 +106,10 @@ infrastructure:
           - docker-compose.yml
 
 # Per-project web app labels
-web/admin-gms:
+web/gaa-admin:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/admin-gms/**/*
+          - apps/web/gaa-admin/**/*
 
 web/auth:
   - changed-files:

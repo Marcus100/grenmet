@@ -64,12 +64,12 @@ const isFastApiContractFile = (file) =>
 const drizzleFamilies = ["janitorial", "transport", "wxproducts", "wxwatch"];
 
 const isDrizzleSchemaFile = (file, family) => {
-  const schemaRoot = `apps/web/admin-gms/src/db/${family}/schema`;
+  const schemaRoot = `apps/web/gaa-admin/src/db/${family}/schema`;
   return file === `${schemaRoot}.ts` || file.startsWith(`${schemaRoot}/`);
 };
 
 const drizzleMigrationRoot = (family) =>
-  `apps/web/admin-gms/drizzle/${family}/`;
+  `apps/web/gaa-admin/drizzle/${family}/`;
 
 const collectChanges = (comparison) => {
   const range =
@@ -146,7 +146,7 @@ const evaluateChanges = (changes) => {
     ) {
       violations.push({
         missing: [migrationRoot],
-        resolution: `Run pnpm db:${family}:generate from apps/web/admin-gms and commit the generated migration.`,
+        resolution: `Run pnpm db:${family}:generate from apps/web/gaa-admin and commit the generated migration.`,
         rule: `Drizzle ${family} migration`,
         triggers: schemaTriggers,
       });
@@ -162,7 +162,7 @@ const reportConsumerValidation = (changes) => {
 
   if ([...files].some((file) => file.startsWith("packages/auth/"))) {
     console.log(
-      `Auth consumer validation required: validate auth, admin-gms, hurricaneplan, gms, signal, including hurricaneplan and gms delegation via AUTH_API_URL. CI enforces ${ciGates}.`
+      `Auth consumer validation required: validate auth, gaa-admin, hurricaneplan, gms, signal, including hurricaneplan and gms delegation via AUTH_API_URL. CI enforces ${ciGates}.`
     );
   }
 
@@ -174,7 +174,7 @@ const reportConsumerValidation = (changes) => {
 
   if (
     [...files].some((file) =>
-      file.startsWith("apps/web/admin-gms/src/app/(admin)/")
+      file.startsWith("apps/web/gaa-admin/src/app/(admin)/")
     )
   ) {
     console.log(

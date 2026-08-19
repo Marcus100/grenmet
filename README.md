@@ -15,7 +15,7 @@ barrelsgd/
 │   │   ├── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, webhooks
 │   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
-│       ├── admin-gms/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
+│       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared sign-in/sign-up gateway for all apps
 │       ├── events/             # Barrels Events organiser-console prototype
 │       ├── hurricaneplan/      # Public hurricane preparedness content site (MDX)
@@ -105,7 +105,7 @@ See [docs/api/development.md](docs/api/development.md) for details.
 
 From repo root:
 
-- [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
+- [gaa-admin](apps/web/gaa-admin/README.md) – `pnpm dev:web:gaa-admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
 - [events](apps/web/events) – `pnpm dev:web:events`
 - [hurricaneplan](apps/web/hurricaneplan/README.md) – `pnpm dev:web:hurricane`
@@ -155,7 +155,7 @@ All commands are run from the monorepo root.
 | Script                         | App / scope                                 |
 | ------------------------------ | ------------------------------------------- |
 | `pnpm dev`                | All apps (Turbo dev in parallel)        |
-| `pnpm dev:web:admin`      | [admin-gms](apps/web/admin-gms)         |
+| `pnpm dev:web:gaa-admin`      | [gaa-admin](apps/web/gaa-admin)         |
 | `pnpm dev:web:auth`       | [auth](apps/web/auth)                   |
 | `pnpm dev:web:hurricane`  | [hurricaneplan](apps/web/hurricaneplan) |
 | `pnpm dev:web:mbia`       | [mbia](apps/web/mbia)                   |
@@ -217,7 +217,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 | App | README |
 | --- | --- |
-| admin-gms | [apps/web/admin-gms/README.md](apps/web/admin-gms/README.md) |
+| gaa-admin | [apps/web/gaa-admin/README.md](apps/web/gaa-admin/README.md) |
 | auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
 | Hono API | [apps/api/honoapi/README.md](apps/api/honoapi/README.md) |
 | hurricaneplan | [apps/web/hurricaneplan/README.md](apps/web/hurricaneplan/README.md) |
@@ -259,7 +259,7 @@ cd apps/api/fastapi
 
 **Web (TypeScript)**
 
-See each app's README (e.g. `apps/web/admin-gms`, `apps/web/gms`).
+See each app's README (e.g. `apps/web/gaa-admin`, `apps/web/gms`).
 
 ### Dependencies
 

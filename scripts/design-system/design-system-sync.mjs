@@ -10,7 +10,7 @@ const foundationPath = join(rootDir, "packages/ui/src/styles/globals.css");
 // `@import "@barrelsgd/ui/styles/globals"` (import-based) instead of inlining the
 // generated block, so it is always in sync by construction.
 const targetPaths = [
-  "apps/web/admin-gms/src/app/globals.css",
+  "apps/web/gaa-admin/src/app/globals.css",
   "apps/web/auth/src/app/globals.css",
   "apps/web/hurricaneplan/src/styles/tailwind.css",
   "apps/web/gms/src/app/globals.css",
@@ -23,7 +23,7 @@ const darkVariantPattern =
 const gmDeclarationPattern = /^\s*--gm-[a-z0-9-]+\s*:/im;
 
 // Hoisted regex literal (useTopLevelRegex). `@source` is included so the
-// generated block is inserted AFTER all top-of-file at-rules (e.g. admin-gms
+// generated block is inserted AFTER all top-of-file at-rules (e.g. gaa-admin
 // has theme-preset @import rules + an @source past the first bare @import).
 const tailwindAtRulePattern = /^@(charset|import|plugin|config|source)\b/;
 

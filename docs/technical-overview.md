@@ -27,7 +27,7 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 | App | Package | Port | Auth model | Database |
 |---|---|---|---|---|
 | `auth` | `@barrelsgd/web-auth` | 3000 | Owns sign-in/sign-up | — |
-| `admin-gms` | `@barrelsgd/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
+| `gaa-admin` | `@barrelsgd/web-gaa-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
 | `hurricaneplan` | `@barrelsgd/web-hurricaneplan` | 3002 | Delegates to auth | — |
 | `gms` | `@barrelsgd/web-gms` | 3003 | Delegates to auth | — |
 | `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
@@ -37,9 +37,9 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
 
 > **Current mixed portal boundary:** the former `cap`, `hr`, `wxwatch`, `wxproducts`, and
-> `salesbus` apps were folded into `admin-gms` as path-prefixed, auth-gated routes
+> `salesbus` apps were folded into `gaa-admin` as path-prefixed, auth-gated routes
 > (`/cap`, `/hr`, `/wxwatch`, `/wxproducts`, `/salesbus`). Their dedicated Postgres
-> databases (wxwatch, wxproducts) are unchanged and are now consumed by `admin-gms`;
+> databases (wxwatch, wxproducts) are unchanged and are now consumed by `gaa-admin`;
 > migrations run from the `web-admin-migrate` image. The old subdomains
 > (`wxwatch.barrels.gd`, `hr.barrels.gd`, `sales.barrels.gd`, `wxproducts.barrels.gd`)
 > are retired. The application is the GAA staff-portal implementation, piloted
@@ -67,9 +67,9 @@ User visits wxwatch (unauthenticated)
 
 These apps use `buildSharedSignInUrl()` from `@barrelsgd/auth/server` to construct the redirect.
 
-**Deep integration (admin-gms)**
+**Deep integration (gaa-admin)**
 
-`admin-gms` uses `@barrelsgd/auth/server` directly to manage sessions — it reads cookies, calls FastAPI auth endpoints, and proxies API requests with access tokens. It does not redirect to `web-auth` for sign-in; it handles sign-in within its own route group.
+`gaa-admin` uses `@barrelsgd/auth/server` directly to manage sessions — it reads cookies, calls FastAPI auth endpoints, and proxies API requests with access tokens. It does not redirect to `web-auth` for sign-in; it handles sign-in within its own route group.
 
 ### The session cookie
 
@@ -82,7 +82,7 @@ Request arrives with session cookie
   → app uses the access token for subsequent FastAPI API calls
 ```
 
-The cookie is set by `web-auth` on successful sign-in via `writeSessionCookie()`. Apps that integrate auth deeply can also write it (as `admin-gms` does).
+The cookie is set by `web-auth` on successful sign-in via `writeSessionCookie()`. Apps that integrate auth deeply can also write it (as `gaa-admin` does).
 
 ### Using auth in a new page (Server Component)
 
@@ -151,17 +151,17 @@ There are **three separate PostgreSQL databases**. They share the same Postgres 
 
 | Database | Managed by | Used by | ORM |
 |---|---|---|---|
-| FastAPI DB (`app_db`) | FastAPI / Alembic | `admin-gms` (HR + CAP management and public CAP feeds, via API) | SQLModel + asyncpg |
-| wxwatch DB | Drizzle Kit | `admin-gms` (`/wxwatch`), scrapy-wxwatch pipeline | Drizzle ORM |
-| wxproducts DB | Drizzle Kit | `admin-gms` (`/wxproducts`) | Drizzle ORM |
+| FastAPI DB (`app_db`) | FastAPI / Alembic | `gaa-admin` (HR + CAP management and public CAP feeds, via API) | SQLModel + asyncpg |
+| wxwatch DB | Drizzle Kit | `gaa-admin` (`/wxwatch`), scrapy-wxwatch pipeline | Drizzle ORM |
+| wxproducts DB | Drizzle Kit | `gaa-admin` (`/wxproducts`) | Drizzle ORM |
 
-**Why separate?** Domain isolation — forecast products, weather images, and HR/auth data have nothing in common. Each schema evolves independently. Since the 2026-06 consolidation, `admin-gms` consumes all three (the wxwatch/wxproducts Drizzle clients live at `apps/web/admin-gms/src/db/{wxwatch,wxproducts}/` via `WXWATCH_DATABASE_URL` / `WXPRODUCTS_DATABASE_URL`).
+**Why separate?** Domain isolation — forecast products, weather images, and HR/auth data have nothing in common. Each schema evolves independently. Since the 2026-06 consolidation, `gaa-admin` consumes all three (the wxwatch/wxproducts Drizzle clients live at `apps/web/gaa-admin/src/db/{wxwatch,wxproducts}/` via `WXWATCH_DATABASE_URL` / `WXPRODUCTS_DATABASE_URL`).
 
 The `infra/docker/docker-compose.yml` provisions all three databases (and their users) on startup via init scripts.
 
 ### Drizzle workflow (wxwatch / wxproducts)
 
-Run from `apps/web/admin-gms`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-admin-gms) for the rule on committing migrations.
+Run from `apps/web/gaa-admin`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-gaa-admin) for the rule on committing migrations.
 
 ---
 

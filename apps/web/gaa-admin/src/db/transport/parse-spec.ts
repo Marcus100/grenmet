@@ -1,6 +1,6 @@
 /**
  * Pure parser for the staff-transportation timetable seed CSV
- * (apps/web/admin-gms/seed/transport-routes.csv).
+ * (apps/web/gaa-admin/seed/transport-routes.csv).
  *
  * Kept dependency-free and side-effect-free so it can be unit-tested with Vitest
  * and imported by the Node seed runner (scripts/seed-transport.mjs). It does NOT

@@ -49,7 +49,7 @@ Before acting on any setup/diagnosis theory, confirm the environment with a chea
 ### Blast-Radius Gate
 A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
 Before declaring done, grep for every consumer of the symbols you touched and
-verify each affected layer. admin-gms is a cross-cutting surface — it hosts five
+verify each affected layer. gaa-admin is a cross-cutting surface — it hosts five
 formerly-separate apps, so treat any change there as potentially affecting
 cap/hr/wxwatch/wxproducts/salesbus, not one isolated app.
 
@@ -62,7 +62,7 @@ edit it. Find and report, never silently expand scope.
 | A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
 | Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, gms via `AUTH_API_URL`)                         |
 | A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
-| A consolidated admin route      | the other folded modules in admin-gms (cap/hr/wxwatch/wxproducts/salesbus)                       |
+| A consolidated admin route      | the other folded modules in gaa-admin (cap/hr/wxwatch/wxproducts/salesbus)                       |
 | A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
 
 ### Reasoning Gate

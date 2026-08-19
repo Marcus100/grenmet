@@ -16,7 +16,7 @@
     "reset": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools down -v && docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml up postgres -d",
     "status": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools ps && docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml ps",
     "dev:web": "turbo run dev --filter=@barrelsgd/web-*",
-    "dev:web:admin": "turbo run dev --filter=@barrelsgd/web-admin",
+    "dev:web:gaa-admin": "turbo run dev --filter=@barrelsgd/web-gaa-admin",
     "dev:web:hurricane": "turbo run dev --filter=@barrelsgd/web-hurricaneplan",
     "dev:web:auth": "turbo run dev --filter=@barrelsgd/web-auth",
     "dev:web:gms": "turbo run dev --filter=@barrelsgd/web-gms",

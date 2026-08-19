@@ -1,6 +1,6 @@
 /**
  * Pure parser for the janitorial cleaning-spec seed CSV
- * (apps/web/admin-gms/seed/janitorial-spec.csv).
+ * (apps/web/gaa-admin/seed/janitorial-spec.csv).
  *
  * Kept dependency-free and side-effect-free so it can be unit-tested with Vitest
  * and imported by the Node seed runner (scripts/seed-janitorial.mjs). It does NOT

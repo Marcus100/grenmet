@@ -1,6 +1,6 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1-6 complete
+**Status:** In progress — boundaries 1-7 complete
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
@@ -650,11 +650,28 @@ boundaries that an authorized human may commit separately:
    hardcoded in four components named for fixed May dates. Connecting it to the
    live `/api/cap` public endpoints, and publishing forecasts publicly, are
    separate pieces of work.
-7. [ ] Rename the staff portal: `apps/web/admin-gms` → `apps/web/gaa-admin`,
-   `@barrelsgd/web-gaa-admin`, port 3001 → 3011. Rename and rehost only — no
-   module split, no route moves, no data migration. This also releases
-   `@barrelsgd/web-admin` for the Barrels superuser control plane, which
-   boundary 2 incorrectly assigned to the portal.
+7. [x] Rename the staff portal: `apps/web/admin-gms` → `apps/web/gaa-admin`,
+   `@barrelsgd/web-gaa-admin`. Rename and rehost only — no module split, no route
+   moves, no data migration. This releases `@barrelsgd/web-admin` for the Barrels
+   superuser control plane, which boundary 2 incorrectly assigned to the portal.
+
+   **The port move 3001 → 3011 was deliberately deferred to boundary 15.** The
+   port is not a free-standing setting: it is duplicated across the app's dev and
+   start scripts, the Dockerfile's `EXPOSE`/`ENV PORT`, the compose healthcheck
+   (`127.0.0.1:3001`), the traefik `loadbalancer.server.port`, auth's
+   `AUTH_ALLOWED_RETURN_HOSTS`, and the portal's own `AUTH_APP_URL` default.
+   Changing the app without the deploy layer produces a failing healthcheck and a
+   502 behind a fully green build, so the whole set moves together in the
+   boundary 15 deploy-identity commit.
+
+   Consequence to carry forward: **port 3001 is still occupied by the portal**, so
+   the Barrels superuser admin listed against 3001 in the target table cannot take
+   it until boundary 15 lands. Boundary 11 must not assume 3001 is free.
+
+   `biome.jsonc` carried four path overrides into `apps/web/admin-gms` — lint
+   relaxations for vendored calendar components and config-driven admin form
+   editors. Renaming the directory without them would silently un-exempt that code
+   and fail `pnpm fix`. Approved and updated as part of this boundary.
 8. [ ] Rename Hurricane Plan to docs: `apps/web/hurricaneplan` → `apps/web/docs`,
    `@barrelsgd/web-docs`, served at `docs.weather.gd`, port 3002 retained. Add a
    permanent redirect from the former standalone URL.

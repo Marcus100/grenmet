@@ -25,7 +25,7 @@ approval workflow specifically.
 ## Decision
 
 Build a single **modular-monolith staff platform** in the existing FastAPI
-backend and the GAA staff portal web app (`apps/web/admin-gms`, renamed to
+backend and the GAA staff portal web app (`apps/web/gaa-admin`, renamed to
 `apps/web/gaa-admin` / `@barrelsgd/web-gaa-admin` at transition boundary 7),
 piloted in Meteorology and rolled out department-by-department. Each new capability is a module on a shared core, not a
 separate service.
@@ -57,18 +57,19 @@ data, cross-department roles like HR/Accounts are granted wider scope explicitly
 This extends the existing `RoleAssignmentScope` (SELF / DEPARTMENT / ALL) toward
 tree-aware scoping.
 
-**Tenant scoping is added now, not retrofitted.** The HR capability is intended
-to become a Barrels product sold to other organisations, with GAA as the first
-customer. The tree is therefore rooted at an **organisation**, not at GAA:
+**Organisation scoping is added now, without committing productization.** The
+tree is rooted at an **organisation**, not hardcoded at GAA:
 `organisation_id` is carried through schemas from the outset, and department
 configuration — approval chains, shift types, roles — is data-driven rather than
 hardcoded to GAA.
 
 This is deliberately narrower than full multi-tenancy: no tenant isolation
-guarantees, billing, or self-service onboarding are built now. The decision is
-only that no schema, scope, or query may assume a single organisation, because
-unpicking that assumption after timecheck, requests, and payroll are built on it
-is far more expensive than carrying the column from the start.
+guarantees, billing, self-service onboarding, or external product commitment are
+built now. The decision is only that no schema, scope, or query may assume a
+single organisation, because unpicking that assumption after timecheck,
+requests, and payroll are built on it is far more expensive than carrying the
+column from the start. Commercializing this work is a future Barrels decision
+gate after the GAA pilot proves reuse, rights, demand, isolation, and support.
 
 Adding `organisation_id` touches Drizzle schemas and FastAPI models, both of
 which are Ask-First changes requiring explicit approval and a migration before
@@ -218,8 +219,8 @@ each self-configuring its approval chains, shift patterns, and roles.
 - Rolling out per department spreads effort and risk but requires per-department
   configuration (chains, shifts, roles) to be first-class, not hardcoded to Met.
 - Carrying `organisation_id` from the start costs a migration and some query
-  complexity now, in exchange for keeping the HR product sellable without a
-  schema rewrite. It does not by itself make the platform multi-tenant.
+  complexity now, in exchange for avoiding a GAA- or department-specific schema.
+  It does not by itself make the platform multi-tenant or a Barrels product.
 - Per-brand design systems mean more token sets to maintain and a real risk of
   drift between them; the neutral contracts in transition boundary 3 are what stop
   each app reinventing its own primitives underneath its own palette.

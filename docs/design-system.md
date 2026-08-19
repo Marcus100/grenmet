@@ -12,7 +12,7 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 - Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--gm-font-document` and `font-gm-document`.
 - V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
 - `gms` is the public web reference implementation.
-- `admin-gms` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
+- `gaa-admin` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
 - Code Connect files may live locally in the repo, but publishing is deferred until the Figma account has the required Developer, Organization, or Enterprise capability.
 - For v1, the user is the sole approver for public `--gm-*` token additions or value changes.
 
@@ -192,7 +192,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | App | Design-system role | Direction |
 |---|---|---|
 | `gms` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
-| `admin-gms` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to GrenMet tokens. |
+| `gaa-admin` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to GrenMet tokens. |
 | `wxproducts` | Document-heavy weather product lane | Keep Noto Sans and fixed A4/PDF dimensions inside official product templates. |
 | `hr` | Document-heavy HR operations lane | Keep official forms in the document lane; use Inter for normal web UI. |
 | `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, GrenMet radii, shadows, and semantic colors. |
@@ -205,7 +205,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 1. `gms`, because it is the public web reference.
 2. `@barrelsgd/ui`, because shared primitives must stay token-clean.
-3. `admin-gms`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
+3. `gaa-admin`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
 4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
 5. `auth`, `wxwatch`, `salesbus`, and `hurricaneplan`, guided by audit output and app-specific risk.
 
@@ -220,7 +220,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
 | `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with GrenMet tokens. |
 | `hurricaneplan` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
-| `admin-gms` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
+| `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
 | `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with GrenMet tokens. |
 
 Run the warning-only audit command to find foundation drift:
@@ -239,7 +239,7 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `gms` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
+The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `gms` as the public reference, `gaa-admin` as the dashboard lane, and Code Connect publishing deferred.
 
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
@@ -263,11 +263,11 @@ Current audit summary:
 | `wxproducts` | Fixed A4/PDF dimensions in the document lane. |
 | `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
 | `@barrelsgd/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
-| `admin-gms` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
+| `gaa-admin` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
 | `hurricaneplan` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
 
 The audit also surfaces two additional categories not present in the initial pilot:
-- **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `admin-gms`; retained as migration debt because downstream third-party overrides depend on it.
+- **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `gaa-admin`; retained as migration debt because downstream third-party overrides depend on it.
 - **typography** — detects font imports and `--font-sans` overrides that bypass the GrenMet font bridge. V1 apps should resolve web UI typography back to `--gm-font-sans`; official document templates may use `--gm-font-document`.
 
 Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class GrenMet tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
@@ -286,7 +286,7 @@ Dark mode is supported via the class-based `dark` variant. The foundation define
 
 Apps may follow the user's theme preference (light / dark / system) via the `@barrelsgd/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
 
-`admin-gms` ships the GrenMet `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
+`gaa-admin` ships the GrenMet `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
 
 ## Warning Pattern Checklist
 

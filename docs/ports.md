@@ -21,7 +21,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | App | Package | Port | Deployed |
 |---|---|---|---|
 | auth | `@barrelsgd/web-auth` | 3000 | yes |
-| admin-gms | `@barrelsgd/web-admin` | 3001 | yes |
+| gaa-admin | `@barrelsgd/web-gaa-admin` | 3001 | yes |
 | hurricaneplan | `@barrelsgd/web-hurricaneplan` | 3002 | yes |
 | gms | `@barrelsgd/web-gms` | 3003 | yes |
 | signal | `@barrelsgd/web-signal` | 3004 | dev only (no Dockerfile yet) |
