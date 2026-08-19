@@ -56,7 +56,7 @@ jobs:
             path: apps/web/hurricaneplan
             port: 3002
           - app: web-spicewx
-            path: apps/web/spicewx
+            path: apps/web/gms
             port: 3003
 
     steps:

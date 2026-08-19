@@ -33,7 +33,7 @@ Present this list to the user. Do not edit files yet.
 Show the proposed code changes. Wait for the user to approve before editing.
 
 **Step 5 — Apply and hand off**
-After approval, apply the changes. Tell the user which dev command to run to preview (`pnpm dev:web:spicewx`, etc.) and ask them to screenshot the result.
+After approval, apply the changes. Tell the user which dev command to run to preview (`pnpm dev:web:gms`, etc.) and ask them to screenshot the result.
 
 **Step 6 — Iterate**
 When the user shares the screenshot or describes remaining issues, return to Step 3 with the updated state. Continue until the user declares done.

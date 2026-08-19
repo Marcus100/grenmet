@@ -26,8 +26,8 @@ const webApps = [
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },
   {
-    name: "spicewx",
-    root: "apps/web/spicewx",
+    name: "gms",
+    root: "apps/web/gms",
     note: "Pilot app for the first foundation cleanup pass.",
   },
 ];
@@ -551,7 +551,7 @@ function printReport(reports) {
   console.log("Mode: warning only; this command exits 0.");
   console.log("Web UI font: Inter.");
   console.log("Official document font: Noto Sans via --font-document.");
-  console.log("Pilot cleanup app: spicewx.");
+  console.log("Pilot cleanup app: gms.");
   console.log("");
 
   if (total === 0) {

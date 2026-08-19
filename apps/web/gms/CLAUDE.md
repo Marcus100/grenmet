@@ -1,4 +1,4 @@
-# spicewx (`@barrelsgd/web-spicewx`) — Claude context
+# gms (`@barrelsgd/web-gms`) — Claude context
 
 Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily forecasts, weather conditions, alerts, and news.
 

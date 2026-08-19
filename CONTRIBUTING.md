@@ -64,7 +64,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 | `test` | Adding or updating tests |
 | `perf` | Performance improvement |
 
-**Scope** is the app or package affected: `admin-gms`, `spicewx`, `auth`, `ui`, `api-client`, `fastapi`, `ci`, etc.
+**Scope** is the app or package affected: `admin-gms`, `gms`, `auth`, `ui`, `api-client`, `fastapi`, `ci`, etc.
 
 **Examples:**
 
@@ -160,8 +160,8 @@ The checker blocks these incomplete changes:
   change in its matching `apps/web/admin-gms/drizzle/<family>/` directory
 
 Auth and shared UI changes print consumer-validation reminders. Auth validation
-covers auth, admin-gms, hurricaneplan, spicewx, and signal, including the
-`AUTH_API_URL` delegation paths in hurricaneplan and spicewx. Consolidated
+covers auth, admin-gms, hurricaneplan, gms, and signal, including the
+`AUTH_API_URL` delegation paths in hurricaneplan and gms. Consolidated
 admin route changes similarly require checking cap, hr, wxwatch, wxproducts, and
 salesbus. Drizzle schema changes also remind you to verify the `web-migrate`
 production service and the wxwatch and wxproducts databases. CI supplies the
@@ -244,7 +244,7 @@ CI checks that these stay in sync. If the check fails, regenerate and commit.
 
 If you're ever scaffolding a new app:
 
-1. Copy an existing simple app (e.g. `spicewx`) as a starting point
+1. Copy an existing simple app (e.g. `gms`) as a starting point
 2. Add it to `pnpm-workspace.yaml`
 3. Add a `turbo.json` task entry if needed
 4. Add its dev script to the root `package.json`

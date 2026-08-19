@@ -1,8 +1,14 @@
 # Technical Overview
 
-This document explains how the Grenmet codebase fits together — the relationships between apps, how shared packages are used, how auth works end-to-end, and the key design decisions a developer needs to understand before working on the project.
+This document explains how the Barrels Grenada codebase fits together: the
+relationships among applications, shared packages, authentication, and data.
+The repository hosts Barrels products and client delivery. GAA is the client
+organisation and GMS is its meteorological department; neither is a Barrels
+product.
 
-For the GMS service strategy and product catalogue, see [GMS Digital Service Architecture](./architecture.md). For commands and setup, see the [root README](../README.md).
+For ownership and planning, see the [Portfolio Planning System](./portfolio/).
+For GMS service design, see [GMS Digital Service Architecture](./architecture.md).
+For commands and setup, see the [root README](../README.md).
 
 ---
 
@@ -23,18 +29,21 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 | `auth` | `@barrelsgd/web-auth` | 3000 | Owns sign-in/sign-up | — |
 | `admin-gms` | `@barrelsgd/web-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
 | `hurricaneplan` | `@barrelsgd/web-hurricaneplan` | 3002 | Delegates to auth | — |
-| `spicewx` | `@barrelsgd/web-spicewx` | 3003 | Delegates to auth | — |
+| `gms` | `@barrelsgd/web-gms` | 3003 | Delegates to auth | — |
 | `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
+| `mbia` | `@barrelsgd/web-mbia` | 3005 | None (public content) | — |
+| `events` | `@barrelsgd/web-events` | 3009 | None (prototype) | — |
 
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
 
-> **Consolidated (2026-06):** the former `cap`, `hr`, `wxwatch`, `wxproducts`, and
+> **Current mixed portal boundary:** the former `cap`, `hr`, `wxwatch`, `wxproducts`, and
 > `salesbus` apps were folded into `admin-gms` as path-prefixed, auth-gated routes
 > (`/cap`, `/hr`, `/wxwatch`, `/wxproducts`, `/salesbus`). Their dedicated Postgres
 > databases (wxwatch, wxproducts) are unchanged and are now consumed by `admin-gms`;
 > migrations run from the `web-admin-migrate` image. The old subdomains
 > (`wxwatch.barrels.gd`, `hr.barrels.gd`, `sales.barrels.gd`, `wxproducts.barrels.gd`)
-> are retired — point them at `admin.barrels.gd/<app>` at the DNS layer.
+> are retired. The application is the GAA staff-portal implementation, piloted
+> in GMS; it is not the future Barrels superuser admin.
 
 ---
 
@@ -46,7 +55,7 @@ Authentication is centralised in the `web-auth` app (`:3000`). All other apps ei
 
 **Delegation (most apps)**
 
-Apps that delegate (wxwatch, hr, hurricaneplan, spicewx) redirect unauthenticated users to `web-auth` for sign-in. After sign-in, `web-auth` redirects back with a shared session cookie.
+Apps that delegate (wxwatch, hr, hurricaneplan, gms) redirect unauthenticated users to `web-auth` for sign-in. After sign-in, `web-auth` redirects back with a shared session cookie.
 
 ```
 User visits wxwatch (unauthenticated)
@@ -103,14 +112,22 @@ See [`packages/auth/README.md`](../packages/auth/README.md).
 
 ### `@barrelsgd/ui`
 
-Shared UI component library. All web apps import from this package.
+Brand-neutral shared UI component library. Product and client presentation
+packages may depend on it; it must not depend on them.
 
 ```ts
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 ```
 
-Built on Base UI primitives with shadcn-style component patterns and GrenMet v1 design tokens. See [`packages/ui/README.md`](../packages/ui/README.md).
+Built on Base UI primitives with shadcn-style component patterns. See
+[`packages/ui/README.md`](../packages/ui/README.md).
+
+### `@barrelsgd/gms`
+
+GMS assets and service-specific presentation components. Its extraction from
+shared UI is in progress in the current worktree.
+
 
 ### `@barrelsgd/api-client`
 

@@ -121,10 +121,10 @@ web/hurricaneplan:
       - any-glob-to-any-file:
           - apps/web/hurricaneplan/**/*
 
-web/spicewx:
+web/gms:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/spicewx/**/*
+          - apps/web/gms/**/*
 
 web/hr:
   - changed-files:

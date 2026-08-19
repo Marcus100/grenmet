@@ -8,6 +8,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
 ### Always (no confirmation needed)
 - Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
@@ -59,7 +60,7 @@ edit it. Find and report, never silently expand scope.
 | If you change…                  | Also verify…                                                                                    |
 |---------------------------------|-------------------------------------------------------------------------------------------------|
 | A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
-| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, spicewx via `AUTH_API_URL`)                         |
+| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, gms via `AUTH_API_URL`)                         |
 | A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
 | A consolidated admin route      | the other folded modules in admin-gms (cap/hr/wxwatch/wxproducts/salesbus)                       |
 | A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
@@ -143,6 +144,7 @@ When adding to this file, follow this structure:
 | I need to understand…              | Read…                              |
 |------------------------------------|------------------------------------|
 | Monorepo structure and auth flow   | `docs/technical-overview.md`       |
+| Portfolio, client programmes, repository ownership | `docs/portfolio/`       |
 | Service architecture               | `docs/architecture.md`             |
 | Auth package API                   | `packages/auth/README.md`          |
 | Auth package rules (agent)         | `packages/auth/CLAUDE.md`          |

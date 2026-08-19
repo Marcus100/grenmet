@@ -13,7 +13,7 @@ const targetPaths = [
   "apps/web/admin-gms/src/app/globals.css",
   "apps/web/auth/src/app/globals.css",
   "apps/web/hurricaneplan/src/styles/tailwind.css",
-  "apps/web/spicewx/src/app/globals.css",
+  "apps/web/gms/src/app/globals.css",
 ].map((path) => join(rootDir, path));
 
 const blockPattern =
