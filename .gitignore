@@ -187,3 +187,5 @@ next-shadcn-admin-dashboard-baseui/
 
 # MBIA scraped WordPress source material (218MB, reference only)
 apps/web/mbia/.source/
+
+/temp-files
