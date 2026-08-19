@@ -723,10 +723,21 @@ boundaries that an authorized human may commit separately:
     **Image renames must land before compose references them.** Deployment runs
     `pull` and then `up -d --pull always`, so compose pointing at an image CI has
     not published yet fails the deploy mid-flight — a failure mode `deploy-prod.yml`
-    already carries a comment about. Split into two phases: first rename in
-    `build-web-images.yml` so CI publishes the new names, then repoint compose once
-    the images exist in GHCR. Note the known staging-gate race where a check with
-    no prior run reports OK: a renamed image has no prior run.
+    already carries a comment about. Note the known staging-gate race where a check
+    with no prior run reports OK: a renamed image has no prior run.
+
+    Phase A (done): `build-web-images.yml` publishes **both** names for every
+    image — the legacy `grenmet-<app>` that compose still references, and the new
+    `barrelsgd-<newapp>`. Publishing only the new names would leave compose
+    pointing at images CI no longer updates, so deploys would silently serve
+    frozen code until phase B landed. Dual publishing removes that window
+    entirely. The matrix carries `app` (legacy) and `newapp` (new) side by side.
+
+    Phase B: repoint compose and the deploy workflows at `barrelsgd-*`, rename the
+    services, the compose projects and the external network, once the new images
+    exist in GHCR.
+
+    Phase C: drop the legacy `app` column and stop publishing `grenmet-*`.
 
     **The health-check loops are hardcoded.** `deploy-staging.yml` and
     `deploy-prod.yml` both iterate a literal service list
