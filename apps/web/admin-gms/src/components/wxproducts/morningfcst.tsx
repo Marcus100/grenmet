@@ -109,7 +109,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center">
       <div className="h-px flex-1 bg-zinc-300" />
-      <h2 className="font-semibold text-gm-label text-zinc-900 uppercase tracking-widest">
+      <h2 className="font-semibold text-label text-zinc-900 uppercase tracking-widest">
         {children}
       </h2>
       <div className="h-px flex-1 bg-zinc-300" />
@@ -128,7 +128,7 @@ function LabelValue({
 
   return (
     <div>
-      <p className="font-semibold text-gm-label text-zinc-500 uppercase tracking-widest">
+      <p className="font-semibold text-label text-zinc-500 uppercase tracking-widest">
         {label}
       </p>
       <p className="mt-1 text-sm text-zinc-900">{value}</p>
@@ -230,7 +230,7 @@ function Badge({ value }: { value: string }) {
 
   return (
     <span
-      className={`rounded-gm-full border px-3 py-1 font-semibold text-gm-micro uppercase tracking-widest ${tone}`}
+      className={`rounded-full border px-3 py-1 font-semibold text-micro uppercase tracking-widest ${tone}`}
     >
       {value}
     </span>
@@ -326,7 +326,7 @@ export default function MorningForecast({
   footerNote = "This forecast is issued by the Grenada Meteorological Service and is valid for the State of Grenada and surrounding coastal waters.",
 }: MorningForecastProps) {
   return (
-    <article className="bg-white p-8 font-gm-document shadow-sm ring-1 ring-zinc-200">
+    <article className="bg-white p-8 font-document shadow-sm ring-1 ring-zinc-200">
       {/* HEADER */}
 
       <header className="-m-8 mb-6 flex items-center justify-between bg-zinc-900 px-8 py-4">
@@ -345,7 +345,7 @@ export default function MorningForecast({
         </div>
       </header>
 
-      <div className="mt-3 grid gap-3 rounded-gm-8 bg-zinc-50 p-4 sm:grid-cols-3">
+      <div className="mt-3 grid gap-3 rounded-lg bg-zinc-50 p-4 sm:grid-cols-3">
         <LabelValue label="Date Issued" value={dateIssued} />
         <LabelValue label="Valid From" value={validFrom} />
         <LabelValue label="Valid Until" value={validUntil} />
@@ -353,7 +353,7 @@ export default function MorningForecast({
 
       {/* HEADLINE */}
 
-      <section className="mt-3 rounded-gm-8 bg-zinc-900 p-4 text-white">
+      <section className="mt-3 rounded-lg bg-zinc-900 p-4 text-white">
         <p className="text-xs uppercase tracking-widest">Forecast Headline</p>
         <p className="mt-2 text-base">{headline}</p>
       </section>
@@ -393,7 +393,7 @@ export default function MorningForecast({
       <section className="mt-4 space-y-4">
         <SectionTitle>Public Forecast</SectionTitle>
 
-        <div className="grid grid-cols-1 gap-x-10 gap-y-3 rounded-gm-8 p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-x-10 gap-y-3 rounded-lg p-6 ring-1 ring-zinc-900/5 sm:grid-cols-2">
           {/* <MetricItem icon={Cloud} label="Weather" value={weather} />
           <MetricItem icon={Info} label="Details" value={weatherDetails} /> */}
           <MetricItem
@@ -444,7 +444,7 @@ export default function MorningForecast({
             {impacts && (
               <section className="">
                 <div className="border-gm-warning-amber-border border-l-4 bg-gm-warning-amber-bg px-4 py-2 text-gm-warning-amber-fg">
-                  <h2 className="font-semibold text-gm-label uppercase tracking-widest">
+                  <h2 className="font-semibold text-label uppercase tracking-widest">
                     Impact
                   </h2>
                 </div>
@@ -458,7 +458,7 @@ export default function MorningForecast({
             {recommendedActions && (
               <section className="">
                 <div className="border-gm-warning-yellow-border border-l-4 bg-gm-warning-yellow-bg px-4 py-2 text-gm-warning-yellow-fg">
-                  <h2 className="font-semibold text-gm-label uppercase tracking-widest">
+                  <h2 className="font-semibold text-label uppercase tracking-widest">
                     Response
                   </h2>
                 </div>

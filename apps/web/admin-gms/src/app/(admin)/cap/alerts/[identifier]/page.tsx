@@ -35,17 +35,17 @@ export default async function AlertDetailPage({ params }: Props) {
         <div className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center gap-2">
             {info ? <SeverityBadge severity={info.severity} /> : null}
-            <span className="text-gm-body-sm text-gm-text-muted leading-gm-body-sm">
+            <span className="text-body-sm text-gm-text-muted leading-body-sm">
               {alert.msg_type}
             </span>
-            <span className="text-gm-body-sm text-gm-text-muted leading-gm-body-sm">
+            <span className="text-body-sm text-gm-text-muted leading-body-sm">
               {alert.lifecycle_state}
             </span>
           </div>
-          <h1 className="text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+          <h1 className="text-gm-text-primary text-heading-md leading-heading-md">
             {info?.headline ?? alert.identifier}
           </h1>
-          <p className="mt-2 break-words text-gm-body-sm text-gm-text-muted leading-gm-body-sm">
+          <p className="mt-2 break-words text-body-sm text-gm-text-muted leading-body-sm">
             {alert.identifier}
           </p>
         </div>
@@ -62,25 +62,25 @@ export default async function AlertDetailPage({ params }: Props) {
       <div className="grid gap-6 py-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="min-w-0 space-y-6">
           <section>
-            <h2 className="mb-2 text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+            <h2 className="mb-2 text-gm-text-primary text-heading-sm leading-heading-sm">
               Description
             </h2>
-            <p className="whitespace-pre-line text-gm-body-base text-gm-text-secondary leading-gm-body-base">
+            <p className="whitespace-pre-line text-body-base text-gm-text-secondary leading-body-base">
               {info?.description ?? alert.note ?? "CAP alert"}
             </p>
           </section>
           {info?.instruction ? (
             <section className="border-gm-border border-l-4 border-l-gm-risk-red bg-gm-surface px-4 py-3">
-              <h2 className="mb-2 text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+              <h2 className="mb-2 text-gm-text-primary text-heading-sm leading-heading-sm">
                 Instruction
               </h2>
-              <p className="whitespace-pre-line text-gm-body-base text-gm-text-secondary leading-gm-body-base">
+              <p className="whitespace-pre-line text-body-base text-gm-text-secondary leading-body-base">
                 {info.instruction}
               </p>
             </section>
           ) : null}
           <section>
-            <h2 className="mb-2 text-gm-heading-sm text-gm-text-primary leading-gm-heading-sm">
+            <h2 className="mb-2 text-gm-text-primary text-heading-sm leading-heading-sm">
               Areas
             </h2>
             <div className="grid gap-2">
@@ -91,9 +91,9 @@ export default async function AlertDetailPage({ params }: Props) {
                 >
                   <MapPin
                     aria-hidden="true"
-                    className="mt-0.5 size-4 shrink-0 text-gm-navy"
+                    className="mt-0.5 size-4 shrink-0 text-navy"
                   />
-                  <span className="text-gm-body text-gm-text-secondary leading-gm-body">
+                  <span className="text-body text-gm-text-secondary leading-body">
                     {area.area_desc}
                   </span>
                 </div>
@@ -124,11 +124,11 @@ export default async function AlertDetailPage({ params }: Props) {
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border border-gm-border bg-white p-3 shadow-gm-card">
-      <div className="text-gm-label text-gm-text-muted uppercase leading-gm-label">
+    <div className="border border-gm-border bg-white p-3 shadow-card">
+      <div className="text-gm-text-muted text-label uppercase leading-label">
         {label}
       </div>
-      <div className="mt-1 break-words text-gm-body text-gm-text-primary leading-gm-body">
+      <div className="mt-1 break-words text-body text-gm-text-primary leading-body">
         {value}
       </div>
     </div>

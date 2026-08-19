@@ -58,58 +58,37 @@
        Shared scales. Typography, spacing, radius and elevation are not brand
        assets, so they stay here and are used by GMS and Barrels alike. The GMS
        *palette* moved to @barrelsgd/gms/styles/foundation.css in boundary 5b.
-       The `gm` infix on these names is historical and is dropped in 5c.
        --------------------------------------------------------------- */
 
-    /* GMS typography */
-    --gm-font-size-micro: 10px;
-    --gm-font-size-label: 11px;
-    --gm-font-size-caption: 12px;
-    --gm-font-size-body-sm: 13px;
-    --gm-font-size-body: 14px;
-    --gm-font-size-body-base: 16px;
-    --gm-font-size-nav: 20px;
-    --gm-font-size-heading-sm: 18px;
-    --gm-font-size-heading-md: 30px;
-    --gm-font-size-heading-lg: 34px;
-    --gm-line-height-micro: 16px;
-    --gm-line-height-label: 16px;
-    --gm-line-height-caption: 16px;
-    --gm-line-height-body-sm: 20px;
-    --gm-line-height-body: 20px;
-    --gm-line-height-body-base: 24px;
-    --gm-line-height-nav: 28px;
-    --gm-line-height-heading-sm: 24px;
-    --gm-line-height-heading-md: 36px;
-    --gm-line-height-heading-lg: 36px;
+    /* Type scale. Sizes and their paired line heights; `text-body` and
+       `leading-body` are the Tailwind utilities. */
+    --font-size-micro: 10px;
+    --font-size-label: 11px;
+    --font-size-caption: 12px;
+    --font-size-body-sm: 13px;
+    --font-size-body: 14px;
+    --font-size-body-base: 16px;
+    --font-size-nav: 20px;
+    --font-size-heading-sm: 18px;
+    --font-size-heading-md: 30px;
+    --font-size-heading-lg: 34px;
+    --line-height-micro: 16px;
+    --line-height-label: 16px;
+    --line-height-caption: 16px;
+    --line-height-body-sm: 20px;
+    --line-height-body: 20px;
+    --line-height-body-base: 24px;
+    --line-height-nav: 28px;
+    --line-height-heading-sm: 24px;
+    --line-height-heading-md: 36px;
+    --line-height-heading-lg: 36px;
 
-    /* GMS spacing */
-    --gm-spacing-4: 4px;
-    --gm-spacing-8: 8px;
-    --gm-spacing-12: 12px;
-    --gm-spacing-16: 16px;
-    --gm-spacing-20: 20px;
-    --gm-spacing-24: 24px;
-    --gm-spacing-28: 28px;
-    --gm-spacing-32: 32px;
-    --gm-spacing-36: 36px;
-    --gm-spacing-40: 40px;
-    --gm-spacing-44: 44px;
-    --gm-spacing-72: 72px;
-
-    /* GMS fixed dimensions (heights — not general spacing) */
-    --gm-height-header: 72px;
-
-    /* GMS radius */
-    --gm-radius-2: 2px;
-    --gm-radius-5: 5px;
-    --gm-radius-6: 6px;
-    --gm-radius-8: 8px;
-    --gm-radius-full: 999px;
-
-    /* GMS shadows */
-    --gm-shadow-card:
-      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    /* Fixed dimensions (not general spacing). Spacing and radius are
+       deliberately absent: their values were exact duplicates of Tailwind's
+       own scale, so they were removed in boundary 5c rather than renamed.
+       Defining --spacing-<n> here would shadow Tailwind's computed scale and
+       silently resize every p-4 in the repo. */
+    --header-height: 72px;
 
     /* ---------------------------------------------------------------
        Layer 2 — semantic contract.
@@ -178,8 +157,6 @@
     --sidebar-ring: var(--brand-primary-accent);
 
     /* Optional app font bridge (GMS alias; moves with the GMS block) */
-    --gm-font-sans: var(--brand-font-sans);
-    --gm-font-document: var(--brand-font-document);
 
     color-scheme: light;
   }
@@ -228,7 +205,7 @@
 
 @theme inline {
   --font-sans: var(--brand-font-sans);
-  --font-gm-document: var(--gm-font-document);
+  --font-document: var(--brand-font-document);
 
   /* shadcn semantic utilities */
   --color-background: var(--background);
@@ -284,45 +261,28 @@
   --radius-3xl: calc(var(--radius) + 12px);
   --radius-4xl: calc(var(--radius) + 16px);
 
-  --text-gm-micro: var(--gm-font-size-micro);
-  --text-gm-label: var(--gm-font-size-label);
-  --text-gm-caption: var(--gm-font-size-caption);
-  --text-gm-body-sm: var(--gm-font-size-body-sm);
-  --text-gm-body: var(--gm-font-size-body);
-  --text-gm-body-base: var(--gm-font-size-body-base);
-  --text-gm-nav: var(--gm-font-size-nav);
-  --text-gm-heading-sm: var(--gm-font-size-heading-sm);
-  --text-gm-heading-md: var(--gm-font-size-heading-md);
-  --text-gm-heading-lg: var(--gm-font-size-heading-lg);
-  --leading-gm-micro: var(--gm-line-height-micro);
-  --leading-gm-label: var(--gm-line-height-label);
-  --leading-gm-caption: var(--gm-line-height-caption);
-  --leading-gm-body-sm: var(--gm-line-height-body-sm);
-  --leading-gm-body: var(--gm-line-height-body);
-  --leading-gm-body-base: var(--gm-line-height-body-base);
-  --leading-gm-nav: var(--gm-line-height-nav);
-  --leading-gm-heading-sm: var(--gm-line-height-heading-sm);
-  --leading-gm-heading-md: var(--gm-line-height-heading-md);
-  --leading-gm-heading-lg: var(--gm-line-height-heading-lg);
-  --spacing-gm-4: var(--gm-spacing-4);
-  --spacing-gm-8: var(--gm-spacing-8);
-  --spacing-gm-12: var(--gm-spacing-12);
-  --spacing-gm-16: var(--gm-spacing-16);
-  --spacing-gm-20: var(--gm-spacing-20);
-  --spacing-gm-24: var(--gm-spacing-24);
-  --spacing-gm-28: var(--gm-spacing-28);
-  --spacing-gm-32: var(--gm-spacing-32);
-  --spacing-gm-36: var(--gm-spacing-36);
-  --spacing-gm-40: var(--gm-spacing-40);
-  --spacing-gm-44: var(--gm-spacing-44);
-  --spacing-gm-72: var(--gm-spacing-72);
-  --radius-gm-2: var(--gm-radius-2);
-  --radius-gm-5: var(--gm-radius-5);
-  --radius-gm-6: var(--gm-radius-6);
-  --radius-gm-8: var(--gm-radius-8);
-  --radius-gm-full: var(--gm-radius-full);
-  --shadow-gm-card: var(--gm-shadow-card);
-  --height-gm-header: var(--gm-height-header);
+  --text-micro: var(--font-size-micro);
+  --text-label: var(--font-size-label);
+  --text-caption: var(--font-size-caption);
+  --text-body-sm: var(--font-size-body-sm);
+  --text-body: var(--font-size-body);
+  --text-body-base: var(--font-size-body-base);
+  --text-nav: var(--font-size-nav);
+  --text-heading-sm: var(--font-size-heading-sm);
+  --text-heading-md: var(--font-size-heading-md);
+  --text-heading-lg: var(--font-size-heading-lg);
+  --leading-micro: var(--line-height-micro);
+  --leading-label: var(--line-height-label);
+  --leading-caption: var(--line-height-caption);
+  --leading-body-sm: var(--line-height-body-sm);
+  --leading-body: var(--line-height-body);
+  --leading-body-base: var(--line-height-body-base);
+  --leading-nav: var(--line-height-nav);
+  --leading-heading-sm: var(--line-height-heading-sm);
+  --leading-heading-md: var(--line-height-heading-md);
+  --leading-heading-lg: var(--line-height-heading-lg);
+  --shadow-card: var(--brand-shadow-card);
+  --height-header: var(--header-height);
 }
 /* END BARRELS DESIGN SYSTEM V1 */
 

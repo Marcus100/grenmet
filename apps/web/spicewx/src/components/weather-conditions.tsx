@@ -36,14 +36,11 @@ interface WeatherConditionsProps {
 
 export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
-    <div className="grid grid-cols-2 gap-gm-8 bg-background pt-2 pb-1">
+    <div className="grid grid-cols-2 gap-2 bg-background pt-2 pb-1">
       {conditions.map((item) => {
         const Icon = ICON_MAP[item.label];
         return (
-          <div
-            className="flex items-center gap-2 px-2.5 py-gm-8"
-            key={item.label}
-          >
+          <div className="flex items-center gap-2 px-2.5 py-2" key={item.label}>
             <div className="flex size-8 shrink-0 items-center justify-center">
               {Icon && (
                 <Icon
@@ -53,10 +50,10 @@ export function WeatherConditions({ conditions }: WeatherConditionsProps) {
               )}
             </div>
             <div className="flex min-w-0 flex-col gap-px">
-              <p className="font-semibold text-gm-body text-gm-text-primary leading-gm-label">
+              <p className="font-semibold text-body text-gm-text-primary leading-label">
                 {item.value}
               </p>
-              <p className="text-gm-label text-gm-text-secondary leading-gm-caption">
+              <p className="text-gm-text-secondary text-label leading-caption">
                 {item.label}
               </p>
             </div>

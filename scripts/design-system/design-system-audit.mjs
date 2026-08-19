@@ -93,7 +93,7 @@ const darkModePattern =
   /\bprefers-color-scheme\b|\bdark:|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
 const darkBlockPattern = /^\s*\.dark\s*\{/m;
 const themeFontOverridePattern =
-  /--font-sans\s*:\s*(?!var\(--gm-font-sans)[^;]+;/g;
+  /--font-sans\s*:\s*(?!var\(--brand-font-sans)[^;]+;/g;
 const localTokenPattern =
   /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/i;
 
@@ -143,8 +143,8 @@ function isAllowedFontValue(value) {
   return (
     lower.includes("inter") ||
     lower.includes("noto sans") ||
-    lower.includes("gm-font-document") ||
-    lower.includes("gm-font-sans") ||
+    lower.includes("font-document") ||
+    lower.includes("brand-font-sans") ||
     lower.includes("font-noto-sans") ||
     lower.includes("font-inter") ||
     lower.includes("inherit") ||
@@ -178,8 +178,7 @@ function isAllowedSpacingValue(value) {
     : lower.trim();
 
   return (
-    value.includes("var(--gm-spacing-") ||
-    value.includes("var(--gm-space-") ||
+    value.includes("var(--spacing") ||
     value.includes("var(--spacing") ||
     lower.includes("safe-area-inset") ||
     allowedRawSpacingPattern.test(rawValue)
@@ -188,7 +187,7 @@ function isAllowedSpacingValue(value) {
 
 function isAllowedRadiusValue(value) {
   return (
-    value.includes("var(--gm-radius-") ||
+    value.includes("var(--radius") ||
     value.includes("var(--radius") ||
     value === "0" ||
     value === "inherit"
@@ -197,8 +196,8 @@ function isAllowedRadiusValue(value) {
 
 function isAllowedTypographyValue(value) {
   return (
-    value.includes("var(--gm-font-size-") ||
-    value.includes("var(--gm-line-height-") ||
+    value.includes("var(--font-size-") ||
+    value.includes("var(--line-height-") ||
     value.includes("var(--text-") ||
     value.includes("var(--leading-")
   );
@@ -328,7 +327,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         `font-family: ${value}`,
-        "Map typography back to --gm-font-sans or the Inter bridge token."
+        "Map typography back to --brand-font-sans or the Inter bridge token."
       );
     }
   }
@@ -378,7 +377,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
   }
 
   // Detect --font-sans overrides that bypass the shared font bridge.
-  // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
+  // Matches --font-sans: <anything> that does NOT resolve to var(--brand-font-sans).
   for (const match of line.matchAll(themeFontOverridePattern)) {
     addFinding(
       report,
@@ -386,7 +385,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "--font-sans overrides the shared font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+      "--font-sans overrides the shared font bridge (--brand-font-sans). Document as an intentional product-layer exception or resolve to var(--brand-font-sans)."
     );
   }
 }
@@ -429,7 +428,7 @@ function scanRadiusFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Prefer rounded-gm-* aliases or documented Tailwind radius values."
+      "Prefer the Tailwind radius scale (rounded-xs/md/lg/full) or a documented value."
     );
   }
 
@@ -551,7 +550,7 @@ function printReport(reports) {
   console.log("Design-system foundation audit");
   console.log("Mode: warning only; this command exits 0.");
   console.log("Web UI font: Inter.");
-  console.log("Official document font: Noto Sans via --gm-font-document.");
+  console.log("Official document font: Noto Sans via --font-document.");
   console.log("Pilot cleanup app: spicewx.");
   console.log("");
 

@@ -22,7 +22,7 @@ export async function EditorSection() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+        <h2 className="text-gm-text-primary text-heading-md leading-heading-md">
           Alert Dashboard
         </h2>
         <div className="flex flex-wrap gap-2">
@@ -42,11 +42,11 @@ export async function EditorSection() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {FILTERS.map((state) => (
           <div
-            className="border border-gm-border bg-white p-4 shadow-gm-card"
+            className="border border-gm-border bg-white p-4 shadow-card"
             key={state}
           >
             <div className="flex items-center justify-between gap-3">
-              <span className="text-gm-label text-gm-text-muted uppercase leading-gm-label">
+              <span className="text-gm-text-muted text-label uppercase leading-label">
                 {state}
               </span>
               {state === "PUBLISHED" ? (
@@ -61,27 +61,27 @@ export async function EditorSection() {
                 />
               )}
             </div>
-            <div className="mt-2 text-gm-heading-md text-gm-text-primary leading-gm-heading-md">
+            <div className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
               {counts[state] ?? 0}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="overflow-hidden border border-gm-border bg-white shadow-gm-card">
-        <div className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b bg-gm-surface px-4 py-3 text-gm-label text-gm-text-muted uppercase leading-gm-label">
+      <div className="overflow-hidden border border-gm-border bg-white shadow-card">
+        <div className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b bg-gm-surface px-4 py-3 text-gm-text-muted text-label uppercase leading-label">
           <span>Alert</span>
           <span>State</span>
           <span>Sent</span>
         </div>
         {alerts.data.length === 0 ? (
-          <div className="px-4 py-8 text-center text-gm-body text-gm-text-muted leading-gm-body">
+          <div className="px-4 py-8 text-center text-body text-gm-text-muted leading-body">
             No CAP alerts are available.
           </div>
         ) : (
           alerts.data.map((alert) => (
             <div
-              className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b px-4 py-3 text-gm-body leading-gm-body last:border-b-0"
+              className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b px-4 py-3 text-body leading-body last:border-b-0"
               key={alert.id}
             >
               <span className="min-w-0 truncate text-gm-text-primary">

@@ -14,7 +14,7 @@ const STRIP_TITLES: Record<
 };
 
 const stripVariants = cva(
-  "flex h-[38px] shrink-0 items-center gap-2 overflow-hidden rounded-tl-gm-8 rounded-tr-gm-8 px-2.5 py-[7px] font-gm-document",
+  "flex h-[38px] shrink-0 items-center gap-2 overflow-hidden rounded-tl-lg rounded-tr-lg px-2.5 py-[7px] font-document",
   {
     variants: {
       severity: {
@@ -29,7 +29,7 @@ const stripVariants = cva(
 );
 
 const footerVariants = cva(
-  "flex h-[18px] shrink-0 items-center gap-[6px] overflow-hidden px-3 py-[3px] font-gm-document text-[7.5px]",
+  "flex h-[18px] shrink-0 items-center gap-[6px] overflow-hidden px-3 py-[3px] font-document text-[7.5px]",
   {
     variants: {
       size: {
@@ -73,7 +73,7 @@ export function AlertCard({
   return (
     <div
       className={cn(
-        "flex w-[270px] flex-col overflow-hidden rounded-gm-8 border border-gm-border bg-gm-surface-page",
+        "flex w-[270px] flex-col overflow-hidden rounded-lg border border-gm-border bg-gm-surface-page",
         size === "default" ? "h-[138px]" : "h-[137px]",
         className
       )}
@@ -84,10 +84,8 @@ export function AlertCard({
     >
       {/* Severity strip */}
       <div className={stripVariants({ severity })}>
-        <span className="shrink-0 font-bold text-gm-body-base leading-5">
-          !
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col text-gm-micro leading-[14px]">
+        <span className="shrink-0 font-bold text-body-base leading-5">!</span>
+        <div className="flex min-w-0 flex-1 flex-col text-micro leading-[14px]">
           <span className="truncate font-bold">{title}</span>
           <span className="truncate font-medium">{hazard}</span>
         </div>
@@ -95,15 +93,15 @@ export function AlertCard({
 
       {/* Body */}
       <div className="flex flex-1 flex-col overflow-hidden">
-        <div className="flex flex-1 flex-col gap-[5px] overflow-hidden px-3 pt-2 pb-1 font-gm-document leading-[11px]">
+        <div className="flex flex-1 flex-col gap-[5px] overflow-hidden px-3 pt-2 pb-1 font-document leading-[11px]">
           <div className="flex flex-col gap-px overflow-hidden">
-            <span className="font-bold text-[9px] text-gm-navy">Impact</span>
+            <span className="font-bold text-[9px] text-navy">Impact</span>
             <span className="line-clamp-2 font-normal text-[8.5px] text-gm-text-primary">
               {impact}
             </span>
           </div>
           <div className="flex flex-col gap-px overflow-hidden">
-            <span className="font-bold text-[9px] text-gm-navy">Response</span>
+            <span className="font-bold text-[9px] text-navy">Response</span>
             <span className="line-clamp-1 font-normal text-[8.5px] text-gm-text-primary">
               {response}
             </span>
@@ -112,9 +110,7 @@ export function AlertCard({
 
         {/* Validity footer */}
         <div className={footerVariants({ size })}>
-          <span className="w-[34px] shrink-0 font-bold text-gm-navy">
-            Valid
-          </span>
+          <span className="w-[34px] shrink-0 font-bold text-navy">Valid</span>
           <span className="truncate font-normal text-gm-text-secondary">
             {validity}
           </span>

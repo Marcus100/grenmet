@@ -12,7 +12,7 @@ interface CategoryCardProps {
 export function CategoryCard({ category }: CategoryCardProps) {
   return (
     <Link
-      className="flex min-h-16 touch-manipulation items-center gap-4 rounded-xl bg-card p-3 transition-all hover:shadow-gm-card active:bg-muted sm:p-4"
+      className="flex min-h-16 touch-manipulation items-center gap-4 rounded-xl bg-card p-3 transition-all hover:shadow-card active:bg-muted sm:p-4"
       href={`/salesbus/inventory/${category.id}`}
     >
       <div className="h-20 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-32">

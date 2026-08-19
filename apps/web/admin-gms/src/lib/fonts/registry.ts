@@ -15,7 +15,7 @@ import {
  * on every cold compile — keep this list small. The active one is chosen by
  * the `data-font` attribute (set by `@barrelsgd/theme`'s preferences system)
  * through the `html[data-font="…"] body` rules in `globals.css`. The default
- * is Inter (GrenMet brand); printed documents always use `--gm-font-document`
+ * is Inter; printed documents always use `--font-document`
  * (Noto Sans), independent of this. Stale saved preferences for removed fonts
  * fall back to the base body font.
  */
@@ -26,7 +26,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-geist-mono",
 });
-// display: swap — backs the --gm-font-document token used by print documents.
+// display: swap — backs the --font-document token used by print documents.
 const notoSans = Noto_Sans({
   subsets: ["latin"],
   variable: "--font-noto-sans",
