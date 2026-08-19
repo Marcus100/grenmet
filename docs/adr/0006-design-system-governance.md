@@ -1,4 +1,4 @@
-# ADR-0006: Govern Shared UI Through GrenMet Tokens And Packages
+# ADR-0006: Govern Shared UI Through Design-System Tokens And Packages
 
 ## Status
 

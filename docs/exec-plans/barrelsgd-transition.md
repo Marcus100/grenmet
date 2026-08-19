@@ -37,8 +37,8 @@ branding, operational authority, and domains.
 This plan covers company and product naming, repository and package ownership,
 the GAA staff portal, shared platform services, application deployment,
 domains, and fresh infrastructure. It does not itself build Events/Tickets or the
-reusable HR product, decide software licensing or client ownership, or activate
-custom domains before access is available.
+reusable workforce product, decide software licensing or client ownership, or
+activate custom domains before access is available.
 
 Events/Tickets is the **number one discretionary product priority**. GMS safety,
 compliance, continuity, and live-operational needs may pre-empt it. This
@@ -166,7 +166,7 @@ document is not approval to bypass repository gates while reaching it.
 | Application | Target package | Port | Production host |
 | --- | --- | ---: | --- |
 | Authentication | `@barrelsgd/web-auth` | 3000 | `auth.barrels.gd` |
-| Barrels superuser admin | `@barrelsgd/web-admin` | 3001 | `admin.barrels.gd` |
+| Barrels superuser admin | `@barrelsgd/web-gaa-admin` | 3001 | `admin.barrels.gd` |
 | GMS documentation and SOPs | `@barrelsgd/web-docs` | 3002 | `docs.weather.gd` |
 | GMS public site | `@barrelsgd/web-gms` | 3003 | `weather.barrels.gd`, later `weather.gd` |
 | Signal | `@barrelsgd/web-signal` | 3004 | `signal.barrels.gd` |
@@ -181,7 +181,7 @@ document is not approval to bypass repository gates while reaching it.
 content-collections, so this is a rename and a host change, not a content
 migration. Port 3002 is retained.
 
-`web-gaa-admin` is the renamed `admin-gms`. See
+`web-gaa-admin` is the renamed `gaa-admin`. See
 [GAA staff portal](#gaa-staff-portal) for why it is named for GAA while serving
 GMS first.
 
@@ -271,12 +271,12 @@ Do not invent final brand values in their absence.
 
 ## GMS public site
 
-Rename `apps/web/spicewx` to `apps/web/gms` and use the package name
+Rename `apps/web/gms` to `apps/web/gms` and use the package name
 `@barrelsgd/web-gms`. This app is the **public** meteorological service website:
 forecasts, current conditions, published CAP warnings, and public product pages.
-It is not an admin surface and does not absorb `admin-gms`.
+It is not an admin surface and does not absorb `gaa-admin`.
 
-Rename `apps/web/hurricaneplan` to `apps/web/docs` and use the package name
+Rename `apps/web/docs` to `apps/web/docs` and use the package name
 `@barrelsgd/web-docs`, served at `docs.weather.gd`. Its documents already build
 through content-collections, so this is a rename and a host change rather than a
 content migration, and port 3002 is retained. Published SOPs and hurricane
@@ -288,7 +288,7 @@ content migration, and keeps the public weather site focused.
 
 ## GAA staff portal
 
-Rename `apps/web/admin-gms` to `apps/web/gaa-admin` and use the package name
+Rename `apps/web/gaa-admin` to `apps/web/gaa-admin` and use the package name
 `@barrelsgd/web-gaa-admin` on port 3011. It keeps all its current modules; this
 boundary renames and rehosts, it does not split.
 
@@ -303,7 +303,7 @@ onboard, the portal remains at `weather.gd`, and no user-visible behaviour
 changes. It moves to `admin.gaa.gd` when the pilot expands — a routing change,
 not a re-architecture.
 
-The portal must not be confused with `@barrelsgd/web-admin`, the Barrels
+The portal must not be confused with `@barrelsgd/web-gaa-admin`, the Barrels
 superuser control plane at `admin.barrels.gd`. Different organisations, different
 users, different data. They may link; they never merge.
 
@@ -599,9 +599,9 @@ boundaries that an authorized human may commit separately:
    - [x] **5b — move the GMS palette out.** The GMS *palette* (40 colour tokens
      and their 40 Tailwind utilities) moved from `@barrelsgd/ui/styles/globals.css`
      to `@barrelsgd/gms/styles/foundation.css`, imported by the two apps that
-     actually use it: admin-gms and spicewx. Generic scales — typography,
+     actually use it: gaa-admin and gms. Generic scales — typography,
      spacing, radius, elevation — deliberately stayed in `@barrelsgd/ui`: they are
-     not brand assets, and moving them would force auth, hurricaneplan and Events
+     not brand assets, and moving them would force auth, docs and Events
      to import a client's package for font sizes. Events' 38 colour utilities were
      converted to neutral semantics. Appearance unchanged: all 81 `--gm-*` tokens
      resolve identically, and every replacement pair is value-identical.
@@ -629,7 +629,7 @@ boundaries that an authorized human may commit separately:
      their own stylesheets, invisible to any search for `gm-` utility classes; and
      the audit script matched on token names 5c deletes, so it would have begun
      flagging correctly-tokenized code.
-6. [x] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
+6. [x] Rename SpiceWX to GMS: `apps/web/gms` → `apps/web/gms`,
    `@barrelsgd/web-gms`, port 3003 retained. Public site only. Its current 25
    files are a foundation to build on, not a sketch to replace, so this was a
    rename rather than a rewrite.
@@ -641,7 +641,7 @@ boundaries that an authorized human may commit separately:
    from the new path and still tags the old image name.
 
    The rename's real hazard was invisible to every local check: `auth`,
-   `admin-gms` and `hurricaneplan` each `COPY apps/web/spicewx/package.json` in
+   `gaa-admin` and `docs` each `COPY apps/web/gms/package.json` in
    their Dockerfiles for the workspace install, so all three Docker builds would
    have failed in CI. Any future app-directory rename must sweep every
    Dockerfile, not just the renamed app's own.
@@ -650,9 +650,9 @@ boundaries that an authorized human may commit separately:
    hardcoded in four components named for fixed May dates. Connecting it to the
    live `/api/cap` public endpoints, and publishing forecasts publicly, are
    separate pieces of work.
-7. [x] Rename the staff portal: `apps/web/admin-gms` → `apps/web/gaa-admin`,
+7. [x] Rename the staff portal: `apps/web/gaa-admin` → `apps/web/gaa-admin`,
    `@barrelsgd/web-gaa-admin`. Rename and rehost only — no module split, no route
-   moves, no data migration. This releases `@barrelsgd/web-admin` for the Barrels
+   moves, no data migration. This releases `@barrelsgd/web-gaa-admin` for the Barrels
    superuser control plane, which boundary 2 incorrectly assigned to the portal.
 
    **The port move 3001 → 3011 was deliberately deferred to boundary 15.** The
@@ -668,11 +668,11 @@ boundaries that an authorized human may commit separately:
    the Barrels superuser admin listed against 3001 in the target table cannot take
    it until boundary 15 lands. Boundary 11 must not assume 3001 is free.
 
-   `biome.jsonc` carried four path overrides into `apps/web/admin-gms` — lint
+   `biome.jsonc` carried four path overrides into `apps/web/gaa-admin` — lint
    relaxations for vendored calendar components and config-driven admin form
    editors. Renaming the directory without them would silently un-exempt that code
    and fail `pnpm fix`. Approved and updated as part of this boundary.
-8. [x] Rename Hurricane Plan to docs: `apps/web/hurricaneplan` → `apps/web/docs`,
+8. [x] Rename Hurricane Plan to docs: `apps/web/docs` → `apps/web/docs`,
    `@barrelsgd/web-docs`, port 3002 retained. The `docs.weather.gd` host and the
    permanent redirect from the former standalone URL are traefik configuration and
    move with boundary 15; the codebase rename does not change routing.
@@ -681,7 +681,7 @@ boundaries that an authorized human may commit separately:
    only `docs/**` glob is root-anchored in `.github/labeler.yml`, and the docs
    scripts address root paths explicitly.
 
-   A bare-word sweep of `hurricaneplan` is unsafe. `-` is a word boundary, so
+   A bare-word sweep of `docs` is unsafe. `-` is a word boundary, so
    `\bhurricaneplan\b` matches inside `web-hurricaneplan` and would silently
    rewrite the compose service and image name, orphaning the running production
    service. The sweep must exclude that prefix — here via a `(?<!web-)`
@@ -698,14 +698,27 @@ boundaries that an authorized human may commit separately:
 14. [ ] Make shared authentication product-aware.
 15. [ ] Rename Docker, Compose, backup, Sentry, and workflow identities.
 
-    **The compose project name `grenmet` is a permanent exception and must not be
-    renamed.** Deploys run with `-p grenmet` (`-p grenmet-staging`), and Docker
-    namespaces volumes by project, so the live volumes are `grenmet_pgdata`,
-    `grenmet_traefik-certificates` and `grenmet_redis-data`. Renaming the project
-    does not rename a volume: it creates new empty ones, starting Postgres on a
-    blank database and discarding the Let's Encrypt certificates. The project name
-    is invisible to users and only namespaces Docker objects, so there is nothing
-    to gain against that risk. Decided 2026-08-19.
+    **The compose project name is renamed to `barrelsgd` (`barrelsgd-staging`,
+    `barrelsgd-api`).** Decided 2026-08-19, superseding the earlier decision to
+    lock it. `grenmet` is reserved for things that genuinely belong to the Grenada
+    Meteorological Service, and this is not one of them.
+
+    Docker namespaces volumes by project, so this does **not** rename
+    `grenmet_pgdata`, `grenmet_traefik-certificates` or `grenmet_redis-data` — it
+    creates new, empty ones. That is accepted: the database is pre-production
+    alpha and the deployment is not yet serving real users. Carry data over with a
+    dump and restore, or a volume copy, if any of it is worth keeping at cutover.
+    TLS certificates are re-issued rather than migrated, so mind the Let's Encrypt
+    limit of five duplicate certificates per domain per week while iterating.
+
+    The FastAPI project also joins an external network named `grenmet` created by
+    the infra project. Both sides must be renamed together or the API cannot reach
+    Postgres.
+
+    **The session cookie `grenmet_session` is renamed separately.** It is defaulted
+    in five apps; renaming it signs out every existing session at once, because
+    browsers key cookies by name. Harmless in alpha, but keep it out of the same
+    commit as the image renames so the cause of any sign-out is unambiguous.
 
     **Image renames must land before compose references them.** Deployment runs
     `pull` and then `up -d --pull always`, so compose pointing at an image CI has

@@ -14,15 +14,15 @@ ghcr.io/marcus100/grenmet-web-<app>:<tag>
 
 | App | Image name |
 |---|---|
-| admin-gms | `grenmet-web-admin` |
-| admin-gms migrations (wxwatch + wxproducts Drizzle) | `grenmet-web-admin-migrate` |
+| gaa-admin | `grenmet-web-admin` |
+| gaa-admin migrations (wxwatch + wxproducts Drizzle) | `grenmet-web-admin-migrate` |
 | auth | `grenmet-web-auth` |
-| hurricaneplan | `grenmet-web-hurricaneplan` |
-| spicewx | `grenmet-web-spicewx` |
+| docs | `grenmet-web-hurricaneplan` |
+| gms | `grenmet-web-spicewx` |
 
 Image names must be **lowercase** — CI will fail otherwise.
 
-> The consolidated CAP/HR/wxwatch/wxproducts/salesbus modules ship inside the **admin-gms** image (path-prefixed routes); they no longer build separate images. `signal` is not yet deployed (no Dockerfile).
+> The consolidated CAP/HR/wxwatch/wxproducts/salesbus modules ship inside the **gaa-admin** image (path-prefixed routes); they no longer build separate images. `signal` is not yet deployed (no Dockerfile).
 
 ## Environment variables at deploy time
 

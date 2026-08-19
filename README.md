@@ -35,7 +35,7 @@ barrelsgd/
 │   ├── api/                    # API development, testing, and deployment guides
 │   ├── portfolio/              # Portfolio, client-programme, and repository plans
 │   ├── architecture.md         # GMS service architecture and strategic product catalogue
-│   ├── design-system.md        # GrenMet v1 design system — tokens, Figma bridge, compliance
+│   ├── design-system.md        # Barrels design system v1 — tokens, Figma bridge, compliance
 │   ├── deployment.md           # Deployment entry points summary
 │   └── env.md                  # Environment variable reference for all apps
 ├── infra/
@@ -207,7 +207,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | [Service and Product Catalogue](docs/internal/service-catalogue.md) | Full definitions for all 13 GMS services — purpose, products, risk frameworks, implementation notes |
 | [Warning Operations](docs/internal/warning-operations.md) | Implemented CAP lifecycle, permissions, audit events, public feeds, and gaps |
 | [Architecture Decisions](docs/adr/) | ADRs for monorepo, auth, database ownership, generated client, deployment, design system, CAP lifecycle |
-| [Design System](docs/design-system.md) | GrenMet v1 tokens, current Figma file map, component handoff, compliance guide, audit commands |
+| [Design System](docs/design-system.md) | Barrels design-system tokens, current Figma file map, component handoff, compliance guide, audit commands |
 | [API Development](docs/api/development.md) | FastAPI local development guide |
 | [API Testing](docs/api/testing.md) | FastAPI test and validation commands |
 | [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |

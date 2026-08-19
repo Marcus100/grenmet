@@ -224,9 +224,9 @@ The expectation is collaborative resolution rather than unilateral veto, except 
 | **Phase 1** | ICT Readiness and Assessment | Jan–Feb 2026 (4–6 wks) | ✅ Complete | Infrastructure established; CI/CD pipeline operational; monorepo architecture finalised; access and workflows configured. |
 | **Phase 2** | CAP Implementation and SOPs | Feb–Apr 2026 (6–8 wks) | 🔄 In progress | CAP data schema and product models defined; dissemination tool and SOP development ongoing. |
 | **Phase 3** | CDMS Implementation | Mar–Jun 2026 (8–12 wks, overlapping) | 🔄 In progress | SURFACE CDMS evaluation ongoing; this system is external to the main application platform; data ingestion design under review. |
-| **Phase 4** | Internal Dashboard MVP | Mar–Jun 2026 (8–12 wks, overlapping) | 🔄 In progress | admin-gms framework built; FullCalendar, charting, and table components operational; GMS-specific operational data integration pending. |
+| **Phase 4** | Internal Dashboard MVP | Mar–Jun 2026 (8–12 wks, overlapping) | 🔄 In progress | gaa-admin framework built; FullCalendar, charting, and table components operational; GMS-specific operational data integration pending. |
 | **Phase 5** | Automation Tools | Continuous (4–6 wk increments) | 🔄 Partial | PDF export for morning forecast operational; weather image pipeline built; additional automation tools ongoing. |
-| **Phase 6** | Website, Mobile App, and Public Products | Follows Phase 2 stabilisation | 🔄 In progress | Public weather platform (spicewx) actively being developed; design system foundation complete; pilot reference implementation underway. |
+| **Phase 6** | Website, Mobile App, and Public Products | Follows Phase 2 stabilisation | 🔄 In progress | Public weather platform (gms) actively being developed; design system foundation complete; pilot reference implementation underway. |
 
 ### What has been built (January–May 2026)
 
@@ -237,14 +237,14 @@ Beyond the execution phases, the following foundational systems have been establ
 | **Application platform** | Monorepo with 8 Next.js applications (consolidated to 5 in 2026-06), shared authentication, shared UI library, and type-safe API client generation | ✅ Operational |
 | **Authentication system** | Session-based auth with shared cookie management across all apps | ✅ Operational |
 | **CI/CD pipeline** | 10 automated GitHub Actions workflows: web builds, API builds, deployment to staging and production, database backup, code quality checks, security scanning | ✅ Operational |
-| **GrenMet Design System v1** | Foundation design token system with Figma integration; CSS custom properties, Tailwind v4 aliases, and shared component library | ✅ Complete |
+| **Barrels design system v1** | Foundation design token system with Figma integration; CSS custom properties, Tailwind v4 aliases, and shared component library | ✅ Complete |
 | **Forecast product database** | Structured PostgreSQL schemas for morning, midday, and evening forecasts; marine bulletin; METAR/SPECI; TAF; SYNOP; CAP alert; IBF; BUFR; tropical outlook; hourly observations | ✅ Schema complete |
 | **Weather products platform** | Web application (wxproducts) serving structured forecast products with print/PDF export capability | ✅ Operational |
 | **Weather image archive** | Automated weather image scraping, storage, and browseable archive (wxwatch) | ✅ Operational |
 | **HR management system** | Digital HR workflows including timesheets, rosters, shift management, and leave requests (hr app + FastAPI backend) | 🔄 In progress |
-| **Internal operations dashboard** | admin-gms framework with data visualisation, calendar, tables, and form components | 🔄 In progress |
-| **Public weather website** | spicewx — public-facing weather platform with current conditions and date-based forecast navigation | 🔄 In progress |
-| **Hurricane preparedness platform** | hurricaneplan — structured content site for public hurricane preparedness guidance | 🔄 In progress |
+| **Internal operations dashboard** | gaa-admin framework with data visualisation, calendar, tables, and form components | 🔄 In progress |
+| **Public weather website** | gms — public-facing weather platform with current conditions and date-based forecast navigation | 🔄 In progress |
+| **Hurricane preparedness platform** | docs — structured content site for public hurricane preparedness guidance | 🔄 In progress |
 | **Database backup automation** | Automated PostgreSQL backup workflow in CI/CD | ✅ Operational |
 
 ---
@@ -264,7 +264,7 @@ These are the specific commitments for the initial six-month period, to be revie
 | 7a | Forecast product database schemas deployed (morning, midday, evening, marine, aviation, CAP, IBF, SYNOP, BUFR, outlook, hourly) | June 2026 | ✅ Complete |
 | 7b | Morning forecast PDF export operational | June 2026 | ✅ Complete |
 | 7c | Additional PDF export formats (midday, evening, marine bulletin) | July 2026 | 🔄 In progress |
-| 8 | Public weather website pilot launched (spicewx) | July 2026 | 🔄 In progress |
+| 8 | Public weather website pilot launched (gms) | July 2026 | 🔄 In progress |
 | 9 | KPI baselines documented and approved | July 2026 | 📋 Planned |
 | 10 | At least one staff digital skills training session delivered | July 2026 | 📋 Planned |
 | 11 | ICT governance documentation (security policy, backup procedures, system inventory) drafted | July 2026 | 📋 Planned |
@@ -471,7 +471,7 @@ The following technologies are in active use as of May 2026. All systems have be
 | **API layer** | Hono (Node.js) | Currently a stub; planned for weather data proxy |
 | **Database** | PostgreSQL | Multiple isolated databases per application domain |
 | **ORM** | Drizzle ORM (TypeScript), SQLModel (Python) | Drizzle for web apps; SQLModel + asyncpg for FastAPI |
-| **Design system** | GrenMet v1 (CSS custom properties + Tailwind v4) | Established May 2026; Figma-to-code bridge in place |
+| **Design system** | Barrels design system v1 (CSS custom properties + Tailwind v4) | Established May 2026; Figma-to-code bridge in place |
 | **UI component library** | @barrelsgd/ui (Base UI + shadcn-style primitives) | Shared across all web apps |
 | **Package manager** | pnpm v10 with workspaces | Monorepo dependency management |
 | **Build orchestration** | Turborepo v2 | Parallel builds, caching, task pipelines |

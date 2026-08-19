@@ -81,7 +81,7 @@
 
 | Requirement | GMS implication | Digital feature | Owner | Status | Evidence |
 |---|---|---|---|---|---|
-| Station metadata registration | AWS and manual stations should have WIGOS Station Identifiers (WSI) | Station metadata catalogue with WSI fields | Observations lead | Gap | Station metadata records |
+| Station metadata registration | AWS and manual stations should have WIGOS Station Identifiers (WSI) | Station metadata catalogue with WSI fields | Observations lead | Partial | MBIA sandbox publication uses a WIGOS ID; remaining stations and Carriacou require audit or registration |
 | Observation availability reporting | Timely submission of observation data | Automated data pipeline with availability monitoring | Observations lead + DTO | Partial | Pipeline logs |
 | Data quality flags | Observations should carry QC flags | QC layer in data ingestion pipeline | Observations lead | Gap | QC records |
 
@@ -89,9 +89,9 @@
 
 | Requirement | GMS implication | Digital feature | Owner | Status | Evidence |
 |---|---|---|---|---|---|
-| Data discovery via MQTT/HTTP | Publish dataset metadata for discovery by global community | WIS2 node or broker endpoint; dataset metadata records | DTO | Planned (Year 2) | Metadata catalogue |
-| Core and recommended data publication | Publish core surface observations and CAP alerts to WIS2 | WIS2 publication via `publish.wis2box` job | DTO | Gap (job defined, worker not deployed) | WIS2Box records |
-| WCMP2 metadata records | Each dataset requires a metadata record in WMO Core Metadata Profile 2 | Metadata authoring tool or static records | DTO | Gap | Metadata files |
+| Data discovery via MQTT/HTTP | Publish dataset metadata for discovery by global community | wis2box dataset and WCMP2 metadata publication | DTO | Partial (sandbox) | Synop dataset configured; WCMP2 validation and Global Discovery Catalogue visibility pending |
+| Core and recommended data publication | Publish core surface observations and CAP alerts to WIS2 | SURFACE publisher for observations; separate CAP worker path | Observations lead + DTO | Partial | Sandbox observation publication verified; 24 h soak and production cutover pending; CAP worker not deployed |
+| WCMP2 metadata records | Each dataset requires a metadata record in WMO Core Metadata Profile 2 | wis2box dataset metadata and validation | DTO | Partial | Sandbox dataset exists; retain the metadata identifier, validation, canonical URL, and global discovery evidence |
 
 ### Source: WMO Manual on Impact-Based Forecasting (IBF) / No. 1124
 
@@ -125,7 +125,7 @@
 
 | Standard | Requirement | GMS implication | Digital feature | Owner | Status |
 |---|---|---|---|---|---|
-| BUFR (Binary Universal Form for Representation) | Standard format for meteorological observations | BUFR records in wxproducts schema | Observations lead | Partial | Schema exists; encoding pipeline gap |
+| BUFR (Binary Universal Form for Representation) | Standard format for meteorological observations | SURFACE WMO CSV → wis2box csv2bufr; BUFR records in wxproducts schema | Observations lead | Partial | Sandbox csv2bufr conversion verified; production and global-exchange evidence pending |
 | IWXXM (ICAO Weather Information Exchange Model) | XML/GML format for aviation MET products | IWXXM primitives in wxproducts; IWXXM output pipeline | Aviation MET lead | Gap | Schema foundations only |
 | GeoJSON | Geospatial product dissemination | CAP GeoJSON endpoint active | DTO | Implemented | `/api/cap/alerts.geojson` |
 | RSS 2.0 | Syndicated alert feed | CAP RSS feed active | DTO | Implemented | `/api/cap/rss.xml` |
@@ -139,8 +139,8 @@
 |---|---|
 | ICAO aviation products | Aerodrome warnings, wind shear alerts, trend forecasts, pilot briefing records, contingency procedures, QMS |
 | IWXXM output | Not yet producing IWXXM-encoded aviation products |
-| WIS2 | WIS2Box worker not deployed; WCMP2 metadata records not authored |
-| WIGOS station metadata | AWS stations not yet registered with WSI numbers |
+| WIS2 | Sandbox SYNOP publishing and BUFR conversion verified; 24 h soak, production cutover, global discovery/WDQMS evidence, WIS2Downloader, and the separate CAP worker remain incomplete or unconfirmed |
+| WIGOS station metadata | MBIA pilot identifier is evidenced; remaining AWS stations and Carriacou require audit or registration |
 | IBF impact language | Content standard not yet in SOP |
 | NDEMA formal agreement | CAP feed adoption is informal |
 
@@ -152,6 +152,8 @@
 |---|---|
 | [Aviation Compliance Plan](../operations/aviation-compliance-plan.md) | Detailed digital plan for aviation MET compliance |
 | [Warning and IBF Framework](../operations/warning-ibf-framework.md) | Operational warning lifecycle and IBF standard |
+| [WIS 2.0 Implementation Roadmap](./wis2-implementation-roadmap-2026.md) | Reconciled publishing, consumption, station, metadata, and compliance gates |
+| [WIS2 Publishing Runbook](../operations/wis2-publishing-runbook.md) | Verified sandbox procedure and production cutover checks |
 | [GMS Charter](./gms-charter.md) | Compliance section of programme governance |
 | [DTO Terms of Reference](./dto-terms-of-reference.md) | Section 16 — Standards and Compliance |
 | [Warning Operations](./warning-operations.md) | Implemented CAP lifecycle in codebase |

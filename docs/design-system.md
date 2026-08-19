@@ -1,4 +1,4 @@
-# GrenMet Design System
+# Barrels Design System
 
 GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in small, verified passes. Figma owns design intent; `@barrelsgd/ui` owns repo enforcement. Token changes must be reconciled in both places before they are considered part of the v1 contract.
 
@@ -121,16 +121,16 @@ Keep the design system split clear while it grows:
 
 Visual similarity is not enough to merge the lanes. A Figma component should map to the code component that owns its real API.
 
-`GrenMet` remains the current implementation namespace in repo and Figma artifacts while the larger service strategy is documented as GMS.
+`GrenMet` now survives only as the name of the Figma artifacts; the repository side is brand-neutral after transition boundaries 3-5. Renaming those Figma files retires the term entirely.
 
 ## Token Flow
 
 The v1 bridge is intentionally CSS-first:
 
-1. Figma variables define the GrenMet foundation contract and their WEB code syntax.
+1. Figma variables define the design-system foundation contract and their WEB code syntax.
 2. `packages/ui/src/styles/globals.css` defines the repo-enforced `--gm-*` custom properties and shadcn-compatible semantic tokens.
-3. Tailwind v4 `@theme` aliases expose GrenMet color, spacing, and radius utilities.
-4. App stylesheets receive the generated `GrenMet Design System V1` block from `@barrelsgd/ui`.
+3. Tailwind v4 `@theme` aliases expose design-system color, spacing, and radius utilities.
+4. App stylesheets receive the generated `BARRELS DESIGN SYSTEM V1` block from `@barrelsgd/ui`.
 
 Run the sync command after editing the canonical block:
 
@@ -144,9 +144,9 @@ Run the check command before committing design-system work:
 pnpm design-system:check
 ```
 
-The check fails if an app has a stale generated block or declares `--gm-*` tokens outside the generated block. Apps may keep local compatibility variables during migration, but obvious values should map back to GrenMet tokens.
+The check fails if an app has a stale generated block or declares `--gm-*` tokens outside the generated block. Apps may keep local compatibility variables during migration, but obvious values should map back to design-system tokens.
 
-`gms` remains the first app mirror for the v1 GrenMet contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
+`gms` remains the first app mirror for the v1 design-system contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
 
 ## Governance
 
@@ -160,13 +160,13 @@ App-local aliases are acceptable during migration only when they resolve back to
 
 The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
 
-Inter is the GrenMet v1 web UI font and must flow through `--gm-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
+Inter is the Barrels design-system web UI font and must flow through `--gm-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
 
 Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@barrelsgd/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
 
-Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the GrenMet foundation.
+Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the design-system foundation.
 
-Use `gms` as the first cleanup app. It should become the reference for how a public GrenMet app uses shared foundations before the same rules are tightened across the other apps.
+Use `gms` as the first cleanup app. It should become the reference for how a public GMS app uses shared foundations before the same rules are tightened across the other apps.
 
 The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `gms` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
 
@@ -192,20 +192,20 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | App | Design-system role | Direction |
 |---|---|---|
 | `gms` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
-| `gaa-admin` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to GrenMet tokens. |
+| `gaa-admin` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to design-system tokens. |
 | `wxproducts` | Document-heavy weather product lane | Keep Noto Sans and fixed A4/PDF dimensions inside official product templates. |
 | `hr` | Document-heavy HR operations lane | Keep official forms in the document lane; use Inter for normal web UI. |
-| `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, GrenMet radii, shadows, and semantic colors. |
+| `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, design-system radii, shadows, and semantic colors. |
 | `wxwatch` | Media/gallery cleanup lane | Keep media viewport behavior local while aligning labels, timestamps, and shell styling. |
 | `salesbus` | App-specific operational UI lane | Share foundations without forcing weather-specific product patterns. |
 | `docs` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
-| `cap` | Public alert-viewer lane | Bridged 2026-06-13; map the initial hard-coded colors back to GrenMet tokens as the UI settles. |
+| `cap` | Public alert-viewer lane | Bridged 2026-06-13; map the initial hard-coded colors back to design-system tokens as the UI settles. |
 
 ### Migration Order
 
 1. `gms`, because it is the public web reference.
 2. `@barrelsgd/ui`, because shared primitives must stay token-clean.
-3. `gaa-admin`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
+3. `gaa-admin`, mapping TailAdmin aliases back to design-system tokens while preserving dashboard density.
 4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
 5. `auth`, `wxwatch`, `salesbus`, and `docs`, guided by audit output and app-specific risk.
 
@@ -214,14 +214,14 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | App | Status | Accepted exceptions | Next action |
 |---|---|---|---|
 | `gms` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
-| `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use GrenMet type tokens for labels and timestamps. |
+| `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use shared type tokens for labels and timestamps. |
 | `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
 | `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-gm-document` for official templates and warning token pairs for impact/response displays. |
 | `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
-| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with GrenMet tokens. |
+| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--gm-font-sans`; replace repeated radii and shadows with design-system tokens. |
 | `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
-| `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to GrenMet tokens | Map template aliases to GrenMet tokens before removing high-volume `dark:` classes. |
-| `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with GrenMet tokens. |
+| `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to design-system tokens | Map template aliases to design-system tokens before removing high-volume `dark:` classes. |
+| `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with design-system tokens. |
 
 Run the warning-only audit command to find foundation drift:
 
@@ -235,7 +235,7 @@ For a complete uncapped report, run:
 pnpm design-system:audit:full
 ```
 
-The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing and radius values, app-local shadows, active dark/system theme hooks, and local theme tokens that do not map back to GrenMet. It does not fail CI yet; use it to plan cleanup before promoting selected rules into blocking checks.
+The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing and radius values, app-local shadows, active dark/system theme hooks, and local theme tokens that do not map back to the design system. It does not fail CI yet; use it to plan cleanup before promoting selected rules into blocking checks.
 
 ## Foundation Audit
 
@@ -268,9 +268,9 @@ Current audit summary:
 
 The audit also surfaces two additional categories not present in the initial pilot:
 - **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `gaa-admin`; retained as migration debt because downstream third-party overrides depend on it.
-- **typography** — detects font imports and `--font-sans` overrides that bypass the GrenMet font bridge. V1 apps should resolve web UI typography back to `--gm-font-sans`; official document templates may use `--gm-font-document`.
+- **typography** — detects font imports and `--font-sans` overrides that bypass the shared font bridge. V1 apps should resolve web UI typography back to `--gm-font-sans`; official document templates may use `--gm-font-document`.
 
-Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class GrenMet tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
+Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class design-system tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
 
 Warning token pairs are first-class v1 tokens. Use `--gm-warning-{green|yellow|amber|red|grey}-{bg|fg|border}` or the matching Tailwind aliases (`bg-gm-warning-red-bg`, `text-gm-warning-red-fg`, `border-gm-warning-red-border`) when rendering warning, impact, response, or status labels. Raw risk colors remain available as primitives, but foreground/background use must go through verified pairs unless contrast is checked explicitly.
 
@@ -286,11 +286,11 @@ Dark mode is supported via the class-based `dark` variant. The foundation define
 
 Apps may follow the user's theme preference (light / dark / system) via the `@barrelsgd/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
 
-`gaa-admin` ships the GrenMet `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
+`gaa-admin` ships the shared `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
 
 ## Warning Pattern Checklist
 
-Use this checklist for public warnings, official bulletins, and impact-based forecast summaries. It reflects WMO impact-based/CAP principles and Met Office-style impact + likelihood guidance without claiming GrenMet uses the UK warning system.
+Use this checklist for public warnings, official bulletins, and impact-based forecast summaries. It reflects WMO impact-based/CAP principles and Met Office-style impact + likelihood guidance without claiming GMS uses the UK warning system.
 
 - Headline
 - Hazard

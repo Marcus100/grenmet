@@ -59,10 +59,10 @@ Aviation MET is not a secondary function. Digital modernisation of these product
 
 | Action | Owner | Target |
 |---|---|---|
-| Aviation product composition UI in admin-gms | DTO / Developer | H2 2026 |
+| Aviation product composition UI in gaa-admin | DTO / Developer | H2 2026 |
 | METAR field validation against Annex 3 encoding rules | DTO | H2 2026 |
 | Transmission log to AFTN and ATIS | Aviation MET lead + DTO | H2 2026 |
-| Archive endpoint and search in admin-gms | DTO | H2 2026 |
+| Archive endpoint and search in gaa-admin | DTO | H2 2026 |
 
 ---
 
@@ -86,7 +86,7 @@ Aviation MET is not a secondary function. Digital modernisation of these product
 
 | Action | Owner | Target |
 |---|---|---|
-| TAF drafting and amendment workflow in admin-gms | DTO / Developer | H2 2026 |
+| TAF drafting and amendment workflow in gaa-admin | DTO / Developer | H2 2026 |
 | Two-person review enforcement in approval workflow | DTO | H2 2026 |
 | TAF archive with amendment history | DTO | H2 2026 |
 | Lead time auto-calculation for verification dashboard | DTO | H2 2026 |
@@ -111,7 +111,7 @@ Aviation MET is not a secondary function. Digital modernisation of these product
 
 | Action | Owner | Target |
 |---|---|---|
-| Aerodrome warning module in admin-gms (linked to CAP lifecycle) | DTO / Developer | H2 2026 |
+| Aerodrome warning module in gaa-admin (linked to CAP lifecycle) | DTO / Developer | H2 2026 |
 | Threshold table documented in SOP | Aviation MET lead | Q3 2026 |
 | Notification list configured (ATC, GAA ops, airline duty contacts) | Aviation MET lead | Q3 2026 |
 | ICAO verification that aerodrome warning gap is closed | Aviation MET lead | Q4 2026 |
@@ -154,7 +154,7 @@ ICAO requires an operational quality management system (QMS) for aviation MET se
 |---|---|
 | Product traceability | Author ID, timestamps, and approval record on every product |
 | Correction and amendment log | Linked audit trail — every correction references original |
-| Error and near-miss reporting | Aviation weather incident log in admin-gms |
+| Error and near-miss reporting | Aviation weather incident log in gaa-admin |
 | Performance review | Monthly aviation product performance report |
 | Staff qualification records | Aviation MET staff authorisations documented |
 | Calibration / maintenance records | Not yet in scope — physical instruments; note for Phase 3 |
