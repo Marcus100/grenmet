@@ -8,7 +8,7 @@ This is a **CSS-first, bidirectional bridge**. Figma owns design intent; `@barre
 
 ```
 Figma (GrenMet v1)  ──tokens──►  packages/ui/src/styles/globals.css  ──@theme──►  Tailwind v4 utils
-   design intent                   --gm-* custom props + shadcn semantics         text-gm-blue, p-gm-4
+   design intent                   --brand-*/--status-* + semantic contract       bg-primary, px-6
         ▲                                    │
         │ Code Connect (deferred)            ▼
         └──────────────────────────  @barrelsgd/ui components  ──imported by──►  apps/web/<app>
@@ -40,7 +40,7 @@ Do **not** move pages between Figma files programmatically — instruct the user
 
 - **Server Components by default.** Add `"use client"` only for interactivity or browser hooks. Fetch server-fetchable data directly in Server Components — no React Query for it.
 - Compose from `@barrelsgd/ui/components/ui/<name>` (per-file import, no barrel). Only write new markup when a primitive genuinely does not exist.
-- Style with token utilities (`text-gm-blue`, `p-gm-4`, `text-gm-heading-md`, `bg-gm-warning-red-bg`) or shadcn semantics (`bg-background`, `border-border`).
+- Style with semantic utilities (`bg-primary`, `text-heading-md`, `px-6`) or, on GMS surfaces only, GMS hazard colours (`bg-gm-warning-red-bg`) (`bg-background`, `border-border`).
 - **Dark mode is supported** via the class-based `dark` variant + `.dark` token overrides. Prefer semantic tokens (`bg-background`, `text-foreground`, `border-border`) so primitives adapt automatically; avoid one-off `dark:*` branches. Printable document papers stay light in both modes.
 - One-off inline measurements are allowed but are treated as migration debt — keep them local, never promote them to tokens.
 - Use the [Warning Pattern Checklist](./design-system.md#warning-pattern-checklist) for any warning, bulletin, or impact-based summary. Color must always be paired with visible text.
@@ -81,7 +81,7 @@ Pick where to build based on the app's design-system lane (full table in [Design
 
 - **`gms`** — public web **reference app**. Prototype and validate new public-facing patterns here first; it is the lowest-drift baseline.
 - **`gaa-admin`** — dense **internal dashboard** lane. Preserve operational density; map TailAdmin aliases back to design-system tokens. Charts use `var(--gm-*)` directly.
-- **`wxproducts`, `hr`** — **document / print** lane. Use `font-gm-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@barrelsgd/ui` primitives.
+- **`wxproducts`, `hr`** — **document / print** lane. Use `font-document` (Noto Sans) and keep fixed A4/PDF dimensions inside official templates. Never let those assumptions leak into shared `@barrelsgd/ui` primitives.
 - Other apps follow the [migration order](./design-system.md#migration-order), guided by audit output.
 
 ## What requires approval first
