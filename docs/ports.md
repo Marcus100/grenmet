@@ -23,7 +23,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | auth | `@barrelsgd/web-auth` | 3000 | yes |
 | admin-gms | `@barrelsgd/web-admin` | 3001 | yes |
 | hurricaneplan | `@barrelsgd/web-hurricaneplan` | 3002 | yes |
-| spicewx | `@barrelsgd/web-spicewx` | 3003 | yes |
+| gms | `@barrelsgd/web-gms` | 3003 | yes |
 | signal | `@barrelsgd/web-signal` | 3004 | dev only (no Dockerfile yet) |
 | mbia | `@barrelsgd/web-mbia` | 3005 | dev only (no Dockerfile yet) |
 | events | `@barrelsgd/web-events` | 3009 | dev only (prototype, no Dockerfile) |

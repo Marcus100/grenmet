@@ -1,6 +1,6 @@
 # Barrels Grenada Platform Transition
 
-**Status:** In progress — boundaries 1-5 complete
+**Status:** In progress — boundaries 1-6 complete
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
 **Owner:** Repository maintainers
@@ -629,10 +629,27 @@ boundaries that an authorized human may commit separately:
      their own stylesheets, invisible to any search for `gm-` utility classes; and
      the audit script matched on token names 5c deletes, so it would have begun
      flagging correctly-tokenized code.
-6. [ ] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
-   `@barrelsgd/web-gms`. Public site only. Its current 25 files are a foundation
-   to build on, not a sketch to replace, so this is a rename rather than a
-   rewrite.
+6. [x] Rename SpiceWX to GMS: `apps/web/spicewx` → `apps/web/gms`,
+   `@barrelsgd/web-gms`, port 3003 retained. Public site only. Its current 25
+   files are a foundation to build on, not a sketch to replace, so this was a
+   rename rather than a rewrite.
+
+   Deploy identities were deliberately left alone — the `web-spicewx` compose
+   service, the `grenmet-web-spicewx` image, the `spice.barrels.gd` router, and
+   the health endpoint's service string all belong to boundary 15, and renaming
+   them here would orphan the running production service. CI therefore builds
+   from the new path and still tags the old image name.
+
+   The rename's real hazard was invisible to every local check: `auth`,
+   `admin-gms` and `hurricaneplan` each `COPY apps/web/spicewx/package.json` in
+   their Dockerfiles for the workspace install, so all three Docker builds would
+   have failed in CI. Any future app-directory rename must sweep every
+   Dockerfile, not just the renamed app's own.
+
+   The site itself remains a static mockup: no API calls, forecast content
+   hardcoded in four components named for fixed May dates. Connecting it to the
+   live `/api/cap` public endpoints, and publishing forecasts publicly, are
+   separate pieces of work.
 7. [ ] Rename the staff portal: `apps/web/admin-gms` → `apps/web/gaa-admin`,
    `@barrelsgd/web-gaa-admin`, port 3001 → 3011. Rename and rehost only — no
    module split, no route moves, no data migration. This also releases

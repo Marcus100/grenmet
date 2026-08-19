@@ -16,12 +16,12 @@ pnpm start                  # Start Postgres + FastAPI (required for admin-gms)
 pnpm dev:web:auth           # auth           :3000
 pnpm dev:web:admin          # admin-gms      :3001
 pnpm dev:web:hurricane      # hurricaneplan  :3002
-pnpm dev:web:spicewx        # spicewx        :3003
+pnpm dev:web:gms        # gms        :3003
 pnpm dev:web:signal         # signal         :3004
 ```
 
 Apps that require `pnpm start` before running: `admin-gms`.
-Apps that work standalone (no FastAPI): `auth`, `hurricaneplan`, `spicewx`,
+Apps that work standalone (no FastAPI): `auth`, `hurricaneplan`, `gms`,
 `signal`.
 
 ## Environment variables

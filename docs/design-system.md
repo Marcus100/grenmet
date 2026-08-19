@@ -11,7 +11,7 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 - Web UI uses Inter through `--gm-font-sans`.
 - Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--gm-font-document` and `font-gm-document`.
 - V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
-- `spicewx` is the public web reference implementation.
+- `gms` is the public web reference implementation.
 - `admin-gms` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
 - Code Connect files may live locally in the repo, but publishing is deferred until the Figma account has the required Developer, Organization, or Enterprise capability.
 - For v1, the user is the sole approver for public `--gm-*` token additions or value changes.
@@ -47,7 +47,7 @@ The `13 Components` page is the repo handoff map for v1:
 | `01 Core UI` | Production core primitives. Figma documents `Button` (42 variants, including `size=touch`) and `Input` (3 states, including `invalid`) — 45 variants across 2 component sets. | `Button` has local Code Connect. `Input` exists in Figma and code; local Code Connect remains next. |
 | `02 Weather Domain` | Alert cards, compact alert cards, forecast headline, metrics, metric grid, and IBF matrix. | Weather warning and IBF components should graduate through `@barrelsgd/ui` only after APIs are stable. |
 | `03 Product PDF` | A4 report shell/body/header/footer, product badges, alert grid, alert section, and forecast details with IBF. | Keep fixed A4 dimensions and Noto Sans in the Document Templates lane. |
-| `04 Website / Shared` | Shared public website components: logo, accent line, social button, footer link, author row, section header, warning rows/accordion, summary/news cards, and 44px icon buttons. | Public website patterns should be validated in `spicewx` before broad reuse. |
+| `04 Website / Shared` | Shared public website components: logo, accent line, social button, footer link, author row, section header, warning rows/accordion, summary/news cards, and 44px icon buttons. | Public website patterns should be validated in `gms` before broad reuse. |
 | `05 Website / Desktop` | Desktop site header, desktop navigation menu, forecast date rail, and forecast date tab. | Desktop navigation should stay public-weather-specific unless reused outside the website lane. |
 | `06 Website / Mobile` | Mobile header, mobile navigation row, warning shortcut, subnav link, nav drawer, and mobile footer. | Mobile shell work should preserve the light-only v1 contract and `--gm-height-header`. |
 | `07 Website / Composition Patterns` | Latest updates and weather news sections, including mobile compositions. | Promote only repeated composition patterns; keep content-specific layout local. |
@@ -146,7 +146,7 @@ pnpm design-system:check
 
 The check fails if an app has a stale generated block or declares `--gm-*` tokens outside the generated block. Apps may keep local compatibility variables during migration, but obvious values should map back to GrenMet tokens.
 
-`spicewx` remains the first app mirror for the v1 GrenMet contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
+`gms` remains the first app mirror for the v1 GrenMet contract. All web apps now receive the same foundation block, while deeper component migration stays phased.
 
 ## Governance
 
@@ -166,9 +166,9 @@ Document-specific fixed sizes and official-output typography must stay inside th
 
 Apps may keep temporary compatibility aliases, but the aliases should resolve back to `--gm-*` tokens or shared semantic tokens. Product-specific visual choices should be treated as migration debt unless they still use the GrenMet foundation.
 
-Use `spicewx` as the first cleanup app. It should become the reference for how a public GrenMet app uses shared foundations before the same rules are tightened across the other apps.
+Use `gms` as the first cleanup app. It should become the reference for how a public GrenMet app uses shared foundations before the same rules are tightened across the other apps.
 
-The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `spicewx` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
+The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `gms` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
 
 The v1 type scale as of the current expansion:
 
@@ -191,7 +191,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 | App | Design-system role | Direction |
 |---|---|---|
-| `spicewx` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
+| `gms` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
 | `admin-gms` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to GrenMet tokens. |
 | `wxproducts` | Document-heavy weather product lane | Keep Noto Sans and fixed A4/PDF dimensions inside official product templates. |
 | `hr` | Document-heavy HR operations lane | Keep official forms in the document lane; use Inter for normal web UI. |
@@ -203,7 +203,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 ### Migration Order
 
-1. `spicewx`, because it is the public web reference.
+1. `gms`, because it is the public web reference.
 2. `@barrelsgd/ui`, because shared primitives must stay token-clean.
 3. `admin-gms`, mapping TailAdmin aliases back to GrenMet tokens while preserving dashboard density.
 4. `wxproducts` and `hr`, keeping Noto Sans and fixed A4 dimensions inside the document lane.
@@ -213,7 +213,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 | App | Status | Accepted exceptions | Next action |
 |---|---|---|---|
-| `spicewx` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
+| `gms` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
 | `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use GrenMet type tokens for labels and timestamps. |
 | `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
 | `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-gm-document` for official templates and warning token pairs for impact/response displays. |
@@ -239,7 +239,7 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `spicewx` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
+The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `gms` as the public reference, `admin-gms` as the dashboard lane, and Code Connect publishing deferred.
 
 Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
 
@@ -257,7 +257,7 @@ Current audit summary:
 |---|---|
 | `auth` | No findings. |
 | `cap` | Small set of hard-coded colors (5) from the initial build. |
-| `spicewx` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
+| `gms` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
 | `wxwatch` | Small fixed-media/gallery viewport exceptions. |
 | `salesbus` | Small product-specific sizing exceptions. |
 | `wxproducts` | Fixed A4/PDF dimensions in the document lane. |

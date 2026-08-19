@@ -162,7 +162,7 @@ const reportConsumerValidation = (changes) => {
 
   if ([...files].some((file) => file.startsWith("packages/auth/"))) {
     console.log(
-      `Auth consumer validation required: validate auth, admin-gms, hurricaneplan, spicewx, signal, including hurricaneplan and spicewx delegation via AUTH_API_URL. CI enforces ${ciGates}.`
+      `Auth consumer validation required: validate auth, admin-gms, hurricaneplan, gms, signal, including hurricaneplan and gms delegation via AUTH_API_URL. CI enforces ${ciGates}.`
     );
   }
 

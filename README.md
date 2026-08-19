@@ -1,32 +1,39 @@
-# Grenmet
+# Barrels Grenada Monorepo
 
-A monorepo containing Grenmet applications, shared packages, and deployment infrastructure.
+The primary software repository for Barrels Grenada products and closely
+related client delivery. GAA is a client organisation; GMS is its
+meteorological department, not a Barrels product. See the
+[Portfolio Planning System](docs/portfolio/) for ownership, priorities, and
+repository coverage.
 
 ## Workspace Layout
 
 ```
-grenmet/
+barrelsgd/
 ├── apps/                       # Application code
 │   ├── api/
 │   │   ├── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, webhooks
 │   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
 │   └── web/
-│       ├── admin-gms/          # Internal GMS ops dashboard — also hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules
+│       ├── admin-gms/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared sign-in/sign-up gateway for all apps
+│       ├── events/             # Barrels Events organiser-console prototype
 │       ├── hurricaneplan/      # Public hurricane preparedness content site (MDX)
 │       ├── mbia/               # Maurice Bishop International Airport public site
 │       ├── signal/             # Grenada Signal — civic-media reader (static MDX)
-│       └── spicewx/            # Public GMS weather website (design system reference app)
+│       └── gms/            # Public GMS weather website (design system reference app)
 ├── packages/
 │   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
 │   ├── auth/                   # Shared auth/session package (@barrelsgd/auth)
 │   ├── email-templates/        # Shared React Email templates
+│   ├── gms/                    # GMS-owned assets and presentation components
 │   ├── mdx/                    # Shared MDX processing plugins
 │   ├── theme/                  # Shared theme and preference utilities
 │   ├── tsconfig/               # Shared TypeScript config
-│   └── ui/                     # Shared UI component library (@barrelsgd/ui) + GrenMet design system
+│   └── ui/                     # Brand-neutral shared UI component library
 ├── docs/
 │   ├── api/                    # API development, testing, and deployment guides
+│   ├── portfolio/              # Portfolio, client-programme, and repository plans
 │   ├── architecture.md         # GMS service architecture and strategic product catalogue
 │   ├── design-system.md        # GrenMet v1 design system — tokens, Figma bridge, compliance
 │   ├── deployment.md           # Deployment entry points summary
@@ -38,6 +45,8 @@ grenmet/
 │   └── sutron-collector/       # Sutron weather-station edge collector
 ├── geonetcast/                 # GNC-A satellite and NWP training resources
 ├── notebooks/                  # Data / exploration
+├── surface/                    # Independent GMS CDMS stack (vendored)
+├── wis2box/                    # Independent GMS WIS2 deployment stack
 ├── pyproject.toml              # Root uv workspace definition
 ├── uv.lock                     # Shared Python dependency lock
 └── README.md                   # This file
@@ -98,10 +107,11 @@ From repo root:
 
 - [admin-gms](apps/web/admin-gms/README.md) – `pnpm dev:web:admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
+- [events](apps/web/events) – `pnpm dev:web:events`
 - [hurricaneplan](apps/web/hurricaneplan/README.md) – `pnpm dev:web:hurricane`
 - [mbia](apps/web/mbia) – `pnpm dev:web:mbia`
 - [signal](apps/web/signal/README.md) – `pnpm dev:web:signal`
-- [spicewx](apps/web/spicewx/README.md) – `pnpm dev:web:spicewx`
+- [gms](apps/web/gms/README.md) – `pnpm dev:web:gms`
 
 ### Python workspace
 
@@ -150,7 +160,7 @@ All commands are run from the monorepo root.
 | `pnpm dev:web:hurricane`  | [hurricaneplan](apps/web/hurricaneplan) |
 | `pnpm dev:web:mbia`       | [mbia](apps/web/mbia)                   |
 | `pnpm dev:web:signal`     | [signal](apps/web/signal)               |
-| `pnpm dev:web:spicewx`    | [spicewx](apps/web/spicewx)             |
+| `pnpm dev:web:gms`    | [gms](apps/web/gms)             |
 | `pnpm dev:honoapi`        | [Hono API](apps/api/honoapi)            |
 
 API (FastAPI): use `pnpm start` for infra + API, or follow the fully qualified
@@ -184,6 +194,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | Document | Description |
 | --- | --- |
 | [Technical Overview](docs/technical-overview.md) | How the codebase fits together — monorepo structure, auth flow, shared packages, databases |
+| [Portfolio Planning System](docs/portfolio/) | Company portfolio, GAA/GMS client programmes, and complete repository delivery map |
 | [Contributing](CONTRIBUTING.md) | Branching strategy, commit conventions, pre-commit checklist, PR process, code conventions |
 | [Deployment guide](docs/deployment.md) | Full step-by-step: GitHub setup, server provisioning, DNS, runners, secrets, staging and production |
 | [Infrastructure & Operations](docs/infrastructure.md) | Runtime topology, health checks, incident triage, backups, restore, access review |
@@ -212,7 +223,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | hurricaneplan | [apps/web/hurricaneplan/README.md](apps/web/hurricaneplan/README.md) |
 | mbia | [apps/web/mbia](apps/web/mbia) |
 | signal | [apps/web/signal/README.md](apps/web/signal/README.md) |
-| spicewx | [apps/web/spicewx/README.md](apps/web/spicewx/README.md) |
+| gms | [apps/web/gms/README.md](apps/web/gms/README.md) |
 | FastAPI | [apps/api/fastapi/README.md](apps/api/fastapi/README.md) |
 
 ## Development
@@ -248,7 +259,7 @@ cd apps/api/fastapi
 
 **Web (TypeScript)**
 
-See each app's README (e.g. `apps/web/admin-gms`, `apps/web/spicewx`).
+See each app's README (e.g. `apps/web/admin-gms`, `apps/web/gms`).
 
 ### Dependencies
 

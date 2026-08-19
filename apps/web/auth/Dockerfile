@@ -17,7 +17,7 @@ COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/admin-gms/package.json apps/web/admin-gms/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/hurricaneplan/package.json apps/web/hurricaneplan/
-COPY apps/web/spicewx/package.json apps/web/spicewx/
+COPY apps/web/gms/package.json apps/web/gms/
 RUN pnpm install --frozen-lockfile
 
 # Optional build-time env vars (unused by this app but harmless)
