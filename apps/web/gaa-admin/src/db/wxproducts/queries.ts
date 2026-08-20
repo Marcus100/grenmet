@@ -8,7 +8,10 @@ import {
 } from "@/db/wxproducts/morning-mapping";
 import type { MorningForecastProduct } from "@/db/wxproducts/schema/morning";
 import { morningProducts } from "@/db/wxproducts/schema/morning";
-import { products } from "@/db/wxproducts/schema/product-metadata";
+import {
+  productSuites,
+  products,
+} from "@/db/wxproducts/schema/product-metadata";
 
 /**
  * Writes a morning forecast, replacing any previous version of the same
@@ -83,4 +86,14 @@ export async function getMorningForecast(
     links: row.links,
     metadata: row.metadata,
   });
+}
+
+/** True when the suite a product would be attached to already exists. */
+export async function suiteExists(suiteId: string): Promise<boolean> {
+  const [row] = await db
+    .select({ suiteId: productSuites.suiteId })
+    .from(productSuites)
+    .where(eq(productSuites.suiteId, suiteId))
+    .limit(1);
+  return Boolean(row);
 }
