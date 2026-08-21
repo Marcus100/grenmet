@@ -32,9 +32,14 @@ export function morningProductId(issueDate: string): string {
   return `${MORNING_PRODUCT_PREFIX}-${issueDate}`;
 }
 
-/** The daily suite every product issued that day belongs to. */
+/**
+ * The daily suite every product issued that day belongs to. The
+ * `GMS-DAILY-SUITE-` prefix matches the identifiers already in the product
+ * data, so generated suites sit alongside existing ones rather than forming a
+ * second naming scheme.
+ */
 export function dailySuiteId(issueDate: string): string {
-  return `GMS-SUITE-${issueDate}`;
+  return `GMS-DAILY-SUITE-${issueDate}`;
 }
 
 export interface ReissueContext {

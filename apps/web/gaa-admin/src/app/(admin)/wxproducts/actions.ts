@@ -1,27 +1,48 @@
 "use server";
 
-import { saveMorningForecast, suiteExists } from "@/db/wxproducts/queries";
+import type { ForecastValues } from "@/components/wxproducts/forecast-document";
+import {
+  buildMorningProduct,
+  dailySuiteId,
+  morningProductId,
+} from "@/db/wxproducts/morning-assembly";
+import {
+  ensureDailySuite,
+  getStoredVersion,
+  saveMorningForecast,
+} from "@/db/wxproducts/queries";
 import { morningProductSchema } from "@/db/wxproducts/schema/morning";
+import { buildDailySuite } from "@/db/wxproducts/suite-assembly";
 import { readSessionCookie } from "@/lib/server-session";
 
 export type SaveForecastResult =
   | { error: string; status: "error" }
-  | { productId: string; status: "saved" };
+  | { productId: string; status: "saved"; version: number };
+
+export interface SaveForecastInput {
+  /** Why this reissue was made; recorded against the stored version. */
+  changeSummary?: string | null;
+  /** True when correcting an error rather than routinely updating. */
+  isCorrection?: boolean;
+  values: ForecastValues;
+}
+
+/** Midday follows the morning forecast; the suite records when to expect it. */
+const HOURS_TO_NEXT_UPDATE = 6;
 
 /**
  * Persists a morning forecast from the editor.
  *
- * A thin wrapper over `saveMorningForecast`: the database work and its field
- * mapping stay in plain functions that can be exercised without a request, so
- * this layer only does what a request boundary must — authenticate, validate,
- * and turn failures into something the form can show.
+ * Assembly, versioning and storage stay in plain functions that run without a
+ * request, so this layer only does what a request boundary must: authenticate,
+ * decide whether this is a first issue or a reissue, and turn failures into
+ * something the form can show.
  */
 export async function saveMorningForecastAction(
-  input: unknown,
-  suiteId: string
+  input: SaveForecastInput
 ): Promise<SaveForecastResult> {
-  // Writes reach the wxproducts database directly, so this cannot rely on the
-  // route layout's guard: a server action is its own entry point.
+  // A server action is its own entry point: it cannot rely on the route
+  // layout's guard, and it writes to the database directly.
   const sessionToken = await readSessionCookie();
   if (!sessionToken) {
     return {
@@ -30,29 +51,58 @@ export async function saveMorningForecastAction(
     };
   }
 
-  const parsed = morningProductSchema.safeParse(input);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
+  const { values } = input;
+  if (!values.forecasterName.trim()) {
     return {
-      error: first
-        ? `${first.path.join(".") || "form"}: ${first.message}`
-        : "The forecast is not valid",
+      error: "Add the forecaster's name before saving",
       status: "error",
     };
   }
 
-  // Checked before writing so a missing suite reads as a decision that has not
-  // been made, rather than surfacing as a raw foreign-key violation.
-  if (!(await suiteExists(suiteId))) {
-    return {
-      error: `No product suite "${suiteId}" exists yet — create the daily suite before issuing forecasts`,
-      status: "error",
-    };
-  }
+  const issuedAt = new Date();
+  const issueDate = values.dateIssued || issuedAt.toISOString().slice(0, 10);
+  const suiteId = dailySuiteId(issueDate);
 
   try {
+    const nextUpdate = new Date(
+      issuedAt.getTime() + HOURS_TO_NEXT_UPDATE * 60 * 60 * 1000
+    );
+    await ensureDailySuite(
+      suiteId,
+      buildDailySuite(suiteId, issuedAt, nextUpdate),
+      issuedAt
+    );
+
+    // Read the stored version first so a reissue increments rather than
+    // restarting at 1 and losing the fact that the forecast was amended.
+    const previousVersion = await getStoredVersion(morningProductId(issueDate));
+
+    const product = buildMorningProduct(values, issuedAt, {
+      changeSummary: input.changeSummary ?? null,
+      isCorrection: input.isCorrection ?? false,
+      previousVersion,
+    });
+
+    // The form is free text and the parsers are lenient, so the assembled
+    // product is checked before it reaches the database rather than trusting
+    // that every field survived parsing in a storable shape.
+    const parsed = morningProductSchema.safeParse(product);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      return {
+        error: first
+          ? `${first.path.join(".") || "forecast"}: ${first.message}`
+          : "The forecast is not valid",
+        status: "error",
+      };
+    }
+
     const { productId } = await saveMorningForecast(parsed.data, suiteId);
-    return { productId, status: "saved" };
+    return {
+      productId,
+      status: "saved",
+      version: product.product_metadata.versioning.version,
+    };
   } catch {
     return { error: "Could not save the forecast", status: "error" };
   }

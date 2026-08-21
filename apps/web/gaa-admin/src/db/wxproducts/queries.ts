@@ -12,6 +12,7 @@ import {
   productSuites,
   products,
 } from "@/db/wxproducts/schema/product-metadata";
+import type { Suite } from "@/db/wxproducts/schema/suite-types";
 
 /**
  * Writes a morning forecast, replacing any previous version of the same
@@ -88,12 +89,42 @@ export async function getMorningForecast(
   });
 }
 
-/** True when the suite a product would be attached to already exists. */
-export async function suiteExists(suiteId: string): Promise<boolean> {
+/**
+ * Creates the day's suite if it is not there yet, so the first forecast of the
+ * morning is not rejected for a container nobody was asked to make. Concurrent
+ * first saves are safe: the unique suite id makes the second one a no-op rather
+ * than a duplicate.
+ */
+export async function ensureDailySuite(
+  suiteId: string,
+  suite: Suite,
+  issuedAt: Date
+): Promise<void> {
+  await db
+    .insert(productSuites)
+    .values({
+      fullSuite: suite,
+      schemaFamily: suite.suite_metadata.schema_family,
+      schemaVersion: suite.suite_metadata.schema_version,
+      suiteId,
+      suiteIssueDatetimeUtc: issuedAt,
+      suiteType: "daily_product_suite",
+    })
+    .onConflictDoNothing({ target: productSuites.suiteId });
+}
+
+/**
+ * The version already stored for a product id, or null when this is a first
+ * issue. Callers increment from it, so a reissue never silently restarts at 1
+ * and loses the fact that the forecast was amended.
+ */
+export async function getStoredVersion(
+  productId: string
+): Promise<number | null> {
   const [row] = await db
-    .select({ suiteId: productSuites.suiteId })
-    .from(productSuites)
-    .where(eq(productSuites.suiteId, suiteId))
+    .select({ metadata: products.metadata })
+    .from(products)
+    .where(eq(products.productId, productId))
     .limit(1);
-  return Boolean(row);
+  return row?.metadata?.versioning?.version ?? null;
 }
