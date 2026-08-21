@@ -24,7 +24,7 @@ describe("identifiers", () => {
   });
 
   it("puts every product issued that day in one suite", () => {
-    expect(dailySuiteId("2026-08-20")).toBe("GMS-SUITE-2026-08-20");
+    expect(dailySuiteId("2026-08-20")).toBe("GMS-DAILY-SUITE-2026-08-20");
   });
 });
 
