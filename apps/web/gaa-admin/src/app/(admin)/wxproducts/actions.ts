@@ -17,13 +17,23 @@ import { readSessionCookie } from "@/lib/server-session";
 
 export type SaveForecastResult =
   | { error: string; status: "error" }
-  | { productId: string; status: "saved"; version: number };
+  | {
+      productId: string;
+      published: boolean;
+      status: "saved";
+      version: number;
+    };
 
 export interface SaveForecastInput {
   /** Why this reissue was made; recorded against the stored version. */
   changeSummary?: string | null;
   /** True when correcting an error rather than routinely updating. */
   isCorrection?: boolean;
+  /**
+   * `false` saves a draft the forecaster can come back to; `true` issues the
+   * forecast. Defaults to a draft, so publishing is always a deliberate act.
+   */
+  publish?: boolean;
   values: ForecastValues;
 }
 
@@ -77,10 +87,12 @@ export async function saveMorningForecastAction(
     // restarting at 1 and losing the fact that the forecast was amended.
     const previousVersion = await getStoredVersion(morningProductId(issueDate));
 
+    const published = input.publish === true;
     const product = buildMorningProduct(values, issuedAt, {
       changeSummary: input.changeSummary ?? null,
       isCorrection: input.isCorrection ?? false,
       previousVersion,
+      status: published ? "operational" : "draft",
     });
 
     // The form is free text and the parsers are lenient, so the assembled
@@ -100,6 +112,7 @@ export async function saveMorningForecastAction(
     const { productId } = await saveMorningForecast(parsed.data, suiteId);
     return {
       productId,
+      published,
       status: "saved",
       version: product.product_metadata.versioning.version,
     };

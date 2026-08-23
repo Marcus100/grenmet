@@ -16,7 +16,10 @@ import {
 } from "@/db/wxproducts/forecast-parsing";
 import type { ElementsBlock } from "@/db/wxproducts/schema/elements";
 import type { MorningForecastProduct } from "@/db/wxproducts/schema/morning";
-import type { Versioning } from "@/db/wxproducts/schema/product-metadata";
+import type {
+  ProductStatus,
+  Versioning,
+} from "@/db/wxproducts/schema/product-metadata";
 
 /** A morning forecast always covers today and tonight, 6am to 6am. */
 const VALID_DURATION_HOURS = 24;
@@ -49,6 +52,12 @@ export interface ReissueContext {
   isCorrection?: boolean;
   /** Version of the forecast being replaced, when one exists. */
   previousVersion?: number | null;
+  /**
+   * `draft` is saved but not issued and must not reach a public surface;
+   * `operational` is published. Defaults to draft so a forecast is never
+   * published by a caller that forgot to say so.
+   */
+  status?: ProductStatus;
 }
 
 function buildVersioning(
@@ -135,7 +144,7 @@ export function buildMorningProduct(
       product_channel: ["website"],
       product_id: productId,
       product_type: "morning_forecast",
-      status: "operational",
+      status: reissue.status ?? "draft",
       validity: {
         valid_duration_hours: VALID_DURATION_HOURS,
         valid_from_local: `${issueDate}T${VALID_FROM_TIME}:00`,

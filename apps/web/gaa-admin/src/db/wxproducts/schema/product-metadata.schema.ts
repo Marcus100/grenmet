@@ -7,7 +7,12 @@ import type {
   ProductType,
 } from "@/db/wxproducts/schema/primitives";
 
-export type ProductStatus = "operational" | "test" | "training" | "archived";
+export type ProductStatus =
+  | "draft"
+  | "operational"
+  | "test"
+  | "training"
+  | "archived";
 
 export interface Validity {
   valid_duration_hours: number;
