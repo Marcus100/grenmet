@@ -7,7 +7,12 @@ import type {
   ProductType,
 } from "@/db/wxproducts/schema/primitives";
 
-export type ProductStatus = "operational" | "test" | "training" | "archived";
+export type ProductStatus =
+  | "draft"
+  | "operational"
+  | "test"
+  | "training"
+  | "archived";
 
 export interface Validity {
   valid_duration_hours: number;
@@ -62,7 +67,13 @@ import {
   productTypeSchema,
 } from "@/db/wxproducts/schema/zod-primitives";
 
+/**
+ * `draft` is a forecast the forecaster has saved but not issued: it is stored
+ * and editable, and must never reach a public surface. Everything else is a
+ * product that has been issued.
+ */
 export const productStatusSchema = z.enum([
+  "draft",
   "operational",
   "test",
   "training",
@@ -137,6 +148,7 @@ export const productTypeEnum = pgEnum("product_type", [
 
 export const productStatusEnum = pgEnum("product_status", [
   "archived",
+  "draft",
   "operational",
   "test",
   "training",

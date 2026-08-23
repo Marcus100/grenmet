@@ -21,6 +21,7 @@ export const productTypeEnum = pgEnum("product_type", [
 
 export const productStatusEnum = pgEnum("product_status", [
   "archived",
+  "draft",
   "operational",
   "test",
   "training",

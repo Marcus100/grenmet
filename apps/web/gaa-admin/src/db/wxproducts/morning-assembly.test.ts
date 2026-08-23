@@ -135,3 +135,25 @@ describe("buildMorningProduct", () => {
     expect(product.product_metadata.product_id).toBe("GMS-MORNING-2026-08-20");
   });
 });
+
+describe("draft and published status", () => {
+  it("defaults to a draft, so nothing is published by omission", () => {
+    const product = buildMorningProduct(values(), ISSUED);
+    expect(product.product_metadata.status).toBe("draft");
+  });
+
+  it("marks the forecast operational only when asked to publish", () => {
+    const product = buildMorningProduct(values(), ISSUED, {
+      status: "operational",
+    });
+    expect(product.product_metadata.status).toBe("operational");
+  });
+
+  it("keeps versioning independent of status, so a draft reissue still counts", () => {
+    const product = buildMorningProduct(values(), ISSUED, {
+      previousVersion: 2,
+      status: "draft",
+    });
+    expect(product.product_metadata.versioning.version).toBe(3);
+  });
+});
