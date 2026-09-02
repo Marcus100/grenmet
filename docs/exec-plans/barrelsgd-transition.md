@@ -686,9 +686,60 @@ boundaries that an authorized human may commit separately:
    rewrite the compose service and image name, orphaning the running production
    service. The sweep must exclude that prefix — here via a `(?<!web-)`
    lookbehind, which left `app: web-hurricaneplan` intact while `path:` moved.
-9. [ ] Complete the WxProducts integration into the staff portal as a first-class
-   GMS capability. It is not retiring; treat its schemas and encodings as core
+9. [~] Integrate WxProducts into the staff portal as a first-class GMS
+   capability. It is not retiring; treat its schemas and encodings as core
    meteorological output.
+
+   **Done when a forecaster types a forecast in the staff portal and the public
+   sees it on the GMS site.** The earlier wording — "complete the WxProducts
+   integration" — named a project, not a reviewable boundary, and gave the work
+   no edge. Split 2026-09-01, after five commits had already landed against it.
+
+   What the work found:
+
+   - wxproducts had schemas **and** a migration but **zero persistence**. Every
+     schema reference was a type import in a fixture; nothing read or wrote the
+     database. The 40+ schemas described a product suite no code had ever
+     stored.
+   - The `product_status` pgEnum is **declared, but no column uses it**. Status
+     lives in the `metadata` jsonb column and is enforced by Zod, so adding
+     `draft` was mostly a code change.
+     `drizzle/wxproducts/0001_third_captain_universe.sql` adds the enum value
+     for consistency only, and **has not been applied to any database yet**.
+   - **The parsers return `null` rather than guessing.** Every editor field is
+     free text, so `src/db/wxproducts/forecast-parsing.ts` is where "10–20 mph"
+     becomes a min, a max and a unit — and where it returns `null` when it
+     cannot. This is a convention, not an implementation detail: it is the
+     reason a half-typed forecast stores nothing instead of storing something
+     wrong. An unreadable wind speed leaves the element absent.
+   - **Open hazard, unfixed.** `impact-forecasts.tsx` renders the same
+     `ForecastEditor` for all four period tabs, but `saveMorningForecastAction`
+     writes to `GMS-MORNING-<date>` regardless of period. Wiring Save without a
+     period gate lets the Evening tab silently overwrite the morning forecast
+     and bump its version. 9a must gate on period before the editor is wired.
+
+   Product conventions decided here, until now recorded only in code:
+
+   - Product IDs are type plus date: `GMS-MORNING-2026-08-20`.
+   - A reissue replaces the product and increments a version number.
+   - A reissue requires a stated reason, recorded against the stored version.
+   - The daily suite `GMS-DAILY-SUITE-<date>` is created automatically on the
+     first save of the day, so no product exists outside a suite.
+   - Validity windows are fixed per product type; morning runs 6am to 6am.
+   - The editor follows draft → preview → publish, and `draft` is the default,
+     so publishing is never accidental.
+
+   - [~] **9a — morning forecast end to end.** Persistence, assembly, reissue
+     versioning and the draft status have landed (`b185a564`, `68b0a088`,
+     `d0f13a4a`, `198d3c6c`, `0ba10017`). The editor is not wired: no component
+     calls `saveMorningForecastAction`. Wiring it closes 9a, and carries the
+     period-gate hazard above.
+   - [ ] **9b — the remaining product types.** Midday, evening, marine bulletin,
+     tropical weather outlook. Not four copies of 9a: the tropical weather
+     outlook has no editor at all yet, so it is a build rather than a wiring.
+   - [ ] **9c — public read endpoints.** The GMS site renders stored forecasts
+     instead of the fixtures named for fixed May dates. This is the half of the
+     definition of done that the staff portal alone cannot satisfy.
 10. [ ] Extract `salesbus` to `@barrelsgd/web-salesbus` at `salesbus.barrels.gd`,
     port 3010, reconciling its duplicate UI primitives with `@barrelsgd/ui`.
     No production users, so no data migration is required.

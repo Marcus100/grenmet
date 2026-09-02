@@ -50,11 +50,26 @@ import {
   WifiOff,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { formatMoney } from "@/domain/money";
+import type {
+  ChannelSales,
+  EventDashboard,
+  EventRecord,
+  EventStatus,
+  NextAction,
+  ReadinessCheck,
+  ReconciliationState,
+  SalesTotals,
+  SettlementPreview,
+} from "@/domain/types";
+import { formatEventDate } from "@/lib/datetime";
+
+type Icon = ComponentType<{ className?: string }>;
 
 interface NavigationItem {
   active?: boolean;
   badge?: string;
-  icon: ComponentType<{ className?: string }>;
+  icon: Icon;
   label: string;
 }
 
@@ -70,74 +85,68 @@ const navigation: NavigationItem[] = [
   { label: "Settings", icon: Settings2 },
 ];
 
-const metrics = [
-  {
-    label: "Gross sales",
-    value: "$18,420",
-    detail: "+12.4% this week",
-    icon: CircleDollarSign,
-  },
-  {
-    label: "Tickets issued",
-    value: "742",
-    detail: "of 1,200 capacity",
-    icon: Ticket,
-  },
-  {
-    label: "Orders recorded",
-    value: "516",
-    detail: "1.4 tickets per order",
-    icon: ReceiptText,
-  },
-  {
-    label: "Expected settlement",
-    value: "$16,884",
-    detail: "before door sales",
-    icon: Landmark,
-  },
-];
+const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
+  draft: "Draft",
+  "on-sale": "On sale",
+  closed: "Closed",
+};
 
-const channels = [
-  {
-    channel: "Online checkout",
-    orders: "436",
-    tickets: "626",
-    gross: "$16,470",
-    status: "Reconciled",
-  },
-  {
-    channel: "Agent allocation",
-    orders: "62",
-    tickets: "78",
-    gross: "$1,950",
-    status: "Needs count",
-  },
-  {
-    channel: "Complimentary",
-    orders: "18",
-    tickets: "38",
-    gross: "$0",
-    status: "Recorded",
-  },
-];
+const RECONCILIATION_LABELS: Record<ReconciliationState, string> = {
+  reconciled: "Reconciled",
+  "needs-count": "Needs count",
+  recorded: "Recorded",
+};
 
-const checklist = [
-  {
-    title: "Connect payout account",
-    detail: "Required before the first settlement can be released.",
-    status: "Required",
-  },
-  {
-    title: "Confirm agent inventory",
-    detail: "Two allocations have not submitted a final sold count.",
-    status: "Attention",
-  },
-  {
-    title: "Download the door plan",
-    detail: "Prepare two scanning devices for degraded connectivity.",
-    status: "Due Friday",
-  },
-];
+const READINESS_ICONS: Record<string, Icon> = {
+  inventory: Check,
+  "guest-journey": Check,
+  door: WifiOff,
+  settlement: Landmark,
+};
+
+interface Metric {
+  detail: string;
+  icon: Icon;
+  label: string;
+  value: string;
+}
+
+function buildMetrics(
+  event: EventRecord,
+  totals: SalesTotals,
+  settlement: SettlementPreview,
+  salesTrendLabel: string
+): Metric[] {
+  const ticketsPerOrder =
+    totals.orders === 0 ? "0.0" : (totals.tickets / totals.orders).toFixed(1);
+
+  return [
+    {
+      label: "Gross sales",
+      value: formatMoney(totals.gross, { decimals: false }),
+      detail: salesTrendLabel,
+      icon: CircleDollarSign,
+    },
+    {
+      label: "Tickets issued",
+      value: totals.tickets.toLocaleString("en-US"),
+      detail: `of ${event.capacity.toLocaleString("en-US")} capacity`,
+      icon: Ticket,
+    },
+    {
+      label: "Orders recorded",
+      value: totals.orders.toLocaleString("en-US"),
+      detail: `${ticketsPerOrder} tickets per order`,
+      icon: ReceiptText,
+    },
+    {
+      label: "Expected settlement",
+      value: formatMoney(settlement.net, { decimals: false }),
+      detail: "before door sales",
+      icon: Landmark,
+    },
+  ];
+}
 
 function NavigationLink({ item }: { item: NavigationItem }) {
   const Icon = item.icon;
@@ -169,7 +178,7 @@ function NavigationLink({ item }: { item: NavigationItem }) {
   );
 }
 
-function Sidebar() {
+function Sidebar({ event }: { event: EventRecord }) {
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary text-primary-foreground lg:flex">
       <div className="flex h-20 items-center gap-3 px-5">
@@ -197,9 +206,9 @@ function Sidebar() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-caption text-primary-foreground/65">
-              Demo event
+              {event.isDemo ? "Demo event" : "Selected event"}
             </span>
-            <span className="block truncate text-body">Feel Free: Sunset</span>
+            <span className="block truncate text-body">{event.name}</span>
           </span>
           <ChevronDown className="size-4 text-primary-foreground/65" />
         </Button>
@@ -239,7 +248,7 @@ function Sidebar() {
   );
 }
 
-function MobileHeader() {
+function MobileHeader({ event }: { event: EventRecord }) {
   return (
     <header className="border-border border-b bg-card px-4 py-3 lg:hidden">
       <div className="flex items-center justify-between">
@@ -249,9 +258,7 @@ function MobileHeader() {
           </div>
           <div>
             <p className="font-semibold text-body-base">Barrels Events</p>
-            <p className="text-caption text-muted-foreground">
-              Feel Free: Sunset
-            </p>
+            <p className="text-caption text-muted-foreground">{event.name}</p>
           </div>
         </div>
         <Button
@@ -291,12 +298,7 @@ function MobileHeader() {
   );
 }
 
-function MetricCard({
-  detail,
-  icon: Icon,
-  label,
-  value,
-}: (typeof metrics)[number]) {
+function MetricCard({ detail, icon: Icon, label, value }: Metric) {
   return (
     <Card size="sm">
       <CardHeader>
@@ -320,7 +322,44 @@ function MetricCard({
   );
 }
 
-function EventReadiness() {
+function ReadinessTile({ check }: { check: ReadinessCheck }) {
+  const Icon = READINESS_ICONS[check.id] ?? Check;
+  const isComplete = check.state === "complete";
+
+  return (
+    <div
+      className={`flex gap-3 rounded-lg border p-3 ${
+        isComplete ? "border-border" : "border-warning bg-warning"
+      }`}
+    >
+      <span
+        className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
+          isComplete
+            ? "bg-success text-success-foreground"
+            : "bg-warning text-warning-foreground"
+        }`}
+      >
+        <Icon className="size-4" />
+      </span>
+      <div>
+        <p className="font-medium text-body">{check.title}</p>
+        <p className="mt-1 text-caption text-muted-foreground">
+          {check.detail}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function EventReadiness({
+  actionCount,
+  checks,
+  percent,
+}: {
+  actionCount: number;
+  checks: readonly ReadinessCheck[];
+  percent: number;
+}) {
   return (
     <Card className="lg:col-span-7">
       <CardHeader className="border-b">
@@ -331,67 +370,26 @@ function EventReadiness() {
           The operating checks that must be true before doors open.
         </CardDescription>
         <CardAction>
-          <Badge variant="light-warning">3 actions</Badge>
+          <Badge variant="light-warning">{actionCount} actions</Badge>
         </CardAction>
       </CardHeader>
       <CardContent className="space-y-5">
-        <Progress value={72}>
+        <Progress value={percent}>
           <ProgressLabel>Overall readiness</ProgressLabel>
           <ProgressValue />
         </Progress>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex gap-3 rounded-lg border border-border p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
-              <Check className="size-4" />
-            </span>
-            <div>
-              <p className="font-medium text-body">Event and inventory</p>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Published with three ticket types and a recorded capacity.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3 rounded-lg border border-border p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
-              <Check className="size-4" />
-            </span>
-            <div>
-              <p className="font-medium text-body">Guest journey</p>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Checkout, confirmation and admission credential tested.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3 rounded-lg border border-warning bg-warning p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-warning text-warning-foreground">
-              <WifiOff className="size-4" />
-            </span>
-            <div>
-              <p className="font-medium text-body">Door operation</p>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Offline device rehearsal and fallback roster still required.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-3 rounded-lg border border-warning bg-warning p-3">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-warning text-warning-foreground">
-              <Landmark className="size-4" />
-            </span>
-            <div>
-              <p className="font-medium text-body">Settlement</p>
-              <p className="mt-1 text-caption text-muted-foreground">
-                Payout account and organiser acceptance contact are incomplete.
-              </p>
-            </div>
-          </div>
+          {checks.map((check) => (
+            <ReadinessTile check={check} key={check.id} />
+          ))}
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function NextActions() {
+function NextActions({ actions }: { actions: readonly NextAction[] }) {
   return (
     <Card className="lg:col-span-5">
       <CardHeader className="border-b">
@@ -403,8 +401,8 @@ function NextActions() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-1">
-        {checklist.map((item, index) => (
-          <div key={item.title}>
+        {actions.map((action, index) => (
+          <div key={action.id}>
             <a
               aria-disabled="true"
               className="pointer-events-none flex items-start gap-3 rounded-lg py-3 opacity-75"
@@ -417,24 +415,24 @@ function NextActions() {
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-body">{item.title}</span>
+                  <span className="font-medium text-body">{action.title}</span>
                   <Badge
                     variant={
-                      item.status === "Required"
+                      action.priority === "required"
                         ? "light-error"
                         : "light-warning"
                     }
                   >
-                    {item.status}
+                    {action.statusLabel}
                   </Badge>
                 </span>
                 <span className="mt-1 block text-caption text-muted-foreground">
-                  {item.detail}
+                  {action.detail}
                 </span>
               </span>
               <ArrowRight className="mt-1 size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
             </a>
-            {index < checklist.length - 1 ? <Separator /> : null}
+            {index < actions.length - 1 ? <Separator /> : null}
           </div>
         ))}
       </CardContent>
@@ -442,7 +440,7 @@ function NextActions() {
   );
 }
 
-function SalesChannels() {
+function SalesChannels({ channels }: { channels: readonly ChannelSales[] }) {
   return (
     <Card className="lg:col-span-8">
       <CardHeader className="border-b">
@@ -478,21 +476,25 @@ function SalesChannels() {
           <TableBody>
             {channels.map((row) => (
               <TableRow key={row.channel}>
-                <TableCell className="pl-4 font-medium">
-                  {row.channel}
+                <TableCell className="pl-4 font-medium">{row.label}</TableCell>
+                <TableCell className="tabular-nums">
+                  {row.orders.toLocaleString("en-US")}
                 </TableCell>
-                <TableCell className="tabular-nums">{row.orders}</TableCell>
-                <TableCell className="tabular-nums">{row.tickets}</TableCell>
-                <TableCell className="tabular-nums">{row.gross}</TableCell>
+                <TableCell className="tabular-nums">
+                  {row.tickets.toLocaleString("en-US")}
+                </TableCell>
+                <TableCell className="tabular-nums">
+                  {formatMoney(row.gross, { decimals: false })}
+                </TableCell>
                 <TableCell className="pr-4">
                   <Badge
                     variant={
-                      row.status === "Needs count"
+                      row.reconciliation === "needs-count"
                         ? "light-warning"
                         : "light-success"
                     }
                   >
-                    {row.status}
+                    {RECONCILIATION_LABELS[row.reconciliation]}
                   </Badge>
                 </TableCell>
               </TableRow>
@@ -504,7 +506,11 @@ function SalesChannels() {
   );
 }
 
-function SettlementPreview() {
+function SettlementPreviewCard({
+  settlement,
+}: {
+  settlement: SettlementPreview;
+}) {
   return (
     <Card className="lg:col-span-4">
       <CardHeader className="border-b">
@@ -518,7 +524,9 @@ function SettlementPreview() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <p className="text-heading-lg tabular-nums">$16,884.20</p>
+          <p className="text-heading-lg tabular-nums">
+            {formatMoney(settlement.net)}
+          </p>
           <p className="mt-1 text-caption text-muted-foreground">
             Across recorded sales and deductions
           </p>
@@ -526,20 +534,18 @@ function SettlementPreview() {
         <div className="space-y-2 text-body">
           <div className="flex justify-between gap-4">
             <span className="text-muted-foreground">Gross sales</span>
-            <span className="tabular-nums">$18,420.00</span>
+            <span className="tabular-nums">
+              {formatMoney(settlement.gross)}
+            </span>
           </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-muted-foreground">Refunds</span>
-            <span className="tabular-nums">−$240.00</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-muted-foreground">Provider fees</span>
-            <span className="tabular-nums">−$895.80</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-muted-foreground">Barrels fee</span>
-            <span className="tabular-nums">−$400.00</span>
-          </div>
+          {settlement.deductions.map((deduction) => (
+            <div className="flex justify-between gap-4" key={deduction.label}>
+              <span className="text-muted-foreground">{deduction.label}</span>
+              <span className="tabular-nums">
+                −{formatMoney(deduction.amount)}
+              </span>
+            </div>
+          ))}
         </div>
         <Separator />
         <Button
@@ -556,7 +562,7 @@ function SettlementPreview() {
   );
 }
 
-function OverviewHeader() {
+function OverviewHeader({ event }: { event: EventRecord }) {
   return (
     <div className="border-border border-b bg-card">
       <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
@@ -565,23 +571,25 @@ function OverviewHeader() {
             <div className="flex flex-wrap items-center gap-2">
               <Badge variant="light-success">
                 <span className="size-1.5 rounded-full bg-current" />
-                On sale
+                {EVENT_STATUS_LABELS[event.status]}
               </Badge>
-              <span className="text-caption text-muted-foreground">
-                Demo event
-              </span>
+              {event.isDemo ? (
+                <span className="text-caption text-muted-foreground">
+                  Demo event
+                </span>
+              ) : null}
             </div>
             <h1 className="mt-2 font-semibold text-heading-md tracking-tight">
-              Feel Free: Sunset
+              {event.name}
             </h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-body text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <CalendarDays className="size-4" />
-                Saturday, 15 August · 4:00 PM
+                {formatEventDate(event.startsAt)}
               </span>
               <span className="flex items-center gap-1.5">
                 <MapPin className="size-4" />
-                Grenada National Stadium
+                {event.venue}
               </span>
             </div>
           </div>
@@ -623,13 +631,28 @@ function OverviewHeader() {
   );
 }
 
-export function EventOverview() {
+export function EventOverview({ dashboard }: { dashboard: EventDashboard }) {
+  const {
+    actions,
+    channels,
+    countdownLabel,
+    event,
+    operational,
+    readinessChecks,
+    readinessPercent,
+    salesTrendLabel,
+    settlement,
+    totals,
+  } = dashboard;
+
+  const metrics = buildMetrics(event, totals, settlement, salesTrendLabel);
+
   return (
     <div className="min-h-screen bg-muted/30">
-      <Sidebar />
+      <Sidebar event={event} />
       <div className="lg:pl-64">
-        <MobileHeader />
-        <OverviewHeader />
+        <MobileHeader event={event} />
+        <OverviewHeader event={event} />
 
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <section
@@ -648,8 +671,8 @@ export function EventOverview() {
                   Sales are healthy. Operations need attention.
                 </h2>
                 <p className="mt-1 text-body text-muted-foreground">
-                  The event is 17 days away. Complete the door rehearsal and
-                  payout setup before expanding promotion.
+                  {countdownLabel} Complete the door rehearsal and payout setup
+                  before expanding promotion.
                 </p>
               </div>
             </div>
@@ -677,16 +700,20 @@ export function EventOverview() {
             aria-label="Event preparation"
             className="mt-6 grid gap-6 lg:grid-cols-12"
           >
-            <EventReadiness />
-            <NextActions />
+            <EventReadiness
+              actionCount={actions.length}
+              checks={readinessChecks}
+              percent={readinessPercent}
+            />
+            <NextActions actions={actions} />
           </section>
 
           <section
             aria-label="Sales and settlement"
             className="mt-6 grid gap-6 lg:grid-cols-12"
           >
-            <SalesChannels />
-            <SettlementPreview />
+            <SalesChannels channels={channels} />
+            <SettlementPreviewCard settlement={settlement} />
           </section>
 
           <section
@@ -700,7 +727,8 @@ export function EventOverview() {
               <div>
                 <p className="font-medium text-body">Last payment</p>
                 <p className="text-caption text-muted-foreground">
-                  12 minutes ago · Online
+                  {operational.lastPaymentLabel} ·{" "}
+                  {operational.lastPaymentChannel}
                 </p>
               </div>
             </div>
@@ -709,9 +737,11 @@ export function EventOverview() {
                 <TriangleAlert className="size-4" />
               </span>
               <div>
-                <p className="font-medium text-body">2 open exceptions</p>
+                <p className="font-medium text-body">
+                  {operational.openExceptions} open exceptions
+                </p>
                 <p className="text-caption text-muted-foreground">
-                  Agent count and payout setup
+                  {operational.openExceptionsDetail}
                 </p>
               </div>
             </div>
@@ -722,7 +752,8 @@ export function EventOverview() {
               <div>
                 <p className="font-medium text-body">Audit record current</p>
                 <p className="text-caption text-muted-foreground">
-                  516 orders · 742 tickets
+                  {totals.orders.toLocaleString("en-US")} orders ·{" "}
+                  {totals.tickets.toLocaleString("en-US")} tickets
                 </p>
               </div>
             </div>
