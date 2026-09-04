@@ -28,7 +28,18 @@ export function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
-/** Only run proxy on app routes; exclude static assets so JS/CSS chunks are not redirected to /signin. */
+/**
+ * Only run proxy on app routes; exclude static assets so JS/CSS chunks are not
+ * redirected to /signin.
+ *
+ * `wxwatch/.*\.` exempts the archive files under `public/wxwatch/` — anything
+ * with a dot in it, i.e. a filename. next/image fetches those server-side
+ * without the session cookie, so redirecting them to /signin makes every image
+ * fail to render. The `/wxwatch` pages carry no dot and stay behind auth.
+ */
 export const config = {
-  matcher: ["/", "/((?!_next/static|_next/image|favicon\\.ico|images/).*)"],
+  matcher: [
+    "/",
+    "/((?!_next/static|_next/image|favicon\\.ico|images/|wxwatch/.*\\.).*)",
+  ],
 };
