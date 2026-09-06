@@ -15,7 +15,10 @@ const manifests = new Map(
 const installPattern = /^RUN pnpm install\b/m;
 const copyPattern = /^COPY (\S+\/package\.json)\s+/gm;
 let failures = 0;
-for (const dockerfile of globSync("apps/web/*/Dockerfile")) {
+for (const dockerfile of globSync([
+  "apps/web/*/Dockerfile",
+  "apps/api/honoapi/Dockerfile",
+])) {
   const source = readFileSync(dockerfile, "utf8");
   const install = source.search(installPattern);
   if (install < 0) {

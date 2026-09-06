@@ -4,7 +4,7 @@ Port **3005**. Public website for the **Grenada Airports Authority** (GAA) —
 Maurice Bishop International Airport (GND) + Lauriston Airport, Carriacou (CRU).
 Modern redesign of the old WordPress site; the scraped original lives in
 `.source/` (gitignored, reference only). MVP: static MDX + sample flight data,
-light mode, no auth, no DB. Dev only (no Dockerfile yet).
+light mode, no auth, no DB. Deployment configured for `mbia.barrels.gd` and staging.
 
 ## Content pipeline
 
