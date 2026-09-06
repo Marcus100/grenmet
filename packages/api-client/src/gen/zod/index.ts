@@ -3,6 +3,7 @@ export { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 export { absenteeReportListPublicSchema } from "./absenteeReportListPublicSchema.js";
 export { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
+export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export {
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200Schema,
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403Schema,
@@ -33,6 +34,15 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostPathParamsSchema,
 } from "./approveAlertApiV1CapAlertsAlertIdApprovePostSchema.js";
 export {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponseSchema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParamsSchema,
+} from "./approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostSchema.js";
+export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200Schema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400Schema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403Schema,
@@ -41,6 +51,7 @@ export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponseSchema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParamsSchema,
 } from "./approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchSchema.js";
+export { balanceInputSchema } from "./balanceInputSchema.js";
 export { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
 export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPost200Schema,
@@ -50,6 +61,11 @@ export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequestSchema,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponseSchema,
 } from "./bulkAssignmentsApiV1HrRostersAssignmentsBulkPostSchema.js";
+export { calendarEventCreateSchema } from "./calendarEventCreateSchema.js";
+export { calendarEventKindSchema } from "./calendarEventKindSchema.js";
+export { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
+export { calendarEventsPublicSchema } from "./calendarEventsPublicSchema.js";
+export { calendarEventUpdateSchema } from "./calendarEventUpdateSchema.js";
 export {
   cancelAlertApiV1CapAlertsAlertIdCancelPost200Schema,
   cancelAlertApiV1CapAlertsAlertIdCancelPost422Schema,
@@ -119,6 +135,15 @@ export {
   createAlertApiV1CapAlertsPostMutationRequestSchema,
   createAlertApiV1CapAlertsPostMutationResponseSchema,
 } from "./createAlertApiV1CapAlertsPostSchema.js";
+export {
+  createCalendarEventApiV1HrCalendarEventsPost201Schema,
+  createCalendarEventApiV1HrCalendarEventsPost400Schema,
+  createCalendarEventApiV1HrCalendarEventsPost403Schema,
+  createCalendarEventApiV1HrCalendarEventsPost404Schema,
+  createCalendarEventApiV1HrCalendarEventsPost422Schema,
+  createCalendarEventApiV1HrCalendarEventsPostMutationRequestSchema,
+  createCalendarEventApiV1HrCalendarEventsPostMutationResponseSchema,
+} from "./createCalendarEventApiV1HrCalendarEventsPostSchema.js";
 export {
   createDepartmentEndpointApiV1HrDepartmentsPost201Schema,
   createDepartmentEndpointApiV1HrDepartmentsPost400Schema,
@@ -273,6 +298,9 @@ export {
   createUserApiV1AuthUsersPostMutationRequestSchema,
   createUserApiV1AuthUsersPostMutationResponseSchema,
 } from "./createUserApiV1AuthUsersPostSchema.js";
+export { dashboardApprovalSchema } from "./dashboardApprovalSchema.js";
+export { dashboardPersonSchema } from "./dashboardPersonSchema.js";
+export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
 export {
   deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204Schema,
   deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400Schema,
@@ -355,6 +383,24 @@ export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponseSchema,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParamsSchema,
 } from "./duplicateAlertApiV1CapAlertsAlertIdDuplicatePostSchema.js";
+export {
+  emailConfirmApiV1AuthModernEmailConfirmPost200Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPost400Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPost403Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPost422Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPostMutationRequestSchema,
+  emailConfirmApiV1AuthModernEmailConfirmPostMutationResponseSchema,
+} from "./emailConfirmApiV1AuthModernEmailConfirmPostSchema.js";
+export { emailConfirmSchema } from "./emailConfirmSchema.js";
+export {
+  emailRequestApiV1AuthModernEmailRequestPost200Schema,
+  emailRequestApiV1AuthModernEmailRequestPost400Schema,
+  emailRequestApiV1AuthModernEmailRequestPost403Schema,
+  emailRequestApiV1AuthModernEmailRequestPost422Schema,
+  emailRequestApiV1AuthModernEmailRequestPostMutationRequestSchema,
+  emailRequestApiV1AuthModernEmailRequestPostMutationResponseSchema,
+} from "./emailRequestApiV1AuthModernEmailRequestPostSchema.js";
+export { emailRequestSchema } from "./emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
 export { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
@@ -394,11 +440,44 @@ export {
   getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParamsSchema,
   getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponseSchema,
 } from "./getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetSchema.js";
+export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
+export {
+  googleCompleteApiV1AuthModernGoogleCompletePost200Schema,
+  googleCompleteApiV1AuthModernGoogleCompletePost400Schema,
+  googleCompleteApiV1AuthModernGoogleCompletePost403Schema,
+  googleCompleteApiV1AuthModernGoogleCompletePost422Schema,
+  googleCompleteApiV1AuthModernGoogleCompletePostMutationRequestSchema,
+  googleCompleteApiV1AuthModernGoogleCompletePostMutationResponseSchema,
+} from "./googleCompleteApiV1AuthModernGoogleCompletePostSchema.js";
+export { googleCompleteSchema } from "./googleCompleteSchema.js";
+export {
+  googleFinishApiV1AuthModernGoogleFinishPost200Schema,
+  googleFinishApiV1AuthModernGoogleFinishPost400Schema,
+  googleFinishApiV1AuthModernGoogleFinishPost403Schema,
+  googleFinishApiV1AuthModernGoogleFinishPost422Schema,
+  googleFinishApiV1AuthModernGoogleFinishPostMutationRequestSchema,
+  googleFinishApiV1AuthModernGoogleFinishPostMutationResponseSchema,
+} from "./googleFinishApiV1AuthModernGoogleFinishPostSchema.js";
+export { googleFinishSchema } from "./googleFinishSchema.js";
+export {
+  googleStartApiV1AuthModernGoogleStartPost200Schema,
+  googleStartApiV1AuthModernGoogleStartPost400Schema,
+  googleStartApiV1AuthModernGoogleStartPost403Schema,
+  googleStartApiV1AuthModernGoogleStartPost422Schema,
+  googleStartApiV1AuthModernGoogleStartPostMutationRequestSchema,
+  googleStartApiV1AuthModernGoogleStartPostMutationResponseSchema,
+} from "./googleStartApiV1AuthModernGoogleStartPostSchema.js";
+export { googleStartPublicSchema } from "./googleStartPublicSchema.js";
+export { googleStartSchema } from "./googleStartSchema.js";
+export { gradeInputSchema } from "./gradeInputSchema.js";
+export { gradePublicSchema } from "./gradePublicSchema.js";
+export { gradeSetupSchema } from "./gradeSetupSchema.js";
 export { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 export {
   healthCheckApiV1UtilsHealthCheckGet200Schema,
   healthCheckApiV1UtilsHealthCheckGetQueryResponseSchema,
 } from "./healthCheckApiV1UtilsHealthCheckGetSchema.js";
+export { hrDashboardPublicSchema } from "./hrDashboardPublicSchema.js";
 export {
   importAlertApiV1CapAlertsImportPost201Schema,
   importAlertApiV1CapAlertsImportPost422Schema,
@@ -439,6 +518,24 @@ export { leaveRequestListPublicSchema } from "./leaveRequestListPublicSchema.js"
 export { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 export { leaveRequestSubmitSchema } from "./leaveRequestSubmitSchema.js";
 export { leaveTypeSchema } from "./leaveTypeSchema.js";
+export {
+  listAssignmentsApiV1HrRostersAssignmentsGet200Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGet400Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGet403Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGet404Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGet422Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsSchema,
+  listAssignmentsApiV1HrRostersAssignmentsGetQueryResponseSchema,
+} from "./listAssignmentsApiV1HrRostersAssignmentsGetSchema.js";
+export {
+  listCalendarEventsApiV1HrCalendarEventsGet200Schema,
+  listCalendarEventsApiV1HrCalendarEventsGet400Schema,
+  listCalendarEventsApiV1HrCalendarEventsGet403Schema,
+  listCalendarEventsApiV1HrCalendarEventsGet404Schema,
+  listCalendarEventsApiV1HrCalendarEventsGet422Schema,
+  listCalendarEventsApiV1HrCalendarEventsGetQueryParamsSchema,
+  listCalendarEventsApiV1HrCalendarEventsGetQueryResponseSchema,
+} from "./listCalendarEventsApiV1HrCalendarEventsGetSchema.js";
 export {
   listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200Schema,
   listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403Schema,
@@ -509,6 +606,15 @@ export {
 } from "./logoutSessionApiV1LoginSessionLogoutPostSchema.js";
 export { messageSchema } from "./messageSchema.js";
 export { newPasswordSchema } from "./newPasswordSchema.js";
+export {
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPost200Schema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPost403Schema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPost404Schema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPost409Schema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPost422Schema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponseSchema,
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParamsSchema,
+} from "./offboardStaffApiV1HrSetupStaffUserIdOffboardPostSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
@@ -521,6 +627,8 @@ export { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 export { permissionCreateSchema } from "./permissionCreateSchema.js";
 export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";
+export { policyInputSchema } from "./policyInputSchema.js";
+export { policyPublicSchema } from "./policyPublicSchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
@@ -552,6 +660,12 @@ export {
   readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParamsSchema,
   readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponseSchema,
 } from "./readAbsenteeReportsApiV1HrAbsenteeReportsGetSchema.js";
+export {
+  readAccountSecurityApiV1AuthModernSecurityGet200Schema,
+  readAccountSecurityApiV1AuthModernSecurityGet401Schema,
+  readAccountSecurityApiV1AuthModernSecurityGet403Schema,
+  readAccountSecurityApiV1AuthModernSecurityGetQueryResponseSchema,
+} from "./readAccountSecurityApiV1AuthModernSecurityGetSchema.js";
 export {
   readActiveMapApiCapActiveMapGet200Schema,
   readActiveMapApiCapActiveMapGetQueryResponseSchema,
@@ -603,6 +717,12 @@ export {
   readFeedsApiV1CapFeedsGet200Schema,
   readFeedsApiV1CapFeedsGetQueryResponseSchema,
 } from "./readFeedsApiV1CapFeedsGetSchema.js";
+export {
+  readHrDashboardApiV1HrDashboardGet200Schema,
+  readHrDashboardApiV1HrDashboardGet401Schema,
+  readHrDashboardApiV1HrDashboardGet403Schema,
+  readHrDashboardApiV1HrDashboardGetQueryResponseSchema,
+} from "./readHrDashboardApiV1HrDashboardGetSchema.js";
 export {
   readHrEmploymentApiV1HrEmploymentUserIdGet200Schema,
   readHrEmploymentApiV1HrEmploymentUserIdGet403Schema,
@@ -708,6 +828,13 @@ export {
   readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponseSchema,
 } from "./readRoleAssignmentsApiV1AuthRoleAssignmentsGetSchema.js";
 export {
+  readRoleConfigurationApiV1HrSetupRolesGet200Schema,
+  readRoleConfigurationApiV1HrSetupRolesGet403Schema,
+  readRoleConfigurationApiV1HrSetupRolesGet404Schema,
+  readRoleConfigurationApiV1HrSetupRolesGet409Schema,
+  readRoleConfigurationApiV1HrSetupRolesGetQueryResponseSchema,
+} from "./readRoleConfigurationApiV1HrSetupRolesGetSchema.js";
+export {
   readRolesApiV1AuthRolesGet200Schema,
   readRolesApiV1AuthRolesGet422Schema,
   readRolesApiV1AuthRolesGetQueryParamsSchema,
@@ -717,6 +844,34 @@ export {
   readRssApiCapRssXmlGet200Schema,
   readRssApiCapRssXmlGetQueryResponseSchema,
 } from "./readRssApiCapRssXmlGetSchema.js";
+export {
+  readSetupGradesApiV1HrSetupGradesGet200Schema,
+  readSetupGradesApiV1HrSetupGradesGet403Schema,
+  readSetupGradesApiV1HrSetupGradesGet404Schema,
+  readSetupGradesApiV1HrSetupGradesGet409Schema,
+  readSetupGradesApiV1HrSetupGradesGetQueryResponseSchema,
+} from "./readSetupGradesApiV1HrSetupGradesGetSchema.js";
+export {
+  readSetupPoliciesApiV1HrSetupPoliciesGet200Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGet403Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGet404Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGet409Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGetQueryResponseSchema,
+} from "./readSetupPoliciesApiV1HrSetupPoliciesGetSchema.js";
+export {
+  readStaffCardApiV1HrStaffCardMeGet200Schema,
+  readStaffCardApiV1HrStaffCardMeGet403Schema,
+  readStaffCardApiV1HrStaffCardMeGet404Schema,
+  readStaffCardApiV1HrStaffCardMeGet409Schema,
+  readStaffCardApiV1HrStaffCardMeGetQueryResponseSchema,
+} from "./readStaffCardApiV1HrStaffCardMeGetSchema.js";
+export {
+  readStaffSetupApiV1HrSetupStaffGet200Schema,
+  readStaffSetupApiV1HrSetupStaffGet403Schema,
+  readStaffSetupApiV1HrSetupStaffGet404Schema,
+  readStaffSetupApiV1HrSetupStaffGet409Schema,
+  readStaffSetupApiV1HrSetupStaffGetQueryResponseSchema,
+} from "./readStaffSetupApiV1HrSetupStaffGetSchema.js";
 export {
   readStatusReportApiV1HrStatusReportsReportIdGet200Schema,
   readStatusReportApiV1HrStatusReportsReportIdGet403Schema,
@@ -790,6 +945,7 @@ export {
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponseSchema,
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParamsSchema,
 } from "./recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostSchema.js";
+export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
 export {
   refreshSessionApiV1LoginSessionRefreshPost200Schema,
   refreshSessionApiV1LoginSessionRefreshPost422Schema,
@@ -811,6 +967,13 @@ export {
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponseSchema,
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema,
 } from "./removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteSchema.js";
+export {
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequestSchema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponseSchema,
+} from "./replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostSchema.js";
 export { requestStatusSchema } from "./requestStatusSchema.js";
 export {
   resetPasswordApiV1ResetPasswordPost200Schema,
@@ -819,12 +982,23 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationRequestSchema,
   resetPasswordApiV1ResetPasswordPostMutationResponseSchema,
 } from "./resetPasswordApiV1ResetPasswordPostSchema.js";
+export {
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponseSchema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParamsSchema,
+} from "./revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
+export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
+export { rolePermissionsInputSchema } from "./rolePermissionsInputSchema.js";
 export { roleUpdateSchema } from "./roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 export { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
+export { rosterCalendarEntrySchema } from "./rosterCalendarEntrySchema.js";
+export { rosterCalendarPublicSchema } from "./rosterCalendarPublicSchema.js";
 export { rosterCsvImportResponseSchema } from "./rosterCsvImportResponseSchema.js";
 export { rosterCsvRowValidationSchema } from "./rosterCsvRowValidationSchema.js";
 export { rosterCsvValidationRequestSchema } from "./rosterCsvValidationRequestSchema.js";
@@ -842,6 +1016,8 @@ export { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.j
 export { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
+export { securityProofSchema } from "./securityProofSchema.js";
+export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 export { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
@@ -862,6 +1038,9 @@ export { shiftSwapRequestsPublicSchema } from "./shiftSwapRequestsPublicSchema.j
 export { shiftSwapSubmitSchema } from "./shiftSwapSubmitSchema.js";
 export { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
+export { staffCardSchema } from "./staffCardSchema.js";
+export { staffInputSchema } from "./staffInputSchema.js";
+export { staffSetupSchema } from "./staffSetupSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
@@ -1003,6 +1182,16 @@ export {
   updateAlertApiV1CapAlertsAlertIdPatchPathParamsSchema,
 } from "./updateAlertApiV1CapAlertsAlertIdPatchSchema.js";
 export {
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatch200Schema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatch400Schema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatch403Schema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatch404Schema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatch422Schema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequestSchema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponseSchema,
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParamsSchema,
+} from "./updateCalendarEventApiV1HrCalendarEventsEventIdPatchSchema.js";
+export {
   updateCapSettingsApiV1CapSettingsPatch200Schema,
   updateCapSettingsApiV1CapSettingsPatch422Schema,
   updateCapSettingsApiV1CapSettingsPatchMutationRequestSchema,
@@ -1076,6 +1265,36 @@ export {
   updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParamsSchema,
 } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchSchema.js";
 export {
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut200Schema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut403Schema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut404Schema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut409Schema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut422Schema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequestSchema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponseSchema,
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParamsSchema,
+} from "./updateRoleConfigurationApiV1HrSetupRolesRoleIdPutSchema.js";
+export {
+  updateSetupGradeApiV1HrSetupGradesGradeIdPut200Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPut403Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPut404Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPut409Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPut422Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequestSchema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponseSchema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutPathParamsSchema,
+} from "./updateSetupGradeApiV1HrSetupGradesGradeIdPutSchema.js";
+export {
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPut200Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPut403Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPut404Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPut409Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPut422Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequestSchema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponseSchema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParamsSchema,
+} from "./updateSetupPolicyApiV1HrSetupPoliciesKeyPutSchema.js";
+export {
   updateShiftApiV1HrRostersShiftsCodePatch200Schema,
   updateShiftApiV1HrRostersShiftsCodePatch403Schema,
   updateShiftApiV1HrRostersShiftsCodePatch404Schema,
@@ -1094,6 +1313,26 @@ export {
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponseSchema,
   updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParamsSchema,
 } from "./updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchSchema.js";
+export {
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200Schema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403Schema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404Schema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409Schema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422Schema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequestSchema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponseSchema,
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParamsSchema,
+} from "./updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostSchema.js";
+export {
+  updateStaffSetupApiV1HrSetupStaffUserIdPut200Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPut403Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPut404Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPut409Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPut422Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequestSchema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponseSchema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutPathParamsSchema,
+} from "./updateStaffSetupApiV1HrSetupStaffUserIdPutSchema.js";
 export {
   updateStatusReportApiV1HrStatusReportsReportIdPatch200Schema,
   updateStatusReportApiV1HrStatusReportsReportIdPatch400Schema,

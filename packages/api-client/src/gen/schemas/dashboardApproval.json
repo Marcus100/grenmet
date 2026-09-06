@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "id": { "type": "string", "title": "Id" },
+    "name": { "type": "string", "title": "Name" },
+    "kind": { "type": "string", "title": "Kind" },
+    "submitted_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Submitted At"
+    }
+  },
+  "type": "object",
+  "required": ["id", "name", "kind"],
+  "title": "DashboardApproval",
+  "x-readme-ref-name": "DashboardApproval"
+}

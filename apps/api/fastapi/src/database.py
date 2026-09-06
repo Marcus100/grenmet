@@ -7,6 +7,13 @@ from sqlmodel import Session, SQLModel, create_engine, select
 
 # Import all models to ensure they're registered with SQLModel
 from src.auth.models import User  # noqa: F401
+from src.auth.modern_models import AuthChallenge, ExternalIdentity  # noqa: F401
+from src.baseline.models import (  # noqa: F401
+    ApprovalPolicy,
+    BaselineAudit,
+    BaselineStep,
+    StaffCredential,
+)
 from src.cap.models import (  # noqa: F401
     CapAlert,
     CapArea,

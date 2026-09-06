@@ -37,7 +37,7 @@ Grep all workflow YAMLs for `uses:` lines. Flag any action pinned to a tag (e.g.
 **Output format:**
 ```
 ✅ Types — clean
-❌ Lint — 3 violations in apps/web/spicewx/src/...
+❌ Lint — 3 violations in apps/web/gms/src/...
 ✅ Docker image names — consistent
 ⚠️  Env drift — AUTH_ALLOWED_RETURN_HOSTS missing from hr workflow
 ✅ API client sync — in sync

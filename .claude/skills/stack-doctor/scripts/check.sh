@@ -74,7 +74,7 @@ check_port "fastapi"     8000 warn
 check_port "auth"        3000 warn
 check_port "admin-gms"   3001 warn
 check_port "hurricane"   3002 warn
-check_port "spicewx"     3003 warn
+check_port "gms"     3003 warn
 check_port "signal"      3004 warn
 check_port "mbia"        3005 warn
 

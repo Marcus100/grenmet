@@ -17,7 +17,7 @@ Each stack includes:
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container.
 - `redis` + `worker`: Redis and the arq background worker (CAP outbox).
-- `web-migrate`: one-shot Drizzle migration runner for the `wxwatch` + `wxproducts` databases, built from the admin-gms `migrate` image stage; runs before `web-admin`.
+- `web-migrate`: one-shot Drizzle migration runner for the `wxwatch` + `wxproducts` databases, built from the gaa-admin `migrate` image stage; runs before `web-admin`.
 - `web-auth`, `web-admin`, `web-hurricaneplan`, `web-spicewx` — the four deployed web apps. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps were consolidated into `web-admin` in 2026-06 (path-prefixed routes); `signal` is not yet deployed.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.

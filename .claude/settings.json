@@ -15,15 +15,7 @@
       "Bash(pnpm turbo:*)",
       "Bash(turbo run:*)",
       "Bash(gh pr *)",
-      "Bash(gh run *)",
-      "mcp__figma__generate_figma_design",
-      "mcp__figma__use_figma",
-      "mcp__figma__get_design_context",
-      "mcp__figma__get_screenshot",
-      "mcp__figma__get_metadata",
-      "mcp__figma__get_libraries",
-      "mcp__figma__whoami",
-      "mcp__figma__create_new_file"
+      "Bash(gh run *)"
     ]
   }
 }

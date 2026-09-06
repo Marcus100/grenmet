@@ -127,7 +127,7 @@ Who does what in this procedure.
 What information, data, or conditions trigger or feed this procedure.
 
 ## 5. Procedure
-Step-by-step instructions. System steps reference specific screens or actions in admin-gms or spicewx.
+Step-by-step instructions. System steps reference specific screens or actions in gaa-admin or gms.
 
 ## 6. Approval Requirement
 Who must approve before publication.
@@ -166,14 +166,14 @@ Defines the standard procedure for issuing any public weather warning through th
 All Advisory, Watch, Warning, and Extreme level products issued by GMS. Applies to all hazard types. Does not cover aviation aerodrome warnings (see SOP-AV-005).
 
 ### 3. Roles
-- **Duty Forecaster:** Drafts the warning using the CAP alert tool in admin-gms.
+- **Duty Forecaster:** Drafts the warning using the CAP alert tool in gaa-admin.
 - **Senior Forecaster / Warning Lead:** Reviews content, checks dissemination channels, approves and submits for publication.
 - **DTO:** Ensures system is operational; escalates technical issues.
 
 ### 4. Procedure (stub)
 1. Assess hazard signal from observations, NWP, satellite, or regional guidance.
 2. Determine likelihood and impact using the IBF matrix (see [Warning and IBF Framework](./warning-ibf-framework.md)).
-3. Open CAP Alert tool in admin-gms → New Alert.
+3. Open CAP Alert tool in gaa-admin → New Alert.
 4. Complete all mandatory fields (see Warning Content Contract).
 5. Select affected areas using predefined zones or draw polygon.
 6. Submit for review.
@@ -185,7 +185,7 @@ All Advisory, Watch, Warning, and Extreme level products issued by GMS. Applies 
 12. Log dissemination completed.
 
 ### 8. Fallback
-If admin-gms is unavailable: draft warning in approved plain-text format, notify channels by phone and email, enter record manually when system is restored.
+If gaa-admin is unavailable: draft warning in approved plain-text format, notify channels by phone and email, enter record manually when system is restored.
 
 ---
 
@@ -211,7 +211,7 @@ All routine METAR observations at MBIA. SPECI procedure is covered in SOP-AV-002
 ### 4. Procedure (stub)
 1. Conduct surface observation at scheduled time (UTC).
 2. Record values: wind, visibility, present weather, cloud, temperature, dewpoint, QNH.
-3. Open METAR tool in admin-gms → New METAR.
+3. Open METAR tool in gaa-admin → New METAR.
 4. Enter all fields; system validates against Annex 3 encoding rules.
 5. Resolve any validation errors before proceeding.
 6. Submit METAR → system records timestamp and author.

@@ -1,0 +1,91 @@
+"use client";
+
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@barrelsgd/ui/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from "@barrelsgd/ui/components/ui/sidebar";
+import { getInitials } from "@barrelsgd/ui/lib/utils";
+import { CircleUser, EllipsisVertical, LogOut } from "lucide-react";
+import Link from "next/link";
+
+export interface NavUserData {
+  readonly avatar?: string;
+  readonly email: string;
+  readonly name: string;
+}
+
+export function NavUser({ user }: { readonly user: NavUserData }) {
+  const { isMobile } = useSidebar();
+
+  return (
+    <SidebarMenu>
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton
+                className="data-popup-open:bg-sidebar-accent data-popup-open:text-sidebar-accent-foreground"
+                size="lg"
+              />
+            }
+          >
+            <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <AvatarImage alt={user.name} src={user.avatar || undefined} />
+              <AvatarFallback className="rounded-lg">
+                {getInitials(user.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">{user.name}</span>
+              <span className="truncate text-muted-foreground text-xs">
+                {user.email}
+              </span>
+            </div>
+            <EllipsisVertical className="ml-auto size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-(--anchor-width) min-w-56 rounded-lg"
+            side={isMobile ? "bottom" : "right"}
+            sideOffset={4}
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuItem render={<Link href="/profile" />}>
+                <CircleUser />
+                Profile
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <form action="/auth/logout" method="post">
+              <DropdownMenuItem
+                nativeButton
+                onClick={(event) =>
+                  event.currentTarget.closest("form")?.requestSubmit()
+                }
+                render={<button type="button" />}
+              >
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </form>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
+    </SidebarMenu>
+  );
+}

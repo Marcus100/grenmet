@@ -18,4 +18,4 @@ services:
   mosquitto:
     ports:
       - 1883:1883
-      - 8884:8884
+      - 18884:8884

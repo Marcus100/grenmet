@@ -5,6 +5,7 @@ from pydantic import Field
 
 from src.hr.absentee.models import AbsenceReason
 from src.hr.models import RequestStatus
+from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 
@@ -32,7 +33,7 @@ class AbsenteeReportSubmit(BaseModel):
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
-class AbsenteeReportPublic(BaseModel):
+class AbsenteeReportPublic(SubmittedFormPublic):
     id: uuid.UUID
     user_id: uuid.UUID
     department_id: str

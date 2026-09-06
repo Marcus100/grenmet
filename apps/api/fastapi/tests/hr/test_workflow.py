@@ -223,7 +223,7 @@ async def test_workflow_transition_submit_to_approve(
         current_user=user,
         instance_in=WorkflowInstanceCreate(
             workflow_template_id=template.id,
-            entity_type="leave_request",
+            entity_type="generic_request",
             entity_id=template.id,
         ),
     )

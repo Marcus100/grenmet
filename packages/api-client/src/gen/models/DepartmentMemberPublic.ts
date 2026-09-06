@@ -4,6 +4,7 @@
  */
 
 import type { EmploymentStatus } from "./EmploymentStatus.js";
+import type { GradePublic } from "./GradePublic.js";
 
 /**
  * DepartmentMemberPublic
@@ -16,6 +17,10 @@ export type DepartmentMemberPublic = {
   /**
    * @type string
    */
+  username: string;
+  /**
+   * @type string
+   */
   first_name: string;
   /**
    * @type string
@@ -24,8 +29,11 @@ export type DepartmentMemberPublic = {
   /**
    * @type string
    */
-  employee_number: string;
+  full_name: string;
+  roster_name?: string | null;
+  employee_number?: string | null;
   position?: string | null;
+  grade?: GradePublic | null;
   /**
    * @type string
    */

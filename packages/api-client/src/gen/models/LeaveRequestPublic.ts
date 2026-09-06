@@ -11,6 +11,7 @@ import type { RequestStatus } from "./RequestStatus.js";
  * LeaveRequestPublic
  */
 export type LeaveRequestPublic = {
+  submitted_at?: string | null;
   /**
    * @type string, uuid
    */

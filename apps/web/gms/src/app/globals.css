@@ -1,0 +1,298 @@
+@import "tailwindcss";
+
+/* GMS brand palette — this is the public Grenada Meteorological Service site. */
+@import "@barrelsgd/gms/styles/foundation";
+
+/* Tailwind v4 only auto-scans this app's own source. The reused @barrelsgd/ui
+   primitives (navigation-menu, …) use utilities found nowhere in this app's
+   own pages, so scan the shared package explicitly or those classes are never
+   generated. */
+@source "../../node_modules/@barrelsgd/ui/src";
+
+/* BEGIN BARRELS DESIGN SYSTEM V1 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    /* ---------------------------------------------------------------
+       Layer 1 — brand primitives.
+       Default palette for @barrelsgd/ui. Role-named, not colour-named, so a
+       brand with a different hue can override without the names going stale.
+       These become Barrels' own values when the approved brand assets land;
+       until then they carry the existing palette so appearance is unchanged.
+       --------------------------------------------------------------- */
+    --brand-primary: #15006b;
+    --brand-primary-accent: #2478f2;
+    --brand-accent: #39a9f5;
+    --brand-highlight: #ff981e;
+
+    --brand-surface-page: #ffffff;
+    --brand-surface: #f3f8fc;
+    --brand-surface-panel: #eaf3fb;
+    --brand-surface-secondary: #eaf2fb;
+    --brand-surface-muted: #e4eef7;
+
+    --brand-text-primary: #111827;
+    --brand-text-secondary: #4b5563;
+    --brand-text-muted: #6b7280;
+    --brand-text-inverse: #ffffff;
+
+    --brand-border: #d0d5dd;
+
+    /* Status palette. Separate from the brand palette because status meaning
+       must survive a rebrand: a brand may change its blue, not what "danger"
+       looks like. --status-caution is the lower-severity warning tone. */
+    --status-positive: #00843d;
+    --status-caution: #ffe923;
+    --status-warning: #ff9900;
+    --status-negative: #cc0033;
+    --status-neutral: #dcdcdc;
+
+    --brand-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --brand-font-document: var(
+      --font-noto-sans,
+      "Noto Sans",
+      var(--brand-font-sans)
+    );
+
+    --brand-shadow-card:
+      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --brand-shadow-focus: 0 0 0 3px
+      color-mix(in srgb, var(--brand-primary-accent) 24%, transparent);
+
+    /* ---------------------------------------------------------------
+       Shared scales. Typography, spacing, radius and elevation are not brand
+       assets, so they stay here and are used by GMS and Barrels alike. The GMS
+       *palette* moved to @barrelsgd/gms/styles/foundation.css in boundary 5b.
+       --------------------------------------------------------------- */
+
+    /* Type scale. Sizes and their paired line heights; `text-body` and
+       `leading-body` are the Tailwind utilities. */
+    --font-size-micro: 10px;
+    --font-size-label: 11px;
+    --font-size-caption: 12px;
+    --font-size-body-sm: 13px;
+    --font-size-body: 14px;
+    --font-size-body-base: 16px;
+    --font-size-nav: 20px;
+    --font-size-heading-sm: 18px;
+    --font-size-heading-md: 30px;
+    --font-size-heading-lg: 34px;
+    --line-height-micro: 16px;
+    --line-height-label: 16px;
+    --line-height-caption: 16px;
+    --line-height-body-sm: 20px;
+    --line-height-body: 20px;
+    --line-height-body-base: 24px;
+    --line-height-nav: 28px;
+    --line-height-heading-sm: 24px;
+    --line-height-heading-md: 36px;
+    --line-height-heading-lg: 36px;
+
+    /* Fixed dimensions (not general spacing). Spacing and radius are
+       deliberately absent: their values were exact duplicates of Tailwind's
+       own scale, so they were removed in boundary 5c rather than renamed.
+       Defining --spacing-<n> here would shadow Tailwind's computed scale and
+       silently resize every p-4 in the repo. */
+    --header-height: 72px;
+
+    /* ---------------------------------------------------------------
+       Layer 2 — semantic contract.
+       shadcn-compatible. Resolves through layer 1 only, never through a
+       brand-specific palette, so overriding the layer 1 primitives rebrands
+       every shared primitive without touching this block.
+       --------------------------------------------------------------- */
+    --background: var(--brand-surface-page);
+    --foreground: var(--brand-text-primary);
+    --card: var(--brand-surface-page);
+    --card-foreground: var(--brand-text-primary);
+    --popover: var(--brand-surface-page);
+    --popover-foreground: var(--brand-text-primary);
+    --primary: var(--brand-primary);
+    --primary-foreground: var(--brand-text-inverse);
+    --secondary: var(--brand-surface-secondary);
+    --secondary-foreground: var(--brand-primary);
+    --muted: var(--brand-surface-muted);
+    --muted-foreground: var(--brand-text-muted);
+    --accent: var(--brand-accent);
+    --accent-foreground: var(--brand-text-inverse);
+    --destructive: var(--status-negative);
+    --destructive-foreground: var(--brand-text-inverse);
+
+    /* Status semantics. Shared primitives reference these, never a brand
+       primitive directly, so each brand can map its own palette onto them.
+       Deliberately not overridden in .dark: these derive from hazard colours,
+       whose meaning must not shift between themes. */
+    --success: var(--status-positive);
+    --success-foreground: var(--brand-text-inverse);
+    --warning: var(--status-warning);
+    --warning-foreground: var(--brand-text-primary);
+    --info: var(--brand-primary-accent);
+    --info-foreground: var(--brand-text-inverse);
+
+    /* Soft status tier: the lower-emphasis filled treatment (badge `light-*`),
+       as opposed to the solid tier above. Only the three tiers with consumers
+       are defined; add others when something needs them. */
+    --primary-soft: var(--brand-surface-panel);
+    --primary-soft-foreground: var(--brand-primary);
+    --warning-soft: var(--status-caution);
+    --warning-soft-foreground: var(--brand-text-primary);
+    --info-soft: var(--brand-accent);
+    --info-soft-foreground: var(--brand-text-primary);
+
+    --border: var(--brand-border);
+    --input: var(--brand-border);
+    --ring: var(--brand-primary-accent);
+    --radius: 0.5rem;
+
+    /* Chart palette */
+    --chart-1: var(--brand-primary-accent);
+    --chart-2: var(--brand-accent);
+    --chart-3: var(--brand-primary);
+    --chart-4: var(--brand-highlight);
+    --chart-5: var(--status-positive);
+
+    /* Sidebar semantics used by shared/admin UI */
+    --sidebar: var(--brand-surface-page);
+    --sidebar-foreground: var(--brand-text-primary);
+    --sidebar-primary: var(--brand-primary);
+    --sidebar-primary-foreground: var(--brand-text-inverse);
+    --sidebar-accent: var(--brand-surface-secondary);
+    --sidebar-accent-foreground: var(--brand-primary);
+    --sidebar-border: var(--brand-border);
+    --sidebar-ring: var(--brand-primary-accent);
+
+    /* Optional app font bridge (GMS alias; moves with the GMS block) */
+
+    color-scheme: light;
+  }
+}
+
+/* Dark palette — first pass (V1 was light-only). Tune as desired.
+   Activated when the <html> element carries the `dark` class (theme-boot). */
+.dark {
+  --background: #0b1020;
+  --foreground: #e6eaf2;
+  --card: #11182b;
+  --card-foreground: #e6eaf2;
+  --popover: #11182b;
+  --popover-foreground: #e6eaf2;
+  --primary: #39a9f5;
+  --primary-foreground: #07111f;
+  --secondary: #1b2336;
+  --secondary-foreground: #e6eaf2;
+  --muted: #1b2336;
+  --muted-foreground: #9aa4b8;
+  --accent: #16324a;
+  --accent-foreground: #e6eaf2;
+  --destructive: #ff5a5f;
+  --destructive-foreground: #ffffff;
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: #39a9f5;
+
+  --chart-1: #39a9f5;
+  --chart-2: #2478f2;
+  --chart-3: #7aa7ff;
+  --chart-4: #ff981e;
+  --chart-5: #34c77b;
+
+  --sidebar: #0e1424;
+  --sidebar-foreground: #e6eaf2;
+  --sidebar-primary: #39a9f5;
+  --sidebar-primary-foreground: #07111f;
+  --sidebar-accent: #16324a;
+  --sidebar-accent-foreground: #e6eaf2;
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: #39a9f5;
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: var(--brand-font-sans);
+  --font-document: var(--brand-font-document);
+
+  /* shadcn semantic utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+
+  --text-micro: var(--font-size-micro);
+  --text-label: var(--font-size-label);
+  --text-caption: var(--font-size-caption);
+  --text-body-sm: var(--font-size-body-sm);
+  --text-body: var(--font-size-body);
+  --text-body-base: var(--font-size-body-base);
+  --text-nav: var(--font-size-nav);
+  --text-heading-sm: var(--font-size-heading-sm);
+  --text-heading-md: var(--font-size-heading-md);
+  --text-heading-lg: var(--font-size-heading-lg);
+  --leading-micro: var(--line-height-micro);
+  --leading-label: var(--line-height-label);
+  --leading-caption: var(--line-height-caption);
+  --leading-body-sm: var(--line-height-body-sm);
+  --leading-body: var(--line-height-body);
+  --leading-body-base: var(--line-height-body-base);
+  --leading-nav: var(--line-height-nav);
+  --leading-heading-sm: var(--line-height-heading-sm);
+  --leading-heading-md: var(--line-height-heading-md);
+  --leading-heading-lg: var(--line-height-heading-lg);
+  --shadow-card: var(--brand-shadow-card);
+  --height-header: var(--header-height);
+}
+/* END BARRELS DESIGN SYSTEM V1 */
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}

@@ -106,25 +106,25 @@ infrastructure:
           - docker-compose.yml
 
 # Per-project web app labels
-web/admin-gms:
+web/gaa-admin:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/admin-gms/**/*
+          - apps/web/gaa-admin/**/*
 
 web/auth:
   - changed-files:
       - any-glob-to-any-file:
           - apps/web/auth/**/*
 
-web/hurricaneplan:
+web/docs:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/hurricaneplan/**/*
+          - apps/web/docs/**/*
 
-web/spicewx:
+web/gms:
   - changed-files:
       - any-glob-to-any-file:
-          - apps/web/spicewx/**/*
+          - apps/web/gms/**/*
 
 web/hr:
   - changed-files:

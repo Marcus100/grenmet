@@ -15,5 +15,5 @@ export const userCreateSchema = z.object({
   last_name: z.string().max(100),
   is_active: z.optional(z.boolean().default(true)),
   is_superuser: z.optional(z.boolean().default(false)),
-  password: z.string().min(8).max(40),
+  password: z.string().min(8).max(128),
 });

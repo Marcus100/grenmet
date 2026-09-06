@@ -2,17 +2,25 @@
   "properties": {
     "id": { "type": "string", "format": "uuid", "title": "Id" },
     "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
-    "employee_number": { "type": "string", "title": "Employee Number" },
+    "employee_number": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Employee Number"
+    },
     "department_id": { "type": "string", "title": "Department Id" },
     "position": {
       "anyOf": [{ "type": "string" }, { "type": "null" }],
       "title": "Position"
     },
     "employment_type": {
-      "type": "string",
-      "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
-      "title": "EmploymentType",
-      "x-readme-ref-name": "EmploymentType"
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+          "title": "EmploymentType",
+          "x-readme-ref-name": "EmploymentType"
+        },
+        { "type": "null" }
+      ]
     },
     "start_date": {
       "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
@@ -34,14 +42,7 @@
     }
   },
   "type": "object",
-  "required": [
-    "id",
-    "user_id",
-    "employee_number",
-    "department_id",
-    "employment_type",
-    "status"
-  ],
+  "required": ["id", "user_id", "department_id", "status"],
   "title": "EmploymentRecordPublic",
   "x-readme-ref-name": "EmploymentRecordPublic"
 }

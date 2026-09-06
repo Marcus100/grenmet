@@ -16,6 +16,7 @@ from ..schemas import (
     EmploymentAdminUpdate,
     EmploymentCreate,
     EmploymentRecordPublic,
+    GradePublic,
     UserProfilePublic,
     UserProfileUpdateMe,
 )
@@ -169,13 +170,21 @@ async def list_department_members_endpoint(
         data=[
             DepartmentMemberPublic(
                 user_id=user.id,
+                username=user.username,
                 first_name=user.first_name,
                 last_name=user.last_name,
+                full_name=user.full_name,
+                roster_name=employment.roster_name,
                 employee_number=employment.employee_number,
                 position=employment.position,
+                grade=(
+                    GradePublic.model_validate(grade, from_attributes=True)
+                    if grade
+                    else None
+                ),
                 employment_status=employment.status,
             )
-            for employment, user in members
+            for employment, user, grade in members
         ],
         count=len(members),
     )

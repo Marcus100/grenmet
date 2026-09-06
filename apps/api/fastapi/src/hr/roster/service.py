@@ -1,5 +1,6 @@
 import csv
 import uuid
+from datetime import date
 from io import StringIO
 
 from sqlalchemy import tuple_
@@ -7,8 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
 
 from src.auth.models import User
-from src.auth.policy import require_permission
+from src.auth.policy import has_permission, require_permission
 from src.hr.constants import (
+    ERROR_CALENDAR_NO_DEPARTMENT,
+    ERROR_CALENDAR_RANGE_INVALID,
+    ERROR_CALENDAR_RANGE_TOO_LONG,
     ERROR_CSV_IMPORT_INVALID_ROWS,
     ERROR_CSV_MISSING_COLUMNS,
     ERROR_CSV_NO_HEADER,
@@ -32,6 +36,7 @@ from src.hr.exceptions import (
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.utils.datetime import utc_now
 
+from .expansion import expand_shift
 from .grid import parse_grid, resolve_user
 from .models import (
     ImportStatus,
@@ -455,20 +460,151 @@ def _validate_csv_rows(
 
 
 # ---------------------------------------------------------------------------
+# Calendar feed
+# ---------------------------------------------------------------------------
+
+#: A calendar view asks for at most a few months. The cap keeps one request from
+#: walking the whole assignment table.
+CALENDAR_MAX_DAYS = 92
+
+
+async def read_roster_calendar(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    start: date,
+    end: date,
+    department_id: str | None = None,
+    department_scope: bool = False,
+) -> list[tuple[RosterAssignment, ShiftCatalog, User, EmploymentRecord, bool]]:
+    """Rostered days in a window, for the calendar.
+
+    Two scopes: the caller's own assignments (any signed-in member of staff), or
+    a whole department's (requires roster.view). Draft periods are included only
+    for callers who can manage the roster — for everyone else a roster is not
+    real until it is published.
+    """
+    if end < start:
+        raise HRValidationError(ERROR_CALENDAR_RANGE_INVALID)
+    if (end - start).days + 1 > CALENDAR_MAX_DAYS:
+        raise HRValidationError(
+            ERROR_CALENDAR_RANGE_TOO_LONG.format(max_days=CALENDAR_MAX_DAYS)
+        )
+
+    if department_scope:
+        require_permission(current_user=current_user, permission_key="roster.view")
+
+    if department_id is None:
+        own = await session.execute(
+            select(EmploymentRecord).where(
+                col(EmploymentRecord.user_id) == current_user.id
+            )
+        )
+        employment = own.scalars().first()
+        if employment is None:
+            if department_scope:
+                raise HRValidationError(ERROR_CALENDAR_NO_DEPARTMENT)
+            return []
+        department_id = employment.department_id
+    else:
+        department = await session.get(Department, department_id)
+        if department is None:
+            raise DepartmentNotFoundError()
+
+    include_draft = has_permission(
+        current_user=current_user, permission_key="roster.manage"
+    )
+    visible_statuses = [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+    if include_draft:
+        visible_statuses.append(RosterPeriodStatus.DRAFT)
+
+    # Resolve the visible periods first: a window spans at most a few of them,
+    # and it keeps the assignment query to four joined entities.
+    periods = await session.execute(
+        select(RosterPeriod).where(
+            col(RosterPeriod.department_id) == department_id,
+            col(RosterPeriod.status).in_(visible_statuses),
+            col(RosterPeriod.period_start) <= end,
+            col(RosterPeriod.period_end) >= start,
+        )
+    )
+    draft_period_ids = set()
+    period_ids = []
+    for period in periods.scalars().all():
+        period_ids.append(period.id)
+        if period.status == RosterPeriodStatus.DRAFT:
+            draft_period_ids.add(period.id)
+    if not period_ids:
+        return []
+
+    statement = (
+        select(RosterAssignment, ShiftCatalog, User, EmploymentRecord)
+        .join(
+            ShiftCatalog,
+            col(RosterAssignment.shift_code) == col(ShiftCatalog.code),
+        )
+        .join(User, col(RosterAssignment.user_id) == col(User.id))
+        .join(
+            EmploymentRecord,
+            col(RosterAssignment.user_id) == col(EmploymentRecord.user_id),
+        )
+        .where(
+            col(RosterAssignment.roster_period_id).in_(period_ids),
+            col(RosterAssignment.assignment_date) >= start,
+            col(RosterAssignment.assignment_date) <= end,
+        )
+        .order_by(col(RosterAssignment.assignment_date), col(User.last_name))
+    )
+    if not department_scope:
+        statement = statement.where(col(RosterAssignment.user_id) == current_user.id)
+
+    result = await session.execute(statement)
+    return [
+        (
+            assignment,
+            shift,
+            user,
+            employment,
+            assignment.roster_period_id in draft_period_ids,
+        )
+        for assignment, shift, user, employment in result.all()
+    ]
+
+
+def calendar_times(
+    assignment: RosterAssignment, shift: ShiftCatalog
+) -> tuple[str | None, str | None]:
+    """Local wall-clock ISO strings for a rostered day, or (None, None).
+
+    Goes through `expand_shift` rather than reading the catalog times directly —
+    it is the module's single translation from a roster cell to concrete time,
+    and the only thing that knows a night shift ends the following morning.
+    """
+    interval = expand_shift(assignment.assignment_date, shift)
+    if interval is None:
+        return None, None
+    starts_at, ends_at = interval
+    return starts_at.isoformat(), ends_at.isoformat()
+
+
+# ---------------------------------------------------------------------------
 # Grid import (name × day-of-month CSV)
 # ---------------------------------------------------------------------------
 
 
-async def _dept_active_users(session: AsyncSession, department_id: str) -> list[User]:
+async def _dept_active_members(
+    session: AsyncSession, department_id: str
+) -> list[tuple[EmploymentRecord, User]]:
+    """Active members with their employment record, which carries roster_name."""
     result = await session.execute(
-        select(User)
-        .join(EmploymentRecord, col(EmploymentRecord.user_id) == col(User.id))
+        select(EmploymentRecord, User)
+        .join(User, col(EmploymentRecord.user_id) == col(User.id))
         .where(
             col(EmploymentRecord.department_id) == department_id,
             col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
         )
     )
-    return list(result.scalars().all())
+    return [(employment, user) for employment, user in result.all()]
 
 
 async def _resolve_grid(
@@ -495,7 +631,7 @@ async def _resolve_grid(
             can_import=False,
         )
 
-    users = await _dept_active_users(session, payload.department_id)
+    members = await _dept_active_members(session, payload.department_id)
     catalog = await session.execute(
         select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
     )
@@ -506,7 +642,7 @@ async def _resolve_grid(
     errors: list[str] = []
     matched = 0
     for name, codes in grid.items():
-        user = resolve_user(name, users)
+        user = resolve_user(name, members)
         if user is None:
             unmatched.append(name)
             continue

@@ -13,7 +13,7 @@ what unblocks resolution.
 
 | Item | Resolved | How |
 |---|---|---|
-| `salesbus` auth not wired | 2026-06 | App decommissioned — folded into `admin-gms` during the consolidation |
+| `salesbus` auth not wired | 2026-06 | App decommissioned — folded into `gaa-admin` during the consolidation |
 | `AGENTS.md` was empty | 2026-05-31 | Written — 78 lines, commands-first, self-contained for Codex |
 | `CLAUDE.md` too long (286 lines) | 2026-05-31 | Trimmed to 105 lines, content moved to `docs/` |
 | `docs/web/` stubs were empty | 2026-05-31 | Filled — development, deployment, testing docs written |

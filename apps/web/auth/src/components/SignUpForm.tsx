@@ -6,9 +6,9 @@ import { signUpAction } from "@/app/actions";
 import { initialSignUpState } from "@/app/actions-types";
 
 const inputClass =
-  "w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
+  "w-full rounded-lg border border-(--line) bg-white/80 px-4 py-3 text-foreground text-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
 
-const labelClass = "block font-medium text-foreground text-gm-body-sm";
+const labelClass = "block font-medium text-foreground text-body-sm";
 
 export function SignUpForm() {
   const [state, formAction, pending] = useActionState(
@@ -21,15 +21,16 @@ export function SignUpForm() {
       <div className="space-y-5">
         <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 text-sm leading-6">
           <p className="font-medium">Account created</p>
-          <p className="mt-1 text-(--muted) text-gm-body-sm">
-            Welcome aboard. Sign in to get started.
+          <p className="mt-1 text-(--muted) text-body-sm">
+            Verify your email, then an administrator will link your employee
+            record and approve staff access.
           </p>
         </div>
         <Link
           className="block w-full rounded-full bg-(--auth-accent) px-5 py-3 text-center font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
-          href="/"
+          href="/verify-email"
         >
-          Sign in
+          Verify email
         </Link>
       </div>
     );
@@ -132,10 +133,10 @@ export function SignUpForm() {
           autoComplete="new-password"
           className={inputClass}
           id="password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="password"
-          placeholder="At least 8 characters"
+          placeholder="At least 12 characters"
           required
           type="password"
         />
@@ -150,8 +151,8 @@ export function SignUpForm() {
           autoComplete="new-password"
           className={inputClass}
           id="confirm_password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="confirm_password"
           placeholder="Repeat your password"
           required
@@ -173,13 +174,13 @@ export function SignUpForm() {
         {pending ? "Creating account…" : "Create account"}
       </button>
 
-      <p className="text-center text-(--muted) text-gm-body-sm">
+      <p className="text-center text-(--muted) text-body-sm">
         Already have an account?{" "}
         <Link
           className="text-(--auth-accent) underline-offset-4 hover:underline"
-          href="/"
+          href="/verify-email"
         >
-          Sign in
+          Verify email
         </Link>
       </p>
     </form>

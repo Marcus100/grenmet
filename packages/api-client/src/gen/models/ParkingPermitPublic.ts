@@ -10,6 +10,7 @@ import type { RequestStatus } from "./RequestStatus.js";
  * ParkingPermitPublic
  */
 export type ParkingPermitPublic = {
+  submitted_at?: string | null;
   /**
    * @type string, uuid
    */

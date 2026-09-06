@@ -21,6 +21,7 @@ from sqlmodel import Session, select
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user_sync
+from src.config import settings
 from src.database import engine
 
 logging.basicConfig(
@@ -232,7 +233,7 @@ CUSTOM_USERS = [
         "email": "tclovey@weather.gd",
         "username": "tclovey",
         "password": "changethis",
-        "first_name": "Tavon",
+        "first_name": "Tafon",
         "middle_name": None,
         "last_name": "Clovey",
         "is_active": True,
@@ -426,6 +427,10 @@ def main():
     )
 
     args = parser.parse_args()
+    if settings.ENVIRONMENT != "local":
+        parser.error(
+            "Development accounts are forbidden outside local; use seed_production.py"
+        )
 
     # Set default count to all custom users if not specified
     if args.count is None:

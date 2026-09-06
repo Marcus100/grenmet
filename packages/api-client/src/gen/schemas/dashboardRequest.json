@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "id": { "type": "string", "title": "Id" },
+    "title": { "type": "string", "title": "Title" },
+    "status": { "type": "string", "title": "Status" },
+    "updated_at": { "type": "string", "title": "Updated At" }
+  },
+  "type": "object",
+  "required": ["id", "title", "status", "updated_at"],
+  "title": "DashboardRequest",
+  "x-readme-ref-name": "DashboardRequest"
+}

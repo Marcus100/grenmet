@@ -1,6 +1,6 @@
 # Security Baseline
 
-This guide records the current GrenMet security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
+This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
 ## Implemented Controls
 

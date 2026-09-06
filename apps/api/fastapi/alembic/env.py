@@ -37,14 +37,15 @@ from src.cap.models import (  # noqa: F401
 from src.config import settings
 from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
+from src.hr.calendar.models import CalendarEvent  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
 from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
-from src.hr.parking.models import ParkingPermit  # noqa: F401
 from src.hr.models import (  # noqa: F401
     ApprovalAuthority,
     Department,
     EmploymentRecord,
+    Grade,
     LeaveBalance,
     LeaveCarryOver,
     RosterPreference,
@@ -53,6 +54,7 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
+from src.hr.parking.models import ParkingPermit  # noqa: F401
 from src.hr.roster.models import (  # noqa: F401
     PublicHoliday,
     RosterAssignment,
@@ -90,7 +92,7 @@ _TRACKED_SCHEMAS = {None, "public", "hr", "cap"}
 
 
 def _include_object(
-    object: Any, name: str, type_: str, reflected: bool, compare_to: Any
+    object: Any, _name: str, type_: str, _reflected: bool, _compare_to: Any
 ) -> bool:
     """Include only tables from our tracked schemas; include all other objects."""
     if type_ == "table":

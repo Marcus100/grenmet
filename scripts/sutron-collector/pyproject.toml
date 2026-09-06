@@ -31,9 +31,16 @@ testpaths = ["tests"]
 [tool.mypy]
 strict = true
 python_version = "3.13"
+# legacy/  unmodified Python 2 reference snapshot, never imported or run.
+# capture/ field scripts that must run on the legacy box's Python 2 interpreter.
+exclude = ["^legacy/", "^capture/"]
 
 [tool.ruff]
 target-version = "py313"
+# capture/ is excluded rather than fixed: its scripts run on the legacy PC's
+# Python 2.7, so the pyupgrade rules would break the only interpreter available
+# there. They are kept Python 2/3 compatible on purpose.
+extend-exclude = ["legacy", "capture"]
 
 [tool.ruff.lint]
 select = ["B", "C4", "E", "F", "I", "UP"]

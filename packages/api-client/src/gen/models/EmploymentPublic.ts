@@ -6,11 +6,19 @@
 import type { DepartmentPublic } from "./DepartmentPublic.js";
 import type { EmploymentStatus } from "./EmploymentStatus.js";
 import type { EmploymentType } from "./EmploymentType.js";
+import type { GradePublic } from "./GradePublic.js";
 
 /**
  * EmploymentPublic
  */
 export type EmploymentPublic = {
+  grade?: GradePublic | null;
+  supervisor_name?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  details_complete?: boolean;
   employee_number?: string | null;
   department?: DepartmentPublic | null;
   position?: string | null;

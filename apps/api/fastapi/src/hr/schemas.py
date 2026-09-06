@@ -82,22 +82,36 @@ class EmploymentCreate(BaseModel):
 class EmploymentRecordPublic(BaseModel):
     id: uuid.UUID
     user_id: uuid.UUID
-    employee_number: str
+    employee_number: str | None = None
     department_id: str
     position: str | None = None
-    employment_type: EmploymentType
+    employment_type: EmploymentType | None = None
     start_date: date | None = None
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = None
     status: EmploymentStatus
 
 
+class GradePublic(BaseModel):
+    code: str
+    label: str
+    rank: int
+    establishment_band: str | None = None
+
+
 class DepartmentMemberPublic(BaseModel):
     user_id: uuid.UUID
+    username: str
     first_name: str
     last_name: str
-    employee_number: str
+    #: Personnel-record name, for every surface except the dense roster grid.
+    full_name: str
+    #: What the printed duty roster prints for this person; null means "derive
+    #: it from the personnel record" (see hr.employment_record.roster_name).
+    roster_name: str | None = None
+    employee_number: str | None = None
     position: str | None = None
+    grade: GradePublic | None = None
     employment_status: EmploymentStatus
 
 
@@ -107,6 +121,9 @@ class DepartmentMembersPublic(BaseModel):
 
 
 class EmploymentPublic(BaseModel):
+    grade: GradePublic | None = None
+    supervisor_name: str | None = None
+    details_complete: bool = False
     employee_number: str | None = None
     department: DepartmentPublic | None = None
     position: str | None = None
