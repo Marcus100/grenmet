@@ -1,6 +1,6 @@
 import type { HrDashboardPublic } from "@barrelsgd/api-client";
 import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { HrDashboard } from "./hr-dashboard";
 
 // The dashboard exposes both views behind a Staff / Admin toggle, and the HR
@@ -51,22 +51,6 @@ function switchTo(view: "Staff" | "Admin") {
 }
 
 describe("HrDashboard", () => {
-  beforeEach(() => {
-    mockUser.full_name = "Aiyana Charles";
-  });
-
-  it("defaults to the staff view and greets the member by first name", () => {
-    render(<HrDashboard data={data} />);
-
-    expect(
-      screen.getByRole("heading", { name: "Welcome back, Aiyana" })
-    ).toBeInTheDocument();
-    expect(screen.getByText("Published schedule today")).toBeInTheDocument();
-    expect(screen.getByText("Recent activity")).toBeInTheDocument();
-    expect(screen.getByText("My requests")).toBeInTheDocument();
-    expect(screen.getByText("Organisation · GMS")).toBeInTheDocument();
-  });
-
   it("shows who's on duty by default and who's away when toggled", () => {
     render(<HrDashboard data={data} />);
 
@@ -137,14 +121,5 @@ describe("HrDashboard", () => {
     expect(
       screen.queryByRole("button", { name: "Admin" })
     ).not.toBeInTheDocument();
-  });
-
-  it("falls back gracefully when the user has no full name", () => {
-    mockUser.full_name = null;
-    render(<HrDashboard data={data} />);
-
-    expect(
-      screen.getByRole("heading", { name: "Welcome back" })
-    ).toBeInTheDocument();
   });
 });

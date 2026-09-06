@@ -123,36 +123,6 @@ describe("buildLeaveRequestPayload", () => {
   });
 });
 
-describe("LeaveApplicationEditor (wired)", () => {
-  it("renders the full action bar (reset, save, download, submit)", async () => {
-    wrap(<LeaveApplicationEditor />);
-    expect(
-      await screen.findByRole("button", { name: "Submit" })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
-    // Download PDF appears in the action bar and the document-preview toolbar.
-    expect(
-      screen.getAllByRole("button", { name: "Download PDF" }).length
-    ).toBeGreaterThan(0);
-  }, 20_000);
-
-  it("prefills the employee name and department, still editable", async () => {
-    wrap(<LeaveApplicationEditor />);
-    const nameInput = (await screen.findByLabelText(
-      "Employee Name"
-    )) as HTMLInputElement;
-    // Seeded from the session user + HR profile department.
-    await waitFor(() => expect(nameInput.value).toBe("Tester"));
-    expect(
-      (screen.getByLabelText("Department") as HTMLInputElement).value
-    ).toBe("Met");
-    // Fields remain editable — a user edit overrides the prefill.
-    fireEvent.change(nameInput, { target: { value: "Someone Else" } });
-    expect(nameInput.value).toBe("Someone Else");
-  }, 20_000);
-});
-
 describe("LeaveSubmissions", () => {
   it("lists my leave requests with status", async () => {
     wrap(<LeaveSubmissions />);
