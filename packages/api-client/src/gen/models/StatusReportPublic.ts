@@ -10,6 +10,7 @@ import type { ShiftPeriod } from "./ShiftPeriod.js";
  * StatusReportPublic
  */
 export type StatusReportPublic = {
+  submitted_at?: string | null;
   /**
    * @type string, uuid
    */

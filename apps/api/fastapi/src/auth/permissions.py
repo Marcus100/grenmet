@@ -18,6 +18,7 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import Session, select
 
 from src.auth.models import Permission, Role
+from src.baseline.models import BaselineStep
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
+    # HR — department calendar
+    PermissionDef("calendar.view", "View the department calendar"),
+    PermissionDef(
+        "calendar.event.create",
+        "Add an entry to the department calendar (author may edit their own)",
+    ),
+    PermissionDef(
+        "calendar.manage",
+        "Edit or cancel any department calendar entry, not only your own",
+    ),
     # HR — roster
     PermissionDef("roster.view", "View rosters"),
     PermissionDef("roster.manage", "Create and manage rosters"),
@@ -101,6 +112,8 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "shift_swap.request.create.self",
             "status.report.create",
             "parking.permit.create",
+            "calendar.view",
+            "calendar.event.create",
             "roster.view",
             "workflow.instance.view",
             # Any staff member may be named a co-approver on a colleague's
@@ -121,6 +134,9 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "status.report.read",
             "parking.permit.issue",
             "parking.permit.read.department",
+            "calendar.view",
+            "calendar.event.create",
+            "calendar.manage",
             "roster.view",
             "workflow.instance.action",
             "workflow.instance.view",
@@ -137,6 +153,9 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "status.report.read",
             "parking.permit.issue",
             "parking.permit.read.department",
+            "calendar.view",
+            "calendar.event.create",
+            "calendar.manage",
             "roster.view",
             "workflow.instance.action",
             "workflow.instance.view",
@@ -147,6 +166,9 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         (
             "user.manage",
             "hr.employment.manage",
+            "calendar.view",
+            "calendar.event.create",
+            "calendar.manage",
             "roster.view",
             "roster.manage",
             "roster.import",
@@ -248,7 +270,13 @@ def seed_permissions_and_roles(session: Session) -> None:
     session.flush()
 
     for role_name, (description, keys) in DEFAULT_ROLES.items():
+        marker = f"role:{role_name}"
+        if session.get(BaselineStep, marker):
+            continue
         role = session.exec(select(Role).where(Role.name == role_name)).first()
+        if role is not None:
+            session.add(BaselineStep(key=marker))
+            continue
         if role is None:
             role = Role(name=role_name, description=description)
             session.add(role)
@@ -258,6 +286,7 @@ def seed_permissions_and_roles(session: Session) -> None:
             if key not in current:
                 role.permissions.append(key_to_perm[key])
         session.add(role)
+        session.add(BaselineStep(key=marker))
     session.commit()
 
 
@@ -285,6 +314,9 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
     await session.flush()
 
     for role_name, (description, keys) in DEFAULT_ROLES.items():
+        marker = f"role:{role_name}"
+        if await session.get(BaselineStep, marker):
+            continue
         role_result = await session.execute(
             select(Role)
             .where(Role.name == role_name)
@@ -298,10 +330,5 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
                 permissions=[key_to_perm[key] for key in keys],
             )
             session.add(role)
-        else:
-            current = {p.key for p in role.permissions}
-            for key in keys:
-                if key not in current:
-                    role.permissions.append(key_to_perm[key])
-            session.add(role)
+        session.add(BaselineStep(key=marker))
     await session.commit()

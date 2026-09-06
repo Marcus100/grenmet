@@ -465,6 +465,10 @@ async def submit_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.submit")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    from src.baseline.models import ApprovalPolicy
+
+    policy = await session.get(ApprovalPolicy, "cap")
+    alert.allow_self_approval = policy.allow_self_approval if policy else True
     return await _transition(
         session=session,
         current_user=current_user,
@@ -486,6 +490,10 @@ async def approve_alert(
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.approve")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
+    if not alert.allow_self_approval and alert.created_by_user_id == current_user.id:
+        from src.exceptions import AppException
+
+        raise AppException("Another authorised person must approve this alert", 403)
     return await _transition(
         session=session,
         current_user=current_user,

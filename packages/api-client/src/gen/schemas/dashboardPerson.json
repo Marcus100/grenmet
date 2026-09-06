@@ -1,0 +1,12 @@
+{
+  "properties": {
+    "id": { "type": "string", "title": "Id" },
+    "name": { "type": "string", "title": "Name" },
+    "department": { "type": "string", "title": "Department" },
+    "shift": { "type": "string", "title": "Shift" }
+  },
+  "type": "object",
+  "required": ["id", "name", "department", "shift"],
+  "title": "DashboardPerson",
+  "x-readme-ref-name": "DashboardPerson"
+}

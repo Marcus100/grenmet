@@ -3,6 +3,10 @@
     "data": {
       "items": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Submitted At"
+          },
           "id": { "type": "string", "format": "uuid", "title": "Id" },
           "requesting_user_id": {
             "type": "string",

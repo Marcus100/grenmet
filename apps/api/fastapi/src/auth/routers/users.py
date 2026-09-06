@@ -17,6 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 
 from src.auth import service
+from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_SUPERUSER_DELETE_SELF,
@@ -215,6 +216,10 @@ async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     """
     Create new user without the need to be logged in.
     """
+    if auth_settings.ENVIRONMENT != "local" and not auth_settings.ALLOW_PUBLIC_SIGNUP:
+        raise HTTPException(
+            status_code=403, detail="Staff accounts are created by an administrator"
+        )
     user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(status_code=400, detail=ERROR_USER_EXISTS)

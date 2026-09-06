@@ -149,6 +149,13 @@ async def login_access_token(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    if user.email_verification_required and (
+        user.email_verified_at is None or user.password_setup_pending
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Verify your email and set your password before signing in",
+        )
     if user.totp_enabled:
         raise HTTPException(
             status_code=400,
@@ -199,6 +206,13 @@ async def login_session(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    if user.email_verification_required and (
+        user.email_verified_at is None or user.password_setup_pending
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="Verify your email and set your password before signing in",
+        )
     if user.totp_enabled and not totp.verify_code(
         secret=user.totp_secret or "", code=body.totp_code or ""
     ):

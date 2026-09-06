@@ -27,6 +27,11 @@ class DepartmentNotFoundError(NotFoundError):
         super().__init__(hr_constants.ERROR_DEPARTMENT_NOT_FOUND)
 
 
+class CalendarEventNotFoundError(NotFoundError):
+    def __init__(self) -> None:
+        super().__init__(hr_constants.ERROR_CALENDAR_EVENT_NOT_FOUND)
+
+
 class RosterPeriodNotFoundError(NotFoundError):
     def __init__(self) -> None:
         super().__init__(hr_constants.ERROR_ROSTER_PERIOD_NOT_FOUND)

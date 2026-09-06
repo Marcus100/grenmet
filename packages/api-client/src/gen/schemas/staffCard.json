@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+    "number": { "type": "string", "title": "Number" },
+    "name": { "type": "string", "title": "Name" },
+    "department": { "type": "string", "title": "Department" },
+    "grade": { "type": "string", "title": "Grade" },
+    "photo": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Photo"
+    },
+    "status": { "type": "string", "title": "Status" }
+  },
+  "type": "object",
+  "required": ["user_id", "number", "name", "department", "grade", "status"],
+  "title": "StaffCard",
+  "x-readme-ref-name": "StaffCard"
+}

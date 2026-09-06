@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
+from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
 
 from . import service
@@ -37,10 +38,7 @@ async def list_my_shift_swaps(
         limit=pagination.limit,
     )
     return ShiftSwapRequestsPublic(
-        data=[
-            ShiftSwapRequestPublic.model_validate(swap, from_attributes=True)
-            for swap in swaps
-        ],
+        data=await submission_list(session, swaps, ShiftSwapRequestPublic),
         count=total,
         page=pagination.page,
         size=pagination.size,
@@ -61,9 +59,10 @@ async def list_my_shift_swaps(
 async def create_shift_swap(
     *, session: SessionDep, current_user: CurrentUser, payload: ShiftSwapRequestCreate
 ) -> Any:
-    return await service.create_shift_swap_request(
+    result = await service.create_shift_swap_request(
         session=session, current_user=current_user, payload=payload
     )
+    return await submission_public(session, result, ShiftSwapRequestPublic)
 
 
 @router.post(
@@ -89,12 +88,13 @@ async def submit_shift_swap(
     shift_swap: ShiftSwapDep,
     payload: ShiftSwapSubmit,
 ) -> Any:
-    return await service.submit_shift_swap_request(
+    result = await service.submit_shift_swap_request(
         session=session,
         current_user=current_user,
         shift_swap_id=shift_swap.id,
         payload=payload,
     )
+    return await submission_public(session, result, ShiftSwapRequestPublic)
 
 
 @router.patch(
@@ -120,12 +120,13 @@ async def update_shift_swap(
     shift_swap: ShiftSwapDep,
     payload: ShiftSwapRequestCreate,
 ) -> Any:
-    return await service.update_shift_swap_request(
+    result = await service.update_shift_swap_request(
         session=session,
         current_user=current_user,
         shift_swap_id=shift_swap.id,
         payload=payload,
     )
+    return await submission_public(session, result, ShiftSwapRequestPublic)
 
 
 @router.delete(
@@ -177,9 +178,10 @@ async def action_shift_swap(
     shift_swap: ShiftSwapDep,
     payload: ShiftSwapAction,
 ) -> Any:
-    return await service.action_shift_swap_request(
+    result = await service.action_shift_swap_request(
         session=session,
         current_user=current_user,
         shift_swap_id=shift_swap.id,
         payload=payload,
     )
+    return await submission_public(session, result, ShiftSwapRequestPublic)

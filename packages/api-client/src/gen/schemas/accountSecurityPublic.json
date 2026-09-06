@@ -1,0 +1,38 @@
+{
+  "properties": {
+    "email_verified": { "type": "boolean", "title": "Email Verified" },
+    "google_configured": { "type": "boolean", "title": "Google Configured" },
+    "google_linked": { "type": "boolean", "title": "Google Linked" },
+    "totp_enabled": { "type": "boolean", "title": "Totp Enabled" },
+    "sessions": {
+      "items": {
+        "properties": {
+          "id": { "type": "string", "title": "Id" },
+          "app_name": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "App Name"
+          },
+          "client_type": { "type": "string", "title": "Client Type" },
+          "last_used_at": { "type": "string", "title": "Last Used At" },
+          "expires_at": { "type": "string", "title": "Expires At" }
+        },
+        "type": "object",
+        "required": ["id", "client_type", "last_used_at", "expires_at"],
+        "title": "SecuritySessionPublic",
+        "x-readme-ref-name": "SecuritySessionPublic"
+      },
+      "type": "array",
+      "title": "Sessions"
+    }
+  },
+  "type": "object",
+  "required": [
+    "email_verified",
+    "google_configured",
+    "google_linked",
+    "totp_enabled",
+    "sessions"
+  ],
+  "title": "AccountSecurityPublic",
+  "x-readme-ref-name": "AccountSecurityPublic"
+}

@@ -8,6 +8,7 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 import { shiftPeriodSchema } from "./shiftPeriodSchema.js";
 
 export const statusReportPublicSchema = z.object({
+  submitted_at: z.optional(z.union([z.string(), z.null()])),
   id: z.string().uuid(),
   department_id: z.string(),
   report_date: z.string().date(),

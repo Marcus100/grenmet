@@ -130,6 +130,40 @@ class RosterPeriodDetails(BaseModel):
     assignments: list[RosterAssignmentPublic]
 
 
+# --- Calendar feed ---
+
+
+class RosterCalendarEntry(BaseModel):
+    """One rostered day for one person, expanded to concrete time.
+
+    `starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are
+    department-local wall-clock times, exactly as the shift catalog records them
+    and as the printed roster reads. They are deliberately not UtcDateTime — a
+    05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC
+    would move it four hours. Codes with no clock time (Off, Leave, Vacation,
+    Study Leave) carry `all_day: true` and no times.
+    """
+
+    user_id: uuid.UUID
+    display_name: str
+    roster_name: str | None = None
+    assignment_date: date
+    shift_code: str
+    label: str
+    category: ShiftCategory
+    starts_at_local: str | None = None
+    ends_at_local: str | None = None
+    all_day: bool
+    #: The period is still DRAFT — visible only to roster managers, and not yet
+    #: the signed plan of record.
+    is_draft: bool
+
+
+class RosterCalendarPublic(BaseModel):
+    data: list[RosterCalendarEntry]
+    count: int
+
+
 class RosterCsvValidationRequest(BaseModel):
     department_id: str
     file_name: str = "roster.csv"

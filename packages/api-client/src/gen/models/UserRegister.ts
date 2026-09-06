@@ -19,7 +19,7 @@ export type UserRegister = {
   username: string;
   /**
    * @minLength 8
-   * @maxLength 40
+   * @maxLength 128
    * @type string
    */
   password: string;

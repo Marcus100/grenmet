@@ -16,12 +16,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src.auth.modern import router as modern_auth_router
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
 from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
+from src.baseline.router import router as staff_setup_router
 from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
@@ -33,7 +35,9 @@ from src.exceptions import (
     validation_exception_handler,
 )
 from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
+from src.hr.dashboard.router import router as hr_dashboard_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
@@ -145,6 +149,7 @@ app.include_router(billing_router, prefix="/api/v1")
 app.include_router(hr_profile_router, prefix="/api/v1")
 app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
+app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
 app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
@@ -182,3 +187,11 @@ def get_scalar_docs() -> Any:
         openapi_url=openapi_url,
         title=settings.PROJECT_NAME,
     )
+
+
+app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
+
+app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
+
+
+app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
