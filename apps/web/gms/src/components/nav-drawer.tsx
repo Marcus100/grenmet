@@ -4,88 +4,8 @@ import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
+import { NAV_SECTIONS, sectionLinks } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
-
-const NAV_SECTIONS = [
-  {
-    label: "Warnings",
-    links: [
-      { name: "Current alerts", href: "/warnings" },
-      { name: "Weather Advisories", href: "/warnings/advisories" },
-      { name: "Impact-Based Warnings", href: "/warnings/impact" },
-      { name: "Tropical Cyclone Information", href: "/warnings/cyclone" },
-      { name: "Marine Warnings", href: "/warnings/marine" },
-      { name: "Warning Levels Explained", href: "/warnings/levels" },
-    ],
-  },
-  {
-    label: "Forecasts",
-    links: [
-      { name: "Today's Forecast", href: "/" },
-      { name: "3-Day Forecast", href: "/forecasts/3-day" },
-      { name: "7-Day Outlook", href: "/forecasts/7-day" },
-      { name: "Weather Synopsis", href: "/forecasts/synopsis" },
-      { name: "Radar", href: "/forecasts/radar" },
-      { name: "Satellite", href: "/forecasts/satellite" },
-      { name: "Current Conditions", href: "/forecasts/conditions" },
-    ],
-  },
-  {
-    label: "Marine",
-    links: [
-      { name: "Marine Forecast", href: "/marine/forecast" },
-      { name: "Coastal Waters Forecast", href: "/marine/coastal" },
-      { name: "Sea Conditions", href: "/marine/sea-conditions" },
-      { name: "Wave / Swell Forecast", href: "/marine/wave-swell" },
-      { name: "Tide Information", href: "/marine/tides" },
-      { name: "Small Craft Advisories", href: "/marine/small-craft" },
-      { name: "Marine Safety", href: "/marine/safety" },
-    ],
-  },
-  {
-    label: "Sectors",
-    links: [
-      { name: "Aviation", href: "/sectors/aviation" },
-      { name: "Disaster Management", href: "/sectors/disaster-management" },
-      { name: "Agriculture", href: "/sectors/agriculture" },
-      { name: "Tourism & Events", href: "/sectors/tourism" },
-      { name: "Construction", href: "/sectors/construction" },
-      { name: "Education", href: "/sectors/education" },
-      { name: "Health", href: "/sectors/health" },
-    ],
-  },
-  {
-    label: "Climate & Data",
-    links: [
-      { name: "Monthly Climate Summary", href: "/climate/monthly" },
-      { name: "Rainfall Data", href: "/climate/rainfall" },
-      { name: "Temperature Data", href: "/climate/temperature" },
-      { name: "Historical Weather Data", href: "/climate/historical" },
-      { name: "Climate Normals", href: "/climate/normals" },
-      { name: "Seasonal Outlook", href: "/climate/seasonal" },
-      { name: "Drought Monitoring", href: "/climate/drought" },
-      { name: "Data Request Form", href: "/climate/data-request" },
-      { name: "Publications", href: "/climate/publications" },
-    ],
-  },
-  {
-    label: "Resources",
-    links: [
-      { name: "Weather Glossary", href: "/resources/glossary" },
-      { name: "Understanding Warnings", href: "/resources/warnings-guide" },
-      { name: "Hurricane Preparedness", href: "/resources/hurricane" },
-      { name: "Flood Preparedness", href: "/resources/flood" },
-      { name: "Marine Safety", href: "/resources/marine-safety" },
-      { name: "School Resources", href: "/resources/school" },
-      { name: "FAQs", href: "/resources/faqs" },
-      { name: "Downloads", href: "/resources/downloads" },
-    ],
-  },
-  {
-    label: "About",
-    links: [],
-  },
-];
 
 interface NavDrawerProps {
   onClose: () => void;
@@ -142,15 +62,15 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     i > 0 && "border-gm-border border-t"
                   )}
                 >
-                  <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-[open]:font-semibold group-data-[open]:text-navy">
+                  <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-[open]:font-semibold group-data-[open]:text-gm-navy">
                     {section.label}
                   </span>
                   <div className="flex size-11 items-center justify-center">
-                    <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-navy" />
+                    <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-gm-navy" />
                   </div>
                 </Accordion.Trigger>
               </Accordion.Header>
-              {section.links.length > 0 && (
+              {sectionLinks(section).length > 0 && (
                 <Accordion.Panel
                   className="overflow-hidden transition-[height] duration-200 ease-out"
                   style={
@@ -159,9 +79,9 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     } as React.CSSProperties
                   }
                 >
-                  {section.links.map((link) => (
+                  {sectionLinks(section).map((link) => (
                     <a
-                      className="flex h-11 items-center pr-5 pl-10 text-gm-text-primary text-nav leading-nav hover:text-navy"
+                      className="flex h-11 items-center pr-5 pl-10 text-gm-text-primary text-nav leading-nav hover:text-gm-navy"
                       href={link.href}
                       key={link.name}
                       onClick={onClose}
