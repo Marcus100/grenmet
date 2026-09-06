@@ -189,3 +189,11 @@ next-shadcn-admin-dashboard-baseui/
 apps/web/mbia/.source/
 
 /temp-files
+
+.teaching/
+
+# Collected weather products and local indexes
+/data/gms-ingest/
+
+# Downloaded tide-gauge research snapshots (keep outside source control)
+/scripts/bishop-weather/raw/
