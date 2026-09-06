@@ -20,6 +20,7 @@ resolution-markers = [
 members = [
     "fast-back",
     "geonetcast",
+    "gms-ingest",
     "grenmet-workspace",
     "notebooks",
     "sutron-collector",
@@ -1490,6 +1491,31 @@ requires-dist = [
     { name = "pyproj", specifier = ">=3.7.2" },
     { name = "requests", specifier = ">=2.34.2" },
     { name = "scipy", specifier = ">=1.18.0" },
+]
+
+[[package]]
+name = "gms-ingest"
+version = "0.2.0"
+source = { editable = "scripts/gms-ingest" }
+dependencies = [
+    { name = "cfgrib" },
+    { name = "eccodes" },
+    { name = "eccodeslib", marker = "sys_platform != 'win32'" },
+    { name = "netcdf4" },
+    { name = "pyproj" },
+    { name = "pyshp" },
+    { name = "xarray" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "cfgrib", specifier = ">=0.9.15.1" },
+    { name = "eccodes", specifier = ">=2.45.0" },
+    { name = "eccodeslib", marker = "sys_platform != 'win32'", specifier = ">=2.48.0.26" },
+    { name = "netcdf4", specifier = ">=1.7.4" },
+    { name = "pyproj", specifier = ">=3.7.2" },
+    { name = "pyshp", specifier = ">=2.3.1" },
+    { name = "xarray", specifier = ">=2026.2.0" },
 ]
 
 [[package]]
