@@ -24,6 +24,6 @@ if [[ "$mode" == preview ]]; then
   exit 0
 fi
 docker cp "$BASELINE_PROFILE" "$container:$profile_target"
-"${compose[@]}" exec -T api uv run --frozen --no-dev --package fast-back python scripts/seed_production.py --environment "$BASELINE_ENVIRONMENT" --profile "$profile_target" --apply
+"${compose[@]}" exec -T api python scripts/seed_production.py --environment "$BASELINE_ENVIRONMENT" --profile "$profile_target" --apply
 # The migration image must include seed CSVs and scripts (same release as the application).
 "${compose[@]}" run --rm web-migrate sh -c 'node apps/web/gaa-admin/scripts/seed-transport.mjs && node apps/web/gaa-admin/scripts/seed-janitorial.mjs'

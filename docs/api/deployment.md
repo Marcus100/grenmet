@@ -30,7 +30,7 @@ docker run --rm \
 	--env-file apps/api/fastapi/.env.local \
 	-e POSTGRES_SERVER=grenmet-postgres \
 	grenmet-api:prod \
-	uv run --frozen --no-dev --package fast-back alembic upgrade head
+	alembic upgrade head
 ```
 
 ## Start API Container
