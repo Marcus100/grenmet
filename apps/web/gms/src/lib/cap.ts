@@ -10,6 +10,12 @@ export type CapSeverity =
   | "Minor"
   | "Unknown";
 
+/**
+ * CAP message status. Anything other than `Actual` is a drill or a system
+ * message and must never be presented as a live warning.
+ */
+export type CapStatus = "Actual" | "Exercise" | "System" | "Test" | "Draft";
+
 export interface PublicAlert {
   areas: string[];
   /** The forecaster's free-text event name, e.g. "Small Craft Advisory". */
@@ -18,6 +24,7 @@ export interface PublicAlert {
   headline: string;
   identifier: string;
   severity: CapSeverity;
+  status: CapStatus;
 }
 
 /**
@@ -45,6 +52,7 @@ export const HAZARD_GROUPS = [
     name: "Coastal Hazard",
     match: /coastal|storm surge|rip current|inundation/i,
   },
+  { name: "Tsunami", match: /tsunami|seismic sea wave/i },
 ] as const;
 
 export const OTHER_HAZARD = "Other warnings";
@@ -101,6 +109,26 @@ export type AlertsResult =
   | { status: "ok"; groups: HazardGroup[]; activeCount: number }
   | { status: "unavailable" };
 
+/**
+ * The non-`Actual` statuses present in a result. Drives the exercise banner:
+ * during a drill every warning surface must say so, or a test message can be
+ * mistaken for a live one.
+ */
+export function exerciseStatuses(result: AlertsResult): CapStatus[] {
+  if (result.status !== "ok") {
+    return [];
+  }
+  const found = new Set<CapStatus>();
+  for (const group of result.groups) {
+    for (const alert of group.alerts) {
+      if (alert.status !== "Actual") {
+        found.add(alert.status);
+      }
+    }
+  }
+  return [...found];
+}
+
 /** Shared status line for both the mobile accordion and the desktop panel. */
 export function alertsSummary(result: AlertsResult): string {
   if (result.status === "unavailable") {
@@ -127,6 +155,7 @@ interface RawInfo {
 interface RawAlert {
   identifier?: string;
   info?: RawInfo[];
+  status?: string;
 }
 
 const SEVERITIES: CapSeverity[] = [
@@ -139,6 +168,17 @@ const SEVERITIES: CapSeverity[] = [
 
 function toSeverity(value: string | undefined): CapSeverity {
   return SEVERITIES.find((s) => s === value) ?? "Unknown";
+}
+
+const STATUSES: CapStatus[] = ["Actual", "Exercise", "System", "Test", "Draft"];
+
+/**
+ * Unknown or missing status falls back to `Actual`. That is the safe direction:
+ * a real warning shown plainly is far less harmful than a real warning wrongly
+ * badged as a drill.
+ */
+function toStatus(value: string | undefined): CapStatus {
+  return STATUSES.find((s) => s === value) ?? "Actual";
 }
 
 /** Flattens the CAP alert/info structure into what the panel renders. */
@@ -158,6 +198,7 @@ export function toPublicAlerts(raw: RawAlert[]): PublicAlert[] {
       headline: info.headline ?? info.event,
       identifier: alert.identifier,
       severity: toSeverity(info.severity),
+      status: toStatus(alert.status),
     });
   }
   return alerts;
