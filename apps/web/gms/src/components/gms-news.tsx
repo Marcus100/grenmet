@@ -1,3 +1,4 @@
+import { ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
 
 const posts = [
@@ -41,6 +42,15 @@ const posts = [
     image:
       "https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=800&q=80",
   },
+  {
+    id: 5,
+    time: "May 14 at 4:20 pm",
+    paragraphs: [
+      "August rainfall totals across the tri-island state came in close to the long-term average, ending a dry three-month run.",
+    ],
+    image:
+      "https://images.unsplash.com/photo-1428592953211-077101b2021b?auto=format&fit=crop&w=800&q=80",
+  },
 ];
 
 function PostCard({ post }: { post: (typeof posts)[number] }) {
@@ -53,7 +63,7 @@ function PostCard({ post }: { post: (typeof posts)[number] }) {
             G
           </div>
           <div className="flex flex-col">
-            <p className="font-semibold text-body-sm text-navy leading-body-sm">
+            <p className="font-semibold text-body-sm text-gm-navy leading-body-sm">
               GMS
             </p>
             <p className="text-gm-text-muted text-label leading-label">
@@ -90,11 +100,65 @@ function PostCard({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-export function GmsNews() {
+function LeadPostCard({ post }: { post: (typeof posts)[number] }) {
   return (
-    <section className="mb-4">
-      <div className="mb-2.5 flex items-center justify-between">
-        <h2 className="font-bold text-heading-sm text-navy leading-heading-sm">
+    <div className="col-span-2 row-span-2 flex flex-col overflow-hidden rounded-lg border border-gm-border bg-background">
+      <div className="relative h-75 shrink-0 bg-gm-surface">
+        <Image
+          alt=""
+          className="object-cover"
+          fill
+          sizes="(min-width: 1024px) 50vw, 100vw"
+          src={post.image}
+        />
+      </div>
+      <div className="flex flex-1 flex-col gap-3 p-6">
+        <span className="font-bold text-caption text-gm-text-muted uppercase leading-caption tracking-wide">
+          {post.time}
+        </span>
+        <p className="text-body-base text-gm-text-primary leading-body-base">
+          {post.paragraphs[0]}
+        </p>
+        <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue leading-body">
+          Read more
+          <ChevronRightIcon aria-hidden="true" className="size-4" />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function SecondaryPostCard({ post }: { post: (typeof posts)[number] }) {
+  return (
+    <div className="flex flex-col overflow-hidden rounded-lg border border-gm-border bg-background">
+      <div className="relative h-30 shrink-0 bg-gm-surface">
+        <Image
+          alt=""
+          className="object-cover"
+          fill
+          sizes="(min-width: 1024px) 25vw, 100vw"
+          src={post.image}
+        />
+      </div>
+      <div className="flex flex-col gap-2 p-4">
+        <span className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wide">
+          {post.time}
+        </span>
+        <p className="text-body-sm text-gm-text-primary leading-body-sm">
+          {post.paragraphs[0]}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export function GmsNews() {
+  const [lead, ...rest] = posts;
+
+  return (
+    <section className="mb-4 lg:mb-8">
+      <div className="mb-2.5 flex items-center justify-between lg:mb-5">
+        <h2 className="font-bold text-gm-navy text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Latest from us
         </h2>
         <a
@@ -105,11 +169,20 @@ export function GmsNews() {
         </a>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto [scrollbar-width:none] lg:grid lg:grid-cols-4 lg:overflow-visible">
+      {/* Mobile: horizontal scroll of equal cards */}
+      <div className="flex gap-3 overflow-x-auto [scrollbar-width:none] lg:hidden">
         {posts.map((post) => (
-          <div className="w-75 shrink-0 lg:w-auto" key={post.id}>
+          <div className="w-75 shrink-0" key={post.id}>
             <PostCard post={post} />
           </div>
+        ))}
+      </div>
+
+      {/* Desktop: one lead post spanning 2x2, the rest as compact cards */}
+      <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
+        {lead && <LeadPostCard post={lead} />}
+        {rest.map((post) => (
+          <SecondaryPostCard key={post.id} post={post} />
         ))}
       </div>
     </section>

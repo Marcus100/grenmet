@@ -2,10 +2,16 @@
 
 import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
-import type { AlertsResult, CapSeverity, PublicAlert } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsSummary,
+  type CapSeverity,
+  type PublicAlert,
+} from "@/lib/cap";
 import { cn } from "@/lib/utils";
 
 interface CurrentAlertsAccordionProps {
+  className?: string;
   result: AlertsResult;
 }
 
@@ -73,23 +79,15 @@ function AlertRow({ alert }: { alert: PublicAlert }) {
 }
 
 export function CurrentAlertsAccordion({
+  className,
   result,
 }: CurrentAlertsAccordionProps) {
   const unavailable = result.status === "unavailable";
   const groups = result.status === "ok" ? result.groups : [];
-  const activeCount = result.status === "ok" ? result.activeCount : 0;
-
-  let summary: string;
-  if (unavailable) {
-    summary = "Unavailable";
-  } else if (activeCount === 0) {
-    summary = "No active warnings";
-  } else {
-    summary = `${activeCount} active`;
-  }
+  const summary = alertsSummary(result);
 
   return (
-    <Accordion.Root className="mb-4 flex flex-col">
+    <Accordion.Root className={cn("mb-4 flex flex-col", className)}>
       <Accordion.Item value="alerts">
         <Accordion.Header className="flex">
           <Accordion.Trigger className="group flex h-11 w-full shrink-0 items-center justify-between rounded-tl-md rounded-tr-md border-2 border-gm-navy bg-gm-risk-yellow px-5">

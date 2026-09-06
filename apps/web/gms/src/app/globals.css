@@ -3,6 +3,12 @@
 /* GMS brand palette — this is the public Grenada Meteorological Service site. */
 @import "@barrelsgd/gms/styles/foundation";
 
+/* Tailwind v4 only auto-scans this app's own source. The reused @barrelsgd/ui
+   primitives (navigation-menu, …) use utilities found nowhere in this app's
+   own pages, so scan the shared package explicitly or those classes are never
+   generated. */
+@source "../../node_modules/@barrelsgd/ui/src";
+
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
