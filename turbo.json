@@ -45,6 +45,7 @@
       "inputs": [
         "src/**",
         "tests/**",
+        "vitest.config.*",
         "**/*.test.{ts,tsx}",
         "**/*.spec.{ts,tsx}"
       ]
