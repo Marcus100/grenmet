@@ -52,23 +52,7 @@ else
 fi
 echo ""
 
-# Initialize database with first superuser
-echo "👤 Initializing database..."
-if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/initial_data.py; then
-    echo "✅ Initial data created"
-else
-    echo "⚠️  Initial data creation failed (may already exist)"
-fi
-echo ""
+# Required bootstrap errors must fail deployment. Development users are opt-in.
+"${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/initial_data.py
 
-# Seed custom user accounts (idempotent — skips users that already exist)
-echo "👥 Seeding custom users..."
-if "${UV_CMD[@]}" run --frozen --no-dev --package fast-back python scripts/seed_data.py; then
-    echo "✅ Custom users seeded"
-else
-    echo "⚠️  User seeding failed (may already exist)"
-fi
-echo ""
-
-echo "✅ Prestart script completed successfully!"
-exit 0
+echo "Prestart completed successfully"

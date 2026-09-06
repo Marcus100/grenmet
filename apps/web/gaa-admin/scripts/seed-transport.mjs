@@ -2,7 +2,7 @@
 //
 // Reads the hand-verified CSV (seed/transport-routes.csv), parses it with the
 // unit-tested pure parser, and loads it into the transport Drizzle database.
-// Idempotent: truncates and reloads every run. Node natively strips the types
+// Create-once: preserves catalogue edits on subsequent runs. Node natively strips the types
 // from the imported .ts modules (Node >= 22.18), so no build step / tsx needed.
 //
 //   pnpm --filter @barrelsgd/web-gaa-admin db:transport:seed
@@ -42,81 +42,112 @@ const csvPath = join(here, "..", "seed", "transport-routes.csv");
 const spec = parseSpec(readFileSync(csvPath, "utf8"));
 
 const pool = new Pool({ connectionString: url });
-const db = drizzle(pool, { casing: "snake_case" });
+const client = await pool.connect();
+const db = drizzle(client, { casing: "snake_case" });
+try {
+  await client.query("BEGIN");
+  await client.query("SELECT pg_advisory_xact_lock(73190506)");
+  await client.query(
+    "CREATE TABLE IF NOT EXISTS baseline_step (key text PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now())"
+  );
+  const seeded = await client.query(
+    "SELECT 1 FROM baseline_step WHERE key = $1",
+    ["transport-v1"]
+  );
+  if (seeded.rowCount) {
+    console.log("transport already initialised; online edits preserved");
+  } else {
+    const existing = await client.query('SELECT 1 FROM "routes" LIMIT 1');
+    if (existing.rowCount) {
+      throw new Error(
+        "Existing transport data requires review; refusing to overwrite it"
+      );
+    }
 
-await pool.query(
-  'TRUNCATE "routes","shifts","stops","trips","trip_stops" RESTART IDENTITY CASCADE'
-);
+    const shiftRows = await db
+      .insert(shifts)
+      .values(
+        SHIFTS.map((s) => ({
+          slug: s.slug,
+          name: s.name,
+          startTime: s.startTime,
+          endTime: s.endTime,
+          sortOrder: s.sortOrder,
+        }))
+      )
+      .returning({ id: shifts.id });
+    const shiftIdBySlug = new Map(
+      SHIFTS.map((s, i) => [s.slug, shiftRows[i].id])
+    );
 
-const shiftRows = await db
-  .insert(shifts)
-  .values(
-    SHIFTS.map((s) => ({
-      slug: s.slug,
-      name: s.name,
-      startTime: s.startTime,
-      endTime: s.endTime,
-      sortOrder: s.sortOrder,
-    }))
-  )
-  .returning({ id: shifts.id });
-const shiftIdBySlug = new Map(SHIFTS.map((s, i) => [s.slug, shiftRows[i].id]));
+    const routeRows = await db
+      .insert(routes)
+      .values(
+        spec.routes.map((r) => ({
+          number: r.number,
+          name: r.name,
+          sortOrder: r.sortOrder,
+        }))
+      )
+      .returning({ id: routes.id });
+    const routeIdByNumber = new Map(
+      spec.routes.map((r, i) => [r.number, routeRows[i].id])
+    );
 
-const routeRows = await db
-  .insert(routes)
-  .values(
-    spec.routes.map((r) => ({
-      number: r.number,
-      name: r.name,
-      sortOrder: r.sortOrder,
-    }))
-  )
-  .returning({ id: routes.id });
-const routeIdByNumber = new Map(
-  spec.routes.map((r, i) => [r.number, routeRows[i].id])
-);
+    const stopRows = await db
+      .insert(stops)
+      .values(
+        spec.stops.map((s) => ({
+          slug: s.slug,
+          name: s.name,
+          sortOrder: s.sortOrder,
+        }))
+      )
+      .returning({ id: stops.id });
+    const stopIdBySlug = new Map(
+      spec.stops.map((s, i) => [s.slug, stopRows[i].id])
+    );
 
-const stopRows = await db
-  .insert(stops)
-  .values(
-    spec.stops.map((s) => ({
-      slug: s.slug,
-      name: s.name,
-      sortOrder: s.sortOrder,
-    }))
-  )
-  .returning({ id: stops.id });
-const stopIdBySlug = new Map(
-  spec.stops.map((s, i) => [s.slug, stopRows[i].id])
-);
+    const tripRows = await db
+      .insert(trips)
+      .values(
+        spec.trips.map((t) => ({
+          routeId: routeIdByNumber.get(t.routeNumber),
+          shiftId: shiftIdBySlug.get(t.shiftSlug),
+          direction: t.direction,
+          dayType: t.dayType,
+          departTime: t.departTime,
+          arriveTime: t.arriveTime,
+          sortOrder: t.sortOrder,
+        }))
+      )
+      .returning({ id: trips.id });
+    const tripIdByKey = new Map(
+      spec.trips.map((t, i) => [t.key, tripRows[i].id])
+    );
 
-const tripRows = await db
-  .insert(trips)
-  .values(
-    spec.trips.map((t) => ({
-      routeId: routeIdByNumber.get(t.routeNumber),
-      shiftId: shiftIdBySlug.get(t.shiftSlug),
-      direction: t.direction,
-      dayType: t.dayType,
-      departTime: t.departTime,
-      arriveTime: t.arriveTime,
-      sortOrder: t.sortOrder,
-    }))
-  )
-  .returning({ id: trips.id });
-const tripIdByKey = new Map(spec.trips.map((t, i) => [t.key, tripRows[i].id]));
+    await db.insert(tripStops).values(
+      spec.tripStops.map((ts) => ({
+        tripId: tripIdByKey.get(ts.tripKey),
+        stopId: stopIdBySlug.get(ts.stopSlug),
+        groupTime: ts.groupTime,
+        sortOrder: ts.sortOrder,
+      }))
+    );
 
-await db.insert(tripStops).values(
-  spec.tripStops.map((ts) => ({
-    tripId: tripIdByKey.get(ts.tripKey),
-    stopId: stopIdBySlug.get(ts.stopSlug),
-    groupTime: ts.groupTime,
-    sortOrder: ts.sortOrder,
-  }))
-);
-
-console.log(
-  `Seeded transport: ${spec.routes.length} routes, ${SHIFTS.length} shifts, ` +
-    `${spec.stops.length} stops, ${spec.trips.length} trips, ${spec.tripStops.length} trip-stops`
-);
-await pool.end();
+    console.log(
+      `Seeded transport: ${spec.routes.length} routes, ${SHIFTS.length} shifts, ` +
+        `${spec.stops.length} stops, ${spec.trips.length} trips, ${spec.tripStops.length} trip-stops`
+    );
+    await client.query("INSERT INTO baseline_step(key) VALUES ($1)", [
+      "transport-v1",
+    ]);
+  }
+  await client.query("COMMIT");
+} catch (error) {
+  await client.query("ROLLBACK");
+  throw error;
+} finally {
+  client.release();
+  await pool.end();
+}
