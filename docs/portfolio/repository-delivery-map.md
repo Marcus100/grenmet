@@ -74,6 +74,10 @@ away from GMS.
 
 | Repository surface | Classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
+| `scripts/bishop-weather` | GMS tide research and collection tooling | Research | Validate source coverage and provenance before operational adoption; downloaded datasets remain local |
+| `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
+| `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
+| `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
 | `scripts/wis2-setup` | GMS/WIS2 integration artifacts | Active pilot | Complete local soak and separately approved global publication gates |
@@ -93,6 +97,7 @@ away from GMS.
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
+| `docs/products` | Product specifications and implementation plans, classified by their named owner | Planned/reference | Keep product scope and acceptance criteria aligned with the portfolio and client programme plans |
 | `docs/api` and `docs/web` | Barrels engineering references | Active | Describe current interfaces and delivery practice, not programme priority |
 | `docs/adr` | Durable architecture decisions | Active/historical by ADR status | Amend decisions explicitly; never let a roadmap silently override an accepted ADR |
 | `docs/internal` | GMS programme, catalogue, evidence, and reporting documents | Mixed draft/active/historical | Subordinate to the client programme view; retain specialist authority |
