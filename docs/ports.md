@@ -69,9 +69,9 @@ Changing a web app's port means editing **all** of these so they agree:
 
 1. `apps/web/<app>/package.json` — `dev` and `start` (`--port`)
 2. `apps/web/<app>/Dockerfile` — `EXPOSE` and `ENV PORT=` (deployed apps only)
-3. `infra/docker/docker-compose.prod.yml` — Traefik `loadbalancer.server.port`
-4. `infra/docker/docker-compose.staging.yml` — same
-5. `.github/workflows/build-web-images.yml` — `matrix.port` (documentation only)
+3. `infra/docker/docker-compose.deploy.yml` — Traefik `loadbalancer.server.port` and health checks
+4. `.github/workflows/build-web-images.yml` — `matrix.port` (documentation only)
+5. `.github/workflows/ci-web.yml` — container smoke-test ports
 6. `apps/web/<app>/CLAUDE.md` — the "Port **N**" header
 7. This file
 

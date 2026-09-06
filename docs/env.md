@@ -193,16 +193,19 @@ Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Production (both domains — `barrels.gd` + `weather.gd` coexist; see [`weather-gd-golive.md`](./weather-gd-golive.md)):**
+**Production:**
+
+```text
+AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
 ```
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd,.weather.gd
-```
-A leading-dot entry matches the apex domain and every subdomain (cookie `Domain`
-semantics), so no per-app maintenance is needed. Suffix matching is implemented in
-`apps/web/auth/src/lib/return-to.ts` (`getSafeReturnTo`) and covered by
-`apps/web/auth/src/test/return-to.test.ts`. In the new deploy stack this value is
-assembled as `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS}` — see
-`infra/docker/production.env`. Staging uses `.staging.barrels.gd` only.
+
+Staging uses `.staging.barrels.gd`. The shared Compose file assembles this as
+`.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; current production configuration does
+not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+listed in `infra/docker/production.env`; staging uses their staging equivalents.
+
+A leading-dot entry accepts the apex and its subdomains. The superseded
+weather.gd go-live plan is historical context, not an active allowlist recipe.
 
 ### Apps that delegate auth (docs, gms)
 

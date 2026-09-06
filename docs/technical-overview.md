@@ -40,7 +40,7 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 > `salesbus` apps were folded into `gaa-admin` as path-prefixed, auth-gated routes
 > (`/cap`, `/hr`, `/wxwatch`, `/wxproducts`, `/salesbus`). Their dedicated Postgres
 > databases (wxwatch, wxproducts) are unchanged and are now consumed by `gaa-admin`;
-> migrations run from the `web-admin-migrate` image. The old subdomains
+> migrations run from the `barrelsgd-web-gaa-admin-migrate` image. The old subdomains
 > (`wxwatch.barrels.gd`, `hr.barrels.gd`, `sales.barrels.gd`, `wxproducts.barrels.gd`)
 > are retired. The application is the GAA staff-portal implementation, piloted
 > in GMS; it is not the future Barrels superuser admin.
@@ -161,7 +161,7 @@ The `infra/docker/docker-compose.yml` provisions all three databases (and their 
 
 ### Drizzle workflow (wxwatch / wxproducts)
 
-Run from `apps/web/gaa-admin`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `web-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-gaa-admin) for the rule on committing migrations.
+Run from `apps/web/gaa-admin`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `barrelsgd-web-gaa-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-gaa-admin) for the rule on committing migrations.
 
 ---
 
