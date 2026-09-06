@@ -43,10 +43,13 @@ required checks on `staging` and `main` PRs.
 ## 5. Verify prod
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
-- Spot-check app domains: `auth` / `admin` / `hurricane` / `spice` `.barrels.gd`.
+- Spot-check app domains: `auth` / `admin` / `docs` / `weather` / `signal` / `mbia` / `events` / `hapi` `.barrels.gd`.
 
 ## Rollback / redeploy
 
 Re-deploying an existing release needs no builds: manually dispatch the
 **Deploy** workflow (`deploy.yml`) with `environment=production` and the release
-tag. `deploy-prod.yml` is a legacy dispatch-only fallback slated for deletion.
+tag. For a release before the domain migration, select that release tag as the
+workflow ref too, so its matching Compose definition is used. The
+`deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
+workflow; they no longer use separate legacy Compose files.

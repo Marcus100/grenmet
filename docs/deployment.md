@@ -1,5 +1,10 @@
 # Barrels Grenada — Deployment Guide
 
+> Current releases use `docker-compose.deploy.yml` and the canonical domain table
+> at the end of this guide. The per-environment `docker-compose.prod.yml` and
+> `docker-compose.staging.yml` files describe the retired prototype layout.
+
+
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet.
 
@@ -420,8 +425,8 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | ----------------- | ---------------------------------------- |
 | Auth (sign-in)    | `https://auth.staging.barrels.gd`        |
 | Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.staging.barrels.gd`       |
-| Hurricane Plan    | `https://hurricane.staging.barrels.gd`   |
-| Spice WX          | `https://spice.staging.barrels.gd`       |
+| Hurricane Plan    | `https://docs.staging.barrels.gd`   |
+| Spice WX          | `https://weather.staging.barrels.gd`       |
 | FastAPI backend   | `https://api.staging.barrels.gd`         |
 | API docs          | `https://api.staging.barrels.gd/swagger` |
 | Adminer (DB UI)   | `https://adminer.staging.barrels.gd`     |
@@ -433,9 +438,43 @@ For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
 | ----------------- | -------------------------------- |
 | Auth (sign-in)    | `https://auth.barrels.gd`        |
 | Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.barrels.gd`       |
-| Hurricane Plan    | `https://hurricane.barrels.gd`   |
-| Spice WX          | `https://spice.barrels.gd`       |
+| Hurricane Plan    | `https://docs.barrels.gd`   |
+| Spice WX          | `https://weather.barrels.gd`       |
 | FastAPI backend   | `https://api.barrels.gd`         |
 | API docs          | Disabled in production           |
 | Adminer (DB UI)   | Not in current production compose |
 | Traefik dashboard | `https://traefik.barrels.gd`     |
+
+
+## Canonical app domains
+
+The active release pipelines use `docker-compose.deploy.yml` with
+`production.env` or `staging.env`. The following routes replace the prototype
+hurricane/spice hosts; no legacy redirects are installed.
+
+| App | Local port | Production | Staging |
+| --- | --- | --- | --- |
+| Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
+| GAA Admin | 3001 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
+| Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
+| Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
+| Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
+| MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
+| Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
+| Hono | 4000 | https://hapi.barrels.gd/health | https://hapi.staging.barrels.gd/health |
+| FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
+
+Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and
+`*.staging.barrels.gd` to `167.71.24.42`. They currently use DNS-only mode;
+Traefik obtains host certificates through the existing ACME challenge.
+
+Roll out staging first and verify every app health endpoint, login return URLs,
+and API CORS. Promote through main and a new release after staging succeeds.
+The old host routes are removed when Compose replaces the old web services.
+Database and uploaded-data volumes retain their existing names and contents.
+Rollback uses the previous release's committed workflow and Compose definition:
+select the previous release tag as both the workflow ref and image tag.
+
+Signal subscriptions and MBIA contact delivery remain prototypes; MBIA flights
+and Events records remain demo data. Hono exposes its health stub, not a completed
+weather API. Hosting these apps does not complete those product workflows.

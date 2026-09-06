@@ -151,7 +151,7 @@ jobs:
   # Job 7: Build all web apps (validates no build errors)
   build:
     name: Build Web Apps
-    needs: [biome, type-check, peer-check, guardrails, drift, tests]
+    needs: [biome, type-check, peer-check, guardrails, drift, tests, container-smoke]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -166,3 +166,61 @@ jobs:
           # Its WXWATCH/WXPRODUCTS_DATABASE_URL are optional, so no DB URL is needed here.
           RESEND_API_KEY: re_placeholder
         run: pnpm build
+
+  container-smoke:
+    name: Container smoke (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: signal
+            path: apps/web/signal
+            port: 3004
+            health: /api/health
+          - app: mbia
+            path: apps/web/mbia
+            port: 3005
+            health: /api/health
+          - app: events
+            path: apps/web/events
+            port: 3009
+            health: /api/health
+          - app: hono
+            path: apps/api/honoapi
+            port: 4000
+            health: /health
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Build runtime image
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ${{ matrix.path }}/Dockerfile
+          load: true
+          tags: smoke-${{ matrix.app }}:ci
+          cache-from: type=gha,scope=smoke-${{ matrix.app }}
+          cache-to: type=gha,scope=smoke-${{ matrix.app }},mode=max,ignore-error=true
+      - name: Start image and check health
+        env:
+          APP: ${{ matrix.app }}
+          PORT: ${{ matrix.port }}
+          HEALTH_PATH: ${{ matrix.health }}
+        run: |
+          set -euo pipefail
+          docker run -d --name smoke -p "127.0.0.1:8080:$PORT" "smoke-$APP:ci"
+          for attempt in {1..30}; do
+            if curl --fail --silent "http://127.0.0.1:8080$HEALTH_PATH"; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs smoke
+          exit 1
+      - name: Container logs and cleanup
+        if: always()
+        run: |
+          docker logs smoke || true
+          docker rm -f smoke || true

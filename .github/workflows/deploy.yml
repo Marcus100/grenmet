@@ -200,7 +200,7 @@ jobs:
           [ "$PASSED" = true ] || { echo "::error::API health check failed"; exit 1; }
 
           echo "=== Web app container health (fatal) ==="
-          for svc in web-auth web-admin web-hurricaneplan web-spicewx; do
+          for svc in web-auth web-admin web-docs web-gms web-signal web-mbia web-events api-hono; do
             cid=$($COMPOSE ps -q "$svc" 2>/dev/null || true)
             [ -n "$cid" ] || { echo "::error::$svc has no running container"; exit 1; }
             ok=false
@@ -216,7 +216,7 @@ jobs:
           done
 
           echo "=== External smoke (non-fatal) ==="
-          for host in auth admin hurricane spice; do
+          for host in auth admin docs weather signal mbia events; do
             code=$(curl -4 -sS -o /dev/null -w '%{http_code}' --max-time 15 "https://$host.${BASE_DOMAIN}/" || echo 000)
             echo "  $host.${BASE_DOMAIN} → $code"
           done

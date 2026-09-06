@@ -1,6 +1,3 @@
 export function GET() {
-  return Response.json(
-    { status: "ok", service: "web-hurricaneplan" },
-    { status: 200 }
-  );
+  return Response.json({ status: "ok", service: "web-docs" }, { status: 200 });
 }

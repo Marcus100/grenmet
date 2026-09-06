@@ -63,6 +63,12 @@ jobs:
               - '.github/workflows/build-api-image.yml'
             web:
               - 'apps/web/**'
+              - 'apps/api/honoapi/**'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'package.json'
+              - 'turbo.json'
+              - '.dockerignore'
               - 'packages/**'
               - '.github/workflows/build-web-images.yml'
 

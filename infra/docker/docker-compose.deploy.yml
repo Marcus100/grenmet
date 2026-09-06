@@ -171,7 +171,7 @@ services:
   # image (built target=migrate), which carries all schema folders and runs all
   # migration scripts.
   web-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG}
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin-migrate:${WEB_TAG}
     restart: "no"
     depends_on:
       db:
@@ -186,7 +186,7 @@ services:
 
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG}
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-auth:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -210,7 +210,7 @@ services:
       - grenmet
 
   web-admin:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG}
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -244,8 +244,8 @@ services:
     networks:
       - grenmet
 
-  web-hurricaneplan:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG}
+  web-docs:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-docs:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -261,15 +261,15 @@ services:
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.rule=Host(`hurricane.${BASE_DOMAIN}`)${HURRICANEPLAN_EXTRA_HOSTS_RULE:-}"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hurricaneplan${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.rule=Host(`docs.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-docs${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
     networks:
       - grenmet
 
-  web-spicewx:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG}
+  web-gms:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gms:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -285,10 +285,85 @@ services:
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.rule=Host(`spice.${BASE_DOMAIN}`)${SPICEWX_EXTRA_HOSTS_RULE:-}"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-spicewx${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-gms${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
+    networks:
+      - grenmet
+
+  web-signal:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-signal:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3004/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.rule=Host(`signal.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-signal${ROUTER_SUFFIX}.loadbalancer.server.port=3004"
+    networks:
+      - grenmet
+
+  web-mbia:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-mbia:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3005/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-mbia${ROUTER_SUFFIX}.loadbalancer.server.port=3005"
+    networks:
+      - grenmet
+
+  web-events:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-events:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3009/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-events${ROUTER_SUFFIX}.loadbalancer.server.port=3009"
+    networks:
+      - grenmet
+
+  api-hono:
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-api-hono:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.rule=Host(`hapi.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api-hono${ROUTER_SUFFIX}.loadbalancer.server.port=4000"
     networks:
       - grenmet
 
