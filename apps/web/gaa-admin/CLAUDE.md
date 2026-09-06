@@ -68,14 +68,14 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 - **DB conventions:** two separate Drizzle clients (never merged). Configs
   `drizzle.{wxwatch,wxproducts}.config.ts`, output `drizzle/{wxwatch,wxproducts}/`,
   scripts `db:{wxwatch,wxproducts}:{generate,migrate}`. Production migrations run from
-  the `migrate` Dockerfile stage (image `grenmet-web-admin-migrate`, compose service
+  the `migrate` Dockerfile stage (image `barrelsgd-web-gaa-admin-migrate`, compose service
   `web-migrate`) via `scripts/migrate-{wxwatch,wxproducts}.mjs`.
 - **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--gm-font-document`
   token used by wxproducts forecast/bulletin documents.
 
 ## Testing
 
-This is the **only app with tests**. Run from the app directory or via turbo filter.
+This app has a focused test suite; other apps and shared packages have their own suites. Run from the app directory or via turbo filter.
 
 ```bash
 # From repo root
