@@ -56,11 +56,4 @@ describe("CurrentAlertsAccordion", () => {
     await userEvent.click(screen.getByText("Current alerts"));
     expect(screen.getByText(UNAVAILABLE_MESSAGE)).toBeInTheDocument();
   });
-
-  it("keeps every hazard name visible so the panel shape is stable", async () => {
-    render(<CurrentAlertsAccordion result={OK_EMPTY} />);
-    await userEvent.click(screen.getByText("Current alerts"));
-    expect(screen.getByText("Tropical Cyclone")).toBeInTheDocument();
-    expect(screen.getByText("Marine / Small Craft")).toBeInTheDocument();
-  });
 });

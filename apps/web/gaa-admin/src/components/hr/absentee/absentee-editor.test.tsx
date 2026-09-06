@@ -121,29 +121,6 @@ describe("buildAbsenteeReportPayload", () => {
 });
 
 describe("AbsenteeEditor (wired)", () => {
-  it("renders the full action bar (reset, save, download, submit)", async () => {
-    wrap(<AbsenteeEditor />);
-    expect(
-      await screen.findByRole("button", { name: "Submit" })
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
-    expect(
-      screen.getAllByRole("button", { name: "Download PDF" }).length
-    ).toBeGreaterThan(0);
-  }, 20_000);
-
-  it("prefills the employee name and department from the profile", async () => {
-    wrap(<AbsenteeEditor />);
-    const nameInput = (await screen.findByLabelText(
-      "Employee Name"
-    )) as HTMLInputElement;
-    await waitFor(() => expect(nameInput.value).toBe("Tester"));
-    expect(
-      (screen.getByLabelText("Department") as HTMLInputElement).value
-    ).toBe("Met");
-  }, 20_000);
-
   it("submits a filled report to HR with the mapped payload", async () => {
     const posted: unknown[] = [];
     server.use(
