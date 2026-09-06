@@ -15,7 +15,7 @@ async def test_create_user(
         json={
             "email": "pollo@listo.com",
             "username": "pollolisto",
-            "password": "password123",
+            "password": "password123456",
             "first_name": "Pollo",
             "last_name": "Listo",
         },

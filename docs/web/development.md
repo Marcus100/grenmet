@@ -12,16 +12,16 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 ## Starting a web app
 
 ```bash
-pnpm start                  # Start Postgres + FastAPI (required for admin-gms)
+pnpm start                  # Start Postgres + FastAPI (required for gaa-admin)
 pnpm dev:web:auth           # auth           :3000
-pnpm dev:web:admin          # admin-gms      :3001
-pnpm dev:web:hurricane      # hurricaneplan  :3002
-pnpm dev:web:spicewx        # spicewx        :3003
+pnpm dev:web:gaa-admin          # gaa-admin      :3001
+pnpm dev:web:docs      # docs  :3002
+pnpm dev:web:gms        # gms        :3003
 pnpm dev:web:signal         # signal         :3004
 ```
 
-Apps that require `pnpm start` before running: `admin-gms`.
-Apps that work standalone (no FastAPI): `auth`, `hurricaneplan`, `spicewx`,
+Apps that require `pnpm start` before running: `gaa-admin`.
+Apps that work standalone (no FastAPI): `auth`, `docs`, `gms`,
 `signal`.
 
 ## Environment variables
@@ -37,11 +37,11 @@ Never commit `.env.local`. Never write to it programmatically.
 
 ## Special app notes
 
-- **hurricaneplan**: Uses Turbopack. Content lives in `src/content/` via
+- **docs**: Uses Turbopack. Content lives in `src/content/` via
   `@content-collections/next`. MDX plugins run in a separate Node.js process.
-- **admin-gms**: Owns the consolidated `wxwatch` + `wxproducts` Drizzle ORM +
+- **gaa-admin**: Owns the consolidated `wxwatch` + `wxproducts` Drizzle ORM +
   Postgres DBs (and Playwright PDF export). Run `pnpm db:wxwatch:migrate` and
-  `pnpm db:wxproducts:migrate` from within `apps/web/admin-gms/` before first use.
+  `pnpm db:wxproducts:migrate` from within `apps/web/gaa-admin/` before first use.
   (The former standalone wxwatch/wxproducts/hr/salesbus apps were folded in here in 2026-06.)
 - **All apps**: React Compiler is enabled — do not add `useMemo`/`useCallback`
   for performance; the compiler handles it.

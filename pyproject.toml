@@ -18,6 +18,7 @@ members = [
     "apps/api/fastapi",
     "scripts/scrapy-wxwatch",
     "scripts/sutron-collector",
+    "scripts/gms-ingest",
     "notebooks",
     "geonetcast",
 ]

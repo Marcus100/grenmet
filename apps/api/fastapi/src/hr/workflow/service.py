@@ -159,11 +159,30 @@ async def create_workflow_instance(
         require_permission(
             current_user=current_user, permission_key="workflow.instance.action"
         )
+    if require_actor_permission and instance_in.entity_type in {
+        "leave_request",
+        "shift_swap",
+        "absentee_report",
+        "status_report",
+        "parking_permit",
+        "timesheet",
+    }:
+        raise HRValidationError(
+            "Submit the HR form to create its authoritative approval workflow"
+        )
     workflow_template = await session.get(
         WorkflowTemplate, instance_in.workflow_template_id
     )
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
+    from src.baseline.models import ApprovalPolicy
+    from src.baseline.service import require_ready
+
+    await require_ready(session, current_user.id, workflow_template.department_id)
+    policy = await session.get(
+        ApprovalPolicy,
+        f"hr:{workflow_template.department_id}:{workflow_template.workflow_type.value}",
+    )
     db_instance = WorkflowInstance(
         workflow_template_id=workflow_template.id,
         department_id=workflow_template.department_id,
@@ -171,6 +190,10 @@ async def create_workflow_instance(
         entity_type=instance_in.entity_type,
         entity_id=instance_in.entity_id,
         requested_by_user_id=current_user.id,
+        allow_self_approval=policy.allow_self_approval if policy else True,
+        require_distinct_approvers=policy.require_distinct_approvers
+        if policy
+        else False,
     )
     # Flush (not commit) so step creation and any calling entity-create share one
     # transaction; when commit=False the caller owns the terminal commit.
@@ -221,6 +244,21 @@ async def _is_actor_allowed_for_step(
     workflow_instance: WorkflowInstance,
     workflow_step: WorkflowStepInstance,
 ) -> bool:
+    if (
+        not workflow_instance.allow_self_approval
+        and current_user.id == workflow_instance.requested_by_user_id
+    ):
+        return False
+    if workflow_instance.require_distinct_approvers:
+        previous = await session.execute(
+            select(WorkflowStepInstance).where(
+                WorkflowStepInstance.workflow_instance_id == workflow_instance.id,
+                WorkflowStepInstance.approver_user_id == current_user.id,
+                WorkflowStepInstance.action == WorkflowAction.APPROVE,
+            )
+        )
+        if previous.scalars().first() is not None:
+            return False
     # A named-user step is satisfied only by that specific person; a role step
     # falls back to the role + scope check against the requester.
     if workflow_step.required_user_id is not None:
@@ -251,6 +289,11 @@ async def apply_workflow_action(
         require_permission(
             current_user=current_user, permission_key="workflow.instance.action"
         )
+    await session.execute(
+        select(WorkflowInstance)
+        .where(WorkflowInstance.id == workflow_instance_id)
+        .with_for_update()
+    )
     workflow_instance, steps = await read_workflow_instance_details(
         session=session,
         workflow_instance_id=workflow_instance_id,
@@ -263,6 +306,35 @@ async def apply_workflow_action(
             WorkflowStatus.RETURNED,
         }:
             raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
+        from src.baseline.models import ApprovalPolicy
+        from src.baseline.service import require_leave_ready, require_ready
+
+        await require_ready(
+            session,
+            workflow_instance.requested_by_user_id,
+            workflow_instance.department_id,
+        )
+        if workflow_instance.entity_type == "leave_request":
+            from src.hr.leave.models import LeaveRequest
+
+            leave = await session.get(LeaveRequest, workflow_instance.entity_id)
+            if leave:
+                if leave.department_id != workflow_instance.department_id:
+                    raise HRValidationError(
+                        "Request department changed; create a new draft in the correct department"
+                    )
+                await require_leave_ready(
+                    session, leave.user_id, leave.department_id, leave.leave_type.value
+                )
+        policy = await session.get(
+            ApprovalPolicy,
+            f"hr:{workflow_instance.department_id}:{workflow_instance.workflow_type.value}",
+        )
+        if workflow_instance.status == WorkflowStatus.DRAFT and policy:
+            workflow_instance.allow_self_approval = policy.allow_self_approval
+            workflow_instance.require_distinct_approvers = (
+                policy.require_distinct_approvers
+            )
         workflow_instance.status = WorkflowStatus.PENDING
         workflow_instance.submitted_at = utc_now()
         workflow_instance.current_step_order = 1
@@ -351,6 +423,10 @@ async def apply_workflow_action(
                 workflow_instance.status = WorkflowStatus.APPROVED
                 workflow_instance.resolved_at = utc_now()
 
+    if workflow_instance.status in {WorkflowStatus.APPROVED, WorkflowStatus.REJECTED}:
+        from src.hr.workflow.finalize import finalize_entity
+
+        await finalize_entity(session, workflow_instance, current_user.id)
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
     if commit:
@@ -440,6 +516,8 @@ async def list_actionable_instances(
     )
     my_role_ids = {role.id for role in current_user.roles}
     match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
+    if current_user.is_superuser:
+        match_conditions.append(col(WorkflowStepInstance.required_role_id).is_not(None))
     if my_role_ids:
         match_conditions.append(
             col(WorkflowStepInstance.required_role_id).in_(my_role_ids)

@@ -54,4 +54,4 @@ jobs:
         run: pnpm --filter @barrelsgd/api-client run build
 
       - name: Type-check admin consumer
-        run: pnpm --filter @barrelsgd/web-admin run type-check
+        run: pnpm --filter @barrelsgd/web-gaa-admin run type-check

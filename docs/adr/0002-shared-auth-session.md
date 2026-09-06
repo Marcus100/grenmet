@@ -15,7 +15,7 @@ Use the `auth` web app as the shared sign-in surface. Store an opaque session to
 ## Consequences
 
 - Browser clients do not store JWTs directly.
-- Apps can delegate sign-in to `web-auth` or integrate auth more deeply, as `admin-gms` does.
+- Apps can delegate sign-in to `web-auth` or integrate auth more deeply, as `gaa-admin` does.
 - Cross-app auth depends on consistent `SESSION_COOKIE_NAME`, optional `SESSION_COOKIE_DOMAIN`, and return-host allowlists.
 - API calls that need user identity must happen server-side or through a trusted route handler that can exchange the session.
 

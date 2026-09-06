@@ -9,14 +9,14 @@ from .models import RoleAssignmentScope, Title, UserBase
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=40)
+    password: str = Field(min_length=8, max_length=128)
 
 
 # Properties for user registration (public signup)
 class UserRegister(BaseModel):
     email: EmailStr
     username: str = Field(min_length=3, max_length=255)
-    password: str = Field(min_length=8, max_length=40)
+    password: str = Field(min_length=12, max_length=128)
     first_name: str = Field(min_length=1, max_length=100)
     middle_name: str | None = None
     last_name: str = Field(min_length=1, max_length=100)
@@ -45,11 +45,12 @@ class UserUpdateMe(BaseModel):
 
 class UpdatePassword(BaseModel):
     current_password: str
-    new_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=12, max_length=128)
 
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
+    registration_pending: bool = False
     id: uuid.UUID
     created_at: UtcDateTime
     updated_at: UtcDateTime
@@ -171,10 +172,10 @@ class SessionPublic(SessionBase):
 
 class SessionLoginRequest(BaseModel):
     email: EmailStr
-    password: str = Field(min_length=8, max_length=40)
+    password: str = Field(min_length=8, max_length=128)
     client_type: str = Field(default="web", min_length=1, max_length=50)
     app_name: str | None = Field(default=None, max_length=100)
-    totp_code: str | None = Field(default=None, max_length=10)
+    totp_code: str | None = Field(default=None, max_length=64)
 
 
 class SessionTokenRequest(BaseModel):
@@ -194,7 +195,8 @@ class TwoFactorCodeRequest(BaseModel):
 
 
 class TwoFactorDisableRequest(BaseModel):
-    password: str = Field(min_length=8, max_length=40)
+    code: str = Field(min_length=6, max_length=64)
+    password: str = Field(min_length=8, max_length=128)
 
 
 class TwoFactorStatusPublic(BaseModel):
@@ -220,7 +222,7 @@ class SessionAccessTokenResponse(SessionAuthenticationBase):
 
 class NewPassword(BaseModel):
     token: str
-    new_password: str = Field(min_length=8, max_length=40)
+    new_password: str = Field(min_length=12, max_length=128)
 
 
 class UserRoleAssignmentBase(BaseModel):

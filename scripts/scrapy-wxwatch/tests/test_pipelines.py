@@ -1,3 +1,5 @@
+import asyncio
+import inspect
 import re
 from datetime import datetime, timezone
 import logging
@@ -52,7 +54,7 @@ def test_download_persists_image_and_metadata_from_stored_bytes(tmp_path):
     Image.new("RGBA", (8, 6), (12, 34, 56, 128)).save(source, format="PNG")
     response = Response(request.url, body=source.getvalue())
 
-    pipeline.image_downloaded(response, request, object(), item=item)
+    asyncio.run(pipeline.image_downloaded(response, request, object(), item=item))
 
     stored_path = tmp_path / pipeline.file_path(request, item=item)
     assert {
@@ -76,6 +78,20 @@ def test_download_persists_image_and_metadata_from_stored_bytes(tmp_path):
         "raw_metadata": {"source": "test"},
         "stored": True,
     }
+
+
+def test_image_downloaded_matches_the_installed_scrapy_await_contract():
+    """Scrapy 2.15 made ImagesPipeline.image_downloaded awaitable.
+
+    Our override must match whatever the installed Scrapy expects: if the base
+    method is a coroutine function, ours has to be one too, or Scrapy's
+    `await self.image_downloaded(...)` raises TypeError on every image.
+    """
+    from scrapy.pipelines.images import ImagesPipeline
+
+    assert inspect.iscoroutinefunction(
+        MinutePathImagesPipeline.image_downloaded
+    ) == inspect.iscoroutinefunction(ImagesPipeline.image_downloaded)
 
 
 def test_pipeline_order_has_no_filesystem_only_metadata_stage():

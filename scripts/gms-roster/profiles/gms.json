@@ -1,0 +1,227 @@
+{
+  "profile_version": "1",
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "GMS",
+    "name": "Meteorological Department"
+  },
+  "_legend": "Shift codes for THIS department. Must match hr.shift_catalog. Another department will ship its own profile with different codes.",
+  "legend": {
+    "M": {
+      "label": "Morning",
+      "category": "WORK",
+      "start": "05:30",
+      "end": "14:00",
+      "ends_next_day": false
+    },
+    "D": {
+      "label": "Day",
+      "category": "WORK",
+      "start": "08:00",
+      "end": "16:00",
+      "ends_next_day": false
+    },
+    "E": {
+      "label": "Evening",
+      "category": "WORK",
+      "start": "14:00",
+      "end": "22:30",
+      "ends_next_day": false
+    },
+    "N": {
+      "label": "Night",
+      "category": "WORK",
+      "start": "22:30",
+      "end": "06:00",
+      "ends_next_day": true
+    },
+    "O": {
+      "label": "Off Duty",
+      "category": "OFF"
+    },
+    "L": {
+      "label": "Leave (Other)",
+      "category": "LEAVE"
+    },
+    "V": {
+      "label": "Vacation",
+      "category": "LEAVE"
+    },
+    "S": {
+      "label": "Study Leave",
+      "category": "LEAVE"
+    }
+  },
+  "_grades": "Grade bands, printed on the roster as blank-row separated groups, in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder (GAA Organisational Charts, May 2026, Meteorology Department slide).",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Manager",
+      "rank": 1,
+      "establishment_band": "Manager"
+    },
+    {
+      "code": "ASSISTANT_MANAGER",
+      "label": "Assistant Manager",
+      "rank": 2,
+      "establishment_band": "Assistant Manager"
+    },
+    {
+      "code": "SENIOR_TECH",
+      "label": "Senior Level Technician",
+      "rank": 3,
+      "establishment_band": "Senior Supervisor"
+    },
+    {
+      "code": "MID_TECH",
+      "label": "Mid Level Technician",
+      "rank": 4,
+      "establishment_band": "Supervisor"
+    },
+    {
+      "code": "ENTRY_TECH",
+      "label": "Entry Level Technician",
+      "rank": 5,
+      "establishment_band": "Professional"
+    },
+    {
+      "code": "CADET",
+      "label": "Meteorological Cadet",
+      "rank": 6,
+      "establishment_band": "Junior Professional/Trainee"
+    }
+  ],
+  "_people": "roster_name is exactly as printed on the PDF (minus any * marker). official_name is only set where the roster uses a different given name than the personnel record.",
+  "people": [
+    {
+      "roster_name": "G. Tamar",
+      "username": "gtamar",
+      "full_name": "Gerard Tamar",
+      "grade": "MANAGER"
+    },
+    {
+      "roster_name": "J. Charles",
+      "username": "acharles",
+      "full_name": "Jude Andre Charles",
+      "grade": "ASSISTANT_MANAGER",
+      "official_name": "A. Charles"
+    },
+    {
+      "roster_name": "V. Cyrus",
+      "username": "vcyrus",
+      "full_name": "Vondi Cyrus",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "F. Frank",
+      "username": "ffrank",
+      "full_name": "Fimber Frank",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "K. Johnson",
+      "username": "kjohnson",
+      "full_name": "Kassia Johnson",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "N. Jones",
+      "username": "njones",
+      "full_name": "Nicole Jones",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "T. Miller",
+      "username": "tmiller",
+      "full_name": "Trisha Miller",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "J. Pryce",
+      "username": "jpryce",
+      "full_name": "Johnathan Pryce",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "E. Whint",
+      "username": "ewhint",
+      "full_name": "Eugine Whint",
+      "grade": "SENIOR_TECH"
+    },
+    {
+      "roster_name": "K. Bedeau",
+      "username": "dbedeau",
+      "full_name": "Kenrick Dieonne Bedeau",
+      "grade": "MID_TECH",
+      "official_name": "D. Bedeau"
+    },
+    {
+      "roster_name": "K. Clarke",
+      "username": "kclarke",
+      "full_name": "Kendra Clarke",
+      "grade": "MID_TECH"
+    },
+    {
+      "roster_name": "S. Cummings",
+      "username": "scummings",
+      "full_name": "Swayne Cummings",
+      "grade": "MID_TECH"
+    },
+    {
+      "roster_name": "J. Fleming",
+      "username": "jfleming",
+      "full_name": "Jeriann Fleming",
+      "grade": "MID_TECH"
+    },
+    {
+      "roster_name": "Z. Barry",
+      "username": "zbarry",
+      "full_name": "Zadie Barry",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "G. Charles",
+      "username": "gcharles",
+      "full_name": "Gennel Charles",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "T. Mitchell",
+      "username": "tmitchell",
+      "full_name": "Tevaugn Mitchell",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "T. Teka",
+      "username": "tteka",
+      "full_name": "Theron Teka",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "J. McLeod",
+      "username": "jmcleod",
+      "full_name": "Jordan McLeod",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "S. Paterson",
+      "username": "spaterson",
+      "full_name": "Shaunte Paterson",
+      "grade": "ENTRY_TECH"
+    },
+    {
+      "roster_name": "T. Clovey",
+      "username": "tclovey",
+      "full_name": "Tafon Clovey",
+      "grade": "CADET"
+    },
+    {
+      "roster_name": "D. Williams",
+      "username": "dwilliams",
+      "full_name": "Dieonne Williams",
+      "grade": "CADET"
+    }
+  ]
+}

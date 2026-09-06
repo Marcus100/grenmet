@@ -22,9 +22,9 @@ cp apps/api/fastapi/.env.local.example  apps/api/fastapi/.env.local
 
 # 3. Next.js apps with committed examples
 cp apps/web/auth/.env.local.example         apps/web/auth/.env.local
-cp apps/web/admin-gms/.env.local.example    apps/web/admin-gms/.env.local
-cp apps/web/hurricaneplan/.env.local.example apps/web/hurricaneplan/.env.local
-cp apps/web/spicewx/.env.local.example      apps/web/spicewx/.env.local
+cp apps/web/gaa-admin/.env.local.example    apps/web/gaa-admin/.env.local
+cp apps/web/docs/.env.local.example apps/web/docs/.env.local
+cp apps/web/gms/.env.local.example      apps/web/gms/.env.local
 cp apps/web/signal/.env.local.example       apps/web/signal/.env.local
 
 # 4. Hono API (optional)
@@ -189,7 +189,7 @@ Local dev value (all apps):
 AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost:3004
 ```
 
-Port map: 3001=admin-gms, 3002=hurricaneplan, 3003=spicewx, 3004=signal. See [`ports.md`](./ports.md) for the canonical allocation.
+Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./ports.md) for the canonical allocation.
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
@@ -204,7 +204,7 @@ semantics), so no per-app maintenance is needed. Suffix matching is implemented 
 assembled as `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS}` — see
 `infra/docker/production.env`. Staging uses `.staging.barrels.gd` only.
 
-### Apps that delegate auth (hurricaneplan, spicewx)
+### Apps that delegate auth (docs, gms)
 
 These apps redirect to `web-auth` for sign-in. They do not manage sessions directly.
 
@@ -215,12 +215,13 @@ These apps redirect to `web-auth` for sign-in. They do not manage sessions direc
 | `SESSION_COOKIE_NAME` | Must match the value in the auth app |
 | `SESSION_COOKIE_DOMAIN` | Must match the shared deployment cookie domain |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
+| `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
-### admin-gms (`apps/web/admin-gms/.env.local`)
+### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
-admin-gms hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (2026-06), so it owns their env vars — including the two Drizzle database URLs and the CAP API base.
+gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (2026-06), so it owns their env vars — including the two Drizzle database URLs and the CAP API base.
 
 | Variable | Purpose |
 |---|---|

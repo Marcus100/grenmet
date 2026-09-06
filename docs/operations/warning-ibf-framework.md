@@ -206,7 +206,7 @@ Every published warning must be disseminated through all available channels simu
 
 | Channel | Mechanism | Responsible |
 |---|---|---|
-| Public website (spicewx) | CAP feed → website component | DTO / developer |
+| Public website (gms) | CAP feed → website component | DTO / developer |
 | CAP XML/RSS feed | Automatic on publish | System |
 | GeoJSON endpoint | Automatic on publish | System |
 | Social media | Manual post using approved template | Duty Forecaster |

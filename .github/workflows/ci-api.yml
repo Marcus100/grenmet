@@ -226,14 +226,14 @@ jobs:
         # (all routers/services/deps). Catches crash-on-boot — e.g. a missing
         # dependency — in the exact artifact that gets deployed, before release.
         run: |
-          docker run --rm --entrypoint sh \
+          docker run --rm --entrypoint /app/.venv/bin/python \
             -e PROJECT_NAME=ci \
             -e SECRET_KEY=ci-secret-key-min-32-characters-long \
             -e POSTGRES_SERVER=db -e POSTGRES_PORT=5432 \
             -e POSTGRES_USER=app -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
             -e FIRST_SUPERUSER=ci@weather.gd -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
             test-image:latest \
-            -lc 'uv run --frozen --no-dev --package fast-back python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
+            -c 'from src.main import app; print("boot-ok: app + routers imported")'
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true

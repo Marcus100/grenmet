@@ -1,0 +1,37 @@
+{
+  "properties": {
+    "department_id": {
+      "type": "string",
+      "maxLength": 100,
+      "minLength": 1,
+      "title": "Department Id"
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 50,
+      "pattern": "^[A-Z0-9_]+$",
+      "title": "Code"
+    },
+    "label": {
+      "type": "string",
+      "maxLength": 150,
+      "minLength": 1,
+      "title": "Label"
+    },
+    "rank": {
+      "type": "integer",
+      "maximum": 1000,
+      "minimum": 1,
+      "title": "Rank"
+    },
+    "establishment_band": {
+      "anyOf": [{ "type": "string", "maxLength": 100 }, { "type": "null" }],
+      "title": "Establishment Band"
+    },
+    "is_active": { "type": "boolean", "title": "Is Active", "default": true }
+  },
+  "type": "object",
+  "required": ["department_id", "code", "label", "rank"],
+  "title": "GradeInput",
+  "x-readme-ref-name": "GradeInput"
+}

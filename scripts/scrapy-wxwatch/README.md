@@ -50,7 +50,7 @@ Replace `nyc3` with the Space region. The four endpoint, bucket, key, and secret
 
 `STORAGE_OBJECT_ACL=private` is the safer default. Have the web application return signed URLs or proxy authorized requests. If every image may be public, use `public-read`, enable the Spaces CDN, configure CORS for the web origin, and build the asset URL from the CDN base plus the database `storage_path` value.
 
-The current admin app helper still builds `/wxwatch/<storage_path>`. Point `apps/web/admin-gms/src/lib/wxwatch/utils.ts` at the CDN base, or add an authenticated image route for a private Space, as a separate web-app change.
+The current admin app helper still builds `/wxwatch/<storage_path>`. Point `apps/web/gaa-admin/src/lib/wxwatch/utils.ts` at the CDN base, or add an authenticated image route for a private Space, as a separate web-app change.
 
 ## Online scheduling
 

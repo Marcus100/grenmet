@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory records durable architecture decisions for GrenMet. ADRs should describe choices that affect code structure, deployment, data ownership, security, or operational behavior.
+This directory records durable architecture decisions for Barrels Grenada. ADRs should describe choices that affect code structure, deployment, data ownership, security, or operational behavior.
 
 ## Index
 
@@ -11,11 +11,13 @@ This directory records durable architecture decisions for GrenMet. ADRs should d
 | [0003](0003-domain-databases.md) | Keep separate domain databases on shared PostgreSQL |
 | [0004](0004-generated-api-client.md) | Generate the TypeScript API client from FastAPI OpenAPI |
 | [0005](0005-compose-traefik-deployment.md) | Deploy with Docker Compose and Traefik on dedicated droplets |
-| [0006](0006-design-system-governance.md) | Govern shared UI through GrenMet design-system tokens and packages |
+| [0006](0006-design-system-governance.md) | Govern shared UI through Barrels design-system tokens and packages |
 | [0007](0007-cap-warning-lifecycle.md) | Model warning operations with a CAP-aware lifecycle |
 | [0008](0008-hr-approval-workflow.md) | Route HR forms through a named-approver approval workflow |
 | [0009](0009-gaa-staff-platform.md) | Build a GAA-wide staff platform, piloted in Meteorology |
 | [0010](0010-wis2-publishing-via-surface-builtin.md) | Publish observations to WIS2 via SURFACE's built-in publisher |
+| [0011](0011-brand-neutral-design-tokens.md) | Separate brand palettes from shared UI primitives (supersedes 0006) |
+| [0012](0012-decouple-design-tooling-from-figma.md) | Decouple design tooling from Figma (supersedes the Figma coupling in 0006/0011) |
 
 ## Template
 

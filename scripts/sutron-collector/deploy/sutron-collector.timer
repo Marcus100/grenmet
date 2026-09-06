@@ -1,0 +1,30 @@
+[Unit]
+Description=Poll the Sutron AWS every 10 minutes, offset from the legacy poller
+Documentation=file:///home/data/sutron-ng/README.md
+
+[Timer]
+# Legacy's cron opens /dev/ttyS1 twenty-three times an hour, at:
+#
+#   00 02 05 09 10 12 15 19 20 22 25 29 30 35 40 44 45 49 50 52 54 56 58
+#
+# (verbatim from `crontab -l` on ppcr-maurice, 2026-08-15). Reading the legacy
+# code alone suggests six polls an hour; that is wrong, and an earlier version
+# of this file used :05,:15,:25,:35,:45,:55 -- four of which collide.
+#
+# These six minutes are the free ones at a ten-minute cadence. All but :57 have
+# two clear minutes either side. :57 sits between legacy runs at :56 and :58,
+# which is ample because this timer fires on the second and the poll completes
+# in about 0.2s, leaving roughly 45 seconds' clearance in both directions.
+OnCalendar=*:07,17,27,37,47,57
+
+# Never start a second run while one is still going. Without this a stalled
+# poll would accumulate processes all fighting for the same serial port.
+AccuracySec=1s
+RandomizedDelaySec=0
+
+# Do not fire missed runs on boot. A catch-up burst could land on top of a
+# legacy poll, which is exactly what the offset exists to prevent.
+Persistent=false
+
+[Install]
+WantedBy=timers.target

@@ -15,6 +15,7 @@ export const userPublicSchema = z.object({
   last_name: z.string().max(100),
   is_active: z.optional(z.boolean().default(true)),
   is_superuser: z.optional(z.boolean().default(false)),
+  registration_pending: z.optional(z.boolean().default(false)),
   id: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string(),

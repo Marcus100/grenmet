@@ -15,7 +15,14 @@ class NoObservationsError(RuntimeError):
 
 
 def utc_now() -> datetime:
-    return datetime.now(UTC)
+    """Current time to the second.
+
+    Microseconds are false precision on an observation: the reading describes
+    conditions over the sampling period, not an instant. They also disturb
+    SURFACE, which infers the sampling interval from the gaps between
+    timestamps and would see every gap as slightly different.
+    """
+    return datetime.now(UTC).replace(microsecond=0)
 
 
 @dataclass(slots=True)

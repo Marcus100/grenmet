@@ -1,0 +1,62 @@
+{
+  "properties": {
+    "title": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Title"
+    },
+    "description": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Description"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": [
+            "MEETING",
+            "TRAINING",
+            "INSPECTION",
+            "VISIT",
+            "MAINTENANCE",
+            "OBSERVANCE",
+            "DEADLINE",
+            "OTHER"
+          ],
+          "title": "CalendarEventKind",
+          "description": "What a department puts on its calendar besides the duty roster.",
+          "x-readme-ref-name": "CalendarEventKind"
+        },
+        { "type": "null" }
+      ]
+    },
+    "starts_at": {
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "title": "Starts At"
+    },
+    "ends_at": {
+      "anyOf": [
+        { "type": "string", "format": "date-time" },
+        { "type": "null" }
+      ],
+      "title": "Ends At"
+    },
+    "all_day": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "All Day"
+    },
+    "location": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Location"
+    },
+    "cancelled": {
+      "anyOf": [{ "type": "boolean" }, { "type": "null" }],
+      "title": "Cancelled"
+    }
+  },
+  "type": "object",
+  "title": "CalendarEventUpdate",
+  "x-readme-ref-name": "CalendarEventUpdate"
+}

@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
 
 from . import service
@@ -31,9 +32,10 @@ router = APIRouter(prefix="/hr", tags=["hr-parking"])
 async def create_parking_permit(
     *, session: SessionDep, current_user: CurrentUser, payload: ParkingPermitCreate
 ) -> Any:
-    return await service.create_parking_permit(
+    result = await service.create_parking_permit(
         session=session, current_user=current_user, payload=payload
     )
+    return await submission_public(session, result, ParkingPermitPublic)
 
 
 @router.get(
@@ -60,10 +62,7 @@ async def read_parking_permits(
         limit=pagination.limit,
     )
     return ParkingPermitListPublic(
-        data=[
-            ParkingPermitPublic.model_validate(item, from_attributes=True)
-            for item in rows
-        ],
+        data=await submission_list(session, rows, ParkingPermitPublic),
         count=total,
         page=pagination.page,
         size=pagination.size,
@@ -88,9 +87,10 @@ async def issue_parking_decal(
     permit_id: uuid.UUID,
     payload: ParkingPermitIssue,
 ) -> Any:
-    return await service.issue_decal(
+    result = await service.issue_decal(
         session=session,
         current_user=current_user,
         permit_id=permit_id,
         payload=payload,
     )
+    return await submission_public(session, result, ParkingPermitPublic)

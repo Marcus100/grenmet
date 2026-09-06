@@ -154,10 +154,10 @@ test("a committed OpenAPI change requires generated API-client files", (t) => {
 });
 
 const drizzleSchemaFamilies = {
-  janitorial: "apps/web/admin-gms/src/db/janitorial/schema.ts",
-  transport: "apps/web/admin-gms/src/db/transport/schema.ts",
-  wxproducts: "apps/web/admin-gms/src/db/wxproducts/schema/index.ts",
-  wxwatch: "apps/web/admin-gms/src/db/wxwatch/schema.ts",
+  janitorial: "apps/web/gaa-admin/src/db/janitorial/schema.ts",
+  transport: "apps/web/gaa-admin/src/db/transport/schema.ts",
+  wxproducts: "apps/web/gaa-admin/src/db/wxproducts/schema/index.ts",
+  wxwatch: "apps/web/gaa-admin/src/db/wxwatch/schema.ts",
 };
 
 for (const [family, schemaFile] of Object.entries(drizzleSchemaFamilies)) {
@@ -166,7 +166,7 @@ for (const [family, schemaFile] of Object.entries(drizzleSchemaFamilies)) {
     write(repository, schemaFile);
     write(
       repository,
-      "apps/web/admin-gms/drizzle/unrelated/0001_unrelated.sql"
+      "apps/web/gaa-admin/drizzle/unrelated/0001_unrelated.sql"
     );
     let head = commit(repository, `change ${family} schema`);
 
@@ -177,10 +177,10 @@ for (const [family, schemaFile] of Object.entries(drizzleSchemaFamilies)) {
     assert.match(result.stderr, new RegExp(schemaFile.replaceAll("/", "\\/")));
     assert.match(
       result.stderr,
-      new RegExp(`apps/web/admin-gms/drizzle/${family}/`)
+      new RegExp(`apps/web/gaa-admin/drizzle/${family}/`)
     );
 
-    write(repository, `apps/web/admin-gms/drizzle/${family}/0001_schema.sql`);
+    write(repository, `apps/web/gaa-admin/drizzle/${family}/0001_schema.sql`);
     head = commit(repository, `add ${family} migration`);
     result = check(repository, ["--base", base, "--head", head]);
 
@@ -283,10 +283,7 @@ test("auth and shared UI changes explain required consumer validation", (t) => {
 
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Auth consumer validation required/);
-  assert.match(
-    result.stdout,
-    /auth, admin-gms, hurricaneplan, spicewx, signal/
-  );
+  assert.match(result.stdout, /auth, gaa-admin, docs, gms, signal/);
   assert.match(result.stdout, /AUTH_API_URL/);
   assert.match(result.stdout, /Shared UI consumer validation required/);
   assert.match(result.stdout, /every importing app/);
@@ -295,9 +292,9 @@ test("auth and shared UI changes explain required consumer validation", (t) => {
 
 test("admin routes and Drizzle schemas explain cross-cutting validation", (t) => {
   const { base, repository } = createRepository(t);
-  write(repository, "apps/web/admin-gms/src/app/(admin)/hr/page.tsx");
-  write(repository, "apps/web/admin-gms/src/db/wxwatch/schema.ts");
-  write(repository, "apps/web/admin-gms/drizzle/wxwatch/0001_schema.sql");
+  write(repository, "apps/web/gaa-admin/src/app/(admin)/hr/page.tsx");
+  write(repository, "apps/web/gaa-admin/src/db/wxwatch/schema.ts");
+  write(repository, "apps/web/gaa-admin/drizzle/wxwatch/0001_schema.sql");
   const head = commit(repository);
 
   const result = check(repository, ["--base", base, "--head", head]);

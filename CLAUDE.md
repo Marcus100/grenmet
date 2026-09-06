@@ -8,6 +8,7 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 
 ### Always (no confirmation needed)
 - Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
@@ -48,7 +49,7 @@ Before acting on any setup/diagnosis theory, confirm the environment with a chea
 ### Blast-Radius Gate
 A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
 Before declaring done, grep for every consumer of the symbols you touched and
-verify each affected layer. admin-gms is a cross-cutting surface — it hosts five
+verify each affected layer. gaa-admin is a cross-cutting surface — it hosts five
 formerly-separate apps, so treat any change there as potentially affecting
 cap/hr/wxwatch/wxproducts/salesbus, not one isolated app.
 
@@ -59,9 +60,9 @@ edit it. Find and report, never silently expand scope.
 | If you change…                  | Also verify…                                                                                    |
 |---------------------------------|-------------------------------------------------------------------------------------------------|
 | A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
-| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (hurricaneplan, spicewx via `AUTH_API_URL`)                         |
+| Auth behavior (`packages/auth`) | all 5 apps + delegating apps (docs, gms via `AUTH_API_URL`)                         |
 | A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
-| A consolidated admin route      | the other folded modules in admin-gms (cap/hr/wxwatch/wxproducts/salesbus)                       |
+| A consolidated admin route      | the other folded modules in gaa-admin (cap/hr/wxwatch/wxproducts/salesbus)                       |
 | A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
 
 ### Reasoning Gate
@@ -127,15 +128,12 @@ When adding to this file, follow this structure:
 - `packages/api-client/src/gen/` must stay in sync with
   `apps/api/fastapi/openapi.json` — drift fails CI.
 
-## Figma / Design
+## Design
 
-- Full Figma→code→verify→token-guard loop: `docs/design-workflow.md`. Token contract and governance: `docs/design-system.md`.
-- Always load the `/figma-use` skill before calling `use_figma` — it is mandatory.
-- Use `/figma-generate-design` to translate a page or layout into code; `/analyse-grenmet` to audit Figma structure/drift.
-- Use `/ui-check` to implement or refine a component against its Figma node.
-- Do not move pages between Figma files programmatically — instruct the user to do it in the Figma UI.
-- Screenshot capture for visual diffing uses the Chrome MCP tool (not Playwright) when the dev server is running.
-- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius and never add design values to Tailwind config. Adding or changing a `--gm-*` token needs user approval, landed in Figma and `packages/ui/src/styles/globals.css` together.
+- Design→code→verify→token-guard loop: `docs/design-workflow.md`. Token contract and governance: `docs/design-system.md`.
+- **Figma is not linked to this repo.** Ignore any Figma MCP tool, `use_figma`, `/figma-use`, or Figma node URL — design intent arrives via Claude Design or a screenshot the user supplies. Never ask for a Figma frame URL.
+- Use the `/design` skill to produce or iterate a design canvas; `/ui-check` to refine a built component against that canvas or a supplied screenshot.
+- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius and never add design values to Tailwind config. Adding or changing a `--gm-*` token needs user approval and lands in `packages/ui/src/styles/globals.css`, followed by `pnpm design-system:sync`.
 - Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full` (warning-only drift), `:contrast` (warning pairs), `:sync` (regenerate app blocks after editing the canonical block). Dark mode is supported (class-based `dark` variant + `.dark` token overrides); prefer semantic tokens over `dark:*` branches in shared primitives, and keep printable document "papers" light in both modes.
 
 ## Where to Look
@@ -143,6 +141,7 @@ When adding to this file, follow this structure:
 | I need to understand…              | Read…                              |
 |------------------------------------|------------------------------------|
 | Monorepo structure and auth flow   | `docs/technical-overview.md`       |
+| Portfolio, client programmes, repository ownership | `docs/portfolio/`       |
 | Service architecture               | `docs/architecture.md`             |
 | Auth package API                   | `packages/auth/README.md`          |
 | Auth package rules (agent)         | `packages/auth/CLAUDE.md`          |
@@ -155,7 +154,7 @@ When adding to this file, follow this structure:
 | Security baseline                  | `docs/security.md`                 |
 | Troubleshooting                    | `docs/troubleshooting.md`          |
 | Design system tokens               | `docs/design-system.md`            |
-| Design workflow (Figma→code→verify)| `docs/design-workflow.md`          |
+| Design workflow (design→code→verify)| `docs/design-workflow.md`         |
 | Data architecture and governance   | `docs/data-architecture.md`        |
 | GMS programme and strategy         | `docs/internal/`                   |
 | GMS operational procedures / SOPs  | `docs/operations/`                 |
