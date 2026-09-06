@@ -114,6 +114,11 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not user.is_active:
         raise _unauthorized(ERROR_INACTIVE_USER)
+    if user.registration_pending:
+        raise HTTPException(
+            status_code=403,
+            detail="Your registration is awaiting administrator approval",
+        )
     if user.email_verification_required and user.email_verified_at is None:
         raise HTTPException(
             status_code=403, detail="Verify your email before using the staff portal"

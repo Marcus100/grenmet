@@ -1,6 +1,7 @@
 export { actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch } from "./actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export { actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch } from "./actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export { approveAlertApiV1CapAlertsAlertIdApprovePost } from "./approveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "./approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "./approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "./bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./cancelAlertApiV1CapAlertsAlertIdCancelPost.js";
@@ -119,7 +120,9 @@ export { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } f
 export { refreshSessionApiV1LoginSessionRefreshPost } from "./refreshSessionApiV1LoginSessionRefreshPost.js";
 export { registerUserApiV1AuthUsersSignupPost } from "./registerUserApiV1AuthUsersSignupPost.js";
 export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
+export { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "./replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./resetPasswordApiV1ResetPasswordPost.js";
+export { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "./revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";

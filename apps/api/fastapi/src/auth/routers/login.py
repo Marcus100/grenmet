@@ -14,9 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlmodel import col, delete
 from starlette.requests import Request
 
-from src.auth import service, totp
+from src.auth import modern_service, service
+from src.auth.account_security import verify_factor
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
     ERROR_INCORRECT_CREDENTIALS,
@@ -31,6 +33,8 @@ from src.auth.constants import (
 )
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.lockout import login_lockout
+from src.auth.models import User
+from src.auth.modern_models import AuthChallenge
 from src.auth.schemas import (
     NewPassword,
     SessionAccessTokenResponse,
@@ -45,8 +49,8 @@ from src.email import (
     generate_password_reset_token,
     generate_reset_password_email,
     send_email,
-    verify_password_reset_token,
 )
+from src.email_config import email_settings
 from src.models import Message, Token
 from src.rate_limit import limiter
 
@@ -149,6 +153,7 @@ async def login_access_token(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    service.require_approved_account(user)
     if user.email_verification_required and (
         user.email_verified_at is None or user.password_setup_pending
     ):
@@ -206,6 +211,7 @@ async def login_session(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
+    service.require_approved_account(user)
     if user.email_verification_required and (
         user.email_verified_at is None or user.password_setup_pending
     ):
@@ -213,8 +219,8 @@ async def login_session(
             status_code=403,
             detail="Verify your email and set your password before signing in",
         )
-    if user.totp_enabled and not totp.verify_code(
-        secret=user.totp_secret or "", code=body.totp_code or ""
+    if user.totp_enabled and not await verify_factor(
+        session, user, body.totp_code or ""
     ):
         raise HTTPException(
             status_code=400, detail="Two-factor authentication code required or invalid"
@@ -396,8 +402,20 @@ async def recover_password(
     """
     _ = request
     user = await service.get_user_by_email(session=session, email=email)
-    if user:
-        password_reset_token = generate_password_reset_token(email=email)
+    if user and user.is_active:
+        await session.execute(
+            delete(AuthChallenge).where(
+                col(AuthChallenge.user_id) == user.id,
+                col(AuthChallenge.purpose) == "password-reset",
+            )
+        )
+        password_reset_token = await modern_service.issue(
+            session,
+            "password-reset",
+            user_id=user.id,
+            data={"email": user.email},
+            minutes=email_settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS * 60,
+        )
         email_data = await generate_reset_password_email(
             email_to=user.email, email=email, token=password_reset_token
         )
@@ -407,6 +425,7 @@ async def recover_password(
             subject=email_data.subject,
             html_content=email_data.html_content,
         )
+        await session.commit()
     return Message(message=SUCCESS_PASSWORD_RECOVERY_SENT)
 
 
@@ -424,18 +443,10 @@ async def reset_password(
     Reset password.
     """
     _ = request
-    email = verify_password_reset_token(token=body.token)
-    if not email:
+    challenge = await modern_service.consume(session, body.token, "password-reset")
+    user = await session.get(User, challenge.user_id)
+    if not user or not user.is_active or user.email != challenge.data.get("email"):
         raise HTTPException(status_code=400, detail=ERROR_INVALID_TOKEN)
-
-    user = await service.get_user_by_email(session=session, email=email)
-    if not user:
-        raise HTTPException(
-            status_code=404,
-            detail=ERROR_USER_NOT_FOUND,
-        )
-    if not user.is_active:
-        raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
     await service.set_password(
         session=session, user=user, new_password=body.new_password
     )

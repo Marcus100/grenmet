@@ -1,0 +1,20 @@
+{
+  "properties": {
+    "password": {
+      "type": "string",
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Password"
+    },
+    "code": {
+      "type": "string",
+      "maxLength": 64,
+      "minLength": 6,
+      "title": "Code"
+    }
+  },
+  "type": "object",
+  "required": ["password", "code"],
+  "title": "SecurityProof",
+  "x-readme-ref-name": "SecurityProof"
+}

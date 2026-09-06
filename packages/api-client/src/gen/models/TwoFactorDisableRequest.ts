@@ -8,6 +8,12 @@
  */
 export type TwoFactorDisableRequest = {
   /**
+   * @minLength 6
+   * @maxLength 64
+   * @type string
+   */
+  code: string;
+  /**
    * @minLength 8
    * @maxLength 128
    * @type string

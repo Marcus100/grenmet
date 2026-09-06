@@ -8,6 +8,22 @@
  */
 export type StaffCard = {
   /**
+   * @default false
+   * @type boolean | undefined
+   */
+  email_verified?: boolean;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  account_approved?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  employment_ready?: boolean;
+  issued_at?: string | null;
+  /**
    * @type string, uuid
    */
   user_id: string;

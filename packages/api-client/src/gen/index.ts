@@ -1,6 +1,7 @@
 export { actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch } from "./clients/actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export { actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch } from "./clients/actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export { approveAlertApiV1CapAlertsAlertIdApprovePost } from "./clients/approveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "./clients/approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "./clients/approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "./clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./clients/cancelAlertApiV1CapAlertsAlertIdCancelPost.js";
@@ -119,7 +120,9 @@ export { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } f
 export { refreshSessionApiV1LoginSessionRefreshPost } from "./clients/refreshSessionApiV1LoginSessionRefreshPost.js";
 export { registerUserApiV1AuthUsersSignupPost } from "./clients/registerUserApiV1AuthUsersSignupPost.js";
 export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
+export { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "./clients/replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./clients/resetPasswordApiV1ResetPasswordPost.js";
+export { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "./clients/revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./clients/submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./clients/submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./clients/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
@@ -176,6 +179,12 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions,
   useApproveAlertApiV1CapAlertsAlertIdApprovePost,
 } from "./hooks/useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export type { ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey } from "./hooks/useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
+export {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions,
+  useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
+} from "./hooks/useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export type { ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey } from "./hooks/useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey,
@@ -1232,12 +1241,24 @@ export {
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationOptions,
   useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete,
 } from "./hooks/useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
+export type { ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey } from "./hooks/useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
+export {
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationOptions,
+  useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost,
+} from "./hooks/useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export type { ResetPasswordApiV1ResetPasswordPostMutationKey } from "./hooks/useResetPasswordApiV1ResetPasswordPost.js";
 export {
   resetPasswordApiV1ResetPasswordPostMutationKey,
   resetPasswordApiV1ResetPasswordPostMutationOptions,
   useResetPasswordApiV1ResetPasswordPost,
 } from "./hooks/useResetPasswordApiV1ResetPasswordPost.js";
+export type { RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey } from "./hooks/useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export {
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions,
+  useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
+} from "./hooks/useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export type { SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey } from "./hooks/useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,
@@ -1514,6 +1535,16 @@ export type {
   ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
   ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
 } from "./models/ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export type {
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutation,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams,
+} from "./models/ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export type {
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200,
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
@@ -2609,6 +2640,7 @@ export type {
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
 } from "./models/RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
+export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
 export type {
   RefreshSessionApiV1LoginSessionRefreshPost200,
   RefreshSessionApiV1LoginSessionRefreshPost422,
@@ -2634,6 +2666,14 @@ export type {
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
 } from "./models/RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export type {
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutation,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+} from "./models/ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
+export type {
   RequestStatus,
   RequestStatusRequestStatusEnumKey,
 } from "./models/RequestStatus.js";
@@ -2646,6 +2686,14 @@ export type {
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "./models/ResetPasswordApiV1ResetPasswordPost.js";
+export type {
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutation,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams,
+} from "./models/RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export type {
   RoleAssignmentScope,
   RoleAssignmentScopeRoleAssignmentScopeEnumKey,
@@ -2685,6 +2733,7 @@ export type {
 export { rosterRevisionActionRosterRevisionActionEnum } from "./models/RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./models/RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./models/RosterRevisionsPublic.js";
+export type { SecurityProof } from "./models/SecurityProof.js";
 export type { SecuritySessionPublic } from "./models/SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./models/SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./models/SessionLoginRequest.js";
@@ -3189,6 +3238,15 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostMutationResponseSchema,
   approveAlertApiV1CapAlertsAlertIdApprovePostPathParamsSchema,
 } from "./zod/approveAlertApiV1CapAlertsAlertIdApprovePostSchema.js";
+export {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponseSchema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParamsSchema,
+} from "./zod/approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostSchema.js";
 export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200Schema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400Schema,
@@ -4092,6 +4150,7 @@ export {
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponseSchema,
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParamsSchema,
 } from "./zod/recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostSchema.js";
+export { recoveryCodesPublicSchema } from "./zod/recoveryCodesPublicSchema.js";
 export {
   refreshSessionApiV1LoginSessionRefreshPost200Schema,
   refreshSessionApiV1LoginSessionRefreshPost422Schema,
@@ -4113,6 +4172,13 @@ export {
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponseSchema,
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema,
 } from "./zod/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteSchema.js";
+export {
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequestSchema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponseSchema,
+} from "./zod/replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostSchema.js";
 export { requestStatusSchema } from "./zod/requestStatusSchema.js";
 export {
   resetPasswordApiV1ResetPasswordPost200Schema,
@@ -4121,6 +4187,13 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationRequestSchema,
   resetPasswordApiV1ResetPasswordPostMutationResponseSchema,
 } from "./zod/resetPasswordApiV1ResetPasswordPostSchema.js";
+export {
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponseSchema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParamsSchema,
+} from "./zod/revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteSchema.js";
 export { roleAssignmentScopeSchema } from "./zod/roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./zod/roleConfigurationSchema.js";
 export { roleCreateSchema } from "./zod/roleCreateSchema.js";
@@ -4148,6 +4221,7 @@ export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSche
 export { rosterRevisionActionSchema } from "./zod/rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./zod/rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./zod/rosterRevisionsPublicSchema.js";
+export { securityProofSchema } from "./zod/securityProofSchema.js";
 export { securitySessionPublicSchema } from "./zod/securitySessionPublicSchema.js";
 export { sessionAccessTokenResponseSchema } from "./zod/sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./zod/sessionLoginRequestSchema.js";

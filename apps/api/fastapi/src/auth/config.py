@@ -20,7 +20,7 @@ class AuthConfig(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = ""
     AUTH_FRONTEND_URL: str = "http://localhost:3000"
-    ALLOW_PUBLIC_SIGNUP: bool = False
+    ALLOW_PUBLIC_SIGNUP: bool = True
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the

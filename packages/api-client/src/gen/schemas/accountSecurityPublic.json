@@ -1,5 +1,10 @@
 {
   "properties": {
+    "recovery_codes_remaining": {
+      "type": "integer",
+      "title": "Recovery Codes Remaining",
+      "default": 0
+    },
     "email_verified": { "type": "boolean", "title": "Email Verified" },
     "google_configured": { "type": "boolean", "title": "Google Configured" },
     "google_linked": { "type": "boolean", "title": "Google Linked" },

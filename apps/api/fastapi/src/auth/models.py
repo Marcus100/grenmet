@@ -4,6 +4,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import EmailStr
+from sqlalchemy import JSON, Column
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.utils.datetime import utc_now
@@ -46,6 +47,10 @@ class User(UserBase, table=True):
     email_verified_at: datetime | None = None
     email_verification_required: bool = False
     password_setup_pending: bool = False
+    registration_pending: bool = False
+    mfa_recovery_hashes: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )
     # Two-factor auth (TOTP). Secret is plaintext for v1 — encrypt at rest in a follow-up.
     totp_secret: str | None = Field(default=None, max_length=64)
     totp_enabled: bool = Field(default=False)

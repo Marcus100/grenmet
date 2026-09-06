@@ -1,5 +1,24 @@
 {
   "properties": {
+    "email_verified": {
+      "type": "boolean",
+      "title": "Email Verified",
+      "default": false
+    },
+    "account_approved": {
+      "type": "boolean",
+      "title": "Account Approved",
+      "default": true
+    },
+    "employment_ready": {
+      "type": "boolean",
+      "title": "Employment Ready",
+      "default": false
+    },
+    "issued_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Issued At"
+    },
     "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
     "number": { "type": "string", "title": "Number" },
     "name": { "type": "string", "title": "Name" },

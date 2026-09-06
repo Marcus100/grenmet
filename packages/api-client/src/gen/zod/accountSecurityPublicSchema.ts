@@ -7,6 +7,7 @@ import * as z from "zod";
 import { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 
 export const accountSecurityPublicSchema = z.object({
+  recovery_codes_remaining: z.optional(z.number().int().default(0)),
   email_verified: z.boolean(),
   google_configured: z.boolean(),
   google_linked: z.boolean(),

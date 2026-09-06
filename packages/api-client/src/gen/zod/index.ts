@@ -34,6 +34,15 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostPathParamsSchema,
 } from "./approveAlertApiV1CapAlertsAlertIdApprovePostSchema.js";
 export {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422Schema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponseSchema,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParamsSchema,
+} from "./approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostSchema.js";
+export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200Schema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400Schema,
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403Schema,
@@ -936,6 +945,7 @@ export {
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponseSchema,
   recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParamsSchema,
 } from "./recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostSchema.js";
+export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
 export {
   refreshSessionApiV1LoginSessionRefreshPost200Schema,
   refreshSessionApiV1LoginSessionRefreshPost422Schema,
@@ -957,6 +967,13 @@ export {
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponseSchema,
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema,
 } from "./removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteSchema.js";
+export {
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422Schema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequestSchema,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponseSchema,
+} from "./replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostSchema.js";
 export { requestStatusSchema } from "./requestStatusSchema.js";
 export {
   resetPasswordApiV1ResetPasswordPost200Schema,
@@ -965,6 +982,13 @@ export {
   resetPasswordApiV1ResetPasswordPostMutationRequestSchema,
   resetPasswordApiV1ResetPasswordPostMutationResponseSchema,
 } from "./resetPasswordApiV1ResetPasswordPostSchema.js";
+export {
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422Schema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponseSchema,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParamsSchema,
+} from "./revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
@@ -992,6 +1016,7 @@ export { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.j
 export { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
+export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 export { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";

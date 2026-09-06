@@ -1,7 +1,10 @@
+import uuid
+
 from fastapi import APIRouter
 from starlette.requests import Request
 
 from src.auth import modern_service as service
+from src.auth.account_security import new_recovery_codes, revoke_owned_session
 from src.auth.modern_schemas import (
     AccountSecurityPublic,
     EmailConfirm,
@@ -11,6 +14,8 @@ from src.auth.modern_schemas import (
     GoogleFinish,
     GoogleStart,
     GoogleStartPublic,
+    RecoveryCodesPublic,
+    SecurityProof,
 )
 from src.auth.schemas import SessionLoginResponse
 from src.dependencies import CurrentUser, SessionDep
@@ -125,3 +130,40 @@ async def read_account_security(
     *, session: SessionDep, current_user: CurrentUser
 ) -> AccountSecurityPublic:
     return await service.account_security(session=session, user=current_user)
+
+
+@router.post(
+    "/security/recovery-codes",
+    response_model=RecoveryCodesPublic,
+    status_code=200,
+    summary="Replace MFA recovery codes",
+    description="Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.",
+    responses={400: {"description": "Confirmation failed"}},
+)
+@limiter.limit("5/minute")
+async def replace_recovery_codes(
+    *,
+    request: Request,
+    session: SessionDep,
+    current_user: CurrentUser,
+    body: SecurityProof,
+) -> RecoveryCodesPublic:
+    _ = request
+    return RecoveryCodesPublic(
+        codes=await new_recovery_codes(session, current_user, body.password, body.code)
+    )
+
+
+@router.delete(
+    "/security/sessions/{session_id}",
+    response_model=Message,
+    status_code=200,
+    summary="Revoke one of your sessions",
+    description="Revokes only a session owned by the authenticated user.",
+    responses={404: {"description": "Session not found"}},
+)
+async def revoke_security_session(
+    *, session: SessionDep, current_user: CurrentUser, session_id: uuid.UUID
+) -> Message:
+    await revoke_owned_session(session, current_user, session_id)
+    return Message(message="Session revoked")

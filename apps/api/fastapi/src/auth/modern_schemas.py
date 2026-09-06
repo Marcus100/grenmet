@@ -32,7 +32,7 @@ class GoogleChallengePublic(BaseModel):
 
 class GoogleFinish(BaseModel):
     challenge: str = Field(min_length=32, max_length=256)
-    totp_code: str | None = Field(default=None, max_length=6)
+    totp_code: str | None = Field(default=None, max_length=64)
 
 
 class SecuritySessionPublic(BaseModel):
@@ -44,8 +44,18 @@ class SecuritySessionPublic(BaseModel):
 
 
 class AccountSecurityPublic(BaseModel):
+    recovery_codes_remaining: int = 0
     email_verified: bool
     google_configured: bool
     google_linked: bool
     totp_enabled: bool
     sessions: list[SecuritySessionPublic]
+
+
+class SecurityProof(BaseModel):
+    password: str = Field(min_length=1, max_length=128)
+    code: str = Field(min_length=6, max_length=64)
+
+
+class RecoveryCodesPublic(BaseModel):
+    codes: list[str]

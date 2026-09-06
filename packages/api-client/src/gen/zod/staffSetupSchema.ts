@@ -7,6 +7,7 @@ import * as z from "zod";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const staffSetupSchema = z.object({
+  registration_pending: z.optional(z.boolean().default(false)),
   user_id: z.string().uuid(),
   email: z.string(),
   name: z.string(),

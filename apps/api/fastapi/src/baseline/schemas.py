@@ -6,10 +6,14 @@ from pydantic import Field
 
 from src.hr.leave.models import LeaveType
 from src.hr.models import EmploymentType
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 
 class StaffCard(BaseModel):
+    email_verified: bool = False
+    account_approved: bool = True
+    employment_ready: bool = False
+    issued_at: UtcDateTime | None = None
     user_id: uuid.UUID
     number: str
     name: str
@@ -20,6 +24,7 @@ class StaffCard(BaseModel):
 
 
 class StaffSetup(BaseModel):
+    registration_pending: bool = False
     user_id: uuid.UUID
     email: str
     name: str

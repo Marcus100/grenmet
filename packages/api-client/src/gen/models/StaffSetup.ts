@@ -10,6 +10,11 @@ import type { EmploymentType } from "./EmploymentType.js";
  */
 export type StaffSetup = {
   /**
+   * @default false
+   * @type boolean | undefined
+   */
+  registration_pending?: boolean;
+  /**
    * @type string, uuid
    */
   user_id: string;

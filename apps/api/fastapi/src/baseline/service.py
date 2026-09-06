@@ -88,9 +88,21 @@ async def card_for(session: AsyncSession, user: User) -> StaffCard:
         employment and employment.status != EmploymentStatus.ACTIVE
     ):
         status = "inactive"
-    elif user.is_active and user.email_verified_at and employment_complete(employment):
+    elif (
+        user.is_active
+        and user.email_verified_at
+        and not user.registration_pending
+        and employment
+        and employment.status == EmploymentStatus.ACTIVE
+        and department
+        and grade
+    ):
         status = "active"
     return StaffCard(
+        email_verified=user.email_verified_at is not None,
+        account_approved=not user.registration_pending,
+        employment_ready=employment_complete(employment),
+        issued_at=credential.created_at,
         user_id=user.id,
         number=credential.number,
         name=" ".join(
@@ -117,6 +129,7 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
         employment = await employment_for(session, user.id)
         result.append(
             StaffSetup(
+                registration_pending=user.registration_pending,
                 user_id=user.id,
                 email=user.email,
                 name=user.full_name,
@@ -488,3 +501,82 @@ async def update_role_configuration(
     return RoleConfiguration(
         id=role.id, name=role.name, permission_keys=body.permission_keys
     )
+
+
+async def approve_registration(
+    session: AsyncSession, actor: User, user_id: uuid.UUID
+) -> None:
+    require_admin(actor)
+    from src.auth.models import RoleAssignmentScope, UserRoleLink
+
+    user = (
+        (
+            await session.execute(
+                select(User).where(User.id == user_id).with_for_update()
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if user is None:
+        raise AppException("User not found", 404)
+    if not user.registration_pending:
+        raise AppException("This registration has already been resolved", 409)
+    employment = await employment_for(session, user_id)
+    credential = await session.get(StaffCredential, user_id)
+    if not user.is_active or not user.email_verified_at:
+        raise AppException(
+            "The account must be active and its email verified before approval", 409
+        )
+    if (
+        not employment
+        or employment.status != EmploymentStatus.ACTIVE
+        or not credential
+        or credential.revoked_at
+    ):
+        raise AppException(
+            "Save an active department and grade in staff setup before approval", 409
+        )
+    role = (
+        (await session.execute(select(Role).where(Role.name == "staff")))
+        .scalars()
+        .first()
+    )
+    if role is None:
+        raise AppException(
+            "Configure the staff role before approving registrations", 409
+        )
+    if await session.get(UserRoleLink, (user_id, role.id)) is None:
+        session.add(UserRoleLink(user_id=user_id, role_id=role.id))
+    assignment = (
+        (
+            await session.execute(
+                select(UserRoleAssignment).where(
+                    UserRoleAssignment.user_id == user_id,
+                    UserRoleAssignment.role_id == role.id,
+                )
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if assignment is None:
+        session.add(
+            UserRoleAssignment(
+                user_id=user_id, role_id=role.id, scope=RoleAssignmentScope.SELF
+            )
+        )
+    user.registration_pending = False
+    session.add(user)
+    session.add(
+        BaselineAudit(
+            actor_id=actor.id,
+            subject_id=user_id,
+            action="registration.approved",
+            details={
+                "department_id": employment.department_id,
+                "grade_id": employment.grade_id,
+            },
+        )
+    )
+    await session.commit()

@@ -87,7 +87,7 @@ async def update_user(
         from sqlmodel import delete
 
         await session.execute(
-            delete(AuthSession).where(AuthSession.user_id == db_user.id)
+            delete(AuthSession).where(col(AuthSession.user_id) == db_user.id)
         )
     session.add(db_user)
     await session.commit()
@@ -109,7 +109,7 @@ async def update_user_me(
         from sqlmodel import delete
 
         await session.execute(
-            delete(AuthSession).where(AuthSession.user_id == current_user.id)
+            delete(AuthSession).where(col(AuthSession.user_id) == current_user.id)
         )
     current_user.sqlmodel_update(user_data)
     session.add(current_user)
@@ -123,7 +123,14 @@ async def set_password(*, session: AsyncSession, user: User, new_password: str) 
     session.add(user)
     from sqlmodel import delete
 
-    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
+    from src.auth.modern_models import AuthChallenge
+
+    await session.execute(
+        delete(AuthChallenge).where(col(AuthChallenge.user_id) == user.id)
+    )
+    await session.execute(
+        delete(AuthSession).where(col(AuthSession.user_id) == user.id)
+    )
     await session.commit()
     logger.info("Password changed", extra={"user_id": str(user.id)})
 
@@ -267,6 +274,7 @@ async def create_session(
     expires_delta: timedelta | None = None,
 ) -> tuple[AuthSession, str]:
     """Create and persist a new opaque session for a user."""
+    require_approved_account(user)
     now = utc_now()
     session_secret = create_session_token()
     user.last_login_at = now
@@ -393,7 +401,7 @@ async def exchange_session_for_access_token(
         return None
 
     user = await get_user_by_id(session=session, user_id=db_session.user_id)
-    if not user or not user.is_active:
+    if not user or not user.is_active or user.registration_pending:
         await revoke_session(session=session, db_session=db_session)
         return None
 
@@ -602,3 +610,8 @@ async def get_user_role_assignments(
         statement = statement.where(UserRoleAssignment.user_id == user_id)
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
+
+
+def require_approved_account(user: User) -> None:
+    if user.registration_pending:
+        raise AppException("Your registration is awaiting administrator approval", 403)
