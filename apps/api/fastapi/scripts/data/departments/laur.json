@@ -1,0 +1,79 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "LAUR",
+    "name": "Lauriston Operations"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 7 (Lauriston Operations). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "OFFICER_IN_CHARGE",
+      "label": "Officer in Charge (Lauriston)",
+      "rank": 1,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "SECURITY_SUPERVISOR",
+      "label": "Security Supervisor",
+      "rank": 2,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 2
+    },
+    {
+      "code": "AIR_TRAFFIC_CONTROLLER",
+      "label": "Air Traffic Controller",
+      "rank": 3,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "AIS_OFFICER",
+      "label": "AIS Officer",
+      "rank": 4,
+      "establishment_band": "Technical/Administrative",
+      "_deck_posts": 2
+    },
+    {
+      "code": "RADIO_OPERATOR",
+      "label": "Radio Operator",
+      "rank": 5,
+      "establishment_band": "Clerical",
+      "_deck_posts": 1
+    },
+    {
+      "code": "SECURITY_OFFICER",
+      "label": "Security Officer",
+      "rank": 6,
+      "establishment_band": "Crafted & Related Trade",
+      "_deck_posts": 5
+    },
+    {
+      "code": "MAINTENANCE_OFFICER",
+      "label": "Maintenance Officer",
+      "rank": 7,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    },
+    {
+      "code": "OFFICE_ATTENDANT",
+      "label": "Office Attendant",
+      "rank": 8,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    },
+    {
+      "code": "NIGHTWATCHMAN",
+      "label": "Nightwatchman",
+      "rank": 9,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}
