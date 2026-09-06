@@ -1,3 +1,4 @@
+import type { HrDashboardPublic } from "@barrelsgd/api-client";
 import {
   ArrowLeftRight,
   CalendarDays,
@@ -9,15 +10,9 @@ import {
   FileBarChart,
   LayoutGrid,
   type LucideIcon,
-  Timer,
   Users,
   UserX,
 } from "lucide-react";
-
-// Placeholder content for the consolidated HR dashboard. HR is print-only today
-// (FastAPI endpoints exist but are not wired — see admin-gms CLAUDE.md), so these
-// figures are representative. When the HR API is wired, swap these arrays for
-// Server Component fetches; the presentational components stay unchanged.
 
 export type Trend = "up" | "down" | "flat";
 
@@ -65,7 +60,13 @@ export interface Approval {
   when: string;
 }
 
-export type RequestState = "pending" | "review" | "approved";
+export type RequestState =
+  | "pending"
+  | "review"
+  | "approved"
+  | "draft"
+  | "rejected"
+  | "cancelled";
 
 export interface MyRequest {
   id: string;
@@ -80,80 +81,6 @@ export interface OrgStat {
   label: string;
   value: string;
 }
-
-export const staffStats: Stat[] = [
-  {
-    id: "leave-balance",
-    label: "Leave balance",
-    value: "14",
-    valueSuffix: "days",
-    foot: "of 21 · 7 taken",
-    icon: CalendarOff,
-  },
-  {
-    id: "open-requests",
-    label: "Open requests",
-    value: "2",
-    delta: "1 waiting",
-    trend: "flat",
-    foot: "1 approved this week",
-    icon: ClipboardList,
-  },
-  {
-    id: "next-shift",
-    label: "Next shift",
-    value: "Tue",
-    valueSuffix: "06:00",
-    foot: "Morning · Airport Met",
-    icon: Clock,
-  },
-  {
-    id: "team-out",
-    label: "Team out today",
-    value: "3",
-    foot: "from your department",
-    icon: Users,
-  },
-];
-
-export const adminStats: Stat[] = [
-  {
-    id: "pending-approvals",
-    label: "Pending approvals",
-    value: "7",
-    delta: "+3",
-    trend: "up",
-    foot: "since yesterday",
-    icon: CheckSquare,
-  },
-  {
-    id: "on-leave",
-    label: "On leave today",
-    value: "3",
-    valueSuffix: "/ 48",
-    foot: "6.3% of staff",
-    icon: CalendarOff,
-  },
-  {
-    id: "requests-week",
-    label: "Requests this week",
-    value: "18",
-    delta: "+22%",
-    trend: "up",
-    foot: "vs last week",
-    icon: ClipboardList,
-  },
-  {
-    id: "roster-coverage",
-    label: "Roster coverage",
-    value: "96",
-    valueSuffix: "%",
-    delta: "−2",
-    trend: "down",
-    foot: "gaps to fill",
-    icon: Timer,
-  },
-];
 
 // Forms/records launched from the "New request" menu (moved out of the dashboard
 // body — the dashboard is for review, not data entry). `group` splits the menu
@@ -217,8 +144,6 @@ export const adminModules: Module[] = [
     description: "Review pending requests",
     href: "/hr/approvals",
     icon: CheckSquare,
-    count: "7",
-    countHot: true,
   },
   {
     id: "roster-plan",
@@ -233,7 +158,6 @@ export const adminModules: Module[] = [
     description: "Directory & accounts",
     href: "/users",
     icon: Users,
-    count: "48",
   },
   {
     id: "hr-setup",
@@ -256,138 +180,145 @@ export interface PersonIn {
   id: string;
   name: string;
   shift: string;
-  status: "on-now" | "later";
+  status: "scheduled";
 }
 
 // Headline attendance counts for today (in vs away).
-export const presenceToday = { in: 31, out: 6 };
 
-export const onDutyToday: PersonIn[] = [
-  {
-    id: "kn",
-    name: "Kwame Noel",
-    department: "Aviation Forecasting",
-    shift: "Morning · 06:00–14:00",
-    status: "on-now",
-  },
-  {
-    id: "as",
-    name: "Ayana Simon",
-    department: "Observations",
-    shift: "Morning · 06:00–14:00",
-    status: "on-now",
-  },
-  {
-    id: "tc",
-    name: "Trevor Charles",
-    department: "Climate Data",
-    shift: "Day · 08:00–16:00",
-    status: "on-now",
-  },
-  {
-    id: "nf",
-    name: "Nadia Frederick",
-    department: "Aviation Forecasting",
-    shift: "Evening · 14:00–22:00",
-    status: "later",
-  },
-  {
-    id: "rj",
-    name: "Rohan James",
-    department: "Marine",
-    shift: "Night · 22:00–06:00",
-    status: "later",
-  },
-];
-
-export const whosOut: PersonOut[] = [
-  {
-    id: "dp",
-    name: "Dwight Phillip",
-    department: "Aviation Forecasting",
-    note: "back Thu 9 Jul",
+/** Only navigation is static; all figures and people come from the API. */
+export function dashboardData(data: HrDashboardPublic) {
+  const requests = data.requests ?? [];
+  const away = data.away ?? [];
+  const onDuty = data.on_duty ?? [];
+  const approvals = data.approvals ?? [];
+  const staffStats: Stat[] = [
+    {
+      id: "leave-balance",
+      label: "Vacation balance",
+      value: data.vacation_balance ?? "Not recorded",
+      valueSuffix:
+        data.vacation_balance === null || data.vacation_balance === undefined
+          ? undefined
+          : "days",
+      foot: "Recorded leave ledger balance",
+      icon: CalendarOff,
+    },
+    {
+      id: "open-requests",
+      label: "Open requests",
+      value: String(data.open_requests),
+      foot: "Your drafts and requests awaiting resolution",
+      icon: ClipboardList,
+    },
+    {
+      id: "next-shift",
+      label: "Next scheduled shift",
+      value: data.next_shift ?? "Not scheduled",
+      foot: "Published roster after today",
+      icon: Clock,
+    },
+    {
+      id: "team-out",
+      label: "Scheduled away today",
+      value: String(away.length),
+      foot: data.scope,
+      icon: Users,
+    },
+  ];
+  const adminStats: Stat[] = [
+    {
+      id: "pending-approvals",
+      label: "Pending approvals",
+      value: String(approvals.length),
+      foot: "Requests you can action now",
+      icon: CheckSquare,
+    },
+    {
+      id: "scheduled",
+      label: "Scheduled to work today",
+      value: String(onDuty.length),
+      foot: data.scope,
+      icon: CalendarDays,
+    },
+    {
+      id: "staff",
+      label: "Active staff",
+      value: String(data.active_staff),
+      foot: data.scope,
+      icon: Users,
+    },
+    {
+      id: "shifts",
+      label: "Active shift types",
+      value: String(data.shift_types),
+      foot: "Configured shift catalogue",
+      icon: Clock,
+    },
+  ];
+  const states: Record<string, RequestState> = {
+    DRAFT: "draft",
+    SUBMITTED: "pending",
+    PENDING: "pending",
+    RETURNED: "review",
+    APPROVED: "approved",
+    REJECTED: "rejected",
+    CANCELLED: "cancelled",
+  };
+  const myRequests: MyRequest[] = requests.map((request) => ({
+    id: request.id,
+    title: request.title,
+    meta: `Updated ${request.updated_at.slice(0, 10)}`,
+    state: states[request.status] ?? "review",
+  }));
+  const recentActivity: Activity[] = requests.map((request) => ({
+    id: request.id,
+    title: request.title,
+    detail: request.status.replaceAll("_", " "),
+    when: request.updated_at.slice(0, 10),
+    icon: ClipboardList,
+  }));
+  const onDutyToday: PersonIn[] = onDuty.map((person) => ({
+    ...person,
+    status: "scheduled",
+  }));
+  const whosOut: PersonOut[] = away.map((person) => ({
+    ...person,
+    note: person.shift,
     status: "leave",
-  },
-  {
-    id: "mj",
-    name: "Marsha John",
-    department: "Climate Data",
-    note: "back tomorrow",
-    status: "sick",
-  },
-  {
-    id: "rb",
-    name: "Renard Baptiste",
-    department: "Observations",
-    note: "Pearls station",
-    status: "field",
-  },
-];
-
-export const recentActivity: Activity[] = [
-  {
-    id: "a1",
-    title: "Leave application approved",
-    detail: "Your 12–14 Jul request · approved by K. Modeste",
-    when: "2h",
-    icon: CheckSquare,
-  },
-  {
-    id: "a2",
-    title: "Shift exchange requested",
-    detail: "Swap Fri night with T. Alexander · awaiting co-approval",
-    when: "Yst",
-    icon: ArrowLeftRight,
-  },
-  {
-    id: "a3",
-    title: "Timesheet submitted",
-    detail: "Pay period 23 Jun – 6 Jul · 76.0 hrs",
-    when: "2d",
-    icon: Clock,
-  },
-];
-
-export const pendingApprovals: Approval[] = [
-  {
-    id: "ap1",
-    name: "Terrence Alexander",
-    kind: "Leave · 4 days · 21–24 Jul",
-    when: "10m",
-  },
-  {
-    id: "ap2",
-    name: "Simone Lewis",
-    kind: "Shift exchange · Fri night",
-    when: "1h",
-  },
-  { id: "ap3", name: "Jomo Ferguson", kind: "Absentee · 1 day", when: "3h" },
-];
-
-export const myRequests: MyRequest[] = [
-  {
-    id: "r1",
-    title: "Shift exchange",
-    meta: "Fri night → T. Alexander",
-    state: "pending",
-  },
-  {
-    id: "r2",
-    title: "Leave · special",
-    meta: "1 day · 18 Jul",
-    state: "review",
-  },
-  {
-    id: "r3",
-    title: "Leave · annual",
-    meta: "3 days · 12–14 Jul",
-    state: "approved",
-  },
-];
-
-export const orgStats: OrgStat[] = [
-  { id: "o1", label: "Active staff", value: "48", icon: Users },
-  { id: "o2", label: "Departments", value: "6", icon: LayoutGrid },
-  { id: "o3", label: "Shift types", value: "4", icon: Clock },
-  { id: "o4", label: "Roster coverage", value: "96%", icon: Timer },
-];
+  }));
+  const pendingApprovals: Approval[] = approvals.map((approval) => ({
+    ...approval,
+    when: approval.submitted_at?.slice(0, 10) ?? "",
+  }));
+  const orgStats: OrgStat[] = [
+    {
+      id: "staff",
+      label: "Active staff",
+      value: String(data.active_staff),
+      icon: Users,
+    },
+    {
+      id: "departments",
+      label: "Departments",
+      value: String(data.departments),
+      icon: LayoutGrid,
+    },
+    {
+      id: "shifts",
+      label: "Active shift types",
+      value: String(data.shift_types),
+      icon: Clock,
+    },
+  ];
+  return {
+    staffStats,
+    adminStats,
+    myRequests,
+    recentActivity,
+    onDutyToday,
+    whosOut,
+    pendingApprovals,
+    orgStats,
+    presenceToday: { in: onDuty.length, out: away.length },
+  };
+}

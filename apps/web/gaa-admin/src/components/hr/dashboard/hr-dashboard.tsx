@@ -1,4 +1,5 @@
 "use client";
+import type { HrDashboardPublic } from "@barrelsgd/api-client";
 
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -33,25 +34,17 @@ import {
   type Activity,
   type Approval,
   adminModules,
-  adminStats,
+  dashboardData,
   type Module,
   type MyRequest,
-  myRequests,
   type NewRequestItem,
   newRequestItems,
   type OrgStat,
-  onDutyToday,
-  orgStats,
   type PersonIn,
   type PersonOut,
-  pendingApprovals,
-  presenceToday,
   type RequestState,
-  recentActivity,
   type Stat,
-  staffStats,
   type Trend,
-  whosOut,
 } from "./dashboard-data";
 
 const trendClass: Record<Trend, string> = {
@@ -64,7 +57,7 @@ const statusVariant: Record<
   PersonOut["status"],
   { label: string; variant: "light-info" | "light-warning" | "light-success" }
 > = {
-  leave: { label: "Annual leave", variant: "light-info" },
+  leave: { label: "Scheduled away", variant: "light-info" },
   sick: { label: "Sick", variant: "light-warning" },
   field: { label: "Field duty", variant: "light-success" },
 };
@@ -76,6 +69,9 @@ const requestState: Record<
   pending: { label: "Pending", variant: "light-warning" },
   review: { label: "In review", variant: "light-info" },
   approved: { label: "Approved", variant: "light-success" },
+  draft: { label: "Draft", variant: "light-info" },
+  rejected: { label: "Rejected", variant: "light-warning" },
+  cancelled: { label: "Cancelled", variant: "light-info" },
 };
 
 type DashboardView = "staff" | "admin";
@@ -267,6 +263,12 @@ function ModuleGrid({ modules }: { modules: Module[] }) {
 }
 
 function WhosOutList({ people }: { people: PersonOut[] }) {
+  if (people.length === 0)
+    return (
+      <p className="p-4 text-muted-foreground text-sm">
+        No published time away for today.
+      </p>
+    );
   return (
     <ul className="divide-y divide-border">
       {people.map((person) => {
@@ -289,6 +291,12 @@ function WhosOutList({ people }: { people: PersonOut[] }) {
 }
 
 function OnDutyList({ people }: { people: PersonIn[] }) {
+  if (people.length === 0)
+    return (
+      <p className="p-4 text-muted-foreground text-sm">
+        No published work shifts for today.
+      </p>
+    );
   return (
     <ul className="divide-y divide-border">
       {people.map((person) => (
@@ -300,11 +308,7 @@ function OnDutyList({ people }: { people: PersonIn[] }) {
               {person.department} · {person.shift}
             </div>
           </div>
-          <Badge
-            variant={person.status === "on-now" ? "light-success" : "secondary"}
-          >
-            {person.status === "on-now" ? "On now" : "Later"}
-          </Badge>
+          <Badge variant={"secondary"}>Scheduled</Badge>
         </li>
       ))}
     </ul>
@@ -312,10 +316,17 @@ function OnDutyList({ people }: { people: PersonIn[] }) {
 }
 
 /** Attendance at a glance — headline in/away split, with a per-list toggle. */
-function PresenceCard() {
+function PresenceCard({
+  onDutyToday,
+  whosOut,
+  presenceToday,
+}: Pick<
+  ReturnType<typeof dashboardData>,
+  "onDutyToday" | "whosOut" | "presenceToday"
+>) {
   const [side, setSide] = useState<"in" | "out">("in");
   const total = presenceToday.in + presenceToday.out;
-  const inPct = Math.round((presenceToday.in / total) * 100);
+  const inPct = total > 0 ? Math.round((presenceToday.in / total) * 100) : 0;
 
   return (
     <SectionCard
@@ -327,7 +338,7 @@ function PresenceCard() {
           Open roster
         </Link>
       }
-      title="Attendance today"
+      title="Published schedule today"
     >
       <div className="flex flex-col gap-2.5 border-b px-4 py-3">
         <div className="flex items-center justify-between text-sm">
@@ -371,6 +382,12 @@ function PresenceCard() {
 }
 
 function ActivityList({ items }: { items: Activity[] }) {
+  if (items.length === 0)
+    return (
+      <p className="p-4 text-muted-foreground text-sm">
+        No HR activity recorded yet.
+      </p>
+    );
   return (
     <ul className="divide-y divide-border">
       {items.map((item) => {
@@ -397,6 +414,12 @@ function ActivityList({ items }: { items: Activity[] }) {
 }
 
 function ApprovalsPreview({ approvals }: { approvals: Approval[] }) {
+  if (approvals.length === 0)
+    return (
+      <p className="p-4 text-muted-foreground text-sm">
+        No requests currently need your approval.
+      </p>
+    );
   return (
     <ul className="divide-y divide-border">
       {approvals.map((approval) => (
@@ -415,19 +438,12 @@ function ApprovalsPreview({ approvals }: { approvals: Approval[] }) {
               {approval.when}
             </span>
           </div>
-          <div className="mt-2.5 flex gap-2">
-            <Button className="flex-1" size="sm" type="button">
-              Approve
-            </Button>
-            <Button
-              className="flex-1"
-              size="sm"
-              type="button"
-              variant="outline"
-            >
-              Decline
-            </Button>
-          </div>
+          <Link
+            className="mt-2.5 inline-block text-primary text-sm underline"
+            href="/hr/approvals"
+          >
+            Review request
+          </Link>
         </li>
       ))}
     </ul>
@@ -435,6 +451,12 @@ function ApprovalsPreview({ approvals }: { approvals: Approval[] }) {
 }
 
 function MyRequestsList({ requests }: { requests: MyRequest[] }) {
+  if (requests.length === 0)
+    return (
+      <p className="p-4 text-muted-foreground text-sm">
+        You have no requests yet.
+      </p>
+    );
   return (
     <ul className="divide-y divide-border">
       {requests.map((request) => {
@@ -536,10 +558,21 @@ function NewRequestMenu() {
   );
 }
 
-export function HrDashboard() {
+export function HrDashboard({ data }: { data: HrDashboardPublic }) {
+  const {
+    staffStats,
+    adminStats,
+    myRequests,
+    recentActivity,
+    onDutyToday,
+    whosOut,
+    pendingApprovals,
+    orgStats,
+    presenceToday,
+  } = dashboardData(data);
   const user = useSessionUser();
   const [view, setView] = useState<DashboardView>("staff");
-  const isAdminView = view === "admin";
+  const isAdminView = data.can_approve && view === "admin";
   const firstName = user.full_name?.split(" ")[0];
 
   return (
@@ -555,20 +588,22 @@ export function HrDashboard() {
           </h1>
           <p className="text-muted-foreground text-sm">
             {isAdminView
-              ? "Approvals, roster coverage and people across GMS."
+              ? "Approvals, published roster and recorded staff."
               : "Your requests, roster and HR forms — all in one place."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <SegmentToggle
-            ariaLabel="Switch view"
-            onChange={(id) => setView(id as DashboardView)}
-            options={[
-              { id: "staff", label: "Staff", icon: User },
-              { id: "admin", label: "Admin", icon: ShieldCheck },
-            ]}
-            value={view}
-          />
+          {data.can_approve && (
+            <SegmentToggle
+              ariaLabel="Switch view"
+              onChange={(id) => setView(id as DashboardView)}
+              options={[
+                { id: "staff", label: "Staff", icon: User },
+                { id: "admin", label: "Admin", icon: ShieldCheck },
+              ]}
+              value={view}
+            />
+          )}
           {isAdminView ? (
             <Link
               className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
@@ -604,7 +639,11 @@ export function HrDashboard() {
             </SectionCard>
           ) : null}
 
-          <PresenceCard />
+          <PresenceCard
+            onDutyToday={onDutyToday}
+            presenceToday={presenceToday}
+            whosOut={whosOut}
+          />
 
           <SectionCard title="Recent activity">
             <ActivityList items={recentActivity} />
@@ -619,7 +658,7 @@ export function HrDashboard() {
                   className="font-medium text-primary text-sm hover:underline"
                   href="/hr/approvals"
                 >
-                  All (7)
+                  All ({pendingApprovals.length})
                 </Link>
               }
               title="Approvals inbox"
@@ -632,7 +671,7 @@ export function HrDashboard() {
             </SectionCard>
           )}
 
-          <SectionCard title="Organisation">
+          <SectionCard title={`Organisation · ${data.scope}`}>
             <OrgSnapshot stats={orgStats} />
           </SectionCard>
         </aside>
