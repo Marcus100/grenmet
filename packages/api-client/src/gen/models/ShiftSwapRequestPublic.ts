@@ -10,6 +10,7 @@ import type { SwapType } from "./SwapType.js";
  * ShiftSwapRequestPublic
  */
 export type ShiftSwapRequestPublic = {
+  submitted_at?: string | null;
   /**
    * @type string, uuid
    */

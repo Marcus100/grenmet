@@ -1,0 +1,48 @@
+[Unit]
+Description=Read the Sutron AWS and write a SURFACE ingestion file
+Documentation=file:///home/data/sutron-ng/README.md
+
+# Do not retry endlessly if the station is unreachable. The timer will call
+# again in ten minutes, which is soon enough and cannot starve the port.
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+
+User=data
+Group=dialout
+
+# The collector writes only here. Nothing under /home/data/Sutron_Linux is
+# touched -- that tree belongs to the legacy system, which stays in production.
+WorkingDirectory=/home/data/sutron-ng
+
+ExecStart=/home/data/sutron-ng/venv/bin/sutron-collector poll \
+    --port /dev/ttyS1 \
+    --format surface \
+    --station-code 78958 \
+    --output-dir /home/data/sutron-ng/outgoing
+
+# A poll is two 5s reads at worst, so anything past a minute is stuck. Killing
+# it releases the serial port well before the next legacy run at the ten.
+TimeoutStartSec=60
+
+# Never hold the port across runs.
+KillMode=control-group
+KillSignal=SIGTERM
+
+# Filesystem protection: read-only system, and only the output directory
+# writable. A bug here cannot reach the legacy tree even by accident.
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/data/sutron-ng/outgoing
+PrivateTmp=true
+NoNewPrivileges=true
+
+# The serial port is the only device needed.
+DeviceAllow=/dev/ttyS1 rw
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

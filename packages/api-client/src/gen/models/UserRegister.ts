@@ -18,8 +18,8 @@ export type UserRegister = {
    */
   username: string;
   /**
-   * @minLength 8
-   * @maxLength 40
+   * @minLength 12
+   * @maxLength 128
    * @type string
    */
   password: string;

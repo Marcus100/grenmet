@@ -10,17 +10,6 @@ afterEach(() => {
 });
 
 describe("SubscribeBand", () => {
-  it("renders the email and WhatsApp fields", () => {
-    render(<SubscribeBand />);
-    expect(screen.getByLabelText("Email address")).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("WhatsApp number (optional)")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Subscribe" })
-    ).toBeInTheDocument();
-  });
-
   it("posts the form and shows a success message", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,

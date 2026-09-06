@@ -17,6 +17,12 @@ The transition plan defines the near-term repository, product, domain, and
 infrastructure changes. This document defines the five-year destination those
 foundations should support.
 
+The
+[Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md)
+is the authoritative execution view for priorities and dependencies. GAA and
+GMS client delivery is governed separately by the
+[GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).
+
 This document does not authorize implementation, infrastructure changes,
 payment processing, regulated activity, or changes to the transition plan.
 Each initiative still requires its own discovery, approval, implementation
@@ -143,14 +149,17 @@ before a product requires it.
 
 ### Product portfolio
 
-GrenMet, Signal, MBIA, GAA, Events/Tickets, future HR, and other future
-products retain clear identities and responsibilities. They may consume
-Barrels Platform capabilities where doing so reduces duplication without
-erasing product or institutional boundaries.
+Signal, Events/Tickets, and other approved future Barrels products retain clear
+identities and responsibilities. Barrels also delivers software for clients,
+including GAA public services, the GAA staff platform, and GMS meteorological
+services. Client programmes may consume Barrels Platform capabilities where
+doing so reduces duplication without turning the client or its departments into
+Barrels products.
 
 The existing transition plan remains authoritative for the near-term
-boundaries among Barrels, GrenMet, the Grenada Meteorological Service, Signal,
-MBIA, and GAA.
+repository boundaries among Barrels, GMS, Signal, MBIA, and GAA. The portfolio
+plan governs priority; the client programme plan governs institutional outcomes
+and acceptance.
 
 ## First transactional product: Events and Tickets
 

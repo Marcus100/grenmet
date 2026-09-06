@@ -42,6 +42,11 @@ export type UserPublic = {
    */
   is_superuser?: boolean;
   /**
+   * @default false
+   * @type boolean | undefined
+   */
+  registration_pending?: boolean;
+  /**
    * @type string, uuid
    */
   id: string;

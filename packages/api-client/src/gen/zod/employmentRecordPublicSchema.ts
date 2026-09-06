@@ -10,10 +10,12 @@ import { employmentTypeSchema } from "./employmentTypeSchema.js";
 export const employmentRecordPublicSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
-  employee_number: z.string(),
+  employee_number: z.optional(z.union([z.string(), z.null()])),
   department_id: z.string(),
   position: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.lazy(() => employmentTypeSchema),
+  employment_type: z.optional(
+    z.union([z.lazy(() => employmentTypeSchema), z.null()])
+  ),
   start_date: z.optional(z.union([z.string().date(), z.null()])),
   supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
   work_location: z.optional(z.union([z.string(), z.null()])),

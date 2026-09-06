@@ -1,5 +1,9 @@
 {
   "properties": {
+    "submitted_at": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Submitted At"
+    },
     "id": { "type": "string", "format": "uuid", "title": "Id" },
     "department_id": { "type": "string", "title": "Department Id" },
     "report_date": {

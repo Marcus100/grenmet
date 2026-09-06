@@ -10,13 +10,17 @@ This router handles:
 - Password changes
 """
 
+import logging
 import uuid
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy.exc import IntegrityError
+from starlette.requests import Request
 
 from src.auth import service
+from src.auth.config import auth_settings
 from src.auth.constants import (
     ERROR_INSUFFICIENT_PRIVILEGES,
     ERROR_SUPERUSER_DELETE_SELF,
@@ -26,6 +30,8 @@ from src.auth.constants import (
     SUCCESS_USER_DELETED,
 )
 from src.auth.models import User
+from src.auth.modern_schemas import EmailRequest
+from src.auth.modern_service import VerificationDeliveryError, email_request
 from src.auth.schemas import (
     UpdatePassword,
     UserCreate,
@@ -34,6 +40,7 @@ from src.auth.schemas import (
     UserUpdate,
     UserUpdateMe,
 )
+from src.auth.utils import get_password_hash_async
 from src.dependencies import (
     CurrentUser,
     SessionDep,
@@ -44,6 +51,7 @@ from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
 from src.models import Message
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
+from src.rate_limit import limiter
 
 router = APIRouter(prefix="/auth/users", tags=["users"])
 
@@ -211,37 +219,47 @@ async def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         },
     },
 )
-async def register_user(session: SessionDep, user_in: UserRegister) -> Any:
-    """
-    Create new user without the need to be logged in.
-    """
-    user = await service.get_user_by_email(session=session, email=user_in.email)
-    if user:
-        raise HTTPException(status_code=400, detail=ERROR_USER_EXISTS)
-    user_create = UserCreate.model_validate(user_in)
-    created_user = await service.create_user(session=session, user_create=user_create)
-
+@limiter.limit("5/minute")
+async def register_user(
+    request: Request, session: SessionDep, user_in: UserRegister
+) -> Any:
+    if not auth_settings.ALLOW_PUBLIC_SIGNUP:
+        raise HTTPException(status_code=403, detail="Registration is currently closed")
+    created_user = User.model_validate(
+        user_in,
+        update={
+            "hashed_password": await get_password_hash_async(user_in.password),
+            "registration_pending": True,
+            "email_verification_required": True,
+            "is_active": True,
+            "is_superuser": False,
+        },
+    )
+    session.add(created_user)
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="An account already uses that email or username. Sign in or recover your account.",
+        ) from exc
+    await session.refresh(created_user)
     if email_settings.EMAILS_ENABLED:
         try:
-            email_data = await generate_new_account_email(
-                email_to=user_in.email,
-                username=user_in.username,
-                first_name=user_in.first_name,
+            await email_request(
+                request=request,
+                session=session,
+                body=EmailRequest(email=created_user.email),
             )
-            await run_in_threadpool(
-                send_email,
-                email_to=user_in.email,
-                subject=email_data.subject,
-                html_content=email_data.html_content,
+        except VerificationDeliveryError:
+            # Registration is committed; verification can be requested again.
+            await session.rollback()
+            await session.refresh(created_user)
+            logging.getLogger(__name__).warning(
+                "Registration verification delivery failed",
+                extra={"user_id": str(created_user.id)},
             )
-        except Exception:
-            # Welcome email failure must not block registration.
-            import logging as _logging
-
-            _logging.getLogger(__name__).exception(
-                "Failed to send welcome email to %s", user_in.email
-            )
-
     return created_user
 
 

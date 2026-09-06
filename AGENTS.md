@@ -16,9 +16,9 @@ pnpm start         # Start Docker services (Postgres + FastAPI)
 
 ```bash
 pnpm dev:web:auth       # auth           :3000
-pnpm dev:web:admin      # admin-gms      :3001
-pnpm dev:web:hurricane  # hurricaneplan  :3002
-pnpm dev:web:spicewx    # spicewx        :3003
+pnpm dev:web:gaa-admin      # gaa-admin      :3001
+pnpm dev:web:docs  # docs  :3002
+pnpm dev:web:gms    # gms        :3003
 pnpm dev:web:signal     # signal         :3004
 ```
 
@@ -34,7 +34,7 @@ turbo run type-check --filter=@barrelsgd/<package>  # Single package
 ### Test
 
 ```bash
-turbo run test --filter=@barrelsgd/web-admin        # Unit tests (admin-gms)
+turbo run test --filter=@barrelsgd/web-gaa-admin        # Unit tests (gaa-admin)
 pnpm vitest run src/path/to/test.test.ts          # Single file (from app dir)
 ```
 

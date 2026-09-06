@@ -1,0 +1,10 @@
+{
+  "properties": {
+    "challenge": { "type": "string", "title": "Challenge" },
+    "requires_totp": { "type": "boolean", "title": "Requires Totp" }
+  },
+  "type": "object",
+  "required": ["challenge", "requires_totp"],
+  "title": "GoogleChallengePublic",
+  "x-readme-ref-name": "GoogleChallengePublic"
+}

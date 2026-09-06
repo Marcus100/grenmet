@@ -7,5 +7,5 @@ import * as z from "zod";
 
 export const newPasswordSchema = z.object({
   token: z.string(),
-  new_password: z.string().min(8).max(40),
+  new_password: z.string().min(12).max(128),
 });

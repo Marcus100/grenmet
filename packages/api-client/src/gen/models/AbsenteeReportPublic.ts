@@ -10,6 +10,7 @@ import type { RequestStatus } from "./RequestStatus.js";
  * AbsenteeReportPublic
  */
 export type AbsenteeReportPublic = {
+  submitted_at?: string | null;
   /**
    * @type string, uuid
    */

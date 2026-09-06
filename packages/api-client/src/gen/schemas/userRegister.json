@@ -9,8 +9,8 @@
     },
     "password": {
       "type": "string",
-      "maxLength": 40,
-      "minLength": 8,
+      "maxLength": 128,
+      "minLength": 12,
       "title": "Password"
     },
     "first_name": {

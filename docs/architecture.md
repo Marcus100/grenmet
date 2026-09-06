@@ -2,13 +2,13 @@
 
 > **This is a strategic planning document**, not a codebase architecture guide. It describes the GMS service strategy, product catalogue, and design system framing. For how the code fits together — monorepo structure, auth flow, shared packages, database architecture — see [Technical Overview](./technical-overview.md).
 
-This document holds the strategic service-design framing for Grenada Meteorological Service digital work. It is deliberately broader than the current GrenMet Figma-to-code bridge.
+This document holds the strategic service-design framing for Grenada Meteorological Service digital work. It is deliberately broader than the design-to-code implementation guides.
 
 ## Current Boundary
 
-`GrenMet` remains the current repo and Figma implementation namespace. `GMS` is the service and product strategy those implementation artifacts support.
+`GrenMet` now survives only in retired design artifact names; the repository side is brand-neutral after transition boundaries 3-5. `GMS` is the service and product strategy those implementation artifacts support.
 
-This document is not a runtime schema contract. The existing `wxproducts` schema (now part of `admin-gms` after the 2026-06 consolidation) already provides product-metadata, impact-based forecasting, and CAP foundations. A later schema-design pass should reconcile those working foundations with this broader GMS service catalogue before runtime interfaces change.
+This document is not a runtime schema contract. The existing `wxproducts` schema (now part of `gaa-admin` after the 2026-06 consolidation) already provides product-metadata, impact-based forecasting, and CAP foundations. A later schema-design pass should reconcile those working foundations with this broader GMS service catalogue before runtime interfaces change.
 
 ## Service Framing
 

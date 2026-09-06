@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingAction
+from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 
@@ -27,7 +28,7 @@ class ParkingPermitIssue(BaseModel):
     received_by: str | None = None
 
 
-class ParkingPermitPublic(BaseModel):
+class ParkingPermitPublic(SubmittedFormPublic):
     id: uuid.UUID
     user_id: uuid.UUID
     department_id: str

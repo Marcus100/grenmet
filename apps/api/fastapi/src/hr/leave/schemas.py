@@ -5,6 +5,7 @@ from decimal import Decimal
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 from .models import LeaveType, ProfAppointmentType
@@ -44,7 +45,7 @@ class LeaveRequestAction(BaseModel):
     head_of_dept_comments: str | None = None
 
 
-class LeaveRequestPublic(BaseModel):
+class LeaveRequestPublic(SubmittedFormPublic):
     id: uuid.UUID
     user_id: uuid.UUID
     department_id: str

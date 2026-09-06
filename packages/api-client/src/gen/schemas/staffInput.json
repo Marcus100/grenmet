@@ -1,0 +1,41 @@
+{
+  "properties": {
+    "department_id": { "type": "string", "title": "Department Id" },
+    "grade_id": { "type": "string", "title": "Grade Id" },
+    "employee_number": {
+      "anyOf": [
+        { "type": "string", "maxLength": 50, "minLength": 1 },
+        { "type": "null" }
+      ],
+      "title": "Employee Number"
+    },
+    "employment_type": {
+      "anyOf": [
+        {
+          "type": "string",
+          "enum": ["FULL_TIME", "PART_TIME", "CONTRACT", "TEMPORARY"],
+          "title": "EmploymentType",
+          "x-readme-ref-name": "EmploymentType"
+        },
+        { "type": "null" }
+      ]
+    },
+    "start_date": {
+      "anyOf": [{ "type": "string", "format": "date" }, { "type": "null" }],
+      "title": "Start Date"
+    },
+    "supervisor_id": {
+      "anyOf": [{ "type": "string", "format": "uuid" }, { "type": "null" }],
+      "title": "Supervisor Id"
+    },
+    "mailbox_ready": {
+      "type": "boolean",
+      "title": "Mailbox Ready",
+      "default": false
+    }
+  },
+  "type": "object",
+  "required": ["department_id", "grade_id"],
+  "title": "StaffInput",
+  "x-readme-ref-name": "StaffInput"
+}

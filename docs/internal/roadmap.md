@@ -1,5 +1,11 @@
 # GMS Digital Services Programme — Roadmap
 
+> **Historical planning snapshot (May 2026).** Current GMS priorities,
+> dependencies, and acceptance gates now live in the
+> [GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).
+> This document is retained as evidence of the original DTO programme phases;
+> unchecked items and past target dates are not current commitments.
+
 This roadmap covers the implementation of the GMS Digital Services Programme, led by the Digital Transformation Officer (DTO). It tracks both the **technical build** (what is being developed in this monorepo) and the **programme phases** (the operational milestones from the DTO Terms of Reference).
 
 The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the [DTO Terms of Reference](./dto-terms-of-reference.md). Cross-system integration (SURFACE, wis2box, geonetcast, dashboards, SSO) is tracked separately in the [Systems Integration Roadmap](./integration-roadmap.md).
@@ -40,7 +46,7 @@ These are the operational phases from the DTO Terms of Reference. Each phase map
 Everything built to establish the platform before domain-specific features.
 
 ### Infrastructure and CI/CD
-- ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications (consolidated to 5 in 2026-06 — wxwatch/wxproducts/hr/salesbus/cap folded into admin-gms)
+- ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications (consolidated to 5 in 2026-06 — wxwatch/wxproducts/hr/salesbus/cap folded into gaa-admin)
 - ✅ FastAPI backend — authentication and HR domains, PostgreSQL via SQLModel/asyncpg
 - ✅ Drizzle ORM for wxwatch and wxproducts (separate DB per app)
 - ✅ Docker + Docker Compose for FastAPI, PostgreSQL, and infrastructure services
@@ -51,13 +57,13 @@ Everything built to establish the platform before domain-specific features.
 ### Shared Platform
 - ✅ Shared authentication (`@barrelsgd/auth`) — session cookies, sign-in/sign-up, session exchange
 - ✅ Shared UI component library (`@barrelsgd/ui`) — 20+ shadcn-style primitives built on Base UI
-- ✅ GrenMet Design System v1 — `--gm-*` CSS custom properties, Tailwind v4 aliases, Figma variable contract
+- ✅ Barrels design system v1 — `--gm-*` CSS custom properties, Tailwind v4 aliases, Figma variable contract
 - ✅ `design-system:sync`, `design-system:check`, and `design-system:audit` tooling
-- ✅ Figma `GrenMet v1 Foundation Contract` — color, spacing, radius, typography, shadow tokens
+- ✅ Figma `Barrels design-system foundation contract` — color, spacing, radius, typography, shadow tokens
 
 ### Application Scaffolds
 - ✅ All 8 Next.js apps bootstrapped with routing, auth, and environment configuration (consolidated to 5 in 2026-06)
-- ✅ `spicewx` established as the v1 design system reference app
+- ✅ `gms` established as the v1 design system reference app
 
 ---
 
@@ -128,10 +134,10 @@ The CDMS (SURFACE) is a separate external system, not part of this monorepo. Wor
 
 *Mapping: Programme Phase 4*
 
-The internal dashboard is the `admin-gms` application (port 3001).
+The internal dashboard is the `gaa-admin` application (port 3001).
 
 ### Completed
-- ✅ admin-gms framework — authentication, navigation, layout
+- ✅ gaa-admin framework — authentication, navigation, layout
 - ✅ Data visualisation components (ApexCharts — bar chart, line chart)
 - ✅ Calendar component (FullCalendar)
 - ✅ Data table component (TanStack Table + Virtual)
@@ -179,16 +185,16 @@ The internal dashboard is the `admin-gms` application (port 3001).
 
 *Mapping: Programme Phase 6*
 
-The public-facing platform is `spicewx` (port 3003), the primary GMS public weather website.
+The public-facing platform is `gms` (port 3003), the primary GMS public weather website.
 
 ### Completed
-- ✅ spicewx application with weather conditions, date-based forecast navigation, header, footer, nav drawer
-- ✅ GrenMet Design System v1 applied to spicewx as the reference implementation
-- 🔄 hurricaneplan — public hurricane preparedness content site with MDX, Algolia search, and structured guides (design system migration in progress)
+- ✅ gms application with weather conditions, date-based forecast navigation, header, footer, nav drawer
+- ✅ Barrels design system v1 applied to gms as the reference implementation
+- 🔄 docs — public hurricane preparedness content site with MDX, Algolia search, and structured guides (design system migration in progress)
 - ✅ auth — shared sign-in/sign-up platform for all GMS web applications
 
 ### In Progress
-- 🔄 spicewx — completing v1 reference implementation (full design system compliance)
+- 🔄 gms — completing v1 reference implementation (full design system compliance)
 - 🔄 Current conditions component (live observation card)
 - 🔄 Daily forecast display with morning/midday/evening summaries
 
@@ -226,18 +232,18 @@ These are items with an immediate deadline — the July 2026 end-of-period perfo
 Separate from the programme phases, the design system has its own compliance track across all apps.
 
 ### Completed
-- ✅ GrenMet v1 foundation block deployed to all 8 web apps (since consolidated to 5 in 2026-06)
-- ✅ spicewx established as reference implementation
+- ✅ Barrels design-system foundation block deployed to all 8 web apps (since consolidated to 5 in 2026-06)
+- ✅ gms established as reference implementation
 - ✅ Figma `GrenMet v1` file consolidated into current `00 Overview` and `13 Components` handoff map
 - ✅ Button Code Connect mapping complete locally (publish deferred — Figma account limitation)
 
 ### In Progress
 - 🔄 Foundation compliance audit per app (run `pnpm design-system:audit`)
-- 🔄 Resolving documented exceptions: admin-gms TailAdmin drift, hurricaneplan template drift, document-lane fixed A4 dimensions, and accepted media/layout exceptions
+- 🔄 Resolving documented exceptions: gaa-admin TailAdmin drift, docs template drift, document-lane fixed A4 dimensions, and accepted media/layout exceptions
 - 🔄 Input component set exists in Figma and code; local Code Connect mapping is next while publish access remains blocked
 
 ### Planned
-- 📋 Promote selected audit rules to blocking CI checks (starting with spicewx)
+- 📋 Promote selected audit rules to blocking CI checks (starting with gms)
 - 📋 Warning/IBF design system lane — banner, impact matrix, status/validity components
 - 📋 Public Weather design system lane — conditions card, forecast strip, daily summary
 - 📋 Tropical Cyclone design system lane — outlook and advisory shells
@@ -263,7 +269,7 @@ Follows successful completion of Phase 2–6 core deliverables.
 
 ### Data and Observation
 - 📋 CDMS fully operational with automated data ingestion
-- 📋 Observation dashboard live in admin-gms
+- 📋 Observation dashboard live in gaa-admin
 - 📋 Hono API — first external data endpoint defined and deployed
 
 ### HR and Administration
@@ -301,7 +307,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | Figma Code Connect publish | Figma Education account lacks the required publish capability |
 | Runtime schema reconciliation (wxproducts ↔ GMS product catalogue) | Requires GMS leadership review before runtime interfaces change |
 | Full cross-app component migration to `@barrelsgd/ui` | Phased; gated on design system component depth |
-| Test suites for non-admin apps | Only admin-gms has Vitest + Playwright today |
+| Test suites for non-admin apps | Only gaa-admin has Vitest + Playwright today |
 | AI/ML operational tools | Year 2+ — gated on stable data infrastructure |
 
 ---

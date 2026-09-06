@@ -143,6 +143,35 @@
     },
     "employment": {
       "properties": {
+        "grade": {
+          "anyOf": [
+            {
+              "properties": {
+                "code": { "type": "string", "title": "Code" },
+                "label": { "type": "string", "title": "Label" },
+                "rank": { "type": "integer", "title": "Rank" },
+                "establishment_band": {
+                  "anyOf": [{ "type": "string" }, { "type": "null" }],
+                  "title": "Establishment Band"
+                }
+              },
+              "type": "object",
+              "required": ["code", "label", "rank"],
+              "title": "GradePublic",
+              "x-readme-ref-name": "GradePublic"
+            },
+            { "type": "null" }
+          ]
+        },
+        "supervisor_name": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "title": "Supervisor Name"
+        },
+        "details_complete": {
+          "type": "boolean",
+          "title": "Details Complete",
+          "default": false
+        },
         "employee_number": {
           "anyOf": [{ "type": "string" }, { "type": "null" }],
           "title": "Employee Number"

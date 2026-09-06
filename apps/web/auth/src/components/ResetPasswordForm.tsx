@@ -6,7 +6,7 @@ import { resetPasswordAction } from "@/app/actions";
 import { initialResetPasswordState } from "@/app/actions-types";
 
 const inputClass =
-  "w-full rounded-gm-8 border border-(--line) bg-white/80 px-4 py-3 text-foreground text-gm-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
+  "w-full rounded-lg border border-(--line) bg-white/80 px-4 py-3 text-foreground text-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
 
 interface ResetPasswordFormProps {
   token: string;
@@ -23,15 +23,15 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       <div className="space-y-5">
         <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 text-sm leading-6">
           <p className="font-medium">Password updated</p>
-          <p className="mt-1 text-(--muted) text-gm-body-sm">
+          <p className="mt-1 text-(--muted) text-body-sm">
             Your password has been changed. Sign in with your new password.
           </p>
         </div>
         <Link
           className="block w-full rounded-full bg-(--auth-accent) px-5 py-3 text-center font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
-          href="/"
+          href="/verify-email"
         >
-          Sign in
+          Verify email
         </Link>
       </div>
     );
@@ -43,7 +43,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       <div className="space-y-2">
         <label
-          className="block font-medium text-foreground text-gm-body-sm"
+          className="block font-medium text-body-sm text-foreground"
           htmlFor="new_password"
         >
           New password
@@ -52,10 +52,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           autoComplete="new-password"
           className={inputClass}
           id="new_password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="new_password"
-          placeholder="At least 8 characters"
+          placeholder="At least 12 characters"
           required
           type="password"
         />
@@ -63,7 +63,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
 
       <div className="space-y-2">
         <label
-          className="block font-medium text-foreground text-gm-body-sm"
+          className="block font-medium text-body-sm text-foreground"
           htmlFor="confirm_password"
         >
           Confirm new password
@@ -72,8 +72,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           autoComplete="new-password"
           className={inputClass}
           id="confirm_password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="confirm_password"
           placeholder="Repeat your new password"
           required

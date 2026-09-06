@@ -113,8 +113,8 @@
       // date-range-picker). Additive; relax vendored-code patterns only, same
       // as the shadcn primitives above.
       "includes": [
-        "apps/web/admin-gms/src/components/calendar/**",
-        "apps/web/admin-gms/src/components/date-range-picker.tsx"
+        "apps/web/gaa-admin/src/components/calendar/**",
+        "apps/web/gaa-admin/src/components/date-range-picker.tsx"
       ],
       "linter": {
         "rules": {
@@ -159,8 +159,8 @@
       // Admin form editors are config-driven (field-type switches + array
       // repeaters) that legitimately exceed the cognitive-complexity threshold.
       "includes": [
-        "apps/web/admin-gms/src/components/hr/**",
-        "apps/web/admin-gms/src/components/wxproducts/**"
+        "apps/web/gaa-admin/src/components/hr/**",
+        "apps/web/gaa-admin/src/components/wxproducts/**"
       ],
       "linter": {
         "rules": {

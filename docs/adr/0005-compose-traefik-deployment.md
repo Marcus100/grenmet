@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-GrenMet needs staging and production deployments without the operational overhead of Kubernetes.
+Barrels Grenada needs staging and production deployments without the operational overhead of Kubernetes.
 
 ## Decision
 

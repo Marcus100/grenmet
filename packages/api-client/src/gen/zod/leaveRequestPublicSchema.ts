@@ -9,6 +9,7 @@ import { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const leaveRequestPublicSchema = z.object({
+  submitted_at: z.optional(z.union([z.string(), z.null()])),
   id: z.string().uuid(),
   user_id: z.string().uuid(),
   department_id: z.string(),

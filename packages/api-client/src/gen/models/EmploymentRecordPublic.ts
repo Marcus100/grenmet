@@ -18,19 +18,13 @@ export type EmploymentRecordPublic = {
    * @type string, uuid
    */
   user_id: string;
-  /**
-   * @type string
-   */
-  employee_number: string;
+  employee_number?: string | null;
   /**
    * @type string
    */
   department_id: string;
   position?: string | null;
-  /**
-   * @type string
-   */
-  employment_type: EmploymentType;
+  employment_type?: EmploymentType | null;
   start_date?: string | null;
   supervisor_id?: string | null;
   work_location?: string | null;

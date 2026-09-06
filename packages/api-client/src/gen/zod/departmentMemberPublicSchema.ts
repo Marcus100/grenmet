@@ -5,12 +5,17 @@
 
 import * as z from "zod";
 import { employmentStatusSchema } from "./employmentStatusSchema.js";
+import { gradePublicSchema } from "./gradePublicSchema.js";
 
 export const departmentMemberPublicSchema = z.object({
   user_id: z.string().uuid(),
+  username: z.string(),
   first_name: z.string(),
   last_name: z.string(),
-  employee_number: z.string(),
+  full_name: z.string(),
+  roster_name: z.optional(z.union([z.string(), z.null()])),
+  employee_number: z.optional(z.union([z.string(), z.null()])),
   position: z.optional(z.union([z.string(), z.null()])),
+  grade: z.optional(z.union([z.lazy(() => gradePublicSchema), z.null()])),
   employment_status: z.lazy(() => employmentStatusSchema),
 });

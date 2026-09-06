@@ -3,6 +3,9 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
+    NODE_ENV: z
+      .enum(["development", "test", "production"])
+      .default("development"),
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
     SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
@@ -24,6 +27,7 @@ export const env = createEnv({
       .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,

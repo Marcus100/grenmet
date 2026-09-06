@@ -6,7 +6,7 @@ Proposed
 
 ## Context
 
-HR forms in admin-gms (leave, shift exchange, absentee, daily status, timesheet)
+HR forms in gaa-admin (leave, shift exchange, absentee, daily status, timesheet)
 are print-only: the editor calls a create mutation and the record is final. Staff
 have no way to save an in-progress form, and there is no approval before a
 submission becomes official.

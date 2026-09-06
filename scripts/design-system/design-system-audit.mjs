@@ -13,27 +13,27 @@ const webApps = [
     note: "Shared primitives should stay token-clean; generated foundation blocks are masked before scanning.",
   },
   {
-    name: "admin-gms",
-    root: "apps/web/admin-gms",
+    name: "gaa-admin",
+    root: "apps/web/gaa-admin",
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
   },
   { name: "auth", root: "apps/web/auth" },
   {
-    name: "hurricaneplan",
-    root: "apps/web/hurricaneplan",
+    name: "docs",
+    root: "apps/web/docs",
     note: "Docs-template styling is expected to be noisy; review global shell colors first.",
   },
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },
   {
-    name: "spicewx",
-    root: "apps/web/spicewx",
+    name: "gms",
+    root: "apps/web/gms",
     note: "Pilot app for the first foundation cleanup pass.",
   },
 ];
 
 const generatedBlockPattern =
-  /\/\* BEGIN GRENMET DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END GRENMET DESIGN SYSTEM V1 \*\//g;
+  /\/\* BEGIN BARRELS DESIGN SYSTEM V1 \*\/[\s\S]*?\/\* END BARRELS DESIGN SYSTEM V1 \*\//g;
 
 const sourceExtensions = new Set([
   ".css",
@@ -64,7 +64,7 @@ const categoryLabels = {
   radius: "Arbitrary radius values",
   shadows: "App-local shadows/elevation",
   darkMode: "Dark/system theme hooks",
-  localTokens: "Local theme tokens not mapped to GrenMet",
+  localTokens: "Local theme tokens not mapped to the design system",
 };
 
 const semanticTokenPattern =
@@ -93,7 +93,7 @@ const darkModePattern =
   /\bprefers-color-scheme\b|\bdark:|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
 const darkBlockPattern = /^\s*\.dark\s*\{/m;
 const themeFontOverridePattern =
-  /--font-sans\s*:\s*(?!var\(--gm-font-sans)[^;]+;/g;
+  /--font-sans\s*:\s*(?!var\(--brand-font-sans)[^;]+;/g;
 const localTokenPattern =
   /^\s*(--(?:color|brand|surface|text|border|ring|font|radius|shadow|shadow-theme|gray|blue-light|success|error|warning|orange)[a-z0-9-]*)\s*:\s*([^;]+);/i;
 
@@ -143,8 +143,8 @@ function isAllowedFontValue(value) {
   return (
     lower.includes("inter") ||
     lower.includes("noto sans") ||
-    lower.includes("gm-font-document") ||
-    lower.includes("gm-font-sans") ||
+    lower.includes("font-document") ||
+    lower.includes("brand-font-sans") ||
     lower.includes("font-noto-sans") ||
     lower.includes("font-inter") ||
     lower.includes("inherit") ||
@@ -153,8 +153,15 @@ function isAllowedFontValue(value) {
   );
 }
 
-function isTokenMappedToGrenMet(value) {
-  return value.includes("var(--gm-") || semanticTokenPattern.test(value);
+function isTokenMappedToDesignSystem(value) {
+  return (
+    // --brand-*/--status-* are @barrelsgd/ui's own primitives; --gm-* is the
+    // GMS brand layer. All three are legitimate token sources.
+    value.includes("var(--brand-") ||
+    value.includes("var(--status-") ||
+    value.includes("var(--gm-") ||
+    semanticTokenPattern.test(value)
+  );
 }
 
 function isLikelyLengthValue(value) {
@@ -171,8 +178,7 @@ function isAllowedSpacingValue(value) {
     : lower.trim();
 
   return (
-    value.includes("var(--gm-spacing-") ||
-    value.includes("var(--gm-space-") ||
+    value.includes("var(--spacing") ||
     value.includes("var(--spacing") ||
     lower.includes("safe-area-inset") ||
     allowedRawSpacingPattern.test(rawValue)
@@ -181,7 +187,7 @@ function isAllowedSpacingValue(value) {
 
 function isAllowedRadiusValue(value) {
   return (
-    value.includes("var(--gm-radius-") ||
+    value.includes("var(--radius") ||
     value.includes("var(--radius") ||
     value === "0" ||
     value === "inherit"
@@ -190,8 +196,8 @@ function isAllowedRadiusValue(value) {
 
 function isAllowedTypographyValue(value) {
   return (
-    value.includes("var(--gm-font-size-") ||
-    value.includes("var(--gm-line-height-") ||
+    value.includes("var(--font-size-") ||
+    value.includes("var(--line-height-") ||
     value.includes("var(--text-") ||
     value.includes("var(--leading-")
   );
@@ -202,7 +208,7 @@ function isArbitraryColorUtility(value) {
 }
 
 function isAllowedColorValue(value) {
-  return value.includes("var(--gm-") || semanticTokenPattern.test(value);
+  return isTokenMappedToDesignSystem(value);
 }
 
 async function collectFiles(dir) {
@@ -268,7 +274,7 @@ function scanColorFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Use a --gm-* token, semantic token, or app alias mapped to GrenMet."
+      "Use a --gm-* token, semantic token, or app alias mapped to the design system."
     );
   }
 
@@ -281,7 +287,7 @@ function scanColorFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Avoid arbitrary app-local color utilities unless the alias maps back to GrenMet."
+        "Avoid arbitrary app-local color utilities unless the alias maps back to the design system."
       );
     }
   }
@@ -302,7 +308,7 @@ function scanFontImportFindings(report, filePath, lineNumber, line) {
           filePath,
           lineNumber,
           importedFont,
-          "Inter is the GrenMet web UI font for v1; Noto Sans is reserved for the official document lane."
+          "Inter is the default web UI font for v1; Noto Sans is reserved for the official document lane."
         );
       }
     }
@@ -321,7 +327,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         `font-family: ${value}`,
-        "Map typography back to --gm-font-sans or the Inter bridge token."
+        "Map typography back to --brand-font-sans or the Inter bridge token."
       );
     }
   }
@@ -351,7 +357,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Consider moving repeated type scale values into GrenMet typography tokens."
+        "Consider moving repeated type scale values into shared typography tokens."
       );
     }
   }
@@ -365,13 +371,13 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Prefer the shared type scale once GrenMet typography tokens are finalized."
+        "Prefer the shared type scale once shared typography tokens are finalized."
       );
     }
   }
 
-  // Detect --font-sans overrides that bypass the GrenMet font bridge.
-  // Matches --font-sans: <anything> that does NOT resolve to var(--gm-font-sans).
+  // Detect --font-sans overrides that bypass the shared font bridge.
+  // Matches --font-sans: <anything> that does NOT resolve to var(--brand-font-sans).
   for (const match of line.matchAll(themeFontOverridePattern)) {
     addFinding(
       report,
@@ -379,7 +385,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "--font-sans overrides the GrenMet font bridge (--gm-font-sans). Document as an intentional product-layer exception or resolve to var(--gm-font-sans)."
+      "--font-sans overrides the shared font bridge (--brand-font-sans). Document as an intentional product-layer exception or resolve to var(--brand-font-sans)."
     );
   }
 }
@@ -422,7 +428,7 @@ function scanRadiusFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Prefer rounded-gm-* aliases or documented Tailwind radius values."
+      "Prefer the Tailwind radius scale (rounded-xs/md/lg/full) or a documented value."
     );
   }
 
@@ -449,7 +455,7 @@ function scanShadowFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "Define GrenMet shadow tokens before app-local elevation becomes permanent."
+      "Define shared shadow tokens before app-local elevation becomes permanent."
     );
   }
 }
@@ -476,7 +482,14 @@ function scanLocalTokenFindings(report, filePath, lineNumber, line) {
   const tokenName = localTokenMatch[1] ?? "";
   const tokenValue = localTokenMatch[2] ?? "";
 
-  if (!(tokenName.startsWith("--gm-") || isTokenMappedToGrenMet(tokenValue))) {
+  if (
+    !(
+      tokenName.startsWith("--gm-") ||
+      tokenName.startsWith("--brand-") ||
+      tokenName.startsWith("--status-") ||
+      isTokenMappedToDesignSystem(tokenValue)
+    )
+  ) {
     addFinding(
       report,
       "localTokens",
@@ -534,11 +547,11 @@ function printReport(reports) {
     0
   );
 
-  console.log("GrenMet foundation audit");
+  console.log("Design-system foundation audit");
   console.log("Mode: warning only; this command exits 0.");
   console.log("Web UI font: Inter.");
-  console.log("Official document font: Noto Sans via --gm-font-document.");
-  console.log("Pilot cleanup app: spicewx.");
+  console.log("Official document font: Noto Sans via --font-document.");
+  console.log("Pilot cleanup app: gms.");
   console.log("");
 
   if (total === 0) {

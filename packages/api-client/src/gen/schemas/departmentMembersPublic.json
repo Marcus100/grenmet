@@ -4,12 +4,41 @@
       "items": {
         "properties": {
           "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
+          "username": { "type": "string", "title": "Username" },
           "first_name": { "type": "string", "title": "First Name" },
           "last_name": { "type": "string", "title": "Last Name" },
-          "employee_number": { "type": "string", "title": "Employee Number" },
+          "full_name": { "type": "string", "title": "Full Name" },
+          "roster_name": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Roster Name"
+          },
+          "employee_number": {
+            "anyOf": [{ "type": "string" }, { "type": "null" }],
+            "title": "Employee Number"
+          },
           "position": {
             "anyOf": [{ "type": "string" }, { "type": "null" }],
             "title": "Position"
+          },
+          "grade": {
+            "anyOf": [
+              {
+                "properties": {
+                  "code": { "type": "string", "title": "Code" },
+                  "label": { "type": "string", "title": "Label" },
+                  "rank": { "type": "integer", "title": "Rank" },
+                  "establishment_band": {
+                    "anyOf": [{ "type": "string" }, { "type": "null" }],
+                    "title": "Establishment Band"
+                  }
+                },
+                "type": "object",
+                "required": ["code", "label", "rank"],
+                "title": "GradePublic",
+                "x-readme-ref-name": "GradePublic"
+              },
+              { "type": "null" }
+            ]
           },
           "employment_status": {
             "type": "string",
@@ -21,9 +50,10 @@
         "type": "object",
         "required": [
           "user_id",
+          "username",
           "first_name",
           "last_name",
-          "employee_number",
+          "full_name",
           "employment_status"
         ],
         "title": "DepartmentMemberPublic",

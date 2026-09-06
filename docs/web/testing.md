@@ -1,57 +1,33 @@
 # Web App Testing
 
-## Unit tests (Vitest)
+Run all workspace tests with `pnpm test`, or one app with
+`pnpm exec turbo run test --filter=@barrelsgd/web-gaa-admin`.
+For a focused check, run `pnpm vitest run src/path/to/example.test.tsx`
+from the app directory.
 
-Only `admin-gms` currently has a full unit test suite. Test coverage is
-growing — every new feature must include tests as part of the task, not a
-follow-up.
+## Keep the suite focused
 
-```bash
-# Run tests for admin-gms
-turbo run test --filter=@barrelsgd/web-admin
+Keep tests for authentication and permissions, request payloads and failed-save
+retries, financial calculations, publication rules, data transformations, and
+regressions users have encountered. UI tests should exercise a meaningful action
+or distinguish an error state from valid empty data.
 
-# Run a single file (from within the app directory)
-pnpm vitest run src/path/to/test.test.ts
+Avoid separate tests for static headings, navigation copy, logo classes, sample
+data, thin formatting wrappers, or third-party tab behavior. When a workflow test
+already checks an outcome, remove the weaker happy-path duplicate. Do not add a
+test file merely because a component exists.
 
-# Watch mode
-pnpm vitest
-```
+Security edge cases and data-integrity checks are not duplicates just because
+they share setup. Preserve distinct failure modes. Prefer focused tests over
+large scenarios that combine unrelated behaviors.
 
-`admin-gms` and `signal` have actual test files. `auth` has a `vitest.config.ts` in place but unit tests are minimal (its coverage is mostly Playwright e2e).
-See [`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md) for
-the full unit test conventions.
+## Test discovery and caching
 
-## E2E tests (Playwright)
+Hono runs source tests under `src/` only, so compiled copies in `dist/` do not run
+again. Turbo includes Vitest configuration in its test cache inputs; changing
+discovery rules invalidates cached results. Run `pnpm fix` and `pnpm type-check`
+after changing the suite, then run the affected tests.
 
-`auth` has Playwright e2e tests covering sign-in flows.
-
-```bash
-# From within apps/web/auth/
-pnpm playwright test
-
-# Run a specific spec
-pnpm playwright test e2e/sign-in.spec.ts
-
-# Open Playwright UI
-pnpm playwright test --ui
-```
-
-`admin-gms` also has Playwright e2e tests. See
-[`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md).
-
-## Adding tests to a new app
-
-1. Add `vitest` to `devDependencies` using `catalog:` reference
-2. Create `vitest.config.ts` — copy from `apps/web/signal/vitest.config.ts`
-3. Add `"test": "vitest run"` to the app's `package.json` scripts
-4. Add `turbo run test` to the `test` task in `turbo.json` if not already present
-
-## What to test
-
-- Server actions and data-fetching utilities: unit tests
-- Auth flows and critical user journeys: Playwright e2e
-- UI components with logic: Vitest + React Testing Library
-- Pure functions and transformations: Vitest unit tests
-
-Do not test Next.js framework behavior, third-party library internals, or
-generated API client types.
+Docker workspace dependency coverage is checked by Repository Guardrails in CI.
+Application unit tests do not verify that a Docker image has been packaged
+correctly; staging image builds remain a separate verification step.
