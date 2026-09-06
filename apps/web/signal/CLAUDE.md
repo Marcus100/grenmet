@@ -5,7 +5,7 @@ Signal**. Domain `signal.barrels.gd`. MVP: static MDX, light mode, no auth, no D
 
 ## MDX pipeline — Content Collections
 
-Same pattern as `hurricaneplan`, trimmed (no Shiki/search). MDX is compiled via
+Same pattern as `docs`, trimmed (no Shiki/search). MDX is compiled via
 `@content-collections/next` (wired in `next.config.ts` with `withContentCollections`).
 
 | File | Purpose |

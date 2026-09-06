@@ -94,7 +94,7 @@ class MinutePathImagesPipeline(ImagesPipeline):
         filename = f"{dt:%Y%m%d%H%M}_{source_hash}_{safe_stem}{extension}"
         return f"{safe_spider}/{dt:%Y/%m/%d/%H}/{filename}"
 
-    def image_downloaded(self, response, request, info, *, item=None):
+    async def image_downloaded(self, response, request, info, *, item=None):
         """Persist an image and attach metadata for the bytes that were stored."""
         checksum = None
         content_type = "image/jpeg"

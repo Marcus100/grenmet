@@ -1,0 +1,132 @@
+/*
+  GMS brand foundation.
+
+  The Grenada Meteorological Service palette. This is a brand layer: it is
+  imported only by GMS surfaces, never by @barrelsgd/ui, and never by a Barrels
+  product. `gm` expands to *Grenada Met*, not to the retired "GrenMet" name.
+
+  Generic scales — typography, spacing, radius, elevation — deliberately do NOT
+  live here. They are not brand assets and stay in @barrelsgd/ui so that non-GMS
+  applications can use them without importing a client's palette.
+
+  Import from a GMS app's stylesheet, after the shared foundation:
+
+      @import "@barrelsgd/gms/styles/foundation";
+*/
+
+@layer base {
+  :root {
+    /* Brand hues */
+    --gm-blue: #2478f2;
+    --gm-navy: #15006b;
+    --gm-sky: #39a9f5;
+    --gm-sun: #ff981e;
+
+    /* Duty-roster shift inks. The brand ramp read as time of day, darkened so
+       each passes WCAG AA (>=4.5:1) as 11px ink on white in the roster grid —
+       the raw hues do not (blue 4.16:1, sky 2.57:1, sun 2.15:1). Night needs no
+       entry: --gm-navy already clears it at 16.88:1. */
+    --gm-shift-morning: #0d6fb8;
+    --gm-shift-day: #a35c00;
+    --gm-shift-evening: #1b52bd;
+
+    /* Surfaces */
+    --gm-surface-page: #ffffff;
+    --gm-surface: #f3f8fc;
+    --gm-surface-panel: #eaf3fb;
+    --gm-surface-secondary: #eaf2fb;
+    --gm-surface-muted: #e4eef7;
+
+    /* Text */
+    --gm-text-primary: #111827;
+    --gm-text-secondary: #4b5563;
+    --gm-text-muted: #6b7280;
+    --gm-text-inverse: #ffffff;
+
+    /* Risk scale (CAP hazard levels) */
+    --gm-risk-green: #00843d;
+    --gm-risk-yellow: #ffe923;
+    --gm-risk-amber: #ff9900;
+    --gm-risk-red: #cc0033;
+    --gm-risk-grey: #dcdcdc;
+
+    /* Weather severity, named by public guidance level */
+    --gm-weather-severity-low: var(--gm-risk-green);
+    --gm-weather-severity-be-aware: var(--gm-risk-yellow);
+    --gm-weather-severity-be-prepared: var(--gm-risk-amber);
+    --gm-weather-severity-take-action: var(--gm-risk-red);
+    --gm-weather-severity-expired: var(--gm-risk-grey);
+
+    /* Warning pairs (AA contrast when foreground is used on background) */
+    --gm-warning-green-bg: var(--gm-risk-green);
+    --gm-warning-green-fg: var(--gm-text-inverse);
+    --gm-warning-green-border: var(--gm-risk-green);
+    --gm-warning-yellow-bg: var(--gm-risk-yellow);
+    --gm-warning-yellow-fg: var(--gm-text-primary);
+    --gm-warning-yellow-border: var(--gm-risk-yellow);
+    --gm-warning-amber-bg: var(--gm-risk-amber);
+    --gm-warning-amber-fg: var(--gm-text-primary);
+    --gm-warning-amber-border: var(--gm-risk-amber);
+    --gm-warning-red-bg: var(--gm-risk-red);
+    --gm-warning-red-fg: var(--gm-text-inverse);
+    --gm-warning-red-border: var(--gm-risk-red);
+    --gm-warning-grey-bg: var(--gm-risk-grey);
+    --gm-warning-grey-fg: var(--gm-text-primary);
+    --gm-warning-grey-border: var(--gm-risk-grey);
+
+    /* Borders and focus */
+    --gm-border: #d0d5dd;
+    --gm-shadow-focus: 0 0 0 3px
+      color-mix(in srgb, var(--gm-blue) 24%, transparent);
+  }
+}
+
+@theme inline {
+  --color-gm-blue: var(--gm-blue);
+  --color-gm-navy: var(--gm-navy);
+  --color-gm-sky: var(--gm-sky);
+  --color-gm-sun: var(--gm-sun);
+  --color-gm-shift-morning: var(--gm-shift-morning);
+  --color-gm-shift-day: var(--gm-shift-day);
+  --color-gm-shift-evening: var(--gm-shift-evening);
+  --color-gm-surface-page: var(--gm-surface-page);
+  --color-gm-surface: var(--gm-surface);
+  --color-gm-surface-panel: var(--gm-surface-panel);
+  --color-gm-surface-secondary: var(--gm-surface-secondary);
+  --color-gm-surface-muted: var(--gm-surface-muted);
+  --color-gm-text-primary: var(--gm-text-primary);
+  --color-gm-text-secondary: var(--gm-text-secondary);
+  --color-gm-text-muted: var(--gm-text-muted);
+  --color-gm-text-inverse: var(--gm-text-inverse);
+  --color-gm-risk-green: var(--gm-risk-green);
+  --color-gm-risk-yellow: var(--gm-risk-yellow);
+  --color-gm-risk-amber: var(--gm-risk-amber);
+  --color-gm-risk-red: var(--gm-risk-red);
+  --color-gm-risk-grey: var(--gm-risk-grey);
+  --color-gm-weather-severity-low: var(--gm-weather-severity-low);
+  --color-gm-weather-severity-be-aware: var(--gm-weather-severity-be-aware);
+  --color-gm-weather-severity-be-prepared: var(
+    --gm-weather-severity-be-prepared
+  );
+  --color-gm-weather-severity-take-action: var(
+    --gm-weather-severity-take-action
+  );
+  --color-gm-weather-severity-expired: var(--gm-weather-severity-expired);
+  --color-gm-warning-green-bg: var(--gm-warning-green-bg);
+  --color-gm-warning-green-fg: var(--gm-warning-green-fg);
+  --color-gm-warning-green-border: var(--gm-warning-green-border);
+  --color-gm-warning-yellow-bg: var(--gm-warning-yellow-bg);
+  --color-gm-warning-yellow-fg: var(--gm-warning-yellow-fg);
+  --color-gm-warning-yellow-border: var(--gm-warning-yellow-border);
+  --color-gm-warning-amber-bg: var(--gm-warning-amber-bg);
+  --color-gm-warning-amber-fg: var(--gm-warning-amber-fg);
+  --color-gm-warning-amber-border: var(--gm-warning-amber-border);
+  --color-gm-warning-red-bg: var(--gm-warning-red-bg);
+  --color-gm-warning-red-fg: var(--gm-warning-red-fg);
+  --color-gm-warning-red-border: var(--gm-warning-red-border);
+  --color-gm-warning-grey-bg: var(--gm-warning-grey-bg);
+  --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
+  --color-gm-warning-grey-border: var(--gm-warning-grey-border);
+  --color-gm-border: var(--gm-border);
+  --shadow-gm-focus: var(--gm-shadow-focus);
+}

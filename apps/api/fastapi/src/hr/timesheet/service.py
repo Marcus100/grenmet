@@ -25,9 +25,14 @@ from src.hr.exceptions import (
     HRValidationError,
 )
 from src.hr.roster.models import RosterAssignment
-from src.hr.workflow.models import WorkflowTemplate, WorkflowType
-from src.hr.workflow.schemas import WorkflowInstanceCreate
-from src.hr.workflow.service import create_workflow_instance
+from src.hr.workflow import service as workflow_service
+from src.hr.workflow.models import (
+    WorkflowAction,
+    WorkflowInstance,
+    WorkflowTemplate,
+    WorkflowType,
+)
+from src.hr.workflow.schemas import WorkflowActionRequest, WorkflowInstanceCreate
 from src.utils.datetime import utc_now
 
 from .models import (
@@ -148,6 +153,9 @@ async def submit_timesheet(
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
 ) -> Timesheet:
+    await session.execute(
+        select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
+    )
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
@@ -178,6 +186,9 @@ async def submit_timesheet(
         ):
             raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED)
 
+    await ensure_timesheet_workflow(
+        session=session, current_user=current_user, timesheet=timesheet
+    )
     timesheet.status = TimesheetStatus.SUBMITTED
     timesheet.submitted_by_user_id = current_user.id
     timesheet.submitted_at = utc_now()
@@ -218,6 +229,36 @@ async def approve_timesheet(
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_APPROVE_NOT_ALLOWED)
 
+    instance = (
+        (
+            await session.execute(
+                select(WorkflowInstance)
+                .where(
+                    WorkflowInstance.entity_type == "timesheet",
+                    WorkflowInstance.entity_id == timesheet.id,
+                )
+                .order_by(col(WorkflowInstance.created_at).desc())
+                .limit(1)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if instance:
+        await workflow_service.apply_workflow_action(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=instance.id,
+            action_in=WorkflowActionRequest(action=WorkflowAction.APPROVE),
+        )
+        await session.refresh(timesheet)
+        return timesheet
+    from src.baseline.models import StaffCredential
+
+    if await session.get(StaffCredential, timesheet.user_id):
+        raise HRValidationError(
+            "Staff timesheets require the configured approval workflow"
+        )
     timesheet.status = TimesheetStatus.APPROVED
     timesheet.approved_by_user_id = current_user.id
     timesheet.approved_at = utc_now()
@@ -341,17 +382,36 @@ async def ensure_timesheet_workflow(
         select(WorkflowTemplate).where(
             col(WorkflowTemplate.department_id) == timesheet.department_id,
             col(WorkflowTemplate.workflow_type) == WorkflowType.TIMESHEET,
+            col(WorkflowTemplate.is_active).is_(True),
         )
     )
     template = result.scalars().first()
     if not template:
+        from src.baseline.models import StaffCredential
+
+        if await session.get(StaffCredential, timesheet.user_id):
+            raise HRValidationError("Configure a timesheet approval workflow first")
         return
-    await create_workflow_instance(
+    owner = await session.get(User, timesheet.user_id)
+    if owner is None:
+        raise HRValidationError("Timesheet owner not found")
+    instance = await workflow_service.create_workflow_instance(
         session=session,
-        current_user=current_user,
+        current_user=owner,
+        require_actor_permission=False,
+        commit=False,
         instance_in=WorkflowInstanceCreate(
             workflow_template_id=template.id,
             entity_type="timesheet",
             entity_id=timesheet.id,
         ),
+    )
+
+    await workflow_service.apply_workflow_action(
+        session=session,
+        current_user=current_user,
+        workflow_instance_id=instance.id,
+        action_in=WorkflowActionRequest(action=WorkflowAction.SUBMIT),
+        require_actor_permission=False,
+        commit=False,
     )

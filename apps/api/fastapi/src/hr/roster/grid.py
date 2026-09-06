@@ -13,6 +13,7 @@ import csv
 from io import StringIO
 
 from src.auth.models import User
+from src.hr.models import EmploymentRecord
 
 
 def parse_grid(csv_text: str, days_in_month: int) -> dict[str, dict[int, str]]:
@@ -56,21 +57,54 @@ def parse_grid(csv_text: str, days_in_month: int) -> dict[str, dict[int, str]]:
     return grid
 
 
-def resolve_user(name: str, users: list[User]) -> User | None:
-    """Match a grid row name to a user by username, or paper-style 'F. Lastname'.
+def _compact(name: str) -> str:
+    return name.lower().replace(".", "").replace(" ", "")
+
+
+def resolve_user(
+    name: str, members: list[tuple[EmploymentRecord, User]]
+) -> User | None:
+    """Match a grid row name to a department member by username or roster name.
+
+    A person's roster initial is not necessarily their personnel one — the GMS
+    roster prints "J. Charles" for Jude Andre Charles (acharles) and "K. Bedeau"
+    for Kenrick Dieonne Bedeau (dbedeau) — so the recorded
+    `employment_record.roster_name` is authoritative and is tried first. Only
+    members with no roster name recorded fall back to the paper-style
+    'F. Lastname' derivation, and that fallback never overrides an explicit
+    roster name held by someone else.
 
     Returns the single match, or None when unknown or ambiguous.
     """
     lowered = name.lower()
-    for user in users:
+    for _employment, user in members:
         if user.username.lower() == lowered:
             return user
-    compact = lowered.replace(".", "").replace(" ", "")
-    matches = [
+
+    compact = _compact(name)
+    explicit = [
         user
-        for user in users
-        if user.first_name
-        and user.last_name
-        and f"{user.first_name[0]}{user.last_name}".lower().replace(" ", "") == compact
+        for employment, user in members
+        if employment.roster_name and _compact(employment.roster_name) == compact
     ]
-    return matches[0] if len(matches) == 1 else None
+    if len(explicit) == 1:
+        return explicit[0]
+    if explicit:
+        return None
+
+    claimed = {
+        _compact(employment.roster_name)
+        for employment, _user in members
+        if employment.roster_name
+    }
+    if compact in claimed:
+        return None
+    derived = [
+        user
+        for employment, user in members
+        if not employment.roster_name
+        and user.first_name
+        and user.last_name
+        and _compact(f"{user.first_name[0]}{user.last_name}") == compact
+    ]
+    return derived[0] if len(derived) == 1 else None

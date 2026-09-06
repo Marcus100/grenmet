@@ -38,6 +38,7 @@ import { getAuthConfig } from "./auth-config";
 export function createSession(input: {
   email: string;
   password: string;
+  totpCode?: string;
   appName?: string | null;
   clientType?: string;
 }): Promise<SessionLoginResponse> {
@@ -108,6 +109,7 @@ export function signUp(input: {
   email: string;
   username: string;
   password: string;
+  totpCode?: string;
   firstName: string;
   lastName: string;
   middleName?: string | null;
@@ -122,6 +124,7 @@ export function signUp(input: {
 export function loginWithPassword(input: {
   username: string;
   password: string;
+  totpCode?: string;
 }): Promise<Token> {
   return _loginWithPassword(getAuthConfig(), input);
 }

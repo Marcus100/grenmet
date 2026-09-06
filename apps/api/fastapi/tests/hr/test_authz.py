@@ -266,7 +266,38 @@ async def test_workflow_instance_create_permitted_passes_gate(
             current_user=user,
             instance_in=WorkflowInstanceCreate(
                 workflow_template_id=uuid.uuid4(),
-                entity_type="leave_request",
+                entity_type="custom_request",
+                entity_id=uuid.uuid4(),
+            ),
+        )
+
+
+@pytest.mark.parametrize(
+    "entity_type",
+    [
+        "leave_request",
+        "shift_swap",
+        "absentee_report",
+        "status_report",
+        "parking_permit",
+        "timesheet",
+    ],
+)
+async def test_managed_hr_workflows_require_form_submission(
+    db_async: AsyncSession, entity_type: str
+) -> None:
+    from src.hr.exceptions import HRValidationError
+
+    user = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "workflow.instance.action")
+    await assign_role(db_async, user=user, role=role)
+    with pytest.raises(HRValidationError, match="Submit the HR form"):
+        await create_workflow_instance(
+            session=db_async,
+            current_user=user,
+            instance_in=WorkflowInstanceCreate(
+                workflow_template_id=uuid.uuid4(),
+                entity_type=entity_type,
                 entity_id=uuid.uuid4(),
             ),
         )

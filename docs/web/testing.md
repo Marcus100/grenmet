@@ -2,13 +2,13 @@
 
 ## Unit tests (Vitest)
 
-Only `admin-gms` currently has a full unit test suite. Test coverage is
+Only `gaa-admin` currently has a full unit test suite. Test coverage is
 growing — every new feature must include tests as part of the task, not a
 follow-up.
 
 ```bash
-# Run tests for admin-gms
-turbo run test --filter=@barrelsgd/web-admin
+# Run tests for gaa-admin
+turbo run test --filter=@barrelsgd/web-gaa-admin
 
 # Run a single file (from within the app directory)
 pnpm vitest run src/path/to/test.test.ts
@@ -17,8 +17,8 @@ pnpm vitest run src/path/to/test.test.ts
 pnpm vitest
 ```
 
-`admin-gms` and `signal` have actual test files. `auth` has a `vitest.config.ts` in place but unit tests are minimal (its coverage is mostly Playwright e2e).
-See [`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md) for
+`gaa-admin` and `signal` have actual test files. `auth` has a `vitest.config.ts` in place but unit tests are minimal (its coverage is mostly Playwright e2e).
+See [`apps/web/gaa-admin/CLAUDE.md`](../../apps/web/gaa-admin/CLAUDE.md) for
 the full unit test conventions.
 
 ## E2E tests (Playwright)
@@ -36,8 +36,8 @@ pnpm playwright test e2e/sign-in.spec.ts
 pnpm playwright test --ui
 ```
 
-`admin-gms` also has Playwright e2e tests. See
-[`apps/web/admin-gms/CLAUDE.md`](../../apps/web/admin-gms/CLAUDE.md).
+`gaa-admin` also has Playwright e2e tests. See
+[`apps/web/gaa-admin/CLAUDE.md`](../../apps/web/gaa-admin/CLAUDE.md).
 
 ## Adding tests to a new app
 

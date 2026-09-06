@@ -221,6 +221,29 @@ async def action_shift_swap_request(
         permission_key="shift_swap.request.action",
     ):
         raise HRPermissionDeniedError(ERROR_SHIFT_SWAP_ACTION_NOT_ALLOWED)
+    if request.workflow_instance_id:
+        from src.hr.workflow.models import WorkflowAction
+        from src.hr.workflow.schemas import WorkflowActionRequest
+        from src.hr.workflow.service import apply_workflow_action
+
+        actions = {
+            "APPROVED": WorkflowAction.APPROVE,
+            "REJECTED": WorkflowAction.REJECT,
+            "CANCELLED": WorkflowAction.CANCEL,
+        }
+        action = actions.get(payload.status.value)
+        if action is None:
+            raise HRValidationError("Unsupported workflow action")
+        await apply_workflow_action(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=request.workflow_instance_id,
+            action_in=WorkflowActionRequest(action=action),
+        )
+        await session.refresh(request)
+        return request
+    if request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
+        raise HRValidationError("Request already resolved")
     request.status = payload.status
     request.updated_at = utc_now()
     session.add(request)

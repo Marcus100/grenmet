@@ -1,0 +1,13 @@
+{
+  "properties": {
+    "codes": {
+      "items": { "type": "string" },
+      "type": "array",
+      "title": "Codes"
+    }
+  },
+  "type": "object",
+  "required": ["codes"],
+  "title": "RecoveryCodesPublic",
+  "x-readme-ref-name": "RecoveryCodesPublic"
+}

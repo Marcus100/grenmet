@@ -1,0 +1,16 @@
+{
+  "type": "string",
+  "enum": [
+    "MEETING",
+    "TRAINING",
+    "INSPECTION",
+    "VISIT",
+    "MAINTENANCE",
+    "OBSERVANCE",
+    "DEADLINE",
+    "OTHER"
+  ],
+  "title": "CalendarEventKind",
+  "description": "What a department puts on its calendar besides the duty roster.",
+  "x-readme-ref-name": "CalendarEventKind"
+}

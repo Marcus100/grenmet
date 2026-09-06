@@ -46,7 +46,7 @@ reviewerRole: "Senior Forecaster or delegated reviewer"
 approvalRequired: true
 
 disseminationChannels:
-  - Website (spicewx)
+  - Website (gms)
   - Social media
   - Email digest
   - API (structured)
@@ -135,7 +135,7 @@ Products marked `Partial` exist in the codebase but are not fully operational. P
 | `GMS-DATA-ARCHIVE` | Product Archive | Partial | All products stored in wxproducts DB |
 | `GMS-DATA-CAPFEED` | CAP Alert Feed | Partial | RSS, GeoJSON, XML endpoints active |
 | `GMS-DATA-API` | API-ready Structured Data | Partial | FastAPI and Hono endpoints |
-| `GMS-DATA-OBS` | Observation Dashboard | Planned | AWS data; admin-gms target |
+| `GMS-DATA-OBS` | Observation Dashboard | Planned | AWS data; gaa-admin target |
 
 ---
 

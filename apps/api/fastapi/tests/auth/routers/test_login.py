@@ -1,16 +1,19 @@
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.modern_service import issue
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.auth.utils import verify_password
 from src.config import settings
-from src.email import generate_password_reset_token
 from tests.utils.utils import random_email, random_lower_string
 
 
-async def test_get_access_token(async_client: httpx.AsyncClient) -> None:
+async def test_get_access_token(
+    async_client: httpx.AsyncClient, db_async: AsyncSession
+) -> None:
     """Test successful login with correct credentials."""
+    _ = db_async
     login_data = {
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -237,7 +240,7 @@ async def test_reset_password_invalid_token(
     """Reset with an invalid token returns 400."""
     r = await async_client.post(
         f"{settings.API_V1_STR}/reset-password/",
-        json={"new_password": "changethis", "token": "invalid"},
+        json={"new_password": "long-new-password", "token": "invalid"},
     )
     assert r.status_code == 400
 
@@ -258,11 +261,14 @@ async def test_reset_password(
             last_name="Test",
         ),
     )
-    token = generate_password_reset_token(email=email)
+    token = await issue(
+        db_async, "password-reset", user_id=user.id, data={"email": email}
+    )
+    await db_async.commit()
     r = await async_client.post(
         f"{settings.API_V1_STR}/reset-password/",
-        json={"new_password": "newpassword1", "token": token},
+        json={"new_password": "newpassword123", "token": token},
     )
     assert r.status_code == 200
     await db_async.refresh(user)
-    assert verify_password("newpassword1", user.hashed_password)
+    assert verify_password("newpassword123", user.hashed_password)

@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import StatusReportDep
+from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
 
 from . import service
@@ -37,7 +38,7 @@ async def create_status_report(
         session=session, current_user=current_user, payload=payload
     )
     return StatusReportDetails(
-        report=StatusReportPublic.model_validate(report, from_attributes=True),
+        report=await submission_public(session, report, StatusReportPublic),
         entries=[
             StatusReportEntryPublic.model_validate(e, from_attributes=True)
             for e in entries
@@ -72,7 +73,7 @@ async def submit_status_report(
         status_report_id=report.id,
         payload=payload,
     )
-    return StatusReportPublic.model_validate(submitted, from_attributes=True)
+    return await submission_public(session, submitted, StatusReportPublic)
 
 
 @router.patch(
@@ -102,7 +103,7 @@ async def update_status_report(
         report_id=report.id,
         payload=payload,
     )
-    return StatusReportPublic.model_validate(updated, from_attributes=True)
+    return await submission_public(session, updated, StatusReportPublic)
 
 
 @router.delete(
@@ -156,10 +157,7 @@ async def read_status_reports(
         limit=pagination.limit,
     )
     return StatusReportListPublic(
-        data=[
-            StatusReportPublic.model_validate(item, from_attributes=True)
-            for item in rows
-        ],
+        data=await submission_list(session, rows, StatusReportPublic),
         count=total,
         page=pagination.page,
         size=pagination.size,
@@ -186,7 +184,7 @@ async def read_status_report(
         session=session, current_user=current_user, report_id=report.id
     )
     return StatusReportDetails(
-        report=StatusReportPublic.model_validate(report_data, from_attributes=True),
+        report=await submission_public(session, report_data, StatusReportPublic),
         entries=[
             StatusReportEntryPublic.model_validate(e, from_attributes=True)
             for e in entries

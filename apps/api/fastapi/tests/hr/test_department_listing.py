@@ -104,11 +104,12 @@ async def test_list_department_members_active_only_sorted(
     members = await hr_service.list_department_members(
         session=db_async, current_user=admin, department_id="dept_members"
     )
-    last_names = [user.last_name for _, user in members]
+    last_names = [user.last_name for _, user, _ in members]
     assert last_names == ["Barry", "Charles"]
-    employment, user = members[0]
+    employment, user, grade = members[0]
     assert user.id == zeb.id
     assert employment.position == "Observer"
+    assert grade is None
 
 
 async def test_list_department_members_unknown_department(

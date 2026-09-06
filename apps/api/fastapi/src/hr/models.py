@@ -70,6 +70,36 @@ class Department(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=utc_now)
 
 
+class Grade(SQLModel, table=True):
+    """A department's seniority band, in the order the printed roster groups them.
+
+    Grades are department-scoped, like the shift catalog: Meteorology's bands
+    (Manager .. Meteorological Cadet) are not ATS's or Security's. `rank` is the
+    seniority order used to group and sort staff; `establishment_band` is the
+    GAA-wide establishment ladder the band maps onto (Senior Supervisor,
+    Supervisor, Professional, ...), carried so authority-wide reporting is a data
+    load rather than a migration.
+    """
+
+    __tablename__ = "grade"
+    __table_args__ = (
+        sa.UniqueConstraint(
+            "department_id", "code", name="uq_hr_grade_department_code"
+        ),
+        {"schema": "hr"},
+    )
+
+    id: str = Field(primary_key=True, max_length=120)
+    department_id: str = Field(foreign_key="hr.department.id", index=True)
+    code: str = Field(max_length=50)
+    label: str = Field(max_length=150)
+    rank: int = Field(ge=1)
+    establishment_band: str | None = Field(default=None, max_length=100)
+    is_active: bool = True
+    created_at: datetime = Field(default_factory=utc_now)
+    updated_at: datetime = Field(default_factory=utc_now)
+
+
 class UserProfile(SQLModel, table=True):
     """HR profile extension by user_id. Names come from auth User (canonical source)."""
 
@@ -118,6 +148,7 @@ class EmploymentRecord(SQLModel, table=True):
         sa.Index("ix_hr_employment_record_department_id", "department_id"),
         sa.Index("ix_hr_employment_record_supervisor_id", "supervisor_id"),
         sa.Index("ix_hr_employment_record_status", "status"),
+        sa.Index("ix_hr_employment_record_grade_id", "grade_id"),
         {"schema": "hr"},
     )
 
@@ -125,10 +156,20 @@ class EmploymentRecord(SQLModel, table=True):
     user_id: uuid.UUID = Field(
         foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
     )
-    employee_number: str = Field(max_length=50, unique=True, index=True)
+    employee_number: str | None = Field(
+        default=None, max_length=50, unique=True, index=True
+    )
     department_id: str = Field(foreign_key="hr.department.id")
+    grade_id: str | None = Field(
+        default=None, foreign_key="hr.grade.id", ondelete="SET NULL"
+    )
+    # What the printed duty roster prints for this person. It is not always the
+    # personnel record's initial + surname: the GMS roster prints "J. Charles"
+    # for Jude Andre Charles (acharles) and "K. Bedeau" for Kenrick Dieonne
+    # Bedeau (dbedeau). Null means "derive it from the personnel record".
+    roster_name: str | None = Field(default=None, max_length=60)
     position: str | None = Field(default=None, max_length=150)
-    employment_type: EmploymentType = Field(default=EmploymentType.FULL_TIME)
+    employment_type: EmploymentType | None = Field(default=None)
     start_date: date | None = Field(default=None)
     supervisor_id: uuid.UUID | None = Field(
         default=None, foreign_key="user.id", ondelete="SET NULL"

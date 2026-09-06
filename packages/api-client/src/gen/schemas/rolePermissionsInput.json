@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "permission_keys": {
+      "items": { "type": "string" },
+      "type": "array",
+      "maxItems": 100,
+      "title": "Permission Keys"
+    }
+  },
+  "type": "object",
+  "required": ["permission_keys"],
+  "title": "RolePermissionsInput",
+  "x-readme-ref-name": "RolePermissionsInput"
+}

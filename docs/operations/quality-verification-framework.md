@@ -163,7 +163,7 @@ These metrics indicate whether GMS digital products are reaching and influencing
 
 | Metric | Definition | Data source | Review frequency |
 |---|---|---|---|
-| Public website unique visitors | Monthly unique visitors to spicewx | Analytics (PostHog) | Monthly |
+| Public website unique visitors | Monthly unique visitors to gms | Analytics (PostHog) | Monthly |
 | Warning page visits during events | Traffic to warning pages when an active warning is published | Analytics | Per event |
 | CAP feed consumers | Registered or known downstream consumers of the CAP feed | Feed access logs | Quarterly |
 | API usage | API requests per month by endpoint | API logs | Monthly |
@@ -225,7 +225,7 @@ The ambition is for every metric to be derivable from the system without manual 
 | Dissemination log | System records channel and timestamp on every publish action |
 | Aviation on-time rate | METAR timestamp vs. observation schedule |
 | CAP feed uptime | External uptime monitor polling `/api/cap/latest-active` |
-| Post-event review completion | Review records in admin-gms linked to warning IDs |
+| Post-event review completion | Review records in gaa-admin linked to warning IDs |
 
 Where automation is not yet possible, manual logging is the interim method. Manual logs are entered into the same system so reporting is consistent.
 

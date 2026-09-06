@@ -6,7 +6,7 @@ Accepted
 
 ## Context
 
-GrenMet contains multiple Next.js apps, one FastAPI backend, shared TypeScript packages, a generated API client, and shared design-system primitives.
+This monorepo contains multiple Next.js apps, one FastAPI backend, shared TypeScript packages, a generated API client, and shared design-system primitives.
 
 ## Decision
 

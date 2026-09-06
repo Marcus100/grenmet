@@ -77,6 +77,8 @@ class WorkflowInstance(SQLModel, table=True):
     entity_type: str = Field(max_length=100)  # e.g. "parking_permit", "leave_request"
     entity_id: uuid.UUID = Field(index=True)
     requested_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
+    allow_self_approval: bool = True
+    require_distinct_approvers: bool = False
     status: WorkflowStatus = Field(default=WorkflowStatus.DRAFT)
     current_step_order: int = Field(default=0)
     submitted_at: datetime | None = None

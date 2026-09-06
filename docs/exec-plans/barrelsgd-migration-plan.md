@@ -1,13 +1,23 @@
 # Barrels Grenada Migration Plan
 
-**Status:** Proposed — not yet started
+**Status:** Partially executed — baseline landed; transition boundaries 1–2 complete
 **Recorded:** 2026-07-25
+**Reconciled:** 2026-08-16 — portfolio sequencing and client boundaries moved to
+the authoritative portfolio views
 **Owner:** Repository maintainers
 **Companion documents:**
 [Barrels Grenada Platform Transition](barrelsgd-transition.md) (target
 architecture),
 [Barrels Grenada Product Strategy](../strategy/barrels-product-strategy.md)
 (five-year direction)
+
+Portfolio priority now lives in the
+[Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md),
+and GAA/GMS outcomes live in the
+[GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).
+This document remains the execution record for baseline and transition details;
+its older product-priority or client-classification statements are superseded by
+those views.
 
 ## Purpose
 
@@ -40,13 +50,13 @@ the transition document.
 | `barrels.gd` DNS | Fully under our control. Staging and production records can be created as soon as infrastructure exists. |
 | `apps/web/dowden`, `apps/web/gdbank` | Out of scope. Both are empty untracked directories; they move to their own repository and are never given Barrels package, port, host, or image identity here. |
 | `apps/web/shop` | In the Barrels portfolio as **Barrels Shop** (ecommerce). Identity is reserved now; the product is built after the migration as its own initiative. |
-| Python and ops workspaces | Same classification rule as TypeScript: rename identifiers that claim company or infrastructure ownership, keep GrenMet/GMS product names. Vendored `surface/` and `wis2box/` are not renamed. |
+| Python and ops workspaces | Same classification rule as TypeScript: rename identifiers that claim company or infrastructure ownership, keep GMS service and domain names. Vendored `surface/` and `wis2box/` are not renamed. |
 | Fresh staging timing | Provisioned early, in parallel with the code boundaries, so each boundary is validated against real infrastructure as it lands. |
-| Canonical domain | Everything moves to `barrels.gd`. GrenMet is one product within Barrels, not the owner of the platform. |
-| `weather.gd` | In acquisition, not yet controlled. GrenMet goes live on `weather.barrels.gd`; `weather.gd` later masks it as the public GMS face. |
+| Canonical domain | Barrels-operated infrastructure moves to `barrels.gd`. GMS is a GAA client programme with its own service domains, not a Barrels product or the owner of the platform. |
+| `weather.gd` | In acquisition, not yet controlled. GMS goes live on `weather.barrels.gd`; `weather.gd` later masks it as the public GMS face. |
 | `apps/api/honoapi` | A health-endpoint stub intended as a future weather-data proxy. Identity reserved, implementation deferred. |
 | SURFACE and wis2box | Operationally separate host and lifecycle; integrated by data contract through FastAPI. Never touched by platform deploys or infrastructure teardown. |
-| Barrels HR | One multi-tenant HR product. GMS, MBIA, GAA, and future clients are tenants of a single codebase and deployment, with data scoped by organization. Future work, direction recorded now. |
+| Workforce productization | Deliver the GAA staff platform first. A reusable multi-tenant Barrels workforce product is a future decision gate after reuse, rights, demand, isolation, and support are proven. |
 | Execution model | One numbered boundary per session, checked and reported, then stopped for human review and commit. |
 
 ### Reserved identities added by this plan
@@ -80,11 +90,11 @@ commit 6 already aligns them.
 coexistence decision that predates the Barrels company decision. It assigns
 `api.weather.gd` as the canonical public API host and `hurricane.weather.gd` to
 the standalone Hurricane Plan app. Both are now wrong: `api.barrels.gd` is
-canonical, and Hurricane Plan folds into GrenMet `/sops`. Its still-correct
+canonical, and Hurricane Plan folds into GMS `/sops`. Its still-correct
 content is the cookie constraint — authenticated surfaces cannot span
 registrable domains, so `/admin`, `/signin`, and `/auth/*` stay canonical on
 `*.barrels.gd` even after `weather.gd` arrives. That constraint is already
-reflected in the transition document's GrenMet host behavior section.
+reflected in the transition document's GMS host behavior section.
 
 ### Execution model
 
@@ -350,7 +360,7 @@ boundaries were derived, so its own output has no home among them:
   classification, ops-stack exclusion, multi-tenant HR wording, dowden/gdbank
   exclusion)
 - `docs/weather-gd-golive.md` (superseded banner; `api.barrels.gd` is canonical,
-  Hurricane Plan folds into GrenMet `/sops`, the cookie constraint carried
+  Hurricane Plan folds into GMS `/sops`, the cookie constraint carried
   forward)
 
 Documentation only. Land it last so it records the eight commits that precede it.
@@ -369,7 +379,7 @@ Read on 2026-07-25 and assigned to commits 1–8.
 | `scripts/scrapy-wxwatch/README.md` | 4 | crawler hardening docs (required source argument, exit codes, per-spider scheduling); its `--package wxwatch` command edits are inseparable from the reworked examples |
 | `docs/architecture.md` | 5 | link repair to `./internal/service-catalogue.md` |
 | `docs/internal/service-catalogue.md` | 5 | relative-path repairs after the file moved under `internal/` |
-| `docs/technical-overview.md` | 5 | anchor repair to `#database-owned-by-admin-gms` |
+| `docs/technical-overview.md` | 5 | anchor repair to `#database-owned-by-gaa-admin` |
 | `docs/env.md` | 6 | env-file guidance and per-app example rewrite |
 | `docs/troubleshooting.md` | 2 and 6 (*mixed*) | the `--frozen --package fast-back` seed command is boundary 2; the `pnpm reset` warning and the Compose logs command are boundary 6 |
 
@@ -471,13 +481,14 @@ current tree, and how the boundaries interleave with infrastructure.
 These are specific to this repository and are not visible from the transition
 document alone.
 
-**The `web-admin` name is already taken.** `apps/web/admin-gms` is published as
-`@grenmet/web-admin`, but the transition allocates `@barrelsgd/web-admin` to a
+**The `web-admin` name is already taken.** `apps/web/gaa-admin` is published as
+`@grenmet/web-admin`, but the transition allocates `@barrelsgd/web-gaa-admin` to a
 brand-new Barrels-wide control plane. The scope rename in boundary 2 must **not**
-map `@grenmet/web-admin` → `@barrelsgd/web-admin`. `admin-gms` is being folded
-into the GMS Dashboard, so rename it to a transitional product-explicit name
-(`@barrelsgd/web-admin-gms`) and leave `@barrelsgd/web-admin` unclaimed until
-boundary 11 creates it.
+map `@grenmet/web-admin` → `@barrelsgd/web-gaa-admin`. `gaa-admin` is the current GAA
+staff portal, piloted in GMS, so give it the transitional client-explicit name
+`@barrelsgd/web-gaa-gaa-admin` before its planned `apps/web/gaa-admin` destination.
+Leave `@barrelsgd/web-gaa-admin` unclaimed until boundary 11 creates the Barrels
+control plane.
 
 **GAA does not exist as an app yet.** `apps/web/gaa` is an empty untracked
 directory; the GAA content lives inside `apps/web/mbia`
@@ -509,20 +520,20 @@ drift check. Regenerating in the wrong order produces a green check over stale
 output.
 
 **Token changes are dual-landed.** Any `--gm-*` token move into
-`@barrelsgd/grenmet` must land in Figma and
+`@barrelsgd/gms` must land in Figma and
 `packages/ui/src/styles/globals.css` together, and needs approval before it
 starts.
 
 ### Python and ops workspace classification
 
 Apply the same rule used for TypeScript. Rename what claims company or
-infrastructure ownership; keep what names the GrenMet product or a GMS domain
+infrastructure ownership; keep what names the GMS service or a GMS domain
 concept.
 
 | Workspace | Treatment |
 | --- | --- |
-| `apps/api/fastapi` | OpenAPI title becomes `Barrels Grenada API`. CAP identifiers (`urn:grenmet:cap`), GMS route and schema terminology, and module names stay. |
-| `scripts/scrapy-wxwatch` | WxWatch is a GrenMet capability name — keep it. Rename only infrastructure identifiers (bucket prefixes, container names, database roles) that claim company ownership. |
+| `apps/api/fastapi` | OpenAPI title becomes `Barrels Grenada API`. CAP identifiers (`urn:gms:cap`), GMS route and schema terminology, and module names stay. |
+| `scripts/scrapy-wxwatch` | WxWatch is a GMS capability name — keep it. Rename only infrastructure identifiers (bucket prefixes, container names, database roles) that claim company ownership. |
 | `scripts/sutron-collector` | Parked at Phase 1. No rename, no scope change. |
 | `scripts/wis2-setup`, `geonetcast`, `notebooks` | Ops tooling. Rename infrastructure identifiers only. |
 | `surface/`, `wis2box/` | Vendored. Not renamed — see [VENDORED.md](../../VENDORED.md). Renaming here increases divergence from upstream for no ownership gain. |
@@ -554,8 +565,8 @@ specification. The sequencing that this plan fixes:
 6. Lower TTLs only after production smoke tests pass.
 7. Cut over `*.barrels.gd` and verify the full platform.
 8. Destroy legacy infrastructure only after every acceptance check passes and the
-   owner explicitly confirms destruction. The GrenMet product continues; only the
-   infrastructure named for it is retired.
+   owner explicitly confirms destruction. The GMS programme and services
+   continue; only the infrastructure named for them is retired.
 9. Add `weather.gd` and `gaa.gd` later as independent cutovers. MBIA stays a
    distinct passenger site and is never redirected to GAA.
 10. Schedule WxWatch sources only after its production database, object storage,
@@ -575,32 +586,32 @@ platform deploys buys nothing.
   deployment pipeline.
 - Neither stack is renamed. See [VENDORED.md](../../VENDORED.md).
 - The step 8 legacy teardown explicitly excludes this host. Destroying
-  infrastructure named for GrenMet must not reach the WIS2 sandbox.
+  infrastructure named for GMS must not reach the WIS2 sandbox.
 
-### Barrels HR direction
+### Workforce productization gate
 
-Recorded so the eventual GMS HR extraction does not paint us into a corner:
-Barrels HR is **one multi-tenant product**, not one deployment per business. GMS,
-MBIA, GAA, and future clients are organizations within a single codebase and
-deployment, with data scoped by tenant. "Main HR" is the product; "sub HR" is
-each tenant's scoped view of it.
+GAA HR, roster, and related organisation-wide modules remain in the GAA staff
+platform, piloted in GMS. The model should remain organisation-aware so client
+delivery does not hardcode one department, but this does not commit Barrels to a
+commercial product.
 
-This is future work. GMS HR, roster, and the related organization-wide modules
-stay inside the GMS Dashboard until a replacement covers their workflows, and no
-extraction work starts under this migration.
+After the GAA pilot proves reusable behavior, Barrels may evaluate a separate
+workforce product. That decision requires reuse evidence, software/data rights,
+external demand, tenant isolation, support/onboarding, and pricing. No extraction
+or product build starts under this migration.
 
 ## Boundaries and stop conditions
 
 - Every boundary leaves the workspace runnable and passes `pnpm fix`,
   `pnpm type-check`, its focused tests, and the Blast-Radius Gate.
 - Public interface changes in this migration are: `@grenmet/*` →
-  `@barrelsgd/*`, the new Barrels and GrenMet hostnames, product-aware
+  `@barrelsgd/*`, the new Barrels and GMS hostnames, product-aware
   authentication, `grenmet_session` → `barrelsgd_session`, redirects for migrated
   routes, and the Barrels API title.
 - Any public FastAPI or OpenAPI change requires a `docs/api/contracts.md` update,
   OpenAPI regeneration, API-client regeneration, and `pnpm check:drift`.
-- Barrels Events, Barrels Tickets, reusable Barrels HR, and Barrels Shop are
-  post-migration product initiatives. They are not hidden scope here.
+- Barrels Events/Tickets is governed by the portfolio plan. A reusable workforce
+  product and Barrels Shop remain post-migration options, not hidden scope here.
 - Sutron stays parked at Phase 1.
 - DNS changes, secret creation, the repository rename, infrastructure
   provisioning, deployment, release publication, and resource deletion each

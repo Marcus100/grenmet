@@ -3,8 +3,8 @@
 > **Superseded on 2026-07-25** by the
 > [Barrels Grenada Migration Plan](exec-plans/barrelsgd-migration-plan.md).
 > Two assignments below are no longer correct: `api.barrels.gd` is the canonical
-> API host, not `api.weather.gd`; and Hurricane Plan folds into GrenMet `/sops`
-> rather than serving from `hurricane.weather.gd`. GrenMet goes live on
+> API host, not `api.weather.gd`; and Hurricane Plan folds into GMS `/sops`
+> rather than serving from `hurricane.weather.gd`. GMS goes live on
 > `weather.barrels.gd`, which `weather.gd` later masks as the public GMS face.
 > The cookie constraint recorded here still holds and is carried forward:
 > authenticated surfaces cannot span registrable domains, so `/admin`,
@@ -20,9 +20,9 @@ by the same production droplet and Traefik; apps share data via FastAPI.
 
 | Host | App | Notes |
 |---|---|---|
-| `weather.gd`, `www.weather.gd` | spicewx | public weather dashboard (root) |
+| `weather.gd`, `www.weather.gd` | gms | public weather dashboard (root) |
 | `api.weather.gd` | FastAPI | canonical public API host |
-| `hurricane.weather.gd` | hurricaneplan | public docs |
+| `hurricane.weather.gd` | docs | public docs |
 | everything else | unchanged on `*.barrels.gd` | auth/admin/signal/shop/… + all staging |
 
 Rule: **authenticated apps stay on barrels.gd** (session cookies cannot cross
@@ -34,7 +34,7 @@ registrable domains); weather.gd stays public/no-auth.
   serves the existing GMS WordPress site (checked 2026-07-11). Go-live requires
   access to the weather.gd registration/DNS, coordinated with whoever runs it.
 - Flipping DNS takes the old WordPress site offline at that name — the DNS
-  change is the launch button; spicewx content must be ready to replace it.
+  change is the launch button; gms content must be ready to replace it.
 
 ## Already prepared (dormant) in the repo
 
@@ -63,7 +63,7 @@ registrable domains); weather.gd stays public/no-auth.
    replacement rule lines in `docker-compose.prod.yml` instead.
 6. Ship through the normal train (dev → staging → main, publish release).
    The deploy workflow's `docker compose config` validation gates syntax.
-7. Verify: `curl -sI https://weather.gd` → spicewx with a valid certificate
+7. Verify: `curl -sI https://weather.gd` → gms with a valid certificate
    (Let's Encrypt issues on first traffic; DNS must already point here or
    issuance fails and retries — rate limit: 5 failed validations/hour).
    Also check `https://api.weather.gd/api/v1/utils/health-check/` → `true`.

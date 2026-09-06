@@ -1,0 +1,59 @@
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { FileText, MapIcon, Rss } from "lucide-react";
+import { capPublicUrl } from "@/lib/cap-api";
+
+const FEEDS = [
+  {
+    href: "/api/cap/rss.xml",
+    icon: Rss,
+    label: "RSS",
+    value: "Active alert RSS feed",
+  },
+  {
+    href: "/api/cap/alerts.geojson",
+    icon: MapIcon,
+    label: "GeoJSON",
+    value: "Active alert feature collection",
+  },
+  {
+    href: "/api/cap/latest-active",
+    icon: FileText,
+    label: "JSON",
+    value: "Active alert JSON",
+  },
+];
+
+export function FeedsSection() {
+  return (
+    <div className="max-w-5xl">
+      <h2 className="text-gm-text-primary text-heading-md leading-heading-md">
+        Public Feeds
+      </h2>
+      <div className="mt-6 grid gap-3">
+        {FEEDS.map((feed) => (
+          <article
+            className="flex flex-col gap-4 border border-gm-border bg-white p-4 shadow-card sm:flex-row sm:items-center sm:justify-between"
+            key={feed.href}
+          >
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-gm-surface-panel text-navy">
+                <feed.icon aria-hidden="true" className="size-5" />
+              </span>
+              <div className="min-w-0">
+                <h3 className="text-gm-text-primary text-heading-sm leading-heading-sm">
+                  {feed.label}
+                </h3>
+                <p className="text-body text-gm-text-secondary leading-body">
+                  {feed.value}
+                </p>
+              </div>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <a href={capPublicUrl(feed.href)}>Open</a>
+            </Button>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}

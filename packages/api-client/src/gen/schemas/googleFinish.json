@@ -1,0 +1,18 @@
+{
+  "properties": {
+    "challenge": {
+      "type": "string",
+      "maxLength": 256,
+      "minLength": 32,
+      "title": "Challenge"
+    },
+    "totp_code": {
+      "anyOf": [{ "type": "string", "maxLength": 64 }, { "type": "null" }],
+      "title": "Totp Code"
+    }
+  },
+  "type": "object",
+  "required": ["challenge"],
+  "title": "GoogleFinish",
+  "x-readme-ref-name": "GoogleFinish"
+}

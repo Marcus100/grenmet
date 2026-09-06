@@ -17,10 +17,10 @@ export default async function ResetPasswordPage({ searchParams }: PageProps) {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
-      <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-gm-card md:p-8">
+      <section className="rounded-4xl border border-(--line) bg-(--panel-strong) p-7 shadow-card md:p-8">
         <div className="space-y-6">
           <div className="space-y-2">
-            <div className="font-mono text-(--muted) text-gm-label uppercase tracking-widest">
+            <div className="font-mono text-(--muted) text-label uppercase tracking-widest">
               Password recovery
             </div>
             <h1 className="font-semibold text-2xl text-foreground tracking-normal">

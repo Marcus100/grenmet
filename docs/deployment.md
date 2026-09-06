@@ -1,4 +1,4 @@
-# GrenMet — Deployment Guide
+# Barrels Grenada — Deployment Guide
 
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet.

@@ -52,9 +52,9 @@ The review covers:
 | Phase 1 | ICT Readiness and Assessment | ✅ Complete | Infrastructure established; CI/CD pipeline operational; monorepo architecture finalised. |
 | Phase 2 | CAP Implementation and SOPs | 🔄 In progress | *[INSERT: what has been done, what remains, any blockers]* |
 | Phase 3 | CDMS Implementation | 🔄 In progress | *[INSERT: SURFACE CDMS evaluation status; what has been done, what remains]* |
-| Phase 4 | Internal Dashboard MVP | 🔄 In progress | *[INSERT: current state of admin-gms; what forecasters can use today]* |
+| Phase 4 | Internal Dashboard MVP | 🔄 In progress | *[INSERT: current state of gaa-admin; what forecasters can use today]* |
 | Phase 5 | Automation Tools | 🔄 Partial | Morning forecast PDF export operational. *[INSERT: what else has been automated]* |
-| Phase 6 | Website and Public Products | 🔄 In progress | *[INSERT: spicewx current state; what is publicly accessible]* |
+| Phase 6 | Website and Public Products | 🔄 In progress | *[INSERT: gms current state; what is publicly accessible]* |
 
 ---
 
@@ -73,7 +73,7 @@ The review covers:
 | 7a | Forecast product database schemas deployed | June 2026 | ✅ Complete | 14 product schemas (morning, midday, evening, marine, METAR/SPECI, TAF, SYNOP, CAP, IBF, BUFR, outlook, hourly, product-metadata, suite). |
 | 7b | Morning forecast PDF export operational | June 2026 | ✅ Complete | Playwright-based PDF export rendering wxproducts morning forecast to print-ready A4 layout. |
 | 7c | Additional PDF export formats (midday, evening, marine) | July 2026 | 🔄 In progress | *[INSERT: current status]* |
-| 8 | Public weather website pilot launched (spicewx) | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: URL if live; what features are accessible]* |
+| 8 | Public weather website pilot launched (gms) | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: URL if live; what features are accessible]* |
 | 9 | KPI baselines documented and approved | July 2026 | *[✅ / 🔄 / ❌]* | *See Section 5 of this report.* |
 | 10 | At least one staff digital skills training session | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: what training was delivered, when, who attended]* |
 | 11 | ICT governance documentation drafted | July 2026 | *[✅ / 🔄 / ❌]* | *[INSERT: what documents exist — security policy, backup procedures, system inventory]* |
@@ -200,7 +200,7 @@ The review covers:
 
 1. *[INSERT: e.g. "CAP dissemination tool to operational status — dissemination to SMS, website, and email"]*
 2. *[INSERT: e.g. "CDMS fully deployed with automated data ingestion"]*
-3. *[INSERT: e.g. "spicewx public weather website launched and publicly accessible"]*
+3. *[INSERT: e.g. "gms public weather website launched and publicly accessible"]*
 4. *[INSERT: e.g. "Internal dashboard first operational release to Forecasting Unit"]*
 5. *[INSERT: e.g. "First staff digital skills training completed"]*
 
@@ -216,7 +216,7 @@ The review covers:
 
 ### Appendix A — System Screenshots
 
-*[INSERT: screenshots of working systems — e.g. morning forecast PDF, admin-gms dashboard, spicewx website, CI/CD pipeline passing. Label each one clearly.]*
+*[INSERT: screenshots of working systems — e.g. morning forecast PDF, gaa-admin dashboard, gms website, CI/CD pipeline passing. Label each one clearly.]*
 
 ### Appendix B — Development Activity Summary
 
@@ -227,7 +227,7 @@ The review covers:
 | CI/CD workflows established | 10 |
 | Web applications built | 8 |
 | Database product schemas | 14 |
-| Automated tests (admin-gms) | *[INSERT: run `pnpm test` and record count]* |
+| Automated tests (gaa-admin) | *[INSERT: run `pnpm test` and record count]* |
 
 ### Appendix C — Glossary
 

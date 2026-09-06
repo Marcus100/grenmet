@@ -11,7 +11,8 @@ COPY --from=ghcr.io/astral-sh/uv:0.11.26@sha256:3d868e555f8f1dbc324afa005066cd11
 # Set environment variables for Python
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    UV_SYSTEM_PYTHON=1
+    UV_SYSTEM_PYTHON=1 \
+    UV_LINK_MODE=copy
 
 # Set working directory
 WORKDIR /app
@@ -25,8 +26,10 @@ COPY notebooks/pyproject.toml notebooks/pyproject.toml
 COPY geonetcast/pyproject.toml geonetcast/pyproject.toml
 
 # Install only FastAPI's production dependencies in the shared workspace venv.
+# The cache mount is only useful without --no-cache, which would otherwise make
+# uv re-download every wheel on each cache-cold build.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --package fast-back --no-dev --no-install-workspace --no-cache
+    uv sync --frozen --package fast-back --no-dev --no-install-workspace
 
 # Install the FastAPI member after its source is available.
 COPY apps/api/fastapi/src apps/api/fastapi/src
@@ -35,12 +38,13 @@ COPY apps/api/fastapi/alembic.ini apps/api/fastapi/alembic.ini
 COPY apps/api/fastapi/email-templates apps/api/fastapi/email-templates
 COPY apps/api/fastapi/scripts apps/api/fastapi/scripts
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --package fast-back --no-dev --no-cache
+    uv sync --frozen --package fast-back --no-dev
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.13-slim-bookworm@sha256:9d7f287598e1a5a978c015ee176d8216435aaf335ed69ac3c38dd1bbb10e8d64
 
-# Include uv runtime for prestart tasks and operational tooling
+# uv is no longer on any startup path — prestart and the worker run straight off
+# the venv on PATH. Kept only as an escape hatch for ad-hoc `docker exec` ops.
 COPY --from=builder /bin/uv /bin/uv
 
 # Security: Install security updates
@@ -49,38 +53,47 @@ RUN apt-get update \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Create the non-root user before any application content is copied. Every COPY
+# below then lands already owned by appuser, so no recursive chown is needed.
+# A `chown -R /app` after the fact rewrites the entire venv into a second layer,
+# roughly doubling image size and adding minutes to the build.
+# HOME/UV_CACHE_DIR are set explicitly because prestart.sh and the arq worker run
+# `uv sync` / `uv run` at container start and need a writable cache.
+RUN groupadd -r appuser \
+    && useradd -r -g appuser -u 1000 -m appuser \
+    && mkdir -p /app /home/appuser/.cache/uv \
+    && chown appuser:appuser /app \
+    && chown -R appuser:appuser /home/appuser
+
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/app/.venv/bin:$PATH"
+    PATH="/app/.venv/bin:$PATH" \
+    HOME=/home/appuser \
+    UV_CACHE_DIR=/home/appuser/.cache/uv \
+    UV_LINK_MODE=copy
 
 # Keep the workspace root stable across builder and runtime stages.
 WORKDIR /app
 
-# Copy virtual environment from builder
-COPY --from=builder /app/.venv /app/.venv
+# Copy virtual environment from builder. Ownership is applied as the layer is
+# written; prestart.sh re-syncs this venv at start, so it must stay writable.
+COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 
 # Copy workspace metadata used by uv-powered operational commands
-COPY pyproject.toml uv.lock ./
-COPY apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
-COPY scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
-COPY scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
-COPY notebooks/pyproject.toml notebooks/pyproject.toml
-COPY geonetcast/pyproject.toml geonetcast/pyproject.toml
+COPY --chown=appuser:appuser pyproject.toml uv.lock ./
+COPY --chown=appuser:appuser apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
+COPY --chown=appuser:appuser scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
+COPY --chown=appuser:appuser scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
+COPY --chown=appuser:appuser notebooks/pyproject.toml notebooks/pyproject.toml
+COPY --chown=appuser:appuser geonetcast/pyproject.toml geonetcast/pyproject.toml
 
 # Copy application code
-COPY apps/api/fastapi/src apps/api/fastapi/src
-COPY apps/api/fastapi/alembic apps/api/fastapi/alembic
-COPY apps/api/fastapi/alembic.ini apps/api/fastapi/alembic.ini
-COPY apps/api/fastapi/email-templates apps/api/fastapi/email-templates
-COPY apps/api/fastapi/scripts apps/api/fastapi/scripts
-
-# Create non-root user for security
-RUN groupadd -r appuser && \
-    useradd -r -g appuser -u 1000 appuser && \
-    chown -R appuser:appuser /app && \
-    mkdir -p /home/appuser && \
-    chown -R appuser:appuser /home/appuser
+COPY --chown=appuser:appuser apps/api/fastapi/src apps/api/fastapi/src
+COPY --chown=appuser:appuser apps/api/fastapi/alembic apps/api/fastapi/alembic
+COPY --chown=appuser:appuser apps/api/fastapi/alembic.ini apps/api/fastapi/alembic.ini
+COPY --chown=appuser:appuser apps/api/fastapi/email-templates apps/api/fastapi/email-templates
+COPY --chown=appuser:appuser apps/api/fastapi/scripts apps/api/fastapi/scripts
 
 # Switch to non-root user
 USER appuser

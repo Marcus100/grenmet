@@ -1,0 +1,17 @@
+{
+  "properties": {
+    "allow_self_approval": {
+      "type": "boolean",
+      "title": "Allow Self Approval",
+      "default": false
+    },
+    "require_distinct_approvers": {
+      "type": "boolean",
+      "title": "Require Distinct Approvers",
+      "default": true
+    }
+  },
+  "type": "object",
+  "title": "PolicyInput",
+  "x-readme-ref-name": "PolicyInput"
+}

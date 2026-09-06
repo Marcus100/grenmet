@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
+from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
 
 from . import service
@@ -32,9 +33,10 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
 async def create_leave_request(
     *, session: SessionDep, current_user: CurrentUser, payload: LeaveRequestCreate
 ) -> Any:
-    return await service.create_leave_request(
+    result = await service.create_leave_request(
         session=session, current_user=current_user, payload=payload
     )
+    return await submission_public(session, result, LeaveRequestPublic)
 
 
 @router.post(
@@ -58,12 +60,13 @@ async def submit_leave_request(
     leave_request: LeaveRequestDep,
     payload: LeaveRequestSubmit,
 ) -> Any:
-    return await service.submit_leave_request(
+    result = await service.submit_leave_request(
         session=session,
         current_user=current_user,
         leave_request_id=leave_request.id,
         payload=payload,
     )
+    return await submission_public(session, result, LeaveRequestPublic)
 
 
 @router.patch(
@@ -85,12 +88,13 @@ async def update_leave_request(
     leave_request: LeaveRequestDep,
     payload: LeaveRequestCreate,
 ) -> Any:
-    return await service.update_leave_request(
+    result = await service.update_leave_request(
         session=session,
         current_user=current_user,
         leave_request_id=leave_request.id,
         payload=payload,
     )
+    return await submission_public(session, result, LeaveRequestPublic)
 
 
 @router.delete(
@@ -140,12 +144,13 @@ async def action_leave_request(
     leave_request: LeaveRequestDep,
     payload: LeaveRequestAction,
 ) -> Any:
-    return await service.action_leave_request(
+    result = await service.action_leave_request(
         session=session,
         current_user=current_user,
         leave_request_id=leave_request.id,
         payload=payload,
     )
+    return await submission_public(session, result, LeaveRequestPublic)
 
 
 @router.get(
@@ -165,10 +170,7 @@ async def read_my_leave_requests(
         limit=pagination.limit,
     )
     return LeaveRequestListPublic(
-        data=[
-            LeaveRequestPublic.model_validate(item, from_attributes=True)
-            for item in rows
-        ],
+        data=await submission_list(session, rows, LeaveRequestPublic),
         count=total,
         page=pagination.page,
         size=pagination.size,
