@@ -1,7 +1,7 @@
 "use client";
 
 import { Transition } from "@headlessui/react";
-import clsx from "clsx";
+import { clsx } from "cn";
 import { forwardRef, useState } from "react";
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<"svg">) {

@@ -26,6 +26,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | gms | `@barrelsgd/web-gms` | 3003 | yes |
 | signal | `@barrelsgd/web-signal` | 3004 | deployment configured |
 | mbia | `@barrelsgd/web-mbia` | 3005 | deployment configured |
+| cms | `@barrelsgd/web-cms` | 3006 | local trial |
 | events | `@barrelsgd/web-events` | 3009 | deployment configured (prototype) |
 
 Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`.

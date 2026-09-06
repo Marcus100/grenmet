@@ -29,7 +29,7 @@
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "@types/react-highlight-words": "^0.20.0",
-    "clsx": "catalog:",
+    "cn": "catalog:",
     "fast-glob": "^3.3.3",
     "flexsearch": "^0.8.205",
     "motion": "catalog:",

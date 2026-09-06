@@ -9,7 +9,7 @@ import {
   createAutocomplete,
 } from "@algolia/autocomplete-core";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import clsx from "clsx";
+import { clsx } from "cn";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Fragment,
