@@ -12,6 +12,7 @@ import {
 import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
 import { UserPlus, X } from "lucide-react";
 import type { ReactNode } from "react";
+import { displayName } from "@/lib/people";
 
 interface CoApproverPickerProps {
   /** Department whose members can be chosen as co-approvers. */
@@ -54,7 +55,7 @@ export function CoApproverPicker({
 
   const nameFor = (userId: string) => {
     const member = members.find((candidate) => candidate.user_id === userId);
-    return member ? `${member.first_name} ${member.last_name}` : "Colleague";
+    return member ? displayName(member) : "Unknown staff member";
   };
 
   let listBody: ReactNode;

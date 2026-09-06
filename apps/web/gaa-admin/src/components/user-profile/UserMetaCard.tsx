@@ -13,26 +13,37 @@ export default function UserMetaCard({ profile }: UserMetaCardProps) {
     `${profile.profile.first_name} ${profile.profile.last_name}`;
 
   const avatarUrl = profile.identity.avatar_url;
-  const avatarSrc = avatarUrl?.startsWith("/")
-    ? avatarUrl
-    : "/images/user/owner.jpg";
-  const position = profile.employment.position || "Meteorological Officer";
+  const avatarSrc = avatarUrl?.startsWith("/") ? avatarUrl : null;
+  const position =
+    profile.employment.grade?.label ||
+    profile.employment.position ||
+    "Grade not assigned";
   const department =
-    profile.employment.department?.name || "Meteorological Service";
-  const location = profile.employment.work_location || "Grenada";
+    profile.employment.department?.name || "Department not assigned";
+  const location = profile.employment.work_location || "Location not recorded";
 
   return (
     <div className="rounded-2xl border border-border p-5 lg:p-6">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
         <div className="flex w-full flex-col items-center gap-6 xl:flex-row">
           <div className="h-20 w-20 overflow-hidden rounded-full border border-border">
-            <Image
-              alt={`${fullName} avatar`}
-              className="h-full w-full object-cover"
-              height={80}
-              src={avatarSrc}
-              width={80}
-            />
+            {avatarSrc ? (
+              <Image
+                alt={`${fullName} avatar`}
+                className="h-full w-full object-cover"
+                height={80}
+                src={avatarSrc}
+                width={80}
+              />
+            ) : (
+              <span className="flex h-full items-center justify-center bg-muted font-semibold text-xl">
+                {fullName
+                  .split(" ")
+                  .map((part) => part[0])
+                  .slice(0, 2)
+                  .join("")}
+              </span>
+            )}
           </div>
           <div className="order-3 xl:order-2">
             <h4 className="mb-2 text-center font-semibold text-foreground text-lg xl:text-left">
