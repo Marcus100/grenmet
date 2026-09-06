@@ -7,12 +7,12 @@ import * as z from "zod";
 import { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
 
 export const rosterRevisionPublicSchema = z.object({
-  id: z.string().uuid(),
-  roster_period_id: z.string().uuid(),
-  revision_number: z.number().int(),
-  action: z.lazy(() => rosterRevisionActionSchema),
-  changed_by_user_id: z.string().uuid(),
-  summary: z.optional(z.union([z.string(), z.null()])),
-  snapshot: z.object({}).catchall(z.any()),
+  id: z.uuid(),
+  roster_period_id: z.uuid(),
+  revision_number: z.int(),
+  action: rosterRevisionActionSchema,
+  changed_by_user_id: z.uuid(),
+  summary: z.union([z.string(), z.null()]).optional(),
+  snapshot: z.object({}).catchall(z.unknown()),
   created_at: z.string(),
 });

@@ -7,44 +7,38 @@ import type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
 import type { GoogleComplete } from "./GoogleComplete.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * GoogleChallengePublic
- * @description Successful Response
- */
-export type GoogleCompleteApiV1AuthModernGoogleCompletePost200 =
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200 =
   GoogleChallengePublic;
 
-/**
- * @description Invalid or expired proof
- */
-export type GoogleCompleteApiV1AuthModernGoogleCompletePost400 = any;
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400 = unknown;
 
-/**
- * @description Account is not eligible
- */
-export type GoogleCompleteApiV1AuthModernGoogleCompletePost403 = any;
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type GoogleCompleteApiV1AuthModernGoogleCompletePost422 =
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422 =
   HTTPValidationError;
 
-/**
- * GoogleComplete
- */
-export type GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest =
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostBody =
   GoogleComplete;
 
-export type GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse =
-  GoogleCompleteApiV1AuthModernGoogleCompletePost200;
-
-export type GoogleCompleteApiV1AuthModernGoogleCompletePostMutation = {
-  Response: GoogleCompleteApiV1AuthModernGoogleCompletePost200;
-  Request: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest;
-  Errors:
-    | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-    | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-    | GoogleCompleteApiV1AuthModernGoogleCompletePost422;
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostOptions = {
+  body: GoogleCompleteApiV1AuthModernGoogleCompletePostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostResponses = {
+  "200": GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200;
+  "400": GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400;
+  "403": GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403;
+  "422": GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type GoogleCompleteApiV1AuthModernGoogleCompletePostResponse =
+  | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200
+  | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+  | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+  | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422;

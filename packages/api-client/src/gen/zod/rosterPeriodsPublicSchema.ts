@@ -7,6 +7,6 @@ import * as z from "zod";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
 export const rosterPeriodsPublicSchema = z.object({
-  data: z.array(z.lazy(() => rosterPeriodPublicSchema)),
-  count: z.number().int(),
+  data: z.array(rosterPeriodPublicSchema),
+  count: z.int(),
 });

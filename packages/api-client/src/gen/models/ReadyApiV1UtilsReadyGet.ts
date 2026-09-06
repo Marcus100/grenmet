@@ -3,22 +3,27 @@
  * Do not edit manually.
  */
 
-/**
- * Response Ready Api V1 Utils Ready  Get
- * @description Database reachable
- */
-export type ReadyApiV1UtilsReadyGet200 = {
+export type ReadyApiV1UtilsReadyGetStatus200 = {
   [key: string]: string;
 };
 
-/**
- * @description Database unreachable
- */
-export type ReadyApiV1UtilsReadyGet503 = any;
+export type ReadyApiV1UtilsReadyGetStatus503 = unknown;
 
-export type ReadyApiV1UtilsReadyGetQueryResponse = ReadyApiV1UtilsReadyGet200;
-
-export type ReadyApiV1UtilsReadyGetQuery = {
-  Response: ReadyApiV1UtilsReadyGet200;
-  Errors: ReadyApiV1UtilsReadyGet503;
+export type ReadyApiV1UtilsReadyGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadyApiV1UtilsReadyGetResponses = {
+  "200": ReadyApiV1UtilsReadyGetStatus200;
+  "503": ReadyApiV1UtilsReadyGetStatus503;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadyApiV1UtilsReadyGetResponse =
+  | ReadyApiV1UtilsReadyGetStatus200
+  | ReadyApiV1UtilsReadyGetStatus503;

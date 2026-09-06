@@ -3,54 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch422,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponses,
 } from "../models/UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
-
-function getUpdatePasswordMeApiV1AuthUsersMePasswordPatchUrl() {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/auth/users/me/password` as const,
-  };
-  return res;
-}
 
 /**
  * @description Change password for the currently authenticated user.
  * @summary Change current user password
  * {@link /api/v1/auth/users/me/password}
  */
-export async function updatePasswordMeApiV1AuthUsersMePasswordPatch(
-  data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updatePasswordMeApiV1AuthUsersMePasswordPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
-    >,
-    UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdatePasswordMeApiV1AuthUsersMePasswordPatchUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/auth/users/me/password",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

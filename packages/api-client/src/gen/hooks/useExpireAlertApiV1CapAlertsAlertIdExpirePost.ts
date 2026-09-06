@@ -9,47 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { expireAlertApiV1CapAlertsAlertIdExpirePost } from "../clients/expireAlertApiV1CapAlertsAlertIdExpirePost.js";
 import type {
-  ExpireAlertApiV1CapAlertsAlertIdExpirePost422,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422,
 } from "../models/ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
 
 export const expireAlertApiV1CapAlertsAlertIdExpirePostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/expire" }] as const;
 
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationKey = ReturnType<
-  typeof expireAlertApiV1CapAlertsAlertIdExpirePostMutationKey
->;
-
 export function expireAlertApiV1CapAlertsAlertIdExpirePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = expireAlertApiV1CapAlertsAlertIdExpirePostMutationKey();
   return mutationOptions<
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-    {
-      alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"];
-      data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-    },
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422>,
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return expireAlertApiV1CapAlertsAlertIdExpirePost(alert_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return expireAlertApiV1CapAlertsAlertIdExpirePost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +53,14 @@ export function expireAlertApiV1CapAlertsAlertIdExpirePostMutationOptions<
 export function useExpireAlertApiV1CapAlertsAlertIdExpirePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-      ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-      {
-        alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"];
-        data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-      },
+      ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+      ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422>,
+      ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +72,16 @@ export function useExpireAlertApiV1CapAlertsAlertIdExpirePost<TContext>(
   const baseOptions = expireAlertApiV1CapAlertsAlertIdExpirePostMutationOptions(
     config
   ) as UseMutationOptions<
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-    {
-      alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"];
-      data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-    },
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422>,
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
     TContext
   >;
 
   return useMutation<
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-    {
-      alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"];
-      data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-    },
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422>,
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
     TContext
   >(
     {
@@ -108,12 +91,9 @@ export function useExpireAlertApiV1CapAlertsAlertIdExpirePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-    {
-      alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"];
-      data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-    },
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422>,
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
     TContext
   >;
 }

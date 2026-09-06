@@ -10,58 +10,50 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readPermissionApiV1AuthPermissionsPermissionIdGet } from "../clients/readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 import type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 
-export const readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey = (
-  permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"]
-) =>
-  [
-    {
-      url: "/api/v1/auth/permissions/:permission_id",
-      params: { permission_id: permission_id },
-    },
-  ] as const;
+export const readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey = ({
+  path,
+}: Omit<ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/auth/permissions/:permission_id", params: path }] as const;
 
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryKey =
-  ReturnType<typeof readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey>;
+type ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryKey = ReturnType<
+  typeof readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey
+>;
 
 export function readPermissionApiV1AuthPermissionsPermissionIdGetQueryOptions(
-  permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey =
-    readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey(permission_id);
+  const queryKey = readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey({
+    path,
+  });
   return queryOptions<
-    ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+    ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
     ResponseErrorConfig<
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422
     >,
-    ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+    ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!permission_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readPermissionApiV1AuthPermissionsPermissionIdGet(
-        permission_id,
-        config
-      );
+      return readPermissionApiV1AuthPermissionsPermissionIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -72,53 +64,62 @@ export function readPermissionApiV1AuthPermissionsPermissionIdGetQueryOptions(
  * {@link /api/v1/auth/permissions/:permission_id}
  */
 export function useReadPermissionApiV1AuthPermissionsPermissionIdGet<
-  TData = ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-  TQueryData = ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+  TData = ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
+  TQueryData = ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
   TQueryKey extends
     QueryKey = ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryKey,
 >(
-  permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions["path"]
+      | (() => ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+        ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
         ResponseErrorConfig<
-          | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
-          | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404
+          | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey(permission_id);
+    resolvedOptions?.queryKey ??
+    readPermissionApiV1AuthPermissionsPermissionIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readPermissionApiV1AuthPermissionsPermissionIdGetQueryOptions(
-        permission_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404
+      | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -5,13 +5,7 @@
 
 import type { RequestStatus } from "./RequestStatus.js";
 
-/**
- * ShiftSwapAction
- */
 export type ShiftSwapAction = {
-  /**
-   * @type string
-   */
   status: RequestStatus;
   comments?: string | null;
 };

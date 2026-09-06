@@ -7,31 +7,30 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 
-/**
- * UserRoleAssignmentPublic
- * @description Role assignment created
- */
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201 =
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201 =
   UserRoleAssignmentPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422 =
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422 =
   HTTPValidationError;
 
-/**
- * UserRoleAssignmentCreate
- */
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest =
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostBody =
   UserRoleAssignmentCreate;
 
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse =
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201;
-
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutation = {
-  Response: CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201;
-  Request: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest;
-  Errors: CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422;
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions = {
+  body: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponses = {
+  "201": CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201;
+  "422": CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponse =
+  | CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201
+  | CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422;

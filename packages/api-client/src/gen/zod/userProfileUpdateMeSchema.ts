@@ -10,14 +10,12 @@ import { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 import { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.js";
 
 export const userProfileUpdateMeSchema = z.object({
-  profile: z.optional(
-    z.union([z.lazy(() => profileDetailsUpdateSchema), z.null()])
-  ),
-  address: z.optional(z.union([z.lazy(() => addressUpdateSchema), z.null()])),
-  emergency_contact: z.optional(
-    z.union([z.lazy(() => emergencyContactUpdateSchema), z.null()])
-  ),
-  roster_preferences: z.optional(
-    z.union([z.lazy(() => rosterPreferencesUpdateSchema), z.null()])
-  ),
+  profile: z.union([profileDetailsUpdateSchema, z.null()]).optional(),
+  address: z.union([addressUpdateSchema, z.null()]).optional(),
+  emergency_contact: z
+    .union([emergencyContactUpdateSchema, z.null()])
+    .optional(),
+  roster_preferences: z
+    .union([rosterPreferencesUpdateSchema, z.null()])
+    .optional(),
 });

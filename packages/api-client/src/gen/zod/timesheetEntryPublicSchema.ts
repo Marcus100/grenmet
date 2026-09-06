@@ -6,11 +6,11 @@
 import * as z from "zod";
 
 export const timesheetEntryPublicSchema = z.object({
-  id: z.string().uuid(),
-  timesheet_id: z.string().uuid(),
-  entry_date: z.string().date(),
-  shift_code: z.optional(z.union([z.string(), z.null()])),
-  roster_assignment_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  id: z.uuid(),
+  timesheet_id: z.uuid(),
+  entry_date: z.iso.date(),
+  shift_code: z.union([z.string(), z.null()]).optional(),
+  roster_assignment_id: z.union([z.uuid(), z.null()]).optional(),
   roster_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   actual_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   total_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
@@ -18,5 +18,5 @@ export const timesheetEntryPublicSchema = z.object({
   break_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   hours_worked: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   medical_certificate_attached: z.boolean(),
-  comments: z.optional(z.union([z.string(), z.null()])),
+  comments: z.union([z.string(), z.null()]).optional(),
 });

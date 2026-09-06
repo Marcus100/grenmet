@@ -3,29 +3,19 @@
  * Do not edit manually.
  */
 
-/**
- * RolePublic
- */
 export type SrcAuthSchemasRolePublic = {
-  /**
-   * @type string
-   */
   name: string;
   /**
-   * @default ""
+   * @default ''
    * @type string | undefined
    */
   description?: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

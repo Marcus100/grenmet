@@ -3,50 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponses,
 } from "../models/ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
-
-function getExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/login/session/access-token` as const,
-  };
-  return res;
-}
 
 /**
  * @description Validate a persisted session and mint a fresh access token for server-side API calls.
  * @summary Exchange a session secret for a short-lived access token
  * {@link /api/v1/login/session/access-token}
  */
-export async function exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost(
-  data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest,
-  config: Partial<
-    RequestConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest
-  >({
-    method: "POST",
-    url: getExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/session/access-token",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

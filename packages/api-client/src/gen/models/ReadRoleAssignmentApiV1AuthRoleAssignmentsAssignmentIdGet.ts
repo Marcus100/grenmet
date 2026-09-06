@@ -6,40 +6,42 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams =
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  assignment_id: string;
+};
+
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200 =
+  UserRoleAssignmentPublic;
+
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404 =
+  unknown;
+
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422 =
+  HTTPValidationError;
+
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions = {
+  body?: never;
+  path: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPath;
+  query?: never;
+  headers?: never;
+};
+
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponses =
   {
-    /**
-     * @type string, uuid
-     */
-    assignment_id: string;
+    "200": ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200;
+    "404": ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404;
+    "422": ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422;
   };
 
 /**
- * UserRoleAssignmentPublic
- * @description Role assignment returned
+ * @description Union of all possible responses
  */
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200 =
-  UserRoleAssignmentPublic;
-
-/**
- * @description Role assignment not found
- */
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422 =
-  HTTPValidationError;
-
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse =
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200;
-
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQuery = {
-  Response: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200;
-  PathParams: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams;
-  Errors:
-    | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404
-    | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422;
-};
+export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponse =
+  | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200
+  | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404
+  | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422;

@@ -6,10 +6,10 @@
 import * as z from "zod";
 
 export const rosterAssignmentPublicSchema = z.object({
-  id: z.string().uuid(),
-  roster_period_id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  assignment_date: z.string().date(),
+  id: z.uuid(),
+  roster_period_id: z.uuid(),
+  user_id: z.uuid(),
+  assignment_date: z.iso.date(),
   shift_code: z.string(),
-  remarks: z.optional(z.union([z.string(), z.null()])),
+  remarks: z.union([z.string(), z.null()]).optional(),
 });

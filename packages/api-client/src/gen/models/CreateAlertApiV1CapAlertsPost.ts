@@ -7,28 +7,27 @@ import type { CapAlertCreate } from "./CapAlertCreate.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type CreateAlertApiV1CapAlertsPost201 = CapAlertPublic;
+export type CreateAlertApiV1CapAlertsPostStatus201 = CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateAlertApiV1CapAlertsPost422 = HTTPValidationError;
+export type CreateAlertApiV1CapAlertsPostStatus422 = HTTPValidationError;
 
-/**
- * CapAlertCreate
- */
-export type CreateAlertApiV1CapAlertsPostMutationRequest = CapAlertCreate;
+export type CreateAlertApiV1CapAlertsPostBody = CapAlertCreate;
 
-export type CreateAlertApiV1CapAlertsPostMutationResponse =
-  CreateAlertApiV1CapAlertsPost201;
-
-export type CreateAlertApiV1CapAlertsPostMutation = {
-  Response: CreateAlertApiV1CapAlertsPost201;
-  Request: CreateAlertApiV1CapAlertsPostMutationRequest;
-  Errors: CreateAlertApiV1CapAlertsPost422;
+export type CreateAlertApiV1CapAlertsPostOptions = {
+  body: CreateAlertApiV1CapAlertsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateAlertApiV1CapAlertsPostResponses = {
+  "201": CreateAlertApiV1CapAlertsPostStatus201;
+  "422": CreateAlertApiV1CapAlertsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateAlertApiV1CapAlertsPostResponse =
+  | CreateAlertApiV1CapAlertsPostStatus201
+  | CreateAlertApiV1CapAlertsPostStatus422;

@@ -7,9 +7,7 @@ import * as z from "zod";
 import { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 
 export const capFeedImportUpdateSchema = z.object({
-  name: z.optional(z.union([z.string(), z.null()])),
-  url: z.optional(z.union([z.string(), z.null()])),
-  status: z.optional(
-    z.union([z.lazy(() => capIntegrationStatusSchema), z.null()])
-  ),
+  name: z.union([z.string().min(1).max(255), z.null()]).optional(),
+  url: z.union([z.string().min(1).max(1000), z.null()]).optional(),
+  status: z.union([capIntegrationStatusSchema, z.null()]).optional(),
 });

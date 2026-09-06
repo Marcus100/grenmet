@@ -3,56 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateInstanceApiV1HrWorkflowsInstancesPost403,
-  CreateInstanceApiV1HrWorkflowsInstancesPost404,
-  CreateInstanceApiV1HrWorkflowsInstancesPost422,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+  CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
+  CreateInstanceApiV1HrWorkflowsInstancesPostResponses,
 } from "../models/CreateInstanceApiV1HrWorkflowsInstancesPost.js";
-
-function getCreateInstanceApiV1HrWorkflowsInstancesPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/workflows/instances` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create a new workflow instance from a template. Template must exist.
  * @summary Create workflow instance
  * {@link /api/v1/hr/workflows/instances}
  */
-export async function createInstanceApiV1HrWorkflowsInstancesPost(
-  data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createInstanceApiV1HrWorkflowsInstancesPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateInstanceApiV1HrWorkflowsInstancesPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateInstanceApiV1HrWorkflowsInstancesPost403
-      | CreateInstanceApiV1HrWorkflowsInstancesPost404
-      | CreateInstanceApiV1HrWorkflowsInstancesPost422
-    >,
-    CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateInstanceApiV1HrWorkflowsInstancesPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/workflows/instances",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateInstanceApiV1HrWorkflowsInstancesPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { registerUserApiV1AuthUsersSignupPost } from "../clients/registerUserApiV1AuthUsersSignupPost.js";
 import type {
-  RegisterUserApiV1AuthUsersSignupPost400,
-  RegisterUserApiV1AuthUsersSignupPost422,
-  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+  RegisterUserApiV1AuthUsersSignupPostOptions,
+  RegisterUserApiV1AuthUsersSignupPostStatus201,
+  RegisterUserApiV1AuthUsersSignupPostStatus400,
+  RegisterUserApiV1AuthUsersSignupPostStatus422,
 } from "../models/RegisterUserApiV1AuthUsersSignupPost.js";
 
 export const registerUserApiV1AuthUsersSignupPostMutationKey = () =>
   [{ url: "/api/v1/auth/users/signup" }] as const;
 
-export type RegisterUserApiV1AuthUsersSignupPostMutationKey = ReturnType<
-  typeof registerUserApiV1AuthUsersSignupPostMutationKey
->;
-
 export function registerUserApiV1AuthUsersSignupPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<RegisterUserApiV1AuthUsersSignupPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = registerUserApiV1AuthUsersSignupPostMutationKey();
   return mutationOptions<
-    RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+    RegisterUserApiV1AuthUsersSignupPostStatus201,
     ResponseErrorConfig<
-      | RegisterUserApiV1AuthUsersSignupPost400
-      | RegisterUserApiV1AuthUsersSignupPost422
+      | RegisterUserApiV1AuthUsersSignupPostStatus400
+      | RegisterUserApiV1AuthUsersSignupPostStatus422
     >,
-    { data: RegisterUserApiV1AuthUsersSignupPostMutationRequest },
+    RegisterUserApiV1AuthUsersSignupPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return registerUserApiV1AuthUsersSignupPost(data, config);
+    mutationFn: async ({ body }) => {
+      return registerUserApiV1AuthUsersSignupPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function registerUserApiV1AuthUsersSignupPostMutationOptions<
 export function useRegisterUserApiV1AuthUsersSignupPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+      RegisterUserApiV1AuthUsersSignupPostStatus201,
       ResponseErrorConfig<
-        | RegisterUserApiV1AuthUsersSignupPost400
-        | RegisterUserApiV1AuthUsersSignupPost422
+        | RegisterUserApiV1AuthUsersSignupPostStatus400
+        | RegisterUserApiV1AuthUsersSignupPostStatus422
       >,
-      { data: RegisterUserApiV1AuthUsersSignupPostMutationRequest },
+      RegisterUserApiV1AuthUsersSignupPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<RegisterUserApiV1AuthUsersSignupPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useRegisterUserApiV1AuthUsersSignupPost<TContext>(
   const baseOptions = registerUserApiV1AuthUsersSignupPostMutationOptions(
     config
   ) as UseMutationOptions<
-    RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+    RegisterUserApiV1AuthUsersSignupPostStatus201,
     ResponseErrorConfig<
-      | RegisterUserApiV1AuthUsersSignupPost400
-      | RegisterUserApiV1AuthUsersSignupPost422
+      | RegisterUserApiV1AuthUsersSignupPostStatus400
+      | RegisterUserApiV1AuthUsersSignupPostStatus422
     >,
-    { data: RegisterUserApiV1AuthUsersSignupPostMutationRequest },
+    RegisterUserApiV1AuthUsersSignupPostOptions,
     TContext
   >;
 
   return useMutation<
-    RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+    RegisterUserApiV1AuthUsersSignupPostStatus201,
     ResponseErrorConfig<
-      | RegisterUserApiV1AuthUsersSignupPost400
-      | RegisterUserApiV1AuthUsersSignupPost422
+      | RegisterUserApiV1AuthUsersSignupPostStatus400
+      | RegisterUserApiV1AuthUsersSignupPostStatus422
     >,
-    { data: RegisterUserApiV1AuthUsersSignupPostMutationRequest },
+    RegisterUserApiV1AuthUsersSignupPostOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useRegisterUserApiV1AuthUsersSignupPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+    RegisterUserApiV1AuthUsersSignupPostStatus201,
     ResponseErrorConfig<
-      | RegisterUserApiV1AuthUsersSignupPost400
-      | RegisterUserApiV1AuthUsersSignupPost422
+      | RegisterUserApiV1AuthUsersSignupPostStatus400
+      | RegisterUserApiV1AuthUsersSignupPostStatus422
     >,
-    { data: RegisterUserApiV1AuthUsersSignupPostMutationRequest },
+    RegisterUserApiV1AuthUsersSignupPostOptions,
     TContext
   >;
 }

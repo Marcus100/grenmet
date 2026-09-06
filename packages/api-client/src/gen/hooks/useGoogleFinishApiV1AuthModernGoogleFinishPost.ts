@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { googleFinishApiV1AuthModernGoogleFinishPost } from "../clients/googleFinishApiV1AuthModernGoogleFinishPost.js";
 import type {
-  GoogleFinishApiV1AuthModernGoogleFinishPost400,
-  GoogleFinishApiV1AuthModernGoogleFinishPost403,
-  GoogleFinishApiV1AuthModernGoogleFinishPost422,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+  GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus400,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus403,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus422,
 } from "../models/GoogleFinishApiV1AuthModernGoogleFinishPost.js";
 
 export const googleFinishApiV1AuthModernGoogleFinishPostMutationKey = () =>
   [{ url: "/api/v1/auth/modern/google/finish" }] as const;
 
-export type GoogleFinishApiV1AuthModernGoogleFinishPostMutationKey = ReturnType<
-  typeof googleFinishApiV1AuthModernGoogleFinishPostMutationKey
->;
-
 export function googleFinishApiV1AuthModernGoogleFinishPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = googleFinishApiV1AuthModernGoogleFinishPostMutationKey();
   return mutationOptions<
-    GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+    GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
     ResponseErrorConfig<
-      | GoogleFinishApiV1AuthModernGoogleFinishPost400
-      | GoogleFinishApiV1AuthModernGoogleFinishPost403
-      | GoogleFinishApiV1AuthModernGoogleFinishPost422
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422
     >,
-    { data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest },
+    GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return googleFinishApiV1AuthModernGoogleFinishPost(data, config);
+    mutationFn: async ({ body }) => {
+      return googleFinishApiV1AuthModernGoogleFinishPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function googleFinishApiV1AuthModernGoogleFinishPostMutationOptions<
 export function useGoogleFinishApiV1AuthModernGoogleFinishPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+      GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
       ResponseErrorConfig<
-        | GoogleFinishApiV1AuthModernGoogleFinishPost400
-        | GoogleFinishApiV1AuthModernGoogleFinishPost403
-        | GoogleFinishApiV1AuthModernGoogleFinishPost422
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422
       >,
-      { data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest },
+      GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +83,24 @@ export function useGoogleFinishApiV1AuthModernGoogleFinishPost<TContext>(
     googleFinishApiV1AuthModernGoogleFinishPostMutationOptions(
       config
     ) as UseMutationOptions<
-      GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+      GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
       ResponseErrorConfig<
-        | GoogleFinishApiV1AuthModernGoogleFinishPost400
-        | GoogleFinishApiV1AuthModernGoogleFinishPost403
-        | GoogleFinishApiV1AuthModernGoogleFinishPost422
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+        | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422
       >,
-      { data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest },
+      GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
       TContext
     >;
 
   return useMutation<
-    GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+    GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
     ResponseErrorConfig<
-      | GoogleFinishApiV1AuthModernGoogleFinishPost400
-      | GoogleFinishApiV1AuthModernGoogleFinishPost403
-      | GoogleFinishApiV1AuthModernGoogleFinishPost422
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422
     >,
-    { data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest },
+    GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
     TContext
   >(
     {
@@ -115,13 +110,13 @@ export function useGoogleFinishApiV1AuthModernGoogleFinishPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+    GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
     ResponseErrorConfig<
-      | GoogleFinishApiV1AuthModernGoogleFinishPost400
-      | GoogleFinishApiV1AuthModernGoogleFinishPost403
-      | GoogleFinishApiV1AuthModernGoogleFinishPost422
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+      | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422
     >,
-    { data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest },
+    GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
     TContext
   >;
 }

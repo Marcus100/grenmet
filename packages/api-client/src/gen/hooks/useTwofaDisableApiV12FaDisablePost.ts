@@ -9,46 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { twofaDisableApiV12FaDisablePost } from "../clients/twofaDisableApiV12FaDisablePost.js";
 import type {
-  TwofaDisableApiV12FaDisablePost400,
-  TwofaDisableApiV12FaDisablePost422,
-  TwofaDisableApiV12FaDisablePostMutationRequest,
-  TwofaDisableApiV12FaDisablePostMutationResponse,
+  TwofaDisableApiV12FaDisablePostOptions,
+  TwofaDisableApiV12FaDisablePostStatus200,
+  TwofaDisableApiV12FaDisablePostStatus400,
+  TwofaDisableApiV12FaDisablePostStatus422,
 } from "../models/TwofaDisableApiV12FaDisablePost.js";
 
 export const twofaDisableApiV12FaDisablePostMutationKey = () =>
   [{ url: "/api/v1/2fa/disable" }] as const;
 
-export type TwofaDisableApiV12FaDisablePostMutationKey = ReturnType<
-  typeof twofaDisableApiV12FaDisablePostMutationKey
->;
-
 export function twofaDisableApiV12FaDisablePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<TwofaDisableApiV12FaDisablePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = twofaDisableApiV12FaDisablePostMutationKey();
   return mutationOptions<
-    TwofaDisableApiV12FaDisablePostMutationResponse,
+    TwofaDisableApiV12FaDisablePostStatus200,
     ResponseErrorConfig<
-      TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
+      | TwofaDisableApiV12FaDisablePostStatus400
+      | TwofaDisableApiV12FaDisablePostStatus422
     >,
-    { data: TwofaDisableApiV12FaDisablePostMutationRequest },
+    TwofaDisableApiV12FaDisablePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return twofaDisableApiV12FaDisablePost(data, config);
+    mutationFn: async ({ body }) => {
+      return twofaDisableApiV12FaDisablePost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,16 +57,17 @@ export function twofaDisableApiV12FaDisablePostMutationOptions<
 export function useTwofaDisableApiV12FaDisablePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      TwofaDisableApiV12FaDisablePostMutationResponse,
+      TwofaDisableApiV12FaDisablePostStatus200,
       ResponseErrorConfig<
-        TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
+        | TwofaDisableApiV12FaDisablePostStatus400
+        | TwofaDisableApiV12FaDisablePostStatus422
       >,
-      { data: TwofaDisableApiV12FaDisablePostMutationRequest },
+      TwofaDisableApiV12FaDisablePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<TwofaDisableApiV12FaDisablePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -81,20 +78,22 @@ export function useTwofaDisableApiV12FaDisablePost<TContext>(
   const baseOptions = twofaDisableApiV12FaDisablePostMutationOptions(
     config
   ) as UseMutationOptions<
-    TwofaDisableApiV12FaDisablePostMutationResponse,
+    TwofaDisableApiV12FaDisablePostStatus200,
     ResponseErrorConfig<
-      TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
+      | TwofaDisableApiV12FaDisablePostStatus400
+      | TwofaDisableApiV12FaDisablePostStatus422
     >,
-    { data: TwofaDisableApiV12FaDisablePostMutationRequest },
+    TwofaDisableApiV12FaDisablePostOptions,
     TContext
   >;
 
   return useMutation<
-    TwofaDisableApiV12FaDisablePostMutationResponse,
+    TwofaDisableApiV12FaDisablePostStatus200,
     ResponseErrorConfig<
-      TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
+      | TwofaDisableApiV12FaDisablePostStatus400
+      | TwofaDisableApiV12FaDisablePostStatus422
     >,
-    { data: TwofaDisableApiV12FaDisablePostMutationRequest },
+    TwofaDisableApiV12FaDisablePostOptions,
     TContext
   >(
     {
@@ -104,11 +103,12 @@ export function useTwofaDisableApiV12FaDisablePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    TwofaDisableApiV12FaDisablePostMutationResponse,
+    TwofaDisableApiV12FaDisablePostStatus200,
     ResponseErrorConfig<
-      TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
+      | TwofaDisableApiV12FaDisablePostStatus400
+      | TwofaDisableApiV12FaDisablePostStatus422
     >,
-    { data: TwofaDisableApiV12FaDisablePostMutationRequest },
+    TwofaDisableApiV12FaDisablePostOptions,
     TContext
   >;
 }

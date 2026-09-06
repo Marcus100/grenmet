@@ -8,34 +8,27 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterGridImportRequestSchema } from "./rosterGridImportRequestSchema.js";
 import { rosterGridPreviewSchema } from "./rosterGridPreviewSchema.js";
 
-/**
- * @description Preview returned
- */
-export const validateGridApiV1HrRostersImportGridValidatePost200Schema = z.lazy(
-  () => rosterGridPreviewSchema
-);
+export const validateGridApiV1HrRostersImportGridValidatePostStatus200Schema =
+  rosterGridPreviewSchema;
 
-/**
- * @description Insufficient permission
- */
-export const validateGridApiV1HrRostersImportGridValidatePost403Schema =
-  z.any();
+export const validateGridApiV1HrRostersImportGridValidatePostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Department not found
- */
-export const validateGridApiV1HrRostersImportGridValidatePost404Schema =
-  z.any();
+export const validateGridApiV1HrRostersImportGridValidatePostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const validateGridApiV1HrRostersImportGridValidatePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const validateGridApiV1HrRostersImportGridValidatePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const validateGridApiV1HrRostersImportGridValidatePostMutationRequestSchema =
-  z.lazy(() => rosterGridImportRequestSchema);
+export const validateGridApiV1HrRostersImportGridValidatePostResponseSchema =
+  validateGridApiV1HrRostersImportGridValidatePostStatus200Schema;
 
-export const validateGridApiV1HrRostersImportGridValidatePostMutationResponseSchema =
-  z.lazy(() => validateGridApiV1HrRostersImportGridValidatePost200Schema);
+export const validateGridApiV1HrRostersImportGridValidatePostErrorSchema =
+  z.union([
+    validateGridApiV1HrRostersImportGridValidatePostStatus403Schema,
+    validateGridApiV1HrRostersImportGridValidatePostStatus404Schema,
+    validateGridApiV1HrRostersImportGridValidatePostStatus422Schema,
+  ]);
+
+export const validateGridApiV1HrRostersImportGridValidatePostBodySchema =
+  rosterGridImportRequestSchema;

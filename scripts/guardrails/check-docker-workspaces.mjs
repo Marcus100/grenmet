@@ -7,7 +7,7 @@ const manifests = new Map(
     "packages/*/package.json",
     "apps/web/*/package.json",
     "apps/api/honoapi/package.json",
-  ]).map((path) => [readJson(path).name, { path, data: readJson(path) }])
+  ]).map((path) => [readJson(path).name, { data: readJson(path), path }])
 );
 
 // These Dockerfiles intentionally cache installation using explicit manifest

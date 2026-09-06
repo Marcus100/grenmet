@@ -7,32 +7,32 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
-/**
- * SessionAccessTokenResponse
- * @description Successful Response
- */
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200 =
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200 =
   SessionAccessTokenResponse;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422 =
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422 =
   HTTPValidationError;
 
-/**
- * SessionTokenRequest
- */
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest =
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostBody =
   SessionTokenRequest;
 
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse =
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200;
-
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutation =
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions =
   {
-    Response: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200;
-    Request: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-    Errors: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422;
+    body: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostBody;
+    path?: never;
+    query?: never;
+    headers?: never;
   };
+
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponses =
+  {
+    "200": ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200;
+    "422": ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponse =
+  | ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200
+  | ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422;

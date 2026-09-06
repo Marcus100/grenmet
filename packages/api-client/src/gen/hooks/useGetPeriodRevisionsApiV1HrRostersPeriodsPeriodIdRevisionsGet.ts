@@ -10,65 +10,60 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "../clients/getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 import type {
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422,
 } from "../models/GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 
 export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey =
-  (
-    period_id: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams["period_id"]
-  ) =>
+  ({
+    path,
+  }: Omit<
+    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+    "headers"
+  >) =>
     [
-      {
-        url: "/api/v1/hr/rosters/periods/:period_id/revisions",
-        params: { period_id: period_id },
-      },
+      { url: "/api/v1/hr/rosters/periods/:period_id/revisions", params: path },
     ] as const;
 
-export type GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey =
+type GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey =
   ReturnType<
     typeof getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey
   >;
 
 export function getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryOptions(
-  period_id: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey =
-    getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey(
-      period_id
-    );
+    getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey({
+      path,
+    });
   return queryOptions<
-    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
     ResponseErrorConfig<
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422
     >,
-    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
     typeof queryKey
   >({
-    enabled: !!period_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet(
-        period_id,
-        config
-      );
+      return getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -79,57 +74,66 @@ export function getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQuery
  * {@link /api/v1/hr/rosters/periods/:period_id/revisions}
  */
 export function useGetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet<
-  TData = GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
-  TQueryData = GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+  TData = GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
+  TQueryData = GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
   TQueryKey extends
     QueryKey = GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey,
 >(
-  period_id: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams["period_id"],
+  {
+    path,
+  }: {
+    path:
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions["path"]
+      | (() => GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+        GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
         ResponseErrorConfig<
-          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403
-          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404
-          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422
+          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403
+          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404
+          | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryKey(
-      period_id
+      resolvedParams
     );
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryOptions(
-        period_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404
+      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

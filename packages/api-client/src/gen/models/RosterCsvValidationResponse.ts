@@ -5,24 +5,9 @@
 
 import type { RosterCsvRowValidation } from "./RosterCsvRowValidation.js";
 
-/**
- * RosterCsvValidationResponse
- */
 export type RosterCsvValidationResponse = {
-  /**
-   * @type integer
-   */
   total_rows: number;
-  /**
-   * @type integer
-   */
   valid_rows: number;
-  /**
-   * @type integer
-   */
   invalid_rows: number;
-  /**
-   * @type array
-   */
   rows: RosterCsvRowValidation[];
 };

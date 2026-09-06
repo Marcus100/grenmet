@@ -6,8 +6,8 @@
 import * as z from "zod";
 
 export const approvalAuthorityPublicSchema = z.object({
-  can_approve_leave: z.optional(z.boolean().default(false)),
-  can_approve_shift_swap: z.optional(z.boolean().default(false)),
-  can_approve_timesheets: z.optional(z.boolean().default(false)),
-  can_approve_absentee_reports: z.optional(z.boolean().default(false)),
+  can_approve_leave: z.boolean().optional().default(false),
+  can_approve_shift_swap: z.boolean().optional().default(false),
+  can_approve_timesheets: z.boolean().optional().default(false),
+  can_approve_absentee_reports: z.boolean().optional().default(false),
 });

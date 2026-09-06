@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readFeedsApiV1CapFeedsGet } from "../clients/readFeedsApiV1CapFeedsGet.js";
-import type { ReadFeedsApiV1CapFeedsGetQueryResponse } from "../models/ReadFeedsApiV1CapFeedsGet.js";
+import type { ReadFeedsApiV1CapFeedsGetStatus200 } from "../models/ReadFeedsApiV1CapFeedsGet.js";
 
 export const readFeedsApiV1CapFeedsGetQueryKey = () =>
   [{ url: "/api/v1/cap/feeds" }] as const;
 
-export type ReadFeedsApiV1CapFeedsGetQueryKey = ReturnType<
+type ReadFeedsApiV1CapFeedsGetQueryKey = ReturnType<
   typeof readFeedsApiV1CapFeedsGetQueryKey
 >;
 
 export function readFeedsApiV1CapFeedsGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readFeedsApiV1CapFeedsGetQueryKey();
   return queryOptions<
-    ReadFeedsApiV1CapFeedsGetQueryResponse,
+    ReadFeedsApiV1CapFeedsGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadFeedsApiV1CapFeedsGetQueryResponse,
+    ReadFeedsApiV1CapFeedsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readFeedsApiV1CapFeedsGet(config);
+      return readFeedsApiV1CapFeedsGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function readFeedsApiV1CapFeedsGetQueryOptions(
  * {@link /api/v1/cap/feeds}
  */
 export function useReadFeedsApiV1CapFeedsGet<
-  TData = ReadFeedsApiV1CapFeedsGetQueryResponse,
-  TQueryData = ReadFeedsApiV1CapFeedsGetQueryResponse,
+  TData = ReadFeedsApiV1CapFeedsGetStatus200,
+  TQueryData = ReadFeedsApiV1CapFeedsGetStatus200,
   TQueryKey extends QueryKey = ReadFeedsApiV1CapFeedsGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadFeedsApiV1CapFeedsGetQueryResponse,
+        ReadFeedsApiV1CapFeedsGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readFeedsApiV1CapFeedsGetQueryKey();
+    resolvedOptions?.queryKey ?? readFeedsApiV1CapFeedsGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readFeedsApiV1CapFeedsGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

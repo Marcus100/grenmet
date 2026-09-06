@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * DepartmentUpdate
- */
 export type DepartmentUpdate = {
   /**
    * @maxLength 255

@@ -7,12 +7,12 @@ import * as z from "zod";
 import { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
 
 export const capFeedImportPublicSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   url: z.string(),
-  status: z.lazy(() => capIntegrationStatusSchema),
-  last_checked_at: z.optional(z.union([z.string(), z.null()])),
-  last_error: z.optional(z.union([z.string(), z.null()])),
+  status: capIntegrationStatusSchema,
+  last_checked_at: z.union([z.string(), z.null()]).optional(),
+  last_error: z.union([z.string(), z.null()]).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

@@ -5,17 +5,8 @@
 
 import type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 
-/**
- * CapAuditEventListPublic
- */
 export type CapAuditEventListPublic = {
-  /**
-   * @type array
-   */
   data: CapAuditEventPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

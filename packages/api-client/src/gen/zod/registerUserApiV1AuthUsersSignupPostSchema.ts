@@ -8,28 +8,21 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 import { userRegisterSchema } from "./userRegisterSchema.js";
 
-/**
- * @description User registered successfully
- */
-export const registerUserApiV1AuthUsersSignupPost201Schema = z.lazy(
-  () => userPublicSchema
-);
+export const registerUserApiV1AuthUsersSignupPostStatus201Schema =
+  userPublicSchema;
 
-/**
- * @description User with this email already exists
- */
-export const registerUserApiV1AuthUsersSignupPost400Schema = z.any();
+export const registerUserApiV1AuthUsersSignupPostStatus400Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const registerUserApiV1AuthUsersSignupPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const registerUserApiV1AuthUsersSignupPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const registerUserApiV1AuthUsersSignupPostMutationRequestSchema = z.lazy(
-  () => userRegisterSchema
-);
+export const registerUserApiV1AuthUsersSignupPostResponseSchema =
+  registerUserApiV1AuthUsersSignupPostStatus201Schema;
 
-export const registerUserApiV1AuthUsersSignupPostMutationResponseSchema =
-  z.lazy(() => registerUserApiV1AuthUsersSignupPost201Schema);
+export const registerUserApiV1AuthUsersSignupPostErrorSchema = z.union([
+  registerUserApiV1AuthUsersSignupPostStatus400Schema,
+  registerUserApiV1AuthUsersSignupPostStatus422Schema,
+]);
+
+export const registerUserApiV1AuthUsersSignupPostBodySchema =
+  userRegisterSchema;

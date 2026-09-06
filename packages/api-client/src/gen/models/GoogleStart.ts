@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GoogleStart
- */
 export type GoogleStart = {
   /**
    * @pattern ^[a-f0-9]{64}$

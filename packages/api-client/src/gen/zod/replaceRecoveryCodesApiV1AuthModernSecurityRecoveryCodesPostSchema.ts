@@ -8,28 +8,23 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
 import { securityProofSchema } from "./securityProofSchema.js";
 
-/**
- * @description Successful Response
- */
-export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200Schema =
-  z.lazy(() => recoveryCodesPublicSchema);
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200Schema =
+  recoveryCodesPublicSchema;
 
-/**
- * @description Confirmation failed
- */
-export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400Schema =
-  z.any();
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequestSchema =
-  z.lazy(() => securityProofSchema);
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponseSchema =
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200Schema;
 
-export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponseSchema =
-  z.lazy(
-    () => replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200Schema
-  );
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostErrorSchema =
+  z.union([
+    replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400Schema,
+    replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422Schema,
+  ]);
+
+export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostBodySchema =
+  securityProofSchema;

@@ -9,47 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createAbsenteeReportApiV1HrAbsenteeReportsPost } from "../clients/createAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 import type {
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost403,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost422,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422,
 } from "../models/CreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 
 export const createAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey = () =>
   [{ url: "/api/v1/hr/absentee-reports" }] as const;
 
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey =
-  ReturnType<typeof createAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey>;
-
 export function createAbsenteeReportApiV1HrAbsenteeReportsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createAbsenteeReportApiV1HrAbsenteeReportsPostMutationKey();
   return mutationOptions<
-    CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422
     >,
-    { data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest },
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createAbsenteeReportApiV1HrAbsenteeReportsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createAbsenteeReportApiV1HrAbsenteeReportsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +58,17 @@ export function createAbsenteeReportApiV1HrAbsenteeReportsPostMutationOptions<
 export function useCreateAbsenteeReportApiV1HrAbsenteeReportsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+      CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
       ResponseErrorConfig<
-        | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-        | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
+        | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+        | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422
       >,
-      { data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest },
+      CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -85,22 +81,22 @@ export function useCreateAbsenteeReportApiV1HrAbsenteeReportsPost<TContext>(
     createAbsenteeReportApiV1HrAbsenteeReportsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+      CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
       ResponseErrorConfig<
-        | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-        | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
+        | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+        | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422
       >,
-      { data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest },
+      CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422
     >,
-    { data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest },
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
     TContext
   >(
     {
@@ -110,12 +106,12 @@ export function useCreateAbsenteeReportApiV1HrAbsenteeReportsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+      | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422
     >,
-    { data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest },
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
     TContext
   >;
 }

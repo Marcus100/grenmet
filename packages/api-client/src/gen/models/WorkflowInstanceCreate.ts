@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-/**
- * WorkflowInstanceCreate
- */
 export type WorkflowInstanceCreate = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   workflow_template_id: string;
   /**
@@ -18,7 +17,9 @@ export type WorkflowInstanceCreate = {
    */
   entity_type: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   entity_id: string;
 };

@@ -7,56 +7,52 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { LeaveRequestAction } from "./LeaveRequestAction.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams =
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     leave_request_id: string;
   };
 
-/**
- * LeaveRequestPublic
- * @description Leave request updated
- */
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200 =
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200 =
   LeaveRequestPublic;
 
-/**
- * @description Not allowed to action this leave request
- */
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403 =
-  any;
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403 =
+  unknown;
 
-/**
- * @description Leave request not found
- */
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404 =
-  any;
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422 =
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422 =
   HTTPValidationError;
 
-/**
- * LeaveRequestAction
- */
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest =
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBody =
   LeaveRequestAction;
 
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse =
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200;
-
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutation =
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions =
   {
-    Response: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200;
-    Request: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-    PathParams: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams;
-    Errors:
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422;
+    body: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBody;
+    path: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPath;
+    query?: never;
+    headers?: never;
   };
+
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponses =
+  {
+    "200": ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200;
+    "403": ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403;
+    "404": ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404;
+    "422": ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponse =
+  | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200
+  | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+  | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+  | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422;

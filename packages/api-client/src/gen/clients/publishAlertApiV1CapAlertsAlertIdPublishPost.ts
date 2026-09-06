@@ -3,55 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  PublishAlertApiV1CapAlertsAlertIdPublishPost422,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostResponses,
 } from "../models/PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
-
-function getPublishAlertApiV1CapAlertsAlertIdPublishPostUrl(
-  alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/publish` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Publish Alert
  * {@link /api/v1/cap/alerts/:alert_id/publish}
  */
-export async function publishAlertApiV1CapAlertsAlertIdPublishPost(
-  alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"],
-  data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest,
-  config: Partial<
-    RequestConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function publishAlertApiV1CapAlertsAlertIdPublishPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    PublishAlertApiV1CapAlertsAlertIdPublishPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-    PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest
-  >({
-    method: "POST",
-    url: getPublishAlertApiV1CapAlertsAlertIdPublishPostUrl(
-      alert_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/publish",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        PublishAlertApiV1CapAlertsAlertIdPublishPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

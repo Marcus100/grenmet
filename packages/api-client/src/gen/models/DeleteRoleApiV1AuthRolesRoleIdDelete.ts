@@ -5,42 +5,42 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteRoleApiV1AuthRolesRoleIdDeletePathParams = {
+export type DeleteRoleApiV1AuthRolesRoleIdDeletePath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   role_id: string;
 };
 
-/**
- * @description Role deleted
- */
-export type DeleteRoleApiV1AuthRolesRoleIdDelete204 = any;
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204 = unknown;
 
-/**
- * @description Role is still assigned
- */
-export type DeleteRoleApiV1AuthRolesRoleIdDelete400 = any;
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400 = unknown;
 
-/**
- * @description Role not found
- */
-export type DeleteRoleApiV1AuthRolesRoleIdDelete404 = any;
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteRoleApiV1AuthRolesRoleIdDelete422 = HTTPValidationError;
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422 = HTTPValidationError;
 
-export type DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse =
-  DeleteRoleApiV1AuthRolesRoleIdDelete204;
-
-export type DeleteRoleApiV1AuthRolesRoleIdDeleteMutation = {
-  Response: DeleteRoleApiV1AuthRolesRoleIdDelete204;
-  PathParams: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams;
-  Errors:
-    | DeleteRoleApiV1AuthRolesRoleIdDelete400
-    | DeleteRoleApiV1AuthRolesRoleIdDelete404
-    | DeleteRoleApiV1AuthRolesRoleIdDelete422;
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteOptions = {
+  body?: never;
+  path: DeleteRoleApiV1AuthRolesRoleIdDeletePath;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteResponses = {
+  "204": DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204;
+  "400": DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400;
+  "404": DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404;
+  "422": DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteRoleApiV1AuthRolesRoleIdDeleteResponse =
+  | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204
+  | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+  | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+  | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422;

@@ -6,51 +6,51 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams = {
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   period_id: string;
 };
 
-/**
- * RosterPeriodPublic
- * @description Roster period closed
- */
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch200 =
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200 =
   RosterPeriodPublic;
 
-/**
- * @description Period not published or already closed
- */
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400 = any;
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400 =
+  unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403 = any;
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403 =
+  unknown;
 
-/**
- * @description Roster period not found
- */
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404 = any;
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422 =
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422 =
   HTTPValidationError;
 
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse =
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch200;
-
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutation = {
-  Response: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch200;
-  PathParams: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams;
-  Errors:
-    | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-    | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-    | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-    | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422;
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions = {
+  body?: never;
+  path: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponses = {
+  "200": ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200;
+  "400": ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400;
+  "403": ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403;
+  "404": ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404;
+  "422": ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponse =
+  | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200
+  | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+  | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+  | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+  | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422;

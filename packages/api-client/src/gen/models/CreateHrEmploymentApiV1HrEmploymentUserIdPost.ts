@@ -7,58 +7,51 @@ import type { EmploymentCreate } from "./EmploymentCreate.js";
 import type { EmploymentRecordPublic } from "./EmploymentRecordPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams = {
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * EmploymentRecordPublic
- * @description Employment record created
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPost201 =
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201 =
   EmploymentRecordPublic;
 
-/**
- * @description Employment record already exists
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPost400 = any;
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPost403 = any;
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403 = unknown;
 
-/**
- * @description User or department not found
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPost404 = any;
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPost422 =
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422 =
   HTTPValidationError;
 
-/**
- * EmploymentCreate
- */
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest =
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostBody =
   EmploymentCreate;
 
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse =
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost201;
-
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPostMutation = {
-  Response: CreateHrEmploymentApiV1HrEmploymentUserIdPost201;
-  Request: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-  PathParams: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams;
-  Errors:
-    | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-    | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-    | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-    | CreateHrEmploymentApiV1HrEmploymentUserIdPost422;
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions = {
+  body: CreateHrEmploymentApiV1HrEmploymentUserIdPostBody;
+  path: CreateHrEmploymentApiV1HrEmploymentUserIdPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostResponses = {
+  "201": CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201;
+  "400": CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400;
+  "403": CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403;
+  "404": CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404;
+  "422": CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateHrEmploymentApiV1HrEmploymentUserIdPostResponse =
+  | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201
+  | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+  | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+  | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+  | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422;

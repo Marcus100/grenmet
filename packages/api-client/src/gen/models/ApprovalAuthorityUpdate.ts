@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * ApprovalAuthorityUpdate
- */
 export type ApprovalAuthorityUpdate = {
   can_approve_leave?: boolean | null;
   can_approve_shift_swap?: boolean | null;

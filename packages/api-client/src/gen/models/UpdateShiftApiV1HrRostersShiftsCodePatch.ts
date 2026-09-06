@@ -7,50 +7,41 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 import type { ShiftCatalogUpdate } from "./ShiftCatalogUpdate.js";
 
-export type UpdateShiftApiV1HrRostersShiftsCodePatchPathParams = {
-  /**
-   * @type string
-   */
+export type UpdateShiftApiV1HrRostersShiftsCodePatchPath = {
   code: string;
 };
 
-/**
- * ShiftCatalogPublic
- * @description Shift type updated
- */
-export type UpdateShiftApiV1HrRostersShiftsCodePatch200 = ShiftCatalogPublic;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchStatus200 =
+  ShiftCatalogPublic;
 
-/**
- * @description Insufficient permission
- */
-export type UpdateShiftApiV1HrRostersShiftsCodePatch403 = any;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchStatus403 = unknown;
 
-/**
- * @description Shift type not found
- */
-export type UpdateShiftApiV1HrRostersShiftsCodePatch404 = any;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateShiftApiV1HrRostersShiftsCodePatch422 = HTTPValidationError;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchStatus422 =
+  HTTPValidationError;
 
-/**
- * ShiftCatalogUpdate
- */
-export type UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest =
-  ShiftCatalogUpdate;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchBody = ShiftCatalogUpdate;
 
-export type UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse =
-  UpdateShiftApiV1HrRostersShiftsCodePatch200;
-
-export type UpdateShiftApiV1HrRostersShiftsCodePatchMutation = {
-  Response: UpdateShiftApiV1HrRostersShiftsCodePatch200;
-  Request: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-  PathParams: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams;
-  Errors:
-    | UpdateShiftApiV1HrRostersShiftsCodePatch403
-    | UpdateShiftApiV1HrRostersShiftsCodePatch404
-    | UpdateShiftApiV1HrRostersShiftsCodePatch422;
+export type UpdateShiftApiV1HrRostersShiftsCodePatchOptions = {
+  body: UpdateShiftApiV1HrRostersShiftsCodePatchBody;
+  path: UpdateShiftApiV1HrRostersShiftsCodePatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateShiftApiV1HrRostersShiftsCodePatchResponses = {
+  "200": UpdateShiftApiV1HrRostersShiftsCodePatchStatus200;
+  "403": UpdateShiftApiV1HrRostersShiftsCodePatchStatus403;
+  "404": UpdateShiftApiV1HrRostersShiftsCodePatchStatus404;
+  "422": UpdateShiftApiV1HrRostersShiftsCodePatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateShiftApiV1HrRostersShiftsCodePatchResponse =
+  | UpdateShiftApiV1HrRostersShiftsCodePatchStatus200
+  | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+  | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+  | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422;

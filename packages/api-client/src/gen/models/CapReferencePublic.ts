@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapReferencePublic
- */
 export type CapReferencePublic = {
   /**
    * @minLength 1
@@ -19,16 +16,12 @@ export type CapReferencePublic = {
    * @type string
    */
   identifier: string;
-  /**
-   * @type string
-   */
   sent: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type integer
-   */
   sequence: number;
 };

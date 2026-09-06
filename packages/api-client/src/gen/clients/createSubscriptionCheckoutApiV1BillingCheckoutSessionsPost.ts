@@ -3,49 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostOptions,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponses,
 } from "../models/CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost.js";
-
-function getCreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/billing/checkout-sessions` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create a Stripe-hosted Checkout Session for the current user.
  * @summary Create subscription Checkout Session
  * {@link /api/v1/billing/checkout-sessions}
  */
-export async function createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
-    >,
-    unknown
-  >({
-    method: "POST",
-    url: getCreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/billing/checkout-sessions",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

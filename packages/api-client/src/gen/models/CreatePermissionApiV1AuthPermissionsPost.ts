@@ -7,29 +7,29 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PermissionCreate } from "./PermissionCreate.js";
 import type { PermissionPublic } from "./PermissionPublic.js";
 
-/**
- * PermissionPublic
- * @description Permission created
- */
-export type CreatePermissionApiV1AuthPermissionsPost201 = PermissionPublic;
+export type CreatePermissionApiV1AuthPermissionsPostStatus201 =
+  PermissionPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreatePermissionApiV1AuthPermissionsPost422 = HTTPValidationError;
+export type CreatePermissionApiV1AuthPermissionsPostStatus422 =
+  HTTPValidationError;
 
-/**
- * PermissionCreate
- */
-export type CreatePermissionApiV1AuthPermissionsPostMutationRequest =
-  PermissionCreate;
+export type CreatePermissionApiV1AuthPermissionsPostBody = PermissionCreate;
 
-export type CreatePermissionApiV1AuthPermissionsPostMutationResponse =
-  CreatePermissionApiV1AuthPermissionsPost201;
-
-export type CreatePermissionApiV1AuthPermissionsPostMutation = {
-  Response: CreatePermissionApiV1AuthPermissionsPost201;
-  Request: CreatePermissionApiV1AuthPermissionsPostMutationRequest;
-  Errors: CreatePermissionApiV1AuthPermissionsPost422;
+export type CreatePermissionApiV1AuthPermissionsPostOptions = {
+  body: CreatePermissionApiV1AuthPermissionsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreatePermissionApiV1AuthPermissionsPostResponses = {
+  "201": CreatePermissionApiV1AuthPermissionsPostStatus201;
+  "422": CreatePermissionApiV1AuthPermissionsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreatePermissionApiV1AuthPermissionsPostResponse =
+  | CreatePermissionApiV1AuthPermissionsPostStatus201
+  | CreatePermissionApiV1AuthPermissionsPostStatus422;

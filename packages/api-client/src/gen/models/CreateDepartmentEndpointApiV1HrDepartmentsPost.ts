@@ -7,44 +7,38 @@ import type { DepartmentCreate } from "./DepartmentCreate.js";
 import type { DepartmentPublic } from "./DepartmentPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * DepartmentPublic
- * @description Department created
- */
-export type CreateDepartmentEndpointApiV1HrDepartmentsPost201 =
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201 =
   DepartmentPublic;
 
-/**
- * @description Department already exists
- */
-export type CreateDepartmentEndpointApiV1HrDepartmentsPost400 = any;
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateDepartmentEndpointApiV1HrDepartmentsPost403 = any;
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateDepartmentEndpointApiV1HrDepartmentsPost422 =
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422 =
   HTTPValidationError;
 
-/**
- * DepartmentCreate
- */
-export type CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest =
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostBody =
   DepartmentCreate;
 
-export type CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse =
-  CreateDepartmentEndpointApiV1HrDepartmentsPost201;
-
-export type CreateDepartmentEndpointApiV1HrDepartmentsPostMutation = {
-  Response: CreateDepartmentEndpointApiV1HrDepartmentsPost201;
-  Request: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest;
-  Errors:
-    | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-    | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-    | CreateDepartmentEndpointApiV1HrDepartmentsPost422;
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostOptions = {
+  body: CreateDepartmentEndpointApiV1HrDepartmentsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostResponses = {
+  "201": CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201;
+  "400": CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400;
+  "403": CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403;
+  "422": CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateDepartmentEndpointApiV1HrDepartmentsPostResponse =
+  | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201
+  | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+  | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+  | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422;

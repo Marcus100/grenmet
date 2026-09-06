@@ -7,42 +7,38 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportListPublicSchema } from "./statusReportListPublicSchema.js";
 
-export const readStatusReportsApiV1HrStatusReportsGetQueryParamsSchema =
-  z.object({
-    department_id: z.optional(z.union([z.string(), z.null()])),
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  });
+export const readStatusReportsApiV1HrStatusReportsGetQueryDepartmentIdSchema = z
+  .union([z.string(), z.null()])
+  .optional();
 
-/**
- * @description Status reports returned
- */
-export const readStatusReportsApiV1HrStatusReportsGet200Schema = z.lazy(
-  () => statusReportListPublicSchema
-);
+export const readStatusReportsApiV1HrStatusReportsGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Insufficient permission
- */
-export const readStatusReportsApiV1HrStatusReportsGet403Schema = z.any();
+export const readStatusReportsApiV1HrStatusReportsGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readStatusReportsApiV1HrStatusReportsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readStatusReportsApiV1HrStatusReportsGetStatus200Schema =
+  statusReportListPublicSchema;
 
-export const readStatusReportsApiV1HrStatusReportsGetQueryResponseSchema =
-  z.lazy(() => readStatusReportsApiV1HrStatusReportsGet200Schema);
+export const readStatusReportsApiV1HrStatusReportsGetStatus403Schema =
+  z.unknown();
+
+export const readStatusReportsApiV1HrStatusReportsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readStatusReportsApiV1HrStatusReportsGetResponseSchema =
+  readStatusReportsApiV1HrStatusReportsGetStatus200Schema;
+
+export const readStatusReportsApiV1HrStatusReportsGetErrorSchema = z.union([
+  readStatusReportsApiV1HrStatusReportsGetStatus403Schema,
+  readStatusReportsApiV1HrStatusReportsGetStatus422Schema,
+]);

@@ -10,41 +10,39 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readInboxApiV1HrWorkflowsInstancesInboxGet } from "../clients/readInboxApiV1HrWorkflowsInstancesInboxGet.js";
 import type {
-  ReadInboxApiV1HrWorkflowsInstancesInboxGet403,
-  ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403,
 } from "../models/ReadInboxApiV1HrWorkflowsInstancesInboxGet.js";
 
 export const readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey = () =>
   [{ url: "/api/v1/hr/workflows/instances/inbox" }] as const;
 
-export type ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryKey = ReturnType<
+type ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryKey = ReturnType<
   typeof readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey
 >;
 
 export function readInboxApiV1HrWorkflowsInstancesInboxGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey();
   return queryOptions<
-    ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
-    ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGet403>,
-    ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
+    ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
+    ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403>,
+    ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readInboxApiV1HrWorkflowsInstancesInboxGet(config);
+      return readInboxApiV1HrWorkflowsInstancesInboxGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -55,43 +53,45 @@ export function readInboxApiV1HrWorkflowsInstancesInboxGetQueryOptions(
  * {@link /api/v1/hr/workflows/instances/inbox}
  */
 export function useReadInboxApiV1HrWorkflowsInstancesInboxGet<
-  TData = ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
-  TQueryData = ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
+  TData = ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
+  TQueryData = ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
   TQueryKey extends
     QueryKey = ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
-        ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGet403>,
+        ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
+        ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readInboxApiV1HrWorkflowsInstancesInboxGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGet403>
+    ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

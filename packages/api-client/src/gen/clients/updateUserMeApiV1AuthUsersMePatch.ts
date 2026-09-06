@@ -3,51 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateUserMeApiV1AuthUsersMePatch409,
-  UpdateUserMeApiV1AuthUsersMePatch422,
-  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+  UpdateUserMeApiV1AuthUsersMePatchOptions,
+  UpdateUserMeApiV1AuthUsersMePatchResponses,
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
-
-function getUpdateUserMeApiV1AuthUsersMePatchUrl() {
-  const res = { method: "PATCH", url: `/api/v1/auth/users/me` as const };
-  return res;
-}
 
 /**
  * @description Update profile fields for the currently authenticated user.
  * @summary Update current user
  * {@link /api/v1/auth/users/me}
  */
-export async function updateUserMeApiV1AuthUsersMePatch(
-  data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateUserMeApiV1AuthUsersMePatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateUserMeApiV1AuthUsersMePatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateUserMeApiV1AuthUsersMePatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateUserMeApiV1AuthUsersMePatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateUserMeApiV1AuthUsersMePatch409
-      | UpdateUserMeApiV1AuthUsersMePatch422
-    >,
-    UpdateUserMeApiV1AuthUsersMePatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateUserMeApiV1AuthUsersMePatchUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/auth/users/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<UpdateUserMeApiV1AuthUsersMePatchResponses, ThrowOnError>
+    >
+  );
 }

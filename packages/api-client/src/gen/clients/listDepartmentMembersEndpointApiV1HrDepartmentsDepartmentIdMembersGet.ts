@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponses,
 } from "../models/ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
-
-function getListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetUrl(
-  department_id: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams["department_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/departments/${department_id}/members` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return active members of a department with their employment details, for roster rows. Requires roster.view permission.
  * @summary List department members
  * {@link /api/v1/hr/departments/:department_id/members}
  */
-export async function listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-  department_id: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams["department_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
-    ResponseErrorConfig<
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetUrl(
-      department_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/departments/{department_id}/members",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

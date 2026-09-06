@@ -5,17 +5,8 @@
 
 import type { WorkflowType } from "./WorkflowType.js";
 
-/**
- * WorkflowTemplateCreate
- */
 export type WorkflowTemplateCreate = {
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   workflow_type: WorkflowType;
   /**
    * @minLength 2

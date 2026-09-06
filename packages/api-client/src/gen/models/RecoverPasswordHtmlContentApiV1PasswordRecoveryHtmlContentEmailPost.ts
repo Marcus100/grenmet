@@ -5,33 +5,34 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams =
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPath =
   {
-    /**
-     * @type string
-     */
     email: string;
   };
 
-/**
- * @description Successful Response
- */
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200 =
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200 =
   string;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422 =
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422 =
   HTTPValidationError;
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse =
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200;
-
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutation =
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions =
   {
-    Response: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200;
-    PathParams: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams;
-    Errors: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422;
+    body?: never;
+    path: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPath;
+    query?: never;
+    headers?: never;
   };
+
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses =
+  {
+    "200": RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200;
+    "422": RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponse =
+  | RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200
+  | RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422;

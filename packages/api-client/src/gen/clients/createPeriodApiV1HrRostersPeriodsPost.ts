@@ -3,53 +3,38 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreatePeriodApiV1HrRostersPeriodsPost400,
-  CreatePeriodApiV1HrRostersPeriodsPost403,
-  CreatePeriodApiV1HrRostersPeriodsPost422,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+  CreatePeriodApiV1HrRostersPeriodsPostOptions,
+  CreatePeriodApiV1HrRostersPeriodsPostResponses,
 } from "../models/CreatePeriodApiV1HrRostersPeriodsPost.js";
-
-function getCreatePeriodApiV1HrRostersPeriodsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/rosters/periods` as const };
-  return res;
-}
 
 /**
  * @description Create a new roster period. Requires roster.manage permission.
  * @summary Create roster period
  * {@link /api/v1/hr/rosters/periods}
  */
-export async function createPeriodApiV1HrRostersPeriodsPost(
-  data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreatePeriodApiV1HrRostersPeriodsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createPeriodApiV1HrRostersPeriodsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreatePeriodApiV1HrRostersPeriodsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreatePeriodApiV1HrRostersPeriodsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreatePeriodApiV1HrRostersPeriodsPost400
-      | CreatePeriodApiV1HrRostersPeriodsPost403
-      | CreatePeriodApiV1HrRostersPeriodsPost422
-    >,
-    CreatePeriodApiV1HrRostersPeriodsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreatePeriodApiV1HrRostersPeriodsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/periods",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreatePeriodApiV1HrRostersPeriodsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

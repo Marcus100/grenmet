@@ -3,53 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  LoginSessionApiV1LoginSessionPost400,
-  LoginSessionApiV1LoginSessionPost422,
-  LoginSessionApiV1LoginSessionPost429,
-  LoginSessionApiV1LoginSessionPostMutationRequest,
-  LoginSessionApiV1LoginSessionPostMutationResponse,
+  LoginSessionApiV1LoginSessionPostOptions,
+  LoginSessionApiV1LoginSessionPostResponses,
 } from "../models/LoginSessionApiV1LoginSessionPost.js";
-
-function getLoginSessionApiV1LoginSessionPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/session` as const };
-  return res;
-}
 
 /**
  * @description Authenticate a user, create an opaque persisted session, and mint a short-lived access token.
  * @summary Create a persisted web session
  * {@link /api/v1/login/session}
  */
-export async function loginSessionApiV1LoginSessionPost(
-  data: LoginSessionApiV1LoginSessionPostMutationRequest,
-  config: Partial<
-    RequestConfig<LoginSessionApiV1LoginSessionPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function loginSessionApiV1LoginSessionPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<LoginSessionApiV1LoginSessionPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<LoginSessionApiV1LoginSessionPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    LoginSessionApiV1LoginSessionPostMutationResponse,
-    ResponseErrorConfig<
-      | LoginSessionApiV1LoginSessionPost400
-      | LoginSessionApiV1LoginSessionPost422
-      | LoginSessionApiV1LoginSessionPost429
-    >,
-    LoginSessionApiV1LoginSessionPostMutationRequest
-  >({
-    method: "POST",
-    url: getLoginSessionApiV1LoginSessionPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/session",
+      ...config,
+    }) as Promise<
+      RequestResult<LoginSessionApiV1LoginSessionPostResponses, ThrowOnError>
+    >
+  );
 }

@@ -8,42 +8,35 @@ import { employmentCreateSchema } from "./employmentCreateSchema.js";
 import { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const createHrEmploymentApiV1HrEmploymentUserIdPostPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const createHrEmploymentApiV1HrEmploymentUserIdPostPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Employment record created
- */
-export const createHrEmploymentApiV1HrEmploymentUserIdPost201Schema = z.lazy(
-  () => employmentRecordPublicSchema
+export const createHrEmploymentApiV1HrEmploymentUserIdPostStatus201Schema =
+  employmentRecordPublicSchema;
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostStatus400Schema =
+  z.unknown();
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostStatus403Schema =
+  z.unknown();
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostStatus404Schema =
+  z.unknown();
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostResponseSchema =
+  createHrEmploymentApiV1HrEmploymentUserIdPostStatus201Schema;
+
+export const createHrEmploymentApiV1HrEmploymentUserIdPostErrorSchema = z.union(
+  [
+    createHrEmploymentApiV1HrEmploymentUserIdPostStatus400Schema,
+    createHrEmploymentApiV1HrEmploymentUserIdPostStatus403Schema,
+    createHrEmploymentApiV1HrEmploymentUserIdPostStatus404Schema,
+    createHrEmploymentApiV1HrEmploymentUserIdPostStatus422Schema,
+  ]
 );
 
-/**
- * @description Employment record already exists
- */
-export const createHrEmploymentApiV1HrEmploymentUserIdPost400Schema = z.any();
-
-/**
- * @description Insufficient permission
- */
-export const createHrEmploymentApiV1HrEmploymentUserIdPost403Schema = z.any();
-
-/**
- * @description User or department not found
- */
-export const createHrEmploymentApiV1HrEmploymentUserIdPost404Schema = z.any();
-
-/**
- * @description Validation Error
- */
-export const createHrEmploymentApiV1HrEmploymentUserIdPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
-
-export const createHrEmploymentApiV1HrEmploymentUserIdPostMutationRequestSchema =
-  z.lazy(() => employmentCreateSchema);
-
-export const createHrEmploymentApiV1HrEmploymentUserIdPostMutationResponseSchema =
-  z.lazy(() => createHrEmploymentApiV1HrEmploymentUserIdPost201Schema);
+export const createHrEmploymentApiV1HrEmploymentUserIdPostBodySchema =
+  employmentCreateSchema;

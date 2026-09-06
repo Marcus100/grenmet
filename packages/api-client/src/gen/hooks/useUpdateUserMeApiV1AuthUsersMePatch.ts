@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateUserMeApiV1AuthUsersMePatch } from "../clients/updateUserMeApiV1AuthUsersMePatch.js";
 import type {
-  UpdateUserMeApiV1AuthUsersMePatch409,
-  UpdateUserMeApiV1AuthUsersMePatch422,
-  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+  UpdateUserMeApiV1AuthUsersMePatchOptions,
+  UpdateUserMeApiV1AuthUsersMePatchStatus200,
+  UpdateUserMeApiV1AuthUsersMePatchStatus409,
+  UpdateUserMeApiV1AuthUsersMePatchStatus422,
 } from "../models/UpdateUserMeApiV1AuthUsersMePatch.js";
 
 export const updateUserMeApiV1AuthUsersMePatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;
 
-export type UpdateUserMeApiV1AuthUsersMePatchMutationKey = ReturnType<
-  typeof updateUserMeApiV1AuthUsersMePatchMutationKey
->;
-
 export function updateUserMeApiV1AuthUsersMePatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateUserMeApiV1AuthUsersMePatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateUserMeApiV1AuthUsersMePatchMutationKey();
   return mutationOptions<
-    UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+    UpdateUserMeApiV1AuthUsersMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserMeApiV1AuthUsersMePatch409
-      | UpdateUserMeApiV1AuthUsersMePatch422
+      | UpdateUserMeApiV1AuthUsersMePatchStatus409
+      | UpdateUserMeApiV1AuthUsersMePatchStatus422
     >,
-    { data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest },
+    UpdateUserMeApiV1AuthUsersMePatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateUserMeApiV1AuthUsersMePatch(data, config);
+    mutationFn: async ({ body }) => {
+      return updateUserMeApiV1AuthUsersMePatch({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function updateUserMeApiV1AuthUsersMePatchMutationOptions<
 export function useUpdateUserMeApiV1AuthUsersMePatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+      UpdateUserMeApiV1AuthUsersMePatchStatus200,
       ResponseErrorConfig<
-        | UpdateUserMeApiV1AuthUsersMePatch409
-        | UpdateUserMeApiV1AuthUsersMePatch422
+        | UpdateUserMeApiV1AuthUsersMePatchStatus409
+        | UpdateUserMeApiV1AuthUsersMePatchStatus422
       >,
-      { data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest },
+      UpdateUserMeApiV1AuthUsersMePatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateUserMeApiV1AuthUsersMePatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useUpdateUserMeApiV1AuthUsersMePatch<TContext>(
   const baseOptions = updateUserMeApiV1AuthUsersMePatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+    UpdateUserMeApiV1AuthUsersMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserMeApiV1AuthUsersMePatch409
-      | UpdateUserMeApiV1AuthUsersMePatch422
+      | UpdateUserMeApiV1AuthUsersMePatchStatus409
+      | UpdateUserMeApiV1AuthUsersMePatchStatus422
     >,
-    { data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest },
+    UpdateUserMeApiV1AuthUsersMePatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+    UpdateUserMeApiV1AuthUsersMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserMeApiV1AuthUsersMePatch409
-      | UpdateUserMeApiV1AuthUsersMePatch422
+      | UpdateUserMeApiV1AuthUsersMePatchStatus409
+      | UpdateUserMeApiV1AuthUsersMePatchStatus422
     >,
-    { data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest },
+    UpdateUserMeApiV1AuthUsersMePatchOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useUpdateUserMeApiV1AuthUsersMePatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+    UpdateUserMeApiV1AuthUsersMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserMeApiV1AuthUsersMePatch409
-      | UpdateUserMeApiV1AuthUsersMePatch422
+      | UpdateUserMeApiV1AuthUsersMePatchStatus409
+      | UpdateUserMeApiV1AuthUsersMePatchStatus422
     >,
-    { data: UpdateUserMeApiV1AuthUsersMePatchMutationRequest },
+    UpdateUserMeApiV1AuthUsersMePatchOptions,
     TContext
   >;
 }

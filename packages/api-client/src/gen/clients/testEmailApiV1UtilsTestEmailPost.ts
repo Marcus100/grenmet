@@ -3,42 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  TestEmailApiV1UtilsTestEmailPost422,
-  TestEmailApiV1UtilsTestEmailPostMutationResponse,
-  TestEmailApiV1UtilsTestEmailPostQueryParams,
+  TestEmailApiV1UtilsTestEmailPostOptions,
+  TestEmailApiV1UtilsTestEmailPostResponses,
 } from "../models/TestEmailApiV1UtilsTestEmailPost.js";
-
-function getTestEmailApiV1UtilsTestEmailPostUrl() {
-  const res = { method: "POST", url: `/api/v1/utils/test-email/` as const };
-  return res;
-}
 
 /**
  * @summary Test Email
  * {@link /api/v1/utils/test-email/}
  */
-export async function testEmailApiV1UtilsTestEmailPost(
-  params: TestEmailApiV1UtilsTestEmailPostQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function testEmailApiV1UtilsTestEmailPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TestEmailApiV1UtilsTestEmailPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<TestEmailApiV1UtilsTestEmailPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    TestEmailApiV1UtilsTestEmailPostMutationResponse,
-    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-    unknown
-  >({
-    method: "POST",
-    url: getTestEmailApiV1UtilsTestEmailPostUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/utils/test-email/",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TestEmailApiV1UtilsTestEmailPostResponses, ThrowOnError>
+    >
+  );
 }

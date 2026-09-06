@@ -1,9 +1,0 @@
-{
-  "properties": {
-    "authorization_url": { "type": "string", "title": "Authorization Url" }
-  },
-  "type": "object",
-  "required": ["authorization_url"],
-  "title": "GoogleStartPublic",
-  "x-readme-ref-name": "GoogleStartPublic"
-}

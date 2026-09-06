@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { emailConfirmApiV1AuthModernEmailConfirmPost } from "../clients/emailConfirmApiV1AuthModernEmailConfirmPost.js";
 import type {
-  EmailConfirmApiV1AuthModernEmailConfirmPost400,
-  EmailConfirmApiV1AuthModernEmailConfirmPost403,
-  EmailConfirmApiV1AuthModernEmailConfirmPost422,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+  EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus400,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus403,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus422,
 } from "../models/EmailConfirmApiV1AuthModernEmailConfirmPost.js";
 
 export const emailConfirmApiV1AuthModernEmailConfirmPostMutationKey = () =>
   [{ url: "/api/v1/auth/modern/email/confirm" }] as const;
 
-export type EmailConfirmApiV1AuthModernEmailConfirmPostMutationKey = ReturnType<
-  typeof emailConfirmApiV1AuthModernEmailConfirmPostMutationKey
->;
-
 export function emailConfirmApiV1AuthModernEmailConfirmPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = emailConfirmApiV1AuthModernEmailConfirmPostMutationKey();
   return mutationOptions<
-    EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+    EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
     ResponseErrorConfig<
-      | EmailConfirmApiV1AuthModernEmailConfirmPost400
-      | EmailConfirmApiV1AuthModernEmailConfirmPost403
-      | EmailConfirmApiV1AuthModernEmailConfirmPost422
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422
     >,
-    { data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest },
+    EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return emailConfirmApiV1AuthModernEmailConfirmPost(data, config);
+    mutationFn: async ({ body }) => {
+      return emailConfirmApiV1AuthModernEmailConfirmPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function emailConfirmApiV1AuthModernEmailConfirmPostMutationOptions<
 export function useEmailConfirmApiV1AuthModernEmailConfirmPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+      EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
       ResponseErrorConfig<
-        | EmailConfirmApiV1AuthModernEmailConfirmPost400
-        | EmailConfirmApiV1AuthModernEmailConfirmPost403
-        | EmailConfirmApiV1AuthModernEmailConfirmPost422
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422
       >,
-      { data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest },
+      EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +83,24 @@ export function useEmailConfirmApiV1AuthModernEmailConfirmPost<TContext>(
     emailConfirmApiV1AuthModernEmailConfirmPostMutationOptions(
       config
     ) as UseMutationOptions<
-      EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+      EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
       ResponseErrorConfig<
-        | EmailConfirmApiV1AuthModernEmailConfirmPost400
-        | EmailConfirmApiV1AuthModernEmailConfirmPost403
-        | EmailConfirmApiV1AuthModernEmailConfirmPost422
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+        | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422
       >,
-      { data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest },
+      EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
       TContext
     >;
 
   return useMutation<
-    EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+    EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
     ResponseErrorConfig<
-      | EmailConfirmApiV1AuthModernEmailConfirmPost400
-      | EmailConfirmApiV1AuthModernEmailConfirmPost403
-      | EmailConfirmApiV1AuthModernEmailConfirmPost422
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422
     >,
-    { data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest },
+    EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
     TContext
   >(
     {
@@ -115,13 +110,13 @@ export function useEmailConfirmApiV1AuthModernEmailConfirmPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+    EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
     ResponseErrorConfig<
-      | EmailConfirmApiV1AuthModernEmailConfirmPost400
-      | EmailConfirmApiV1AuthModernEmailConfirmPost403
-      | EmailConfirmApiV1AuthModernEmailConfirmPost422
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+      | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422
     >,
-    { data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest },
+    EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
     TContext
   >;
 }

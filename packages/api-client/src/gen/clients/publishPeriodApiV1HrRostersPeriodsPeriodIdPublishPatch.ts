@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponses,
 } from "../models/PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
-
-function getPublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchUrl(
-  period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/rosters/periods/${period_id}/publish` as const,
-  };
-  return res;
-}
 
 /**
  * @description Transition a draft roster period to published. Requires roster.manage permission.
  * @summary Publish roster period
  * {@link /api/v1/hr/rosters/periods/:period_id/publish}
  */
-export async function publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(
-  period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-    ResponseErrorConfig<
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
-    >,
-    unknown
-  >({
-    method: "PATCH",
-    url: getPublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchUrl(
-      period_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/rosters/periods/{period_id}/publish",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

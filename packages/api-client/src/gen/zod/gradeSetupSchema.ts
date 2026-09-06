@@ -12,8 +12,8 @@ export const gradeSetupSchema = z.object({
     .max(50)
     .regex(/^[A-Z0-9_]+$/),
   label: z.string().min(1).max(150),
-  rank: z.number().int().min(1).max(1000),
-  establishment_band: z.optional(z.union([z.string(), z.null()])),
-  is_active: z.optional(z.boolean().default(true)),
+  rank: z.int().min(1).max(1000),
+  establishment_band: z.union([z.string().max(100), z.null()]).optional(),
+  is_active: z.boolean().optional().default(true),
   id: z.string(),
 });

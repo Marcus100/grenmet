@@ -6,54 +6,38 @@
 import type { WorkflowStatus } from "./WorkflowStatus.js";
 import type { WorkflowType } from "./WorkflowType.js";
 
-/**
- * WorkflowInstancePublic
- */
 export type WorkflowInstancePublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   workflow_template_id: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   workflow_type: WorkflowType;
-  /**
-   * @type string
-   */
   entity_type: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   entity_id: string;
   /**
-   * @type string, uuid
-   */
-  requested_by_user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  requested_by_user_id: string;
   status: WorkflowStatus;
-  /**
-   * @type integer
-   */
   current_step_order: number;
   submitted_at?: string | null;
   resolved_at?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

@@ -9,54 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "../clients/replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 import type {
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422,
 } from "../models/ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 
 export const replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey =
   () => [{ url: "/api/v1/auth/modern/security/recovery-codes" }] as const;
 
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey =
-  ReturnType<
-    typeof replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey
-  >;
-
 export function replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey();
   return mutationOptions<
-    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
     ResponseErrorConfig<
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422
     >,
-    {
-      data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-    },
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost(
-        data,
-        config
-      );
+    mutationFn: async ({ body }) => {
+      return replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,19 +60,17 @@ export function useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
       ResponseErrorConfig<
-        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
+        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422
       >,
-      {
-        data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-      },
+      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -96,26 +83,22 @@ export function useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost<
     replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationOptions(
       config
     ) as UseMutationOptions<
-      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
       ResponseErrorConfig<
-        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
+        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+        | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422
       >,
-      {
-        data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-      },
+      ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
       TContext
     >;
 
   return useMutation<
-    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
     ResponseErrorConfig<
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422
     >,
-    {
-      data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-    },
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
     TContext
   >(
     {
@@ -125,14 +108,12 @@ export function useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost<
     },
     queryClient
   ) as UseMutationResult<
-    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
     ResponseErrorConfig<
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422
     >,
-    {
-      data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-    },
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
     TContext
   >;
 }

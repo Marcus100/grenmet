@@ -5,25 +5,20 @@
 
 import type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
 
-/**
- * TimesheetCreate
- */
 export type TimesheetCreate = {
   user_id?: string | null;
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_start: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_end: string;
-  /**
-   * @type array | undefined
-   */
   entries?: TimesheetEntryInput[];
 };

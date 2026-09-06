@@ -3,20 +3,18 @@
  * Do not edit manually.
  */
 
-/**
- * ParkingPermitIssue
- */
 export type ParkingPermitIssue = {
-  /**
-   * @type string
-   */
   decal_number: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   valid_from: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   valid_to: string;
   received_by?: string | null;

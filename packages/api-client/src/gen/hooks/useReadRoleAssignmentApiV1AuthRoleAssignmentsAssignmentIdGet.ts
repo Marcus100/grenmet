@@ -10,63 +10,56 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet } from "../clients/readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 import type {
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422,
 } from "../models/ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 
 export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey =
-  (
-    assignment_id: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams["assignment_id"]
-  ) =>
+  ({
+    path,
+  }: Omit<
+    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+    "headers"
+  >) =>
     [
-      {
-        url: "/api/v1/auth/role-assignments/:assignment_id",
-        params: { assignment_id: assignment_id },
-      },
+      { url: "/api/v1/auth/role-assignments/:assignment_id", params: path },
     ] as const;
 
-export type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey =
+type ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey =
   ReturnType<
     typeof readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey
   >;
 
 export function readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryOptions(
-  assignment_id: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams["assignment_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey =
-    readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey(
-      assignment_id
-    );
+    readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey({ path });
   return queryOptions<
-    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
     ResponseErrorConfig<
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422
+      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404
+      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422
     >,
-    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!assignment_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet(
-        assignment_id,
-        config
-      );
+      return readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -77,55 +70,64 @@ export function readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryOp
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
 export function useReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet<
-  TData = ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
-  TQueryData = ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+  TData = ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
+  TQueryData = ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
   TQueryKey extends
     QueryKey = ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey,
 >(
-  assignment_id: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams["assignment_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions["path"]
+      | (() => ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+        ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
         ResponseErrorConfig<
-          | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404
-          | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422
+          | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404
+          | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryKey(
-      assignment_id
+      resolvedParams
     );
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryOptions(
-        assignment_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422
+      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404
+      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -27,7 +27,7 @@ router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
     summary="Create status report",
     description="Create a status report with optional personnel entries. Requires status.report.create permission.",
     responses={
-        status.HTTP_200_OK: {"description": "Status report created"},
+        status.HTTP_201_CREATED: {"description": "Status report created"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )

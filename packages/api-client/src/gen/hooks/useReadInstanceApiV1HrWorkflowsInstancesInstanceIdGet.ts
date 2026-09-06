@@ -10,60 +10,57 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "../clients/readInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 import type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422,
 } from "../models/ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey = (
-  instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"]
-) =>
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey = ({
+  path,
+}: Omit<
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+  "headers"
+>) =>
   [
-    {
-      url: "/api/v1/hr/workflows/instances/:instance_id",
-      params: { instance_id: instance_id },
-    },
+    { url: "/api/v1/hr/workflows/instances/:instance_id", params: path },
   ] as const;
 
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey =
-  ReturnType<typeof readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey>;
+type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey = ReturnType<
+  typeof readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey
+>;
 
 export function readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryOptions(
-  instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey =
-    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey(instance_id);
+  const queryKey = readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey({
+    path,
+  });
   return queryOptions<
-    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
     ResponseErrorConfig<
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422
     >,
-    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!instance_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readInstanceApiV1HrWorkflowsInstancesInstanceIdGet(
-        instance_id,
-        config
-      );
+      return readInstanceApiV1HrWorkflowsInstancesInstanceIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -74,55 +71,64 @@ export function readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryOptions(
  * {@link /api/v1/hr/workflows/instances/:instance_id}
  */
 export function useReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet<
-  TData = ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
-  TQueryData = ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+  TData = ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
+  TQueryData = ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
   TQueryKey extends
     QueryKey = ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey,
 >(
-  instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions["path"]
+      | (() => ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+        ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
         ResponseErrorConfig<
-          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403
-          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404
-          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422
+          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403
+          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404
+          | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey(instance_id);
+    resolvedOptions?.queryKey ??
+    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryOptions(
-        instance_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404
+      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

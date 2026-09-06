@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readAlertsGeojsonApiCapAlertsGeojsonGet } from "../clients/readAlertsGeojsonApiCapAlertsGeojsonGet.js";
-import type { ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse } from "../models/ReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
+import type { ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200 } from "../models/ReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
 
 export const readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey = () =>
   [{ url: "/api/cap/alerts.geojson" }] as const;
 
-export type ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryKey = ReturnType<
+type ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryKey = ReturnType<
   typeof readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey
 >;
 
 export function readAlertsGeojsonApiCapAlertsGeojsonGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey();
   return queryOptions<
-    ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
+    ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
+    ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readAlertsGeojsonApiCapAlertsGeojsonGet(config);
+      return readAlertsGeojsonApiCapAlertsGeojsonGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,43 @@ export function readAlertsGeojsonApiCapAlertsGeojsonGetQueryOptions(
  * {@link /api/cap/alerts.geojson}
  */
 export function useReadAlertsGeojsonApiCapAlertsGeojsonGet<
-  TData = ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
-  TQueryData = ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
+  TData = ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
+  TQueryData = ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
   TQueryKey extends QueryKey = ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
+        ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey();
+    resolvedOptions?.queryKey ??
+    readAlertsGeojsonApiCapAlertsGeojsonGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readAlertsGeojsonApiCapAlertsGeojsonGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -3,16 +3,21 @@
  * Do not edit manually.
  */
 
-/**
- * Response Read Alerts Geojson Api Cap Alerts Geojson Get
- * @description Successful Response
- */
-export type ReadAlertsGeojsonApiCapAlertsGeojsonGet200 = any;
+export type ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200 = unknown;
 
-export type ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse =
-  ReadAlertsGeojsonApiCapAlertsGeojsonGet200;
-
-export type ReadAlertsGeojsonApiCapAlertsGeojsonGetQuery = {
-  Response: ReadAlertsGeojsonApiCapAlertsGeojsonGet200;
-  Errors: any;
+export type ReadAlertsGeojsonApiCapAlertsGeojsonGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadAlertsGeojsonApiCapAlertsGeojsonGetResponses = {
+  "200": ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAlertsGeojsonApiCapAlertsGeojsonGetResponse =
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200;

@@ -8,36 +8,21 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 import { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 
-/**
- * @description Timesheet and entries created
- */
-export const createTimesheetApiV1HrTimesheetsPost200Schema = z.any();
+export const createTimesheetApiV1HrTimesheetsPostStatus201Schema =
+  timesheetDetailsSchema;
 
-/**
- * @description Successful Response
- */
-export const createTimesheetApiV1HrTimesheetsPost201Schema = z.lazy(
-  () => timesheetDetailsSchema
-);
+export const createTimesheetApiV1HrTimesheetsPostStatus403Schema = z.unknown();
 
-/**
- * @description Self/proxy submission disabled or not allowed for user
- */
-export const createTimesheetApiV1HrTimesheetsPost403Schema = z.any();
+export const createTimesheetApiV1HrTimesheetsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Validation Error
- */
-export const createTimesheetApiV1HrTimesheetsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createTimesheetApiV1HrTimesheetsPostResponseSchema =
+  createTimesheetApiV1HrTimesheetsPostStatus201Schema;
 
-export const createTimesheetApiV1HrTimesheetsPostMutationRequestSchema = z.lazy(
-  () => timesheetCreateSchema
-);
+export const createTimesheetApiV1HrTimesheetsPostErrorSchema = z.union([
+  createTimesheetApiV1HrTimesheetsPostStatus403Schema,
+  createTimesheetApiV1HrTimesheetsPostStatus422Schema,
+]);
 
-export const createTimesheetApiV1HrTimesheetsPostMutationResponseSchema =
-  z.union([
-    z.lazy(() => createTimesheetApiV1HrTimesheetsPost200Schema),
-    z.lazy(() => createTimesheetApiV1HrTimesheetsPost201Schema),
-  ]);
+export const createTimesheetApiV1HrTimesheetsPostBodySchema =
+  timesheetCreateSchema;

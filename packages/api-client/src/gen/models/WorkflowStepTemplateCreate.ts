@@ -5,9 +5,6 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-/**
- * WorkflowStepTemplateCreate
- */
 export type WorkflowStepTemplateCreate = {
   /**
    * @minLength 1
@@ -15,10 +12,13 @@ export type WorkflowStepTemplateCreate = {
    */
   step_order: number;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   required_role_id: string;
   /**
+   * @default 'SELF'
    * @type string | undefined
    */
   required_scope?: RoleAssignmentScope;

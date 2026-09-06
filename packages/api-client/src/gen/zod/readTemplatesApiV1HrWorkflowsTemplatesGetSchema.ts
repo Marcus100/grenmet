@@ -7,30 +7,22 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowTemplatesPublicSchema } from "./workflowTemplatesPublicSchema.js";
 
-export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryParamsSchema = z
-  .object({
-    department_id: z.optional(z.union([z.string(), z.null()])),
-  })
-  .optional();
+export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryDepartmentIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Templates returned
- */
-export const readTemplatesApiV1HrWorkflowsTemplatesGet200Schema = z.lazy(
-  () => workflowTemplatesPublicSchema
-);
+export const readTemplatesApiV1HrWorkflowsTemplatesGetStatus200Schema =
+  workflowTemplatesPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const readTemplatesApiV1HrWorkflowsTemplatesGet403Schema = z.any();
+export const readTemplatesApiV1HrWorkflowsTemplatesGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readTemplatesApiV1HrWorkflowsTemplatesGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readTemplatesApiV1HrWorkflowsTemplatesGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryResponseSchema =
-  z.lazy(() => readTemplatesApiV1HrWorkflowsTemplatesGet200Schema);
+export const readTemplatesApiV1HrWorkflowsTemplatesGetResponseSchema =
+  readTemplatesApiV1HrWorkflowsTemplatesGetStatus200Schema;
+
+export const readTemplatesApiV1HrWorkflowsTemplatesGetErrorSchema = z.union([
+  readTemplatesApiV1HrWorkflowsTemplatesGetStatus403Schema,
+  readTemplatesApiV1HrWorkflowsTemplatesGetStatus422Schema,
+]);

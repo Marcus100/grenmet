@@ -3,16 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * TwoFactorSetupResponse
- */
 export type TwoFactorSetupResponse = {
-  /**
-   * @type string
-   */
   secret: string;
-  /**
-   * @type string
-   */
   provisioning_uri: string;
 };

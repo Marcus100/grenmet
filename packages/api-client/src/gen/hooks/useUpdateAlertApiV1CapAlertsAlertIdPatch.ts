@@ -9,47 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateAlertApiV1CapAlertsAlertIdPatch } from "../clients/updateAlertApiV1CapAlertsAlertIdPatch.js";
 import type {
-  UpdateAlertApiV1CapAlertsAlertIdPatch422,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-  UpdateAlertApiV1CapAlertsAlertIdPatchPathParams,
+  UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
+  UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+  UpdateAlertApiV1CapAlertsAlertIdPatchStatus422,
 } from "../models/UpdateAlertApiV1CapAlertsAlertIdPatch.js";
 
 export const updateAlertApiV1CapAlertsAlertIdPatchMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id" }] as const;
 
-export type UpdateAlertApiV1CapAlertsAlertIdPatchMutationKey = ReturnType<
-  typeof updateAlertApiV1CapAlertsAlertIdPatchMutationKey
->;
-
 export function updateAlertApiV1CapAlertsAlertIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateAlertApiV1CapAlertsAlertIdPatchMutationKey();
   return mutationOptions<
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-    {
-      alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"];
-      data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-    },
+    UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatchStatus422>,
+    UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return updateAlertApiV1CapAlertsAlertIdPatch(alert_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateAlertApiV1CapAlertsAlertIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +53,14 @@ export function updateAlertApiV1CapAlertsAlertIdPatchMutationOptions<
 export function useUpdateAlertApiV1CapAlertsAlertIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-      ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-      {
-        alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"];
-        data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-      },
+      UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+      ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatchStatus422>,
+      UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +72,16 @@ export function useUpdateAlertApiV1CapAlertsAlertIdPatch<TContext>(
   const baseOptions = updateAlertApiV1CapAlertsAlertIdPatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-    {
-      alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"];
-      data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-    },
+    UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatchStatus422>,
+    UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-    {
-      alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"];
-      data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-    },
+    UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatchStatus422>,
+    UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
     TContext
   >(
     {
@@ -108,12 +91,9 @@ export function useUpdateAlertApiV1CapAlertsAlertIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-    {
-      alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"];
-      data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-    },
+    UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatchStatus422>,
+    UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
     TContext
   >;
 }

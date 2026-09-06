@@ -5,29 +5,30 @@
 
 import type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 
-/**
- * AccountSecurityPublic
- * @description Successful Response
- */
-export type ReadAccountSecurityApiV1AuthModernSecurityGet200 =
+export type ReadAccountSecurityApiV1AuthModernSecurityGetStatus200 =
   AccountSecurityPublic;
 
-/**
- * @description Authentication required
- */
-export type ReadAccountSecurityApiV1AuthModernSecurityGet401 = any;
+export type ReadAccountSecurityApiV1AuthModernSecurityGetStatus401 = unknown;
 
-/**
- * @description Verify account email first
- */
-export type ReadAccountSecurityApiV1AuthModernSecurityGet403 = any;
+export type ReadAccountSecurityApiV1AuthModernSecurityGetStatus403 = unknown;
 
-export type ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse =
-  ReadAccountSecurityApiV1AuthModernSecurityGet200;
-
-export type ReadAccountSecurityApiV1AuthModernSecurityGetQuery = {
-  Response: ReadAccountSecurityApiV1AuthModernSecurityGet200;
-  Errors:
-    | ReadAccountSecurityApiV1AuthModernSecurityGet401
-    | ReadAccountSecurityApiV1AuthModernSecurityGet403;
+export type ReadAccountSecurityApiV1AuthModernSecurityGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadAccountSecurityApiV1AuthModernSecurityGetResponses = {
+  "200": ReadAccountSecurityApiV1AuthModernSecurityGetStatus200;
+  "401": ReadAccountSecurityApiV1AuthModernSecurityGetStatus401;
+  "403": ReadAccountSecurityApiV1AuthModernSecurityGetStatus403;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAccountSecurityApiV1AuthModernSecurityGetResponse =
+  | ReadAccountSecurityApiV1AuthModernSecurityGetStatus200
+  | ReadAccountSecurityApiV1AuthModernSecurityGetStatus401
+  | ReadAccountSecurityApiV1AuthModernSecurityGetStatus403;

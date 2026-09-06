@@ -6,23 +6,17 @@
 import * as z from "zod";
 import { hrDashboardPublicSchema } from "./hrDashboardPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readHrDashboardApiV1HrDashboardGet200Schema = z.lazy(
-  () => hrDashboardPublicSchema
-);
+export const readHrDashboardApiV1HrDashboardGetStatus200Schema =
+  hrDashboardPublicSchema;
 
-/**
- * @description Authentication required
- */
-export const readHrDashboardApiV1HrDashboardGet401Schema = z.any();
+export const readHrDashboardApiV1HrDashboardGetStatus401Schema = z.unknown();
 
-/**
- * @description Account verification required
- */
-export const readHrDashboardApiV1HrDashboardGet403Schema = z.any();
+export const readHrDashboardApiV1HrDashboardGetStatus403Schema = z.unknown();
 
-export const readHrDashboardApiV1HrDashboardGetQueryResponseSchema = z.lazy(
-  () => readHrDashboardApiV1HrDashboardGet200Schema
-);
+export const readHrDashboardApiV1HrDashboardGetResponseSchema =
+  readHrDashboardApiV1HrDashboardGetStatus200Schema;
+
+export const readHrDashboardApiV1HrDashboardGetErrorSchema = z.union([
+  readHrDashboardApiV1HrDashboardGetStatus401Schema,
+  readHrDashboardApiV1HrDashboardGetStatus403Schema,
+]);

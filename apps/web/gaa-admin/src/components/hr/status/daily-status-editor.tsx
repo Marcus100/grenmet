@@ -110,7 +110,7 @@ export function DailyStatusEditor() {
   const draftParam = searchParams.get("draft");
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myReportsQuery = useReadStatusReportsApiV1HrStatusReportsGet();
+  const myReportsQuery = useReadStatusReportsApiV1HrStatusReportsGet({});
   const createMutation = useCreateStatusReportApiV1HrStatusReportsPost();
   const updateMutation =
     useUpdateStatusReportApiV1HrStatusReportsReportIdPatch();
@@ -179,7 +179,7 @@ export function DailyStatusEditor() {
 
   async function refreshMyReports() {
     await queryClient.invalidateQueries({
-      queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey(),
+      queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey({}),
     });
   }
 
@@ -197,14 +197,14 @@ export function DailyStatusEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            report_id: draftId,
-            data: buildStatusReportPayload(values, departmentId),
+            path: { report_id: draftId },
+            body: buildStatusReportPayload(values, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildStatusReportPayload(values, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -218,17 +218,17 @@ export function DailyStatusEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            report_id: draftId,
-            data: buildStatusReportPayload(values, departmentId),
+            path: { report_id: draftId },
+            body: buildStatusReportPayload(values, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            report_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
+            path: { report_id: draftId },
+            body: { co_approver_user_ids: coApprovers },
           });
           setSubmission(submitted);
         } else {
           const submitted = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildStatusReportPayload(values, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,

@@ -10,49 +10,48 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listShiftCatalogApiV1HrRostersShiftsGet } from "../clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
 import type {
-  ListShiftCatalogApiV1HrRostersShiftsGet403,
-  ListShiftCatalogApiV1HrRostersShiftsGet422,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+  ListShiftCatalogApiV1HrRostersShiftsGetOptions,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus403,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus422,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
 
-export const listShiftCatalogApiV1HrRostersShiftsGetQueryKey = (
-  params: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {}
-) =>
-  [{ url: "/api/v1/hr/rosters/shifts" }, ...(params ? [params] : [])] as const;
+export const listShiftCatalogApiV1HrRostersShiftsGetQueryKey = ({
+  query,
+}: Omit<ListShiftCatalogApiV1HrRostersShiftsGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/rosters/shifts" }, ...(query ? [query] : [])] as const;
 
-export type ListShiftCatalogApiV1HrRostersShiftsGetQueryKey = ReturnType<
+type ListShiftCatalogApiV1HrRostersShiftsGetQueryKey = ReturnType<
   typeof listShiftCatalogApiV1HrRostersShiftsGetQueryKey
 >;
 
 export function listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(
-  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListShiftCatalogApiV1HrRostersShiftsGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listShiftCatalogApiV1HrRostersShiftsGetQueryKey(params);
+  const queryKey = listShiftCatalogApiV1HrRostersShiftsGetQueryKey({ query });
   return queryOptions<
-    ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+    ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
     ResponseErrorConfig<
-      | ListShiftCatalogApiV1HrRostersShiftsGet403
-      | ListShiftCatalogApiV1HrRostersShiftsGet422
+      | ListShiftCatalogApiV1HrRostersShiftsGetStatus403
+      | ListShiftCatalogApiV1HrRostersShiftsGetStatus422
     >,
-    ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+    ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listShiftCatalogApiV1HrRostersShiftsGet(params, config);
+      return listShiftCatalogApiV1HrRostersShiftsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -63,49 +62,63 @@ export function listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(
  * {@link /api/v1/hr/rosters/shifts}
  */
 export function useListShiftCatalogApiV1HrRostersShiftsGet<
-  TData = ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-  TQueryData = ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+  TData = ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
+  TQueryData = ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
   TQueryKey extends QueryKey = ListShiftCatalogApiV1HrRostersShiftsGetQueryKey,
 >(
-  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ListShiftCatalogApiV1HrRostersShiftsGetOptions["query"]
+      | (() => ListShiftCatalogApiV1HrRostersShiftsGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+        ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
         ResponseErrorConfig<
-          | ListShiftCatalogApiV1HrRostersShiftsGet403
-          | ListShiftCatalogApiV1HrRostersShiftsGet422
+          | ListShiftCatalogApiV1HrRostersShiftsGetStatus403
+          | ListShiftCatalogApiV1HrRostersShiftsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listShiftCatalogApiV1HrRostersShiftsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listShiftCatalogApiV1HrRostersShiftsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(params, config),
+      ...listShiftCatalogApiV1HrRostersShiftsGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListShiftCatalogApiV1HrRostersShiftsGet403
-      | ListShiftCatalogApiV1HrRostersShiftsGet422
+      | ListShiftCatalogApiV1HrRostersShiftsGetStatus403
+      | ListShiftCatalogApiV1HrRostersShiftsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

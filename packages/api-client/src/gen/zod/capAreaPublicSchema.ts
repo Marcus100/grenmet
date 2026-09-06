@@ -8,16 +8,16 @@ import { capAreaKindSchema } from "./capAreaKindSchema.js";
 import { capNameValueSchema } from "./capNameValueSchema.js";
 
 export const capAreaPublicSchema = z.object({
-  kind: z.optional(z.lazy(() => capAreaKindSchema)),
+  kind: capAreaKindSchema.optional().default("AREA"),
   area_desc: z.string().min(1).max(1000),
-  predefined_area_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  polygons: z.optional(z.array(z.array(z.array(z.number())))),
-  multipolygons: z.optional(z.array(z.array(z.array(z.array(z.number()))))),
-  circles: z.optional(z.array(z.object({}).catchall(z.number()))),
-  geocodes: z.optional(z.array(z.lazy(() => capNameValueSchema))),
-  geometry: z.optional(z.union([z.object({}).catchall(z.any()), z.null()])),
-  altitude: z.optional(z.union([z.number(), z.null()])),
-  ceiling: z.optional(z.union([z.number(), z.null()])),
-  id: z.string().uuid(),
-  sequence: z.number().int(),
+  predefined_area_id: z.union([z.uuid(), z.null()]).optional(),
+  polygons: z.array(z.array(z.array(z.number()))).optional(),
+  multipolygons: z.array(z.array(z.array(z.array(z.number())))).optional(),
+  circles: z.array(z.object({}).catchall(z.number())).optional(),
+  geocodes: z.array(capNameValueSchema).optional(),
+  geometry: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
+  altitude: z.union([z.number(), z.null()]).optional(),
+  ceiling: z.union([z.number(), z.null()]).optional(),
+  id: z.uuid(),
+  sequence: z.int(),
 });

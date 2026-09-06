@@ -5,16 +5,21 @@
 
 import type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
 
-/**
- * CapCatalogsPublic
- * @description Successful Response
- */
-export type ReadCatalogsApiV1CapCatalogsGet200 = CapCatalogsPublic;
+export type ReadCatalogsApiV1CapCatalogsGetStatus200 = CapCatalogsPublic;
 
-export type ReadCatalogsApiV1CapCatalogsGetQueryResponse =
-  ReadCatalogsApiV1CapCatalogsGet200;
-
-export type ReadCatalogsApiV1CapCatalogsGetQuery = {
-  Response: ReadCatalogsApiV1CapCatalogsGet200;
-  Errors: any;
+export type ReadCatalogsApiV1CapCatalogsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadCatalogsApiV1CapCatalogsGetResponses = {
+  "200": ReadCatalogsApiV1CapCatalogsGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadCatalogsApiV1CapCatalogsGetResponse =
+  ReadCatalogsApiV1CapCatalogsGetStatus200;

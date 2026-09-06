@@ -9,46 +9,37 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } from "../clients/recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 import type {
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422,
 } from "../models/RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 
 export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationKey =
   () => [{ url: "/api/v1/password-recovery-html-content/:email" }] as const;
 
-export type RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationKey =
-  ReturnType<
-    typeof recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationKey
-  >;
-
 export function recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationKey();
   return mutationOptions<
-    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-    {
-      email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"];
-    },
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422>,
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) => {
+    mutationFn: async ({ path }) => {
       return recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
-        email,
-        config
-      );
+        { ...config, path, throwOnError: true }
+      ).unwrap();
     },
   });
 }
@@ -63,14 +54,14 @@ export function useRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEma
 >(
   options: {
     mutation?: UseMutationOptions<
-      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-      ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-      {
-        email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"];
-      },
+      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+      ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422>,
+      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,20 +74,16 @@ export function useRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEma
     recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationOptions(
       config
     ) as UseMutationOptions<
-      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-      ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-      {
-        email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"];
-      },
+      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+      ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422>,
+      RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
       TContext
     >;
 
   return useMutation<
-    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-    {
-      email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"];
-    },
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422>,
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
     TContext
   >(
     {
@@ -106,11 +93,9 @@ export function useRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEma
     },
     queryClient
   ) as UseMutationResult<
-    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-    {
-      email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"];
-    },
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422>,
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
     TContext
   >;
 }

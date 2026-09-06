@@ -3,37 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadIntegrationsApiV1CapIntegrationsGetQueryResponse } from "../models/ReadIntegrationsApiV1CapIntegrationsGet.js";
-
-function getReadIntegrationsApiV1CapIntegrationsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/integrations` as const };
-  return res;
-}
+  ReadIntegrationsApiV1CapIntegrationsGetOptions,
+  ReadIntegrationsApiV1CapIntegrationsGetResponses,
+} from "../models/ReadIntegrationsApiV1CapIntegrationsGet.js";
 
 /**
  * @description Return configured webhooks, MQTT brokers, and recent job events.
  * @summary List integrations
  * {@link /api/v1/cap/integrations}
  */
-export async function readIntegrationsApiV1CapIntegrationsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readIntegrationsApiV1CapIntegrationsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadIntegrationsApiV1CapIntegrationsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadIntegrationsApiV1CapIntegrationsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadIntegrationsApiV1CapIntegrationsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/integrations",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadIntegrationsApiV1CapIntegrationsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

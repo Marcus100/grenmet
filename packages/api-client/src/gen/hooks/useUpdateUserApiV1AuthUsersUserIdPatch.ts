@@ -9,55 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateUserApiV1AuthUsersUserIdPatch } from "../clients/updateUserApiV1AuthUsersUserIdPatch.js";
 import type {
-  UpdateUserApiV1AuthUsersUserIdPatch403,
-  UpdateUserApiV1AuthUsersUserIdPatch404,
-  UpdateUserApiV1AuthUsersUserIdPatch409,
-  UpdateUserApiV1AuthUsersUserIdPatch422,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
+  UpdateUserApiV1AuthUsersUserIdPatchOptions,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus200,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus403,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus404,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus409,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus422,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
 
 export const updateUserApiV1AuthUsersUserIdPatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/:user_id" }] as const;
 
-export type UpdateUserApiV1AuthUsersUserIdPatchMutationKey = ReturnType<
-  typeof updateUserApiV1AuthUsersUserIdPatchMutationKey
->;
-
 export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateUserApiV1AuthUsersUserIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateUserApiV1AuthUsersUserIdPatchMutationKey();
   return mutationOptions<
-    UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+    UpdateUserApiV1AuthUsersUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserApiV1AuthUsersUserIdPatch403
-      | UpdateUserApiV1AuthUsersUserIdPatch404
-      | UpdateUserApiV1AuthUsersUserIdPatch409
-      | UpdateUserApiV1AuthUsersUserIdPatch422
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
-      data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-    },
+    UpdateUserApiV1AuthUsersUserIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateUserApiV1AuthUsersUserIdPatch(user_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateUserApiV1AuthUsersUserIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -70,22 +62,19 @@ export function updateUserApiV1AuthUsersUserIdPatchMutationOptions<
 export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+      UpdateUserApiV1AuthUsersUserIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateUserApiV1AuthUsersUserIdPatch403
-        | UpdateUserApiV1AuthUsersUserIdPatch404
-        | UpdateUserApiV1AuthUsersUserIdPatch409
-        | UpdateUserApiV1AuthUsersUserIdPatch422
+        | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+        | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+        | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+        | UpdateUserApiV1AuthUsersUserIdPatchStatus422
       >,
-      {
-        user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
-        data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-      },
+      UpdateUserApiV1AuthUsersUserIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateUserApiV1AuthUsersUserIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -97,32 +86,26 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
   const baseOptions = updateUserApiV1AuthUsersUserIdPatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+    UpdateUserApiV1AuthUsersUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserApiV1AuthUsersUserIdPatch403
-      | UpdateUserApiV1AuthUsersUserIdPatch404
-      | UpdateUserApiV1AuthUsersUserIdPatch409
-      | UpdateUserApiV1AuthUsersUserIdPatch422
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
-      data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-    },
+    UpdateUserApiV1AuthUsersUserIdPatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+    UpdateUserApiV1AuthUsersUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserApiV1AuthUsersUserIdPatch403
-      | UpdateUserApiV1AuthUsersUserIdPatch404
-      | UpdateUserApiV1AuthUsersUserIdPatch409
-      | UpdateUserApiV1AuthUsersUserIdPatch422
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
-      data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-    },
+    UpdateUserApiV1AuthUsersUserIdPatchOptions,
     TContext
   >(
     {
@@ -132,17 +115,14 @@ export function useUpdateUserApiV1AuthUsersUserIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
+    UpdateUserApiV1AuthUsersUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateUserApiV1AuthUsersUserIdPatch403
-      | UpdateUserApiV1AuthUsersUserIdPatch404
-      | UpdateUserApiV1AuthUsersUserIdPatch409
-      | UpdateUserApiV1AuthUsersUserIdPatch422
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+      | UpdateUserApiV1AuthUsersUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"];
-      data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-    },
+    UpdateUserApiV1AuthUsersUserIdPatchOptions,
     TContext
   >;
 }

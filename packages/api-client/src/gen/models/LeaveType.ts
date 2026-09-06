@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const leaveTypeLeaveTypeEnum = {
+export const leaveType = {
   VACATION: "VACATION",
   SICK: "SICK",
   CASUAL: "CASUAL",
@@ -17,10 +17,4 @@ export const leaveTypeLeaveTypeEnum = {
   OTHER: "OTHER",
 } as const;
 
-export type LeaveTypeLeaveTypeEnumKey =
-  (typeof leaveTypeLeaveTypeEnum)[keyof typeof leaveTypeLeaveTypeEnum];
-
-/**
- * LeaveType
- */
-export type LeaveType = LeaveTypeLeaveTypeEnumKey;
+export type LeaveType = (typeof leaveType)[keyof typeof leaveType];

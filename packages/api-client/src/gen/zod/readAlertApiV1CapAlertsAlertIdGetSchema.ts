@@ -7,24 +7,16 @@ import * as z from "zod";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAlertApiV1CapAlertsAlertIdGetPathParamsSchema = z.object({
-  alert_id: z.string().uuid(),
-});
+export const readAlertApiV1CapAlertsAlertIdGetPathAlertIdSchema = z.uuid();
 
-/**
- * @description Successful Response
- */
-export const readAlertApiV1CapAlertsAlertIdGet200Schema = z.lazy(
-  () => capAlertPublicSchema
-);
+export const readAlertApiV1CapAlertsAlertIdGetStatus200Schema =
+  capAlertPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const readAlertApiV1CapAlertsAlertIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readAlertApiV1CapAlertsAlertIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readAlertApiV1CapAlertsAlertIdGetQueryResponseSchema = z.lazy(
-  () => readAlertApiV1CapAlertsAlertIdGet200Schema
-);
+export const readAlertApiV1CapAlertsAlertIdGetResponseSchema =
+  readAlertApiV1CapAlertsAlertIdGetStatus200Schema;
+
+export const readAlertApiV1CapAlertsAlertIdGetErrorSchema =
+  readAlertApiV1CapAlertsAlertIdGetStatus422Schema;

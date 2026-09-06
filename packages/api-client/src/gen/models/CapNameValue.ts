@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapNameValue
- */
 export type CapNameValue = {
   /**
    * @minLength 1

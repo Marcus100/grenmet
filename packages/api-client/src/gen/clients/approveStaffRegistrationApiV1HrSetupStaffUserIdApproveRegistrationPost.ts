@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponses,
 } from "../models/ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
-
-function getApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostUrl(
-  user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/setup/staff/${user_id}/approve-registration` as const,
-  };
-  return res;
-}
 
 /**
  * @description Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.
  * @summary Approve a verified staff registration
  * {@link /api/v1/hr/setup/staff/:user_id/approve-registration}
  */
-export async function approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost(
-  user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
-    ResponseErrorConfig<
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
-    >,
-    unknown
-  >({
-    method: "POST",
-    url: getApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostUrl(
-      user_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/setup/staff/{user_id}/approve-registration",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

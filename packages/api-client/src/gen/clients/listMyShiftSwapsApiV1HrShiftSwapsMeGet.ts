@@ -3,43 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGet422,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponses,
 } from "../models/ListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
-
-function getListMyShiftSwapsApiV1HrShiftSwapsMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/shift-swaps/me` as const };
-  return res;
-}
 
 /**
  * @description Return shift swap requests created by the current user, newest first.
  * @summary List my shift swap requests
  * {@link /api/v1/hr/shift-swaps/me}
  */
-export async function listMyShiftSwapsApiV1HrShiftSwapsMeGet(
-  params?: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listMyShiftSwapsApiV1HrShiftSwapsMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
-    ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getListMyShiftSwapsApiV1HrShiftSwapsMeGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/shift-swaps/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

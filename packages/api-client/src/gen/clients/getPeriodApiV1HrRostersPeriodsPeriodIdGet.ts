@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet404,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet422,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponses,
 } from "../models/GetPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
-
-function getGetPeriodApiV1HrRostersPeriodsPeriodIdGetUrl(
-  period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/rosters/periods/${period_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a roster period and its assignments. Requires roster.view permission.
  * @summary Get roster period details
  * {@link /api/v1/hr/rosters/periods/:period_id}
  */
-export async function getPeriodApiV1HrRostersPeriodsPeriodIdGet(
-  period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function getPeriodApiV1HrRostersPeriodsPeriodIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
-    ResponseErrorConfig<
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet403
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet404
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getGetPeriodApiV1HrRostersPeriodsPeriodIdGetUrl(
-      period_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/periods/{period_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

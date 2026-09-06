@@ -5,41 +5,44 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams =
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     assignment_id: string;
   };
 
-/**
- * @description Role assignment revoked
- */
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204 =
-  any;
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204 =
+  unknown;
 
-/**
- * @description Role assignment not found
- */
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404 =
-  any;
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422 =
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422 =
   HTTPValidationError;
 
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse =
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204;
-
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutation =
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions =
   {
-    Response: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204;
-    PathParams: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams;
-    Errors:
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422;
+    body?: never;
+    path: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePath;
+    query?: never;
+    headers?: never;
   };
+
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponses =
+  {
+    "204": DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204;
+    "404": DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404;
+    "422": DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponse =
+  | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204
+  | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+  | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422;

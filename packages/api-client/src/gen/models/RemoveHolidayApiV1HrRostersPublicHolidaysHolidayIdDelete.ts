@@ -5,44 +5,47 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams =
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  holiday_id: string;
+};
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204 =
+  unknown;
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403 =
+  unknown;
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404 =
+  unknown;
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422 =
+  HTTPValidationError;
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions = {
+  body?: never;
+  path: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePath;
+  query?: never;
+  headers?: never;
+};
+
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponses =
   {
-    /**
-     * @type string, uuid
-     */
-    holiday_id: string;
+    "204": RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204;
+    "403": RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403;
+    "404": RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404;
+    "422": RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422;
   };
 
 /**
- * @description Public holiday deleted
+ * @description Union of all possible responses
  */
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204 = any;
-
-/**
- * @description Insufficient permission
- */
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403 = any;
-
-/**
- * @description Public holiday not found
- */
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422 =
-  HTTPValidationError;
-
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse =
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204;
-
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutation = {
-  Response: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204;
-  PathParams: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams;
-  Errors:
-    | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-    | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-    | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422;
-};
+export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponse =
+  | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204
+  | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+  | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+  | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422;

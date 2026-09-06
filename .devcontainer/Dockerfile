@@ -28,8 +28,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # so the agent can work on the FastAPI app too.
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
-# pnpm v10 via corepack (matches the monorepo's package manager)
-RUN corepack enable && corepack prepare pnpm@10 --activate
+# pnpm v12 via corepack (matches the monorepo's package manager)
+RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # The coding agents themselves
 RUN npm install -g @anthropic-ai/claude-code @openai/codex

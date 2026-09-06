@@ -3,40 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteUserMeApiV1AuthUsersMeDelete403,
-  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+  DeleteUserMeApiV1AuthUsersMeDeleteOptions,
+  DeleteUserMeApiV1AuthUsersMeDeleteResponses,
 } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
-
-function getDeleteUserMeApiV1AuthUsersMeDeleteUrl() {
-  const res = { method: "DELETE", url: `/api/v1/auth/users/me` as const };
-  return res;
-}
 
 /**
  * @description Delete currently authenticated user account.
  * @summary Delete current user
  * {@link /api/v1/auth/users/me}
  */
-export async function deleteUserMeApiV1AuthUsersMeDelete(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteUserMeApiV1AuthUsersMeDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<DeleteUserMeApiV1AuthUsersMeDeleteOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<DeleteUserMeApiV1AuthUsersMeDeleteResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteUserMeApiV1AuthUsersMeDeleteUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/auth/users/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<DeleteUserMeApiV1AuthUsersMeDeleteResponses, ThrowOnError>
+    >
+  );
 }

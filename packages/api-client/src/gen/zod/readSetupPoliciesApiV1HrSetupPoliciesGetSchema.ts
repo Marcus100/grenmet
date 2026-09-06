@@ -6,27 +6,23 @@
 import * as z from "zod";
 import { policyPublicSchema } from "./policyPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readSetupPoliciesApiV1HrSetupPoliciesGet200Schema = z.array(
-  z.lazy(() => policyPublicSchema)
-);
+export const readSetupPoliciesApiV1HrSetupPoliciesGetStatus200Schema =
+  z.array(policyPublicSchema);
 
-/**
- * @description Administrator access required
- */
-export const readSetupPoliciesApiV1HrSetupPoliciesGet403Schema = z.any();
+export const readSetupPoliciesApiV1HrSetupPoliciesGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const readSetupPoliciesApiV1HrSetupPoliciesGet404Schema = z.any();
+export const readSetupPoliciesApiV1HrSetupPoliciesGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const readSetupPoliciesApiV1HrSetupPoliciesGet409Schema = z.any();
+export const readSetupPoliciesApiV1HrSetupPoliciesGetStatus409Schema =
+  z.unknown();
 
-export const readSetupPoliciesApiV1HrSetupPoliciesGetQueryResponseSchema =
-  z.lazy(() => readSetupPoliciesApiV1HrSetupPoliciesGet200Schema);
+export const readSetupPoliciesApiV1HrSetupPoliciesGetResponseSchema =
+  readSetupPoliciesApiV1HrSetupPoliciesGetStatus200Schema;
+
+export const readSetupPoliciesApiV1HrSetupPoliciesGetErrorSchema = z.union([
+  readSetupPoliciesApiV1HrSetupPoliciesGetStatus403Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGetStatus404Schema,
+  readSetupPoliciesApiV1HrSetupPoliciesGetStatus409Schema,
+]);

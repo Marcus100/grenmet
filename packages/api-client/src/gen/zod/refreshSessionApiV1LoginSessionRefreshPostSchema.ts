@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 import { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
 
-/**
- * @description Successful Response
- */
-export const refreshSessionApiV1LoginSessionRefreshPost200Schema = z.lazy(
-  () => sessionLoginResponseSchema
-);
+export const refreshSessionApiV1LoginSessionRefreshPostStatus200Schema =
+  sessionLoginResponseSchema;
 
-/**
- * @description Validation Error
- */
-export const refreshSessionApiV1LoginSessionRefreshPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const refreshSessionApiV1LoginSessionRefreshPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const refreshSessionApiV1LoginSessionRefreshPostMutationRequestSchema =
-  z.lazy(() => sessionTokenRequestSchema);
+export const refreshSessionApiV1LoginSessionRefreshPostResponseSchema =
+  refreshSessionApiV1LoginSessionRefreshPostStatus200Schema;
 
-export const refreshSessionApiV1LoginSessionRefreshPostMutationResponseSchema =
-  z.lazy(() => refreshSessionApiV1LoginSessionRefreshPost200Schema);
+export const refreshSessionApiV1LoginSessionRefreshPostErrorSchema =
+  refreshSessionApiV1LoginSessionRefreshPostStatus422Schema;
+
+export const refreshSessionApiV1LoginSessionRefreshPostBodySchema =
+  sessionTokenRequestSchema;

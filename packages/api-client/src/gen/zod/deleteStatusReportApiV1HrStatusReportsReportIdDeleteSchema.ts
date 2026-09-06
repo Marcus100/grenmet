@@ -6,40 +6,31 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteStatusReportApiV1HrStatusReportsReportIdDeletePathParamsSchema =
-  z.object({
-    report_id: z.string().uuid(),
-  });
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeletePathReportIdSchema =
+  z.uuid();
 
-/**
- * @description Status report deleted
- */
-export const deleteStatusReportApiV1HrStatusReportsReportIdDelete204Schema =
-  z.any();
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Status report is not a draft
- */
-export const deleteStatusReportApiV1HrStatusReportsReportIdDelete400Schema =
-  z.any();
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to delete this status report
- */
-export const deleteStatusReportApiV1HrStatusReportsReportIdDelete403Schema =
-  z.any();
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403Schema =
+  z.unknown();
 
-/**
- * @description Status report not found
- */
-export const deleteStatusReportApiV1HrStatusReportsReportIdDelete404Schema =
-  z.any();
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteStatusReportApiV1HrStatusReportsReportIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationResponseSchema =
-  z.lazy(() => deleteStatusReportApiV1HrStatusReportsReportIdDelete204Schema);
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteResponseSchema =
+  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204Schema;
+
+export const deleteStatusReportApiV1HrStatusReportsReportIdDeleteErrorSchema =
+  z.union([
+    deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400Schema,
+    deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403Schema,
+    deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404Schema,
+    deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422Schema,
+  ]);

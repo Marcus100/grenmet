@@ -3,50 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateFeedApiV1CapFeedsFeedIdPatch422,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-  UpdateFeedApiV1CapFeedsFeedIdPatchPathParams,
+  UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
+  UpdateFeedApiV1CapFeedsFeedIdPatchResponses,
 } from "../models/UpdateFeedApiV1CapFeedsFeedIdPatch.js";
-
-function getUpdateFeedApiV1CapFeedsFeedIdPatchUrl(
-  feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"]
-) {
-  const res = { method: "PATCH", url: `/api/v1/cap/feeds/${feed_id}` as const };
-  return res;
-}
 
 /**
  * @summary Update Feed
  * {@link /api/v1/cap/feeds/:feed_id}
  */
-export async function updateFeedApiV1CapFeedsFeedIdPatch(
-  feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"],
-  data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateFeedApiV1CapFeedsFeedIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateFeedApiV1CapFeedsFeedIdPatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateFeedApiV1CapFeedsFeedIdPatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateFeedApiV1CapFeedsFeedIdPatchUrl(feed_id).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/cap/feeds/{feed_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<UpdateFeedApiV1CapFeedsFeedIdPatchResponses, ThrowOnError>
+    >
+  );
 }

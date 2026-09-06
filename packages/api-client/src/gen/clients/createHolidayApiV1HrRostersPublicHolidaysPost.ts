@@ -3,56 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateHolidayApiV1HrRostersPublicHolidaysPost400,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost403,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost422,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostResponses,
 } from "../models/CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
-
-function getCreateHolidayApiV1HrRostersPublicHolidaysPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/rosters/public-holidays` as const,
-  };
-  return res;
-}
 
 /**
  * @description Add a public holiday. Requires roster.manage permission.
  * @summary Create public holiday
  * {@link /api/v1/hr/rosters/public-holidays}
  */
-export async function createHolidayApiV1HrRostersPublicHolidaysPost(
-  data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createHolidayApiV1HrRostersPublicHolidaysPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateHolidayApiV1HrRostersPublicHolidaysPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost422
-    >,
-    CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateHolidayApiV1HrRostersPublicHolidaysPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/public-holidays",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateHolidayApiV1HrRostersPublicHolidaysPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

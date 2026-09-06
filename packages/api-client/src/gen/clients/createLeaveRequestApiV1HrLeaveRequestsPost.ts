@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateLeaveRequestApiV1HrLeaveRequestsPost403,
-  CreateLeaveRequestApiV1HrLeaveRequestsPost422,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostResponses,
 } from "../models/CreateLeaveRequestApiV1HrLeaveRequestsPost.js";
-
-function getCreateLeaveRequestApiV1HrLeaveRequestsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/leave-requests` as const };
-  return res;
-}
 
 /**
  * @description Create a leave request for the current user. Requires leave.request.create.self permission.
  * @summary Create leave request
  * {@link /api/v1/hr/leave-requests}
  */
-export async function createLeaveRequestApiV1HrLeaveRequestsPost(
-  data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createLeaveRequestApiV1HrLeaveRequestsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateLeaveRequestApiV1HrLeaveRequestsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost422
-    >,
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateLeaveRequestApiV1HrLeaveRequestsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/leave-requests",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateLeaveRequestApiV1HrLeaveRequestsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -158,7 +158,7 @@ export default function NewAlertPage() {
     };
 
     try {
-      await createAlertApiV1CapAlertsPost(payload);
+      await createAlertApiV1CapAlertsPost({ body: payload }).unwrap();
       router.push("/cap");
       router.refresh();
     } catch (err) {

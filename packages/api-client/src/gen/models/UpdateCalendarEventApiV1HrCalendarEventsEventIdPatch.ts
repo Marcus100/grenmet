@@ -7,58 +7,58 @@ import type { CalendarEventPublic } from "./CalendarEventPublic.js";
 import type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams = {
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   event_id: string;
 };
 
 /**
- * CalendarEventPublic
- * @description Calendar event updated
+ * @description A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC.
+ * @type object
  */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch200 =
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200 =
   CalendarEventPublic;
 
-/**
- * @description Invalid event
- */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400 = any;
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400 =
+  unknown;
 
-/**
- * @description Not the author
- */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403 = any;
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403 =
+  unknown;
 
-/**
- * @description Calendar event not found
- */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404 = any;
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422 =
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * CalendarEventUpdate
- */
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest =
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchBody =
   CalendarEventUpdate;
 
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse =
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch200;
-
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutation = {
-  Response: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch200;
-  Request: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-  PathParams: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams;
-  Errors:
-    | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-    | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-    | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-    | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422;
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions = {
+  body: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchBody;
+  path: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponses = {
+  "200": UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200;
+  "400": UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400;
+  "403": UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403;
+  "404": UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404;
+  "422": UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponse =
+  | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200
+  | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+  | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+  | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+  | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422;

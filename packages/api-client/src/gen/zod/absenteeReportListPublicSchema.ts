@@ -7,8 +7,8 @@ import * as z from "zod";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 
 export const absenteeReportListPublicSchema = z.object({
-  data: z.array(z.lazy(() => absenteeReportPublicSchema)),
-  count: z.number().int(),
-  page: z.optional(z.number().int().default(1)),
-  size: z.optional(z.number().int().default(100)),
+  data: z.array(absenteeReportPublicSchema),
+  count: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
 });

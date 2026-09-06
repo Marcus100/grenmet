@@ -5,9 +5,6 @@
 
 import type { EmploymentType } from "./EmploymentType.js";
 
-/**
- * StaffSetup
- */
 export type StaffSetup = {
   /**
    * @default false
@@ -15,47 +12,22 @@ export type StaffSetup = {
    */
   registration_pending?: boolean;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
-  /**
-   * @type string
-   */
   email: string;
-  /**
-   * @type string
-   */
   name: string;
-  /**
-   * @type string
-   */
   number: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   grade_id: string;
-  /**
-   * @type boolean
-   */
   mailbox_ready: boolean;
-  /**
-   * @type boolean
-   */
   email_verified: boolean;
-  /**
-   * @type boolean
-   */
   employment_ready: boolean;
   employee_number?: string | null;
   employment_type?: EmploymentType | null;
   start_date?: string | null;
   supervisor_id?: string | null;
-  /**
-   * @type string
-   */
   status: string;
 };

@@ -7,42 +7,41 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterCalendarPublicSchema } from "./rosterCalendarPublicSchema.js";
 
-export const listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsSchema =
-  z.object({
-    start: z.string().date(),
-    end: z.string().date(),
-    department_id: z.optional(z.union([z.string(), z.null()])),
-    scope: z.optional(z.enum(["me", "department"]).default("me")),
-  });
+export const listAssignmentsApiV1HrRostersAssignmentsGetQueryStartSchema =
+  z.iso.date();
 
-/**
- * @description Assignments returned
- */
-export const listAssignmentsApiV1HrRostersAssignmentsGet200Schema = z.lazy(
-  () => rosterCalendarPublicSchema
-);
+export const listAssignmentsApiV1HrRostersAssignmentsGetQueryEndSchema =
+  z.iso.date();
 
-/**
- * @description Invalid date range
- */
-export const listAssignmentsApiV1HrRostersAssignmentsGet400Schema = z.any();
+export const listAssignmentsApiV1HrRostersAssignmentsGetQueryDepartmentIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Insufficient permission
- */
-export const listAssignmentsApiV1HrRostersAssignmentsGet403Schema = z.any();
+export const listAssignmentsApiV1HrRostersAssignmentsGetQueryScopeSchema = z
+  .enum(["me", "department"])
+  .optional()
+  .default("me");
 
-/**
- * @description Department not found
- */
-export const listAssignmentsApiV1HrRostersAssignmentsGet404Schema = z.any();
+export const listAssignmentsApiV1HrRostersAssignmentsGetStatus200Schema =
+  rosterCalendarPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const listAssignmentsApiV1HrRostersAssignmentsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const listAssignmentsApiV1HrRostersAssignmentsGetStatus400Schema =
+  z.unknown();
 
-export const listAssignmentsApiV1HrRostersAssignmentsGetQueryResponseSchema =
-  z.lazy(() => listAssignmentsApiV1HrRostersAssignmentsGet200Schema);
+export const listAssignmentsApiV1HrRostersAssignmentsGetStatus403Schema =
+  z.unknown();
+
+export const listAssignmentsApiV1HrRostersAssignmentsGetStatus404Schema =
+  z.unknown();
+
+export const listAssignmentsApiV1HrRostersAssignmentsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const listAssignmentsApiV1HrRostersAssignmentsGetResponseSchema =
+  listAssignmentsApiV1HrRostersAssignmentsGetStatus200Schema;
+
+export const listAssignmentsApiV1HrRostersAssignmentsGetErrorSchema = z.union([
+  listAssignmentsApiV1HrRostersAssignmentsGetStatus400Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGetStatus403Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGetStatus404Schema,
+  listAssignmentsApiV1HrRostersAssignmentsGetStatus422Schema,
+]);

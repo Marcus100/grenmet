@@ -5,21 +5,13 @@
 
 import type { ShiftPattern } from "./ShiftPattern.js";
 
-/**
- * RosterPreferencesPublic
- */
 export type RosterPreferencesPublic = {
   /**
+   * @default 'ROTATION'
    * @type string | undefined
    */
   default_shift_pattern?: ShiftPattern;
-  /**
-   * @type array | undefined
-   */
   preferred_shifts?: string[];
-  /**
-   * @type array | undefined
-   */
   restricted_shifts?: string[];
   /**
    * @default 6

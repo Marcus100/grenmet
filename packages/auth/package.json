@@ -34,5 +34,8 @@
     "react": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "dependencies": {
+    "server-only": "catalog:"
   }
 }

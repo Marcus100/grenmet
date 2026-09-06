@@ -3,43 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
-  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
-  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetOptions,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetResponses,
 } from "../models/ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
-
-function getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/timesheets/me` as const };
-  return res;
-}
 
 /**
  * @description Return timesheets for the current user.
  * @summary List my timesheets
  * {@link /api/v1/hr/timesheets/me}
  */
-export async function readMyTimesheetsApiV1HrTimesheetsMeGet(
-  params?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readMyTimesheetsApiV1HrTimesheetsMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadMyTimesheetsApiV1HrTimesheetsMeGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadMyTimesheetsApiV1HrTimesheetsMeGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
-    ResponseErrorConfig<ReadMyTimesheetsApiV1HrTimesheetsMeGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadMyTimesheetsApiV1HrTimesheetsMeGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/timesheets/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadMyTimesheetsApiV1HrTimesheetsMeGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

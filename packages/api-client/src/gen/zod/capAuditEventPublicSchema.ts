@@ -6,13 +6,13 @@
 import * as z from "zod";
 
 export const capAuditEventPublicSchema = z.object({
-  id: z.string().uuid(),
-  alert_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  actor_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  id: z.uuid(),
+  alert_id: z.union([z.uuid(), z.null()]).optional(),
+  actor_user_id: z.union([z.uuid(), z.null()]).optional(),
   action: z.string(),
-  previous_state: z.optional(z.union([z.string(), z.null()])),
-  next_state: z.optional(z.union([z.string(), z.null()])),
-  note: z.optional(z.union([z.string(), z.null()])),
-  payload: z.optional(z.object({}).catchall(z.any())),
+  previous_state: z.union([z.string(), z.null()]).optional(),
+  next_state: z.union([z.string(), z.null()]).optional(),
+  note: z.union([z.string(), z.null()]).optional(),
+  payload: z.object({}).catchall(z.unknown()).optional(),
   created_at: z.string(),
 });

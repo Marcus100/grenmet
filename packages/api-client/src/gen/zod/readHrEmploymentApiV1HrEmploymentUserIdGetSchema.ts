@@ -7,34 +7,26 @@ import * as z from "zod";
 import { employmentRecordPublicSchema } from "./employmentRecordPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readHrEmploymentApiV1HrEmploymentUserIdGetPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const readHrEmploymentApiV1HrEmploymentUserIdGetPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Employment record returned
- */
-export const readHrEmploymentApiV1HrEmploymentUserIdGet200Schema = z.lazy(
-  () => employmentRecordPublicSchema
-);
+export const readHrEmploymentApiV1HrEmploymentUserIdGetStatus200Schema =
+  employmentRecordPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const readHrEmploymentApiV1HrEmploymentUserIdGet403Schema = z.any();
+export const readHrEmploymentApiV1HrEmploymentUserIdGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description User has no employment record, or user not found
- */
-export const readHrEmploymentApiV1HrEmploymentUserIdGet404Schema = z.any();
+export const readHrEmploymentApiV1HrEmploymentUserIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readHrEmploymentApiV1HrEmploymentUserIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readHrEmploymentApiV1HrEmploymentUserIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readHrEmploymentApiV1HrEmploymentUserIdGetQueryResponseSchema =
-  z.lazy(() => readHrEmploymentApiV1HrEmploymentUserIdGet200Schema);
+export const readHrEmploymentApiV1HrEmploymentUserIdGetResponseSchema =
+  readHrEmploymentApiV1HrEmploymentUserIdGetStatus200Schema;
+
+export const readHrEmploymentApiV1HrEmploymentUserIdGetErrorSchema = z.union([
+  readHrEmploymentApiV1HrEmploymentUserIdGetStatus403Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGetStatus404Schema,
+  readHrEmploymentApiV1HrEmploymentUserIdGetStatus422Schema,
+]);

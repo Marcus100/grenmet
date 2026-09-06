@@ -6,44 +6,44 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetDetails } from "./TimesheetDetails.js";
 
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams = {
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   timesheet_id: string;
 };
 
-/**
- * TimesheetDetails
- * @description Timesheet and entries returned
- */
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200 = TimesheetDetails;
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200 =
+  TimesheetDetails;
 
-/**
- * @description Not allowed to read this timesheet
- */
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403 = any;
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403 = unknown;
 
-/**
- * @description Timesheet not found
- */
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404 = any;
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422 =
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422 =
   HTTPValidationError;
 
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponse =
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200;
-
-export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQuery = {
-  Response: ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200;
-  PathParams: ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams;
-  Errors:
-    | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403
-    | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404
-    | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422;
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetOptions = {
+  body?: never;
+  path: ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponses = {
+  "200": ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200;
+  "403": ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403;
+  "404": ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404;
+  "422": ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponse =
+  | ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200
+  | ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403
+  | ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404
+  | ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422;

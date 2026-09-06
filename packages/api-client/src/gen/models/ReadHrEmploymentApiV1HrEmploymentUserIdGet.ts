@@ -6,44 +6,44 @@
 import type { EmploymentRecordPublic } from "./EmploymentRecordPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams = {
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * EmploymentRecordPublic
- * @description Employment record returned
- */
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGet200 =
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200 =
   EmploymentRecordPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGet403 = any;
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403 = unknown;
 
-/**
- * @description User has no employment record, or user not found
- */
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGet404 = any;
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGet422 = HTTPValidationError;
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422 =
+  HTTPValidationError;
 
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse =
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet200;
-
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery = {
-  Response: ReadHrEmploymentApiV1HrEmploymentUserIdGet200;
-  PathParams: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams;
-  Errors:
-    | ReadHrEmploymentApiV1HrEmploymentUserIdGet403
-    | ReadHrEmploymentApiV1HrEmploymentUserIdGet404
-    | ReadHrEmploymentApiV1HrEmploymentUserIdGet422;
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions = {
+  body?: never;
+  path: ReadHrEmploymentApiV1HrEmploymentUserIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetResponses = {
+  "200": ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200;
+  "403": ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403;
+  "404": ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404;
+  "422": ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadHrEmploymentApiV1HrEmploymentUserIdGetResponse =
+  | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200
+  | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403
+  | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404
+  | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422;

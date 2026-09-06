@@ -3,53 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponses,
 } from "../models/DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
-
-function getDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteUrl(
-  assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/auth/role-assignments/${assignment_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete a user-role assignment (superuser or user.manage).
  * @summary Revoke role assignment
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
-export async function deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete(
-  assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteUrl(
-      assignment_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/auth/role-assignments/{assignment_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

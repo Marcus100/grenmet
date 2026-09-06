@@ -5,40 +5,28 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-/**
- * WorkflowStepTemplatePublic
- */
 export type WorkflowStepTemplatePublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   workflow_template_id: string;
-  /**
-   * @type integer
-   */
   step_order: number;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   required_role_id: string;
-  /**
-   * @type string
-   */
   required_scope: RoleAssignmentScope;
-  /**
-   * @type boolean
-   */
   is_required: boolean;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

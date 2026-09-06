@@ -5,10 +5,8 @@
 
 import * as z from "zod";
 
-/**
- * @description Successful Response
- */
-export const readAlertsGeojsonApiCapAlertsGeojsonGet200Schema = z.any();
+export const readAlertsGeojsonApiCapAlertsGeojsonGetStatus200Schema =
+  z.unknown();
 
-export const readAlertsGeojsonApiCapAlertsGeojsonGetQueryResponseSchema =
-  z.lazy(() => readAlertsGeojsonApiCapAlertsGeojsonGet200Schema);
+export const readAlertsGeojsonApiCapAlertsGeojsonGetResponseSchema =
+  readAlertsGeojsonApiCapAlertsGeojsonGetStatus200Schema;

@@ -16,7 +16,7 @@ For commands and setup, see the [root README](../README.md).
 
 For the directory layout, see [Workspace Layout in the root README](../README.md#workspace-layout).
 
-**Build system:** pnpm v10 workspaces + Turborepo v2. All tasks run via `turbo run <task>` from the root. Turbo handles caching and parallelism — run `pnpm build` or `pnpm check` at the root and Turbo figures out the order.
+**Build system:** pnpm v12 workspaces + Turborepo v2. All tasks run via `turbo run <task>` from the root. Turbo handles caching and parallelism — run `pnpm build` or `pnpm check` at the root and Turbo figures out the order.
 
 **Package references:** Shared dep versions are pinned in `pnpm-workspace.yaml` under `catalog:`. Apps reference them with `"react": "catalog:"` — never hardcode a version for a dep that exists in the catalog.
 

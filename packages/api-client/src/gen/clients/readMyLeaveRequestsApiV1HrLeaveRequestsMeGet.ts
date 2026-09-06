@@ -3,43 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetOptions,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponses,
 } from "../models/ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
-
-function getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/leave-requests/me` as const };
-  return res;
-}
 
 /**
  * @description Return leave requests for the current user.
  * @summary List my leave requests
  * {@link /api/v1/hr/leave-requests/me}
  */
-export async function readMyLeaveRequestsApiV1HrLeaveRequestsMeGet(
-  params?: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readMyLeaveRequestsApiV1HrLeaveRequestsMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
-    ResponseErrorConfig<ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/leave-requests/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -3,19 +3,10 @@
  * Do not edit manually.
  */
 
-/**
- * LeavePublic
- */
 export type LeavePublic = {
-  /**
-   * @type object | undefined
-   */
   balances?: {
     [key: string]: number;
   };
-  /**
-   * @type object | undefined
-   */
   carry_over?: {
     [key: string]: number;
   };

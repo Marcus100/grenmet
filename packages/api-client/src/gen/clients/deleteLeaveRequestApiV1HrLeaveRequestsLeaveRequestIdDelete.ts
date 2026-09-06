@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponses,
 } from "../models/DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
-
-function getDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteUrl(
-  leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/hr/leave-requests/${leave_request_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete an own DRAFT leave request. Requires leave.request.create.self permission and ownership.
  * @summary Delete a draft leave request
  * {@link /api/v1/hr/leave-requests/:leave_request_id}
  */
-export async function deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete(
-  leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteUrl(
-      leave_request_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/hr/leave-requests/{leave_request_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

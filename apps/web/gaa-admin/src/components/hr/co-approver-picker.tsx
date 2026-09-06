@@ -39,7 +39,8 @@ export function CoApproverPicker({
 }: CoApproverPickerProps) {
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      departmentId ?? ""
+      { path: { department_id: departmentId ?? "" } },
+      { query: { enabled: Boolean(departmentId) } }
     );
   const members = (membersQuery.data?.data ?? []).filter(
     (member) => member.user_id !== excludeUserId

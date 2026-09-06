@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch } from "../clients/submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 import type {
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422,
 } from "../models/SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 
 export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey =
   () => [{ url: "/api/v1/hr/timesheets/:timesheet_id/submit" }] as const;
 
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey =
-  ReturnType<
-    typeof submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey
-  >;
-
 export function submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationKey();
   return mutationOptions<
-    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
     ResponseErrorConfig<
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422
     >,
-    {
-      timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"];
-      data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-    },
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id, data }) => {
-      return submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch(
-        timesheet_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
       ResponseErrorConfig<
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422
       >,
-      {
-        timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"];
-        data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-      },
+      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch<
     submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
       ResponseErrorConfig<
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+        | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422
       >,
-      {
-        timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"];
-        data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-      },
+      SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
       TContext
     >;
 
   return useMutation<
-    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
     ResponseErrorConfig<
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422
     >,
-    {
-      timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"];
-      data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-    },
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch<
     },
     queryClient
   ) as UseMutationResult<
-    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
     ResponseErrorConfig<
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422
     >,
-    {
-      timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"];
-      data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-    },
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
     TContext
   >;
 }

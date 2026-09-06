@@ -8,29 +8,19 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { newPasswordSchema } from "./newPasswordSchema.js";
 
-/**
- * @description Successful Response
- */
-export const resetPasswordApiV1ResetPasswordPost200Schema = z.lazy(
-  () => messageSchema
-);
+export const resetPasswordApiV1ResetPasswordPostStatus200Schema = messageSchema;
 
-/**
- * @description Validation Error
- */
-export const resetPasswordApiV1ResetPasswordPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const resetPasswordApiV1ResetPasswordPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Rate limit exceeded
- */
-export const resetPasswordApiV1ResetPasswordPost429Schema = z.any();
+export const resetPasswordApiV1ResetPasswordPostStatus429Schema = z.unknown();
 
-export const resetPasswordApiV1ResetPasswordPostMutationRequestSchema = z.lazy(
-  () => newPasswordSchema
-);
+export const resetPasswordApiV1ResetPasswordPostResponseSchema =
+  resetPasswordApiV1ResetPasswordPostStatus200Schema;
 
-export const resetPasswordApiV1ResetPasswordPostMutationResponseSchema = z.lazy(
-  () => resetPasswordApiV1ResetPasswordPost200Schema
-);
+export const resetPasswordApiV1ResetPasswordPostErrorSchema = z.union([
+  resetPasswordApiV1ResetPasswordPostStatus422Schema,
+  resetPasswordApiV1ResetPasswordPostStatus429Schema,
+]);
+
+export const resetPasswordApiV1ResetPasswordPostBodySchema = newPasswordSchema;

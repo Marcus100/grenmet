@@ -5,16 +5,7 @@
 
 import type { DepartmentPublic } from "./DepartmentPublic.js";
 
-/**
- * DepartmentsPublic
- */
 export type DepartmentsPublic = {
-  /**
-   * @type array
-   */
   data: DepartmentPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

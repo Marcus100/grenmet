@@ -35,7 +35,7 @@ async function readFoundationBlock() {
   const source = await readFile(foundationPath, "utf8");
   const match = source.match(blockPattern);
 
-  if (!match || match.length !== 1) {
+  if (match?.length !== 1) {
     throw new Error(
       `Expected exactly one design-system foundation block in ${relative(
         rootDir,

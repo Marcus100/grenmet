@@ -9,55 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateStaffSetupApiV1HrSetupStaffUserIdPut } from "../clients/updateStaffSetupApiV1HrSetupStaffUserIdPut.js";
 import type {
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut403,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut404,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut409,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut422,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422,
 } from "../models/UpdateStaffSetupApiV1HrSetupStaffUserIdPut.js";
 
 export const updateStaffSetupApiV1HrSetupStaffUserIdPutMutationKey = () =>
   [{ url: "/api/v1/hr/setup/staff/:user_id" }] as const;
 
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationKey = ReturnType<
-  typeof updateStaffSetupApiV1HrSetupStaffUserIdPutMutationKey
->;
-
 export function updateStaffSetupApiV1HrSetupStaffUserIdPutMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateStaffSetupApiV1HrSetupStaffUserIdPutMutationKey();
   return mutationOptions<
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422
     >,
-    {
-      user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"];
-      data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-    },
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateStaffSetupApiV1HrSetupStaffUserIdPut(user_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateStaffSetupApiV1HrSetupStaffUserIdPut({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -70,22 +62,19 @@ export function updateStaffSetupApiV1HrSetupStaffUserIdPutMutationOptions<
 export function useUpdateStaffSetupApiV1HrSetupStaffUserIdPut<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
+      UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
       ResponseErrorConfig<
-        | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-        | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-        | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-        | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
+        | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+        | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+        | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+        | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422
       >,
-      {
-        user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"];
-        data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-      },
+      UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -97,32 +86,26 @@ export function useUpdateStaffSetupApiV1HrSetupStaffUserIdPut<TContext>(
   const baseOptions = updateStaffSetupApiV1HrSetupStaffUserIdPutMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422
     >,
-    {
-      user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"];
-      data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-    },
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422
     >,
-    {
-      user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"];
-      data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-    },
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
     TContext
   >(
     {
@@ -132,17 +115,14 @@ export function useUpdateStaffSetupApiV1HrSetupStaffUserIdPut<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+      | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422
     >,
-    {
-      user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"];
-      data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-    },
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
     TContext
   >;
 }

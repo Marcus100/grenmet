@@ -8,5 +8,5 @@ import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const srcHrSchemasRolePublicSchema = z.object({
   name: z.string(),
-  scope: z.lazy(() => roleAssignmentScopeSchema),
+  scope: roleAssignmentScopeSchema,
 });

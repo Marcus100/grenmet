@@ -7,36 +7,27 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
 
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParamsSchema =
-  z.object({
-    period_id: z.string().uuid(),
-  });
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathPeriodIdSchema =
+  z.uuid();
 
-/**
- * @description Revisions returned
- */
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet200Schema =
-  z.lazy(() => rosterRevisionsPublicSchema);
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200Schema =
+  rosterRevisionsPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403Schema =
-  z.any();
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Roster period not found
- */
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404Schema =
-  z.any();
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponseSchema =
-  z.lazy(
-    () => getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet200Schema
-  );
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponseSchema =
+  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200Schema;
+
+export const getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetErrorSchema =
+  z.union([
+    getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403Schema,
+    getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404Schema,
+    getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422Schema,
+  ]);

@@ -9,50 +9,41 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "../clients/revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 import type {
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422,
 } from "../models/RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 
 export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey =
   () => [{ url: "/api/v1/auth/modern/security/sessions/:session_id" }] as const;
 
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey =
-  ReturnType<
-    typeof revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey
-  >;
-
 export function revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey();
   return mutationOptions<
-    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
     ResponseErrorConfig<
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422
     >,
-    {
-      session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"];
-    },
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ session_id }) => {
+    mutationFn: async ({ path }) => {
       return revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete(
-        session_id,
-        config
-      );
+        { ...config, path, throwOnError: true }
+      ).unwrap();
     },
   });
 }
@@ -67,17 +58,17 @@ export function useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionId
 >(
   options: {
     mutation?: UseMutationOptions<
-      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
       ResponseErrorConfig<
-        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
+        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422
       >,
-      {
-        session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"];
-      },
+      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,26 +81,22 @@ export function useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionId
     revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
       ResponseErrorConfig<
-        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
+        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+        | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422
       >,
-      {
-        session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"];
-      },
+      RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
     ResponseErrorConfig<
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422
     >,
-    {
-      session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"];
-    },
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
     TContext
   >(
     {
@@ -119,14 +106,12 @@ export function useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionId
     },
     queryClient
   ) as UseMutationResult<
-    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
     ResponseErrorConfig<
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422
     >,
-    {
-      session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"];
-    },
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
     TContext
   >;
 }

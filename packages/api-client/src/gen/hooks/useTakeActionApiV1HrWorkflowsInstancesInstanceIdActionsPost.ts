@@ -9,62 +9,49 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost } from "../clients/takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 import type {
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422,
 } from "../models/TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 
 export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey =
   () =>
     [{ url: "/api/v1/hr/workflows/instances/:instance_id/actions" }] as const;
 
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey =
-  ReturnType<
-    typeof takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey
-  >;
-
 export function takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationKey();
   return mutationOptions<
-    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
     ResponseErrorConfig<
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422
     >,
-    {
-      instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"];
-      data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-    },
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ instance_id, data }) => {
-      return takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
-        instance_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -79,22 +66,19 @@ export function useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
+      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
       ResponseErrorConfig<
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422
       >,
-      {
-        instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"];
-        data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-      },
+      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -107,32 +91,26 @@ export function useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost<
     takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
+      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
       ResponseErrorConfig<
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+        | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422
       >,
-      {
-        instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"];
-        data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-      },
+      TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
       TContext
     >;
 
   return useMutation<
-    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
     ResponseErrorConfig<
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422
     >,
-    {
-      instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"];
-      data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-    },
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
     TContext
   >(
     {
@@ -142,17 +120,14 @@ export function useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost<
     },
     queryClient
   ) as UseMutationResult<
-    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
     ResponseErrorConfig<
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422
     >,
-    {
-      instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"];
-      data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-    },
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
     TContext
   >;
 }

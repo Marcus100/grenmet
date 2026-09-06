@@ -8,45 +8,34 @@ import { departmentPublicSchema } from "./departmentPublicSchema.js";
 import { departmentUpdateSchema } from "./departmentUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParamsSchema =
-  z.object({
-    department_id: z.string(),
-  });
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathDepartmentIdSchema =
+  z.string();
 
-/**
- * @description Department updated
- */
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200Schema =
-  z.lazy(() => departmentPublicSchema);
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200Schema =
+  departmentPublicSchema;
 
-/**
- * @description Department name already taken
- */
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400Schema =
-  z.any();
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403Schema =
-  z.any();
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Department not found
- */
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404Schema =
-  z.any();
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequestSchema =
-  z.lazy(() => departmentUpdateSchema);
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponseSchema =
+  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200Schema;
 
-export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponseSchema =
-  z.lazy(
-    () => updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200Schema
-  );
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchErrorSchema =
+  z.union([
+    updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400Schema,
+    updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403Schema,
+    updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404Schema,
+    updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422Schema,
+  ]);
+
+export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchBodySchema =
+  departmentUpdateSchema;

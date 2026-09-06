@@ -8,36 +8,21 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 
-/**
- * @description Shift swap request created
- */
-export const createShiftSwapApiV1HrShiftSwapsPost200Schema = z.any();
+export const createShiftSwapApiV1HrShiftSwapsPostStatus201Schema =
+  shiftSwapRequestPublicSchema;
 
-/**
- * @description Successful Response
- */
-export const createShiftSwapApiV1HrShiftSwapsPost201Schema = z.lazy(
-  () => shiftSwapRequestPublicSchema
-);
+export const createShiftSwapApiV1HrShiftSwapsPostStatus403Schema = z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createShiftSwapApiV1HrShiftSwapsPost403Schema = z.any();
+export const createShiftSwapApiV1HrShiftSwapsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Validation Error
- */
-export const createShiftSwapApiV1HrShiftSwapsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createShiftSwapApiV1HrShiftSwapsPostResponseSchema =
+  createShiftSwapApiV1HrShiftSwapsPostStatus201Schema;
 
-export const createShiftSwapApiV1HrShiftSwapsPostMutationRequestSchema = z.lazy(
-  () => shiftSwapRequestCreateSchema
-);
+export const createShiftSwapApiV1HrShiftSwapsPostErrorSchema = z.union([
+  createShiftSwapApiV1HrShiftSwapsPostStatus403Schema,
+  createShiftSwapApiV1HrShiftSwapsPostStatus422Schema,
+]);
 
-export const createShiftSwapApiV1HrShiftSwapsPostMutationResponseSchema =
-  z.union([
-    z.lazy(() => createShiftSwapApiV1HrShiftSwapsPost200Schema),
-    z.lazy(() => createShiftSwapApiV1HrShiftSwapsPost201Schema),
-  ]);
+export const createShiftSwapApiV1HrShiftSwapsPostBodySchema =
+  shiftSwapRequestCreateSchema;

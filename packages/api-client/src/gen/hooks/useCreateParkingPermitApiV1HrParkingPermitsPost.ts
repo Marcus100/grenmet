@@ -9,46 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createParkingPermitApiV1HrParkingPermitsPost } from "../clients/createParkingPermitApiV1HrParkingPermitsPost.js";
 import type {
-  CreateParkingPermitApiV1HrParkingPermitsPost403,
-  CreateParkingPermitApiV1HrParkingPermitsPost422,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+  CreateParkingPermitApiV1HrParkingPermitsPostOptions,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus403,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus422,
 } from "../models/CreateParkingPermitApiV1HrParkingPermitsPost.js";
 
 export const createParkingPermitApiV1HrParkingPermitsPostMutationKey = () =>
   [{ url: "/api/v1/hr/parking-permits" }] as const;
 
-export type CreateParkingPermitApiV1HrParkingPermitsPostMutationKey =
-  ReturnType<typeof createParkingPermitApiV1HrParkingPermitsPostMutationKey>;
-
 export function createParkingPermitApiV1HrParkingPermitsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createParkingPermitApiV1HrParkingPermitsPostMutationKey();
   return mutationOptions<
-    CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+    CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
     ResponseErrorConfig<
-      | CreateParkingPermitApiV1HrParkingPermitsPost403
-      | CreateParkingPermitApiV1HrParkingPermitsPost422
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus422
     >,
-    { data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest },
+    CreateParkingPermitApiV1HrParkingPermitsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createParkingPermitApiV1HrParkingPermitsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createParkingPermitApiV1HrParkingPermitsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +57,17 @@ export function createParkingPermitApiV1HrParkingPermitsPostMutationOptions<
 export function useCreateParkingPermitApiV1HrParkingPermitsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+      CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
       ResponseErrorConfig<
-        | CreateParkingPermitApiV1HrParkingPermitsPost403
-        | CreateParkingPermitApiV1HrParkingPermitsPost422
+        | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+        | CreateParkingPermitApiV1HrParkingPermitsPostStatus422
       >,
-      { data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest },
+      CreateParkingPermitApiV1HrParkingPermitsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +80,22 @@ export function useCreateParkingPermitApiV1HrParkingPermitsPost<TContext>(
     createParkingPermitApiV1HrParkingPermitsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+      CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
       ResponseErrorConfig<
-        | CreateParkingPermitApiV1HrParkingPermitsPost403
-        | CreateParkingPermitApiV1HrParkingPermitsPost422
+        | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+        | CreateParkingPermitApiV1HrParkingPermitsPostStatus422
       >,
-      { data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest },
+      CreateParkingPermitApiV1HrParkingPermitsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+    CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
     ResponseErrorConfig<
-      | CreateParkingPermitApiV1HrParkingPermitsPost403
-      | CreateParkingPermitApiV1HrParkingPermitsPost422
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus422
     >,
-    { data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest },
+    CreateParkingPermitApiV1HrParkingPermitsPostOptions,
     TContext
   >(
     {
@@ -109,12 +105,12 @@ export function useCreateParkingPermitApiV1HrParkingPermitsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+    CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
     ResponseErrorConfig<
-      | CreateParkingPermitApiV1HrParkingPermitsPost403
-      | CreateParkingPermitApiV1HrParkingPermitsPost422
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+      | CreateParkingPermitApiV1HrParkingPermitsPostStatus422
     >,
-    { data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest },
+    CreateParkingPermitApiV1HrParkingPermitsPostOptions,
     TContext
   >;
 }

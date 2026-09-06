@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch } from "../clients/updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch.js";
 import type {
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422,
 } from "../models/UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch.js";
 
 export const updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationKey =
   () => [{ url: "/api/v1/hr/departments/:department_id" }] as const;
 
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationKey =
-  ReturnType<
-    typeof updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationKey
-  >;
-
 export function updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationKey();
   return mutationOptions<
-    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422
     >,
-    {
-      department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"];
-      data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-    },
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ department_id, data }) => {
-      return updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch(
-        department_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422
       >,
-      {
-        department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"];
-        data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-      },
+      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch<
     updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+        | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422
       >,
-      {
-        department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"];
-        data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-      },
+      UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422
     >,
-    {
-      department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"];
-      data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-    },
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch<
     },
     queryClient
   ) as UseMutationResult<
-    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422
     >,
-    {
-      department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"];
-      data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-    },
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
     TContext
   >;
 }

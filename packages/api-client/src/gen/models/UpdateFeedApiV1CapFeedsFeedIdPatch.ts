@@ -7,37 +7,36 @@ import type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 import type { CapFeedImportUpdate } from "./CapFeedImportUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateFeedApiV1CapFeedsFeedIdPatchPathParams = {
+export type UpdateFeedApiV1CapFeedsFeedIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   feed_id: string;
 };
 
-/**
- * CapFeedImportPublic
- * @description Successful Response
- */
-export type UpdateFeedApiV1CapFeedsFeedIdPatch200 = CapFeedImportPublic;
+export type UpdateFeedApiV1CapFeedsFeedIdPatchStatus200 = CapFeedImportPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateFeedApiV1CapFeedsFeedIdPatch422 = HTTPValidationError;
+export type UpdateFeedApiV1CapFeedsFeedIdPatchStatus422 = HTTPValidationError;
 
-/**
- * CapFeedImportUpdate
- */
-export type UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest =
-  CapFeedImportUpdate;
+export type UpdateFeedApiV1CapFeedsFeedIdPatchBody = CapFeedImportUpdate;
 
-export type UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse =
-  UpdateFeedApiV1CapFeedsFeedIdPatch200;
-
-export type UpdateFeedApiV1CapFeedsFeedIdPatchMutation = {
-  Response: UpdateFeedApiV1CapFeedsFeedIdPatch200;
-  Request: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-  PathParams: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams;
-  Errors: UpdateFeedApiV1CapFeedsFeedIdPatch422;
+export type UpdateFeedApiV1CapFeedsFeedIdPatchOptions = {
+  body: UpdateFeedApiV1CapFeedsFeedIdPatchBody;
+  path: UpdateFeedApiV1CapFeedsFeedIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateFeedApiV1CapFeedsFeedIdPatchResponses = {
+  "200": UpdateFeedApiV1CapFeedsFeedIdPatchStatus200;
+  "422": UpdateFeedApiV1CapFeedsFeedIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateFeedApiV1CapFeedsFeedIdPatchResponse =
+  | UpdateFeedApiV1CapFeedsFeedIdPatchStatus200
+  | UpdateFeedApiV1CapFeedsFeedIdPatchStatus422;

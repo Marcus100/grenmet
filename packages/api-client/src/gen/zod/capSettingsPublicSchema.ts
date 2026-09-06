@@ -6,15 +6,15 @@
 import * as z from "zod";
 
 export const capSettingsPublicSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   sender: z.string(),
   sender_name: z.string(),
-  wmo_oid: z.optional(z.union([z.string(), z.null()])),
-  web: z.optional(z.union([z.string(), z.null()])),
-  contact: z.optional(z.union([z.string(), z.null()])),
-  feed_limit: z.number().int(),
+  wmo_oid: z.union([z.string(), z.null()]).optional(),
+  web: z.union([z.string(), z.null()]).optional(),
+  contact: z.union([z.string(), z.null()]).optional(),
+  feed_limit: z.int(),
   signing_enabled: z.boolean(),
-  signing_certificate_ref: z.optional(z.union([z.string(), z.null()])),
+  signing_certificate_ref: z.union([z.string(), z.null()]).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

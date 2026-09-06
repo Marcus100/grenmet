@@ -7,28 +7,27 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RoleCreate } from "./RoleCreate.js";
 import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
-/**
- * RolePublic
- * @description Role created
- */
-export type CreateRoleApiV1AuthRolesPost201 = SrcAuthSchemasRolePublic;
+export type CreateRoleApiV1AuthRolesPostStatus201 = SrcAuthSchemasRolePublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateRoleApiV1AuthRolesPost422 = HTTPValidationError;
+export type CreateRoleApiV1AuthRolesPostStatus422 = HTTPValidationError;
 
-/**
- * RoleCreate
- */
-export type CreateRoleApiV1AuthRolesPostMutationRequest = RoleCreate;
+export type CreateRoleApiV1AuthRolesPostBody = RoleCreate;
 
-export type CreateRoleApiV1AuthRolesPostMutationResponse =
-  CreateRoleApiV1AuthRolesPost201;
-
-export type CreateRoleApiV1AuthRolesPostMutation = {
-  Response: CreateRoleApiV1AuthRolesPost201;
-  Request: CreateRoleApiV1AuthRolesPostMutationRequest;
-  Errors: CreateRoleApiV1AuthRolesPost422;
+export type CreateRoleApiV1AuthRolesPostOptions = {
+  body: CreateRoleApiV1AuthRolesPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateRoleApiV1AuthRolesPostResponses = {
+  "201": CreateRoleApiV1AuthRolesPostStatus201;
+  "422": CreateRoleApiV1AuthRolesPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateRoleApiV1AuthRolesPostResponse =
+  | CreateRoleApiV1AuthRolesPostStatus201
+  | CreateRoleApiV1AuthRolesPostStatus422;

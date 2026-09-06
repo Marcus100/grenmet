@@ -6,21 +6,14 @@
 import type { ShiftPeriod } from "./ShiftPeriod.js";
 import type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
 
-/**
- * StatusReportCreate
- */
 export type StatusReportCreate = {
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @type string, date
-   */
-  report_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  report_date: string;
   shift_code: string;
   shift_period?: ShiftPeriod | null;
   all_personnel_reported_on_time?: boolean | null;
@@ -39,13 +32,7 @@ export type StatusReportCreate = {
   navaids_status?: string | null;
   communications_status?: string | null;
   general_remarks?: string | null;
-  /**
-   * @type array | undefined
-   */
   entries?: StatusReportEntryInput[];
-  /**
-   * @type array | undefined
-   */
   co_approver_user_ids?: string[];
   /**
    * @default false

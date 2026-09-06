@@ -7,34 +7,26 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterPeriodDetailsSchema } from "./rosterPeriodDetailsSchema.js";
 
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGetPathParamsSchema =
-  z.object({
-    period_id: z.string().uuid(),
-  });
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetPathPeriodIdSchema =
+  z.uuid();
 
-/**
- * @description Period and assignments returned
- */
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGet200Schema = z.lazy(
-  () => rosterPeriodDetailsSchema
-);
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200Schema =
+  rosterPeriodDetailsSchema;
 
-/**
- * @description Insufficient permission
- */
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGet403Schema = z.any();
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Roster period not found
- */
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGet404Schema = z.any();
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponseSchema =
-  z.lazy(() => getPeriodApiV1HrRostersPeriodsPeriodIdGet200Schema);
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetResponseSchema =
+  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200Schema;
+
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetErrorSchema = z.union([
+  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403Schema,
+  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404Schema,
+  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422Schema,
+]);

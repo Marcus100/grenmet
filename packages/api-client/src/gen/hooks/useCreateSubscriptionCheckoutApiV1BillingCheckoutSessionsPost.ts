@@ -9,46 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost } from "../clients/createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost.js";
 import type {
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503,
 } from "../models/CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost.js";
 
 export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationKey =
   () => [{ url: "/api/v1/billing/checkout-sessions" }] as const;
 
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationKey =
-  ReturnType<
-    typeof createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationKey
-  >;
-
 export function createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationKey();
   return mutationOptions<
-    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
     ResponseErrorConfig<
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503
     >,
-    void,
+    undefined,
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost(config);
+    mutationFn: async (_) => {
+      return createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost({
+        ...config,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -63,16 +60,18 @@ export function useCreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+      CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
       ResponseErrorConfig<
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503
       >,
-      void,
+      undefined,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -85,24 +84,24 @@ export function useCreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost<
     createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+      CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
       ResponseErrorConfig<
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+        | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503
       >,
-      void,
+      undefined,
       TContext
     >;
 
   return useMutation<
-    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
     ResponseErrorConfig<
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503
     >,
-    void,
+    undefined,
     TContext
   >(
     {
@@ -112,13 +111,13 @@ export function useCreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost<
     },
     queryClient
   ) as UseMutationResult<
-    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+    CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
     ResponseErrorConfig<
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503
     >,
-    void,
+    undefined,
     TContext
   >;
 }

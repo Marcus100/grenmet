@@ -3,43 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponses,
 } from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
-
-function getReadRoleAssignmentsApiV1AuthRoleAssignmentsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/role-assignments` as const };
-  return res;
-}
 
 /**
  * @description Return role assignments, optionally filtered by user_id (superuser only).
  * @summary List role assignments
  * {@link /api/v1/auth/role-assignments}
  */
-export async function readRoleAssignmentsApiV1AuthRoleAssignmentsGet(
-  params?: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRoleAssignmentsApiV1AuthRoleAssignmentsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-    ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRoleAssignmentsApiV1AuthRoleAssignmentsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/role-assignments",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

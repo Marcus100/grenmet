@@ -162,14 +162,17 @@ function ShiftTypeDialog({
     };
     try {
       if (existing) {
-        await updateMutation.mutateAsync({ code: existing.code, data: body });
+        await updateMutation.mutateAsync({
+          path: { code: existing.code },
+          body,
+        });
       } else {
         await createMutation.mutateAsync({
-          data: { ...body, code: form.code.trim() },
+          body: { ...body, code: form.code.trim() },
         });
       }
       await queryClient.invalidateQueries({
-        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey(),
+        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey({}),
       });
       toast.success(
         isEdit ? `Updated shift "${form.code}"` : `Created shift "${form.code}"`
@@ -342,7 +345,9 @@ function ShiftTypeDialog({
 export function ShiftTypesManager() {
   const queryClient = useQueryClient();
   const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet({
-    include_inactive: true,
+    query: {
+      include_inactive: true,
+    },
   });
   const shifts = shiftsQuery.data?.data ?? [];
   const updateMutation = useUpdateShiftApiV1HrRostersShiftsCodePatch();
@@ -350,11 +355,11 @@ export function ShiftTypesManager() {
   async function toggleActive(shift: ShiftCatalogPublic) {
     try {
       await updateMutation.mutateAsync({
-        code: shift.code,
-        data: { is_active: !shift.is_active },
+        path: { code: shift.code },
+        body: { is_active: !shift.is_active },
       });
       await queryClient.invalidateQueries({
-        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey(),
+        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey({}),
       });
       toast.success(
         shift.is_active

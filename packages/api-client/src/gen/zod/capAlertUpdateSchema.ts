@@ -11,22 +11,18 @@ import { capScopeSchema } from "./capScopeSchema.js";
 import { capStatusSchema } from "./capStatusSchema.js";
 
 export const capAlertUpdateSchema = z.object({
-  identifier: z.optional(z.union([z.string(), z.null()])),
-  sender: z.optional(z.union([z.string(), z.null()])),
-  sent: z.optional(z.union([z.string().datetime(), z.null()])),
-  status: z.optional(z.union([z.lazy(() => capStatusSchema), z.null()])),
-  msg_type: z.optional(z.union([z.lazy(() => capMessageTypeSchema), z.null()])),
-  source: z.optional(z.union([z.string(), z.null()])),
-  scope: z.optional(z.union([z.lazy(() => capScopeSchema), z.null()])),
-  restriction: z.optional(z.union([z.string(), z.null()])),
-  addresses: z.optional(z.union([z.array(z.string()), z.null()])),
-  codes: z.optional(z.union([z.array(z.string()), z.null()])),
-  note: z.optional(z.union([z.string(), z.null()])),
-  references: z.optional(
-    z.union([z.array(z.lazy(() => capReferenceCreateSchema)), z.null()])
-  ),
-  incidents: z.optional(z.union([z.array(z.string()), z.null()])),
-  info: z.optional(
-    z.union([z.array(z.lazy(() => capInfoCreateSchema)), z.null()])
-  ),
+  identifier: z.union([z.string().max(255), z.null()]).optional(),
+  sender: z.union([z.string().max(255), z.null()]).optional(),
+  sent: z.union([z.iso.datetime(), z.null()]).optional(),
+  status: z.union([capStatusSchema, z.null()]).optional(),
+  msg_type: z.union([capMessageTypeSchema, z.null()]).optional(),
+  source: z.union([z.string().max(255), z.null()]).optional(),
+  scope: z.union([capScopeSchema, z.null()]).optional(),
+  restriction: z.union([z.string().max(500), z.null()]).optional(),
+  addresses: z.union([z.array(z.string()), z.null()]).optional(),
+  codes: z.union([z.array(z.string()), z.null()]).optional(),
+  note: z.union([z.string().max(2000), z.null()]).optional(),
+  references: z.union([z.array(capReferenceCreateSchema), z.null()]).optional(),
+  incidents: z.union([z.array(z.string()), z.null()]).optional(),
+  info: z.union([z.array(capInfoCreateSchema), z.null()]).optional(),
 });

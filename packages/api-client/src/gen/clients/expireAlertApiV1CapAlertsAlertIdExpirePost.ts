@@ -3,55 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ExpireAlertApiV1CapAlertsAlertIdExpirePost422,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostResponses,
 } from "../models/ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
-
-function getExpireAlertApiV1CapAlertsAlertIdExpirePostUrl(
-  alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/expire` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Expire Alert
  * {@link /api/v1/cap/alerts/:alert_id/expire}
  */
-export async function expireAlertApiV1CapAlertsAlertIdExpirePost(
-  alert_id: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams["alert_id"],
-  data: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest,
-  config: Partial<
-    RequestConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function expireAlertApiV1CapAlertsAlertIdExpirePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ExpireAlertApiV1CapAlertsAlertIdExpirePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-    ResponseErrorConfig<ExpireAlertApiV1CapAlertsAlertIdExpirePost422>,
-    ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest
-  >({
-    method: "POST",
-    url: getExpireAlertApiV1CapAlertsAlertIdExpirePostUrl(
-      alert_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/expire",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ExpireAlertApiV1CapAlertsAlertIdExpirePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

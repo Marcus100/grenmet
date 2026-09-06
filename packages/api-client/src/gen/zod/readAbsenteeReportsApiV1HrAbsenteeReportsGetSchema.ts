@@ -7,42 +7,37 @@ import * as z from "zod";
 import { absenteeReportListPublicSchema } from "./absenteeReportListPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParamsSchema =
-  z.object({
-    department_id: z.optional(z.union([z.string(), z.null()])),
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  });
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryDepartmentIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Absentee reports returned
- */
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGet200Schema = z.lazy(
-  () => absenteeReportListPublicSchema
-);
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Insufficient permission
- */
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGet403Schema = z.any();
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200Schema =
+  absenteeReportListPublicSchema;
 
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponseSchema =
-  z.lazy(() => readAbsenteeReportsApiV1HrAbsenteeReportsGet200Schema);
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403Schema =
+  z.unknown();
+
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetResponseSchema =
+  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200Schema;
+
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetErrorSchema = z.union([
+  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403Schema,
+  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422Schema,
+]);

@@ -7,42 +7,36 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
-/**
- * RosterPeriodPublic
- * @description Roster period created
- */
-export type CreatePeriodApiV1HrRostersPeriodsPost201 = RosterPeriodPublic;
+export type CreatePeriodApiV1HrRostersPeriodsPostStatus201 = RosterPeriodPublic;
 
-/**
- * @description Validation error (e.g. period_end before period_start)
- */
-export type CreatePeriodApiV1HrRostersPeriodsPost400 = any;
+export type CreatePeriodApiV1HrRostersPeriodsPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreatePeriodApiV1HrRostersPeriodsPost403 = any;
+export type CreatePeriodApiV1HrRostersPeriodsPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreatePeriodApiV1HrRostersPeriodsPost422 = HTTPValidationError;
+export type CreatePeriodApiV1HrRostersPeriodsPostStatus422 =
+  HTTPValidationError;
 
-/**
- * RosterPeriodCreate
- */
-export type CreatePeriodApiV1HrRostersPeriodsPostMutationRequest =
-  RosterPeriodCreate;
+export type CreatePeriodApiV1HrRostersPeriodsPostBody = RosterPeriodCreate;
 
-export type CreatePeriodApiV1HrRostersPeriodsPostMutationResponse =
-  CreatePeriodApiV1HrRostersPeriodsPost201;
-
-export type CreatePeriodApiV1HrRostersPeriodsPostMutation = {
-  Response: CreatePeriodApiV1HrRostersPeriodsPost201;
-  Request: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest;
-  Errors:
-    | CreatePeriodApiV1HrRostersPeriodsPost400
-    | CreatePeriodApiV1HrRostersPeriodsPost403
-    | CreatePeriodApiV1HrRostersPeriodsPost422;
+export type CreatePeriodApiV1HrRostersPeriodsPostOptions = {
+  body: CreatePeriodApiV1HrRostersPeriodsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreatePeriodApiV1HrRostersPeriodsPostResponses = {
+  "201": CreatePeriodApiV1HrRostersPeriodsPostStatus201;
+  "400": CreatePeriodApiV1HrRostersPeriodsPostStatus400;
+  "403": CreatePeriodApiV1HrRostersPeriodsPostStatus403;
+  "422": CreatePeriodApiV1HrRostersPeriodsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreatePeriodApiV1HrRostersPeriodsPostResponse =
+  | CreatePeriodApiV1HrRostersPeriodsPostStatus201
+  | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+  | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+  | CreatePeriodApiV1HrRostersPeriodsPostStatus422;

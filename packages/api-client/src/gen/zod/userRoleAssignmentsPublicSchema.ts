@@ -7,6 +7,6 @@ import * as z from "zod";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 
 export const userRoleAssignmentsPublicSchema = z.object({
-  data: z.array(z.lazy(() => userRoleAssignmentPublicSchema)),
-  count: z.number().int(),
+  data: z.array(userRoleAssignmentPublicSchema),
+  count: z.int(),
 });

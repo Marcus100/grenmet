@@ -7,44 +7,33 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { StatusReportCreate } from "./StatusReportCreate.js";
 import type { StatusReportDetails } from "./StatusReportDetails.js";
 
-/**
- * @description Status report created
- */
-export type CreateStatusReportApiV1HrStatusReportsPost200 = any;
+export type CreateStatusReportApiV1HrStatusReportsPostStatus201 =
+  StatusReportDetails;
 
-/**
- * StatusReportDetails
- * @description Successful Response
- */
-export type CreateStatusReportApiV1HrStatusReportsPost201 = StatusReportDetails;
+export type CreateStatusReportApiV1HrStatusReportsPostStatus403 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateStatusReportApiV1HrStatusReportsPost403 = any;
+export type CreateStatusReportApiV1HrStatusReportsPostStatus422 =
+  HTTPValidationError;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateStatusReportApiV1HrStatusReportsPost422 = HTTPValidationError;
+export type CreateStatusReportApiV1HrStatusReportsPostBody = StatusReportCreate;
 
-/**
- * StatusReportCreate
- */
-export type CreateStatusReportApiV1HrStatusReportsPostMutationRequest =
-  StatusReportCreate;
-
-export type CreateStatusReportApiV1HrStatusReportsPostMutationResponse =
-  | CreateStatusReportApiV1HrStatusReportsPost200
-  | CreateStatusReportApiV1HrStatusReportsPost201;
-
-export type CreateStatusReportApiV1HrStatusReportsPostMutation = {
-  Response:
-    | CreateStatusReportApiV1HrStatusReportsPost200
-    | CreateStatusReportApiV1HrStatusReportsPost201;
-  Request: CreateStatusReportApiV1HrStatusReportsPostMutationRequest;
-  Errors:
-    | CreateStatusReportApiV1HrStatusReportsPost403
-    | CreateStatusReportApiV1HrStatusReportsPost422;
+export type CreateStatusReportApiV1HrStatusReportsPostOptions = {
+  body: CreateStatusReportApiV1HrStatusReportsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateStatusReportApiV1HrStatusReportsPostResponses = {
+  "201": CreateStatusReportApiV1HrStatusReportsPostStatus201;
+  "403": CreateStatusReportApiV1HrStatusReportsPostStatus403;
+  "422": CreateStatusReportApiV1HrStatusReportsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateStatusReportApiV1HrStatusReportsPostResponse =
+  | CreateStatusReportApiV1HrStatusReportsPostStatus201
+  | CreateStatusReportApiV1HrStatusReportsPostStatus403
+  | CreateStatusReportApiV1HrStatusReportsPostStatus422;

@@ -11,5 +11,5 @@ export const shiftHoursSummarySchema = z.object({
   total_actual_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   total_overtime_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   total_break_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  entry_count: z.number().int(),
+  entry_count: z.int(),
 });

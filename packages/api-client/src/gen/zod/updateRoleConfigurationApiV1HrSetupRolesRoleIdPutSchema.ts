@@ -8,43 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 import { rolePermissionsInputSchema } from "./rolePermissionsInputSchema.js";
 
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParamsSchema =
-  z.object({
-    role_id: z.string().uuid(),
-  });
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathRoleIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPut200Schema =
-  z.lazy(() => roleConfigurationSchema);
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200Schema =
+  roleConfigurationSchema;
 
-/**
- * @description Administrator access required
- */
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPut403Schema =
-  z.any();
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPut404Schema =
-  z.any();
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPut409Schema =
-  z.any();
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPut422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequestSchema =
-  z.lazy(() => rolePermissionsInputSchema);
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponseSchema =
+  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200Schema;
 
-export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponseSchema =
-  z.lazy(() => updateRoleConfigurationApiV1HrSetupRolesRoleIdPut200Schema);
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutErrorSchema =
+  z.union([
+    updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403Schema,
+    updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404Schema,
+    updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409Schema,
+    updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422Schema,
+  ]);
+
+export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutBodySchema =
+  rolePermissionsInputSchema;

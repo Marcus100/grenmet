@@ -7,40 +7,31 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParamsSchema =
-  z.object({
-    period_id: z.string().uuid(),
-  });
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathPeriodIdSchema =
+  z.uuid();
 
-/**
- * @description Roster period published
- */
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200Schema =
-  z.lazy(() => rosterPeriodPublicSchema);
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200Schema =
+  rosterPeriodPublicSchema;
 
-/**
- * @description Period already published or closed
- */
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400Schema =
-  z.any();
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403Schema =
-  z.any();
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Roster period not found
- */
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404Schema =
-  z.any();
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponseSchema =
-  z.lazy(() => publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200Schema);
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponseSchema =
+  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200Schema;
+
+export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchErrorSchema =
+  z.union([
+    publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400Schema,
+    publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403Schema,
+    publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404Schema,
+    publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422Schema,
+  ]);

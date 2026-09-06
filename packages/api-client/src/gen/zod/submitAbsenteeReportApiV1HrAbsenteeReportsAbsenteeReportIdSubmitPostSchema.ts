@@ -8,46 +8,34 @@ import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 import { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParamsSchema =
-  z.object({
-    absentee_report_id: z.string().uuid(),
-  });
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathAbsenteeReportIdSchema =
+  z.uuid();
 
-/**
- * @description Absentee report submitted
- */
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200Schema =
-  z.lazy(() => absenteeReportPublicSchema);
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200Schema =
+  absenteeReportPublicSchema;
 
-/**
- * @description Absentee report is not a draft
- */
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400Schema =
-  z.any();
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to submit this absentee report
- */
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403Schema =
-  z.any();
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Absentee report not found
- */
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404Schema =
-  z.any();
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequestSchema =
-  z.lazy(() => absenteeReportSubmitSchema);
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponseSchema =
+  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200Schema;
 
-export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponseSchema =
-  z.lazy(
-    () =>
-      submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200Schema
-  );
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostErrorSchema =
+  z.union([
+    submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400Schema,
+    submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403Schema,
+    submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404Schema,
+    submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422Schema,
+  ]);
+
+export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBodySchema =
+  absenteeReportSubmitSchema;

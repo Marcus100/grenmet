@@ -6,39 +6,41 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PermissionPublic } from "./PermissionPublic.js";
 
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams = {
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   permission_id: string;
 };
 
-/**
- * PermissionPublic
- * @description Permission returned
- */
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGet200 =
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200 =
   PermissionPublic;
 
-/**
- * @description Permission not found
- */
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGet404 = any;
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGet422 =
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422 =
   HTTPValidationError;
 
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse =
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet200;
-
-export type ReadPermissionApiV1AuthPermissionsPermissionIdGetQuery = {
-  Response: ReadPermissionApiV1AuthPermissionsPermissionIdGet200;
-  PathParams: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams;
-  Errors:
-    | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
-    | ReadPermissionApiV1AuthPermissionsPermissionIdGet422;
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions = {
+  body?: never;
+  path: ReadPermissionApiV1AuthPermissionsPermissionIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetResponses = {
+  "200": ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200;
+  "404": ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404;
+  "422": ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadPermissionApiV1AuthPermissionsPermissionIdGetResponse =
+  | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200
+  | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404
+  | ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422;

@@ -3,56 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  GoogleFinishApiV1AuthModernGoogleFinishPost400,
-  GoogleFinishApiV1AuthModernGoogleFinishPost403,
-  GoogleFinishApiV1AuthModernGoogleFinishPost422,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+  GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
+  GoogleFinishApiV1AuthModernGoogleFinishPostResponses,
 } from "../models/GoogleFinishApiV1AuthModernGoogleFinishPost.js";
-
-function getGoogleFinishApiV1AuthModernGoogleFinishPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/modern/google/finish` as const,
-  };
-  return res;
-}
 
 /**
  * @description Finish Google sign-in with MFA. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Finish Google sign-in with MFA
  * {@link /api/v1/auth/modern/google/finish}
  */
-export async function googleFinishApiV1AuthModernGoogleFinishPost(
-  data: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest,
-  config: Partial<
-    RequestConfig<GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function googleFinishApiV1AuthModernGoogleFinishPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    GoogleFinishApiV1AuthModernGoogleFinishPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
-    ResponseErrorConfig<
-      | GoogleFinishApiV1AuthModernGoogleFinishPost400
-      | GoogleFinishApiV1AuthModernGoogleFinishPost403
-      | GoogleFinishApiV1AuthModernGoogleFinishPost422
-    >,
-    GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest
-  >({
-    method: "POST",
-    url: getGoogleFinishApiV1AuthModernGoogleFinishPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/modern/google/finish",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        GoogleFinishApiV1AuthModernGoogleFinishPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

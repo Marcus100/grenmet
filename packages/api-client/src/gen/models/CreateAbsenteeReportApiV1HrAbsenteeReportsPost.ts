@@ -7,46 +7,34 @@ import type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * @description Absentee report created
- */
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost200 = any;
-
-/**
- * AbsenteeReportPublic
- * @description Successful Response
- */
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost201 =
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201 =
   AbsenteeReportPublic;
 
-/**
- * @description Insufficient permission
- */
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost403 = any;
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPost422 =
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422 =
   HTTPValidationError;
 
-/**
- * AbsenteeReportCreate
- */
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest =
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostBody =
   AbsenteeReportCreate;
 
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse =
-  | CreateAbsenteeReportApiV1HrAbsenteeReportsPost200
-  | CreateAbsenteeReportApiV1HrAbsenteeReportsPost201;
-
-export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutation = {
-  Response:
-    | CreateAbsenteeReportApiV1HrAbsenteeReportsPost200
-    | CreateAbsenteeReportApiV1HrAbsenteeReportsPost201;
-  Request: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest;
-  Errors:
-    | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-    | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422;
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions = {
+  body: CreateAbsenteeReportApiV1HrAbsenteeReportsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponses = {
+  "201": CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201;
+  "403": CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403;
+  "422": CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponse =
+  | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201
+  | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403
+  | CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422;

@@ -7,53 +7,49 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams =
-  {
-    /**
-     * @type string, uuid
-     */
-    permit_id: string;
-  };
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  permit_id: string;
+};
 
-/**
- * ParkingPermitPublic
- * @description Decal issued
- */
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200 =
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200 =
   ParkingPermitPublic;
 
-/**
- * @description Insufficient permission
- */
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403 = any;
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403 =
+  unknown;
 
-/**
- * @description Parking permit not found
- */
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404 = any;
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422 =
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422 =
   HTTPValidationError;
 
-/**
- * ParkingPermitIssue
- */
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest =
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBody =
   ParkingPermitIssue;
 
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse =
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200;
-
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutation = {
-  Response: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200;
-  Request: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-  PathParams: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams;
-  Errors:
-    | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-    | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-    | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422;
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions = {
+  body: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBody;
+  path: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponses = {
+  "200": IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200;
+  "403": IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403;
+  "404": IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404;
+  "422": IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponse =
+  | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200
+  | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+  | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+  | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422;

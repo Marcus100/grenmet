@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateHrProfileMeApiV1HrProfileMePatch } from "../clients/updateHrProfileMeApiV1HrProfileMePatch.js";
 import type {
-  UpdateHrProfileMeApiV1HrProfileMePatch404,
-  UpdateHrProfileMeApiV1HrProfileMePatch422,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+  UpdateHrProfileMeApiV1HrProfileMePatchOptions,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus404,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus422,
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
 
 export const updateHrProfileMeApiV1HrProfileMePatchMutationKey = () =>
   [{ url: "/api/v1/hr/profile/me" }] as const;
 
-export type UpdateHrProfileMeApiV1HrProfileMePatchMutationKey = ReturnType<
-  typeof updateHrProfileMeApiV1HrProfileMePatchMutationKey
->;
-
 export function updateHrProfileMeApiV1HrProfileMePatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateHrProfileMeApiV1HrProfileMePatchMutationKey();
   return mutationOptions<
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+    UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrProfileMeApiV1HrProfileMePatch404
-      | UpdateHrProfileMeApiV1HrProfileMePatch422
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus422
     >,
-    { data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest },
+    UpdateHrProfileMeApiV1HrProfileMePatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateHrProfileMeApiV1HrProfileMePatch(data, config);
+    mutationFn: async ({ body }) => {
+      return updateHrProfileMeApiV1HrProfileMePatch({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function updateHrProfileMeApiV1HrProfileMePatchMutationOptions<
 export function useUpdateHrProfileMeApiV1HrProfileMePatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+      UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
       ResponseErrorConfig<
-        | UpdateHrProfileMeApiV1HrProfileMePatch404
-        | UpdateHrProfileMeApiV1HrProfileMePatch422
+        | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+        | UpdateHrProfileMeApiV1HrProfileMePatchStatus422
       >,
-      { data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest },
+      UpdateHrProfileMeApiV1HrProfileMePatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useUpdateHrProfileMeApiV1HrProfileMePatch<TContext>(
   const baseOptions = updateHrProfileMeApiV1HrProfileMePatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+    UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrProfileMeApiV1HrProfileMePatch404
-      | UpdateHrProfileMeApiV1HrProfileMePatch422
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus422
     >,
-    { data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest },
+    UpdateHrProfileMeApiV1HrProfileMePatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+    UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrProfileMeApiV1HrProfileMePatch404
-      | UpdateHrProfileMeApiV1HrProfileMePatch422
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus422
     >,
-    { data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest },
+    UpdateHrProfileMeApiV1HrProfileMePatchOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useUpdateHrProfileMeApiV1HrProfileMePatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+    UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrProfileMeApiV1HrProfileMePatch404
-      | UpdateHrProfileMeApiV1HrProfileMePatch422
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+      | UpdateHrProfileMeApiV1HrProfileMePatchStatus422
     >,
-    { data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest },
+    UpdateHrProfileMeApiV1HrProfileMePatchOptions,
     TContext
   >;
 }

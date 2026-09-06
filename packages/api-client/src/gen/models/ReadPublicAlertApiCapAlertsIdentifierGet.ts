@@ -6,30 +6,30 @@
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadPublicAlertApiCapAlertsIdentifierGetPathParams = {
-  /**
-   * @type string
-   */
+export type ReadPublicAlertApiCapAlertsIdentifierGetPath = {
   identifier: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type ReadPublicAlertApiCapAlertsIdentifierGet200 = CapAlertPublic;
+export type ReadPublicAlertApiCapAlertsIdentifierGetStatus200 = CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadPublicAlertApiCapAlertsIdentifierGet422 = HTTPValidationError;
+export type ReadPublicAlertApiCapAlertsIdentifierGetStatus422 =
+  HTTPValidationError;
 
-export type ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse =
-  ReadPublicAlertApiCapAlertsIdentifierGet200;
-
-export type ReadPublicAlertApiCapAlertsIdentifierGetQuery = {
-  Response: ReadPublicAlertApiCapAlertsIdentifierGet200;
-  PathParams: ReadPublicAlertApiCapAlertsIdentifierGetPathParams;
-  Errors: ReadPublicAlertApiCapAlertsIdentifierGet422;
+export type ReadPublicAlertApiCapAlertsIdentifierGetOptions = {
+  body?: never;
+  path: ReadPublicAlertApiCapAlertsIdentifierGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadPublicAlertApiCapAlertsIdentifierGetResponses = {
+  "200": ReadPublicAlertApiCapAlertsIdentifierGetStatus200;
+  "422": ReadPublicAlertApiCapAlertsIdentifierGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadPublicAlertApiCapAlertsIdentifierGetResponse =
+  | ReadPublicAlertApiCapAlertsIdentifierGetStatus200
+  | ReadPublicAlertApiCapAlertsIdentifierGetStatus422;

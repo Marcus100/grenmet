@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createShiftSwapApiV1HrShiftSwapsPost } from "../clients/createShiftSwapApiV1HrShiftSwapsPost.js";
 import type {
-  CreateShiftSwapApiV1HrShiftSwapsPost403,
-  CreateShiftSwapApiV1HrShiftSwapsPost422,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+  CreateShiftSwapApiV1HrShiftSwapsPostOptions,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus403,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus422,
 } from "../models/CreateShiftSwapApiV1HrShiftSwapsPost.js";
 
 export const createShiftSwapApiV1HrShiftSwapsPostMutationKey = () =>
   [{ url: "/api/v1/hr/shift-swaps" }] as const;
 
-export type CreateShiftSwapApiV1HrShiftSwapsPostMutationKey = ReturnType<
-  typeof createShiftSwapApiV1HrShiftSwapsPostMutationKey
->;
-
 export function createShiftSwapApiV1HrShiftSwapsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createShiftSwapApiV1HrShiftSwapsPostMutationKey();
   return mutationOptions<
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+    CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftSwapApiV1HrShiftSwapsPost403
-      | CreateShiftSwapApiV1HrShiftSwapsPost422
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus422
     >,
-    { data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest },
+    CreateShiftSwapApiV1HrShiftSwapsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createShiftSwapApiV1HrShiftSwapsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createShiftSwapApiV1HrShiftSwapsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function createShiftSwapApiV1HrShiftSwapsPostMutationOptions<
 export function useCreateShiftSwapApiV1HrShiftSwapsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+      CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
       ResponseErrorConfig<
-        | CreateShiftSwapApiV1HrShiftSwapsPost403
-        | CreateShiftSwapApiV1HrShiftSwapsPost422
+        | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+        | CreateShiftSwapApiV1HrShiftSwapsPostStatus422
       >,
-      { data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest },
+      CreateShiftSwapApiV1HrShiftSwapsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useCreateShiftSwapApiV1HrShiftSwapsPost<TContext>(
   const baseOptions = createShiftSwapApiV1HrShiftSwapsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+    CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftSwapApiV1HrShiftSwapsPost403
-      | CreateShiftSwapApiV1HrShiftSwapsPost422
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus422
     >,
-    { data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest },
+    CreateShiftSwapApiV1HrShiftSwapsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+    CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftSwapApiV1HrShiftSwapsPost403
-      | CreateShiftSwapApiV1HrShiftSwapsPost422
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus422
     >,
-    { data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest },
+    CreateShiftSwapApiV1HrShiftSwapsPostOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useCreateShiftSwapApiV1HrShiftSwapsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+    CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftSwapApiV1HrShiftSwapsPost403
-      | CreateShiftSwapApiV1HrShiftSwapsPost422
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+      | CreateShiftSwapApiV1HrShiftSwapsPostStatus422
     >,
-    { data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest },
+    CreateShiftSwapApiV1HrShiftSwapsPostOptions,
     TContext
   >;
 }

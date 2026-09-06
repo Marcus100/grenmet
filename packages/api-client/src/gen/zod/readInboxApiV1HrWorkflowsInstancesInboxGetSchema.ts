@@ -6,17 +6,14 @@
 import * as z from "zod";
 import { workflowInboxListSchema } from "./workflowInboxListSchema.js";
 
-/**
- * @description Pending approvals returned
- */
-export const readInboxApiV1HrWorkflowsInstancesInboxGet200Schema = z.lazy(
-  () => workflowInboxListSchema
-);
+export const readInboxApiV1HrWorkflowsInstancesInboxGetStatus200Schema =
+  workflowInboxListSchema;
 
-/**
- * @description Insufficient permission
- */
-export const readInboxApiV1HrWorkflowsInstancesInboxGet403Schema = z.any();
+export const readInboxApiV1HrWorkflowsInstancesInboxGetStatus403Schema =
+  z.unknown();
 
-export const readInboxApiV1HrWorkflowsInstancesInboxGetQueryResponseSchema =
-  z.lazy(() => readInboxApiV1HrWorkflowsInstancesInboxGet200Schema);
+export const readInboxApiV1HrWorkflowsInstancesInboxGetResponseSchema =
+  readInboxApiV1HrWorkflowsInstancesInboxGetStatus200Schema;
+
+export const readInboxApiV1HrWorkflowsInstancesInboxGetErrorSchema =
+  readInboxApiV1HrWorkflowsInstancesInboxGetStatus403Schema;

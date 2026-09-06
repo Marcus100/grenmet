@@ -5,51 +5,53 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams =
-  {
-    /**
-     * @type string, uuid
-     */
-    leave_request_id: string;
-  };
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  leave_request_id: string;
+};
 
-/**
- * @description Leave request deleted
- */
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204 = any;
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204 =
+  unknown;
 
-/**
- * @description Leave request is not a draft
- */
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400 = any;
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to delete this request
- */
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403 = any;
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403 =
+  unknown;
 
-/**
- * @description Leave request not found
- */
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404 = any;
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422 =
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422 =
   HTTPValidationError;
 
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse =
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204;
-
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutation =
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions =
   {
-    Response: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204;
-    PathParams: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams;
-    Errors:
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422;
+    body?: never;
+    path: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePath;
+    query?: never;
+    headers?: never;
   };
+
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponses =
+  {
+    "204": DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204;
+    "400": DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400;
+    "403": DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403;
+    "404": DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404;
+    "422": DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponse =
+  | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204
+  | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+  | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+  | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+  | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422;

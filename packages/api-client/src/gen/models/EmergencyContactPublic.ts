@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * EmergencyContactPublic
- */
 export type EmergencyContactPublic = {
   name?: string | null;
   phone?: string | null;

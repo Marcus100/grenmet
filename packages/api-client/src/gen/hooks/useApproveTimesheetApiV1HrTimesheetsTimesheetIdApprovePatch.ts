@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "../clients/approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 import type {
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422,
 } from "../models/ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 
 export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey =
   () => [{ url: "/api/v1/hr/timesheets/:timesheet_id/approve" }] as const;
 
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey =
-  ReturnType<
-    typeof approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey
-  >;
-
 export function approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey();
   return mutationOptions<
-    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
     ResponseErrorConfig<
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422
     >,
-    {
-      timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"];
-    },
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ timesheet_id }) => {
-      return approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch(
-        timesheet_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,19 +64,19 @@ export function useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
       ResponseErrorConfig<
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422
       >,
-      {
-        timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"];
-      },
+      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -96,30 +89,26 @@ export function useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch<
     approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationOptions(
       config
     ) as UseMutationOptions<
-      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
       ResponseErrorConfig<
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+        | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422
       >,
-      {
-        timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"];
-      },
+      ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
       TContext
     >;
 
   return useMutation<
-    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
     ResponseErrorConfig<
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422
     >,
-    {
-      timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"];
-    },
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
     TContext
   >(
     {
@@ -129,16 +118,14 @@ export function useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch<
     },
     queryClient
   ) as UseMutationResult<
-    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
     ResponseErrorConfig<
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422
     >,
-    {
-      timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"];
-    },
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
     TContext
   >;
 }

@@ -9,50 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { approveAlertApiV1CapAlertsAlertIdApprovePost } from "../clients/approveAlertApiV1CapAlertsAlertIdApprovePost.js";
 import type {
-  ApproveAlertApiV1CapAlertsAlertIdApprovePost422,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422,
 } from "../models/ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 
 export const approveAlertApiV1CapAlertsAlertIdApprovePostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/approve" }] as const;
 
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationKey =
-  ReturnType<typeof approveAlertApiV1CapAlertsAlertIdApprovePostMutationKey>;
-
 export function approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = approveAlertApiV1CapAlertsAlertIdApprovePostMutationKey();
   return mutationOptions<
-    ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-    {
-      alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"];
-      data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-    },
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422>,
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return approveAlertApiV1CapAlertsAlertIdApprovePost(
-        alert_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return approveAlertApiV1CapAlertsAlertIdApprovePost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,17 +53,14 @@ export function approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions<
 export function useApproveAlertApiV1CapAlertsAlertIdApprovePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-      ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-      {
-        alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"];
-        data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-      },
+      ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+      ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422>,
+      ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,22 +73,16 @@ export function useApproveAlertApiV1CapAlertsAlertIdApprovePost<TContext>(
     approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions(
       config
     ) as UseMutationOptions<
-      ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-      ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-      {
-        alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"];
-        data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-      },
+      ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+      ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422>,
+      ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
       TContext
     >;
 
   return useMutation<
-    ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-    {
-      alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"];
-      data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-    },
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422>,
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
     TContext
   >(
     {
@@ -112,12 +92,9 @@ export function useApproveAlertApiV1CapAlertsAlertIdApprovePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-    {
-      alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"];
-      data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-    },
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422>,
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
     TContext
   >;
 }

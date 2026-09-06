@@ -5,13 +5,7 @@
 
 import type { LeaveType } from "./LeaveType.js";
 
-/**
- * BalanceInput
- */
 export type BalanceInput = {
-  /**
-   * @type string
-   */
   leave_type: LeaveType;
   balance: number | string;
   /**

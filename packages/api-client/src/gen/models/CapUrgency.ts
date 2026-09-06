@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capUrgencyCapUrgencyEnum = {
+export const capUrgency = {
   Immediate: "Immediate",
   Expected: "Expected",
   Future: "Future",
@@ -11,10 +11,4 @@ export const capUrgencyCapUrgencyEnum = {
   Unknown: "Unknown",
 } as const;
 
-export type CapUrgencyCapUrgencyEnumKey =
-  (typeof capUrgencyCapUrgencyEnum)[keyof typeof capUrgencyCapUrgencyEnum];
-
-/**
- * CapUrgency
- */
-export type CapUrgency = CapUrgencyCapUrgencyEnumKey;
+export type CapUrgency = (typeof capUrgency)[keyof typeof capUrgency];
