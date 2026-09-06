@@ -6,6 +6,7 @@
 // for the wrong reason — they would have passed with the fetch logic removed.
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  alertsSummary,
   fetchActiveAlerts,
   groupAlerts,
   OTHER_HAZARD,
@@ -64,6 +65,24 @@ describe("groupAlerts", () => {
       "moderate",
       "minor",
     ]);
+  });
+});
+
+describe("alertsSummary", () => {
+  it("never presents an outage as an all-clear", () => {
+    expect(alertsSummary({ status: "unavailable" })).toBe("Unavailable");
+  });
+
+  it("reports no active warnings when the count is zero", () => {
+    expect(alertsSummary({ activeCount: 0, groups: [], status: "ok" })).toBe(
+      "No active warnings"
+    );
+  });
+
+  it("reports the active count otherwise", () => {
+    expect(alertsSummary({ activeCount: 3, groups: [], status: "ok" })).toBe(
+      "3 active"
+    );
   });
 });
 

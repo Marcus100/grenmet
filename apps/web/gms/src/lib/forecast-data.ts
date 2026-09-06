@@ -1,7 +1,48 @@
+import type { WeatherCondition } from "@/lib/weather-icons";
+
 export interface Condition {
   label: string;
   value: string;
 }
+
+export interface DayForecast {
+  condition: WeatherCondition;
+  high: number;
+  low: number;
+}
+
+/**
+ * Per-day icon and high/low for the 5-day strip, index 0 = today. Static mock
+ * — there is no per-day forecast API yet, only the live CAP alerts feed.
+ */
+export const DAY_FORECASTS: DayForecast[] = [
+  { condition: "partly-cloudy", high: 31, low: 25 },
+  { condition: "cloudy", high: 30, low: 25 },
+  { condition: "showers", high: 29, low: 24 },
+  { condition: "partly-cloudy", high: 30, low: 25 },
+  { condition: "sunny", high: 31, low: 25 },
+];
+
+export interface CurrentConditions {
+  condition: WeatherCondition;
+  conditionLabel: string;
+  feelsLike: number;
+  temperature: number;
+  wind: string;
+}
+
+export const CURRENT_CONDITIONS: CurrentConditions = {
+  condition: "partly-cloudy",
+  conditionLabel: "Sunny intervals",
+  feelsLike: 32,
+  temperature: 28,
+  wind: "NE 14 mph",
+};
+
+export const FORECAST_ISSUED = {
+  issuedAt: "5:00 am AST",
+  nextUpdate: "11:00 am",
+};
 
 export interface Warning {
   count: number;
