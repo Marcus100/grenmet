@@ -80,7 +80,7 @@ The following sections preserve the detailed concepts, resources, and repository
 | Command | Older Claude slash-command format | [`.claude/commands/pre-merge.md`](../.claude/commands/pre-merge.md) |
 | Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.agents/hooks.json) |
 | Settings | Tool permissions and configuration | [`.claude/settings.json`](../.claude/settings.json) |
-| MCP | Connection to external tools and data | Figma permissions in `settings.json` |
+| MCP | Connection to external tools and data | No MCP servers are permitted in `settings.json` |
 | Subagent | Isolated worker for a focused task | Claude Code agent feature |
 | Plugin | Package containing skills, hooks, agents, and MCP | Not currently the main local structure |
 
@@ -115,7 +115,7 @@ The repository has two overlapping agent configuration trees:
 
 The `.agents/skills/` and `.claude/skills/` directories contain substantial overlap, including skills for implementation, TDD, triage, debugging, prototyping, domain modeling, grilling, and handoff. This may be intentional, but it creates synchronization and ownership questions.
 
-The current hook in [`.agents/hooks.json`](../.agents/hooks.json) runs `pnpm dlx ultracite fix` after a file edit. The Claude settings file permits selected `pnpm`, `turbo`, `gh`, and Figma operations.
+The current hook in [`.agents/hooks.json`](../.agents/hooks.json) runs `pnpm dlx ultracite fix` after a file edit. The Claude settings file permits selected `pnpm`, `turbo`, and `gh` operations. The Figma MCP permissions were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md).
 
 ## Repository instructions
 
@@ -256,7 +256,7 @@ The Model Context Protocol connects AI applications to external systems. MCP ser
 | Resource | Contextual data |
 | Tool | Executable action |
 
-MCP is relevant to this repository because Figma tools are permitted by [`.claude/settings.json`](../.claude/settings.json).
+No MCP server is currently permitted by [`.claude/settings.json`](../.claude/settings.json); the Figma entries were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md). The guidance below applies if one is added.
 
 MCP should be evaluated using least privilege, explicit consent, secure credential handling, separation of read and write capabilities, and auditing of external side effects.
 

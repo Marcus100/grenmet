@@ -8,7 +8,7 @@ Port **3001**. The heaviest app in the monorepo.
 
 | Package | Purpose |
 | --- | --- |
-| `@fullcalendar/react` (v7) | Calendar views — v7 consolidated package; plugins via `@fullcalendar/react/{daygrid,timegrid,list,interaction,multimonth}` subpaths + `useCalendarController`. Shared component: `components/calendar/event-calendar.tsx` (used by `/calendar`) |
+| `@fullcalendar/react` (v7) | Calendar views — v7 consolidated package; plugins via `@fullcalendar/react/{daygrid,timegrid,list,interaction,multimonth}` subpaths + `useCalendarController`. Shared component: `components/calendar/event-calendar.tsx` (used by `/calendar`). Its three data layers are mapped in `components/calendar/calendar-sources.ts` — department events, the duty roster, public holidays — kept pure and React-free so they are unit-testable |
 | `recharts` | Charts (bar, area, statistics) — colors via `var(--gm-*)` tokens directly |
 | `@tanstack/react-form` + `zod-form-adapter` | Forms with Zod validation |
 | `@tanstack/react-query` | Server state — via `QueryProvider` in `src/providers/` |
@@ -40,7 +40,7 @@ src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (HomeMetricCards + RainfallChart)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
-    (others-pages)/  ← calendar, profile
+    (others-pages)/  ← calendar (department calendar: events + roster + holidays), profile
     coming-soon/     ← placeholder page for target-IA nav items with no page yet
   (full-width-pages)/
     (auth)/          ← signin, signup (full-width, no sidebar)
@@ -59,7 +59,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 
 | Prefix | Source app | Data | Notes |
 |---|---|---|---|
-| `/hr` | hr | **none yet — print-only** | Static TanStack-form editors + print preview; FastAPI HR endpoints + generated api-client hooks exist but are **not wired** (deferred). Components in `components/hr/` |
+| `/hr` | hr | FastAPI `/api/v1/hr/*` via `@barrelsgd/api-client` | Editors, submissions tables, approvals inbox, duty roster and HR Setup are all wired. The `/hr` dashboard reads `/api/v1/hr/dashboard` on the server; figures come from the leave ledger, personal requests, published roster and scoped approvals. `*-document.tsx` print components stay pure presentation. Components in `components/hr/` |
 | `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
 | `/salesbus` | salesbus | mock data (api-client planned) | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
 | `/wxwatch` | wxwatch | wxwatch Postgres (`WXWATCH_DATABASE_URL`) | client `src/db/wxwatch/` → `wxwatchDb`; `getImageUrl` serves `/wxwatch/<path>` assets |

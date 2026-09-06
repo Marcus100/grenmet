@@ -4,6 +4,9 @@
 
 Accepted. Supersedes [ADR-0006](0006-design-system-governance.md).
 
+Its Figma-linked governance is superseded by [ADR-0012](0012-decouple-design-tooling-from-figma.md); the brand-neutrality
+decision below stands.
+
 ## Context
 
 ADR-0006 established `@barrelsgd/ui` as the shared UI package, but it did not say
