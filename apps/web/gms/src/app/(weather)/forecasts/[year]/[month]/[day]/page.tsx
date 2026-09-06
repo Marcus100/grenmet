@@ -3,7 +3,7 @@ import { FridayMay22Forecast } from "@/components/forecasts/friday-may-22";
 import { ThursdayMay21Forecast } from "@/components/forecasts/thursday-may-21";
 import { TuesdayMay19Forecast } from "@/components/forecasts/tuesday-may-19";
 import { WednesdayMay20Forecast } from "@/components/forecasts/wednesday-may-20";
-import { getUpcomingDaySlugs } from "@/lib/forecast-days";
+import { getUpcomingDaySlugs, segmentsToSlug } from "@/lib/forecast-days";
 
 const FORECAST_COMPONENTS: Record<string, () => React.JSX.Element> = {
   "2026-05-19": TuesdayMay19Forecast,
@@ -13,17 +13,23 @@ const FORECAST_COMPONENTS: Record<string, () => React.JSX.Element> = {
 };
 
 interface Props {
-  params: Promise<{ date: string }>;
+  params: Promise<{ day: string; month: string; year: string }>;
+}
+
+export async function generateMetadata({ params }: Props) {
+  const { year, month, day } = await params;
+  return { title: `Forecast for ${year}-${month}-${day}` };
 }
 
 export default async function ForecastDayPage({ params }: Props) {
-  const { date } = await params;
+  const { year, month, day } = await params;
+  const slug = segmentsToSlug(year, month, day);
 
-  if (!getUpcomingDaySlugs().includes(date)) {
+  if (!getUpcomingDaySlugs().includes(slug)) {
     notFound();
   }
 
-  const ForecastComponent = FORECAST_COMPONENTS[date];
+  const ForecastComponent = FORECAST_COMPONENTS[slug];
 
   if (!ForecastComponent) {
     notFound();

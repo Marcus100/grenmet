@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const RELATED_LINKS = [
-  { href: "/sectiors/marine", label: "Marine and coastal waters" },
+  { href: "/sectors/marine", label: "Marine and coastal waters" },
   { href: "/sectors/aviation", label: "Aviation forecasts" },
   { href: "/resources/hurricane", label: "Hurricane preparedness" },
   { href: "/climate/data-request", label: "Climate data and requests" },
@@ -11,9 +11,10 @@ const RELATED_LINKS = [
 
 export function ExploringWebsite() {
   return (
-    <div className="flex gap-20 py-16">
-      <div className="flex w-175 flex-none flex-col items-start gap-5 rounded-md bg-gm-navy p-11 text-gm-text-inverse">
-        <span className="font-bold text-heading-md leading-heading-md">
+    // Stacks on mobile, side-by-side once there is room for the fixed-width card.
+    <div className="flex flex-col gap-8 py-10 lg:flex-row lg:gap-20 lg:py-16">
+      <div className="flex flex-col items-start gap-5 rounded-md bg-gm-navy p-7 text-gm-text-inverse lg:w-175 lg:flex-none lg:p-11">
+        <span className="font-bold text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Exploring this website
         </span>
         <p className="text-body-base text-gm-text-inverse/85 leading-body-base">
@@ -34,14 +35,14 @@ export function ExploringWebsite() {
         {RELATED_LINKS.map((link, i) => (
           <Link
             className={cn(
-              "flex items-center justify-between border-gm-border border-t py-5 font-semibold text-gm-blue text-nav leading-nav",
+              "flex items-center justify-between gap-4 border-gm-border border-t py-5 font-semibold text-body-base text-gm-blue leading-body-base lg:text-nav lg:leading-nav",
               i === RELATED_LINKS.length - 1 && "border-b"
             )}
             href={link.href}
             key={link.href}
           >
             {link.label}
-            <ChevronRightIcon aria-hidden="true" className="size-5" />
+            <ChevronRightIcon aria-hidden="true" className="size-5 shrink-0" />
           </Link>
         ))}
       </div>

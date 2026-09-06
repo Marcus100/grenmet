@@ -10,19 +10,39 @@ Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itsel
 
 ## No database
 
-Static/mock data currently (`src/lib/mock-data.ts`, `src/lib/forecast-data.ts`). No Drizzle, no direct DB access.
+Static/mock data currently (`src/lib/mock-data.ts`, `src/lib/forecast-data.ts`,
+`src/lib/events.ts`). No Drizzle, no direct DB access. The exception is the live
+CAP warnings feed via `src/lib/cap.ts` — `/warnings`, `/warnings/cyclone`,
+`/warnings/marine`, `/warnings/tsunami` and `/marine/small-craft` render real
+alerts. When that feed is unreachable those pages say so; they must never render
+an empty list as "no warnings in effect".
 
 ## Routes
 
 ```
 src/app/
-  (weather)/
-    page.tsx          ← today's weather (default)
-    [date]/page.tsx   ← weather for a specific date
-    layout.tsx        ← shared weather layout
-  layout.tsx          ← root layout
+  (weather)/                  ← hero + alerts-panel surface
+    page.tsx                  ← home: today's weather
+    forecasts/page.tsx        ← today's weather at /forecasts
+    forecasts/[date]/page.tsx ← weather for a specific date
+    layout.tsx                ← shared weather layout
+  (pages)/                    ← standing content pages
+    layout.tsx                ← plain max-w-7xl container
+    warnings/ forecasts/ marine/ observations/ aviation/
+    sectors/ climate/ events/ resources/ about/
+    almanac/ help/ media/ subscribe/ regional/ app-guide/
+  layout.tsx                  ← root layout
   api/health/route.ts
 ```
+
+`(pages)` routes are static content built from the components in
+`src/components/pages/`. Pages whose product is not yet issued from the forecast
+system must render `<PlaceholderNotice />` — sample weather figures must never
+read as an operational product.
+
+`NAV_SECTIONS` in `src/lib/nav-sections.ts` is the single source for both the
+drawer and the desktop masthead. `src/lib/nav-sections.test.ts` walks `src/app`
+and fails if any nav link has no route behind it — add the page before the link.
 
 ## Key dependencies (unique to this app)
 

@@ -55,9 +55,7 @@ export default async function WeatherLayout({
 
       <News />
 
-      <div className="hidden lg:block">
-        <ExploringWebsite />
-      </div>
+      <ExploringWebsite />
     </div>
   );
 }
