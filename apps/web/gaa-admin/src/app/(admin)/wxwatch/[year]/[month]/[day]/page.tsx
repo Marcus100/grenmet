@@ -55,9 +55,9 @@ export default async function DatePage({ params }: PageProps) {
       </header>
 
       {/* Gallery */}
-      <div className="mx-auto max-w-full p-6">
+      <div className="mx-auto max-w-full">
         {images.length === 0 ? (
-          <div className="flex min-h-[400px] flex-col items-center justify-center text-muted-foreground">
+          <div className="flex min-h-100 flex-col items-center justify-center text-muted-foreground">
             <svg
               aria-hidden="true"
               className="mb-4 h-16 w-16"
