@@ -9,6 +9,7 @@ import { Input } from "@barrelsgd/ui/components/ui/input";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import {
+  approveRegistration,
   offboardStaff,
   readGrades,
   readPolicies,
@@ -43,6 +44,43 @@ function StaffEditor({
         {staff.email} ·{" "}
         {staff.email_verified ? "Email verified" : "Email verification pending"}
       </p>
+      {staff.registration_pending && (
+        <div className="my-4 space-y-3 rounded-lg border border-border bg-muted p-4">
+          <p className="font-medium">Registration awaiting approval</p>
+          <p className="text-sm">
+            Verify the employee’s identity, save their department and grade,
+            then approve staff access. Email verification is required; personnel
+            details can be completed later.
+          </p>
+          <Button
+            disabled={
+              busy ||
+              !staff.email_verified ||
+              !staff.department_id ||
+              !staff.grade_id ||
+              !staff.mailbox_ready
+            }
+            onClick={async () => {
+              setBusy(true);
+              setMessage("");
+              try {
+                await approveRegistration(staff.user_id);
+                setMessage("Registration approved. Staff access is enabled.");
+                onSaved();
+              } catch {
+                setMessage(
+                  "Approval failed. Confirm email verification and active staff setup."
+                );
+              } finally {
+                setBusy(false);
+              }
+            }}
+            type="button"
+          >
+            Approve staff access
+          </Button>
+        </div>
+      )}
       <form
         className="grid gap-4 md:grid-cols-2"
         onSubmit={async (event) => {
