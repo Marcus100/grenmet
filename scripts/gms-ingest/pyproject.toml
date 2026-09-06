@@ -1,0 +1,31 @@
+[project]
+name = "gms-ingest"
+version = "0.2.0"
+description = "Current NHC products for Grenada Meteorological Service"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "pyshp>=2.3.1",
+    "pyproj>=3.7.2",
+    "cfgrib>=0.9.15.1",
+    "eccodes>=2.45.0",
+    "eccodeslib>=2.48.0.26; platform_system != 'Windows'",
+    "xarray>=2026.2.0",
+    "netcdf4>=1.7.4",
+]
+
+[project.scripts]
+nhc = "gms_ingest.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gms_ingest"]
+
+[tool.ruff]
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
