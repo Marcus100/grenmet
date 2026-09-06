@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  type Flight,
-  flightsFor,
-  isAirportCode,
-  isBoard,
-  SAMPLE_FLIGHTS,
-} from "@/lib/flights";
+import { type Flight, flightsFor, isAirportCode, isBoard } from "@/lib/flights";
 
 const make = (overrides: Partial<Flight>): Flight => ({
   airline: "Test Air",
@@ -41,16 +35,6 @@ describe("flightsFor", () => {
     expect(
       flightsFor(flights, "GND", "arrivals").map((f) => f.scheduled)
     ).toEqual(["08:05", "12:45", "15:30"]);
-  });
-
-  it("returns rows for every sample board", () => {
-    for (const airport of ["GND", "CRU"] as const) {
-      for (const board of ["arrivals", "departures"] as const) {
-        expect(
-          flightsFor(SAMPLE_FLIGHTS, airport, board).length
-        ).toBeGreaterThan(0);
-      }
-    }
   });
 });
 

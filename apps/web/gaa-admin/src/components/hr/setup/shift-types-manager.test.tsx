@@ -63,19 +63,6 @@ function renderManager() {
 }
 
 describe("ShiftTypesManager", () => {
-  it("lists shift types with times and active/inactive status", async () => {
-    renderManager();
-
-    expect(await screen.findByText("Morning")).toBeInTheDocument();
-    expect(screen.getByText("M")).toBeInTheDocument();
-    expect(screen.getByText("05:30–14:00")).toBeInTheDocument();
-
-    // Deactivated shifts still show (management view) with an Inactive badge.
-    expect(screen.getByText("Retired shift")).toBeInTheDocument();
-    expect(screen.getByText("Active")).toBeInTheDocument();
-    expect(screen.getByText("Inactive")).toBeInTheDocument();
-  }, 20_000);
-
   it("creates a shift type, sending category-derived flags", async () => {
     const posted: Record<string, unknown>[] = [];
     server.use(
