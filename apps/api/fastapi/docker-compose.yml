@@ -15,6 +15,9 @@ services:
     build:
       context: ../../..
       dockerfile: apps/api/fastapi/Dockerfile
+    # prestart, api and worker are the same image with different commands. Sharing
+    # one tag lets buildkit build and export it once instead of three times.
+    image: grenmet-api:local
     restart: "no"
     command: bash scripts/prestart.sh
     volumes:
@@ -28,6 +31,10 @@ services:
     env_file:
       - .env.local
     environment:
+      # Local bind-mounts pyproject.toml/uv.lock from the host, so the venv can
+      # drift from the image. Staging and prod leave this unset and run straight
+      # off the venv baked into the image.
+      - PRESTART_SYNC=1
       - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
@@ -40,6 +47,9 @@ services:
     build:
       context: ../../..
       dockerfile: apps/api/fastapi/Dockerfile
+    # prestart, api and worker are the same image with different commands. Sharing
+    # one tag lets buildkit build and export it once instead of three times.
+    image: grenmet-api:local
     restart: unless-stopped
     depends_on:
       prestart:
@@ -124,6 +134,9 @@ services:
     build:
       context: ../../..
       dockerfile: apps/api/fastapi/Dockerfile
+    # prestart, api and worker are the same image with different commands. Sharing
+    # one tag lets buildkit build and export it once instead of three times.
+    image: grenmet-api:local
     restart: unless-stopped
     depends_on:
       prestart:
