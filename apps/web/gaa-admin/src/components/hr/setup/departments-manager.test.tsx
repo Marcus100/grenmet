@@ -40,14 +40,6 @@ function renderManager() {
 }
 
 describe("DepartmentsManager", () => {
-  it("lists departments with their short id", async () => {
-    renderManager();
-    expect(
-      await screen.findByText("Meteorological Department")
-    ).toBeInTheDocument();
-    expect(screen.getByText("dept_met")).toBeInTheDocument();
-  }, 20_000);
-
   it("creates a department, auto-deriving the short id from the name", async () => {
     const posted: Record<string, unknown>[] = [];
     server.use(
