@@ -60,7 +60,7 @@ catalog:
 
   # Tables — admin-gms (data tables + virtualised lists)
   "@tanstack/react-table": "^8.21.3"
-  "@tanstack/react-virtual": "^3.13.17"
+  "@tanstack/react-virtual": "^3.14.10"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
   motion: "^12.23.11"
@@ -91,7 +91,7 @@ catalog:
 
   # Repository tooling
   husky: "^9.1.7"
-  lint-staged: "^17.0.8"
+  lint-staged: "^17.4.1"
 
   # Headless UI — used in gms and docs (migrate to Base UI eventually)
   "@headlessui/react": "^2.2.10"
