@@ -36,6 +36,7 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
   ABSENTEE_REASONS,
@@ -103,6 +104,7 @@ export function AbsenteeEditor() {
     useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch();
   const submitMutation =
     useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost();
+  const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<string | null>(draftParam);
@@ -122,9 +124,14 @@ export function AbsenteeEditor() {
     }
     const draft = rows.find((report) => report.id === draftParam);
     if (draft) {
-      form.reset(draftToFormValues(draft));
+      form.reset(draftToFormValues(draft), { keepDefaultValues: true });
       setDraftId(draftParam);
-      setStatusHint("Editing saved draft");
+      setSubmission(draft.status === "DRAFT" ? null : draft);
+      setStatusHint(
+        draft.status === "DRAFT"
+          ? "Editing saved draft"
+          : "Submitted copy — Reset to start a new form"
+      );
       loadedDraftRef.current = draftParam;
     }
   }, [draftParam, myReportsQuery.data, form]);
@@ -146,6 +153,7 @@ export function AbsenteeEditor() {
   );
 
   function handleReset() {
+    setSubmission(null);
     form.reset();
     setCoApprovers([]);
     setStatusHint(null);
@@ -200,21 +208,27 @@ export function AbsenteeEditor() {
         }
       } else {
         if (draftId) {
-          await submitMutation.mutateAsync({
+          await updateMutation.mutateAsync({
+            absentee_report_id: draftId,
+            data: buildAbsenteeReportPayload(values, userId, departmentId),
+          });
+          const submitted = await submitMutation.mutateAsync({
             absentee_report_id: draftId,
             data: { co_approver_user_ids: coApprovers },
           });
+          setSubmission(submitted);
         } else {
-          await createMutation.mutateAsync({
+          const submitted = await createMutation.mutateAsync({
             data: {
               ...buildAbsenteeReportPayload(values, userId, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,
             },
           });
+          setSubmission(submitted);
         }
         toast.success("Absentee report submitted");
-        handleReset();
+        setStatusHint("Submitted copy — Reset to start a new form");
       }
       await refreshMyReports();
     } catch (error) {
@@ -237,8 +251,8 @@ export function AbsenteeEditor() {
                 isSubmitting={pendingAction === "submit"}
                 onDownloadPdf={handleDownloadPdf}
                 onReset={handleReset}
-                onSave={() => persist(values, true)}
-                onSubmit={() => persist(values, false)}
+                onSave={submission ? undefined : () => persist(values, true)}
+                onSubmit={submission ? undefined : () => persist(values, false)}
                 statusHint={statusHint}
                 submitDisabled={!(userId && departmentId)}
               />
@@ -246,119 +260,122 @@ export function AbsenteeEditor() {
 
             <Separator />
 
-            <form
-              className="flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                <form.Field name="employeeName">
-                  {(field) => (
-                    <Field className="gap-1">
-                      <FieldLabel className="text-xs" htmlFor={field.name}>
-                        Employee Name
-                      </FieldLabel>
-                      <Input
-                        id={field.name}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        value={field.state.value}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <form.Field name="department">
+            {!submission && (
+              <form
+                className="flex flex-col gap-4"
+                inert={pendingAction !== null}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit();
+                }}
+              >
+                <FieldGroup>
+                  <form.Field name="employeeName">
                     {(field) => (
                       <Field className="gap-1">
                         <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Department
+                          Employee Name
                         </FieldLabel>
                         <Input
                           id={field.name}
+                          onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
                       </Field>
                     )}
                   </form.Field>
-                  <form.Field name="date">
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <form.Field name="department">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Department
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="date">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Date
+                          </FieldLabel>
+                          <DatePicker
+                            id={field.name}
+                            onChange={field.handleChange}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <form.Field name="reason">
                     {(field) => (
                       <Field className="gap-1">
                         <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Date
+                          Reason
                         </FieldLabel>
-                        <DatePicker
+                        <Select
+                          onValueChange={(v) => field.handleChange(v ?? "")}
+                          value={field.state.value}
+                        >
+                          <SelectTrigger id={field.name}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {ABSENTEE_REASONS.map((r) => (
+                              <SelectItem key={r} value={r}>
+                                {r}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </Field>
+                    )}
+                  </form.Field>
+
+                  <form.Field name="notes">
+                    {(field) => (
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Reason(s) — details
+                        </FieldLabel>
+                        <Textarea
                           id={field.name}
-                          onChange={field.handleChange}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          rows={4}
                           value={field.state.value}
                         />
                       </Field>
                     )}
                   </form.Field>
-                </div>
 
-                <form.Field name="reason">
-                  {(field) => (
-                    <Field className="gap-1">
-                      <FieldLabel className="text-xs" htmlFor={field.name}>
-                        Reason
-                      </FieldLabel>
-                      <Select
-                        onValueChange={(v) => field.handleChange(v ?? "")}
-                        value={field.state.value}
-                      >
-                        <SelectTrigger id={field.name}>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {ABSENTEE_REASONS.map((r) => (
-                            <SelectItem key={r} value={r}>
-                              {r}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </Field>
-                  )}
-                </form.Field>
-
-                <form.Field name="notes">
-                  {(field) => (
-                    <Field className="gap-1">
-                      <FieldLabel className="text-xs" htmlFor={field.name}>
-                        Reason(s) — details
-                      </FieldLabel>
-                      <Textarea
-                        id={field.name}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        rows={4}
-                        value={field.state.value}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-
-                <Field className="gap-1">
-                  <FieldLabel className="text-xs">
-                    Co-approvers (all must approve before it reaches HR)
-                  </FieldLabel>
-                  <CoApproverPicker
-                    departmentId={departmentId}
-                    excludeUserId={sessionUser.id}
-                    onChange={setCoApprovers}
-                    selected={coApprovers}
-                  />
-                </Field>
-              </FieldGroup>
-            </form>
+                  <Field className="gap-1">
+                    <FieldLabel className="text-xs">
+                      Co-approvers (all must approve before it reaches HR)
+                    </FieldLabel>
+                    <CoApproverPicker
+                      departmentId={departmentId}
+                      excludeUserId={sessionUser.id}
+                      onChange={setCoApprovers}
+                      selected={coApprovers}
+                    />
+                  </Field>
+                </FieldGroup>
+              </form>
+            )}
           </div>
 
           <DocumentPreview showDownloadPdf={false} title="Absentee Report">
-            <AbsenteeDocument values={values} />
+            <AbsenteeDocument submission={submission} values={values} />
           </DocumentPreview>
         </div>
       )}

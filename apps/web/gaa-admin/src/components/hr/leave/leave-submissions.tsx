@@ -12,6 +12,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatSubmissionDate } from "@/components/hr/submission-date";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   DRAFT: "outline",
@@ -61,6 +62,7 @@ export function LeaveSubmissions() {
               <th className="py-1.5 pr-3 font-medium">From</th>
               <th className="py-1.5 pr-3 font-medium">To</th>
               <th className="py-1.5 pr-3 font-medium">Days</th>
+              <th className="py-1.5 pr-3 font-medium">Date submitted</th>
               <th className="py-1.5 pr-3 font-medium">Status</th>
               <th className="py-1.5 text-right font-medium">Actions</th>
             </tr>
@@ -75,6 +77,9 @@ export function LeaveSubmissions() {
                   <td className="py-1.5 pr-3">{request.end_date}</td>
                   <td className="py-1.5 pr-3">
                     {request.days_requested ?? "—"}
+                  </td>
+                  <td className="py-1.5 pr-3">
+                    {formatSubmissionDate(request)}
                   </td>
                   <td className="py-1.5 pr-3">
                     <Badge

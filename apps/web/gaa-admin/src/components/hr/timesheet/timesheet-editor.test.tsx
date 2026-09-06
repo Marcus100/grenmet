@@ -88,25 +88,48 @@ describe("TimesheetEditor", () => {
     expect(screen.getAllByText("Meteorology").length).toBeGreaterThanOrEqual(1);
   });
 
-  it("submits the filled entries to HR with the profile department", async () => {
+  it.each([
+    false,
+    true,
+  ])("submits the entries and reuses the saved draft on retry (%s)", async (failFirst) => {
     const posted: unknown[] = [];
+    const submitted: unknown[] = [];
     server.use(
       http.post(`${BASE}/api/v1/hr/timesheets`, async ({ request }) => {
         posted.push(await request.json());
         return HttpResponse.json(
           {
-            id: "ts-1",
-            user_id: "u-1",
-            department_id: "dept_met",
-            period_start: "2026-07-01",
-            period_end: "2026-07-01",
-            status: "DRAFT",
-            created_at: "2026-07-04T00:00:00+0000",
-            updated_at: "2026-07-04T00:00:00+0000",
+            timesheet: {
+              id: "ts-1",
+              user_id: "u-1",
+              department_id: "dept_met",
+              period_start: "2026-07-01",
+              period_end: "2026-07-01",
+              status: "DRAFT",
+              created_at: "2026-07-04T00:00:00+0000",
+              updated_at: "2026-07-04T00:00:00+0000",
+            },
+            entries: [],
           },
           { status: 201 }
         );
-      })
+      }),
+      http.patch(
+        `${BASE}/api/v1/hr/timesheets/ts-1/submit`,
+        async ({ request }) => {
+          submitted.push(await request.json());
+          if (failFirst && submitted.length === 1)
+            return HttpResponse.json(
+              { detail: "Temporary submission failure" },
+              { status: 409 }
+            );
+          return HttpResponse.json({
+            id: "ts-1",
+            status: "SUBMITTED",
+            submitted_at: "2026-09-07T02:30:00Z",
+          });
+        }
+      )
     );
 
     const user = userEvent.setup();
@@ -129,6 +152,21 @@ describe("TimesheetEditor", () => {
     await waitFor(() => {
       expect(posted).toHaveLength(1);
     });
+    if (failFirst) {
+      await waitFor(() => expect(submitted).toHaveLength(1));
+      await waitFor(() =>
+        expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeEnabled()
+      );
+      await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+    }
+    expect((await screen.findAllByText("06 Sept 2026")).length).toBeGreaterThan(
+      0
+    );
+    expect(submitted).toEqual(
+      failFirst ? [{ mode: "SELF" }, { mode: "SELF" }] : [{ mode: "SELF" }]
+    );
+    expect(posted).toHaveLength(1);
+    expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeDisabled();
     expect(posted[0]).toEqual({
       department_id: "dept_met",
       period_start: expectedDate,

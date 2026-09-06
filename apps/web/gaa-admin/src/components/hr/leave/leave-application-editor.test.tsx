@@ -20,9 +20,11 @@ import {
 import { EMPTY_LEAVE } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
 
+const navigation = vi.hoisted(() => ({ search: "" }));
+
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(navigation.search),
 }));
 
 const BASE = "http://localhost";
@@ -61,7 +63,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "bypass" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  navigation.search = "";
+});
 afterAll(() => server.close());
 
 function wrap(children: React.ReactNode) {
@@ -155,4 +160,55 @@ describe("LeaveSubmissions", () => {
     expect(screen.getByText("2026-08-03")).toBeInTheDocument();
     expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
   }, 20_000);
+});
+
+it("keeps a submitted draft printable with the server date and resets cleanly", async () => {
+  navigation.search = "draft=lr-draft";
+  server.use(
+    http.get(`${BASE}/api/v1/hr/leave-requests/me`, () =>
+      HttpResponse.json({
+        data: [
+          {
+            id: "lr-draft",
+            user_id: "u-1",
+            department_id: "dept_met",
+            leave_type: "VACATION",
+            start_date: "2026-08-03",
+            end_date: "2026-08-14",
+            days_requested: "10",
+            status: "DRAFT",
+            created_at: "2020-01-01T00:00:00Z",
+            updated_at: "2020-01-01T00:00:00Z",
+          },
+        ],
+        count: 1,
+      })
+    ),
+    http.patch(`${BASE}/api/v1/hr/leave-requests/lr-draft`, () =>
+      HttpResponse.json({ id: "lr-draft", status: "DRAFT" })
+    ),
+    http.post(`${BASE}/api/v1/hr/leave-requests/lr-draft/submit`, () =>
+      HttpResponse.json({
+        id: "lr-draft",
+        status: "SUBMITTED",
+        submitted_at: "2026-09-07T02:30:00Z",
+      })
+    )
+  );
+  wrap(<LeaveApplicationEditor />);
+  await screen.findByText("Editing saved draft");
+  expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled()
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+  expect((await screen.findAllByText("06 Sept 2026")).length).toBeGreaterThan(
+    0
+  );
+  expect(
+    screen.queryByRole("button", { name: "Submit" })
+  ).not.toBeInTheDocument();
+  expect(screen.getAllByText("2026-08-14").length).toBeGreaterThan(0);
+  fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+  expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
 });

@@ -34,6 +34,7 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import { EMPTY_LEAVE, LEAVE_TYPES, LeaveDocument } from "./leave-document";
 
@@ -100,6 +101,7 @@ export function LeaveApplicationEditor() {
     useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch();
   const submitMutation =
     useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost();
+  const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
   const [draftId, setDraftId] = useState<string | null>(draftParam);
@@ -119,9 +121,14 @@ export function LeaveApplicationEditor() {
     }
     const draft = rows.find((request) => request.id === draftParam);
     if (draft) {
-      form.reset(draftToFormValues(draft));
+      form.reset(draftToFormValues(draft), { keepDefaultValues: true });
       setDraftId(draftParam);
-      setStatusHint("Editing saved draft");
+      setSubmission(draft.status === "DRAFT" ? null : draft);
+      setStatusHint(
+        draft.status === "DRAFT"
+          ? "Editing saved draft"
+          : "Submitted copy — Reset to start a new form"
+      );
       loadedDraftRef.current = draftParam;
     }
   }, [draftParam, myRequestsQuery.data, form]);
@@ -143,6 +150,7 @@ export function LeaveApplicationEditor() {
   );
 
   function handleReset() {
+    setSubmission(null);
     form.reset();
     setCoApprovers([]);
     setStatusHint(null);
@@ -197,21 +205,27 @@ export function LeaveApplicationEditor() {
         }
       } else {
         if (draftId) {
-          await submitMutation.mutateAsync({
+          await updateMutation.mutateAsync({
+            leave_request_id: draftId,
+            data: buildLeaveRequestPayload(values, departmentId),
+          });
+          const submitted = await submitMutation.mutateAsync({
             leave_request_id: draftId,
             data: { co_approver_user_ids: coApprovers },
           });
+          setSubmission(submitted);
         } else {
-          await createMutation.mutateAsync({
+          const submitted = await createMutation.mutateAsync({
             data: {
               ...buildLeaveRequestPayload(values, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,
             },
           });
+          setSubmission(submitted);
         }
         toast.success("Leave request submitted");
-        handleReset();
+        setStatusHint("Submitted copy — Reset to start a new form");
       }
       await refreshMyRequests();
     } catch (error) {
@@ -228,14 +242,24 @@ export function LeaveApplicationEditor() {
       {(values) => (
         <div className="grid items-start gap-5 xl:grid-cols-2">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+            {profileQuery.data?.employment.details_complete === false && (
+              <div
+                className="rounded-lg border border-border bg-muted p-4 text-sm"
+                role="status"
+              >
+                Before submitting leave, an administrator must verify your
+                employee number, employment type, start date and opening leave
+                balance. Complete these in HR Setup → Staff baseline.
+              </div>
+            )}
             <div className="flex flex-col gap-3">
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
                 onDownloadPdf={handleDownloadPdf}
                 onReset={handleReset}
-                onSave={() => persist(values, true)}
-                onSubmit={() => persist(values, false)}
+                onSave={submission ? undefined : () => persist(values, true)}
+                onSubmit={submission ? undefined : () => persist(values, false)}
                 statusHint={statusHint}
                 submitDisabled={!departmentId}
               />
@@ -243,55 +267,25 @@ export function LeaveApplicationEditor() {
 
             <Separator />
 
-            <form
-              className="flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                <form.Field name="employeeName">
-                  {(field) => (
-                    <Field className="gap-1">
-                      <FieldLabel className="text-xs" htmlFor={field.name}>
-                        Employee Name
-                      </FieldLabel>
-                      <Input
-                        id={field.name}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        value={field.state.value}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-
-                <form.Field name="department">
-                  {(field) => (
-                    <Field className="gap-1">
-                      <FieldLabel className="text-xs" htmlFor={field.name}>
-                        Department
-                      </FieldLabel>
-                      <Input
-                        id={field.name}
-                        onBlur={field.handleBlur}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        value={field.state.value}
-                      />
-                    </Field>
-                  )}
-                </form.Field>
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <form.Field name="daysRequested">
+            {!submission && (
+              <form
+                className="flex flex-col gap-4"
+                inert={pendingAction !== null}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit();
+                }}
+              >
+                <FieldGroup>
+                  <form.Field name="employeeName">
                     {(field) => (
                       <Field className="gap-1">
                         <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Days Requested
+                          Employee Name
                         </FieldLabel>
                         <Input
                           id={field.name}
+                          onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
@@ -299,98 +293,131 @@ export function LeaveApplicationEditor() {
                     )}
                   </form.Field>
 
-                  <form.Field name="leaveType">
+                  <form.Field name="department">
                     {(field) => (
                       <Field className="gap-1">
                         <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Type of Leave
-                        </FieldLabel>
-                        <Select
-                          onValueChange={(v) => field.handleChange(v ?? "")}
-                          value={field.state.value}
-                        >
-                          <SelectTrigger id={field.name}>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {LEAVE_TYPES.map((t) => (
-                              <SelectItem key={t} value={t}>
-                                {t}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </Field>
-                    )}
-                  </form.Field>
-                </div>
-
-                <div className="grid gap-5 md:grid-cols-2">
-                  <form.Field name="startDate">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Start Date
-                        </FieldLabel>
-                        <DatePicker
-                          id={field.name}
-                          onChange={field.handleChange}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="endDate">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          End Date
-                        </FieldLabel>
-                        <DatePicker
-                          id={field.name}
-                          onChange={field.handleChange}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-                </div>
-
-                {values.leaveType === "Other" ? (
-                  <form.Field name="otherReason">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Other — please state reason
+                          Department
                         </FieldLabel>
                         <Input
                           id={field.name}
+                          onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
                       </Field>
                     )}
                   </form.Field>
-                ) : null}
 
-                <Field className="gap-1">
-                  <FieldLabel className="text-xs">
-                    Co-approvers (all must approve before it reaches HR)
-                  </FieldLabel>
-                  <CoApproverPicker
-                    departmentId={departmentId}
-                    excludeUserId={sessionUser.id}
-                    onChange={setCoApprovers}
-                    selected={coApprovers}
-                  />
-                </Field>
-              </FieldGroup>
-            </form>
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <form.Field name="daysRequested">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Days Requested
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="leaveType">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Type of Leave
+                          </FieldLabel>
+                          <Select
+                            onValueChange={(v) => field.handleChange(v ?? "")}
+                            value={field.state.value}
+                          >
+                            <SelectTrigger id={field.name}>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {LEAVE_TYPES.map((t) => (
+                                <SelectItem key={t} value={t}>
+                                  {t}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <form.Field name="startDate">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Start Date
+                          </FieldLabel>
+                          <DatePicker
+                            id={field.name}
+                            onChange={field.handleChange}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <form.Field name="endDate">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            End Date
+                          </FieldLabel>
+                          <DatePicker
+                            id={field.name}
+                            onChange={field.handleChange}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  {values.leaveType === "Other" ? (
+                    <form.Field name="otherReason">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Other — please state reason
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  ) : null}
+
+                  <Field className="gap-1">
+                    <FieldLabel className="text-xs">
+                      Co-approvers (all must approve before it reaches HR)
+                    </FieldLabel>
+                    <CoApproverPicker
+                      departmentId={departmentId}
+                      excludeUserId={sessionUser.id}
+                      onChange={setCoApprovers}
+                      selected={coApprovers}
+                    />
+                  </Field>
+                </FieldGroup>
+              </form>
+            )}
           </div>
 
           <DocumentPreview showDownloadPdf={false} title="Leave Application">
-            <LeaveDocument values={values} />
+            <LeaveDocument submission={submission} values={values} />
           </DocumentPreview>
         </div>
       )}

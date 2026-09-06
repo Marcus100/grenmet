@@ -1,4 +1,8 @@
 import { Paper } from "@/components/document/paper";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 
 export interface AbsenteeValues {
   date: string;
@@ -36,7 +40,13 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 /** Static absentee report document, driven by `values` — no backend. */
-export function AbsenteeDocument({ values }: { values: AbsenteeValues }) {
+export function AbsenteeDocument({
+  values,
+  submission,
+}: {
+  values: AbsenteeValues;
+  submission?: SubmissionMetadata | null;
+}) {
   return (
     <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
@@ -51,6 +61,7 @@ export function AbsenteeDocument({ values }: { values: AbsenteeValues }) {
           ABSENTEE REPORT
         </h1>
       </header>
+      <SubmissionDate submission={submission} />
 
       <dl className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
         <Row label="Employee Name" value={values.employeeName} />

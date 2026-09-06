@@ -13,6 +13,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatSubmissionDate } from "@/components/hr/submission-date";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   DRAFT: "outline",
@@ -62,6 +63,7 @@ export function AbsenteeSubmissions() {
               <th className="py-1.5 pr-3 font-medium">Date</th>
               <th className="py-1.5 pr-3 font-medium">Reason</th>
               <th className="py-1.5 pr-3 font-medium">Notes</th>
+              <th className="py-1.5 pr-3 font-medium">Date submitted</th>
               <th className="py-1.5 pr-3 font-medium">Status</th>
               <th className="py-1.5 text-right font-medium">Actions</th>
             </tr>
@@ -76,6 +78,9 @@ export function AbsenteeSubmissions() {
                   <td className="py-1.5 pr-3">{report.report_date}</td>
                   <td className="py-1.5 pr-3">{report.reason}</td>
                   <td className="py-1.5 pr-3">{report.notes || "—"}</td>
+                  <td className="py-1.5 pr-3">
+                    {formatSubmissionDate(report)}
+                  </td>
                   <td className="py-1.5 pr-3">
                     <Badge variant={STATUS_VARIANT[report.status] ?? "outline"}>
                       {report.status}
