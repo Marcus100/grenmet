@@ -78,6 +78,9 @@ jobs:
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
 
+      - name: Check Docker workspace dependencies
+        run: node scripts/guardrails/check-docker-workspaces.mjs
+
       - name: Test repository guardrails
         run: pnpm test:guardrails
 
