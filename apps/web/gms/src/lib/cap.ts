@@ -1,4 +1,5 @@
 import { captureException } from "@sentry/nextjs";
+import { cache } from "react";
 import { env } from "@/lib/env";
 
 /** CAP severity, ordered most to least severe. Drives colour and sort order. */
@@ -100,6 +101,17 @@ export type AlertsResult =
   | { status: "ok"; groups: HazardGroup[]; activeCount: number }
   | { status: "unavailable" };
 
+/** Shared status line for both the mobile accordion and the desktop panel. */
+export function alertsSummary(result: AlertsResult): string {
+  if (result.status === "unavailable") {
+    return "Unavailable";
+  }
+  if (result.activeCount === 0) {
+    return "No active warnings";
+  }
+  return `${result.activeCount} active`;
+}
+
 interface RawArea {
   area_desc?: string;
 }
@@ -157,8 +169,11 @@ export function toPublicAlerts(raw: RawAlert[]): PublicAlert[] {
  * Returns `unavailable` rather than an empty list when the service cannot be
  * reached: on a public warning site an outage must not be presented as an
  * all-clear.
+ *
+ * Wrapped in React `cache` so the root layout (masthead) and the weather
+ * layout (alerts panel) share one request per render instead of two.
  */
-export async function fetchActiveAlerts(): Promise<AlertsResult> {
+export const fetchActiveAlerts = cache(async (): Promise<AlertsResult> => {
   try {
     // Deliberately uncached. The panel must reflect the service's real state on
     // every request: a cached success would keep rendering while the service is
@@ -187,4 +202,4 @@ export async function fetchActiveAlerts(): Promise<AlertsResult> {
   } catch (error) {
     return reportUnavailable(error);
   }
-}
+});
