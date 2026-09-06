@@ -3,9 +3,11 @@ import {
   BookOpen,
   Bus,
   Calendar,
+  CalendarDays,
   CloudSun,
   Contact,
   House,
+  LayoutGrid,
   type LucideIcon,
   NotebookPen,
   Package,
@@ -65,8 +67,9 @@ const COMING_SOON_URL = "/coming-soon";
 // Group order is deliberate: daily coordination and HR (the actively built
 // surface) sit ungrouped up top, then "Products" (every forecaster-facing
 // product and composer), then "Services" (Climate & Data), then station
-// "Operations". Human Resources is a single entry — its forms, approvals and
-// setup are all reached from inside the HR dashboard (/hr).
+// "Operations". The HR dashboard (/hr) still links to every form and module;
+// the duty roster and HR Setup are also listed here because they are the two
+// surfaces staff reach for directly rather than by way of the dashboard.
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
@@ -79,7 +82,19 @@ export const sidebarItems: NavGroup[] = [
         url: "/hr",
         icon: Contact,
       },
+      {
+        id: "roster",
+        title: "Duty Roster",
+        url: "/roster",
+        icon: CalendarDays,
+      },
       { id: "staff", title: "Staff", url: "/users", icon: Users },
+      {
+        id: "hr-setup",
+        title: "HR Setup",
+        url: "/hr-setup",
+        icon: LayoutGrid,
+      },
     ],
   },
   {

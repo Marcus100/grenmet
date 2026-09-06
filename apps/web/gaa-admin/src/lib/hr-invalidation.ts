@@ -83,3 +83,17 @@ export function invalidateAfterRosterImport(
   }
   return invalidateKeys(queryClient, keys);
 }
+
+/**
+ * After adding, editing or cancelling a department calendar entry.
+ *
+ * The calendar is read one window at a time, so the generated key carries the
+ * date range and a full key would only refresh the month the mutation happened
+ * to be viewing. Matching on the URL prefix alone refreshes every cached
+ * window, which is what "the calendar changed" actually means.
+ */
+export function invalidateAfterCalendarEventChange(
+  queryClient: QueryClient
+): Promise<void> {
+  return invalidateKeys(queryClient, [[{ url: "/api/v1/hr/calendar/events" }]]);
+}

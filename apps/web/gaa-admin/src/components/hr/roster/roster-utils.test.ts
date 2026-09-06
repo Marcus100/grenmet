@@ -1,4 +1,6 @@
 import type {
+  DepartmentMemberPublic,
+  GradePublic,
   RosterPeriodPublic,
   ShiftCatalogPublic,
 } from "@barrelsgd/api-client";
@@ -7,12 +9,32 @@ import {
   buildCycleCodes,
   cellKey,
   findPeriodForMonth,
-  initialName,
+  groupByGrade,
   isoDate,
   legendLabel,
+  markShiftRuns,
   monthRange,
   nextCode,
+  workShiftCodes,
 } from "./roster-utils";
+
+function member(
+  userId: string,
+  grade: GradePublic | null
+): DepartmentMemberPublic {
+  return {
+    user_id: userId,
+    username: userId,
+    first_name: "Test",
+    last_name: userId,
+    full_name: `Test ${userId}`,
+    roster_name: null,
+    employee_number: `GMS-${userId}`,
+    position: grade?.label ?? null,
+    grade,
+    employment_status: "ACTIVE",
+  };
+}
 
 function shift(overrides: Partial<ShiftCatalogPublic>): ShiftCatalogPublic {
   return {
@@ -129,12 +151,95 @@ describe("labels", () => {
     );
   });
 
-  it("builds initial-dot names", () => {
-    expect(initialName("Gerad", "Tamar")).toBe("G. Tamar");
-    expect(initialName("", "Tamar")).toBe("Tamar");
+  it("groups members into the grade bands the roster prints", () => {
+    const groups = groupByGrade([
+      member("tamar", { code: "MANAGER", label: "Manager", rank: 1 }),
+      member("cyrus", {
+        code: "SENIOR_TECH",
+        label: "Senior Level Technician",
+        rank: 3,
+      }),
+      member("frank", {
+        code: "SENIOR_TECH",
+        label: "Senior Level Technician",
+        rank: 3,
+      }),
+    ]);
+
+    expect(groups.map((g) => g.label)).toEqual([
+      "Manager",
+      "Senior Level Technician",
+    ]);
+    expect(groups[1].members).toHaveLength(2);
+  });
+
+  it("keeps ungraded members in one trailing unlabelled group", () => {
+    const groups = groupByGrade([
+      member("tamar", { code: "MANAGER", label: "Manager", rank: 1 }),
+      member("nobody", null),
+    ]);
+
+    expect(groups).toHaveLength(2);
+    expect(groups[1].label).toBeNull();
+    expect(groups[1].members.map((m) => m.user_id)).toEqual(["nobody"]);
   });
 
   it("builds stable cell keys", () => {
     expect(cellKey("u1", "2026-07-01")).toBe("u1|2026-07-01");
+  });
+});
+
+describe("workShiftCodes", () => {
+  it("keeps only WORK-category codes", () => {
+    const codes = workShiftCodes([
+      shift({ code: "M", category: "WORK" }),
+      shift({ code: "N", category: "WORK" }),
+      shift({ code: "O", category: "OFF" }),
+      shift({ code: "V", category: "LEAVE" }),
+    ]);
+    expect([...codes].sort()).toEqual(["M", "N"]);
+  });
+});
+
+describe("markShiftRuns", () => {
+  const work = new Set(["M", "D", "E", "N"]);
+
+  it("marks a run of two or more identical work shifts", () => {
+    expect(markShiftRuns(["N", "N", "N", "O"], work)).toEqual([
+      true,
+      true,
+      true,
+      false,
+    ]);
+  });
+
+  it("leaves a lone work shift unmarked", () => {
+    expect(markShiftRuns(["M", "E", "N"], work)).toEqual([false, false, false]);
+  });
+
+  it("does not mark runs of off duty or leave, which carry their own treatment", () => {
+    expect(markShiftRuns(["O", "O", "O"], work)).toEqual([false, false, false]);
+    expect(markShiftRuns(["V", "V", "V"], work)).toEqual([false, false, false]);
+  });
+
+  it("never joins a run across a blank, unrostered day", () => {
+    expect(markShiftRuns(["N", "", "N"], work)).toEqual([false, false, false]);
+    expect(markShiftRuns(["", "", ""], work)).toEqual([false, false, false]);
+  });
+
+  it("marks each run independently across the month", () => {
+    expect(markShiftRuns(["M", "M", "O", "E", "E", "E"], work)).toEqual([
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+    ]);
+  });
+
+  it("returns one flag per day, including an empty month", () => {
+    expect(markShiftRuns([], work)).toEqual([]);
+    expect(markShiftRuns(["M", "M"], new Set())).toEqual([false, false]);
   });
 });
