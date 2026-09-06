@@ -138,6 +138,51 @@ Local Stripe test-mode flow:
 5. Open the returned URL and use Stripe's interactive test card
    `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
 
+## HR Contract
+
+All HR routes are under `/api/v1/hr`, require an authenticated session, and are gated
+by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
+fails if a key used in code is missing from the catalog). Routers:
+`profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
+`absentee-reports`, `status-reports`, `parking-permits`, `workflows`.
+
+### Department calendar
+
+The calendar is the department's own record — meetings, training, inspections, visits,
+maintenance windows, deadlines. The duty roster is a **separate layer** read onto the
+same calendar; rostered shifts are never copied into `hr.calendar_event`.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/calendar/events` | `calendar.view` | Entries overlapping a date range (≤ 92 days) |
+| `POST /api/v1/hr/calendar/events` | `calendar.event.create` | Add an entry |
+| `PATCH /api/v1/hr/calendar/events/{event_id}` | author, or `calendar.manage` | Edit, or `cancelled: true` to strike it |
+
+Any member of staff holds `calendar.event.create` and may record what they consider
+important; the author may edit or cancel their own entry, and changing anyone else's
+requires `calendar.manage`. Entries are **cancelled, never deleted** — the calendar is
+a record of what was planned as well as what happened, so cancelled entries are
+omitted from reads unless `include_cancelled=true`.
+
+### Roster calendar feed
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/rosters/assignments` | none for `scope=me`; `roster.view` for `scope=department` | Rostered days in a range, expanded to concrete times |
+
+Draft periods are returned only to callers holding `roster.manage`, flagged
+`is_draft: true`. For everyone else a roster is not real until it is published.
+
+### Local wall-clock times
+
+`starts_at_local` / `ends_at_local` on both the calendar and roster feeds are ISO-8601
+**without an offset**. They are department-local wall-clock times, the frame the shift
+catalog and the printed roster already use: a 05:30 morning shift is 05:30 on the wall
+in Grenada. They are deliberately **not** `UtcDateTime` — stamping them UTC would move
+every shift four hours. Real timestamps (`created_at`) remain `UtcDateTime`. On write,
+an offset supplied by a client is dropped rather than converted, so one calendar never
+carries two time bases.
+
 ## Public CAP Feed Contract
 
 Public CAP routes are mounted outside `/api/v1`. They expose **only `scope == Public`
@@ -181,3 +226,15 @@ These are not implemented as universal API contracts yet:
 
 Do not claim these exist in downstream docs until the code implements them.
 
+
+### HR dashboard
+
+`GET /api/v1/hr/dashboard` requires an authenticated, active account. It returns the current user's recorded vacation balance (null when absent), recent personal HR records and open-request count, published roster entries for the active employment department, and permission-scoped actionable approvals. A superuser without employment sees organisation-wide roster and employment counts; an ordinary account without employment sees only its own records. Dates use America/Grenada. Roster entries describe scheduled work/time away, not observed attendance. No sample statistics or inferred leave entitlement are returned.
+
+### Employee membership and account security
+
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata, never bearer tokens, session secrets or TOTP secrets. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+
+Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
+
+HR form submission dates: leave, shift swap, absentee, daily status and parking public responses include nullable `submitted_at`, projected from the linked workflow (including list and mutation responses). Timesheets retain their existing field. Missing legacy timestamps remain null; creation/update dates are never substituted. Printable HR documents and submission lists display the date in America/Grenada, with drafts marked Not submitted and missing historical dates marked Not recorded. Signature lines remain unsigned.

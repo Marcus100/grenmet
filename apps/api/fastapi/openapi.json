@@ -3044,6 +3044,104 @@
         }
       }
     },
+    "/api/v1/hr/rosters/assignments": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "List roster assignments for a date range",
+        "description": "Return rostered days between start and end, expanded to concrete local times, for the calendar. scope=me (the default) returns the caller's own assignments and needs no roster permission; scope=department returns the whole department's and requires roster.view. Draft periods are included only for callers with roster.manage. The range is capped at 92 days.",
+        "operationId": "list_assignments_api_v1_hr_rosters_assignments_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "me",
+                "department"
+              ],
+              "type": "string",
+              "default": "me",
+              "title": "Scope"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Assignments returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterCalendarPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date range"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/rosters/import-grid/validate": {
       "post": {
         "tags": [
@@ -3576,6 +3674,222 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/calendar/events": {
+      "get": {
+        "tags": [
+          "hr-calendar"
+        ],
+        "summary": "List department calendar events",
+        "description": "Return the department's calendar entries overlapping the date range \u2014 meetings, training, inspections, visits, maintenance and anything else staff have recorded. The duty roster is a separate layer, read from /hr/rosters/assignments. Requires calendar.view; the range is capped at 92 days. Cancelled entries are omitted unless include_cancelled is set.",
+        "operationId": "list_calendar_events_api_v1_hr_calendar_events_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "End"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "include_cancelled",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Cancelled"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Calendar events returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventsPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date range"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-calendar"
+        ],
+        "summary": "Add a department calendar event",
+        "description": "Record anything the department needs on its calendar. Any member of staff may add an entry (calendar.event.create) and may edit or cancel their own; changing someone else's needs calendar.manage. Times are department-local wall clock, matching the roster.",
+        "operationId": "create_calendar_event_api_v1_hr_calendar_events_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Calendar event created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Department not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/calendar/events/{event_id}": {
+      "patch": {
+        "tags": [
+          "hr-calendar"
+        ],
+        "summary": "Update or cancel a department calendar event",
+        "description": "Edit an entry, or set cancelled=true to strike it from the calendar without deleting the record. The author may change their own entry; changing anyone else's requires calendar.manage.",
+        "operationId": "update_calendar_event_api_v1_hr_calendar_events__event_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Event Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarEventUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Calendar event updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarEventPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event"
+          },
+          "403": {
+            "description": "Not the author"
+          },
+          "404": {
+            "description": "Calendar event not found"
           },
           "422": {
             "description": "Validation Error",
@@ -7080,6 +7394,904 @@
           }
         }
       }
+    },
+    "/api/v1/auth/modern/email/request": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Request verified password setup",
+        "description": "Request verified password setup. Intentionally public; proof of account ownership is required to establish a session.",
+        "operationId": "email_request_api_v1_auth_modern_email_request_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired proof"
+          },
+          "403": {
+            "description": "Account is not eligible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/email/confirm": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Verify email and establish password",
+        "description": "Verify email and establish password. Intentionally public; proof of account ownership is required to establish a session.",
+        "operationId": "email_confirm_api_v1_auth_modern_email_confirm_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired proof"
+          },
+          "403": {
+            "description": "Account is not eligible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/google/start": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Start Google sign-in",
+        "description": "Start Google sign-in. Intentionally public; proof of account ownership is required to establish a session.",
+        "operationId": "google_start_api_v1_auth_modern_google_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleStartPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired proof"
+          },
+          "403": {
+            "description": "Account is not eligible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/google/complete": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Verify Google callback",
+        "description": "Verify Google callback. Intentionally public; proof of account ownership is required to establish a session.",
+        "operationId": "google_complete_api_v1_auth_modern_google_complete_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleChallengePublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired proof"
+          },
+          "403": {
+            "description": "Account is not eligible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/google/finish": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Finish Google sign-in with MFA",
+        "description": "Finish Google sign-in with MFA. Intentionally public; proof of account ownership is required to establish a session.",
+        "operationId": "google_finish_api_v1_auth_modern_google_finish_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleFinish"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or expired proof"
+          },
+          "403": {
+            "description": "Account is not eligible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/security": {
+      "get": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Read account security",
+        "description": "Show verified sign-in methods and active sessions for the current account, without exposing session secrets.",
+        "operationId": "read_account_security_api_v1_auth_modern_security_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSecurityPublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Verify account email first"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/staff-card/me": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "View your GAA staff credential",
+        "description": "View your GAA staff credential.",
+        "operationId": "read_staff_card_api_v1_hr_staff_card_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffCard"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/staff": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Review staff onboarding",
+        "description": "Review staff onboarding.",
+        "operationId": "read_staff_setup_api_v1_hr_setup_staff_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StaffSetup"
+                  },
+                  "type": "array",
+                  "title": "Response Read Staff Setup Api V1 Hr Setup Staff Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/staff/{user_id}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Complete or update staff onboarding",
+        "description": "Complete or update staff onboarding.",
+        "operationId": "update_staff_setup_api_v1_hr_setup_staff__user_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/staff/{user_id}/offboard": {
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Invalidate staff credential and revoke access",
+        "description": "Invalidate staff credential and revoke access.",
+        "operationId": "offboard_staff_api_v1_hr_setup_staff__user_id__offboard_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/staff/{user_id}/balance": {
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Record an audited leave balance adjustment",
+        "description": "Record an audited leave balance adjustment.",
+        "operationId": "update_staff_balance_api_v1_hr_setup_staff__user_id__balance_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BalanceInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/grades": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "List editable grade definitions",
+        "description": "List editable grade definitions.",
+        "operationId": "read_setup_grades_api_v1_hr_setup_grades_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GradeSetup"
+                  },
+                  "type": "array",
+                  "title": "Response Read Setup Grades Api V1 Hr Setup Grades Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/grades/{grade_id}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Create or update a grade",
+        "description": "Create or update a grade.",
+        "operationId": "update_setup_grade_api_v1_hr_setup_grades__grade_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "grade_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Grade Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GradeSetup"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/policies": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "List approval policies",
+        "description": "List approval policies.",
+        "operationId": "read_setup_policies_api_v1_hr_setup_policies_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PolicyPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Setup Policies Api V1 Hr Setup Policies Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/policies/{key}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Configure approval policy for future submissions",
+        "description": "Configure approval policy for future submissions.",
+        "operationId": "update_setup_policy_api_v1_hr_setup_policies__key__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PolicyInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PolicyPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/roles": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Review modular role permissions",
+        "description": "Review modular role permissions.",
+        "operationId": "read_role_configuration_api_v1_hr_setup_roles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RoleConfiguration"
+                  },
+                  "type": "array",
+                  "title": "Response Read Role Configuration Api V1 Hr Setup Roles Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/roles/{role_id}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Edit a role permission bundle",
+        "description": "Edit a role permission bundle.",
+        "operationId": "update_role_configuration_api_v1_hr_setup_roles__role_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Role Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RolePermissionsInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleConfiguration"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/dashboard": {
+      "get": {
+        "tags": [
+          "hr-dashboard"
+        ],
+        "summary": "Read the live HR dashboard",
+        "description": "Read personal requests and recorded vacation balance, published department roster and actionable approvals. Missing balances remain null.",
+        "operationId": "read_hr_dashboard_api_v1_hr_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HrDashboardPublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Account verification required"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -7247,6 +8459,17 @@
       },
       "AbsenteeReportPublic": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -7402,6 +8625,42 @@
         },
         "type": "object",
         "title": "AbsenteeReportSubmit"
+      },
+      "AccountSecurityPublic": {
+        "properties": {
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified"
+          },
+          "google_configured": {
+            "type": "boolean",
+            "title": "Google Configured"
+          },
+          "google_linked": {
+            "type": "boolean",
+            "title": "Google Linked"
+          },
+          "totp_enabled": {
+            "type": "boolean",
+            "title": "Totp Enabled"
+          },
+          "sessions": {
+            "items": {
+              "$ref": "#/components/schemas/SecuritySessionPublic"
+            },
+            "type": "array",
+            "title": "Sessions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email_verified",
+          "google_configured",
+          "google_linked",
+          "totp_enabled",
+          "sessions"
+        ],
+        "title": "AccountSecurityPublic"
       },
       "AddressPublic": {
         "properties": {
@@ -7626,6 +8885,40 @@
         "type": "object",
         "title": "ApprovalAuthorityUpdate"
       },
+      "BalanceInput": {
+        "properties": {
+          "leave_type": {
+            "$ref": "#/components/schemas/LeaveType"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 9999.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
+              }
+            ],
+            "title": "Balance"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "leave_type",
+          "balance",
+          "reason"
+        ],
+        "title": "BalanceInput"
+      },
       "Body_login_access_token_api_v1_login_access_token_post": {
         "properties": {
           "grant_type": {
@@ -7684,6 +8977,297 @@
           "password"
         ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
+      },
+      "CalendarEventCreate": {
+        "properties": {
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CalendarEventKind",
+            "default": "MEETING"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "all_day": {
+            "type": "boolean",
+            "title": "All Day",
+            "default": false
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "starts_at",
+          "ends_at"
+        ],
+        "title": "CalendarEventCreate"
+      },
+      "CalendarEventKind": {
+        "type": "string",
+        "enum": [
+          "MEETING",
+          "TRAINING",
+          "INSPECTION",
+          "VISIT",
+          "MAINTENANCE",
+          "OBSERVANCE",
+          "DEADLINE",
+          "OTHER"
+        ],
+        "title": "CalendarEventKind",
+        "description": "What a department puts on its calendar besides the duty roster."
+      },
+      "CalendarEventPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CalendarEventKind"
+          },
+          "starts_at_local": {
+            "type": "string",
+            "title": "Starts At Local"
+          },
+          "ends_at_local": {
+            "type": "string",
+            "title": "Ends At Local"
+          },
+          "all_day": {
+            "type": "boolean",
+            "title": "All Day"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "is_cancelled": {
+            "type": "boolean",
+            "title": "Is Cancelled"
+          },
+          "created_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By User Id"
+          },
+          "created_by_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created By Name"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "title",
+          "kind",
+          "starts_at_local",
+          "ends_at_local",
+          "all_day",
+          "is_cancelled",
+          "created_by_user_id",
+          "created_at"
+        ],
+        "title": "CalendarEventPublic",
+        "description": "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset \u2014 the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
+      },
+      "CalendarEventUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CalendarEventKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At"
+          },
+          "all_day": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "All Day"
+          },
+          "location": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Location"
+          },
+          "cancelled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled"
+          }
+        },
+        "type": "object",
+        "title": "CalendarEventUpdate"
+      },
+      "CalendarEventsPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CalendarEventPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "CalendarEventsPublic"
       },
       "CapAlertAction": {
         "properties": {
@@ -10041,6 +11625,96 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "DashboardApproval": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "title": "DashboardApproval"
+      },
+      "DashboardPerson": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "shift": {
+            "type": "string",
+            "title": "Shift"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "department",
+          "shift"
+        ],
+        "title": "DashboardPerson"
+      },
+      "DashboardRequest": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "status",
+          "updated_at"
+        ],
+        "title": "DashboardRequest"
+      },
       "DepartmentCreate": {
         "properties": {
           "id": {
@@ -10069,6 +11743,10 @@
             "format": "uuid",
             "title": "User Id"
           },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
           "first_name": {
             "type": "string",
             "title": "First Name"
@@ -10077,8 +11755,30 @@
             "type": "string",
             "title": "Last Name"
           },
-          "employee_number": {
+          "full_name": {
             "type": "string",
+            "title": "Full Name"
+          },
+          "roster_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roster Name"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Employee Number"
           },
           "position": {
@@ -10092,6 +11792,16 @@
             ],
             "title": "Position"
           },
+          "grade": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GradePublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "employment_status": {
             "$ref": "#/components/schemas/EmploymentStatus"
           }
@@ -10099,9 +11809,10 @@
         "type": "object",
         "required": [
           "user_id",
+          "username",
           "first_name",
           "last_name",
-          "employee_number",
+          "full_name",
           "employment_status"
         ],
         "title": "DepartmentMemberPublic"
@@ -10179,6 +11890,42 @@
           "count"
         ],
         "title": "DepartmentsPublic"
+      },
+      "EmailConfirm": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 32,
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "EmailConfirm"
+      },
+      "EmailRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "EmailRequest"
       },
       "EmergencyContactPublic": {
         "properties": {
@@ -10361,6 +12108,32 @@
       },
       "EmploymentPublic": {
         "properties": {
+          "grade": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GradePublic"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "supervisor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Name"
+          },
+          "details_complete": {
+            "type": "boolean",
+            "title": "Details Complete",
+            "default": false
+          },
           "employee_number": {
             "anyOf": [
               {
@@ -10465,7 +12238,14 @@
             "title": "User Id"
           },
           "employee_number": {
-            "type": "string",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Employee Number"
           },
           "department_id": {
@@ -10484,7 +12264,14 @@
             "title": "Position"
           },
           "employment_type": {
-            "$ref": "#/components/schemas/EmploymentType"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "start_date": {
             "anyOf": [
@@ -10529,9 +12316,7 @@
         "required": [
           "id",
           "user_id",
-          "employee_number",
           "department_id",
-          "employment_type",
           "status"
         ],
         "title": "EmploymentRecordPublic"
@@ -10663,6 +12448,251 @@
         ],
         "title": "Gender"
       },
+      "GoogleChallengePublic": {
+        "properties": {
+          "challenge": {
+            "type": "string",
+            "title": "Challenge"
+          },
+          "requires_totp": {
+            "type": "boolean",
+            "title": "Requires Totp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "challenge",
+          "requires_totp"
+        ],
+        "title": "GoogleChallengePublic"
+      },
+      "GoogleComplete": {
+        "properties": {
+          "browser_binding": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Browser Binding"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 4096,
+            "minLength": 1,
+            "title": "Code"
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 32,
+            "title": "State"
+          }
+        },
+        "type": "object",
+        "required": [
+          "browser_binding",
+          "code",
+          "state"
+        ],
+        "title": "GoogleComplete"
+      },
+      "GoogleFinish": {
+        "properties": {
+          "challenge": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 32,
+            "title": "Challenge"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 6
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "challenge"
+        ],
+        "title": "GoogleFinish"
+      },
+      "GoogleStart": {
+        "properties": {
+          "browser_binding": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$",
+            "title": "Browser Binding"
+          }
+        },
+        "type": "object",
+        "required": [
+          "browser_binding"
+        ],
+        "title": "GoogleStart"
+      },
+      "GoogleStartPublic": {
+        "properties": {
+          "authorization_url": {
+            "type": "string",
+            "title": "Authorization Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "authorization_url"
+        ],
+        "title": "GoogleStartPublic"
+      },
+      "GradeInput": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Department Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[A-Z0-9_]+$",
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "rank": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "establishment_band": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Establishment Band"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "code",
+          "label",
+          "rank"
+        ],
+        "title": "GradeInput"
+      },
+      "GradePublic": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "rank": {
+            "type": "integer",
+            "title": "Rank"
+          },
+          "establishment_band": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Establishment Band"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "label",
+          "rank"
+        ],
+        "title": "GradePublic"
+      },
+      "GradeSetup": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Department Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 50,
+            "pattern": "^[A-Z0-9_]+$",
+            "title": "Code"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "rank": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Rank"
+          },
+          "establishment_band": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Establishment Band"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active",
+            "default": true
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "code",
+          "label",
+          "rank",
+          "id"
+        ],
+        "title": "GradeSetup"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -10675,6 +12705,101 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HrDashboardPublic": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "can_approve": {
+            "type": "boolean",
+            "title": "Can Approve"
+          },
+          "vacation_balance": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vacation Balance"
+          },
+          "next_shift": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Shift"
+          },
+          "open_requests": {
+            "type": "integer",
+            "title": "Open Requests"
+          },
+          "active_staff": {
+            "type": "integer",
+            "title": "Active Staff"
+          },
+          "departments": {
+            "type": "integer",
+            "title": "Departments"
+          },
+          "shift_types": {
+            "type": "integer",
+            "title": "Shift Types"
+          },
+          "requests": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardRequest"
+            },
+            "type": "array",
+            "title": "Requests"
+          },
+          "on_duty": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardPerson"
+            },
+            "type": "array",
+            "title": "On Duty"
+          },
+          "away": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardPerson"
+            },
+            "type": "array",
+            "title": "Away"
+          },
+          "approvals": {
+            "items": {
+              "$ref": "#/components/schemas/DashboardApproval"
+            },
+            "type": "array",
+            "title": "Approvals"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "scope",
+          "can_approve",
+          "open_requests",
+          "active_staff",
+          "departments",
+          "shift_types"
+        ],
+        "title": "HrDashboardPublic"
       },
       "ImportStatus": {
         "type": "string",
@@ -10944,6 +13069,17 @@
       },
       "LeaveRequestPublic": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -11191,7 +13327,7 @@
           },
           "new_password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "New Password"
           }
@@ -11504,6 +13640,17 @@
       },
       "ParkingPermitPublic": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -11804,6 +13951,45 @@
           "EXCUSED"
         ],
         "title": "PersonnelStatus"
+      },
+      "PolicyInput": {
+        "properties": {
+          "allow_self_approval": {
+            "type": "boolean",
+            "title": "Allow Self Approval",
+            "default": false
+          },
+          "require_distinct_approvers": {
+            "type": "boolean",
+            "title": "Require Distinct Approvers",
+            "default": true
+          }
+        },
+        "type": "object",
+        "title": "PolicyInput"
+      },
+      "PolicyPublic": {
+        "properties": {
+          "allow_self_approval": {
+            "type": "boolean",
+            "title": "Allow Self Approval",
+            "default": false
+          },
+          "require_distinct_approvers": {
+            "type": "boolean",
+            "title": "Require Distinct Approvers",
+            "default": true
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key"
+        ],
+        "title": "PolicyPublic"
       },
       "ProfAppointmentType": {
         "type": "string",
@@ -12198,6 +14384,33 @@
         ],
         "title": "RoleAssignmentScope"
       },
+      "RoleConfiguration": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permission Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "permission_keys"
+        ],
+        "title": "RoleConfiguration"
+      },
       "RoleCreate": {
         "properties": {
           "name": {
@@ -12215,6 +14428,23 @@
           "name"
         ],
         "title": "RoleCreate"
+      },
+      "RolePermissionsInput": {
+        "properties": {
+          "permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Permission Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "permission_keys"
+        ],
+        "title": "RolePermissionsInput"
       },
       "RoleUpdate": {
         "properties": {
@@ -12348,6 +14578,110 @@
           "shift_code"
         ],
         "title": "RosterAssignmentPublic"
+      },
+      "RosterCalendarEntry": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "roster_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Roster Name"
+          },
+          "assignment_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Assignment Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "category": {
+            "$ref": "#/components/schemas/ShiftCategory"
+          },
+          "starts_at_local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Starts At Local"
+          },
+          "ends_at_local": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ends At Local"
+          },
+          "all_day": {
+            "type": "boolean",
+            "title": "All Day"
+          },
+          "is_draft": {
+            "type": "boolean",
+            "title": "Is Draft"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "display_name",
+          "assignment_date",
+          "shift_code",
+          "label",
+          "category",
+          "all_day",
+          "is_draft"
+        ],
+        "title": "RosterCalendarEntry",
+        "description": "One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime \u2014 a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times."
+      },
+      "RosterCalendarPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/RosterCalendarEntry"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "RosterCalendarPublic"
       },
       "RosterCsvImportResponse": {
         "properties": {
@@ -12881,6 +15215,45 @@
         ],
         "title": "RosterRevisionsPublic"
       },
+      "SecuritySessionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "app_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "App Name"
+          },
+          "client_type": {
+            "type": "string",
+            "title": "Client Type"
+          },
+          "last_used_at": {
+            "type": "string",
+            "title": "Last Used At"
+          },
+          "expires_at": {
+            "type": "string",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "client_type",
+          "last_used_at",
+          "expires_at"
+        ],
+        "title": "SecuritySessionPublic"
+      },
       "SessionAccessTokenResponse": {
         "properties": {
           "access_token": {
@@ -12926,7 +15299,7 @@
           },
           "password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "Password"
           },
@@ -13562,6 +15935,17 @@
       },
       "ShiftSwapRequestPublic": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -13738,6 +16122,230 @@
         },
         "type": "object",
         "title": "ShiftSwapSubmit"
+      },
+      "StaffCard": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "department": {
+            "type": "string",
+            "title": "Department"
+          },
+          "grade": {
+            "type": "string",
+            "title": "Grade"
+          },
+          "photo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "number",
+          "name",
+          "department",
+          "grade",
+          "status"
+        ],
+        "title": "StaffCard"
+      },
+      "StaffInput": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "grade_id": {
+            "type": "string",
+            "title": "Grade Id"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 50,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "mailbox_ready": {
+            "type": "boolean",
+            "title": "Mailbox Ready",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "grade_id"
+        ],
+        "title": "StaffInput"
+      },
+      "StaffSetup": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "number": {
+            "type": "string",
+            "title": "Number"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "grade_id": {
+            "type": "string",
+            "title": "Grade Id"
+          },
+          "mailbox_ready": {
+            "type": "boolean",
+            "title": "Mailbox Ready"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified"
+          },
+          "employment_ready": {
+            "type": "boolean",
+            "title": "Employment Ready"
+          },
+          "employee_number": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Number"
+          },
+          "employment_type": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EmploymentType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          },
+          "supervisor_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supervisor Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "email",
+          "name",
+          "number",
+          "department_id",
+          "grade_id",
+          "mailbox_ready",
+          "email_verified",
+          "employment_ready",
+          "status"
+        ],
+        "title": "StaffSetup"
       },
       "StatusReportCreate": {
         "properties": {
@@ -14136,6 +16744,17 @@
       },
       "StatusReportPublic": {
         "properties": {
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -14937,7 +17556,7 @@
         "properties": {
           "password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "Password"
           }
@@ -14987,7 +17606,7 @@
           },
           "new_password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "New Password"
           }
@@ -15056,7 +17675,7 @@
           },
           "password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "Password"
           }
@@ -15293,7 +17912,7 @@
           },
           "password": {
             "type": "string",
-            "maxLength": 40,
+            "maxLength": 128,
             "minLength": 8,
             "title": "Password"
           },

@@ -23,6 +23,7 @@ from .models import (
     Department,
     EmploymentRecord,
     EmploymentStatus,
+    Grade,
     LeaveBalance,
     LeaveCarryOver,
     RosterPreference,
@@ -164,22 +165,32 @@ async def list_departments(
 
 async def list_department_members(
     *, session: AsyncSession, current_user: User, department_id: str
-) -> list[tuple[EmploymentRecord, User]]:
-    """Active members of a department with their auth user, for roster rows."""
+) -> list[tuple[EmploymentRecord, User, Grade | None]]:
+    """Active members of a department with their auth user and grade band.
+
+    Ordered by seniority (grade rank) then surname, so the roster grid and the
+    staff directory group people the way the printed roster does. Members with
+    no grade assigned sort last rather than dropping out — the join is outer.
+    """
     require_permission(current_user=current_user, permission_key="roster.view")
     department = await session.get(Department, department_id)
     if not department:
         raise DepartmentNotFoundError()
     result = await session.execute(
-        select(EmploymentRecord, User)
+        select(EmploymentRecord, User, Grade)
         .join(User, col(EmploymentRecord.user_id) == col(User.id))
+        .outerjoin(Grade, col(EmploymentRecord.grade_id) == col(Grade.id))
         .where(
             col(EmploymentRecord.department_id) == department_id,
             col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
         )
-        .order_by(col(User.last_name), col(User.first_name))
+        .order_by(
+            col(Grade.rank).nulls_last(),
+            col(User.last_name),
+            col(User.first_name),
+        )
     )
-    return [(employment, user) for employment, user in result.all()]
+    return [(employment, user, grade) for employment, user, grade in result.all()]
 
 
 def _normalize_shift_codes(codes: list[str]) -> list[str]:
@@ -376,7 +387,26 @@ async def _build_profile_response(
 
     avatar_url = user.user_image.object_key if user.user_image else None
 
+    from src.baseline.service import employment_complete
+
+    supervisor = (
+        await session.get(User, employment_record.supervisor_id)
+        if employment_record and employment_record.supervisor_id
+        else None
+    )
+    grade = (
+        await session.get(Grade, employment_record.grade_id)
+        if employment_record and employment_record.grade_id
+        else None
+    )
+    from src.hr.schemas import GradePublic
+
     employment = EmploymentPublic(
+        grade=GradePublic.model_validate(grade, from_attributes=True)
+        if grade
+        else None,
+        supervisor_name=supervisor.full_name if supervisor else None,
+        details_complete=employment_complete(employment_record),
         employee_number=(
             employment_record.employee_number if employment_record else None
         ),

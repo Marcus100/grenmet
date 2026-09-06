@@ -4,6 +4,7 @@ from datetime import date
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 from .models import SwapType
@@ -36,7 +37,7 @@ class ShiftSwapAction(BaseModel):
     comments: str | None = None
 
 
-class ShiftSwapRequestPublic(BaseModel):
+class ShiftSwapRequestPublic(SubmittedFormPublic):
     id: uuid.UUID
     requesting_user_id: uuid.UUID
     counterpart_user_id: uuid.UUID

@@ -1,6 +1,7 @@
-from typing import Any
+from datetime import date
+from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Query, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
@@ -13,6 +14,8 @@ from .schemas import (
     PublicHolidaysPublic,
     RosterAssignmentBulkCreate,
     RosterAssignmentPublic,
+    RosterCalendarEntry,
+    RosterCalendarPublic,
     RosterCsvImportResponse,
     RosterCsvValidationRequest,
     RosterCsvValidationResponse,
@@ -219,6 +222,62 @@ async def get_period(
             RosterAssignmentPublic.model_validate(assignment, from_attributes=True)
             for assignment in assignments
         ],
+    )
+
+
+@router.get(
+    "/assignments",
+    response_model=RosterCalendarPublic,
+    summary="List roster assignments for a date range",
+    description=(
+        "Return rostered days between start and end, expanded to concrete local "
+        "times, for the calendar. scope=me (the default) returns the caller's own "
+        "assignments and needs no roster permission; scope=department returns the "
+        "whole department's and requires roster.view. Draft periods are included "
+        "only for callers with roster.manage. The range is capped at 92 days."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Assignments returned"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid date range"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_404_NOT_FOUND: {"description": "Department not found"},
+    },
+)
+async def list_assignments(
+    session: SessionDep,
+    current_user: CurrentUser,
+    start: date,
+    end: date,
+    department_id: str | None = None,
+    scope: Annotated[Literal["me", "department"], Query()] = "me",
+) -> Any:
+    rows = await service.read_roster_calendar(
+        session=session,
+        current_user=current_user,
+        start=start,
+        end=end,
+        department_id=department_id,
+        department_scope=scope == "department",
+    )
+    return RosterCalendarPublic(
+        data=[
+            RosterCalendarEntry(
+                user_id=user.id,
+                display_name=user.full_name,
+                roster_name=employment.roster_name,
+                assignment_date=assignment.assignment_date,
+                shift_code=assignment.shift_code,
+                label=shift.label,
+                category=shift.category,
+                starts_at_local=starts_at,
+                ends_at_local=ends_at,
+                all_day=starts_at is None,
+                is_draft=is_draft,
+            )
+            for assignment, shift, user, employment, is_draft in rows
+            for starts_at, ends_at in [service.calendar_times(assignment, shift)]
+        ],
+        count=len(rows),
     )
 
 

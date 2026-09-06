@@ -131,6 +131,7 @@ class CapAlert(SQLModel, table=True):
     lifecycle_state: CapLifecycleState = Field(
         default=CapLifecycleState.DRAFT, index=True
     )
+    allow_self_approval: bool = True
     created_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
     updated_by_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
     submitted_at: datetime | None = Field(default=None)

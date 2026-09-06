@@ -16,6 +16,12 @@ class AuthConfig(BaseSettings):
     )
 
     API_V1_STR: str = "/api/v1"
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = ""
+    AUTH_FRONTEND_URL: str = "http://localhost:3000"
+    ALLOW_PUBLIC_SIGNUP: bool = False
+
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the
     # primary web path is the cookie-session (15-min access + 30-day rotating

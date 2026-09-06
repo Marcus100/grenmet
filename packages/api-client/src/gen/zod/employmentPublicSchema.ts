@@ -7,8 +7,12 @@ import * as z from "zod";
 import { departmentPublicSchema } from "./departmentPublicSchema.js";
 import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
+import { gradePublicSchema } from "./gradePublicSchema.js";
 
 export const employmentPublicSchema = z.object({
+  grade: z.optional(z.union([z.lazy(() => gradePublicSchema), z.null()])),
+  supervisor_name: z.optional(z.union([z.string(), z.null()])),
+  details_complete: z.optional(z.boolean().default(false)),
   employee_number: z.optional(z.union([z.string(), z.null()])),
   department: z.optional(
     z.union([z.lazy(() => departmentPublicSchema), z.null()])

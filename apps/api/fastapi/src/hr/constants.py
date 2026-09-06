@@ -41,6 +41,13 @@ ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED = "Roster period is already published"
 ERROR_ROSTER_PERIOD_NOT_PUBLISHED = "Roster period must be published before closing"
 ERROR_ROSTER_PERIOD_ALREADY_CLOSED = "Roster period is already closed"
 
+# --- Roster calendar feed ---
+ERROR_CALENDAR_RANGE_INVALID = "end must be on or after start"
+ERROR_CALENDAR_RANGE_TOO_LONG = "Date range must not exceed {max_days} days"
+ERROR_CALENDAR_NO_DEPARTMENT = (
+    "No department to read a roster for: this account has no employment record"
+)
+
 # --- Workflow (hr/workflow/service.py) ---
 ERROR_WORKFLOW_TEMPLATE_NOT_FOUND = "Workflow template not found"
 ERROR_WORKFLOW_INSTANCE_NOT_FOUND = "Workflow instance not found"
@@ -85,4 +92,15 @@ ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED = (
 )
 ERROR_ABSENTEE_REASON_REQUIRES_NOTES = (
     "A written reason is required for uncertified sick or illness on the job"
+)
+
+# --- Department calendar (hr/calendar/service.py) ---
+ERROR_CALENDAR_EVENT_NOT_FOUND = "Calendar event not found"
+ERROR_CALENDAR_EVENT_END_BEFORE_START = "ends_at must be on or after starts_at"
+ERROR_CALENDAR_EVENT_NOT_AUTHOR = (
+    "Only the author of a calendar entry can change it; "
+    "editing another person's entry needs calendar.manage"
+)
+ERROR_CALENDAR_EVENT_NO_DEPARTMENT = (
+    "No department to add a calendar entry to: this account has no employment record"
 )

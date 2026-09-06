@@ -4,6 +4,7 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.submission import submission_list, submission_public
 from src.pagination import PaginationDep
 
 from . import service
@@ -31,9 +32,10 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
 async def create_absentee_report(
     *, session: SessionDep, current_user: CurrentUser, payload: AbsenteeReportCreate
 ) -> Any:
-    return await service.create_absentee_report(
+    result = await service.create_absentee_report(
         session=session, current_user=current_user, payload=payload
     )
+    return await submission_public(session, result, AbsenteeReportPublic)
 
 
 @router.post(
@@ -57,12 +59,13 @@ async def submit_absentee_report(
     absentee_report_id: uuid.UUID,
     payload: AbsenteeReportSubmit,
 ) -> Any:
-    return await service.submit_absentee_report(
+    result = await service.submit_absentee_report(
         session=session,
         current_user=current_user,
         absentee_report_id=absentee_report_id,
         payload=payload,
     )
+    return await submission_public(session, result, AbsenteeReportPublic)
 
 
 @router.patch(
@@ -86,12 +89,13 @@ async def update_absentee_report(
     absentee_report_id: uuid.UUID,
     payload: AbsenteeReportCreate,
 ) -> Any:
-    return await service.update_absentee_report(
+    result = await service.update_absentee_report(
         session=session,
         current_user=current_user,
         absentee_report_id=absentee_report_id,
         payload=payload,
     )
+    return await submission_public(session, result, AbsenteeReportPublic)
 
 
 @router.delete(
@@ -145,10 +149,7 @@ async def read_absentee_reports(
         limit=pagination.limit,
     )
     return AbsenteeReportListPublic(
-        data=[
-            AbsenteeReportPublic.model_validate(item, from_attributes=True)
-            for item in rows
-        ],
+        data=await submission_list(session, rows, AbsenteeReportPublic),
         count=total,
         page=pagination.page,
         size=pagination.size,

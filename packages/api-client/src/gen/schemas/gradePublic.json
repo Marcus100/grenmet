@@ -1,0 +1,15 @@
+{
+  "properties": {
+    "code": { "type": "string", "title": "Code" },
+    "label": { "type": "string", "title": "Label" },
+    "rank": { "type": "integer", "title": "Rank" },
+    "establishment_band": {
+      "anyOf": [{ "type": "string" }, { "type": "null" }],
+      "title": "Establishment Band"
+    }
+  },
+  "type": "object",
+  "required": ["code", "label", "rank"],
+  "title": "GradePublic",
+  "x-readme-ref-name": "GradePublic"
+}

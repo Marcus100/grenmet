@@ -33,6 +33,27 @@ async def create_leave_request(
     require_permission(
         current_user=current_user, permission_key="leave.request.create.self"
     )
+    from src.baseline.models import StaffCredential
+    from src.baseline.service import require_ready
+
+    await require_ready(session, current_user.id, payload.department_id)
+    if await session.get(StaffCredential, current_user.id):
+        opening = (
+            (
+                await session.execute(
+                    select(LeaveBalanceEvent).where(
+                        LeaveBalanceEvent.user_id == current_user.id,
+                        LeaveBalanceEvent.leave_type == payload.leave_type.value,
+                    )
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if opening is None:
+            raise HRValidationError(
+                "An administrator must verify the opening balance for this leave type first"
+            )
     leave_request = LeaveRequest(
         user_id=current_user.id,
         department_id=payload.department_id,
@@ -232,12 +253,38 @@ async def action_leave_request(
         permission_key="leave.request.action",
     ):
         raise HRPermissionDeniedError(ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED)
+    if leave_request.workflow_instance_id:
+        from src.hr.workflow.models import WorkflowAction
+        from src.hr.workflow.schemas import WorkflowActionRequest
+        from src.hr.workflow.service import apply_workflow_action
+
+        actions = {
+            "APPROVED": WorkflowAction.APPROVE,
+            "REJECTED": WorkflowAction.REJECT,
+            "CANCELLED": WorkflowAction.CANCEL,
+        }
+        action = actions.get(payload.status.value)
+        if action is None:
+            raise HRValidationError("Unsupported workflow action")
+        await apply_workflow_action(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=leave_request.workflow_instance_id,
+            action_in=WorkflowActionRequest(action=action),
+        )
+        await session.refresh(leave_request)
+        return leave_request
+    if leave_request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
+        raise HRValidationError("Request already resolved")
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
         leave_request.head_of_dept_comments = payload.head_of_dept_comments
     leave_request.updated_at = utc_now()
     session.add(leave_request)
     if payload.status == RequestStatus.APPROVED:
+        await session.execute(
+            select(User).where(User.id == leave_request.user_id).with_for_update()
+        )
         leave_type_value = leave_request.leave_type.value
         # Lock the latest balance row so concurrent approvals of the same
         # user+leave-type serialize and cannot both derive from a stale balance.

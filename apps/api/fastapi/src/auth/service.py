@@ -54,6 +54,8 @@ async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User
     db_obj = User.model_validate(
         user_create, update={"hashed_password": hashed_password}
     )
+    if auth_settings.ENVIRONMENT != "local":
+        db_obj.email_verification_required = True
     session.add(db_obj)
     await session.commit()
     await session.refresh(db_obj)
@@ -73,7 +75,20 @@ async def update_user(
         password = user_data["password"]
         hashed_password = await get_password_hash_async(password)
         extra_data["hashed_password"] = hashed_password
+    if user_in.email and user_in.email != db_user.email:
+        db_user.email_verified_at = None
+        db_user.email_verification_required = True
     db_user.sqlmodel_update(user_data, update=extra_data)
+    if (
+        user_data.get("is_active") is False
+        or "password" in user_data
+        or "email" in user_data
+    ):
+        from sqlmodel import delete
+
+        await session.execute(
+            delete(AuthSession).where(AuthSession.user_id == db_user.id)
+        )
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)
@@ -88,6 +103,14 @@ async def update_user_me(
         if existing and existing.id != current_user.id:
             raise AppException("User with this email already exists", 409)
     user_data = user_in.model_dump(exclude_unset=True)
+    if user_in.email and user_in.email != current_user.email:
+        current_user.email_verified_at = None
+        current_user.email_verification_required = True
+        from sqlmodel import delete
+
+        await session.execute(
+            delete(AuthSession).where(AuthSession.user_id == current_user.id)
+        )
     current_user.sqlmodel_update(user_data)
     session.add(current_user)
     await session.commit()
@@ -98,6 +121,9 @@ async def update_user_me(
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
     user.hashed_password = await get_password_hash_async(new_password)
     session.add(user)
+    from sqlmodel import delete
+
+    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
     await session.commit()
     logger.info("Password changed", extra={"user_id": str(user.id)})
 
@@ -165,6 +191,10 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     """Generate and store a new (inactive) TOTP secret; return it for provisioning."""
     from src.auth import totp
 
+    if user.totp_enabled:
+        from src.exceptions import AppException
+
+        raise AppException("Two-factor authentication is already enabled", 409)
     secret = totp.generate_secret()
     user.totp_secret = secret
     user.totp_enabled = False
