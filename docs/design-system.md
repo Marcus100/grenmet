@@ -1,6 +1,8 @@
 # Barrels Design System
 
-GrenMet v1 is bridged between the `GrenMet v1` Figma file and this monorepo in small, verified passes. Figma owns design intent; `@barrelsgd/ui` owns repo enforcement. Token changes must be reconciled in both places before they are considered part of the v1 contract.
+`@barrelsgd/ui` owns the token contract and repo enforcement. `packages/ui/src/styles/globals.css` is the single source of `--gm-*`; every app receives a generated copy of it.
+
+> **Figma is not linked to this repository** (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Design intent arrives as a Claude Design canvas, a screenshot, or a brief — see [Design Workflow](./design-workflow.md). Sections below that describe the old Figma file map and the Code Connect pilots are retained as **history**, not current process.
 
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
@@ -13,14 +15,15 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 - V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
 - `gms` is the public web reference implementation.
 - `gaa-admin` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
-- Code Connect files may live locally in the repo, but publishing is deferred until the Figma account has the required Developer, Organization, or Enterprise capability.
 - For v1, the user is the sole approver for public `--gm-*` token additions or value changes.
 
 ---
 
-## Current Figma File Map
+## Figma File Map (historical)
 
-Canonical design source: [GrenMet v1](https://www.figma.com/design/kfVRAcgxzhs4Sj6aCRyOz4/GrenMet-v1?m=auto&t=86C75Bo0qLxDz03f-6).
+> Retained as a record of the v1 Figma bridge, which is no longer linked (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Nothing here is a current instruction.
+
+Former design source: [GrenMet v1](https://www.figma.com/design/kfVRAcgxzhs4Sj6aCRyOz4/GrenMet-v1?m=auto&t=86C75Bo0qLxDz03f-6).
 
 As of 2026-06-13, the file has ten top-level pages. Query pages by node ID — the MCP page listing for this file is stale and returns only a subset.
 
@@ -58,7 +61,6 @@ The `13 Components` page is the repo handoff map for v1:
 | `98 Deprecated / Legacy Website Components` | Deprecated legacy website components. | Do not map new code to deprecated Figma components. |
 | `99 Archive / Pre-restructure Backup - 2026-05-31` | Pre-restructure checkpoint. | Reference only for recovery or comparison. |
 
-This section is the v1 handoff document for now. Create a separate `docs/figma-design-handoff.md` only when individual Figma components need implementation owners, acceptance criteria, node-by-node mapping, or release tracking that would make this guide too noisy.
 
 ---
 
@@ -151,7 +153,7 @@ Keep the design system split clear while it grows:
 - **Public Weather/Product UI** is the public product layer: forecast cards, warning cards, current conditions, navigation, weather news, mobile menus, alert summaries, and product badges.
 - **Document Templates** are fixed-output A4/PDF/bulletin layouts, official forecast templates, HR forms, and official reports. This lane may use Noto Sans and fixed dimensions that normal web components should not inherit.
 
-Visual similarity is not enough to merge the lanes. A Figma component should map to the code component that owns its real API.
+Visual similarity is not enough to merge the lanes. A design component should map to the code component that owns its real API.
 
 `GrenMet` now survives only as the name of the Figma artifacts; the repository side is brand-neutral after transition boundaries 3-5. Renaming those Figma files retires the term entirely.
 
@@ -159,10 +161,9 @@ Visual similarity is not enough to merge the lanes. A Figma component should map
 
 The v1 bridge is intentionally CSS-first:
 
-1. Figma variables define the design-system foundation contract and their WEB code syntax.
-2. `packages/ui/src/styles/globals.css` defines the repo-enforced `--gm-*` custom properties and shadcn-compatible semantic tokens.
-3. Tailwind v4 `@theme` aliases expose design-system color, spacing, and radius utilities.
-4. App stylesheets receive the generated `BARRELS DESIGN SYSTEM V1` block from `@barrelsgd/ui`.
+1. `packages/ui/src/styles/globals.css` defines the repo-enforced `--gm-*` custom properties and shadcn-compatible semantic tokens.
+2. Tailwind v4 `@theme` aliases expose design-system color, spacing, and radius utilities.
+3. App stylesheets receive the generated `BARRELS DESIGN SYSTEM V1` block from `@barrelsgd/ui`.
 
 Run the sync command after editing the canonical block:
 
@@ -182,9 +183,9 @@ The check fails if an app has a stale generated block or declares `--gm-*` token
 
 ## Governance
 
-Public `--gm-*` tokens are a contract across Figma, `@barrelsgd/ui`, and the web apps. During v1, new public tokens and token value changes require user approval before they become part of the contract.
+Public `--gm-*` tokens are a contract across `@barrelsgd/ui` and the web apps. During v1, new public tokens and token value changes require user approval before they become part of the contract.
 
-Approved token changes must land in Figma and `packages/ui/src/styles/globals.css` together. After editing the canonical block, run `pnpm design-system:sync` so generated app blocks stay aligned, then verify with `pnpm design-system:check`.
+Approved token changes land in `packages/ui/src/styles/globals.css`. After editing the canonical block, run `pnpm design-system:sync` so generated app blocks stay aligned, then verify with `pnpm design-system:check`.
 
 App-local aliases are acceptable during migration only when they resolve back to `--gm-*` or semantic tokens. Do not promote app-specific document, dashboard, or product values into public tokens until they are repeated across apps or approved as a shared pattern.
 
@@ -200,7 +201,7 @@ Apps may keep temporary compatibility aliases, but the aliases should resolve ba
 
 Use `gms` as the first cleanup app. It should become the reference for how a public GMS app uses shared foundations before the same rules are tightened across the other apps.
 
-The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `gms` pilot. Keep this layer intentionally small: add tokens when a value is repeated, shared, or likely to appear in Figma; keep one-off layout measurements local.
+The v1 foundation now includes practical typography, spacing, radius, and shadow tokens for the `gms` pilot. Keep this layer intentionally small: add tokens when a value is repeated or shared across apps; keep one-off layout measurements local.
 
 The v1 type scale as of the current expansion:
 
@@ -250,7 +251,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
 | `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-document` for official templates and warning token pairs for impact/response displays. |
 | `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
-| `auth` | Brand cleanup | None for v1 unless approved in Figma/roadmap notes | Use Inter through `--brand-font-sans`; replace repeated radii and shadows with design-system tokens. |
+| `auth` | Brand cleanup | None for v1 unless approved in roadmap notes | Use Inter through `--brand-font-sans`; replace repeated radii and shadows with design-system tokens. |
 | `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
 | `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to design-system tokens | Map template aliases to design-system tokens before removing high-volume `dark:` classes. |
 | `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with design-system tokens. |
@@ -271,11 +272,11 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The Figma collection `GrenMet Foundations` is the current v1 contract: one Light mode, 81 variables, and WEB code syntax for every public token. The collection matches the repo's `--gm-*` set 1:1 (the `typography/font-family/sans` variable was added 2026-06-13 to close the last gap). The Figma guidance should mirror this repo: Inter for web UI, Noto Sans for official documents, `gms` as the public reference, `gaa-admin` as the dashboard lane, and Code Connect publishing deferred.
+The canonical token set lives in `packages/ui/src/styles/globals.css` — 81 public `--gm-*` tokens covering color, spacing, radius, typography, line-height, and shadow. There is no external collection to reconcile against.
 
-Audit Figma before changing token values in code. Every public Figma variable should have WEB code syntax that matches the repo contract, such as `var(--gm-blue)` or `var(--gm-weather-severity-take-action)`.
+Before changing a token value, run `pnpm design-system:audit` to see where it is already used, and `pnpm design-system:contrast` if the change touches a warning fg/bg pair.
 
-The current audit verified the collection includes the v1 color, spacing, radius, typography, line-height, and shadow code-contract variables with valid `var(--gm-...)` WEB code syntax.
+_Historically this contract was mirrored in a Figma collection named `GrenMet Foundations`; that mirror is retired._
 
 Repo-side audit status as of 2026-06-13 (the `design-system:*` scripts were broken from 2026-05-31 until 2026-06-13 by a `rootDir` path bug after they moved under `scripts/design-system/`; fixed, and `cap` added to sync and audit coverage):
 
@@ -337,33 +338,16 @@ Use this checklist for public warnings, official bulletins, and impact-based for
 
 Warning color must always be paired with visible text. A yellow, amber, red, green, or grey marker is supporting information only; the level label, hazard, status, and action language must remain visible without color.
 
-## Button Pilot
+## Code Connect pilots (historical)
 
-The first Core UI pilot connects the shared React `Button` to the Figma component set named `GrenMet / Core / Button` on the `13 Components` page. The set covers the full React API: 6 variants × 7 sizes (`default`, `sm`, `lg`, `touch`, `icon`, `icon-sm`, `icon-lg`) — 42 variants. `size=touch` (min-height 48px) was added 2026-06-13 for touch-target products such as `salesbus`.
+> Retained as a record. The Code Connect mapping (`packages/ui/src/components/ui/button.figma.tsx`) and the `@figma/code-connect` dependency were removed under [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md).
 
-1. Keep the Figma `Variant` and `Size` options aligned with the React `Button` API.
-2. Use the Button node URL in `packages/ui/src/components/ui/button.figma.tsx`.
-3. Keep the local Code Connect file ready in the repo, but do not publish it during v1 until the Figma account is upgraded.
-4. After the account has the required capability, publish from the repo root:
+A single pilot mapped the shared React `Button` to a Figma component set covering the full React API (6 variants × 7 sizes = 42 variants; `size=touch`, min-height 48px, added 2026-06-13 for touch-target products such as `salesbus`). `Input` was documented in Figma with `default` / `disabled` / `invalid` states but never received a mapping.
 
-   ```bash
-   npx figma connect publish --token=PERSONAL_ACCESS_TOKEN
-   ```
+Publishing never happened: the active Education account reached Figma upload and was rejected because Code Connect write access is not exposed for that account tier. That blocker, plus unlinking Figma, is why the pilot was retired rather than finished.
 
-   The `FIGMA_ACCESS_TOKEN` environment variable can replace the `--token` flag.
-5. Inspect a Button instance in Figma Dev Mode and verify the shared React snippet shows `variant` and `size`.
-
-The Button Code Connect artifacts are ready in the repo, but publish is currently deferred. The active Education account reached Figma upload and was rejected because the required Code Connect write access is not exposed for that account.
-
-## Input Pilot
-
-The next Core UI pilot is the shared React `Input` represented in Figma as `GrenMet / Core / Input` on the `13 Components` page.
-
-- Figma states are `default`, `disabled`, and `invalid` — all three are proper states in the component set (`invalid` was promoted from a loose component into the set on 2026-06-13).
-- The editable `Text` property supports placeholder or example value content.
-- These Figma states document the current React surface: disabled remains a native input prop, and invalid remains `aria-invalid`.
-- Input is present in Figma and code, but it does not yet have a local `.figma.tsx` Code Connect mapping. It remains the next mapping after Button. Do not publish Input or any broader component mappings while publish remains blocked.
+The React API those pilots documented is unchanged — `Button` still ships 6 variants × 7 sizes, and `Input` still uses a native `disabled` prop and `aria-invalid`.
 
 ## Deferred
 
-The v1 bridge does not yet include dark-mode token modes, a separate generated token source package, published Code Connect coverage, a broader reusable typography and effect-style system, full component-level cross-app migration, or runtime schema reconciliation for the larger GMS service and warning strategy.
+The v1 bridge does not yet include dark-mode token modes, a separate generated token source package, a broader reusable typography and effect-style system, full component-level cross-app migration, or runtime schema reconciliation for the larger GMS service and warning strategy.
