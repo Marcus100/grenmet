@@ -47,6 +47,7 @@ export function createSession(
   input: {
     email: string;
     password: string;
+    totpCode?: string;
     appName?: string | null;
     clientType?: string;
   }
@@ -55,6 +56,7 @@ export function createSession(
     body: {
       email: input.email,
       password: input.password,
+      totp_code: input.totpCode ?? null,
       client_type: input.clientType ?? "web",
       app_name: input.appName ?? null,
     },
@@ -111,6 +113,7 @@ export function signUp(
     email: string;
     username: string;
     password: string;
+    totpCode?: string;
     firstName: string;
     lastName: string;
     middleName?: string | null;
@@ -121,6 +124,7 @@ export function signUp(
       email: input.email,
       username: input.username,
       password: input.password,
+      totp_code: input.totpCode ?? null,
       first_name: input.firstName,
       last_name: input.lastName,
       middle_name: input.middleName ?? null,

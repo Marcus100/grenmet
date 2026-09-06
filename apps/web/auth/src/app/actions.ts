@@ -51,6 +51,7 @@ export async function signInAction(
     const response = await createSession({
       email,
       password,
+      totpCode: readString(formData, "totp_code"),
       appName,
     });
     await writeSessionCookie(
