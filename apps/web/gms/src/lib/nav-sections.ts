@@ -101,7 +101,7 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Forecasts",
+    label: "Forecasts & Observations",
     featured: "forecast",
     groups: [
       {
@@ -174,73 +174,8 @@ export const NAV_SECTIONS: NavSection[] = [
           },
         ],
       },
-    ],
-  },
-  {
-    label: "Marine",
-    groups: [
       {
-        heading: "Forecasts",
-        links: [
-          {
-            name: "Marine Forecast",
-            href: "/marine/forecast",
-            description: "Wind, sea state and swell for Grenada waters",
-          },
-          {
-            name: "Coastal Waters Forecast",
-            href: "/marine/coastal",
-            description: "Conditions by zone within 12 nautical miles",
-          },
-          {
-            name: "Wave / Swell Forecast",
-            href: "/marine/wave-swell",
-            description: "Significant height, period and direction",
-          },
-          {
-            name: "Nearshore Wave Model",
-            href: "/marine/wave-model",
-            description: "High-resolution modelling and wave energy flux",
-          },
-        ],
-      },
-      {
-        heading: "Conditions",
-        links: [
-          {
-            name: "Sea Conditions",
-            href: "/marine/sea-conditions",
-            description: "Observed sea state around the tri-island state",
-          },
-          {
-            name: "Tide Information",
-            href: "/marine/tides",
-            description: "Predicted high and low water",
-          },
-        ],
-      },
-      {
-        heading: "Safety",
-        links: [
-          {
-            name: "Small Craft Advisories",
-            href: "/marine/small-craft",
-            description: "Advisories in effect for small vessels",
-          },
-          {
-            name: "Marine Safety",
-            href: "/marine/safety",
-            description: "Staying safe on the water",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Observations",
-    groups: [
-      {
-        heading: "Live data",
+        heading: "Observations",
         links: [
           {
             name: "Observations",
@@ -257,11 +192,6 @@ export const NAV_SECTIONS: NavSection[] = [
             href: "/observations/cameras",
             description: "Live views of sky and sea conditions",
           },
-        ],
-      },
-      {
-        heading: "Specialist networks",
-        links: [
           {
             name: "Water Level Sensors",
             href: "/observations/water-levels",
@@ -368,6 +298,51 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Pre-flight Briefings",
             href: "/aviation/briefing",
             description: "The briefing service provided to operators",
+          },
+        ],
+      },
+      {
+        heading: "Marine products",
+        links: [
+          {
+            name: "Marine Forecast",
+            href: "/marine/forecast",
+            description: "Wind, sea state and swell for Grenada waters",
+          },
+          {
+            name: "Coastal Waters Forecast",
+            href: "/marine/coastal",
+            description: "Conditions by zone within 12 nautical miles",
+          },
+          {
+            name: "Wave / Swell Forecast",
+            href: "/marine/wave-swell",
+            description: "Significant height, period and direction",
+          },
+          {
+            name: "Nearshore Wave Model",
+            href: "/marine/wave-model",
+            description: "High-resolution modelling and wave energy flux",
+          },
+          {
+            name: "Sea Conditions",
+            href: "/marine/sea-conditions",
+            description: "Observed sea state around the tri-island state",
+          },
+          {
+            name: "Tide Information",
+            href: "/marine/tides",
+            description: "Predicted high and low water",
+          },
+          {
+            name: "Small Craft Advisories",
+            href: "/marine/small-craft",
+            description: "Advisories in effect for small vessels",
+          },
+          {
+            name: "Marine Safety",
+            href: "/marine/safety",
+            description: "Staying safe on the water",
           },
         ],
       },
@@ -490,6 +465,21 @@ export const NAV_SECTIONS: NavSection[] = [
             description: "Lesson material about Grenada's weather",
           },
           {
+            name: "Atlantic Hurricane Names",
+            href: "/resources/hurricane-names",
+            description: "How storms are named and why names are retired",
+          },
+          {
+            name: "Articles",
+            href: "/resources/articles",
+            description: "Explainers on Grenada's weather and climate",
+          },
+        ],
+      },
+      {
+        heading: "Help & Tools",
+        links: [
+          {
             name: "FAQs",
             href: "/resources/faqs",
             description: "Common questions about our services",
@@ -505,29 +495,24 @@ export const NAV_SECTIONS: NavSection[] = [
             description: "How to read the warnings, forecast and this site",
           },
           {
-            name: "Atlantic Hurricane Names",
-            href: "/resources/hurricane-names",
-            description: "How storms are named and why names are retired",
+            name: "Mobile App",
+            href: "/app-guide",
+            description: "Warnings and forecasts on your phone",
           },
-          {
-            name: "Articles",
-            href: "/resources/articles",
-            description: "Explainers on Grenada's weather and climate",
-          },
-          {
-            name: "Regional Weather",
-            href: "/regional",
-            description: "Neighbouring services and regional centres",
-          },
+        ],
+      },
+      {
+        heading: "Media & Regional",
+        links: [
           {
             name: "For Media",
             href: "/media",
             description: "Broadcast-ready data, graphics and interviews",
           },
           {
-            name: "Mobile App",
-            href: "/app-guide",
-            description: "Warnings and forecasts on your phone",
+            name: "Regional Weather",
+            href: "/regional",
+            description: "Neighbouring services and regional centres",
           },
         ],
       },

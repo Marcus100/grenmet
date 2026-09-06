@@ -22,13 +22,15 @@ export function Header({ alerts }: HeaderProps) {
         className="sticky top-0 z-40 flex h-header items-center gap-8 border-gm-border border-b bg-background pr-5 pl-6 lg:gap-12 lg:px-10"
         ref={headerRef}
       >
-        <Image
-          alt="Grenada Meteorological Service"
-          height={36}
-          priority
-          src="/gmslogos/logo-primary-navy.png"
-          width={150}
-        />
+        <Link aria-label="Grenada Meteorological Service — home" href="/">
+          <Image
+            alt="Grenada Meteorological Service"
+            height={36}
+            priority
+            src="/gmslogos/logo-primary-navy.png"
+            width={150}
+          />
+        </Link>
 
         <DesktopNav alerts={alerts} anchor={headerRef} />
 
