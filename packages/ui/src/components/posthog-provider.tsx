@@ -34,7 +34,7 @@ export function PostHogProvider({
   children,
 }: PostHogProviderProps) {
   useEffect(() => {
-    if (!apiKey) return;
+    if (!apiKey || posthog.__loaded) return;
     posthog.init(apiKey, {
       api_host: apiHost,
       defaults: "2026-01-30",
