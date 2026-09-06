@@ -1,4 +1,5 @@
 import {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
   balanceInputSchema,
   gradeInputSchema,
   offboardStaffApiV1HrSetupStaffUserIdOffboardPost,
@@ -35,3 +36,6 @@ export const recordBalance = (id: string, body: unknown) =>
     id,
     balanceInputSchema.parse(body)
   );
+
+export const approveRegistration = (id: string) =>
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost(id);
