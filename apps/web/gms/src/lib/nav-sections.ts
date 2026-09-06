@@ -65,6 +65,27 @@ export const NAV_SECTIONS: NavSection[] = [
             href: "/warnings/marine",
             description: "Small craft advisories and rough-sea notices",
           },
+          {
+            name: "Tsunami Information",
+            href: "/warnings/tsunami",
+            description: "Threat levels, natural warning signs and what to do",
+          },
+          {
+            name: "Cyclone Archive",
+            href: "/warnings/cyclone/archive",
+            description:
+              "Past tropical cyclones affecting the tri-island state",
+          },
+          {
+            name: "Exercises and Drills",
+            href: "/warnings/exercise",
+            description: "How test warnings are marked during an exercise",
+          },
+          {
+            name: "Get Alerts",
+            href: "/subscribe",
+            description: "Every channel warnings reach you through",
+          },
         ],
       },
       {
@@ -126,6 +147,31 @@ export const NAV_SECTIONS: NavSection[] = [
             href: "/forecasts/conditions",
             description: "The latest observations from Point Salines",
           },
+          {
+            name: "Nowcast",
+            href: "/forecasts/nowcast",
+            description: "Rain and wind over the next six hours",
+          },
+          {
+            name: "Saharan Dust and Haze",
+            href: "/forecasts/dust",
+            description: "Five-day dust outlook and visibility",
+          },
+          {
+            name: "Sun and Moon",
+            href: "/almanac",
+            description: "Sunrise, sunset, twilight and moon phase",
+          },
+          {
+            name: "Model Guidance",
+            href: "/forecasts/models",
+            description: "The numerical guidance behind the forecast",
+          },
+          {
+            name: "Surface Analyses",
+            href: "/forecasts/analyses",
+            description: "The features driving today's weather",
+          },
         ],
       },
     ],
@@ -150,6 +196,11 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Wave / Swell Forecast",
             href: "/marine/wave-swell",
             description: "Significant height, period and direction",
+          },
+          {
+            name: "Nearshore Wave Model",
+            href: "/marine/wave-model",
+            description: "High-resolution modelling and wave energy flux",
           },
         ],
       },
@@ -180,6 +231,51 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Marine Safety",
             href: "/marine/safety",
             description: "Staying safe on the water",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Observations",
+    groups: [
+      {
+        heading: "Live data",
+        links: [
+          {
+            name: "Observations",
+            href: "/observations",
+            description: "Latest readings from across the network",
+          },
+          {
+            name: "Stations",
+            href: "/observations/stations",
+            description: "Every station, what it measures and where it sits",
+          },
+          {
+            name: "Weather Cameras",
+            href: "/observations/cameras",
+            description: "Live views of sky and sea conditions",
+          },
+        ],
+      },
+      {
+        heading: "Specialist networks",
+        links: [
+          {
+            name: "Water Level Sensors",
+            href: "/observations/water-levels",
+            description: "River and coastal water level monitoring",
+          },
+          {
+            name: "Upper Air",
+            href: "/observations/upper-air",
+            description: "Soundings through the depth of the atmosphere",
+          },
+          {
+            name: "School Stations",
+            href: "/observations/school-stations",
+            description: "Student-run stations adding density to the network",
           },
         ],
       },
@@ -237,6 +333,41 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Health",
             href: "/sectors/health",
             description: "Heat, dust and air-quality guidance",
+          },
+          {
+            name: "Event Forecasts",
+            href: "/events",
+            description: "Venue forecasts for Grenada's outdoor calendar",
+          },
+        ],
+      },
+      {
+        heading: "Aviation products",
+        links: [
+          {
+            name: "Aviation Weather",
+            href: "/aviation",
+            description: "Observations, forecasts and briefings for aviation",
+          },
+          {
+            name: "METAR and TAF",
+            href: "/aviation/metar-taf",
+            description: "Current observations and terminal forecasts",
+          },
+          {
+            name: "Flight Winds",
+            href: "/aviation/flight-winds",
+            description: "Wind and temperature at flight levels",
+          },
+          {
+            name: "Significant Weather",
+            href: "/aviation/sigwx",
+            description: "Regional significant weather and hazards",
+          },
+          {
+            name: "Pre-flight Briefings",
+            href: "/aviation/briefing",
+            description: "The briefing service provided to operators",
           },
         ],
       },
@@ -303,6 +434,16 @@ export const NAV_SECTIONS: NavSection[] = [
             href: "/climate/publications",
             description: "Reports, bulletins and climate studies",
           },
+          {
+            name: "Climate Newsletter",
+            href: "/climate/newsletter",
+            description: "Monthly conditions, outlooks and what they mean",
+          },
+          {
+            name: "Product Archive",
+            href: "/climate/archive",
+            description: "Past forecasts, warnings and bulletins",
+          },
         ],
       },
     ],
@@ -357,6 +498,36 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Downloads",
             href: "/resources/downloads",
             description: "Forms, posters and guides to keep",
+          },
+          {
+            name: "Website Help",
+            href: "/help",
+            description: "How to read the warnings, forecast and this site",
+          },
+          {
+            name: "Atlantic Hurricane Names",
+            href: "/resources/hurricane-names",
+            description: "How storms are named and why names are retired",
+          },
+          {
+            name: "Articles",
+            href: "/resources/articles",
+            description: "Explainers on Grenada's weather and climate",
+          },
+          {
+            name: "Regional Weather",
+            href: "/regional",
+            description: "Neighbouring services and regional centres",
+          },
+          {
+            name: "For Media",
+            href: "/media",
+            description: "Broadcast-ready data, graphics and interviews",
+          },
+          {
+            name: "Mobile App",
+            href: "/app-guide",
+            description: "Warnings and forecasts on your phone",
           },
         ],
       },
