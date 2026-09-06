@@ -64,34 +64,25 @@ export function NavUser({ user }: { readonly user: NavUserData }) {
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
           >
-            <div className="flex items-center gap-2 px-2 py-1.5 text-left text-sm">
-              <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage alt={user.name} src={user.avatar || undefined} />
-                <AvatarFallback className="rounded-lg">
-                  {getInitials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-                <span className="truncate text-muted-foreground text-xs">
-                  {user.email}
-                </span>
-              </div>
-            </div>
-            <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem render={<Link href="/profile" />}>
                 <CircleUser />
-                Account
+                Profile
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              render={<Link href="/auth/logout" prefetch={false} />}
-            >
-              <LogOut />
-              Log out
-            </DropdownMenuItem>
+            <form action="/auth/logout" method="post">
+              <DropdownMenuItem
+                nativeButton
+                onClick={(event) =>
+                  event.currentTarget.closest("form")?.requestSubmit()
+                }
+                render={<button type="button" />}
+              >
+                <LogOut />
+                Log out
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
