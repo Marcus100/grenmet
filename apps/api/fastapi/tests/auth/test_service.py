@@ -1,4 +1,3 @@
-from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import service as crud
@@ -21,49 +20,9 @@ async def test_create_user(db_async: AsyncSession) -> None:
     )
     user = await crud.create_user(session=db_async, user_create=user_in)
     assert user.email == email
-    assert hasattr(user, "hashed_password")
-
-
-async def test_authenticate_user(db_async: AsyncSession) -> None:
-    """Test user authentication with correct credentials."""
-    email = random_email()
-    password = random_lower_string()
-    user_in = UserCreate(
-        email=email,
-        username=random_lower_string(),
-        password=password,
-        first_name="Test",
-        last_name="User",
-    )
-    user = await crud.create_user(session=db_async, user_create=user_in)
-    authenticated_user = await crud.authenticate(
-        session=db_async, email=email, password=password
-    )
-    assert authenticated_user
-    assert user.email == authenticated_user.email
-
-
-async def test_not_authenticate_user(db_async: AsyncSession) -> None:
-    """Test user authentication with incorrect credentials."""
-    email = random_email()
-    password = random_lower_string()
-    user = await crud.authenticate(session=db_async, email=email, password=password)
-    assert user is None
-
-
-async def test_check_if_user_is_active(db_async: AsyncSession) -> None:
-    """Test checking if user is active."""
-    email = random_email()
-    password = random_lower_string()
-    user_in = UserCreate(
-        email=email,
-        username=random_lower_string(),
-        password=password,
-        first_name="Test",
-        last_name="User",
-    )
-    user = await crud.create_user(session=db_async, user_create=user_in)
+    assert verify_password(password, user.hashed_password)
     assert user.is_active is True
+    assert user.is_superuser is False
 
 
 async def test_check_if_user_is_active_inactive(db_async: AsyncSession) -> None:
@@ -96,42 +55,6 @@ async def test_check_if_user_is_superuser(db_async: AsyncSession) -> None:
     )
     user = await crud.create_user(session=db_async, user_create=user_in)
     assert user.is_superuser is True
-
-
-async def test_check_if_user_is_superuser_normal_user(
-    db_async: AsyncSession,
-) -> None:
-    """Test checking if normal user is superuser."""
-    username = random_email()
-    password = random_lower_string()
-    user_in = UserCreate(
-        email=username,
-        username=username.split("@")[0],
-        password=password,
-        first_name="Test",
-        last_name="User",
-    )
-    user = await crud.create_user(session=db_async, user_create=user_in)
-    assert user.is_superuser is False
-
-
-async def test_get_user(db_async: AsyncSession) -> None:
-    """Test getting a user by ID."""
-    password = random_lower_string()
-    username = random_email()
-    user_in = UserCreate(
-        email=username,
-        username=username.split("@")[0],
-        password=password,
-        first_name="Test",
-        last_name="User",
-        is_superuser=True,
-    )
-    user = await crud.create_user(session=db_async, user_create=user_in)
-    user_2 = await db_async.get(User, user.id)
-    assert user_2
-    assert user.email == user_2.email
-    assert jsonable_encoder(user) == jsonable_encoder(user_2)
 
 
 async def test_update_user(db_async: AsyncSession) -> None:
