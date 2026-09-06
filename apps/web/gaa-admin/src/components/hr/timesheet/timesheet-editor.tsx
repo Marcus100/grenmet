@@ -5,6 +5,7 @@ import {
   type TimesheetEntryInput,
   useCreateTimesheetApiV1HrTimesheetsPost,
   useReadHrProfileMeApiV1HrProfileMeGet,
+  useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -17,9 +18,11 @@ import { Separator } from "@barrelsgd/ui/components/ui/separator";
 import { useForm } from "@tanstack/react-form";
 import { useQueryClient } from "@tanstack/react-query";
 import { Plus, RotateCcw, Send, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
+import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
   EMPTY_TIMESHEET,
@@ -54,6 +57,16 @@ export function TimesheetEditor() {
   const departmentId = profileQuery.data?.employment?.department?.id;
   const createMutation = useCreateTimesheetApiV1HrTimesheetsPost();
 
+  const submitMutation =
+    useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch();
+  const [savedTimesheetId, setSavedTimesheetId] = useState<string | null>(null);
+  const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
+  function reset() {
+    form.reset();
+    setSavedTimesheetId(null);
+    setSubmission(null);
+  }
+
   // Prefill the (blank) department field with the current user's department.
   useEditorPrefill((ctx) => {
     if (!form.getFieldValue("department")) {
@@ -79,19 +92,29 @@ export function TimesheetEditor() {
       return;
     }
     try {
-      await createMutation.mutateAsync({
-        data: {
-          department_id: departmentId,
-          period_start: periodStart,
-          period_end: periodEnd,
-          entries: rows.map(toEntry),
-        },
+      let timesheetId = savedTimesheetId;
+      if (!timesheetId) {
+        const created = await createMutation.mutateAsync({
+          data: {
+            department_id: departmentId,
+            period_start: periodStart,
+            period_end: periodEnd,
+            entries: rows.map(toEntry),
+          },
+        });
+        timesheetId = created.timesheet.id;
+        setSavedTimesheetId(timesheetId);
+      }
+      if (!timesheetId) throw new Error("The saved timesheet has no ID");
+      const submitted = await submitMutation.mutateAsync({
+        timesheet_id: timesheetId,
+        data: { mode: "SELF" },
       });
+      setSubmission(submitted);
       await queryClient.invalidateQueries({
         queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey(),
       });
       toast.success("Time sheet submitted");
-      form.reset();
     } catch (error) {
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
@@ -108,7 +131,10 @@ export function TimesheetEditor() {
               <h2 className="font-medium text-lg">Official Time Sheet</h2>
               <div className="flex gap-2">
                 <Button
-                  onClick={() => form.reset()}
+                  disabled={
+                    createMutation.isPending || submitMutation.isPending
+                  }
+                  onClick={reset}
                   size="sm"
                   type="button"
                   variant="outline"
@@ -117,145 +143,154 @@ export function TimesheetEditor() {
                   Reset
                 </Button>
                 <Button
-                  disabled={createMutation.isPending}
+                  disabled={
+                    createMutation.isPending ||
+                    submitMutation.isPending ||
+                    Boolean(submission)
+                  }
                   onClick={() => submitToHr(values)}
                   size="sm"
                   type="button"
                 >
                   <Send data-icon="inline-start" />
-                  {createMutation.isPending ? "Submitting…" : "Submit to HR"}
+                  {createMutation.isPending || submitMutation.isPending
+                    ? "Submitting…"
+                    : "Submit to HR"}
                 </Button>
               </div>
             </div>
 
             <Separator />
 
-            <form
-              className="flex flex-col gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                <div className="grid gap-5 md:grid-cols-2">
-                  <form.Field name="department">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Department
-                        </FieldLabel>
-                        <Input
-                          id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-                  <form.Field name="period">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Period
-                        </FieldLabel>
-                        <Input
-                          id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-                </div>
-              </FieldGroup>
-
-              <Separator />
-
-              <form.Field mode="array" name="rows">
-                {(rowsField) => (
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                      <FieldLabel>Entries</FieldLabel>
-                      <Button
-                        onClick={() =>
-                          rowsField.pushValue({
-                            ...EMPTY_TIMESHEET_ROW,
-                            id: crypto.randomUUID(),
-                          })
-                        }
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <Plus data-icon="inline-start" />
-                        Add entry
-                      </Button>
-                    </div>
-
-                    {rowsField.state.value.map((row, i) => (
-                      <div
-                        className="flex flex-col gap-3 rounded-md border p-3"
-                        key={row.id}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-sm">
-                            Entry {i + 1}
-                          </span>
-                          <Button
-                            onClick={() => rowsField.removeValue(i)}
-                            size="icon-sm"
-                            type="button"
-                            variant="ghost"
-                          >
-                            <Trash2 className="size-3.5" />
-                          </Button>
-                        </div>
-
-                        <div className="grid gap-3 sm:grid-cols-2">
-                          {TIMESHEET_COLUMNS.map((col) => (
-                            <form.Field
-                              key={col.key}
-                              name={`rows[${i}].${col.key}`}
-                            >
-                              {(field) => (
-                                <Field className="gap-1">
-                                  <FieldLabel
-                                    className="text-xs"
-                                    htmlFor={field.name}
-                                  >
-                                    {col.label}
-                                  </FieldLabel>
-                                  {col.key === "date" ? (
-                                    <DatePicker
-                                      id={field.name}
-                                      onChange={field.handleChange}
-                                      value={field.state.value}
-                                    />
-                                  ) : (
-                                    <Input
-                                      id={field.name}
-                                      onChange={(e) =>
-                                        field.handleChange(e.target.value)
-                                      }
-                                      value={field.state.value}
-                                    />
-                                  )}
-                                </Field>
-                              )}
-                            </form.Field>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+            {!savedTimesheetId && (
+              <form
+                className="flex flex-col gap-4"
+                inert={createMutation.isPending || submitMutation.isPending}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  form.handleSubmit();
+                }}
+              >
+                <FieldGroup>
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <form.Field name="department">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Department
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="period">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Period
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
                   </div>
-                )}
-              </form.Field>
-            </form>
+                </FieldGroup>
+
+                <Separator />
+
+                <form.Field mode="array" name="rows">
+                  {(rowsField) => (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <FieldLabel>Entries</FieldLabel>
+                        <Button
+                          onClick={() =>
+                            rowsField.pushValue({
+                              ...EMPTY_TIMESHEET_ROW,
+                              id: crypto.randomUUID(),
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          <Plus data-icon="inline-start" />
+                          Add entry
+                        </Button>
+                      </div>
+
+                      {rowsField.state.value.map((row, i) => (
+                        <div
+                          className="flex flex-col gap-3 rounded-md border p-3"
+                          key={row.id}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-sm">
+                              Entry {i + 1}
+                            </span>
+                            <Button
+                              onClick={() => rowsField.removeValue(i)}
+                              size="icon-sm"
+                              type="button"
+                              variant="ghost"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          </div>
+
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {TIMESHEET_COLUMNS.map((col) => (
+                              <form.Field
+                                key={col.key}
+                                name={`rows[${i}].${col.key}`}
+                              >
+                                {(field) => (
+                                  <Field className="gap-1">
+                                    <FieldLabel
+                                      className="text-xs"
+                                      htmlFor={field.name}
+                                    >
+                                      {col.label}
+                                    </FieldLabel>
+                                    {col.key === "date" ? (
+                                      <DatePicker
+                                        id={field.name}
+                                        onChange={field.handleChange}
+                                        value={field.state.value}
+                                      />
+                                    ) : (
+                                      <Input
+                                        id={field.name}
+                                        onChange={(e) =>
+                                          field.handleChange(e.target.value)
+                                        }
+                                        value={field.state.value}
+                                      />
+                                    )}
+                                  </Field>
+                                )}
+                              </form.Field>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </form.Field>
+              </form>
+            )}
           </div>
 
           <DocumentPreview title="Official Time Sheet">
-            <TimesheetDocument values={values} />
+            <TimesheetDocument submission={submission} values={values} />
           </DocumentPreview>
         </div>
       )}

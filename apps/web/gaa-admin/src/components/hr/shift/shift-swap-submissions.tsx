@@ -15,6 +15,8 @@ import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { formatSubmissionDate } from "@/components/hr/submission-date";
+import { nameByUserId } from "@/lib/people";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   DRAFT: "outline",
@@ -38,12 +40,7 @@ export function ShiftSwapSubmissions() {
       { query: { enabled: Boolean(departmentId) } }
     );
   const swaps = query.data?.data ?? [];
-  const memberNames = new Map(
-    (membersQuery.data?.data ?? []).map((member) => [
-      member.user_id,
-      `${member.first_name.charAt(0)}. ${member.last_name}`,
-    ])
-  );
+  const memberNames = nameByUserId(membersQuery.data?.data ?? []);
 
   async function remove(id: string) {
     setPendingId(id);
@@ -76,6 +73,7 @@ export function ShiftSwapSubmissions() {
               <th className="py-1.5 pr-3 font-medium">Requested Shift</th>
               <th className="py-1.5 pr-3 font-medium">Return Shift</th>
               <th className="py-1.5 pr-3 font-medium">Counterpart</th>
+              <th className="py-1.5 pr-3 font-medium">Date submitted</th>
               <th className="py-1.5 pr-3 font-medium">Status</th>
               <th className="py-1.5 text-right font-medium">Actions</th>
             </tr>
@@ -95,8 +93,9 @@ export function ShiftSwapSubmissions() {
                   </td>
                   <td className="py-1.5 pr-3">
                     {memberNames.get(swap.counterpart_user_id) ??
-                      `${swap.counterpart_user_id.slice(0, 8)}…`}
+                      "Unknown staff member"}
                   </td>
+                  <td className="py-1.5 pr-3">{formatSubmissionDate(swap)}</td>
                   <td className="py-1.5 pr-3">
                     <Badge variant={STATUS_VARIANT[swap.status] ?? "outline"}>
                       {swap.status}

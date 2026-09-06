@@ -1,4 +1,8 @@
 import { Paper } from "@/components/document/paper";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 
 export interface LeaveValues {
   daysRequested: string;
@@ -54,7 +58,13 @@ function SignatureLine({ label }: { label: string }) {
  * Static leave-of-absence document. Driven entirely by `values` — no backend.
  * Rendered as the live preview beside the editor and as the print target.
  */
-export function LeaveDocument({ values }: { values: LeaveValues }) {
+export function LeaveDocument({
+  values,
+  submission,
+}: {
+  values: LeaveValues;
+  submission?: SubmissionMetadata | null;
+}) {
   return (
     <Paper className="px-14 py-12 text-sm">
       <header className="mb-8 text-center">
@@ -70,6 +80,7 @@ export function LeaveDocument({ values }: { values: LeaveValues }) {
           APPLICATION FOR LEAVE OF ABSENCE
         </h1>
       </header>
+      <SubmissionDate submission={submission} />
 
       <dl className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
         <Row label="Employee Name" value={values.employeeName} />

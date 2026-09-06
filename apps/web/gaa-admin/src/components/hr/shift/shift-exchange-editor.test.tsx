@@ -141,7 +141,7 @@ describe("ShiftExchangeEditor (wired)", () => {
 
     // Wait for profile → members to load, then pick the counterpart.
     const memberOption = await screen.findByRole("option", {
-      name: "J. Charles",
+      name: "Jill Charles",
     });
     const select = screen.getByLabelText("Exchange With (Department Member)");
     fireEvent.change(select, {
@@ -152,7 +152,7 @@ describe("ShiftExchangeEditor (wired)", () => {
     // The picker mirrors the counterpart's name into the printable field.
     expect(
       screen.getByLabelText("Employee With Whom Change Is Desired")
-    ).toHaveValue("J. Charles");
+    ).toHaveValue("Jill Charles");
 
     await pickDate(user, "Date Requested for Change", 15);
     fireEvent.change(screen.getByLabelText("Shift Requested for Change"), {
@@ -197,7 +197,7 @@ describe("ShiftExchangeEditor (wired)", () => {
     );
 
     renderEditor();
-    await screen.findByRole("option", { name: "J. Charles" });
+    await screen.findByRole("option", { name: "Jill Charles" });
 
     fireEvent.click(screen.getByRole("button", { name: SUBMIT_LABEL }));
 

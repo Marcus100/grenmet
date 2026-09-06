@@ -1,4 +1,8 @@
 import { Paper } from "@/components/document/paper";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 
 export interface ShiftValues {
   dateReturnShift: string;
@@ -39,7 +43,13 @@ function SignatureLine({ label }: { label: string }) {
 }
 
 /** Static shift-exchange requisition document, driven by `values` — no backend. */
-export function ShiftExchangeDocument({ values }: { values: ShiftValues }) {
+export function ShiftExchangeDocument({
+  values,
+  submission,
+}: {
+  values: ShiftValues;
+  submission?: SubmissionMetadata | null;
+}) {
   return (
     <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
@@ -54,6 +64,7 @@ export function ShiftExchangeDocument({ values }: { values: ShiftValues }) {
           SHIFT EXCHANGE REQUISITION FORM
         </h1>
       </header>
+      <SubmissionDate submission={submission} />
 
       <dl className="space-y-3 text-sm">
         <Row label="Department" value={values.department} />

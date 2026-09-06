@@ -1,4 +1,8 @@
 import { Paper } from "@/components/document/paper";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 
 export interface TimesheetRow {
   actualHours: string;
@@ -53,7 +57,13 @@ export const EMPTY_TIMESHEET: TimesheetValues = {
 const MIN_ROWS = 16;
 
 /** Static official time sheet document — driven by `values`, fills to a full page. */
-export function TimesheetDocument({ values }: { values: TimesheetValues }) {
+export function TimesheetDocument({
+  values,
+  submission,
+}: {
+  values: TimesheetValues;
+  submission?: SubmissionMetadata | null;
+}) {
   const blanks = Math.max(0, MIN_ROWS - values.rows.length);
 
   return (
@@ -67,6 +77,7 @@ export function TimesheetDocument({ values }: { values: TimesheetValues }) {
         </div>
         <h1 className="mt-1 font-bold text-lg">OFFICIAL TIME SHEET</h1>
       </header>
+      <SubmissionDate submission={submission} />
 
       <div className="mb-4 flex justify-between text-sm">
         <span className="flex items-end gap-2 font-semibold">

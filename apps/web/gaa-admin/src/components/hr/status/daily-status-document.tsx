@@ -1,4 +1,8 @@
 import { Paper } from "@/components/document/paper";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 
 export interface DailyStatusValues {
   absenteeism: string;
@@ -68,7 +72,13 @@ function QA({
 }
 
 /** Static daily airport status report, driven by `values` — no backend. */
-export function DailyStatusDocument({ values }: { values: DailyStatusValues }) {
+export function DailyStatusDocument({
+  values,
+  submission,
+}: {
+  values: DailyStatusValues;
+  submission?: SubmissionMetadata | null;
+}) {
   return (
     <Paper className="px-12 py-10 text-sm">
       <header className="mb-6 text-center">
@@ -83,6 +93,7 @@ export function DailyStatusDocument({ values }: { values: DailyStatusValues }) {
           DAILY AIRPORT STATUS REPORT
         </h1>
       </header>
+      <SubmissionDate submission={submission} />
 
       <dl className="grid grid-cols-2 gap-x-10 gap-y-3 text-sm">
         <Row label="Department" value={values.department} />
