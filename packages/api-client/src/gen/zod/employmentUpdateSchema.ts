@@ -8,14 +8,12 @@ import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const employmentUpdateSchema = z.object({
-  employee_number: z.optional(z.union([z.string(), z.null()])),
-  department_id: z.optional(z.union([z.string(), z.null()])),
-  position: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(
-    z.union([z.lazy(() => employmentTypeSchema), z.null()])
-  ),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  work_location: z.optional(z.union([z.string(), z.null()])),
-  status: z.optional(z.union([z.lazy(() => employmentStatusSchema), z.null()])),
+  employee_number: z.union([z.string().max(50), z.null()]).optional(),
+  department_id: z.union([z.string().max(100), z.null()]).optional(),
+  position: z.union([z.string().max(150), z.null()]).optional(),
+  employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
+  work_location: z.union([z.string().max(255), z.null()]).optional(),
+  status: z.union([employmentStatusSchema, z.null()]).optional(),
 });

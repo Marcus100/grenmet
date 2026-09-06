@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponses,
 } from "../models/TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
-
-function getTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostUrl(
-  instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/workflows/instances/${instance_id}/actions` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit, approve, reject, return, or cancel a workflow instance. Requires workflow.instance.action and step-level role. May return 400 if workflow state does not allow the action.
  * @summary Perform workflow action
  * {@link /api/v1/hr/workflows/instances/:instance_id/actions}
  */
-export async function takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost(
-  instance_id: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams["instance_id"],
-  data: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest,
-  config: Partial<
-    RequestConfig<TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
-    ResponseErrorConfig<
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-      | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422
-    >,
-    TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest
-  >({
-    method: "POST",
-    url: getTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostUrl(
-      instance_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/workflows/instances/{instance_id}/actions",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

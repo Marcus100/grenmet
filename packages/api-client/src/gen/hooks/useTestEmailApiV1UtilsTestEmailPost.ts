@@ -9,39 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { testEmailApiV1UtilsTestEmailPost } from "../clients/testEmailApiV1UtilsTestEmailPost.js";
 import type {
-  TestEmailApiV1UtilsTestEmailPost422,
-  TestEmailApiV1UtilsTestEmailPostMutationResponse,
-  TestEmailApiV1UtilsTestEmailPostQueryParams,
+  TestEmailApiV1UtilsTestEmailPostOptions,
+  TestEmailApiV1UtilsTestEmailPostStatus201,
+  TestEmailApiV1UtilsTestEmailPostStatus422,
 } from "../models/TestEmailApiV1UtilsTestEmailPost.js";
 
 export const testEmailApiV1UtilsTestEmailPostMutationKey = () =>
   [{ url: "/api/v1/utils/test-email/" }] as const;
 
-export type TestEmailApiV1UtilsTestEmailPostMutationKey = ReturnType<
-  typeof testEmailApiV1UtilsTestEmailPostMutationKey
->;
-
 export function testEmailApiV1UtilsTestEmailPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey = testEmailApiV1UtilsTestEmailPostMutationKey();
   return mutationOptions<
-    TestEmailApiV1UtilsTestEmailPostMutationResponse,
-    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-    { params: TestEmailApiV1UtilsTestEmailPostQueryParams },
+    TestEmailApiV1UtilsTestEmailPostStatus201,
+    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPostStatus422>,
+    TestEmailApiV1UtilsTestEmailPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ params }) => {
-      return testEmailApiV1UtilsTestEmailPost(params, config);
+    mutationFn: async ({ query }) => {
+      return testEmailApiV1UtilsTestEmailPost({
+        ...config,
+        query,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -53,12 +52,14 @@ export function testEmailApiV1UtilsTestEmailPostMutationOptions<
 export function useTestEmailApiV1UtilsTestEmailPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      TestEmailApiV1UtilsTestEmailPostMutationResponse,
-      ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-      { params: TestEmailApiV1UtilsTestEmailPostQueryParams },
+      TestEmailApiV1UtilsTestEmailPostStatus201,
+      ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPostStatus422>,
+      TestEmailApiV1UtilsTestEmailPostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -70,16 +71,16 @@ export function useTestEmailApiV1UtilsTestEmailPost<TContext>(
   const baseOptions = testEmailApiV1UtilsTestEmailPostMutationOptions(
     config
   ) as UseMutationOptions<
-    TestEmailApiV1UtilsTestEmailPostMutationResponse,
-    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-    { params: TestEmailApiV1UtilsTestEmailPostQueryParams },
+    TestEmailApiV1UtilsTestEmailPostStatus201,
+    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPostStatus422>,
+    TestEmailApiV1UtilsTestEmailPostOptions,
     TContext
   >;
 
   return useMutation<
-    TestEmailApiV1UtilsTestEmailPostMutationResponse,
-    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-    { params: TestEmailApiV1UtilsTestEmailPostQueryParams },
+    TestEmailApiV1UtilsTestEmailPostStatus201,
+    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPostStatus422>,
+    TestEmailApiV1UtilsTestEmailPostOptions,
     TContext
   >(
     {
@@ -89,9 +90,9 @@ export function useTestEmailApiV1UtilsTestEmailPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    TestEmailApiV1UtilsTestEmailPostMutationResponse,
-    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPost422>,
-    { params: TestEmailApiV1UtilsTestEmailPostQueryParams },
+    TestEmailApiV1UtilsTestEmailPostStatus201,
+    ResponseErrorConfig<TestEmailApiV1UtilsTestEmailPostStatus422>,
+    TestEmailApiV1UtilsTestEmailPostOptions,
     TContext
   >;
 }

@@ -7,34 +7,26 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGetPathParamsSchema =
-  z.object({
-    timesheet_id: z.string().uuid(),
-  });
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetPathTimesheetIdSchema =
+  z.uuid();
 
-/**
- * @description Timesheet and entries returned
- */
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGet200Schema = z.lazy(
-  () => timesheetDetailsSchema
-);
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200Schema =
+  timesheetDetailsSchema;
 
-/**
- * @description Not allowed to read this timesheet
- */
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGet403Schema = z.any();
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Timesheet not found
- */
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGet404Schema = z.any();
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponseSchema =
-  z.lazy(() => readTimesheetApiV1HrTimesheetsTimesheetIdGet200Schema);
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetResponseSchema =
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200Schema;
+
+export const readTimesheetApiV1HrTimesheetsTimesheetIdGetErrorSchema = z.union([
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403Schema,
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404Schema,
+  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422Schema,
+]);

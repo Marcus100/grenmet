@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const calendarEventKindCalendarEventKindEnum = {
+export const calendarEventKind = {
   MEETING: "MEETING",
   TRAINING: "TRAINING",
   INSPECTION: "INSPECTION",
@@ -14,11 +14,5 @@ export const calendarEventKindCalendarEventKindEnum = {
   OTHER: "OTHER",
 } as const;
 
-export type CalendarEventKindCalendarEventKindEnumKey =
-  (typeof calendarEventKindCalendarEventKindEnum)[keyof typeof calendarEventKindCalendarEventKindEnum];
-
-/**
- * CalendarEventKind
- * @description What a department puts on its calendar besides the duty roster.
- */
-export type CalendarEventKind = CalendarEventKindCalendarEventKindEnumKey;
+export type CalendarEventKind =
+  (typeof calendarEventKind)[keyof typeof calendarEventKind];

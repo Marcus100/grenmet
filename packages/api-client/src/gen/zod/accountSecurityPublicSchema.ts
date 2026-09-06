@@ -7,10 +7,10 @@ import * as z from "zod";
 import { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 
 export const accountSecurityPublicSchema = z.object({
-  recovery_codes_remaining: z.optional(z.number().int().default(0)),
+  recovery_codes_remaining: z.int().optional().default(0),
   email_verified: z.boolean(),
   google_configured: z.boolean(),
   google_linked: z.boolean(),
   totp_enabled: z.boolean(),
-  sessions: z.array(z.lazy(() => securitySessionPublicSchema)),
+  sessions: z.array(securitySessionPublicSchema),
 });

@@ -3,58 +3,38 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ImportGridApiV1HrRostersImportGridPost400,
-  ImportGridApiV1HrRostersImportGridPost403,
-  ImportGridApiV1HrRostersImportGridPost404,
-  ImportGridApiV1HrRostersImportGridPost422,
-  ImportGridApiV1HrRostersImportGridPostMutationRequest,
-  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+  ImportGridApiV1HrRostersImportGridPostOptions,
+  ImportGridApiV1HrRostersImportGridPostResponses,
 } from "../models/ImportGridApiV1HrRostersImportGridPost.js";
-
-function getImportGridApiV1HrRostersImportGridPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/rosters/import-grid` as const,
-  };
-  return res;
-}
 
 /**
  * @description Import a name×day grid CSV into a draft roster period (created or reused for the month). Blocked if any name is unmatched or any code invalid. Requires roster.manage permission.
  * @summary Import a grid roster
  * {@link /api/v1/hr/rosters/import-grid}
  */
-export async function importGridApiV1HrRostersImportGridPost(
-  data: ImportGridApiV1HrRostersImportGridPostMutationRequest,
-  config: Partial<
-    RequestConfig<ImportGridApiV1HrRostersImportGridPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function importGridApiV1HrRostersImportGridPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ImportGridApiV1HrRostersImportGridPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ImportGridApiV1HrRostersImportGridPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ImportGridApiV1HrRostersImportGridPostMutationResponse,
-    ResponseErrorConfig<
-      | ImportGridApiV1HrRostersImportGridPost400
-      | ImportGridApiV1HrRostersImportGridPost403
-      | ImportGridApiV1HrRostersImportGridPost404
-      | ImportGridApiV1HrRostersImportGridPost422
-    >,
-    ImportGridApiV1HrRostersImportGridPostMutationRequest
-  >({
-    method: "POST",
-    url: getImportGridApiV1HrRostersImportGridPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/import-grid",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ImportGridApiV1HrRostersImportGridPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

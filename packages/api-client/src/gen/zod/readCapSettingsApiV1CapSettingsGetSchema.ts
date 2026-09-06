@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capSettingsPublicSchema } from "./capSettingsPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readCapSettingsApiV1CapSettingsGet200Schema = z.lazy(
-  () => capSettingsPublicSchema
-);
+export const readCapSettingsApiV1CapSettingsGetStatus200Schema =
+  capSettingsPublicSchema;
 
-export const readCapSettingsApiV1CapSettingsGetQueryResponseSchema = z.lazy(
-  () => readCapSettingsApiV1CapSettingsGet200Schema
-);
+export const readCapSettingsApiV1CapSettingsGetResponseSchema =
+  readCapSettingsApiV1CapSettingsGetStatus200Schema;

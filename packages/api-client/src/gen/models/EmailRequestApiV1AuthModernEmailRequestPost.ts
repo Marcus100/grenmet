@@ -7,43 +7,36 @@ import type { EmailRequest } from "./EmailRequest.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-/**
- * Message
- * @description Successful Response
- */
-export type EmailRequestApiV1AuthModernEmailRequestPost200 = Message;
+export type EmailRequestApiV1AuthModernEmailRequestPostStatus200 = Message;
 
-/**
- * @description Invalid or expired proof
- */
-export type EmailRequestApiV1AuthModernEmailRequestPost400 = any;
+export type EmailRequestApiV1AuthModernEmailRequestPostStatus400 = unknown;
 
-/**
- * @description Account is not eligible
- */
-export type EmailRequestApiV1AuthModernEmailRequestPost403 = any;
+export type EmailRequestApiV1AuthModernEmailRequestPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type EmailRequestApiV1AuthModernEmailRequestPost422 =
+export type EmailRequestApiV1AuthModernEmailRequestPostStatus422 =
   HTTPValidationError;
 
-/**
- * EmailRequest
- */
-export type EmailRequestApiV1AuthModernEmailRequestPostMutationRequest =
-  EmailRequest;
+export type EmailRequestApiV1AuthModernEmailRequestPostBody = EmailRequest;
 
-export type EmailRequestApiV1AuthModernEmailRequestPostMutationResponse =
-  EmailRequestApiV1AuthModernEmailRequestPost200;
-
-export type EmailRequestApiV1AuthModernEmailRequestPostMutation = {
-  Response: EmailRequestApiV1AuthModernEmailRequestPost200;
-  Request: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest;
-  Errors:
-    | EmailRequestApiV1AuthModernEmailRequestPost400
-    | EmailRequestApiV1AuthModernEmailRequestPost403
-    | EmailRequestApiV1AuthModernEmailRequestPost422;
+export type EmailRequestApiV1AuthModernEmailRequestPostOptions = {
+  body: EmailRequestApiV1AuthModernEmailRequestPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type EmailRequestApiV1AuthModernEmailRequestPostResponses = {
+  "200": EmailRequestApiV1AuthModernEmailRequestPostStatus200;
+  "400": EmailRequestApiV1AuthModernEmailRequestPostStatus400;
+  "403": EmailRequestApiV1AuthModernEmailRequestPostStatus403;
+  "422": EmailRequestApiV1AuthModernEmailRequestPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type EmailRequestApiV1AuthModernEmailRequestPostResponse =
+  | EmailRequestApiV1AuthModernEmailRequestPostStatus200
+  | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+  | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+  | EmailRequestApiV1AuthModernEmailRequestPostStatus422;

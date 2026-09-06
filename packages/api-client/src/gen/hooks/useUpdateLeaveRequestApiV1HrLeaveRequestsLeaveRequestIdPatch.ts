@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch } from "../clients/updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
 import type {
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422,
 } from "../models/UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
 
 export const updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey =
   () => [{ url: "/api/v1/hr/leave-requests/:leave_request_id" }] as const;
 
-export type UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey =
-  ReturnType<
-    typeof updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey
-  >;
-
 export function updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationKey();
   return mutationOptions<
-    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422
     >,
-    {
-      leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"];
-      data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest;
-    },
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id, data }) => {
-      return updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch(
-        leave_request_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
+      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422
       >,
-      {
-        leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"];
-        data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest;
-      },
+      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch<
     updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
+      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404
+        | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422
       >,
-      {
-        leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"];
-        data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest;
-      },
+      UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422
     >,
-    {
-      leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"];
-      data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest;
-    },
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch<
     },
     queryClient
   ) as UseMutationResult<
-    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404
+      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422
     >,
-    {
-      leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"];
-      data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest;
-    },
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
     TContext
   >;
 }

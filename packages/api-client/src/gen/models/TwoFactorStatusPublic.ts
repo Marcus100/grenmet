@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * TwoFactorStatusPublic
- */
 export type TwoFactorStatusPublic = {
-  /**
-   * @type boolean
-   */
   enabled: boolean;
 };

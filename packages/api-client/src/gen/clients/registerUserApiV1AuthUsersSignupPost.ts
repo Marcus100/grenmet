@@ -3,51 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RegisterUserApiV1AuthUsersSignupPost400,
-  RegisterUserApiV1AuthUsersSignupPost422,
-  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+  RegisterUserApiV1AuthUsersSignupPostOptions,
+  RegisterUserApiV1AuthUsersSignupPostResponses,
 } from "../models/RegisterUserApiV1AuthUsersSignupPost.js";
-
-function getRegisterUserApiV1AuthUsersSignupPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/users/signup` as const };
-  return res;
-}
 
 /**
  * @description Create a new user account without authentication. Public endpoint for user registration.
  * @summary Register new user
  * {@link /api/v1/auth/users/signup}
  */
-export async function registerUserApiV1AuthUsersSignupPost(
-  data: RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  config: Partial<
-    RequestConfig<RegisterUserApiV1AuthUsersSignupPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function registerUserApiV1AuthUsersSignupPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<RegisterUserApiV1AuthUsersSignupPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<RegisterUserApiV1AuthUsersSignupPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    RegisterUserApiV1AuthUsersSignupPostMutationResponse,
-    ResponseErrorConfig<
-      | RegisterUserApiV1AuthUsersSignupPost400
-      | RegisterUserApiV1AuthUsersSignupPost422
-    >,
-    RegisterUserApiV1AuthUsersSignupPostMutationRequest
-  >({
-    method: "POST",
-    url: getRegisterUserApiV1AuthUsersSignupPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/users/signup",
+      ...config,
+    }) as Promise<
+      RequestResult<RegisterUserApiV1AuthUsersSignupPostResponses, ThrowOnError>
+    >
+  );
 }

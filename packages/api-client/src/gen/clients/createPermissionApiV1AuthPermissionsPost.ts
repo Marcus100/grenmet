@@ -3,47 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreatePermissionApiV1AuthPermissionsPost422,
-  CreatePermissionApiV1AuthPermissionsPostMutationRequest,
-  CreatePermissionApiV1AuthPermissionsPostMutationResponse,
+  CreatePermissionApiV1AuthPermissionsPostOptions,
+  CreatePermissionApiV1AuthPermissionsPostResponses,
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
-
-function getCreatePermissionApiV1AuthPermissionsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/permissions` as const };
-  return res;
-}
 
 /**
  * @description Create a permission (superuser only).
  * @summary Create permission
  * {@link /api/v1/auth/permissions}
  */
-export async function createPermissionApiV1AuthPermissionsPost(
-  data: CreatePermissionApiV1AuthPermissionsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreatePermissionApiV1AuthPermissionsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createPermissionApiV1AuthPermissionsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreatePermissionApiV1AuthPermissionsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<CreatePermissionApiV1AuthPermissionsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-    CreatePermissionApiV1AuthPermissionsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreatePermissionApiV1AuthPermissionsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/permissions",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreatePermissionApiV1AuthPermissionsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

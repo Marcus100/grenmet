@@ -3,58 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateRoleApiV1AuthRolesRoleIdPatch404,
-  UpdateRoleApiV1AuthRolesRoleIdPatch422,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
-  UpdateRoleApiV1AuthRolesRoleIdPatchPathParams,
+  UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
+  UpdateRoleApiV1AuthRolesRoleIdPatchResponses,
 } from "../models/UpdateRoleApiV1AuthRolesRoleIdPatch.js";
-
-function getUpdateRoleApiV1AuthRolesRoleIdPatchUrl(
-  role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/auth/roles/${role_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a role's name or description (superuser only).
  * @summary Update role
  * {@link /api/v1/auth/roles/:role_id}
  */
-export async function updateRoleApiV1AuthRolesRoleIdPatch(
-  role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"],
-  data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateRoleApiV1AuthRolesRoleIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateRoleApiV1AuthRolesRoleIdPatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateRoleApiV1AuthRolesRoleIdPatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateRoleApiV1AuthRolesRoleIdPatch404
-      | UpdateRoleApiV1AuthRolesRoleIdPatch422
-    >,
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateRoleApiV1AuthRolesRoleIdPatchUrl(role_id).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/auth/roles/{role_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<UpdateRoleApiV1AuthRolesRoleIdPatchResponses, ThrowOnError>
+    >
+  );
 }

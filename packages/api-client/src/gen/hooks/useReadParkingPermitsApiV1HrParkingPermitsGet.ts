@@ -10,49 +10,50 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readParkingPermitsApiV1HrParkingPermitsGet } from "../clients/readParkingPermitsApiV1HrParkingPermitsGet.js";
 import type {
-  ReadParkingPermitsApiV1HrParkingPermitsGet403,
-  ReadParkingPermitsApiV1HrParkingPermitsGet422,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+  ReadParkingPermitsApiV1HrParkingPermitsGetOptions,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus403,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus422,
 } from "../models/ReadParkingPermitsApiV1HrParkingPermitsGet.js";
 
-export const readParkingPermitsApiV1HrParkingPermitsGetQueryKey = (
-  params: ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams = {}
-) =>
-  [{ url: "/api/v1/hr/parking-permits" }, ...(params ? [params] : [])] as const;
+export const readParkingPermitsApiV1HrParkingPermitsGetQueryKey = ({
+  query,
+}: Omit<ReadParkingPermitsApiV1HrParkingPermitsGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/parking-permits" }, ...(query ? [query] : [])] as const;
 
-export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryKey = ReturnType<
+type ReadParkingPermitsApiV1HrParkingPermitsGetQueryKey = ReturnType<
   typeof readParkingPermitsApiV1HrParkingPermitsGetQueryKey
 >;
 
 export function readParkingPermitsApiV1HrParkingPermitsGetQueryOptions(
-  params?: ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadParkingPermitsApiV1HrParkingPermitsGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readParkingPermitsApiV1HrParkingPermitsGetQueryKey(params);
+  const queryKey = readParkingPermitsApiV1HrParkingPermitsGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+    ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
     ResponseErrorConfig<
-      | ReadParkingPermitsApiV1HrParkingPermitsGet403
-      | ReadParkingPermitsApiV1HrParkingPermitsGet422
+      | ReadParkingPermitsApiV1HrParkingPermitsGetStatus403
+      | ReadParkingPermitsApiV1HrParkingPermitsGetStatus422
     >,
-    ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+    ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readParkingPermitsApiV1HrParkingPermitsGet(params, config);
+      return readParkingPermitsApiV1HrParkingPermitsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -63,50 +64,64 @@ export function readParkingPermitsApiV1HrParkingPermitsGetQueryOptions(
  * {@link /api/v1/hr/parking-permits}
  */
 export function useReadParkingPermitsApiV1HrParkingPermitsGet<
-  TData = ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
-  TQueryData = ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+  TData = ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
+  TQueryData = ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
   TQueryKey extends
     QueryKey = ReadParkingPermitsApiV1HrParkingPermitsGetQueryKey,
 >(
-  params?: ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ReadParkingPermitsApiV1HrParkingPermitsGetOptions["query"]
+      | (() => ReadParkingPermitsApiV1HrParkingPermitsGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+        ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
         ResponseErrorConfig<
-          | ReadParkingPermitsApiV1HrParkingPermitsGet403
-          | ReadParkingPermitsApiV1HrParkingPermitsGet422
+          | ReadParkingPermitsApiV1HrParkingPermitsGetStatus403
+          | ReadParkingPermitsApiV1HrParkingPermitsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    readParkingPermitsApiV1HrParkingPermitsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readParkingPermitsApiV1HrParkingPermitsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readParkingPermitsApiV1HrParkingPermitsGetQueryOptions(params, config),
+      ...readParkingPermitsApiV1HrParkingPermitsGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadParkingPermitsApiV1HrParkingPermitsGet403
-      | ReadParkingPermitsApiV1HrParkingPermitsGet422
+      | ReadParkingPermitsApiV1HrParkingPermitsGetStatus403
+      | ReadParkingPermitsApiV1HrParkingPermitsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

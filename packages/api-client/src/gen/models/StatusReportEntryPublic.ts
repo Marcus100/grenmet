@@ -5,25 +5,25 @@
 
 import type { PersonnelStatus } from "./PersonnelStatus.js";
 
-/**
- * StatusReportEntryPublic
- */
 export type StatusReportEntryPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   status_report_id: string;
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   personnel_status: PersonnelStatus;
   arrival_time?: string | null;
   departure_time?: string | null;

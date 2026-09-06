@@ -5,9 +5,6 @@
 
 import type { CalendarEventKind } from "./CalendarEventKind.js";
 
-/**
- * CalendarEventUpdate
- */
 export type CalendarEventUpdate = {
   title?: string | null;
   description?: string | null;

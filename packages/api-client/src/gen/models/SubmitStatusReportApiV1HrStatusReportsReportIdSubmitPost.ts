@@ -7,59 +7,55 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { StatusReportPublic } from "./StatusReportPublic.js";
 import type { StatusReportSubmit } from "./StatusReportSubmit.js";
 
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams =
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  report_id: string;
+};
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200 =
+  StatusReportPublic;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400 =
+  unknown;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403 =
+  unknown;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404 =
+  unknown;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422 =
+  HTTPValidationError;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostBody =
+  StatusReportSubmit;
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions = {
+  body: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostBody;
+  path: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPath;
+  query?: never;
+  headers?: never;
+};
+
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponses =
   {
-    /**
-     * @type string, uuid
-     */
-    report_id: string;
+    "200": SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200;
+    "400": SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400;
+    "403": SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403;
+    "404": SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404;
+    "422": SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422;
   };
 
 /**
- * StatusReportPublic
- * @description Status report submitted
+ * @description Union of all possible responses
  */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost200 =
-  StatusReportPublic;
-
-/**
- * @description Status report is not a draft
- */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400 = any;
-
-/**
- * @description Not allowed to submit this status report
- */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403 = any;
-
-/**
- * @description Status report not found
- */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422 =
-  HTTPValidationError;
-
-/**
- * StatusReportSubmit
- */
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest =
-  StatusReportSubmit;
-
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse =
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost200;
-
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutation = {
-  Response: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost200;
-  Request: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-  PathParams: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams;
-  Errors:
-    | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-    | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-    | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-    | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422;
-};
+export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponse =
+  | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200
+  | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+  | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+  | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+  | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422;

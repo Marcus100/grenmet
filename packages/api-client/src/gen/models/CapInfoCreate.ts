@@ -11,20 +11,14 @@ import type { CapResourceCreate } from "./CapResourceCreate.js";
 import type { CapSeverity } from "./CapSeverity.js";
 import type { CapUrgency } from "./CapUrgency.js";
 
-/**
- * CapInfoCreate
- */
 export type CapInfoCreate = {
   /**
    * @minLength 2
    * @maxLength 35
-   * @default "en"
+   * @default 'en'
    * @type string | undefined
    */
   language?: string;
-  /**
-   * @type array | undefined
-   */
   categories?: CapCategory[];
   /**
    * @minLength 1
@@ -32,23 +26,20 @@ export type CapInfoCreate = {
    * @type string
    */
   event: string;
-  /**
-   * @type array | undefined
-   */
   event_codes?: CapNameValue[];
-  /**
-   * @type array | undefined
-   */
   response_types?: string[];
   /**
+   * @default 'Expected'
    * @type string | undefined
    */
   urgency?: CapUrgency;
   /**
+   * @default 'Moderate'
    * @type string | undefined
    */
   severity?: CapSeverity;
   /**
+   * @default 'Likely'
    * @type string | undefined
    */
   certainty?: CapCertainty;
@@ -72,16 +63,7 @@ export type CapInfoCreate = {
   instruction?: string | null;
   web?: string | null;
   contact?: string | null;
-  /**
-   * @type array | undefined
-   */
   parameters?: CapNameValue[];
-  /**
-   * @type array | undefined
-   */
   resources?: CapResourceCreate[];
-  /**
-   * @type array | undefined
-   */
   areas?: CapAreaCreate[];
 };

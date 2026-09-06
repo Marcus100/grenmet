@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * RolePermissionsInput
- */
 export type RolePermissionsInput = {
-  /**
-   * @type array
-   */
   permission_keys: string[];
 };

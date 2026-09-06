@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponses,
 } from "../models/UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
-
-function getUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchUrl(
-  leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/leave-requests/${leave_request_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a still-DRAFT leave request in place. Requires leave.request.create.self permission and ownership.
  * @summary Edit a draft leave request
  * {@link /api/v1/hr/leave-requests/:leave_request_id}
  */
-export async function updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch(
-  leave_request_id: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams["leave_request_id"],
-  data: UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404
-      | UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422
-    >,
-    UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchUrl(
-      leave_request_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/leave-requests/{leave_request_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

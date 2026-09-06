@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponses,
 } from "../models/SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
-
-function getSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchUrl(
-  timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/timesheets/${timesheet_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.
  * @summary Submit timesheet
  * {@link /api/v1/hr/timesheets/:timesheet_id/submit}
  */
-export async function submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch(
-  timesheet_id: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams["timesheet_id"],
-  data: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-    ResponseErrorConfig<
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-      | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422
-    >,
-    SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchUrl(
-      timesheet_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/timesheets/{timesheet_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

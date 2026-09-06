@@ -36,7 +36,7 @@ const git = (repository, ...args) => {
 
 test("lint-staged formats only staged files and preserves unstaged edits", (t) => {
   const repository = mkdtempSync(join(workspace, ".lint-staged-test-"));
-  t.after(() => rmSync(repository, { recursive: true, force: true }));
+  t.after(() => rmSync(repository, { force: true, recursive: true }));
   git(repository, "init", "--quiet", "--initial-branch=main");
   git(repository, "config", "user.email", "hooks@example.com");
   git(repository, "config", "user.name", "Hook Tests");
@@ -82,7 +82,7 @@ test("lint-staged formats only staged files and preserves unstaged edits", (t) =
 
 test("pre-push stops on type-check and test failures", (t) => {
   const fixture = mkdtempSync(join(tmpdir(), "grenmet-pre-push-"));
-  t.after(() => rmSync(fixture, { recursive: true, force: true }));
+  t.after(() => rmSync(fixture, { force: true, recursive: true }));
   const bin = join(fixture, "bin");
   const log = join(fixture, "calls.log");
   mkdirSync(bin);

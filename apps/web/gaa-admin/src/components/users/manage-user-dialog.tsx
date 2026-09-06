@@ -62,7 +62,7 @@ export function ManageUserDialog({
   };
 
   const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
-    { user_id: user.id },
+    { query: { user_id: user.id } },
     { query: { enabled: open } }
   );
   const assignments = assignmentsQuery.data?.data ?? [];
@@ -81,7 +81,7 @@ export function ManageUserDialog({
   const departments = departmentsQuery.data?.data ?? [];
   // 404 (no record yet) is expected — retry:false so it doesn't refetch.
   const employmentQuery = useReadHrEmploymentApiV1HrEmploymentUserIdGet(
-    user.id,
+    { path: { user_id: user.id } },
     {
       query: { enabled: open, retry: false },
     }
@@ -136,7 +136,9 @@ export function ManageUserDialog({
   async function refresh() {
     await queryClient.invalidateQueries({
       queryKey: readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({
-        user_id: user.id,
+        query: {
+          user_id: user.id,
+        },
       }),
     });
   }
@@ -145,7 +147,7 @@ export function ManageUserDialog({
     const role = roles.find((r) => r.name === roleToAdd);
     if (!role) return;
     await assignMutation.mutateAsync({
-      data: { user_id: user.id, role_id: role.id },
+      body: { user_id: user.id, role_id: role.id },
     });
     await refresh();
     setRoleToAdd("");
@@ -153,18 +155,18 @@ export function ManageUserDialog({
   }
 
   async function revoke(assignmentId: string, roleName: string) {
-    await revokeMutation.mutateAsync({ assignment_id: assignmentId });
+    await revokeMutation.mutateAsync({ path: { assignment_id: assignmentId } });
     await refresh();
     toast.success(`Revoked ${roleName} from ${user.username}`);
   }
 
   async function toggleActive() {
     await updateUserMutation.mutateAsync({
-      user_id: user.id,
-      data: { is_active: !user.is_active },
+      path: { user_id: user.id },
+      body: { is_active: !user.is_active },
     });
     await queryClient.invalidateQueries({
-      queryKey: readUsersApiV1AuthUsersGetQueryKey(),
+      queryKey: readUsersApiV1AuthUsersGetQueryKey({}),
     });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`
@@ -179,8 +181,8 @@ export function ManageUserDialog({
     const previousDepartmentId = currentEmployment?.department_id;
     if (currentEmployment) {
       await updateEmploymentMutation.mutateAsync({
-        user_id: user.id,
-        data: {
+        path: { user_id: user.id },
+        body: {
           employment: {
             department_id: emp.department_id,
             employee_number: emp.employee_number.trim() || null,
@@ -195,8 +197,8 @@ export function ManageUserDialog({
         return;
       }
       await createEmploymentMutation.mutateAsync({
-        user_id: user.id,
-        data: {
+        path: { user_id: user.id },
+        body: {
           employee_number: emp.employee_number.trim(),
           department_id: emp.department_id,
           position: emp.position.trim() || null,

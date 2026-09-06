@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createTimesheetApiV1HrTimesheetsPost } from "../clients/createTimesheetApiV1HrTimesheetsPost.js";
 import type {
-  CreateTimesheetApiV1HrTimesheetsPost403,
-  CreateTimesheetApiV1HrTimesheetsPost422,
-  CreateTimesheetApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+  CreateTimesheetApiV1HrTimesheetsPostOptions,
+  CreateTimesheetApiV1HrTimesheetsPostStatus201,
+  CreateTimesheetApiV1HrTimesheetsPostStatus403,
+  CreateTimesheetApiV1HrTimesheetsPostStatus422,
 } from "../models/CreateTimesheetApiV1HrTimesheetsPost.js";
 
 export const createTimesheetApiV1HrTimesheetsPostMutationKey = () =>
   [{ url: "/api/v1/hr/timesheets" }] as const;
 
-export type CreateTimesheetApiV1HrTimesheetsPostMutationKey = ReturnType<
-  typeof createTimesheetApiV1HrTimesheetsPostMutationKey
->;
-
 export function createTimesheetApiV1HrTimesheetsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateTimesheetApiV1HrTimesheetsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createTimesheetApiV1HrTimesheetsPostMutationKey();
   return mutationOptions<
-    CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+    CreateTimesheetApiV1HrTimesheetsPostStatus201,
     ResponseErrorConfig<
-      | CreateTimesheetApiV1HrTimesheetsPost403
-      | CreateTimesheetApiV1HrTimesheetsPost422
+      | CreateTimesheetApiV1HrTimesheetsPostStatus403
+      | CreateTimesheetApiV1HrTimesheetsPostStatus422
     >,
-    { data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest },
+    CreateTimesheetApiV1HrTimesheetsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTimesheetApiV1HrTimesheetsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createTimesheetApiV1HrTimesheetsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function createTimesheetApiV1HrTimesheetsPostMutationOptions<
 export function useCreateTimesheetApiV1HrTimesheetsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+      CreateTimesheetApiV1HrTimesheetsPostStatus201,
       ResponseErrorConfig<
-        | CreateTimesheetApiV1HrTimesheetsPost403
-        | CreateTimesheetApiV1HrTimesheetsPost422
+        | CreateTimesheetApiV1HrTimesheetsPostStatus403
+        | CreateTimesheetApiV1HrTimesheetsPostStatus422
       >,
-      { data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest },
+      CreateTimesheetApiV1HrTimesheetsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateTimesheetApiV1HrTimesheetsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useCreateTimesheetApiV1HrTimesheetsPost<TContext>(
   const baseOptions = createTimesheetApiV1HrTimesheetsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+    CreateTimesheetApiV1HrTimesheetsPostStatus201,
     ResponseErrorConfig<
-      | CreateTimesheetApiV1HrTimesheetsPost403
-      | CreateTimesheetApiV1HrTimesheetsPost422
+      | CreateTimesheetApiV1HrTimesheetsPostStatus403
+      | CreateTimesheetApiV1HrTimesheetsPostStatus422
     >,
-    { data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest },
+    CreateTimesheetApiV1HrTimesheetsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+    CreateTimesheetApiV1HrTimesheetsPostStatus201,
     ResponseErrorConfig<
-      | CreateTimesheetApiV1HrTimesheetsPost403
-      | CreateTimesheetApiV1HrTimesheetsPost422
+      | CreateTimesheetApiV1HrTimesheetsPostStatus403
+      | CreateTimesheetApiV1HrTimesheetsPostStatus422
     >,
-    { data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest },
+    CreateTimesheetApiV1HrTimesheetsPostOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useCreateTimesheetApiV1HrTimesheetsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+    CreateTimesheetApiV1HrTimesheetsPostStatus201,
     ResponseErrorConfig<
-      | CreateTimesheetApiV1HrTimesheetsPost403
-      | CreateTimesheetApiV1HrTimesheetsPost422
+      | CreateTimesheetApiV1HrTimesheetsPostStatus403
+      | CreateTimesheetApiV1HrTimesheetsPostStatus422
     >,
-    { data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest },
+    CreateTimesheetApiV1HrTimesheetsPostOptions,
     TContext
   >;
 }

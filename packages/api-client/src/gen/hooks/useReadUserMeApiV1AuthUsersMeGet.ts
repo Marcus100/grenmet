@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readUserMeApiV1AuthUsersMeGet } from "../clients/readUserMeApiV1AuthUsersMeGet.js";
-import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
+import type { ReadUserMeApiV1AuthUsersMeGetStatus200 } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
 
 export const readUserMeApiV1AuthUsersMeGetQueryKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;
 
-export type ReadUserMeApiV1AuthUsersMeGetQueryKey = ReturnType<
+type ReadUserMeApiV1AuthUsersMeGetQueryKey = ReturnType<
   typeof readUserMeApiV1AuthUsersMeGetQueryKey
 >;
 
 export function readUserMeApiV1AuthUsersMeGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readUserMeApiV1AuthUsersMeGetQueryKey();
   return queryOptions<
-    ReadUserMeApiV1AuthUsersMeGetQueryResponse,
+    ReadUserMeApiV1AuthUsersMeGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadUserMeApiV1AuthUsersMeGetQueryResponse,
+    ReadUserMeApiV1AuthUsersMeGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readUserMeApiV1AuthUsersMeGet(config);
+      return readUserMeApiV1AuthUsersMeGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -52,40 +50,42 @@ export function readUserMeApiV1AuthUsersMeGetQueryOptions(
  * {@link /api/v1/auth/users/me}
  */
 export function useReadUserMeApiV1AuthUsersMeGet<
-  TData = ReadUserMeApiV1AuthUsersMeGetQueryResponse,
-  TQueryData = ReadUserMeApiV1AuthUsersMeGetQueryResponse,
+  TData = ReadUserMeApiV1AuthUsersMeGetStatus200,
+  TQueryData = ReadUserMeApiV1AuthUsersMeGetStatus200,
   TQueryKey extends QueryKey = ReadUserMeApiV1AuthUsersMeGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadUserMeApiV1AuthUsersMeGetQueryResponse,
+        ReadUserMeApiV1AuthUsersMeGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readUserMeApiV1AuthUsersMeGetQueryKey();
+    resolvedOptions?.queryKey ?? readUserMeApiV1AuthUsersMeGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readUserMeApiV1AuthUsersMeGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -6,18 +6,13 @@
 import * as z from "zod";
 import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 
-/**
- * @description HR profile returned
- */
-export const readHrProfileMeApiV1HrProfileMeGet200Schema = z.lazy(
-  () => userProfilePublicSchema
-);
+export const readHrProfileMeApiV1HrProfileMeGetStatus200Schema =
+  userProfilePublicSchema;
 
-/**
- * @description HR profile not found for this user
- */
-export const readHrProfileMeApiV1HrProfileMeGet404Schema = z.any();
+export const readHrProfileMeApiV1HrProfileMeGetStatus404Schema = z.unknown();
 
-export const readHrProfileMeApiV1HrProfileMeGetQueryResponseSchema = z.lazy(
-  () => readHrProfileMeApiV1HrProfileMeGet200Schema
-);
+export const readHrProfileMeApiV1HrProfileMeGetResponseSchema =
+  readHrProfileMeApiV1HrProfileMeGetStatus200Schema;
+
+export const readHrProfileMeApiV1HrProfileMeGetErrorSchema =
+  readHrProfileMeApiV1HrProfileMeGetStatus404Schema;

@@ -3,25 +3,10 @@
  * Do not edit manually.
  */
 
-/**
- * SecuritySessionPublic
- */
 export type SecuritySessionPublic = {
-  /**
-   * @type string
-   */
   id: string;
   app_name?: string | null;
-  /**
-   * @type string
-   */
   client_type: string;
-  /**
-   * @type string
-   */
   last_used_at: string;
-  /**
-   * @type string
-   */
   expires_at: string;
 };

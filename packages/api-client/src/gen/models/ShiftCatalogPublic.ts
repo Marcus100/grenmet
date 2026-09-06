@@ -5,42 +5,15 @@
 
 import type { ShiftCategory } from "./ShiftCategory.js";
 
-/**
- * ShiftCatalogPublic
- */
 export type ShiftCatalogPublic = {
-  /**
-   * @type string
-   */
   code: string;
-  /**
-   * @type string
-   */
   label: string;
-  /**
-   * @type string
-   */
   category: ShiftCategory;
   start_time?: string | null;
   end_time?: string | null;
-  /**
-   * @type boolean
-   */
   ends_next_day: boolean;
-  /**
-   * @type boolean
-   */
   counts_as_work_hours: boolean;
-  /**
-   * @type boolean
-   */
   needs_reason: boolean;
-  /**
-   * @type boolean
-   */
   needs_approval: boolean;
-  /**
-   * @type boolean
-   */
   is_active: boolean;
 };

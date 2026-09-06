@@ -5,17 +5,8 @@
 
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 
-/**
- * ParkingPermitListPublic
- */
 export type ParkingPermitListPublic = {
-  /**
-   * @type array
-   */
   data: ParkingPermitPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

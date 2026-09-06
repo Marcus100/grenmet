@@ -7,57 +7,44 @@ import type { GradeInput } from "./GradeInput.js";
 import type { GradeSetup } from "./GradeSetup.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams = {
-  /**
-   * @type string
-   */
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPath = {
   grade_id: string;
 };
 
-/**
- * GradeSetup
- * @description Successful Response
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPut200 = GradeSetup;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200 = GradeSetup;
 
-/**
- * @description Administrator access required
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403 = any;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404 = any;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409 = any;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422 =
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422 =
   HTTPValidationError;
 
-/**
- * GradeInput
- */
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest =
-  GradeInput;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutBody = GradeInput;
 
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse =
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut200;
-
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutation = {
-  Response: UpdateSetupGradeApiV1HrSetupGradesGradeIdPut200;
-  Request: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-  PathParams: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams;
-  Errors:
-    | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-    | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-    | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-    | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422;
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions = {
+  body: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutBody;
+  path: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponses = {
+  "200": UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200;
+  "403": UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403;
+  "404": UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404;
+  "409": UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409;
+  "422": UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponse =
+  | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200
+  | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+  | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+  | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+  | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422;

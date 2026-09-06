@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponses,
 } from "../models/UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut.js";
-
-function getUpdateSetupPolicyApiV1HrSetupPoliciesKeyPutUrl(
-  key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"]
-) {
-  const res = {
-    method: "PUT",
-    url: `/api/v1/hr/setup/policies/${key}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Configure approval policy for future submissions.
  * @summary Configure approval policy for future submissions
  * {@link /api/v1/hr/setup/policies/:key}
  */
-export async function updateSetupPolicyApiV1HrSetupPoliciesKeyPut(
-  key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"],
-  data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateSetupPolicyApiV1HrSetupPoliciesKeyPut<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
-    ResponseErrorConfig<
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
-    >,
-    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest
-  >({
-    method: "PUT",
-    url: getUpdateSetupPolicyApiV1HrSetupPoliciesKeyPutUrl(key).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PUT",
+      url: "/api/v1/hr/setup/policies/{key}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -10,52 +10,50 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "../clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 import type {
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422,
 } from "../models/ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 
-export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey = (
-  params: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams = {}
-) =>
-  [
-    { url: "/api/v1/hr/absentee-reports" },
-    ...(params ? [params] : []),
-  ] as const;
+export const readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey = ({
+  query,
+}: Omit<ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/absentee-reports" }, ...(query ? [query] : [])] as const;
 
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey = ReturnType<
+type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey = ReturnType<
   typeof readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey
 >;
 
 export function readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryOptions(
-  params?: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(params);
+  const queryKey = readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
     ResponseErrorConfig<
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422
+      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403
+      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422
     >,
-    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readAbsenteeReportsApiV1HrAbsenteeReportsGet(params, config);
+      return readAbsenteeReportsApiV1HrAbsenteeReportsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,53 +64,64 @@ export function readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryOptions(
  * {@link /api/v1/hr/absentee-reports}
  */
 export function useReadAbsenteeReportsApiV1HrAbsenteeReportsGet<
-  TData = ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
-  TQueryData = ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+  TData = ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
+  TQueryData = ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
   TQueryKey extends
     QueryKey = ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey,
 >(
-  params?: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions["query"]
+      | (() => ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+        ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
         ResponseErrorConfig<
-          | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403
-          | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422
+          | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403
+          | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryOptions(
-        params,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422
+      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403
+      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

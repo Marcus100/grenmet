@@ -1,143 +1,126 @@
-export type {
-  AbsenceReason,
-  AbsenceReasonAbsenceReasonEnumKey,
-} from "./AbsenceReason.js";
-export { absenceReasonAbsenceReasonEnum } from "./AbsenceReason.js";
+export type { AbsenceReason } from "./AbsenceReason.js";
+export { absenceReason } from "./AbsenceReason.js";
 export type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 export type { AbsenteeReportListPublic } from "./AbsenteeReportListPublic.js";
 export type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type {
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutation,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBody,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPath,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponse,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponses,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422,
 } from "./ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export type {
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch200,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutation,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchBody,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPath,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponse,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponses,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422,
 } from "./ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type {
-  ApproveAlertApiV1CapAlertsAlertIdApprovePost200,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePost422,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutation,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostBody,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostPath,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostResponse,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostResponses,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422,
 } from "./ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export type {
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutation,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPath,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponse,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponses,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422,
 } from "./ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export type {
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutation,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPath,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponse,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponses,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422,
 } from "./ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type {
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost200,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutation,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponse,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponses,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422,
 } from "./BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export type { CalendarEventCreate } from "./CalendarEventCreate.js";
-export type {
-  CalendarEventKind,
-  CalendarEventKindCalendarEventKindEnumKey,
-} from "./CalendarEventKind.js";
-export { calendarEventKindCalendarEventKindEnum } from "./CalendarEventKind.js";
+export type { CalendarEventKind } from "./CalendarEventKind.js";
+export { calendarEventKind } from "./CalendarEventKind.js";
 export type { CalendarEventPublic } from "./CalendarEventPublic.js";
 export type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 export type { CalendarEventUpdate } from "./CalendarEventUpdate.js";
 export type {
-  CancelAlertApiV1CapAlertsAlertIdCancelPost200,
-  CancelAlertApiV1CapAlertsAlertIdCancelPost422,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutation,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostBody,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostPath,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostResponse,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostResponses,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422,
 } from "./CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export type { CapAlertAction } from "./CapAlertAction.js";
 export type { CapAlertCreate } from "./CapAlertCreate.js";
 export type {
   CapAlertImportRequest,
-  CapAlertImportRequestSourceEnumKey,
+  CapAlertImportRequestSourceEnum,
 } from "./CapAlertImportRequest.js";
 export { capAlertImportRequestSourceEnum } from "./CapAlertImportRequest.js";
 export type { CapAlertListPublic } from "./CapAlertListPublic.js";
 export type { CapAlertPublic } from "./CapAlertPublic.js";
 export type { CapAlertUpdate } from "./CapAlertUpdate.js";
 export type { CapAreaCreate } from "./CapAreaCreate.js";
-export type {
-  CapAreaKind,
-  CapAreaKindCapAreaKindEnumKey,
-} from "./CapAreaKind.js";
-export { capAreaKindCapAreaKindEnum } from "./CapAreaKind.js";
+export type { CapAreaKind } from "./CapAreaKind.js";
+export { capAreaKind } from "./CapAreaKind.js";
 export type { CapAreaPublic } from "./CapAreaPublic.js";
 export type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 export type { CapAuditEventPublic } from "./CapAuditEventPublic.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
-export type {
-  CapCategory,
-  CapCategoryCapCategoryEnumKey,
-} from "./CapCategory.js";
-export { capCategoryCapCategoryEnum } from "./CapCategory.js";
-export type {
-  CapCertainty,
-  CapCertaintyCapCertaintyEnumKey,
-} from "./CapCertainty.js";
-export { capCertaintyCapCertaintyEnum } from "./CapCertainty.js";
+export type { CapCategory } from "./CapCategory.js";
+export { capCategory } from "./CapCategory.js";
+export type { CapCertainty } from "./CapCertainty.js";
+export { capCertainty } from "./CapCertainty.js";
 export type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
 export type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 export type { CapFeedImportUpdate } from "./CapFeedImportUpdate.js";
 export type { CapInfoCreate } from "./CapInfoCreate.js";
 export type { CapInfoPublic } from "./CapInfoPublic.js";
-export type {
-  CapIntegrationStatus,
-  CapIntegrationStatusCapIntegrationStatusEnumKey,
-} from "./CapIntegrationStatus.js";
-export { capIntegrationStatusCapIntegrationStatusEnum } from "./CapIntegrationStatus.js";
-export type {
-  CapLifecycleState,
-  CapLifecycleStateCapLifecycleStateEnumKey,
-} from "./CapLifecycleState.js";
-export { capLifecycleStateCapLifecycleStateEnum } from "./CapLifecycleState.js";
-export type {
-  CapMessageType,
-  CapMessageTypeCapMessageTypeEnumKey,
-} from "./CapMessageType.js";
-export { capMessageTypeCapMessageTypeEnum } from "./CapMessageType.js";
+export type { CapIntegrationStatus } from "./CapIntegrationStatus.js";
+export { capIntegrationStatus } from "./CapIntegrationStatus.js";
+export type { CapLifecycleState } from "./CapLifecycleState.js";
+export { capLifecycleState } from "./CapLifecycleState.js";
+export type { CapMessageType } from "./CapMessageType.js";
+export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
@@ -146,313 +129,338 @@ export type { CapReferenceCreate } from "./CapReferenceCreate.js";
 export type { CapReferencePublic } from "./CapReferencePublic.js";
 export type { CapResourceCreate } from "./CapResourceCreate.js";
 export type { CapResourcePublic } from "./CapResourcePublic.js";
-export type { CapScope, CapScopeCapScopeEnumKey } from "./CapScope.js";
-export { capScopeCapScopeEnum } from "./CapScope.js";
+export type { CapScope } from "./CapScope.js";
+export { capScope } from "./CapScope.js";
 export type { CapSettingsPublic } from "./CapSettingsPublic.js";
 export type { CapSettingsUpdate } from "./CapSettingsUpdate.js";
-export type {
-  CapSeverity,
-  CapSeverityCapSeverityEnumKey,
-} from "./CapSeverity.js";
-export { capSeverityCapSeverityEnum } from "./CapSeverity.js";
+export type { CapSeverity } from "./CapSeverity.js";
+export { capSeverity } from "./CapSeverity.js";
 export type { CapSnapshotPublic } from "./CapSnapshotPublic.js";
-export type { CapStatus, CapStatusCapStatusEnumKey } from "./CapStatus.js";
-export { capStatusCapStatusEnum } from "./CapStatus.js";
-export type { CapUrgency, CapUrgencyCapUrgencyEnumKey } from "./CapUrgency.js";
-export { capUrgencyCapUrgencyEnum } from "./CapUrgency.js";
+export type { CapStatus } from "./CapStatus.js";
+export { capStatus } from "./CapStatus.js";
+export type { CapUrgency } from "./CapUrgency.js";
+export { capUrgency } from "./CapUrgency.js";
 export type { CapValidationResult } from "./CapValidationResult.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 export type {
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch200,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutation,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPath,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponse,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponses,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422,
 } from "./ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export type {
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost200,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost201,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost403,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost422,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutation,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostBody,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponse,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponses,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus201,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus403,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostStatus422,
 } from "./CreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
 export type {
-  CreateAlertApiV1CapAlertsPost201,
-  CreateAlertApiV1CapAlertsPost422,
-  CreateAlertApiV1CapAlertsPostMutation,
-  CreateAlertApiV1CapAlertsPostMutationRequest,
-  CreateAlertApiV1CapAlertsPostMutationResponse,
+  CreateAlertApiV1CapAlertsPostBody,
+  CreateAlertApiV1CapAlertsPostOptions,
+  CreateAlertApiV1CapAlertsPostResponse,
+  CreateAlertApiV1CapAlertsPostResponses,
+  CreateAlertApiV1CapAlertsPostStatus201,
+  CreateAlertApiV1CapAlertsPostStatus422,
 } from "./CreateAlertApiV1CapAlertsPost.js";
 export type {
-  CreateCalendarEventApiV1HrCalendarEventsPost201,
-  CreateCalendarEventApiV1HrCalendarEventsPost400,
-  CreateCalendarEventApiV1HrCalendarEventsPost403,
-  CreateCalendarEventApiV1HrCalendarEventsPost404,
-  CreateCalendarEventApiV1HrCalendarEventsPost422,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutation,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+  CreateCalendarEventApiV1HrCalendarEventsPostBody,
+  CreateCalendarEventApiV1HrCalendarEventsPostOptions,
+  CreateCalendarEventApiV1HrCalendarEventsPostResponse,
+  CreateCalendarEventApiV1HrCalendarEventsPostResponses,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus400,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus403,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus404,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus422,
 } from "./CreateCalendarEventApiV1HrCalendarEventsPost.js";
 export type {
-  CreateDepartmentEndpointApiV1HrDepartmentsPost201,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost400,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost403,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost422,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutation,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostBody,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostResponse,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostResponses,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422,
 } from "./CreateDepartmentEndpointApiV1HrDepartmentsPost.js";
 export type {
-  CreateFeedApiV1CapFeedsPost201,
-  CreateFeedApiV1CapFeedsPost422,
-  CreateFeedApiV1CapFeedsPostMutation,
-  CreateFeedApiV1CapFeedsPostMutationRequest,
-  CreateFeedApiV1CapFeedsPostMutationResponse,
+  CreateFeedApiV1CapFeedsPostBody,
+  CreateFeedApiV1CapFeedsPostOptions,
+  CreateFeedApiV1CapFeedsPostResponse,
+  CreateFeedApiV1CapFeedsPostResponses,
+  CreateFeedApiV1CapFeedsPostStatus201,
+  CreateFeedApiV1CapFeedsPostStatus422,
 } from "./CreateFeedApiV1CapFeedsPost.js";
 export type {
-  CreateHolidayApiV1HrRostersPublicHolidaysPost200,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost201,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost400,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost403,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost422,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutation,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostBody,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostResponse,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostResponses,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422,
 } from "./CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
 export type {
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost201,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost400,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost403,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost404,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost422,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutation,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostBody,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostPath,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostResponse,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostResponses,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422,
 } from "./CreateHrEmploymentApiV1HrEmploymentUserIdPost.js";
 export type {
-  CreateInstanceApiV1HrWorkflowsInstancesPost200,
-  CreateInstanceApiV1HrWorkflowsInstancesPost201,
-  CreateInstanceApiV1HrWorkflowsInstancesPost403,
-  CreateInstanceApiV1HrWorkflowsInstancesPost404,
-  CreateInstanceApiV1HrWorkflowsInstancesPost422,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutation,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+  CreateInstanceApiV1HrWorkflowsInstancesPostBody,
+  CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
+  CreateInstanceApiV1HrWorkflowsInstancesPostResponse,
+  CreateInstanceApiV1HrWorkflowsInstancesPostResponses,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus200,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus403,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus404,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus422,
 } from "./CreateInstanceApiV1HrWorkflowsInstancesPost.js";
 export type {
-  CreateLeaveRequestApiV1HrLeaveRequestsPost200,
-  CreateLeaveRequestApiV1HrLeaveRequestsPost201,
-  CreateLeaveRequestApiV1HrLeaveRequestsPost403,
-  CreateLeaveRequestApiV1HrLeaveRequestsPost422,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutation,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostBody,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostResponse,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostResponses,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422,
 } from "./CreateLeaveRequestApiV1HrLeaveRequestsPost.js";
 export type {
-  CreateParkingPermitApiV1HrParkingPermitsPost201,
-  CreateParkingPermitApiV1HrParkingPermitsPost403,
-  CreateParkingPermitApiV1HrParkingPermitsPost422,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutation,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+  CreateParkingPermitApiV1HrParkingPermitsPostBody,
+  CreateParkingPermitApiV1HrParkingPermitsPostOptions,
+  CreateParkingPermitApiV1HrParkingPermitsPostResponse,
+  CreateParkingPermitApiV1HrParkingPermitsPostResponses,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus201,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus403,
+  CreateParkingPermitApiV1HrParkingPermitsPostStatus422,
 } from "./CreateParkingPermitApiV1HrParkingPermitsPost.js";
 export type {
-  CreatePeriodApiV1HrRostersPeriodsPost201,
-  CreatePeriodApiV1HrRostersPeriodsPost400,
-  CreatePeriodApiV1HrRostersPeriodsPost403,
-  CreatePeriodApiV1HrRostersPeriodsPost422,
-  CreatePeriodApiV1HrRostersPeriodsPostMutation,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+  CreatePeriodApiV1HrRostersPeriodsPostBody,
+  CreatePeriodApiV1HrRostersPeriodsPostOptions,
+  CreatePeriodApiV1HrRostersPeriodsPostResponse,
+  CreatePeriodApiV1HrRostersPeriodsPostResponses,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus201,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus400,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus403,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus422,
 } from "./CreatePeriodApiV1HrRostersPeriodsPost.js";
 export type {
-  CreatePermissionApiV1AuthPermissionsPost201,
-  CreatePermissionApiV1AuthPermissionsPost422,
-  CreatePermissionApiV1AuthPermissionsPostMutation,
-  CreatePermissionApiV1AuthPermissionsPostMutationRequest,
-  CreatePermissionApiV1AuthPermissionsPostMutationResponse,
+  CreatePermissionApiV1AuthPermissionsPostBody,
+  CreatePermissionApiV1AuthPermissionsPostOptions,
+  CreatePermissionApiV1AuthPermissionsPostResponse,
+  CreatePermissionApiV1AuthPermissionsPostResponses,
+  CreatePermissionApiV1AuthPermissionsPostStatus201,
+  CreatePermissionApiV1AuthPermissionsPostStatus422,
 } from "./CreatePermissionApiV1AuthPermissionsPost.js";
 export type {
-  CreatePredefinedAreaApiV1CapAreasPredefinedPost201,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPost422,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutation,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostBody,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostResponse,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostResponses,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422,
 } from "./CreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
 export type {
-  CreateRoleApiV1AuthRolesPost201,
-  CreateRoleApiV1AuthRolesPost422,
-  CreateRoleApiV1AuthRolesPostMutation,
-  CreateRoleApiV1AuthRolesPostMutationRequest,
-  CreateRoleApiV1AuthRolesPostMutationResponse,
+  CreateRoleApiV1AuthRolesPostBody,
+  CreateRoleApiV1AuthRolesPostOptions,
+  CreateRoleApiV1AuthRolesPostResponse,
+  CreateRoleApiV1AuthRolesPostResponses,
+  CreateRoleApiV1AuthRolesPostStatus201,
+  CreateRoleApiV1AuthRolesPostStatus422,
 } from "./CreateRoleApiV1AuthRolesPost.js";
 export type {
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost201,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutation,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostBody,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponse,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponses,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422,
 } from "./CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 export type {
-  CreateShiftApiV1HrRostersShiftsPost201,
-  CreateShiftApiV1HrRostersShiftsPost400,
-  CreateShiftApiV1HrRostersShiftsPost403,
-  CreateShiftApiV1HrRostersShiftsPost422,
-  CreateShiftApiV1HrRostersShiftsPostMutation,
-  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
-  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+  CreateShiftApiV1HrRostersShiftsPostBody,
+  CreateShiftApiV1HrRostersShiftsPostOptions,
+  CreateShiftApiV1HrRostersShiftsPostResponse,
+  CreateShiftApiV1HrRostersShiftsPostResponses,
+  CreateShiftApiV1HrRostersShiftsPostStatus201,
+  CreateShiftApiV1HrRostersShiftsPostStatus400,
+  CreateShiftApiV1HrRostersShiftsPostStatus403,
+  CreateShiftApiV1HrRostersShiftsPostStatus422,
 } from "./CreateShiftApiV1HrRostersShiftsPost.js";
 export type {
-  CreateShiftSwapApiV1HrShiftSwapsPost200,
-  CreateShiftSwapApiV1HrShiftSwapsPost201,
-  CreateShiftSwapApiV1HrShiftSwapsPost403,
-  CreateShiftSwapApiV1HrShiftSwapsPost422,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutation,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+  CreateShiftSwapApiV1HrShiftSwapsPostBody,
+  CreateShiftSwapApiV1HrShiftSwapsPostOptions,
+  CreateShiftSwapApiV1HrShiftSwapsPostResponse,
+  CreateShiftSwapApiV1HrShiftSwapsPostResponses,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus201,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus403,
+  CreateShiftSwapApiV1HrShiftSwapsPostStatus422,
 } from "./CreateShiftSwapApiV1HrShiftSwapsPost.js";
 export type {
-  CreateStatusReportApiV1HrStatusReportsPost200,
-  CreateStatusReportApiV1HrStatusReportsPost201,
-  CreateStatusReportApiV1HrStatusReportsPost403,
-  CreateStatusReportApiV1HrStatusReportsPost422,
-  CreateStatusReportApiV1HrStatusReportsPostMutation,
-  CreateStatusReportApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+  CreateStatusReportApiV1HrStatusReportsPostBody,
+  CreateStatusReportApiV1HrStatusReportsPostOptions,
+  CreateStatusReportApiV1HrStatusReportsPostResponse,
+  CreateStatusReportApiV1HrStatusReportsPostResponses,
+  CreateStatusReportApiV1HrStatusReportsPostStatus201,
+  CreateStatusReportApiV1HrStatusReportsPostStatus403,
+  CreateStatusReportApiV1HrStatusReportsPostStatus422,
 } from "./CreateStatusReportApiV1HrStatusReportsPost.js";
 export type {
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutation,
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostOptions,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponse,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponses,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502,
+  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503,
 } from "./CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost.js";
 export type {
-  CreateTemplateApiV1HrWorkflowsTemplatesPost200,
-  CreateTemplateApiV1HrWorkflowsTemplatesPost201,
-  CreateTemplateApiV1HrWorkflowsTemplatesPost403,
-  CreateTemplateApiV1HrWorkflowsTemplatesPost422,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutation,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostBody,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostResponse,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostResponses,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422,
 } from "./CreateTemplateApiV1HrWorkflowsTemplatesPost.js";
 export type {
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutation,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostBody,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPath,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponse,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponses,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422,
 } from "./CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 export type {
-  CreateTimesheetApiV1HrTimesheetsPost200,
-  CreateTimesheetApiV1HrTimesheetsPost201,
-  CreateTimesheetApiV1HrTimesheetsPost403,
-  CreateTimesheetApiV1HrTimesheetsPost422,
-  CreateTimesheetApiV1HrTimesheetsPostMutation,
-  CreateTimesheetApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+  CreateTimesheetApiV1HrTimesheetsPostBody,
+  CreateTimesheetApiV1HrTimesheetsPostOptions,
+  CreateTimesheetApiV1HrTimesheetsPostResponse,
+  CreateTimesheetApiV1HrTimesheetsPostResponses,
+  CreateTimesheetApiV1HrTimesheetsPostStatus201,
+  CreateTimesheetApiV1HrTimesheetsPostStatus403,
+  CreateTimesheetApiV1HrTimesheetsPostStatus422,
 } from "./CreateTimesheetApiV1HrTimesheetsPost.js";
 export type {
-  CreateUserApiV1AuthUsersPost201,
-  CreateUserApiV1AuthUsersPost400,
-  CreateUserApiV1AuthUsersPost403,
-  CreateUserApiV1AuthUsersPost422,
-  CreateUserApiV1AuthUsersPostMutation,
-  CreateUserApiV1AuthUsersPostMutationRequest,
-  CreateUserApiV1AuthUsersPostMutationResponse,
+  CreateUserApiV1AuthUsersPostBody,
+  CreateUserApiV1AuthUsersPostOptions,
+  CreateUserApiV1AuthUsersPostResponse,
+  CreateUserApiV1AuthUsersPostResponses,
+  CreateUserApiV1AuthUsersPostStatus201,
+  CreateUserApiV1AuthUsersPostStatus400,
+  CreateUserApiV1AuthUsersPostStatus403,
+  CreateUserApiV1AuthUsersPostStatus422,
 } from "./CreateUserApiV1AuthUsersPost.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
 export type {
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutation,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePath,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponse,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponses,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422,
 } from "./DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
 export type {
-  DeleteFeedApiV1CapFeedsFeedIdDelete204,
-  DeleteFeedApiV1CapFeedsFeedIdDelete422,
-  DeleteFeedApiV1CapFeedsFeedIdDeleteMutation,
-  DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-  DeleteFeedApiV1CapFeedsFeedIdDeletePathParams,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
+  DeleteFeedApiV1CapFeedsFeedIdDeletePath,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteResponse,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteResponses,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422,
 } from "./DeleteFeedApiV1CapFeedsFeedIdDelete.js";
 export type {
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutation,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePath,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponse,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponses,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422,
 } from "./DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
 export type {
-  DeleteRoleApiV1AuthRolesRoleIdDelete204,
-  DeleteRoleApiV1AuthRolesRoleIdDelete400,
-  DeleteRoleApiV1AuthRolesRoleIdDelete404,
-  DeleteRoleApiV1AuthRolesRoleIdDelete422,
-  DeleteRoleApiV1AuthRolesRoleIdDeleteMutation,
-  DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
-  DeleteRoleApiV1AuthRolesRoleIdDeletePathParams,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
+  DeleteRoleApiV1AuthRolesRoleIdDeletePath,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteResponse,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteResponses,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422,
 } from "./DeleteRoleApiV1AuthRolesRoleIdDelete.js";
 export type {
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutation,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePath,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponse,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponses,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422,
 } from "./DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
 export type {
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutation,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePath,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponse,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponses,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422,
 } from "./DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
 export type {
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete204,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete400,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete403,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete404,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete422,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutation,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationResponse,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteOptions,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeletePath,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponse,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponses,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422,
 } from "./DeleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
 export type {
-  DeleteUserApiV1AuthUsersUserIdDelete200,
-  DeleteUserApiV1AuthUsersUserIdDelete403,
-  DeleteUserApiV1AuthUsersUserIdDelete404,
-  DeleteUserApiV1AuthUsersUserIdDelete422,
-  DeleteUserApiV1AuthUsersUserIdDeleteMutation,
-  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
+  DeleteUserApiV1AuthUsersUserIdDeleteOptions,
+  DeleteUserApiV1AuthUsersUserIdDeletePath,
+  DeleteUserApiV1AuthUsersUserIdDeleteResponse,
+  DeleteUserApiV1AuthUsersUserIdDeleteResponses,
+  DeleteUserApiV1AuthUsersUserIdDeleteStatus200,
+  DeleteUserApiV1AuthUsersUserIdDeleteStatus403,
+  DeleteUserApiV1AuthUsersUserIdDeleteStatus404,
+  DeleteUserApiV1AuthUsersUserIdDeleteStatus422,
 } from "./DeleteUserApiV1AuthUsersUserIdDelete.js";
 export type {
-  DeleteUserMeApiV1AuthUsersMeDelete200,
-  DeleteUserMeApiV1AuthUsersMeDelete403,
-  DeleteUserMeApiV1AuthUsersMeDeleteMutation,
-  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+  DeleteUserMeApiV1AuthUsersMeDeleteOptions,
+  DeleteUserMeApiV1AuthUsersMeDeleteResponse,
+  DeleteUserMeApiV1AuthUsersMeDeleteResponses,
+  DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+  DeleteUserMeApiV1AuthUsersMeDeleteStatus403,
 } from "./DeleteUserMeApiV1AuthUsersMeDelete.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./DepartmentMemberPublic.js";
@@ -461,31 +469,34 @@ export type { DepartmentPublic } from "./DepartmentPublic.js";
 export type { DepartmentsPublic } from "./DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./DepartmentUpdate.js";
 export type {
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutation,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPath,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponse,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponses,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422,
 } from "./DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 export type { EmailConfirm } from "./EmailConfirm.js";
 export type {
-  EmailConfirmApiV1AuthModernEmailConfirmPost200,
-  EmailConfirmApiV1AuthModernEmailConfirmPost400,
-  EmailConfirmApiV1AuthModernEmailConfirmPost403,
-  EmailConfirmApiV1AuthModernEmailConfirmPost422,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutation,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+  EmailConfirmApiV1AuthModernEmailConfirmPostBody,
+  EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
+  EmailConfirmApiV1AuthModernEmailConfirmPostResponse,
+  EmailConfirmApiV1AuthModernEmailConfirmPostResponses,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus200,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus400,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus403,
+  EmailConfirmApiV1AuthModernEmailConfirmPostStatus422,
 } from "./EmailConfirmApiV1AuthModernEmailConfirmPost.js";
 export type { EmailRequest } from "./EmailRequest.js";
 export type {
-  EmailRequestApiV1AuthModernEmailRequestPost200,
-  EmailRequestApiV1AuthModernEmailRequestPost400,
-  EmailRequestApiV1AuthModernEmailRequestPost403,
-  EmailRequestApiV1AuthModernEmailRequestPost422,
-  EmailRequestApiV1AuthModernEmailRequestPostMutation,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationRequest,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+  EmailRequestApiV1AuthModernEmailRequestPostBody,
+  EmailRequestApiV1AuthModernEmailRequestPostOptions,
+  EmailRequestApiV1AuthModernEmailRequestPostResponse,
+  EmailRequestApiV1AuthModernEmailRequestPostResponses,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus200,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus400,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus403,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus422,
 } from "./EmailRequestApiV1AuthModernEmailRequestPost.js";
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
@@ -493,134 +504,137 @@ export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type { EmploymentCreate } from "./EmploymentCreate.js";
 export type { EmploymentPublic } from "./EmploymentPublic.js";
 export type { EmploymentRecordPublic } from "./EmploymentRecordPublic.js";
-export type {
-  EmploymentStatus,
-  EmploymentStatusEmploymentStatusEnumKey,
-} from "./EmploymentStatus.js";
-export { employmentStatusEmploymentStatusEnum } from "./EmploymentStatus.js";
-export type {
-  EmploymentType,
-  EmploymentTypeEmploymentTypeEnumKey,
-} from "./EmploymentType.js";
-export { employmentTypeEmploymentTypeEnum } from "./EmploymentType.js";
+export type { EmploymentStatus } from "./EmploymentStatus.js";
+export { employmentStatus } from "./EmploymentStatus.js";
+export type { EmploymentType } from "./EmploymentType.js";
+export { employmentType } from "./EmploymentType.js";
 export type { EmploymentUpdate } from "./EmploymentUpdate.js";
 export type {
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutation,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostBody,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponse,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponses,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422,
 } from "./ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
 export type {
-  ExpireAlertApiV1CapAlertsAlertIdExpirePost200,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePost422,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutation,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse,
-  ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostBody,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostPath,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostResponse,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostResponses,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
+  ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422,
 } from "./ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
-export type { Gender, GenderGenderEnumKey } from "./Gender.js";
-export { genderGenderEnum } from "./Gender.js";
+export type { Gender } from "./Gender.js";
+export { gender } from "./Gender.js";
 export type {
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet200,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet404,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet422,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQuery,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPath,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponse,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponses,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422,
 } from "./GetPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 export type {
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet200,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQuery,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPath,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponse,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponses,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422,
 } from "./GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 export type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
 export type { GoogleComplete } from "./GoogleComplete.js";
 export type {
-  GoogleCompleteApiV1AuthModernGoogleCompletePost200,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost400,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost403,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost422,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutation,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostBody,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostResponse,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostResponses,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422,
 } from "./GoogleCompleteApiV1AuthModernGoogleCompletePost.js";
 export type { GoogleFinish } from "./GoogleFinish.js";
 export type {
-  GoogleFinishApiV1AuthModernGoogleFinishPost200,
-  GoogleFinishApiV1AuthModernGoogleFinishPost400,
-  GoogleFinishApiV1AuthModernGoogleFinishPost403,
-  GoogleFinishApiV1AuthModernGoogleFinishPost422,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutation,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest,
-  GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse,
+  GoogleFinishApiV1AuthModernGoogleFinishPostBody,
+  GoogleFinishApiV1AuthModernGoogleFinishPostOptions,
+  GoogleFinishApiV1AuthModernGoogleFinishPostResponse,
+  GoogleFinishApiV1AuthModernGoogleFinishPostResponses,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus200,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus400,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus403,
+  GoogleFinishApiV1AuthModernGoogleFinishPostStatus422,
 } from "./GoogleFinishApiV1AuthModernGoogleFinishPost.js";
 export type { GoogleStart } from "./GoogleStart.js";
 export type {
-  GoogleStartApiV1AuthModernGoogleStartPost200,
-  GoogleStartApiV1AuthModernGoogleStartPost400,
-  GoogleStartApiV1AuthModernGoogleStartPost403,
-  GoogleStartApiV1AuthModernGoogleStartPost422,
-  GoogleStartApiV1AuthModernGoogleStartPostMutation,
-  GoogleStartApiV1AuthModernGoogleStartPostMutationRequest,
-  GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+  GoogleStartApiV1AuthModernGoogleStartPostBody,
+  GoogleStartApiV1AuthModernGoogleStartPostOptions,
+  GoogleStartApiV1AuthModernGoogleStartPostResponse,
+  GoogleStartApiV1AuthModernGoogleStartPostResponses,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus200,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus400,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus403,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus422,
 } from "./GoogleStartApiV1AuthModernGoogleStartPost.js";
 export type { GoogleStartPublic } from "./GoogleStartPublic.js";
 export type { GradeInput } from "./GradeInput.js";
 export type { GradePublic } from "./GradePublic.js";
 export type { GradeSetup } from "./GradeSetup.js";
 export type {
-  HealthCheckApiV1UtilsHealthCheckGet200,
-  HealthCheckApiV1UtilsHealthCheckGetQuery,
-  HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
+  HealthCheckApiV1UtilsHealthCheckGetOptions,
+  HealthCheckApiV1UtilsHealthCheckGetResponse,
+  HealthCheckApiV1UtilsHealthCheckGetResponses,
+  HealthCheckApiV1UtilsHealthCheckGetStatus200,
 } from "./HealthCheckApiV1UtilsHealthCheckGet.js";
 export type { HrDashboardPublic } from "./HrDashboardPublic.js";
 export type { HTTPValidationError } from "./HTTPValidationError.js";
 export type {
-  ImportAlertApiV1CapAlertsImportPost201,
-  ImportAlertApiV1CapAlertsImportPost422,
-  ImportAlertApiV1CapAlertsImportPostMutation,
-  ImportAlertApiV1CapAlertsImportPostMutationRequest,
-  ImportAlertApiV1CapAlertsImportPostMutationResponse,
+  ImportAlertApiV1CapAlertsImportPostBody,
+  ImportAlertApiV1CapAlertsImportPostOptions,
+  ImportAlertApiV1CapAlertsImportPostResponse,
+  ImportAlertApiV1CapAlertsImportPostResponses,
+  ImportAlertApiV1CapAlertsImportPostStatus201,
+  ImportAlertApiV1CapAlertsImportPostStatus422,
 } from "./ImportAlertApiV1CapAlertsImportPost.js";
 export type {
-  ImportCsvApiV1HrRostersImportCsvPost200,
-  ImportCsvApiV1HrRostersImportCsvPost400,
-  ImportCsvApiV1HrRostersImportCsvPost403,
-  ImportCsvApiV1HrRostersImportCsvPost422,
-  ImportCsvApiV1HrRostersImportCsvPostMutation,
-  ImportCsvApiV1HrRostersImportCsvPostMutationRequest,
-  ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+  ImportCsvApiV1HrRostersImportCsvPostBody,
+  ImportCsvApiV1HrRostersImportCsvPostOptions,
+  ImportCsvApiV1HrRostersImportCsvPostResponse,
+  ImportCsvApiV1HrRostersImportCsvPostResponses,
+  ImportCsvApiV1HrRostersImportCsvPostStatus200,
+  ImportCsvApiV1HrRostersImportCsvPostStatus400,
+  ImportCsvApiV1HrRostersImportCsvPostStatus403,
+  ImportCsvApiV1HrRostersImportCsvPostStatus422,
 } from "./ImportCsvApiV1HrRostersImportCsvPost.js";
 export type {
-  ImportGridApiV1HrRostersImportGridPost200,
-  ImportGridApiV1HrRostersImportGridPost400,
-  ImportGridApiV1HrRostersImportGridPost403,
-  ImportGridApiV1HrRostersImportGridPost404,
-  ImportGridApiV1HrRostersImportGridPost422,
-  ImportGridApiV1HrRostersImportGridPostMutation,
-  ImportGridApiV1HrRostersImportGridPostMutationRequest,
-  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+  ImportGridApiV1HrRostersImportGridPostBody,
+  ImportGridApiV1HrRostersImportGridPostOptions,
+  ImportGridApiV1HrRostersImportGridPostResponse,
+  ImportGridApiV1HrRostersImportGridPostResponses,
+  ImportGridApiV1HrRostersImportGridPostStatus200,
+  ImportGridApiV1HrRostersImportGridPostStatus400,
+  ImportGridApiV1HrRostersImportGridPostStatus403,
+  ImportGridApiV1HrRostersImportGridPostStatus404,
+  ImportGridApiV1HrRostersImportGridPostStatus422,
 } from "./ImportGridApiV1HrRostersImportGridPost.js";
+export type { ImportStatus } from "./ImportStatus.js";
+export { importStatus } from "./ImportStatus.js";
 export type {
-  ImportStatus,
-  ImportStatusImportStatusEnumKey,
-} from "./ImportStatus.js";
-export { importStatusImportStatusEnum } from "./ImportStatus.js";
-export type {
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutation,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBody,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPath,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponse,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponses,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422,
 } from "./IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export type { LeavePublic } from "./LeavePublic.js";
 export type { LeaveRequestAction } from "./LeaveRequestAction.js";
@@ -628,148 +642,152 @@ export type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 export type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
 export type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 export type { LeaveRequestSubmit } from "./LeaveRequestSubmit.js";
-export type { LeaveType, LeaveTypeLeaveTypeEnumKey } from "./LeaveType.js";
-export { leaveTypeLeaveTypeEnum } from "./LeaveType.js";
+export type { LeaveType } from "./LeaveType.js";
+export { leaveType } from "./LeaveType.js";
 export type {
-  ListAssignmentsApiV1HrRostersAssignmentsGet200,
-  ListAssignmentsApiV1HrRostersAssignmentsGet400,
-  ListAssignmentsApiV1HrRostersAssignmentsGet403,
-  ListAssignmentsApiV1HrRostersAssignmentsGet404,
-  ListAssignmentsApiV1HrRostersAssignmentsGet422,
+  ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
   ListAssignmentsApiV1HrRostersAssignmentsGetQuery,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnumKey,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+  ListAssignmentsApiV1HrRostersAssignmentsGetResponse,
+  ListAssignmentsApiV1HrRostersAssignmentsGetResponses,
+  ListAssignmentsApiV1HrRostersAssignmentsGetScope,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus400,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus403,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus404,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus422,
 } from "./ListAssignmentsApiV1HrRostersAssignmentsGet.js";
-export { listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnum } from "./ListAssignmentsApiV1HrRostersAssignmentsGet.js";
+export { listAssignmentsApiV1HrRostersAssignmentsGetScope } from "./ListAssignmentsApiV1HrRostersAssignmentsGet.js";
 export type {
-  ListCalendarEventsApiV1HrCalendarEventsGet200,
-  ListCalendarEventsApiV1HrCalendarEventsGet400,
-  ListCalendarEventsApiV1HrCalendarEventsGet403,
-  ListCalendarEventsApiV1HrCalendarEventsGet404,
-  ListCalendarEventsApiV1HrCalendarEventsGet422,
+  ListCalendarEventsApiV1HrCalendarEventsGetOptions,
   ListCalendarEventsApiV1HrCalendarEventsGetQuery,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+  ListCalendarEventsApiV1HrCalendarEventsGetResponse,
+  ListCalendarEventsApiV1HrCalendarEventsGetResponses,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus400,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus403,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus404,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus422,
 } from "./ListCalendarEventsApiV1HrCalendarEventsGet.js";
 export type {
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQuery,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPath,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponse,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponses,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422,
 } from "./ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export type {
-  ListDepartmentsEndpointApiV1HrDepartmentsGet200,
-  ListDepartmentsEndpointApiV1HrDepartmentsGet403,
-  ListDepartmentsEndpointApiV1HrDepartmentsGetQuery,
-  ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetOptions,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetResponse,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetResponses,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403,
 } from "./ListDepartmentsEndpointApiV1HrDepartmentsGet.js";
 export type {
-  ListHolidaysApiV1HrRostersPublicHolidaysGet200,
-  ListHolidaysApiV1HrRostersPublicHolidaysGet403,
-  ListHolidaysApiV1HrRostersPublicHolidaysGet422,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetOptions,
   ListHolidaysApiV1HrRostersPublicHolidaysGetQuery,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetResponse,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetResponses,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422,
 } from "./ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
 export type {
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGet200,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGet422,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions,
   ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponse,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponses,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422,
 } from "./ListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export type {
-  ListPeriodsApiV1HrRostersPeriodsGet200,
-  ListPeriodsApiV1HrRostersPeriodsGet403,
-  ListPeriodsApiV1HrRostersPeriodsGet422,
+  ListPeriodsApiV1HrRostersPeriodsGetOptions,
   ListPeriodsApiV1HrRostersPeriodsGetQuery,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+  ListPeriodsApiV1HrRostersPeriodsGetResponse,
+  ListPeriodsApiV1HrRostersPeriodsGetResponses,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus200,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus403,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus422,
 } from "./ListPeriodsApiV1HrRostersPeriodsGet.js";
 export type {
-  ListShiftCatalogApiV1HrRostersShiftsGet200,
-  ListShiftCatalogApiV1HrRostersShiftsGet403,
-  ListShiftCatalogApiV1HrRostersShiftsGet422,
+  ListShiftCatalogApiV1HrRostersShiftsGetOptions,
   ListShiftCatalogApiV1HrRostersShiftsGetQuery,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+  ListShiftCatalogApiV1HrRostersShiftsGetResponse,
+  ListShiftCatalogApiV1HrRostersShiftsGetResponses,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus200,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus403,
+  ListShiftCatalogApiV1HrRostersShiftsGetStatus422,
 } from "./ListShiftCatalogApiV1HrRostersShiftsGet.js";
 export type {
-  LoginAccessTokenApiV1LoginAccessTokenPost200,
-  LoginAccessTokenApiV1LoginAccessTokenPost400,
-  LoginAccessTokenApiV1LoginAccessTokenPost422,
-  LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutation,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+  LoginAccessTokenApiV1LoginAccessTokenPostBody,
+  LoginAccessTokenApiV1LoginAccessTokenPostOptions,
+  LoginAccessTokenApiV1LoginAccessTokenPostResponse,
+  LoginAccessTokenApiV1LoginAccessTokenPostResponses,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus400,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus422,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus429,
 } from "./LoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type {
-  LoginSessionApiV1LoginSessionPost200,
-  LoginSessionApiV1LoginSessionPost400,
-  LoginSessionApiV1LoginSessionPost422,
-  LoginSessionApiV1LoginSessionPost429,
-  LoginSessionApiV1LoginSessionPostMutation,
-  LoginSessionApiV1LoginSessionPostMutationRequest,
-  LoginSessionApiV1LoginSessionPostMutationResponse,
+  LoginSessionApiV1LoginSessionPostBody,
+  LoginSessionApiV1LoginSessionPostOptions,
+  LoginSessionApiV1LoginSessionPostResponse,
+  LoginSessionApiV1LoginSessionPostResponses,
+  LoginSessionApiV1LoginSessionPostStatus200,
+  LoginSessionApiV1LoginSessionPostStatus400,
+  LoginSessionApiV1LoginSessionPostStatus422,
+  LoginSessionApiV1LoginSessionPostStatus429,
 } from "./LoginSessionApiV1LoginSessionPost.js";
 export type {
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPost200,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPost422,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutation,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationResponse,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostBody,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostOptions,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponse,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponses,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422,
 } from "./LogoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
 export type {
-  LogoutSessionApiV1LoginSessionLogoutPost200,
-  LogoutSessionApiV1LoginSessionLogoutPost422,
-  LogoutSessionApiV1LoginSessionLogoutPostMutation,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationRequest,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
+  LogoutSessionApiV1LoginSessionLogoutPostBody,
+  LogoutSessionApiV1LoginSessionLogoutPostOptions,
+  LogoutSessionApiV1LoginSessionLogoutPostResponse,
+  LogoutSessionApiV1LoginSessionLogoutPostResponses,
+  LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+  LogoutSessionApiV1LoginSessionLogoutPostStatus422,
 } from "./LogoutSessionApiV1LoginSessionLogoutPost.js";
 export type { Message } from "./Message.js";
 export type { NewPassword } from "./NewPassword.js";
 export type {
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost200,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutation,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPath,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponse,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponses,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422,
 } from "./OffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
-export type { Parish, ParishParishEnumKey } from "./Parish.js";
-export { parishParishEnum } from "./Parish.js";
-export type {
-  ParkingAction,
-  ParkingActionParkingActionEnumKey,
-} from "./ParkingAction.js";
-export { parkingActionParkingActionEnum } from "./ParkingAction.js";
+export type { Parish } from "./Parish.js";
+export { parish } from "./Parish.js";
+export type { ParkingAction } from "./ParkingAction.js";
+export { parkingAction } from "./ParkingAction.js";
 export type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
-export type {
-  PersonnelStatus,
-  PersonnelStatusPersonnelStatusEnumKey,
-} from "./PersonnelStatus.js";
-export { personnelStatusPersonnelStatusEnum } from "./PersonnelStatus.js";
+export type { PersonnelStatus } from "./PersonnelStatus.js";
+export { personnelStatus } from "./PersonnelStatus.js";
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
-export type {
-  ProfAppointmentType,
-  ProfAppointmentTypeProfAppointmentTypeEnumKey,
-} from "./ProfAppointmentType.js";
-export { profAppointmentTypeProfAppointmentTypeEnum } from "./ProfAppointmentType.js";
+export type { ProfAppointmentType } from "./ProfAppointmentType.js";
+export { profAppointmentType } from "./ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
@@ -778,423 +796,474 @@ export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 export type {
-  PublishAlertApiV1CapAlertsAlertIdPublishPost200,
-  PublishAlertApiV1CapAlertsAlertIdPublishPost422,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutation,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostBody,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostPath,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostResponse,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostResponses,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422,
 } from "./PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export type {
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutation,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPath,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponse,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponses,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422,
 } from "./PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export type {
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet200,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions,
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQuery,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponse,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponses,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422,
 } from "./ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
 export type {
-  ReadAccountSecurityApiV1AuthModernSecurityGet200,
-  ReadAccountSecurityApiV1AuthModernSecurityGet401,
-  ReadAccountSecurityApiV1AuthModernSecurityGet403,
-  ReadAccountSecurityApiV1AuthModernSecurityGetQuery,
-  ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+  ReadAccountSecurityApiV1AuthModernSecurityGetOptions,
+  ReadAccountSecurityApiV1AuthModernSecurityGetResponse,
+  ReadAccountSecurityApiV1AuthModernSecurityGetResponses,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus401,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus403,
 } from "./ReadAccountSecurityApiV1AuthModernSecurityGet.js";
 export type {
-  ReadActiveMapApiCapActiveMapGet200,
-  ReadActiveMapApiCapActiveMapGetQuery,
-  ReadActiveMapApiCapActiveMapGetQueryResponse,
+  ReadActiveMapApiCapActiveMapGetOptions,
+  ReadActiveMapApiCapActiveMapGetResponse,
+  ReadActiveMapApiCapActiveMapGetResponses,
+  ReadActiveMapApiCapActiveMapGetStatus200,
 } from "./ReadActiveMapApiCapActiveMapGet.js";
 export type {
-  ReadAlertApiV1CapAlertsAlertIdGet200,
-  ReadAlertApiV1CapAlertsAlertIdGet422,
-  ReadAlertApiV1CapAlertsAlertIdGetPathParams,
-  ReadAlertApiV1CapAlertsAlertIdGetQuery,
-  ReadAlertApiV1CapAlertsAlertIdGetQueryResponse,
+  ReadAlertApiV1CapAlertsAlertIdGetOptions,
+  ReadAlertApiV1CapAlertsAlertIdGetPath,
+  ReadAlertApiV1CapAlertsAlertIdGetResponse,
+  ReadAlertApiV1CapAlertsAlertIdGetResponses,
+  ReadAlertApiV1CapAlertsAlertIdGetStatus200,
+  ReadAlertApiV1CapAlertsAlertIdGetStatus422,
 } from "./ReadAlertApiV1CapAlertsAlertIdGet.js";
 export type {
-  ReadAlertsApiV1CapAlertsGet200,
-  ReadAlertsApiV1CapAlertsGet422,
+  ReadAlertsApiV1CapAlertsGetOptions,
   ReadAlertsApiV1CapAlertsGetQuery,
-  ReadAlertsApiV1CapAlertsGetQueryParams,
-  ReadAlertsApiV1CapAlertsGetQueryResponse,
+  ReadAlertsApiV1CapAlertsGetResponse,
+  ReadAlertsApiV1CapAlertsGetResponses,
+  ReadAlertsApiV1CapAlertsGetStatus200,
+  ReadAlertsApiV1CapAlertsGetStatus422,
 } from "./ReadAlertsApiV1CapAlertsGet.js";
 export type {
-  ReadAlertsGeojsonApiCapAlertsGeojsonGet200,
-  ReadAlertsGeojsonApiCapAlertsGeojsonGetQuery,
-  ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetOptions,
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetResponse,
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetResponses,
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetStatus200,
 } from "./ReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
 export type {
-  ReadAuditApiV1CapAuditGet200,
-  ReadAuditApiV1CapAuditGet422,
+  ReadAuditApiV1CapAuditGetOptions,
   ReadAuditApiV1CapAuditGetQuery,
-  ReadAuditApiV1CapAuditGetQueryParams,
-  ReadAuditApiV1CapAuditGetQueryResponse,
+  ReadAuditApiV1CapAuditGetResponse,
+  ReadAuditApiV1CapAuditGetResponses,
+  ReadAuditApiV1CapAuditGetStatus200,
+  ReadAuditApiV1CapAuditGetStatus422,
 } from "./ReadAuditApiV1CapAuditGet.js";
 export type {
-  ReadCapSettingsApiV1CapSettingsGet200,
-  ReadCapSettingsApiV1CapSettingsGetQuery,
-  ReadCapSettingsApiV1CapSettingsGetQueryResponse,
+  ReadCapSettingsApiV1CapSettingsGetOptions,
+  ReadCapSettingsApiV1CapSettingsGetResponse,
+  ReadCapSettingsApiV1CapSettingsGetResponses,
+  ReadCapSettingsApiV1CapSettingsGetStatus200,
 } from "./ReadCapSettingsApiV1CapSettingsGet.js";
 export type {
-  ReadCapXmlApiCapIdentifierXmlGet200,
-  ReadCapXmlApiCapIdentifierXmlGet422,
-  ReadCapXmlApiCapIdentifierXmlGetPathParams,
-  ReadCapXmlApiCapIdentifierXmlGetQuery,
-  ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
+  ReadCapXmlApiCapIdentifierXmlGetOptions,
+  ReadCapXmlApiCapIdentifierXmlGetPath,
+  ReadCapXmlApiCapIdentifierXmlGetResponse,
+  ReadCapXmlApiCapIdentifierXmlGetResponses,
+  ReadCapXmlApiCapIdentifierXmlGetStatus200,
+  ReadCapXmlApiCapIdentifierXmlGetStatus422,
 } from "./ReadCapXmlApiCapIdentifierXmlGet.js";
 export type {
-  ReadCatalogsApiV1CapCatalogsGet200,
-  ReadCatalogsApiV1CapCatalogsGetQuery,
-  ReadCatalogsApiV1CapCatalogsGetQueryResponse,
+  ReadCatalogsApiV1CapCatalogsGetOptions,
+  ReadCatalogsApiV1CapCatalogsGetResponse,
+  ReadCatalogsApiV1CapCatalogsGetResponses,
+  ReadCatalogsApiV1CapCatalogsGetStatus200,
 } from "./ReadCatalogsApiV1CapCatalogsGet.js";
 export type {
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuery,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponse,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponses,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422,
 } from "./ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export type {
-  ReadFeedsApiV1CapFeedsGet200,
-  ReadFeedsApiV1CapFeedsGetQuery,
-  ReadFeedsApiV1CapFeedsGetQueryResponse,
+  ReadFeedsApiV1CapFeedsGetOptions,
+  ReadFeedsApiV1CapFeedsGetResponse,
+  ReadFeedsApiV1CapFeedsGetResponses,
+  ReadFeedsApiV1CapFeedsGetStatus200,
 } from "./ReadFeedsApiV1CapFeedsGet.js";
 export type {
-  ReadHrDashboardApiV1HrDashboardGet200,
-  ReadHrDashboardApiV1HrDashboardGet401,
-  ReadHrDashboardApiV1HrDashboardGet403,
-  ReadHrDashboardApiV1HrDashboardGetQuery,
-  ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+  ReadHrDashboardApiV1HrDashboardGetOptions,
+  ReadHrDashboardApiV1HrDashboardGetResponse,
+  ReadHrDashboardApiV1HrDashboardGetResponses,
+  ReadHrDashboardApiV1HrDashboardGetStatus200,
+  ReadHrDashboardApiV1HrDashboardGetStatus401,
+  ReadHrDashboardApiV1HrDashboardGetStatus403,
 } from "./ReadHrDashboardApiV1HrDashboardGet.js";
 export type {
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet200,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetQuery,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetPath,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetResponse,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetResponses,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422,
 } from "./ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export type {
-  ReadHrProfileMeApiV1HrProfileMeGet200,
-  ReadHrProfileMeApiV1HrProfileMeGet404,
-  ReadHrProfileMeApiV1HrProfileMeGetQuery,
-  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGetOptions,
+  ReadHrProfileMeApiV1HrProfileMeGetResponse,
+  ReadHrProfileMeApiV1HrProfileMeGetResponses,
+  ReadHrProfileMeApiV1HrProfileMeGetStatus200,
+  ReadHrProfileMeApiV1HrProfileMeGetStatus404,
 } from "./ReadHrProfileMeApiV1HrProfileMeGet.js";
 export type {
-  ReadInboxApiV1HrWorkflowsInstancesInboxGet200,
-  ReadInboxApiV1HrWorkflowsInstancesInboxGet403,
-  ReadInboxApiV1HrWorkflowsInstancesInboxGetQuery,
-  ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetOptions,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetResponse,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetResponses,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403,
 } from "./ReadInboxApiV1HrWorkflowsInstancesInboxGet.js";
 export type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet200,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQuery,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPath,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponse,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponses,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422,
 } from "./ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
 export type {
-  ReadIntegrationsApiV1CapIntegrationsGet200,
-  ReadIntegrationsApiV1CapIntegrationsGetQuery,
-  ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
+  ReadIntegrationsApiV1CapIntegrationsGetOptions,
+  ReadIntegrationsApiV1CapIntegrationsGetResponse,
+  ReadIntegrationsApiV1CapIntegrationsGetResponses,
+  ReadIntegrationsApiV1CapIntegrationsGetStatus200,
 } from "./ReadIntegrationsApiV1CapIntegrationsGet.js";
 export type {
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200,
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetOptions,
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery,
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams,
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponse,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponses,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200,
+  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422,
 } from "./ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export type {
-  ReadMyTimesheetsApiV1HrTimesheetsMeGet200,
-  ReadMyTimesheetsApiV1HrTimesheetsMeGet422,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetOptions,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery,
-  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams,
-  ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetResponse,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetResponses,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus200,
+  ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus422,
 } from "./ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
 export type {
-  ReadParkingPermitsApiV1HrParkingPermitsGet200,
-  ReadParkingPermitsApiV1HrParkingPermitsGet403,
-  ReadParkingPermitsApiV1HrParkingPermitsGet422,
+  ReadParkingPermitsApiV1HrParkingPermitsGetOptions,
   ReadParkingPermitsApiV1HrParkingPermitsGetQuery,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+  ReadParkingPermitsApiV1HrParkingPermitsGetResponse,
+  ReadParkingPermitsApiV1HrParkingPermitsGetResponses,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus200,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus403,
+  ReadParkingPermitsApiV1HrParkingPermitsGetStatus422,
 } from "./ReadParkingPermitsApiV1HrParkingPermitsGet.js";
 export type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet200,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQuery,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetPath,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetResponse,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetResponses,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus200,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus404,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetStatus422,
 } from "./ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
 export type {
-  ReadPermissionsApiV1AuthPermissionsGet200,
-  ReadPermissionsApiV1AuthPermissionsGet422,
+  ReadPermissionsApiV1AuthPermissionsGetOptions,
   ReadPermissionsApiV1AuthPermissionsGetQuery,
-  ReadPermissionsApiV1AuthPermissionsGetQueryParams,
-  ReadPermissionsApiV1AuthPermissionsGetQueryResponse,
+  ReadPermissionsApiV1AuthPermissionsGetResponse,
+  ReadPermissionsApiV1AuthPermissionsGetResponses,
+  ReadPermissionsApiV1AuthPermissionsGetStatus200,
+  ReadPermissionsApiV1AuthPermissionsGetStatus422,
 } from "./ReadPermissionsApiV1AuthPermissionsGet.js";
 export type {
-  ReadPredefinedAreasApiV1CapAreasPredefinedGet200,
-  ReadPredefinedAreasApiV1CapAreasPredefinedGetQuery,
-  ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetOptions,
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetResponse,
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses,
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
 } from "./ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
 export type {
-  ReadPublicAlertApiCapAlertsIdentifierGet200,
-  ReadPublicAlertApiCapAlertsIdentifierGet422,
-  ReadPublicAlertApiCapAlertsIdentifierGetPathParams,
-  ReadPublicAlertApiCapAlertsIdentifierGetQuery,
-  ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
+  ReadPublicAlertApiCapAlertsIdentifierGetOptions,
+  ReadPublicAlertApiCapAlertsIdentifierGetPath,
+  ReadPublicAlertApiCapAlertsIdentifierGetResponse,
+  ReadPublicAlertApiCapAlertsIdentifierGetResponses,
+  ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
+  ReadPublicAlertApiCapAlertsIdentifierGetStatus422,
 } from "./ReadPublicAlertApiCapAlertsIdentifierGet.js";
 export type {
-  ReadPublicAlertsApiCapAlertsGet200,
-  ReadPublicAlertsApiCapAlertsGetQuery,
-  ReadPublicAlertsApiCapAlertsGetQueryResponse,
+  ReadPublicAlertsApiCapAlertsGetOptions,
+  ReadPublicAlertsApiCapAlertsGetResponse,
+  ReadPublicAlertsApiCapAlertsGetResponses,
+  ReadPublicAlertsApiCapAlertsGetStatus200,
 } from "./ReadPublicAlertsApiCapAlertsGet.js";
 export type {
-  ReadPublicLatestActiveApiCapLatestActiveGet200,
-  ReadPublicLatestActiveApiCapLatestActiveGetQuery,
-  ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
+  ReadPublicLatestActiveApiCapLatestActiveGetOptions,
+  ReadPublicLatestActiveApiCapLatestActiveGetResponse,
+  ReadPublicLatestActiveApiCapLatestActiveGetResponses,
+  ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
 } from "./ReadPublicLatestActiveApiCapLatestActiveGet.js";
 export type {
-  ReadPublicPastAlertsApiCapPastGet200,
-  ReadPublicPastAlertsApiCapPastGetQuery,
-  ReadPublicPastAlertsApiCapPastGetQueryResponse,
+  ReadPublicPastAlertsApiCapPastGetOptions,
+  ReadPublicPastAlertsApiCapPastGetResponse,
+  ReadPublicPastAlertsApiCapPastGetResponses,
+  ReadPublicPastAlertsApiCapPastGetStatus200,
 } from "./ReadPublicPastAlertsApiCapPastGet.js";
 export type {
-  ReadRoleApiV1AuthRolesRoleIdGet200,
-  ReadRoleApiV1AuthRolesRoleIdGet404,
-  ReadRoleApiV1AuthRolesRoleIdGet422,
-  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
-  ReadRoleApiV1AuthRolesRoleIdGetQuery,
-  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+  ReadRoleApiV1AuthRolesRoleIdGetOptions,
+  ReadRoleApiV1AuthRolesRoleIdGetPath,
+  ReadRoleApiV1AuthRolesRoleIdGetResponse,
+  ReadRoleApiV1AuthRolesRoleIdGetResponses,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus200,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus404,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus422,
 } from "./ReadRoleApiV1AuthRolesRoleIdGet.js";
 export type {
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQuery,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPath,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponse,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponses,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422,
 } from "./ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 export type {
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet200,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions,
   ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQuery,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponse,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponses,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422,
 } from "./ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 export type {
-  ReadRoleConfigurationApiV1HrSetupRolesGet200,
-  ReadRoleConfigurationApiV1HrSetupRolesGet403,
-  ReadRoleConfigurationApiV1HrSetupRolesGet404,
-  ReadRoleConfigurationApiV1HrSetupRolesGet409,
-  ReadRoleConfigurationApiV1HrSetupRolesGetQuery,
-  ReadRoleConfigurationApiV1HrSetupRolesGetQueryResponse,
+  ReadRoleConfigurationApiV1HrSetupRolesGetOptions,
+  ReadRoleConfigurationApiV1HrSetupRolesGetResponse,
+  ReadRoleConfigurationApiV1HrSetupRolesGetResponses,
+  ReadRoleConfigurationApiV1HrSetupRolesGetStatus200,
+  ReadRoleConfigurationApiV1HrSetupRolesGetStatus403,
+  ReadRoleConfigurationApiV1HrSetupRolesGetStatus404,
+  ReadRoleConfigurationApiV1HrSetupRolesGetStatus409,
 } from "./ReadRoleConfigurationApiV1HrSetupRolesGet.js";
 export type {
-  ReadRolesApiV1AuthRolesGet200,
-  ReadRolesApiV1AuthRolesGet422,
+  ReadRolesApiV1AuthRolesGetOptions,
   ReadRolesApiV1AuthRolesGetQuery,
-  ReadRolesApiV1AuthRolesGetQueryParams,
-  ReadRolesApiV1AuthRolesGetQueryResponse,
+  ReadRolesApiV1AuthRolesGetResponse,
+  ReadRolesApiV1AuthRolesGetResponses,
+  ReadRolesApiV1AuthRolesGetStatus200,
+  ReadRolesApiV1AuthRolesGetStatus422,
 } from "./ReadRolesApiV1AuthRolesGet.js";
 export type {
-  ReadRssApiCapRssXmlGet200,
-  ReadRssApiCapRssXmlGetQuery,
-  ReadRssApiCapRssXmlGetQueryResponse,
+  ReadRssApiCapRssXmlGetOptions,
+  ReadRssApiCapRssXmlGetResponse,
+  ReadRssApiCapRssXmlGetResponses,
+  ReadRssApiCapRssXmlGetStatus200,
 } from "./ReadRssApiCapRssXmlGet.js";
 export type {
-  ReadSetupGradesApiV1HrSetupGradesGet200,
-  ReadSetupGradesApiV1HrSetupGradesGet403,
-  ReadSetupGradesApiV1HrSetupGradesGet404,
-  ReadSetupGradesApiV1HrSetupGradesGet409,
-  ReadSetupGradesApiV1HrSetupGradesGetQuery,
-  ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+  ReadSetupGradesApiV1HrSetupGradesGetOptions,
+  ReadSetupGradesApiV1HrSetupGradesGetResponse,
+  ReadSetupGradesApiV1HrSetupGradesGetResponses,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus200,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus403,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus404,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus409,
 } from "./ReadSetupGradesApiV1HrSetupGradesGet.js";
 export type {
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet200,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet403,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet404,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet409,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGetQuery,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetOptions,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetResponse,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetResponses,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409,
 } from "./ReadSetupPoliciesApiV1HrSetupPoliciesGet.js";
 export type {
-  ReadStaffCardApiV1HrStaffCardMeGet200,
-  ReadStaffCardApiV1HrStaffCardMeGet403,
-  ReadStaffCardApiV1HrStaffCardMeGet404,
-  ReadStaffCardApiV1HrStaffCardMeGet409,
-  ReadStaffCardApiV1HrStaffCardMeGetQuery,
-  ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+  ReadStaffCardApiV1HrStaffCardMeGetOptions,
+  ReadStaffCardApiV1HrStaffCardMeGetResponse,
+  ReadStaffCardApiV1HrStaffCardMeGetResponses,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus200,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus403,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus404,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus409,
 } from "./ReadStaffCardApiV1HrStaffCardMeGet.js";
 export type {
-  ReadStaffSetupApiV1HrSetupStaffGet200,
-  ReadStaffSetupApiV1HrSetupStaffGet403,
-  ReadStaffSetupApiV1HrSetupStaffGet404,
-  ReadStaffSetupApiV1HrSetupStaffGet409,
-  ReadStaffSetupApiV1HrSetupStaffGetQuery,
-  ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+  ReadStaffSetupApiV1HrSetupStaffGetOptions,
+  ReadStaffSetupApiV1HrSetupStaffGetResponse,
+  ReadStaffSetupApiV1HrSetupStaffGetResponses,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus200,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus403,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus404,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus409,
 } from "./ReadStaffSetupApiV1HrSetupStaffGet.js";
 export type {
-  ReadStatusReportApiV1HrStatusReportsReportIdGet200,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet403,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet404,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet422,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetQuery,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetOptions,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetPath,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetResponse,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetResponses,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422,
 } from "./ReadStatusReportApiV1HrStatusReportsReportIdGet.js";
 export type {
-  ReadStatusReportsApiV1HrStatusReportsGet200,
-  ReadStatusReportsApiV1HrStatusReportsGet403,
-  ReadStatusReportsApiV1HrStatusReportsGet422,
+  ReadStatusReportsApiV1HrStatusReportsGetOptions,
   ReadStatusReportsApiV1HrStatusReportsGetQuery,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
+  ReadStatusReportsApiV1HrStatusReportsGetResponse,
+  ReadStatusReportsApiV1HrStatusReportsGetResponses,
+  ReadStatusReportsApiV1HrStatusReportsGetStatus200,
+  ReadStatusReportsApiV1HrStatusReportsGetStatus403,
+  ReadStatusReportsApiV1HrStatusReportsGetStatus422,
 } from "./ReadStatusReportsApiV1HrStatusReportsGet.js";
 export type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet200,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions,
   ReadTemplatesApiV1HrWorkflowsTemplatesGetQuery,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetResponse,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetResponses,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422,
 } from "./ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
 export type {
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet200,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQuery,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponse,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetOptions,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPath,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponse,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponses,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422,
 } from "./ReadTimesheetApiV1HrTimesheetsTimesheetIdGet.js";
 export type {
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQuery,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPath,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponse,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponses,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422,
 } from "./ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 export type {
-  ReadUserByIdApiV1AuthUsersUserIdGet200,
-  ReadUserByIdApiV1AuthUsersUserIdGet403,
-  ReadUserByIdApiV1AuthUsersUserIdGet422,
-  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
-  ReadUserByIdApiV1AuthUsersUserIdGetQuery,
-  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+  ReadUserByIdApiV1AuthUsersUserIdGetOptions,
+  ReadUserByIdApiV1AuthUsersUserIdGetPath,
+  ReadUserByIdApiV1AuthUsersUserIdGetResponse,
+  ReadUserByIdApiV1AuthUsersUserIdGetResponses,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus403,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus422,
 } from "./ReadUserByIdApiV1AuthUsersUserIdGet.js";
 export type {
-  ReadUserMeApiV1AuthUsersMeGet200,
-  ReadUserMeApiV1AuthUsersMeGetQuery,
-  ReadUserMeApiV1AuthUsersMeGetQueryResponse,
+  ReadUserMeApiV1AuthUsersMeGetOptions,
+  ReadUserMeApiV1AuthUsersMeGetResponse,
+  ReadUserMeApiV1AuthUsersMeGetResponses,
+  ReadUserMeApiV1AuthUsersMeGetStatus200,
 } from "./ReadUserMeApiV1AuthUsersMeGet.js";
 export type {
-  ReadUsersApiV1AuthUsersGet200,
-  ReadUsersApiV1AuthUsersGet422,
+  ReadUsersApiV1AuthUsersGetOptions,
   ReadUsersApiV1AuthUsersGetQuery,
-  ReadUsersApiV1AuthUsersGetQueryParams,
-  ReadUsersApiV1AuthUsersGetQueryResponse,
+  ReadUsersApiV1AuthUsersGetResponse,
+  ReadUsersApiV1AuthUsersGetResponses,
+  ReadUsersApiV1AuthUsersGetStatus200,
+  ReadUsersApiV1AuthUsersGetStatus422,
 } from "./ReadUsersApiV1AuthUsersGet.js";
 export type {
-  ReadyApiV1UtilsReadyGet200,
-  ReadyApiV1UtilsReadyGet503,
-  ReadyApiV1UtilsReadyGetQuery,
-  ReadyApiV1UtilsReadyGetQueryResponse,
+  ReadyApiV1UtilsReadyGetOptions,
+  ReadyApiV1UtilsReadyGetResponse,
+  ReadyApiV1UtilsReadyGetResponses,
+  ReadyApiV1UtilsReadyGetStatus200,
+  ReadyApiV1UtilsReadyGetStatus503,
 } from "./ReadyApiV1UtilsReadyGet.js";
 export type {
-  RecoverPasswordApiV1PasswordRecoveryEmailPost200,
-  RecoverPasswordApiV1PasswordRecoveryEmailPost422,
-  RecoverPasswordApiV1PasswordRecoveryEmailPost429,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostMutation,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostPath,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostResponse,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostResponses,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429,
 } from "./RecoverPasswordApiV1PasswordRecoveryEmailPost.js";
 export type {
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutation,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPath,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponse,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422,
 } from "./RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 export type {
-  RefreshSessionApiV1LoginSessionRefreshPost200,
-  RefreshSessionApiV1LoginSessionRefreshPost422,
-  RefreshSessionApiV1LoginSessionRefreshPostMutation,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationRequest,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
+  RefreshSessionApiV1LoginSessionRefreshPostBody,
+  RefreshSessionApiV1LoginSessionRefreshPostOptions,
+  RefreshSessionApiV1LoginSessionRefreshPostResponse,
+  RefreshSessionApiV1LoginSessionRefreshPostResponses,
+  RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+  RefreshSessionApiV1LoginSessionRefreshPostStatus422,
 } from "./RefreshSessionApiV1LoginSessionRefreshPost.js";
 export type {
-  RegisterUserApiV1AuthUsersSignupPost201,
-  RegisterUserApiV1AuthUsersSignupPost400,
-  RegisterUserApiV1AuthUsersSignupPost422,
-  RegisterUserApiV1AuthUsersSignupPostMutation,
-  RegisterUserApiV1AuthUsersSignupPostMutationRequest,
-  RegisterUserApiV1AuthUsersSignupPostMutationResponse,
+  RegisterUserApiV1AuthUsersSignupPostBody,
+  RegisterUserApiV1AuthUsersSignupPostOptions,
+  RegisterUserApiV1AuthUsersSignupPostResponse,
+  RegisterUserApiV1AuthUsersSignupPostResponses,
+  RegisterUserApiV1AuthUsersSignupPostStatus201,
+  RegisterUserApiV1AuthUsersSignupPostStatus400,
+  RegisterUserApiV1AuthUsersSignupPostStatus422,
 } from "./RegisterUserApiV1AuthUsersSignupPost.js";
 export type {
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutation,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePath,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponse,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponses,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422,
 } from "./RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export type {
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutation,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostBody,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponse,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponses,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422,
 } from "./ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
+export type { RequestStatus } from "./RequestStatus.js";
+export { requestStatus } from "./RequestStatus.js";
 export type {
-  RequestStatus,
-  RequestStatusRequestStatusEnumKey,
-} from "./RequestStatus.js";
-export { requestStatusRequestStatusEnum } from "./RequestStatus.js";
-export type {
-  ResetPasswordApiV1ResetPasswordPost200,
-  ResetPasswordApiV1ResetPasswordPost422,
-  ResetPasswordApiV1ResetPasswordPost429,
-  ResetPasswordApiV1ResetPasswordPostMutation,
-  ResetPasswordApiV1ResetPasswordPostMutationRequest,
-  ResetPasswordApiV1ResetPasswordPostMutationResponse,
+  ResetPasswordApiV1ResetPasswordPostBody,
+  ResetPasswordApiV1ResetPasswordPostOptions,
+  ResetPasswordApiV1ResetPasswordPostResponse,
+  ResetPasswordApiV1ResetPasswordPostResponses,
+  ResetPasswordApiV1ResetPasswordPostStatus200,
+  ResetPasswordApiV1ResetPasswordPostStatus422,
+  ResetPasswordApiV1ResetPasswordPostStatus429,
 } from "./ResetPasswordApiV1ResetPasswordPost.js";
 export type {
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutation,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePath,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponse,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponses,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422,
 } from "./RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
-export type {
-  RoleAssignmentScope,
-  RoleAssignmentScopeRoleAssignmentScopeEnumKey,
-} from "./RoleAssignmentScope.js";
-export { roleAssignmentScopeRoleAssignmentScopeEnum } from "./RoleAssignmentScope.js";
+export type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
+export { roleAssignmentScope } from "./RoleAssignmentScope.js";
 export type { RoleConfiguration } from "./RoleConfiguration.js";
 export type { RoleCreate } from "./RoleCreate.js";
 export type { RolePermissionsInput } from "./RolePermissionsInput.js";
@@ -1214,19 +1283,13 @@ export type { RosterGridPreview } from "./RosterGridPreview.js";
 export type { RosterPeriodCreate } from "./RosterPeriodCreate.js";
 export type { RosterPeriodDetails } from "./RosterPeriodDetails.js";
 export type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
-export type {
-  RosterPeriodStatus,
-  RosterPeriodStatusRosterPeriodStatusEnumKey,
-} from "./RosterPeriodStatus.js";
-export { rosterPeriodStatusRosterPeriodStatusEnum } from "./RosterPeriodStatus.js";
+export type { RosterPeriodStatus } from "./RosterPeriodStatus.js";
+export { rosterPeriodStatus } from "./RosterPeriodStatus.js";
 export type { RosterPeriodsPublic } from "./RosterPeriodsPublic.js";
 export type { RosterPreferencesPublic } from "./RosterPreferencesPublic.js";
 export type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
-export type {
-  RosterRevisionAction,
-  RosterRevisionActionRosterRevisionActionEnumKey,
-} from "./RosterRevisionAction.js";
-export { rosterRevisionActionRosterRevisionActionEnum } from "./RosterRevisionAction.js";
+export type { RosterRevisionAction } from "./RosterRevisionAction.js";
+export { rosterRevisionAction } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
 export type { SecurityProof } from "./SecurityProof.js";
@@ -1240,22 +1303,13 @@ export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
 export type { ShiftCatalogUpdate } from "./ShiftCatalogUpdate.js";
-export type {
-  ShiftCategory,
-  ShiftCategoryShiftCategoryEnumKey,
-} from "./ShiftCategory.js";
-export { shiftCategoryShiftCategoryEnum } from "./ShiftCategory.js";
+export type { ShiftCategory } from "./ShiftCategory.js";
+export { shiftCategory } from "./ShiftCategory.js";
 export type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
-export type {
-  ShiftPattern,
-  ShiftPatternShiftPatternEnumKey,
-} from "./ShiftPattern.js";
-export { shiftPatternShiftPatternEnum } from "./ShiftPattern.js";
-export type {
-  ShiftPeriod,
-  ShiftPeriodShiftPeriodEnumKey,
-} from "./ShiftPeriod.js";
-export { shiftPeriodShiftPeriodEnum } from "./ShiftPeriod.js";
+export type { ShiftPattern } from "./ShiftPattern.js";
+export { shiftPattern } from "./ShiftPattern.js";
+export type { ShiftPeriod } from "./ShiftPeriod.js";
+export { shiftPeriod } from "./ShiftPeriod.js";
 export type { ShiftSwapAction } from "./ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
@@ -1273,98 +1327,104 @@ export type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 export type { StatusReportListPublic } from "./StatusReportListPublic.js";
 export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
+export type { SubmissionMode } from "./SubmissionMode.js";
+export { submissionMode } from "./SubmissionMode.js";
 export type {
-  SubmissionMode,
-  SubmissionModeSubmissionModeEnumKey,
-} from "./SubmissionMode.js";
-export { submissionModeSubmissionModeEnum } from "./SubmissionMode.js";
-export type {
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutation,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBody,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPath,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponse,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponses,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422,
 } from "./SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export type {
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPost200,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPost422,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutation,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostBody,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostPath,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponse,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponses,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422,
 } from "./SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export type {
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutation,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostBody,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPath,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponse,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponses,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422,
 } from "./SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 export type {
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutation,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostBody,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPath,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponse,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponses,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422,
 } from "./SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
 export type {
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost200,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutation,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostBody,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPath,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponse,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponses,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422,
 } from "./SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
 export type {
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutation,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse,
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchBody,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPath,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponse,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponses,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404,
+  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422,
 } from "./SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
-export type { SwapType, SwapTypeSwapTypeEnumKey } from "./SwapType.js";
-export { swapTypeSwapTypeEnum } from "./SwapType.js";
+export type { SwapType } from "./SwapType.js";
+export { swapType } from "./SwapType.js";
 export type {
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutation,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse,
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBody,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPath,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponse,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponses,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404,
+  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422,
 } from "./TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
 export type {
-  TestEmailApiV1UtilsTestEmailPost201,
-  TestEmailApiV1UtilsTestEmailPost422,
-  TestEmailApiV1UtilsTestEmailPostMutation,
-  TestEmailApiV1UtilsTestEmailPostMutationResponse,
-  TestEmailApiV1UtilsTestEmailPostQueryParams,
+  TestEmailApiV1UtilsTestEmailPostOptions,
+  TestEmailApiV1UtilsTestEmailPostQuery,
+  TestEmailApiV1UtilsTestEmailPostResponse,
+  TestEmailApiV1UtilsTestEmailPostResponses,
+  TestEmailApiV1UtilsTestEmailPostStatus201,
+  TestEmailApiV1UtilsTestEmailPostStatus422,
 } from "./TestEmailApiV1UtilsTestEmailPost.js";
 export type {
-  TestTokenApiV1LoginTestTokenPost200,
-  TestTokenApiV1LoginTestTokenPostMutation,
-  TestTokenApiV1LoginTestTokenPostMutationResponse,
+  TestTokenApiV1LoginTestTokenPostOptions,
+  TestTokenApiV1LoginTestTokenPostResponse,
+  TestTokenApiV1LoginTestTokenPostResponses,
+  TestTokenApiV1LoginTestTokenPostStatus200,
 } from "./TestTokenApiV1LoginTestTokenPost.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
@@ -1372,263 +1432,286 @@ export type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
 export type { TimesheetEntryPublic } from "./TimesheetEntryPublic.js";
 export type { TimesheetListPublic } from "./TimesheetListPublic.js";
 export type { TimesheetPublic } from "./TimesheetPublic.js";
-export type {
-  TimesheetStatus,
-  TimesheetStatusTimesheetStatusEnumKey,
-} from "./TimesheetStatus.js";
-export { timesheetStatusTimesheetStatusEnum } from "./TimesheetStatus.js";
+export type { TimesheetStatus } from "./TimesheetStatus.js";
+export { timesheetStatus } from "./TimesheetStatus.js";
 export type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
-export type { Title, TitleTitleEnumKey } from "./Title.js";
-export { titleTitleEnum } from "./Title.js";
+export type { Title } from "./Title.js";
+export { title } from "./Title.js";
 export type { Token } from "./Token.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 export type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
 export type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 export type {
-  TwofaActivateApiV12FaActivatePost200,
-  TwofaActivateApiV12FaActivatePost400,
-  TwofaActivateApiV12FaActivatePost422,
-  TwofaActivateApiV12FaActivatePostMutation,
-  TwofaActivateApiV12FaActivatePostMutationRequest,
-  TwofaActivateApiV12FaActivatePostMutationResponse,
+  TwofaActivateApiV12FaActivatePostBody,
+  TwofaActivateApiV12FaActivatePostOptions,
+  TwofaActivateApiV12FaActivatePostResponse,
+  TwofaActivateApiV12FaActivatePostResponses,
+  TwofaActivateApiV12FaActivatePostStatus200,
+  TwofaActivateApiV12FaActivatePostStatus400,
+  TwofaActivateApiV12FaActivatePostStatus422,
 } from "./TwofaActivateApiV12FaActivatePost.js";
 export type {
-  TwofaDisableApiV12FaDisablePost200,
-  TwofaDisableApiV12FaDisablePost400,
-  TwofaDisableApiV12FaDisablePost422,
-  TwofaDisableApiV12FaDisablePostMutation,
-  TwofaDisableApiV12FaDisablePostMutationRequest,
-  TwofaDisableApiV12FaDisablePostMutationResponse,
+  TwofaDisableApiV12FaDisablePostBody,
+  TwofaDisableApiV12FaDisablePostOptions,
+  TwofaDisableApiV12FaDisablePostResponse,
+  TwofaDisableApiV12FaDisablePostResponses,
+  TwofaDisableApiV12FaDisablePostStatus200,
+  TwofaDisableApiV12FaDisablePostStatus400,
+  TwofaDisableApiV12FaDisablePostStatus422,
 } from "./TwofaDisableApiV12FaDisablePost.js";
 export type {
-  TwofaSetupApiV12FaSetupPost200,
-  TwofaSetupApiV12FaSetupPostMutation,
-  TwofaSetupApiV12FaSetupPostMutationResponse,
+  TwofaSetupApiV12FaSetupPostOptions,
+  TwofaSetupApiV12FaSetupPostResponse,
+  TwofaSetupApiV12FaSetupPostResponses,
+  TwofaSetupApiV12FaSetupPostStatus200,
 } from "./TwofaSetupApiV12FaSetupPost.js";
 export type {
-  TwofaStatusApiV12FaStatusGet200,
-  TwofaStatusApiV12FaStatusGetQuery,
-  TwofaStatusApiV12FaStatusGetQueryResponse,
+  TwofaStatusApiV12FaStatusGetOptions,
+  TwofaStatusApiV12FaStatusGetResponse,
+  TwofaStatusApiV12FaStatusGetResponses,
+  TwofaStatusApiV12FaStatusGetStatus200,
 } from "./TwofaStatusApiV12FaStatusGet.js";
 export type {
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutation,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBody,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPath,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponse,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponses,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422,
 } from "./UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
 export type {
-  UpdateAlertApiV1CapAlertsAlertIdPatch200,
-  UpdateAlertApiV1CapAlertsAlertIdPatch422,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutation,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-  UpdateAlertApiV1CapAlertsAlertIdPatchPathParams,
+  UpdateAlertApiV1CapAlertsAlertIdPatchBody,
+  UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
+  UpdateAlertApiV1CapAlertsAlertIdPatchPath,
+  UpdateAlertApiV1CapAlertsAlertIdPatchResponse,
+  UpdateAlertApiV1CapAlertsAlertIdPatchResponses,
+  UpdateAlertApiV1CapAlertsAlertIdPatchStatus200,
+  UpdateAlertApiV1CapAlertsAlertIdPatchStatus422,
 } from "./UpdateAlertApiV1CapAlertsAlertIdPatch.js";
 export type {
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch200,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutation,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchBody,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPath,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponse,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponses,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422,
 } from "./UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch.js";
 export type {
-  UpdateCapSettingsApiV1CapSettingsPatch200,
-  UpdateCapSettingsApiV1CapSettingsPatch422,
-  UpdateCapSettingsApiV1CapSettingsPatchMutation,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationRequest,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
+  UpdateCapSettingsApiV1CapSettingsPatchBody,
+  UpdateCapSettingsApiV1CapSettingsPatchOptions,
+  UpdateCapSettingsApiV1CapSettingsPatchResponse,
+  UpdateCapSettingsApiV1CapSettingsPatchResponses,
+  UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+  UpdateCapSettingsApiV1CapSettingsPatchStatus422,
 } from "./UpdateCapSettingsApiV1CapSettingsPatch.js";
 export type {
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutation,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchBody,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPath,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponse,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponses,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422,
 } from "./UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch.js";
 export type {
-  UpdateFeedApiV1CapFeedsFeedIdPatch200,
-  UpdateFeedApiV1CapFeedsFeedIdPatch422,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutation,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-  UpdateFeedApiV1CapFeedsFeedIdPatchPathParams,
+  UpdateFeedApiV1CapFeedsFeedIdPatchBody,
+  UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
+  UpdateFeedApiV1CapFeedsFeedIdPatchPath,
+  UpdateFeedApiV1CapFeedsFeedIdPatchResponse,
+  UpdateFeedApiV1CapFeedsFeedIdPatchResponses,
+  UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+  UpdateFeedApiV1CapFeedsFeedIdPatchStatus422,
 } from "./UpdateFeedApiV1CapFeedsFeedIdPatch.js";
 export type {
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutation,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchBody,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPath,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponse,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponses,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422,
 } from "./UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 export type {
-  UpdateHrProfileMeApiV1HrProfileMePatch200,
-  UpdateHrProfileMeApiV1HrProfileMePatch404,
-  UpdateHrProfileMeApiV1HrProfileMePatch422,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutation,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+  UpdateHrProfileMeApiV1HrProfileMePatchBody,
+  UpdateHrProfileMeApiV1HrProfileMePatchOptions,
+  UpdateHrProfileMeApiV1HrProfileMePatchResponse,
+  UpdateHrProfileMeApiV1HrProfileMePatchResponses,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus200,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus404,
+  UpdateHrProfileMeApiV1HrProfileMePatchStatus422,
 } from "./UpdateHrProfileMeApiV1HrProfileMePatch.js";
 export type {
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch200,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch400,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch403,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch404,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch422,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutation,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationRequest,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchMutationResponse,
-  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathParams,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchBody,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchOptions,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPath,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponse,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponses,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404,
+  UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422,
 } from "./UpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
 export type { UpdatePassword } from "./UpdatePassword.js";
 export type {
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch200,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch422,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutation,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchBody,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponse,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponses,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422,
 } from "./UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 export type {
-  UpdateRoleApiV1AuthRolesRoleIdPatch200,
-  UpdateRoleApiV1AuthRolesRoleIdPatch404,
-  UpdateRoleApiV1AuthRolesRoleIdPatch422,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutation,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
-  UpdateRoleApiV1AuthRolesRoleIdPatchPathParams,
+  UpdateRoleApiV1AuthRolesRoleIdPatchBody,
+  UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
+  UpdateRoleApiV1AuthRolesRoleIdPatchPath,
+  UpdateRoleApiV1AuthRolesRoleIdPatchResponse,
+  UpdateRoleApiV1AuthRolesRoleIdPatchResponses,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus404,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus422,
 } from "./UpdateRoleApiV1AuthRolesRoleIdPatch.js";
 export type {
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutation,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchBody,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPath,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponse,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponses,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422,
 } from "./UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 export type {
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut200,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutation,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutBody,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPath,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponse,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponses,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422,
 } from "./UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut.js";
 export type {
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut200,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutation,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutBody,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPath,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponse,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponses,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422,
 } from "./UpdateSetupGradeApiV1HrSetupGradesGradeIdPut.js";
 export type {
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut200,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutation,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutBody,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPath,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponse,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponses,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422,
 } from "./UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut.js";
 export type {
-  UpdateShiftApiV1HrRostersShiftsCodePatch200,
-  UpdateShiftApiV1HrRostersShiftsCodePatch403,
-  UpdateShiftApiV1HrRostersShiftsCodePatch404,
-  UpdateShiftApiV1HrRostersShiftsCodePatch422,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutation,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
-  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+  UpdateShiftApiV1HrRostersShiftsCodePatchBody,
+  UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
+  UpdateShiftApiV1HrRostersShiftsCodePatchPath,
+  UpdateShiftApiV1HrRostersShiftsCodePatchResponse,
+  UpdateShiftApiV1HrRostersShiftsCodePatchResponses,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus403,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus404,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus422,
 } from "./UpdateShiftApiV1HrRostersShiftsCodePatch.js";
 export type {
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutation,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchBody,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPath,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchResponse,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchResponses,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422,
 } from "./UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 export type {
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutation,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostBody,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPath,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponse,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponses,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422,
 } from "./UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost.js";
 export type {
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut200,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut403,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut404,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut409,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut422,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutation,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutBody,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutPath,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponse,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponses,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422,
 } from "./UpdateStaffSetupApiV1HrSetupStaffUserIdPut.js";
 export type {
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch200,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch400,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch403,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch404,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch422,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutation,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchBody,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchPath,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchResponse,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchResponses,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422,
 } from "./UpdateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export type {
-  UpdateUserApiV1AuthUsersUserIdPatch200,
-  UpdateUserApiV1AuthUsersUserIdPatch403,
-  UpdateUserApiV1AuthUsersUserIdPatch404,
-  UpdateUserApiV1AuthUsersUserIdPatch409,
-  UpdateUserApiV1AuthUsersUserIdPatch422,
-  UpdateUserApiV1AuthUsersUserIdPatchMutation,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
+  UpdateUserApiV1AuthUsersUserIdPatchBody,
+  UpdateUserApiV1AuthUsersUserIdPatchOptions,
+  UpdateUserApiV1AuthUsersUserIdPatchPath,
+  UpdateUserApiV1AuthUsersUserIdPatchResponse,
+  UpdateUserApiV1AuthUsersUserIdPatchResponses,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus200,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus403,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus404,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus409,
+  UpdateUserApiV1AuthUsersUserIdPatchStatus422,
 } from "./UpdateUserApiV1AuthUsersUserIdPatch.js";
 export type {
-  UpdateUserMeApiV1AuthUsersMePatch200,
-  UpdateUserMeApiV1AuthUsersMePatch409,
-  UpdateUserMeApiV1AuthUsersMePatch422,
-  UpdateUserMeApiV1AuthUsersMePatchMutation,
-  UpdateUserMeApiV1AuthUsersMePatchMutationRequest,
-  UpdateUserMeApiV1AuthUsersMePatchMutationResponse,
+  UpdateUserMeApiV1AuthUsersMePatchBody,
+  UpdateUserMeApiV1AuthUsersMePatchOptions,
+  UpdateUserMeApiV1AuthUsersMePatchResponse,
+  UpdateUserMeApiV1AuthUsersMePatchResponses,
+  UpdateUserMeApiV1AuthUsersMePatchStatus200,
+  UpdateUserMeApiV1AuthUsersMePatchStatus409,
+  UpdateUserMeApiV1AuthUsersMePatchStatus422,
 } from "./UpdateUserMeApiV1AuthUsersMePatch.js";
 export type { UserCreate } from "./UserCreate.js";
 export type { UserProfilePublic } from "./UserProfilePublic.js";
@@ -1639,60 +1722,54 @@ export type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 export type { UserRoleAssignmentsPublic } from "./UserRoleAssignmentsPublic.js";
 export type { UserRoleAssignmentUpdate } from "./UserRoleAssignmentUpdate.js";
-export type { UserStatus, UserStatusUserStatusEnumKey } from "./UserStatus.js";
-export { userStatusUserStatusEnum } from "./UserStatus.js";
+export type { UserStatus } from "./UserStatus.js";
+export { userStatus } from "./UserStatus.js";
 export type { UserUpdate } from "./UserUpdate.js";
 export type { UserUpdateMe } from "./UserUpdateMe.js";
 export type {
-  ValidateAlertApiV1CapAlertsAlertIdValidatePost200,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePost422,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutation,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostPath,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostResponse,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostResponses,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422,
 } from "./ValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export type {
-  ValidateCsvApiV1HrRostersImportCsvValidatePost200,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost400,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost403,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost422,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutation,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostBody,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostResponse,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostResponses,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422,
 } from "./ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
 export type {
-  ValidateGridApiV1HrRostersImportGridValidatePost200,
-  ValidateGridApiV1HrRostersImportGridValidatePost403,
-  ValidateGridApiV1HrRostersImportGridValidatePost404,
-  ValidateGridApiV1HrRostersImportGridValidatePost422,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutation,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+  ValidateGridApiV1HrRostersImportGridValidatePostBody,
+  ValidateGridApiV1HrRostersImportGridValidatePostOptions,
+  ValidateGridApiV1HrRostersImportGridValidatePostResponse,
+  ValidateGridApiV1HrRostersImportGridValidatePostResponses,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus403,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus404,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus422,
 } from "./ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./ValidationError.js";
-export type {
-  WorkflowAction,
-  WorkflowActionWorkflowActionEnumKey,
-} from "./WorkflowAction.js";
-export { workflowActionWorkflowActionEnum } from "./WorkflowAction.js";
+export type { WorkflowAction } from "./WorkflowAction.js";
+export { workflowAction } from "./WorkflowAction.js";
 export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
 export type { WorkflowInboxItem } from "./WorkflowInboxItem.js";
 export type { WorkflowInboxList } from "./WorkflowInboxList.js";
 export type { WorkflowInstanceCreate } from "./WorkflowInstanceCreate.js";
 export type { WorkflowInstanceDetails } from "./WorkflowInstanceDetails.js";
 export type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
-export type {
-  WorkflowStatus,
-  WorkflowStatusWorkflowStatusEnumKey,
-} from "./WorkflowStatus.js";
-export { workflowStatusWorkflowStatusEnum } from "./WorkflowStatus.js";
+export type { WorkflowStatus } from "./WorkflowStatus.js";
+export { workflowStatus } from "./WorkflowStatus.js";
 export type { WorkflowStepInstancePublic } from "./WorkflowStepInstancePublic.js";
 export type { WorkflowStepTemplateCreate } from "./WorkflowStepTemplateCreate.js";
 export type { WorkflowStepTemplatePublic } from "./WorkflowStepTemplatePublic.js";
 export type { WorkflowTemplateCreate } from "./WorkflowTemplateCreate.js";
 export type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 export type { WorkflowTemplatesPublic } from "./WorkflowTemplatesPublic.js";
-export type {
-  WorkflowType,
-  WorkflowTypeWorkflowTypeEnumKey,
-} from "./WorkflowType.js";
-export { workflowTypeWorkflowTypeEnum } from "./WorkflowType.js";
+export type { WorkflowType } from "./WorkflowType.js";
+export { workflowType } from "./WorkflowType.js";

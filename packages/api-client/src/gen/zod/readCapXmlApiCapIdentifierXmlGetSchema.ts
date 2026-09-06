@@ -6,22 +6,15 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readCapXmlApiCapIdentifierXmlGetPathParamsSchema = z.object({
-  identifier: z.string(),
-});
+export const readCapXmlApiCapIdentifierXmlGetPathIdentifierSchema = z.string();
 
-/**
- * @description Successful Response
- */
-export const readCapXmlApiCapIdentifierXmlGet200Schema = z.any();
+export const readCapXmlApiCapIdentifierXmlGetStatus200Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readCapXmlApiCapIdentifierXmlGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readCapXmlApiCapIdentifierXmlGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readCapXmlApiCapIdentifierXmlGetQueryResponseSchema = z.lazy(
-  () => readCapXmlApiCapIdentifierXmlGet200Schema
-);
+export const readCapXmlApiCapIdentifierXmlGetResponseSchema =
+  readCapXmlApiCapIdentifierXmlGetStatus200Schema;
+
+export const readCapXmlApiCapIdentifierXmlGetErrorSchema =
+  readCapXmlApiCapIdentifierXmlGetStatus422Schema;

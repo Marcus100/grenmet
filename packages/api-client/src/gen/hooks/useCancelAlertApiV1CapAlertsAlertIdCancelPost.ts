@@ -9,47 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "../clients/cancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 import type {
-  CancelAlertApiV1CapAlertsAlertIdCancelPost422,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422,
 } from "../models/CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 
 export const cancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/cancel" }] as const;
 
-export type CancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey = ReturnType<
-  typeof cancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey
->;
-
 export function cancelAlertApiV1CapAlertsAlertIdCancelPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = cancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey();
   return mutationOptions<
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-    {
-      alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"];
-      data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-    },
+    CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422>,
+    CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return cancelAlertApiV1CapAlertsAlertIdCancelPost(alert_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return cancelAlertApiV1CapAlertsAlertIdCancelPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +53,14 @@ export function cancelAlertApiV1CapAlertsAlertIdCancelPostMutationOptions<
 export function useCancelAlertApiV1CapAlertsAlertIdCancelPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-      ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-      {
-        alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"];
-        data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-      },
+      CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+      ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422>,
+      CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +72,16 @@ export function useCancelAlertApiV1CapAlertsAlertIdCancelPost<TContext>(
   const baseOptions = cancelAlertApiV1CapAlertsAlertIdCancelPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-    {
-      alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"];
-      data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-    },
+    CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422>,
+    CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
     TContext
   >;
 
   return useMutation<
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-    {
-      alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"];
-      data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-    },
+    CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422>,
+    CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
     TContext
   >(
     {
@@ -108,12 +91,9 @@ export function useCancelAlertApiV1CapAlertsAlertIdCancelPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-    {
-      alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"];
-      data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-    },
+    CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200,
+    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422>,
+    CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
     TContext
   >;
 }

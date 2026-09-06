@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * PolicyInput
- */
 export type PolicyInput = {
   /**
    * @default false

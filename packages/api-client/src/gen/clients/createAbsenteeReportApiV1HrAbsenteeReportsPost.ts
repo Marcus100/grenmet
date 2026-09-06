@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost403,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPost422,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest,
-  CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
+  CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponses,
 } from "../models/CreateAbsenteeReportApiV1HrAbsenteeReportsPost.js";
-
-function getCreateAbsenteeReportApiV1HrAbsenteeReportsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/absentee-reports` as const };
-  return res;
-}
 
 /**
  * @description Create an absentee report. Requires absentee.report.create permission.
  * @summary Create absentee report
  * {@link /api/v1/hr/absentee-reports}
  */
-export async function createAbsenteeReportApiV1HrAbsenteeReportsPost(
-  data: CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createAbsenteeReportApiV1HrAbsenteeReportsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost403
-      | CreateAbsenteeReportApiV1HrAbsenteeReportsPost422
-    >,
-    CreateAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateAbsenteeReportApiV1HrAbsenteeReportsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/absentee-reports",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateAbsenteeReportApiV1HrAbsenteeReportsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

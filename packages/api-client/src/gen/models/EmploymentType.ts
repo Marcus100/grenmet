@@ -3,17 +3,12 @@
  * Do not edit manually.
  */
 
-export const employmentTypeEmploymentTypeEnum = {
+export const employmentType = {
   FULL_TIME: "FULL_TIME",
   PART_TIME: "PART_TIME",
   CONTRACT: "CONTRACT",
   TEMPORARY: "TEMPORARY",
 } as const;
 
-export type EmploymentTypeEmploymentTypeEnumKey =
-  (typeof employmentTypeEmploymentTypeEnum)[keyof typeof employmentTypeEmploymentTypeEnum];
-
-/**
- * EmploymentType
- */
-export type EmploymentType = EmploymentTypeEmploymentTypeEnumKey;
+export type EmploymentType =
+  (typeof employmentType)[keyof typeof employmentType];

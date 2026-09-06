@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponses,
 } from "../models/SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
-
-function getSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostUrl(
-  leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/leave-requests/${leave_request_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit a previously-saved DRAFT leave request, attaching named co-approvers. Requires leave.request.create.self permission and ownership of the request.
  * @summary Submit a draft leave request
  * {@link /api/v1/hr/leave-requests/:leave_request_id/submit}
  */
-export async function submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost(
-  leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"],
-  data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
-    ResponseErrorConfig<
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
-    >,
-    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest
-  >({
-    method: "POST",
-    url: getSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostUrl(
-      leave_request_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/leave-requests/{leave_request_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * DepartmentCreate
- */
 export type DepartmentCreate = {
   /**
    * @maxLength 100

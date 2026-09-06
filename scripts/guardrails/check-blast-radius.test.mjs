@@ -37,7 +37,7 @@ const write = (repository, file, contents = `${file}\n`) => {
 
 const createRepository = (t, files = { "README.md": "initial\n" }) => {
   const repository = mkdtempSync(join(tmpdir(), "grenmet-guardrails-"));
-  t.after(() => rmSync(repository, { recursive: true, force: true }));
+  t.after(() => rmSync(repository, { force: true, recursive: true }));
 
   git(repository, "init", "--quiet", "--initial-branch=main");
   git(repository, "config", "user.email", "guardrails@example.com");

@@ -1,6 +1,0 @@
-{
-  "type": "string",
-  "enum": ["AM", "PM"],
-  "title": "ShiftPeriod",
-  "x-readme-ref-name": "ShiftPeriod"
-}

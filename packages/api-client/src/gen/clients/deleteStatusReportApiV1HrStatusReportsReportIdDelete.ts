@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete400,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete403,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete404,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete422,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationResponse,
-  DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteOptions,
+  DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponses,
 } from "../models/DeleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
-
-function getDeleteStatusReportApiV1HrStatusReportsReportIdDeleteUrl(
-  report_id: DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams["report_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/hr/status-reports/${report_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete an own DRAFT status report. Requires status.report.create permission and ownership.
  * @summary Delete a draft status report
  * {@link /api/v1/hr/status-reports/:report_id}
  */
-export async function deleteStatusReportApiV1HrStatusReportsReportIdDelete(
-  report_id: DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams["report_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteStatusReportApiV1HrStatusReportsReportIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DeleteStatusReportApiV1HrStatusReportsReportIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteStatusReportApiV1HrStatusReportsReportIdDelete400
-      | DeleteStatusReportApiV1HrStatusReportsReportIdDelete403
-      | DeleteStatusReportApiV1HrStatusReportsReportIdDelete404
-      | DeleteStatusReportApiV1HrStatusReportsReportIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteStatusReportApiV1HrStatusReportsReportIdDeleteUrl(
-      report_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/hr/status-reports/{report_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

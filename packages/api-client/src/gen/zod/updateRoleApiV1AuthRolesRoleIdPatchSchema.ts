@@ -8,33 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { roleUpdateSchema } from "./roleUpdateSchema.js";
 import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 
-export const updateRoleApiV1AuthRolesRoleIdPatchPathParamsSchema = z.object({
-  role_id: z.string().uuid(),
-});
+export const updateRoleApiV1AuthRolesRoleIdPatchPathRoleIdSchema = z.uuid();
 
-/**
- * @description Role updated
- */
-export const updateRoleApiV1AuthRolesRoleIdPatch200Schema = z.lazy(
-  () => srcAuthSchemasRolePublicSchema
-);
+export const updateRoleApiV1AuthRolesRoleIdPatchStatus200Schema =
+  srcAuthSchemasRolePublicSchema;
 
-/**
- * @description Role not found
- */
-export const updateRoleApiV1AuthRolesRoleIdPatch404Schema = z.any();
+export const updateRoleApiV1AuthRolesRoleIdPatchStatus404Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateRoleApiV1AuthRolesRoleIdPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateRoleApiV1AuthRolesRoleIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateRoleApiV1AuthRolesRoleIdPatchMutationRequestSchema = z.lazy(
-  () => roleUpdateSchema
-);
+export const updateRoleApiV1AuthRolesRoleIdPatchResponseSchema =
+  updateRoleApiV1AuthRolesRoleIdPatchStatus200Schema;
 
-export const updateRoleApiV1AuthRolesRoleIdPatchMutationResponseSchema = z.lazy(
-  () => updateRoleApiV1AuthRolesRoleIdPatch200Schema
-);
+export const updateRoleApiV1AuthRolesRoleIdPatchErrorSchema = z.union([
+  updateRoleApiV1AuthRolesRoleIdPatchStatus404Schema,
+  updateRoleApiV1AuthRolesRoleIdPatchStatus422Schema,
+]);
+
+export const updateRoleApiV1AuthRolesRoleIdPatchBodySchema = roleUpdateSchema;

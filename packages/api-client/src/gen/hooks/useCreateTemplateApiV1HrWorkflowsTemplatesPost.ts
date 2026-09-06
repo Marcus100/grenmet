@@ -9,47 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createTemplateApiV1HrWorkflowsTemplatesPost } from "../clients/createTemplateApiV1HrWorkflowsTemplatesPost.js";
 import type {
-  CreateTemplateApiV1HrWorkflowsTemplatesPost403,
-  CreateTemplateApiV1HrWorkflowsTemplatesPost422,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422,
 } from "../models/CreateTemplateApiV1HrWorkflowsTemplatesPost.js";
 
 export const createTemplateApiV1HrWorkflowsTemplatesPostMutationKey = () =>
   [{ url: "/api/v1/hr/workflows/templates" }] as const;
 
-export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutationKey = ReturnType<
-  typeof createTemplateApiV1HrWorkflowsTemplatesPostMutationKey
->;
-
 export function createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createTemplateApiV1HrWorkflowsTemplatesPostMutationKey();
   return mutationOptions<
-    CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost422
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422
     >,
-    { data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest },
+    CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createTemplateApiV1HrWorkflowsTemplatesPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createTemplateApiV1HrWorkflowsTemplatesPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +59,18 @@ export function createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions<
 export function useCreateTemplateApiV1HrWorkflowsTemplatesPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
       ResponseErrorConfig<
-        | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-        | CreateTemplateApiV1HrWorkflowsTemplatesPost422
+        | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+        | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422
       >,
-      { data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest },
+      CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -85,22 +83,24 @@ export function useCreateTemplateApiV1HrWorkflowsTemplatesPost<TContext>(
     createTemplateApiV1HrWorkflowsTemplatesPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
       ResponseErrorConfig<
-        | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-        | CreateTemplateApiV1HrWorkflowsTemplatesPost422
+        | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+        | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422
       >,
-      { data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest },
+      CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost422
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422
     >,
-    { data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest },
+    CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
     TContext
   >(
     {
@@ -110,12 +110,13 @@ export function useCreateTemplateApiV1HrWorkflowsTemplatesPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+    | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost422
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+      | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422
     >,
-    { data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest },
+    CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
     TContext
   >;
 }

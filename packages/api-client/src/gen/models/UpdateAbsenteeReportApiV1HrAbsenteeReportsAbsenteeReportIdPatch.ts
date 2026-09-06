@@ -7,63 +7,57 @@ import type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams =
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     absentee_report_id: string;
   };
 
-/**
- * AbsenteeReportPublic
- * @description Absentee report updated
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200 =
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200 =
   AbsenteeReportPublic;
 
-/**
- * @description Absentee report is not a draft
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400 =
-  any;
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to edit this absentee report
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403 =
-  any;
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403 =
+  unknown;
 
-/**
- * @description Absentee report not found
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404 =
-  any;
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422 =
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * AbsenteeReportCreate
- */
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest =
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBody =
   AbsenteeReportCreate;
 
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse =
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200;
-
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutation =
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions =
   {
-    Response: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200;
-    Request: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-    PathParams: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams;
-    Errors:
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422;
+    body: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBody;
+    path: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPath;
+    query?: never;
+    headers?: never;
   };
+
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponses =
+  {
+    "200": UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200;
+    "400": UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400;
+    "403": UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403;
+    "404": UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404;
+    "422": UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponse =
+  | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200
+  | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+  | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+  | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+  | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422;

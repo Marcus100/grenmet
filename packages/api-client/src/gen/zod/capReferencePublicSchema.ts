@@ -9,6 +9,6 @@ export const capReferencePublicSchema = z.object({
   sender: z.string().min(1).max(255),
   identifier: z.string().min(1).max(255),
   sent: z.string(),
-  id: z.string().uuid(),
-  sequence: z.number().int(),
+  id: z.uuid(),
+  sequence: z.int(),
 });

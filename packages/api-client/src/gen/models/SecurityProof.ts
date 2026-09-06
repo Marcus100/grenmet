@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * SecurityProof
- */
 export type SecurityProof = {
   /**
    * @minLength 1

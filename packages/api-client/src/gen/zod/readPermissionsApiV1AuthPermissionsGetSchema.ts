@@ -7,38 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 
-export const readPermissionsApiV1AuthPermissionsGetQueryParamsSchema = z.object(
-  {
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  }
-);
+export const readPermissionsApiV1AuthPermissionsGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Permissions returned
- */
-export const readPermissionsApiV1AuthPermissionsGet200Schema = z.lazy(
-  () => paginatedResponsePermissionPublicSchema
-);
+export const readPermissionsApiV1AuthPermissionsGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readPermissionsApiV1AuthPermissionsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readPermissionsApiV1AuthPermissionsGetStatus200Schema =
+  paginatedResponsePermissionPublicSchema;
 
-export const readPermissionsApiV1AuthPermissionsGetQueryResponseSchema = z.lazy(
-  () => readPermissionsApiV1AuthPermissionsGet200Schema
-);
+export const readPermissionsApiV1AuthPermissionsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readPermissionsApiV1AuthPermissionsGetResponseSchema =
+  readPermissionsApiV1AuthPermissionsGetStatus200Schema;
+
+export const readPermissionsApiV1AuthPermissionsGetErrorSchema =
+  readPermissionsApiV1AuthPermissionsGetStatus422Schema;

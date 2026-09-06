@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const rosterCsvValidationRequestSchema = z.object({
   department_id: z.string(),
-  file_name: z.optional(z.string().default("roster.csv")),
-  roster_period_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  file_name: z.string().optional().default("roster.csv"),
+  roster_period_id: z.union([z.uuid(), z.null()]).optional(),
   csv_text: z.string(),
 });

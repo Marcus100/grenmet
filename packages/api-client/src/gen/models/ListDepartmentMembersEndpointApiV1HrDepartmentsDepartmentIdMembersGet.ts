@@ -6,49 +6,44 @@
 import type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams =
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPath =
   {
-    /**
-     * @type string
-     */
     department_id: string;
   };
 
-/**
- * DepartmentMembersPublic
- * @description Department members returned
- */
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200 =
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200 =
   DepartmentMembersPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403 =
-  any;
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403 =
+  unknown;
 
-/**
- * @description Department not found
- */
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404 =
-  any;
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422 =
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422 =
   HTTPValidationError;
 
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse =
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200;
-
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQuery =
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions =
   {
-    Response: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200;
-    PathParams: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams;
-    Errors:
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422;
+    body?: never;
+    path: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPath;
+    query?: never;
+    headers?: never;
   };
+
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponses =
+  {
+    "200": ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200;
+    "403": ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403;
+    "404": ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404;
+    "422": ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponse =
+  | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200
+  | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403
+  | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404
+  | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422;

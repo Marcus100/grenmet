@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { importCsvApiV1HrRostersImportCsvPost } from "../clients/importCsvApiV1HrRostersImportCsvPost.js";
 import type {
-  ImportCsvApiV1HrRostersImportCsvPost400,
-  ImportCsvApiV1HrRostersImportCsvPost403,
-  ImportCsvApiV1HrRostersImportCsvPost422,
-  ImportCsvApiV1HrRostersImportCsvPostMutationRequest,
-  ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+  ImportCsvApiV1HrRostersImportCsvPostOptions,
+  ImportCsvApiV1HrRostersImportCsvPostStatus200,
+  ImportCsvApiV1HrRostersImportCsvPostStatus400,
+  ImportCsvApiV1HrRostersImportCsvPostStatus403,
+  ImportCsvApiV1HrRostersImportCsvPostStatus422,
 } from "../models/ImportCsvApiV1HrRostersImportCsvPost.js";
 
 export const importCsvApiV1HrRostersImportCsvPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/import-csv" }] as const;
 
-export type ImportCsvApiV1HrRostersImportCsvPostMutationKey = ReturnType<
-  typeof importCsvApiV1HrRostersImportCsvPostMutationKey
->;
-
 export function importCsvApiV1HrRostersImportCsvPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ImportCsvApiV1HrRostersImportCsvPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = importCsvApiV1HrRostersImportCsvPostMutationKey();
   return mutationOptions<
-    ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+    ImportCsvApiV1HrRostersImportCsvPostStatus200,
     ResponseErrorConfig<
-      | ImportCsvApiV1HrRostersImportCsvPost400
-      | ImportCsvApiV1HrRostersImportCsvPost403
-      | ImportCsvApiV1HrRostersImportCsvPost422
+      | ImportCsvApiV1HrRostersImportCsvPostStatus400
+      | ImportCsvApiV1HrRostersImportCsvPostStatus403
+      | ImportCsvApiV1HrRostersImportCsvPostStatus422
     >,
-    { data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest },
+    ImportCsvApiV1HrRostersImportCsvPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return importCsvApiV1HrRostersImportCsvPost(data, config);
+    mutationFn: async ({ body }) => {
+      return importCsvApiV1HrRostersImportCsvPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function importCsvApiV1HrRostersImportCsvPostMutationOptions<
 export function useImportCsvApiV1HrRostersImportCsvPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+      ImportCsvApiV1HrRostersImportCsvPostStatus200,
       ResponseErrorConfig<
-        | ImportCsvApiV1HrRostersImportCsvPost400
-        | ImportCsvApiV1HrRostersImportCsvPost403
-        | ImportCsvApiV1HrRostersImportCsvPost422
+        | ImportCsvApiV1HrRostersImportCsvPostStatus400
+        | ImportCsvApiV1HrRostersImportCsvPostStatus403
+        | ImportCsvApiV1HrRostersImportCsvPostStatus422
       >,
-      { data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest },
+      ImportCsvApiV1HrRostersImportCsvPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ImportCsvApiV1HrRostersImportCsvPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useImportCsvApiV1HrRostersImportCsvPost<TContext>(
   const baseOptions = importCsvApiV1HrRostersImportCsvPostMutationOptions(
     config
   ) as UseMutationOptions<
-    ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+    ImportCsvApiV1HrRostersImportCsvPostStatus200,
     ResponseErrorConfig<
-      | ImportCsvApiV1HrRostersImportCsvPost400
-      | ImportCsvApiV1HrRostersImportCsvPost403
-      | ImportCsvApiV1HrRostersImportCsvPost422
+      | ImportCsvApiV1HrRostersImportCsvPostStatus400
+      | ImportCsvApiV1HrRostersImportCsvPostStatus403
+      | ImportCsvApiV1HrRostersImportCsvPostStatus422
     >,
-    { data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest },
+    ImportCsvApiV1HrRostersImportCsvPostOptions,
     TContext
   >;
 
   return useMutation<
-    ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+    ImportCsvApiV1HrRostersImportCsvPostStatus200,
     ResponseErrorConfig<
-      | ImportCsvApiV1HrRostersImportCsvPost400
-      | ImportCsvApiV1HrRostersImportCsvPost403
-      | ImportCsvApiV1HrRostersImportCsvPost422
+      | ImportCsvApiV1HrRostersImportCsvPostStatus400
+      | ImportCsvApiV1HrRostersImportCsvPostStatus403
+      | ImportCsvApiV1HrRostersImportCsvPostStatus422
     >,
-    { data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest },
+    ImportCsvApiV1HrRostersImportCsvPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useImportCsvApiV1HrRostersImportCsvPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+    ImportCsvApiV1HrRostersImportCsvPostStatus200,
     ResponseErrorConfig<
-      | ImportCsvApiV1HrRostersImportCsvPost400
-      | ImportCsvApiV1HrRostersImportCsvPost403
-      | ImportCsvApiV1HrRostersImportCsvPost422
+      | ImportCsvApiV1HrRostersImportCsvPostStatus400
+      | ImportCsvApiV1HrRostersImportCsvPostStatus403
+      | ImportCsvApiV1HrRostersImportCsvPostStatus422
     >,
-    { data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest },
+    ImportCsvApiV1HrRostersImportCsvPostOptions,
     TContext
   >;
 }

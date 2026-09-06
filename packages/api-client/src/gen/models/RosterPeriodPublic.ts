@@ -5,40 +5,33 @@
 
 import type { RosterPeriodStatus } from "./RosterPeriodStatus.js";
 
-/**
- * RosterPeriodPublic
- */
 export type RosterPeriodPublic = {
   /**
-   * @type string, uuid
-   */
-  id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  id: string;
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_start: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_end: string;
-  /**
-   * @type string
-   */
   status: RosterPeriodStatus;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   created_by_user_id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

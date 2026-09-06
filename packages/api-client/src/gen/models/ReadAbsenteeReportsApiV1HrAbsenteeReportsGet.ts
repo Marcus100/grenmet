@@ -6,7 +6,7 @@
 import type { AbsenteeReportListPublic } from "./AbsenteeReportListPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams = {
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQuery = {
   department_id?: string | null;
   /**
    * @description Page number (1-indexed)
@@ -25,32 +25,31 @@ export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams = {
   size?: number;
 };
 
-/**
- * AbsenteeReportListPublic
- * @description Absentee reports returned
- */
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGet200 =
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200 =
   AbsenteeReportListPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403 = any;
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422 =
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422 =
   HTTPValidationError;
 
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse =
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet200;
-
-export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQuery = {
-  Response: ReadAbsenteeReportsApiV1HrAbsenteeReportsGet200;
-  QueryParams: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams;
-  Errors:
-    | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403
-    | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422;
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQuery;
+  headers?: never;
 };
+
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponses = {
+  "200": ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200;
+  "403": ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403;
+  "422": ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponse =
+  | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200
+  | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403
+  | ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422;

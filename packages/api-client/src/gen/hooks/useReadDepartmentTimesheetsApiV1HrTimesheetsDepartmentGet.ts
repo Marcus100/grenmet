@@ -10,58 +10,56 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "../clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 import type {
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422,
 } from "../models/ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey = (
-  params: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams
-) =>
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey = ({
+  query,
+}: Omit<
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
+  "headers"
+>) =>
   [
     { url: "/api/v1/hr/timesheets/department" },
-    ...(params ? [params] : []),
+    ...(query ? [query] : []),
   ] as const;
 
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey =
+type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey =
   ReturnType<
     typeof readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey
   >;
 
 export function readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryOptions(
-  params: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey =
-    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey(params);
+    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey({ query });
   return queryOptions<
-    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
     ResponseErrorConfig<
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422
+      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403
+      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422
     >,
-    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
     typeof queryKey
   >({
-    enabled: !!params,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet(
-        params,
-        config
-      );
+      return readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -72,53 +70,66 @@ export function readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryOptio
  * {@link /api/v1/hr/timesheets/department}
  */
 export function useReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet<
-  TData = ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
-  TQueryData = ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+  TData = ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
+  TQueryData = ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
   TQueryKey extends
     QueryKey = ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey,
 >(
-  params: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
+  {
+    query,
+  }: {
+    query:
+      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions["query"]
+      | (() => ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions["query"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+        ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200,
         ResponseErrorConfig<
-          | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403
-          | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422
+          | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403
+          | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryKey(
+      resolvedParams
+    );
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryOptions(
-        params,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422
+      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403
+      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

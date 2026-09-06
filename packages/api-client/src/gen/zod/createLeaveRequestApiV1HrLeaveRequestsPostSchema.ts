@@ -8,35 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestCreateSchema } from "./leaveRequestCreateSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 
-/**
- * @description Leave request created
- */
-export const createLeaveRequestApiV1HrLeaveRequestsPost200Schema = z.any();
+export const createLeaveRequestApiV1HrLeaveRequestsPostStatus201Schema =
+  leaveRequestPublicSchema;
 
-/**
- * @description Successful Response
- */
-export const createLeaveRequestApiV1HrLeaveRequestsPost201Schema = z.lazy(
-  () => leaveRequestPublicSchema
-);
+export const createLeaveRequestApiV1HrLeaveRequestsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createLeaveRequestApiV1HrLeaveRequestsPost403Schema = z.any();
+export const createLeaveRequestApiV1HrLeaveRequestsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Validation Error
- */
-export const createLeaveRequestApiV1HrLeaveRequestsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createLeaveRequestApiV1HrLeaveRequestsPostResponseSchema =
+  createLeaveRequestApiV1HrLeaveRequestsPostStatus201Schema;
 
-export const createLeaveRequestApiV1HrLeaveRequestsPostMutationRequestSchema =
-  z.lazy(() => leaveRequestCreateSchema);
+export const createLeaveRequestApiV1HrLeaveRequestsPostErrorSchema = z.union([
+  createLeaveRequestApiV1HrLeaveRequestsPostStatus403Schema,
+  createLeaveRequestApiV1HrLeaveRequestsPostStatus422Schema,
+]);
 
-export const createLeaveRequestApiV1HrLeaveRequestsPostMutationResponseSchema =
-  z.union([
-    z.lazy(() => createLeaveRequestApiV1HrLeaveRequestsPost200Schema),
-    z.lazy(() => createLeaveRequestApiV1HrLeaveRequestsPost201Schema),
-  ]);
+export const createLeaveRequestApiV1HrLeaveRequestsPostBodySchema =
+  leaveRequestCreateSchema;

@@ -3,47 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RefreshSessionApiV1LoginSessionRefreshPost422,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationRequest,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
+  RefreshSessionApiV1LoginSessionRefreshPostOptions,
+  RefreshSessionApiV1LoginSessionRefreshPostResponses,
 } from "../models/RefreshSessionApiV1LoginSessionRefreshPost.js";
-
-function getRefreshSessionApiV1LoginSessionRefreshPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/session/refresh` as const };
-  return res;
-}
 
 /**
  * @description Rotate a valid session secret and mint a fresh short-lived access token.
  * @summary Rotate a persisted session
  * {@link /api/v1/login/session/refresh}
  */
-export async function refreshSessionApiV1LoginSessionRefreshPost(
-  data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest,
-  config: Partial<
-    RequestConfig<RefreshSessionApiV1LoginSessionRefreshPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function refreshSessionApiV1LoginSessionRefreshPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    RefreshSessionApiV1LoginSessionRefreshPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    RefreshSessionApiV1LoginSessionRefreshPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-    RefreshSessionApiV1LoginSessionRefreshPostMutationRequest
-  >({
-    method: "POST",
-    url: getRefreshSessionApiV1LoginSessionRefreshPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/session/refresh",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        RefreshSessionApiV1LoginSessionRefreshPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -7,9 +7,9 @@ import * as z from "zod";
 import { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 
 export const timesheetCreateSchema = z.object({
-  user_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  user_id: z.union([z.uuid(), z.null()]).optional(),
   department_id: z.string(),
-  period_start: z.string().date(),
-  period_end: z.string().date(),
-  entries: z.optional(z.array(z.lazy(() => timesheetEntryInputSchema))),
+  period_start: z.iso.date(),
+  period_end: z.iso.date(),
+  entries: z.array(timesheetEntryInputSchema).optional(),
 });

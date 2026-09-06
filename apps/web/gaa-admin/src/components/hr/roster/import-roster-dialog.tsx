@@ -92,7 +92,7 @@ export function ImportRosterDialog() {
     }
     try {
       const result = await validateMutation.mutateAsync({
-        data: {
+        body: {
           department_id: deptId,
           period_start: bounds.start,
           period_end: bounds.end,
@@ -114,7 +114,7 @@ export function ImportRosterDialog() {
     }
     try {
       const result = await importMutation.mutateAsync({
-        data: {
+        body: {
           department_id: deptId,
           period_start: bounds.start,
           period_end: bounds.end,

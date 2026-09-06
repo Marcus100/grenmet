@@ -7,6 +7,6 @@ import * as z from "zod";
 
 export const rosterPeriodCreateSchema = z.object({
   department_id: z.string(),
-  period_start: z.string().date(),
-  period_end: z.string().date(),
+  period_start: z.iso.date(),
+  period_end: z.iso.date(),
 });

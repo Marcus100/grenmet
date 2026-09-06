@@ -3,20 +3,13 @@
  * Do not edit manually.
  */
 
-/**
- * RoleConfiguration
- */
 export type RoleConfiguration = {
   /**
-   * @type string, uuid
-   */
-  id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  id: string;
   name: string;
-  /**
-   * @type array
-   */
   permission_keys: string[];
 };

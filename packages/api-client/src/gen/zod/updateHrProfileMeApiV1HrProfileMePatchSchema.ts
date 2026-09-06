@@ -8,27 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 import { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";
 
-/**
- * @description Profile updated
- */
-export const updateHrProfileMeApiV1HrProfileMePatch200Schema = z.lazy(
-  () => userProfilePublicSchema
-);
+export const updateHrProfileMeApiV1HrProfileMePatchStatus200Schema =
+  userProfilePublicSchema;
 
-/**
- * @description HR profile not found for this user
- */
-export const updateHrProfileMeApiV1HrProfileMePatch404Schema = z.any();
+export const updateHrProfileMeApiV1HrProfileMePatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateHrProfileMeApiV1HrProfileMePatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateHrProfileMeApiV1HrProfileMePatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateHrProfileMeApiV1HrProfileMePatchMutationRequestSchema =
-  z.lazy(() => userProfileUpdateMeSchema);
+export const updateHrProfileMeApiV1HrProfileMePatchResponseSchema =
+  updateHrProfileMeApiV1HrProfileMePatchStatus200Schema;
 
-export const updateHrProfileMeApiV1HrProfileMePatchMutationResponseSchema =
-  z.lazy(() => updateHrProfileMeApiV1HrProfileMePatch200Schema);
+export const updateHrProfileMeApiV1HrProfileMePatchErrorSchema = z.union([
+  updateHrProfileMeApiV1HrProfileMePatchStatus404Schema,
+  updateHrProfileMeApiV1HrProfileMePatchStatus422Schema,
+]);
+
+export const updateHrProfileMeApiV1HrProfileMePatchBodySchema =
+  userProfileUpdateMeSchema;

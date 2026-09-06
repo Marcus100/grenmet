@@ -7,5 +7,5 @@ import * as z from "zod";
 
 export const roleCreateSchema = z.object({
   name: z.string(),
-  description: z.optional(z.string().default("")),
+  description: z.string().optional().default(""),
 });

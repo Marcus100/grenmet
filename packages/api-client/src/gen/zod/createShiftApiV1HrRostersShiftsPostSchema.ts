@@ -8,34 +8,24 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftCatalogCreateSchema } from "./shiftCatalogCreateSchema.js";
 import { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 
-/**
- * @description Shift type created
- */
-export const createShiftApiV1HrRostersShiftsPost201Schema = z.lazy(
-  () => shiftCatalogPublicSchema
-);
+export const createShiftApiV1HrRostersShiftsPostStatus201Schema =
+  shiftCatalogPublicSchema;
 
-/**
- * @description A shift with this code exists
- */
-export const createShiftApiV1HrRostersShiftsPost400Schema = z.any();
+export const createShiftApiV1HrRostersShiftsPostStatus400Schema = z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createShiftApiV1HrRostersShiftsPost403Schema = z.any();
+export const createShiftApiV1HrRostersShiftsPostStatus403Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createShiftApiV1HrRostersShiftsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createShiftApiV1HrRostersShiftsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createShiftApiV1HrRostersShiftsPostMutationRequestSchema = z.lazy(
-  () => shiftCatalogCreateSchema
-);
+export const createShiftApiV1HrRostersShiftsPostResponseSchema =
+  createShiftApiV1HrRostersShiftsPostStatus201Schema;
 
-export const createShiftApiV1HrRostersShiftsPostMutationResponseSchema = z.lazy(
-  () => createShiftApiV1HrRostersShiftsPost201Schema
-);
+export const createShiftApiV1HrRostersShiftsPostErrorSchema = z.union([
+  createShiftApiV1HrRostersShiftsPostStatus400Schema,
+  createShiftApiV1HrRostersShiftsPostStatus403Schema,
+  createShiftApiV1HrRostersShiftsPostStatus422Schema,
+]);
+
+export const createShiftApiV1HrRostersShiftsPostBodySchema =
+  shiftCatalogCreateSchema;

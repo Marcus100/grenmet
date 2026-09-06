@@ -3,42 +3,32 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadAuditApiV1CapAuditGet422,
-  ReadAuditApiV1CapAuditGetQueryParams,
-  ReadAuditApiV1CapAuditGetQueryResponse,
+  ReadAuditApiV1CapAuditGetOptions,
+  ReadAuditApiV1CapAuditGetResponses,
 } from "../models/ReadAuditApiV1CapAuditGet.js";
-
-function getReadAuditApiV1CapAuditGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/audit` as const };
-  return res;
-}
 
 /**
  * @summary Read Audit
  * {@link /api/v1/cap/audit}
  */
-export async function readAuditApiV1CapAuditGet(
-  params?: ReadAuditApiV1CapAuditGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAuditApiV1CapAuditGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadAuditApiV1CapAuditGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadAuditApiV1CapAuditGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAuditApiV1CapAuditGetQueryResponse,
-    ResponseErrorConfig<ReadAuditApiV1CapAuditGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAuditApiV1CapAuditGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/audit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadAuditApiV1CapAuditGetResponses, ThrowOnError>
+    >
+  );
 }

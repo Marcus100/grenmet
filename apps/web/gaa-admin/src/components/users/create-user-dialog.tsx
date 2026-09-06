@@ -99,7 +99,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
     if (!canSubmit) return;
     try {
       const user = await createUserMutation.mutateAsync({
-        data: {
+        body: {
           first_name: form.first_name.trim(),
           last_name: form.last_name.trim(),
           username: form.username.trim(),
@@ -113,14 +113,14 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
         const roleId = roleIdsByName.get(roleName);
         if (roleId) {
           await assignRoleMutation.mutateAsync({
-            data: { user_id: user.id, role_id: roleId },
+            body: { user_id: user.id, role_id: roleId },
           });
         }
       }
 
       await createEmploymentMutation.mutateAsync({
-        user_id: user.id,
-        data: {
+        path: { user_id: user.id },
+        body: {
           employee_number: form.employee_number.trim(),
           department_id: departmentId,
           position: form.position,

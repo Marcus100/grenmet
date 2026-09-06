@@ -8,5 +8,5 @@ import * as z from "zod";
 export const capReferenceCreateSchema = z.object({
   sender: z.string().min(1).max(255),
   identifier: z.string().min(1).max(255),
-  sent: z.string().datetime(),
+  sent: z.iso.datetime(),
 });

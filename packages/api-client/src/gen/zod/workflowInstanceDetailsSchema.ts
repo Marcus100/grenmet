@@ -8,6 +8,6 @@ import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js"
 import { workflowStepInstancePublicSchema } from "./workflowStepInstancePublicSchema.js";
 
 export const workflowInstanceDetailsSchema = z.object({
-  instance: z.lazy(() => workflowInstancePublicSchema),
-  steps: z.array(z.lazy(() => workflowStepInstancePublicSchema)),
+  instance: workflowInstancePublicSchema,
+  steps: z.array(workflowStepInstancePublicSchema),
 });

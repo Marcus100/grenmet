@@ -5,28 +5,29 @@
 
 import type { HrDashboardPublic } from "./HrDashboardPublic.js";
 
-/**
- * HrDashboardPublic
- * @description Successful Response
- */
-export type ReadHrDashboardApiV1HrDashboardGet200 = HrDashboardPublic;
+export type ReadHrDashboardApiV1HrDashboardGetStatus200 = HrDashboardPublic;
 
-/**
- * @description Authentication required
- */
-export type ReadHrDashboardApiV1HrDashboardGet401 = any;
+export type ReadHrDashboardApiV1HrDashboardGetStatus401 = unknown;
 
-/**
- * @description Account verification required
- */
-export type ReadHrDashboardApiV1HrDashboardGet403 = any;
+export type ReadHrDashboardApiV1HrDashboardGetStatus403 = unknown;
 
-export type ReadHrDashboardApiV1HrDashboardGetQueryResponse =
-  ReadHrDashboardApiV1HrDashboardGet200;
-
-export type ReadHrDashboardApiV1HrDashboardGetQuery = {
-  Response: ReadHrDashboardApiV1HrDashboardGet200;
-  Errors:
-    | ReadHrDashboardApiV1HrDashboardGet401
-    | ReadHrDashboardApiV1HrDashboardGet403;
+export type ReadHrDashboardApiV1HrDashboardGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadHrDashboardApiV1HrDashboardGetResponses = {
+  "200": ReadHrDashboardApiV1HrDashboardGetStatus200;
+  "401": ReadHrDashboardApiV1HrDashboardGetStatus401;
+  "403": ReadHrDashboardApiV1HrDashboardGetStatus403;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadHrDashboardApiV1HrDashboardGetResponse =
+  | ReadHrDashboardApiV1HrDashboardGetStatus200
+  | ReadHrDashboardApiV1HrDashboardGetStatus401
+  | ReadHrDashboardApiV1HrDashboardGetStatus403;

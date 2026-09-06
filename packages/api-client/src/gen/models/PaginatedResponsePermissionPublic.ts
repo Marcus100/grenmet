@@ -5,17 +5,8 @@
 
 import type { PermissionPublic } from "./PermissionPublic.js";
 
-/**
- * PaginatedResponse[PermissionPublic]
- */
 export type PaginatedResponsePermissionPublic = {
-  /**
-   * @type array
-   */
   data: PermissionPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

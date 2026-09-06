@@ -3,43 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadAlertApiV1CapAlertsAlertIdGet422,
-  ReadAlertApiV1CapAlertsAlertIdGetPathParams,
-  ReadAlertApiV1CapAlertsAlertIdGetQueryResponse,
+  ReadAlertApiV1CapAlertsAlertIdGetOptions,
+  ReadAlertApiV1CapAlertsAlertIdGetResponses,
 } from "../models/ReadAlertApiV1CapAlertsAlertIdGet.js";
-
-function getReadAlertApiV1CapAlertsAlertIdGetUrl(
-  alert_id: ReadAlertApiV1CapAlertsAlertIdGetPathParams["alert_id"]
-) {
-  const res = { method: "GET", url: `/api/v1/cap/alerts/${alert_id}` as const };
-  return res;
-}
 
 /**
  * @summary Read Alert
  * {@link /api/v1/cap/alerts/:alert_id}
  */
-export async function readAlertApiV1CapAlertsAlertIdGet(
-  alert_id: ReadAlertApiV1CapAlertsAlertIdGetPathParams["alert_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAlertApiV1CapAlertsAlertIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadAlertApiV1CapAlertsAlertIdGetOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ReadAlertApiV1CapAlertsAlertIdGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAlertApiV1CapAlertsAlertIdGetQueryResponse,
-    ResponseErrorConfig<ReadAlertApiV1CapAlertsAlertIdGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAlertApiV1CapAlertsAlertIdGetUrl(alert_id).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/alerts/{alert_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadAlertApiV1CapAlertsAlertIdGetResponses, ThrowOnError>
+    >
+  );
 }

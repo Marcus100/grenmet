@@ -23,7 +23,6 @@ const parseArguments = (args) => {
   ) {
     return { base: args[1], head: args[3], mode: "range" };
   }
-  return;
 };
 
 const parseChanges = (output) => {

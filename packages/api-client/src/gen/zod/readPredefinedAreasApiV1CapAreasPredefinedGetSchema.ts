@@ -6,12 +6,8 @@
 import * as z from "zod";
 import { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readPredefinedAreasApiV1CapAreasPredefinedGet200Schema = z.array(
-  z.lazy(() => capPredefinedAreaPublicSchema)
-);
+export const readPredefinedAreasApiV1CapAreasPredefinedGetStatus200Schema =
+  z.array(capPredefinedAreaPublicSchema);
 
-export const readPredefinedAreasApiV1CapAreasPredefinedGetQueryResponseSchema =
-  z.lazy(() => readPredefinedAreasApiV1CapAreasPredefinedGet200Schema);
+export const readPredefinedAreasApiV1CapAreasPredefinedGetResponseSchema =
+  readPredefinedAreasApiV1CapAreasPredefinedGetStatus200Schema;

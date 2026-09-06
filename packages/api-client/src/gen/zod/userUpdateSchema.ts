@@ -7,13 +7,13 @@ import * as z from "zod";
 import { titleSchema } from "./titleSchema.js";
 
 export const userUpdateSchema = z.object({
-  email: z.optional(z.union([z.string().email(), z.null()])),
-  username: z.optional(z.union([z.string(), z.null()])),
-  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
-  first_name: z.optional(z.union([z.string(), z.null()])),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
-  last_name: z.optional(z.union([z.string(), z.null()])),
-  password: z.optional(z.union([z.string(), z.null()])),
-  is_active: z.optional(z.union([z.boolean(), z.null()])),
-  is_superuser: z.optional(z.union([z.boolean(), z.null()])),
+  email: z.union([z.email(), z.null()]).optional(),
+  username: z.union([z.string().min(3).max(255), z.null()]).optional(),
+  title: z.union([titleSchema, z.null()]).optional(),
+  first_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  middle_name: z.union([z.string().max(100), z.null()]).optional(),
+  last_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  password: z.union([z.string(), z.null()]).optional(),
+  is_active: z.union([z.boolean(), z.null()]).optional(),
+  is_superuser: z.union([z.boolean(), z.null()]).optional(),
 });

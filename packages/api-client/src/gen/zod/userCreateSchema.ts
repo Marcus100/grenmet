@@ -7,13 +7,13 @@ import * as z from "zod";
 import { titleSchema } from "./titleSchema.js";
 
 export const userCreateSchema = z.object({
-  email: z.string().email().max(255),
+  email: z.email().max(255),
   username: z.string().max(255),
-  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
+  title: z.union([titleSchema, z.null()]).optional(),
   first_name: z.string().max(100),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
+  middle_name: z.union([z.string().max(100), z.null()]).optional(),
   last_name: z.string().max(100),
-  is_active: z.optional(z.boolean().default(true)),
-  is_superuser: z.optional(z.boolean().default(false)),
+  is_active: z.boolean().optional().default(true),
+  is_superuser: z.boolean().optional().default(false),
   password: z.string().min(8).max(128),
 });

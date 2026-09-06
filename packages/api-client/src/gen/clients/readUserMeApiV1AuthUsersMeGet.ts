@@ -3,37 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadUserMeApiV1AuthUsersMeGetQueryResponse } from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
-
-function getReadUserMeApiV1AuthUsersMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/users/me` as const };
-  return res;
-}
+  ReadUserMeApiV1AuthUsersMeGetOptions,
+  ReadUserMeApiV1AuthUsersMeGetResponses,
+} from "../models/ReadUserMeApiV1AuthUsersMeGet.js";
 
 /**
  * @description Return the currently authenticated user.
  * @summary Get current user
  * {@link /api/v1/auth/users/me}
  */
-export async function readUserMeApiV1AuthUsersMeGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readUserMeApiV1AuthUsersMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadUserMeApiV1AuthUsersMeGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadUserMeApiV1AuthUsersMeGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadUserMeApiV1AuthUsersMeGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadUserMeApiV1AuthUsersMeGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/users/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadUserMeApiV1AuthUsersMeGetResponses, ThrowOnError>
+    >
+  );
 }

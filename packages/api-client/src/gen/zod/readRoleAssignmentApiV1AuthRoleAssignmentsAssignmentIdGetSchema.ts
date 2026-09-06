@@ -7,30 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 
-export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParamsSchema =
-  z.object({
-    assignment_id: z.string().uuid(),
-  });
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathAssignmentIdSchema =
+  z.uuid();
 
-/**
- * @description Role assignment returned
- */
-export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200Schema =
-  z.lazy(() => userRoleAssignmentPublicSchema);
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200Schema =
+  userRoleAssignmentPublicSchema;
 
-/**
- * @description Role assignment not found
- */
-export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404Schema =
-  z.any();
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponseSchema =
-  z.lazy(
-    () => readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet200Schema
-  );
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponseSchema =
+  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200Schema;
+
+export const readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetErrorSchema =
+  z.union([
+    readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404Schema,
+    readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422Schema,
+  ]);

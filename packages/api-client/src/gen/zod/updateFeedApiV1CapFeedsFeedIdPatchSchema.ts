@@ -8,28 +8,19 @@ import { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
 import { capFeedImportUpdateSchema } from "./capFeedImportUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const updateFeedApiV1CapFeedsFeedIdPatchPathParamsSchema = z.object({
-  feed_id: z.string().uuid(),
-});
+export const updateFeedApiV1CapFeedsFeedIdPatchPathFeedIdSchema = z.uuid();
 
-/**
- * @description Successful Response
- */
-export const updateFeedApiV1CapFeedsFeedIdPatch200Schema = z.lazy(
-  () => capFeedImportPublicSchema
-);
+export const updateFeedApiV1CapFeedsFeedIdPatchStatus200Schema =
+  capFeedImportPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const updateFeedApiV1CapFeedsFeedIdPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateFeedApiV1CapFeedsFeedIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateFeedApiV1CapFeedsFeedIdPatchMutationRequestSchema = z.lazy(
-  () => capFeedImportUpdateSchema
-);
+export const updateFeedApiV1CapFeedsFeedIdPatchResponseSchema =
+  updateFeedApiV1CapFeedsFeedIdPatchStatus200Schema;
 
-export const updateFeedApiV1CapFeedsFeedIdPatchMutationResponseSchema = z.lazy(
-  () => updateFeedApiV1CapFeedsFeedIdPatch200Schema
-);
+export const updateFeedApiV1CapFeedsFeedIdPatchErrorSchema =
+  updateFeedApiV1CapFeedsFeedIdPatchStatus422Schema;
+
+export const updateFeedApiV1CapFeedsFeedIdPatchBodySchema =
+  capFeedImportUpdateSchema;

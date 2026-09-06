@@ -5,29 +5,29 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadCapXmlApiCapIdentifierXmlGetPathParams = {
-  /**
-   * @type string
-   */
+export type ReadCapXmlApiCapIdentifierXmlGetPath = {
   identifier: string;
 };
 
-/**
- * @description Successful Response
- */
-export type ReadCapXmlApiCapIdentifierXmlGet200 = any;
+export type ReadCapXmlApiCapIdentifierXmlGetStatus200 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadCapXmlApiCapIdentifierXmlGet422 = HTTPValidationError;
+export type ReadCapXmlApiCapIdentifierXmlGetStatus422 = HTTPValidationError;
 
-export type ReadCapXmlApiCapIdentifierXmlGetQueryResponse =
-  ReadCapXmlApiCapIdentifierXmlGet200;
-
-export type ReadCapXmlApiCapIdentifierXmlGetQuery = {
-  Response: ReadCapXmlApiCapIdentifierXmlGet200;
-  PathParams: ReadCapXmlApiCapIdentifierXmlGetPathParams;
-  Errors: ReadCapXmlApiCapIdentifierXmlGet422;
+export type ReadCapXmlApiCapIdentifierXmlGetOptions = {
+  body?: never;
+  path: ReadCapXmlApiCapIdentifierXmlGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadCapXmlApiCapIdentifierXmlGetResponses = {
+  "200": ReadCapXmlApiCapIdentifierXmlGetStatus200;
+  "422": ReadCapXmlApiCapIdentifierXmlGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadCapXmlApiCapIdentifierXmlGetResponse =
+  | ReadCapXmlApiCapIdentifierXmlGetStatus200
+  | ReadCapXmlApiCapIdentifierXmlGetStatus422;

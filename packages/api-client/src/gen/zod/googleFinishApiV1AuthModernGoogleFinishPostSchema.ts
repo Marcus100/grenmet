@@ -8,32 +8,26 @@ import { googleFinishSchema } from "./googleFinishSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 
-/**
- * @description Successful Response
- */
-export const googleFinishApiV1AuthModernGoogleFinishPost200Schema = z.lazy(
-  () => sessionLoginResponseSchema
-);
+export const googleFinishApiV1AuthModernGoogleFinishPostStatus200Schema =
+  sessionLoginResponseSchema;
 
-/**
- * @description Invalid or expired proof
- */
-export const googleFinishApiV1AuthModernGoogleFinishPost400Schema = z.any();
+export const googleFinishApiV1AuthModernGoogleFinishPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Account is not eligible
- */
-export const googleFinishApiV1AuthModernGoogleFinishPost403Schema = z.any();
+export const googleFinishApiV1AuthModernGoogleFinishPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const googleFinishApiV1AuthModernGoogleFinishPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const googleFinishApiV1AuthModernGoogleFinishPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const googleFinishApiV1AuthModernGoogleFinishPostMutationRequestSchema =
-  z.lazy(() => googleFinishSchema);
+export const googleFinishApiV1AuthModernGoogleFinishPostResponseSchema =
+  googleFinishApiV1AuthModernGoogleFinishPostStatus200Schema;
 
-export const googleFinishApiV1AuthModernGoogleFinishPostMutationResponseSchema =
-  z.lazy(() => googleFinishApiV1AuthModernGoogleFinishPost200Schema);
+export const googleFinishApiV1AuthModernGoogleFinishPostErrorSchema = z.union([
+  googleFinishApiV1AuthModernGoogleFinishPostStatus400Schema,
+  googleFinishApiV1AuthModernGoogleFinishPostStatus403Schema,
+  googleFinishApiV1AuthModernGoogleFinishPostStatus422Schema,
+]);
+
+export const googleFinishApiV1AuthModernGoogleFinishPostBodySchema =
+  googleFinishSchema;

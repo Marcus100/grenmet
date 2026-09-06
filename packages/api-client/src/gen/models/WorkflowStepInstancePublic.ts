@@ -6,42 +6,28 @@
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 import type { WorkflowAction } from "./WorkflowAction.js";
 
-/**
- * WorkflowStepInstancePublic
- */
 export type WorkflowStepInstancePublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   workflow_instance_id: string;
-  /**
-   * @type integer
-   */
   step_order: number;
   required_role_id?: string | null;
   required_user_id?: string | null;
-  /**
-   * @type string
-   */
   required_scope: RoleAssignmentScope;
-  /**
-   * @type boolean
-   */
   is_required: boolean;
   approver_user_id?: string | null;
   action?: WorkflowAction | null;
   comments?: string | null;
   acted_at?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

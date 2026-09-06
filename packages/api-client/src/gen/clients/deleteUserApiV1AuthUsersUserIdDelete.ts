@@ -3,53 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteUserApiV1AuthUsersUserIdDelete403,
-  DeleteUserApiV1AuthUsersUserIdDelete404,
-  DeleteUserApiV1AuthUsersUserIdDelete422,
-  DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-  DeleteUserApiV1AuthUsersUserIdDeletePathParams,
+  DeleteUserApiV1AuthUsersUserIdDeleteOptions,
+  DeleteUserApiV1AuthUsersUserIdDeleteResponses,
 } from "../models/DeleteUserApiV1AuthUsersUserIdDelete.js";
-
-function getDeleteUserApiV1AuthUsersUserIdDeleteUrl(
-  user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/auth/users/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.
  * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
-export async function deleteUserApiV1AuthUsersUserIdDelete(
-  user_id: DeleteUserApiV1AuthUsersUserIdDeletePathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteUserApiV1AuthUsersUserIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<DeleteUserApiV1AuthUsersUserIdDeleteOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<DeleteUserApiV1AuthUsersUserIdDeleteResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteUserApiV1AuthUsersUserIdDelete403
-      | DeleteUserApiV1AuthUsersUserIdDelete404
-      | DeleteUserApiV1AuthUsersUserIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteUserApiV1AuthUsersUserIdDeleteUrl(user_id).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/auth/users/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<DeleteUserApiV1AuthUsersUserIdDeleteResponses, ThrowOnError>
+    >
+  );
 }

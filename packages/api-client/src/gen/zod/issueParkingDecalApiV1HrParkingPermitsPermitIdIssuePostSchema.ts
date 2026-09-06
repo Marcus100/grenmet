@@ -8,39 +8,30 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { parkingPermitIssueSchema } from "./parkingPermitIssueSchema.js";
 import { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParamsSchema =
-  z.object({
-    permit_id: z.string().uuid(),
-  });
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathPermitIdSchema =
+  z.uuid();
 
-/**
- * @description Decal issued
- */
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200Schema =
-  z.lazy(() => parkingPermitPublicSchema);
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200Schema =
+  parkingPermitPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403Schema =
-  z.any();
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Parking permit not found
- */
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404Schema =
-  z.any();
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequestSchema =
-  z.lazy(() => parkingPermitIssueSchema);
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponseSchema =
+  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200Schema;
 
-export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponseSchema =
-  z.lazy(
-    () => issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost200Schema
-  );
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostErrorSchema =
+  z.union([
+    issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403Schema,
+    issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404Schema,
+    issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422Schema,
+  ]);
+
+export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBodySchema =
+  parkingPermitIssueSchema;

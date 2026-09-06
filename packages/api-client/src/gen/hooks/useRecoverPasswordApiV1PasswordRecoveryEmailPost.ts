@@ -9,43 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { recoverPasswordApiV1PasswordRecoveryEmailPost } from "../clients/recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 import type {
-  RecoverPasswordApiV1PasswordRecoveryEmailPost422,
-  RecoverPasswordApiV1PasswordRecoveryEmailPost429,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429,
 } from "../models/RecoverPasswordApiV1PasswordRecoveryEmailPost.js";
 
 export const recoverPasswordApiV1PasswordRecoveryEmailPostMutationKey = () =>
   [{ url: "/api/v1/password-recovery/:email" }] as const;
 
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostMutationKey =
-  ReturnType<typeof recoverPasswordApiV1PasswordRecoveryEmailPostMutationKey>;
-
 export function recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     recoverPasswordApiV1PasswordRecoveryEmailPostMutationKey();
   return mutationOptions<
-    RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
+    RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
     ResponseErrorConfig<
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429
     >,
-    { email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"] },
+    RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ email }) => {
-      return recoverPasswordApiV1PasswordRecoveryEmailPost(email, config);
+    mutationFn: async ({ path }) => {
+      return recoverPasswordApiV1PasswordRecoveryEmailPost({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -58,17 +58,17 @@ export function recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions<
 export function useRecoverPasswordApiV1PasswordRecoveryEmailPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
+      RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
       ResponseErrorConfig<
-        | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-        | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+        | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+        | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429
       >,
-      {
-        email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"];
-      },
+      RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -81,24 +81,22 @@ export function useRecoverPasswordApiV1PasswordRecoveryEmailPost<TContext>(
     recoverPasswordApiV1PasswordRecoveryEmailPostMutationOptions(
       config
     ) as UseMutationOptions<
-      RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
+      RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
       ResponseErrorConfig<
-        | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-        | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+        | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+        | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429
       >,
-      {
-        email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"];
-      },
+      RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
       TContext
     >;
 
   return useMutation<
-    RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
+    RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
     ResponseErrorConfig<
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429
     >,
-    { email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"] },
+    RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
     TContext
   >(
     {
@@ -108,12 +106,12 @@ export function useRecoverPasswordApiV1PasswordRecoveryEmailPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
+    RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200,
     ResponseErrorConfig<
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost429
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+      | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429
     >,
-    { email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"] },
+    RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
     TContext
   >;
 }

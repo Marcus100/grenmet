@@ -10,65 +10,59 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "../clients/listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 import type {
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams,
-  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404,
+  ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422,
 } from "../models/ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 
 export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey =
-  (
-    department_id: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams["department_id"]
-  ) =>
+  ({
+    path,
+  }: Omit<
+    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+    "headers"
+  >) =>
     [
-      {
-        url: "/api/v1/hr/departments/:department_id/members",
-        params: { department_id: department_id },
-      },
+      { url: "/api/v1/hr/departments/:department_id/members", params: path },
     ] as const;
 
-export type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey =
+type ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey =
   ReturnType<
     typeof listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey
   >;
 
 export function listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryOptions(
-  department_id: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams["department_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  {
+    path,
+  }: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey =
     listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      department_id
+      { path }
     );
   return queryOptions<
-    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
     ResponseErrorConfig<
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422
     >,
-    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+    ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
     typeof queryKey
   >({
-    enabled: !!department_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
       return listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-        department_id,
-        config
-      );
+        { ...config, path, signal: config.signal ?? signal, throwOnError: true }
+      ).unwrap();
     },
   });
 }
@@ -79,57 +73,66 @@ export function listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembe
  * {@link /api/v1/hr/departments/:department_id/members}
  */
 export function useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet<
-  TData = ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
-  TQueryData = ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+  TData = ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
+  TQueryData = ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
   TQueryKey extends
     QueryKey = ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey,
 >(
-  department_id: ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParams["department_id"],
+  {
+    path,
+  }: {
+    path:
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions["path"]
+      | (() => ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponse,
+        ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200,
         ResponseErrorConfig<
-          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403
-          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404
-          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422
+          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403
+          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404
+          | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      department_id
+      resolvedParams
     );
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryOptions(
-        department_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404
-      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404
+      | ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

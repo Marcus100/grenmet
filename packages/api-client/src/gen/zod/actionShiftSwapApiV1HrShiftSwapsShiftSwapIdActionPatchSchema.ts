@@ -8,37 +8,30 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParamsSchema =
-  z.object({
-    shift_swap_id: z.string().uuid(),
-  });
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathShiftSwapIdSchema =
+  z.uuid();
 
-/**
- * @description Shift swap request updated
- */
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch200Schema =
-  z.lazy(() => shiftSwapRequestPublicSchema);
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200Schema =
+  shiftSwapRequestPublicSchema;
 
-/**
- * @description Not allowed to action this shift swap
- */
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403Schema =
-  z.any();
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Shift swap request not found
- */
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404Schema =
-  z.any();
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequestSchema =
-  z.lazy(() => shiftSwapActionSchema);
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponseSchema =
+  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200Schema;
 
-export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponseSchema =
-  z.lazy(() => actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch200Schema);
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchErrorSchema =
+  z.union([
+    actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403Schema,
+    actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404Schema,
+    actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422Schema,
+  ]);
+
+export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchBodySchema =
+  shiftSwapActionSchema;

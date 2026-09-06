@@ -3,56 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  EmailRequestApiV1AuthModernEmailRequestPost400,
-  EmailRequestApiV1AuthModernEmailRequestPost403,
-  EmailRequestApiV1AuthModernEmailRequestPost422,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationRequest,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+  EmailRequestApiV1AuthModernEmailRequestPostOptions,
+  EmailRequestApiV1AuthModernEmailRequestPostResponses,
 } from "../models/EmailRequestApiV1AuthModernEmailRequestPost.js";
-
-function getEmailRequestApiV1AuthModernEmailRequestPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/modern/email/request` as const,
-  };
-  return res;
-}
 
 /**
  * @description Request verified password setup. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Request verified password setup
  * {@link /api/v1/auth/modern/email/request}
  */
-export async function emailRequestApiV1AuthModernEmailRequestPost(
-  data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest,
-  config: Partial<
-    RequestConfig<EmailRequestApiV1AuthModernEmailRequestPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function emailRequestApiV1AuthModernEmailRequestPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    EmailRequestApiV1AuthModernEmailRequestPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    EmailRequestApiV1AuthModernEmailRequestPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
-    ResponseErrorConfig<
-      | EmailRequestApiV1AuthModernEmailRequestPost400
-      | EmailRequestApiV1AuthModernEmailRequestPost403
-      | EmailRequestApiV1AuthModernEmailRequestPost422
-    >,
-    EmailRequestApiV1AuthModernEmailRequestPostMutationRequest
-  >({
-    method: "POST",
-    url: getEmailRequestApiV1AuthModernEmailRequestPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/modern/email/request",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        EmailRequestApiV1AuthModernEmailRequestPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

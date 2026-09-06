@@ -3,37 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
-
-function getTestTokenApiV1LoginTestTokenPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/test-token` as const };
-  return res;
-}
+  TestTokenApiV1LoginTestTokenPostOptions,
+  TestTokenApiV1LoginTestTokenPostResponses,
+} from "../models/TestTokenApiV1LoginTestTokenPost.js";
 
 /**
  * @description Test access token.
  * @summary Test Token
  * {@link /api/v1/login/test-token}
  */
-export async function testTokenApiV1LoginTestTokenPost(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function testTokenApiV1LoginTestTokenPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TestTokenApiV1LoginTestTokenPostOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<TestTokenApiV1LoginTestTokenPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    TestTokenApiV1LoginTestTokenPostMutationResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "POST",
-    url: getTestTokenApiV1LoginTestTokenPostUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/test-token",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TestTokenApiV1LoginTestTokenPostResponses, ThrowOnError>
+    >
+  );
 }

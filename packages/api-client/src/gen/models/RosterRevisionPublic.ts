@@ -5,39 +5,30 @@
 
 import type { RosterRevisionAction } from "./RosterRevisionAction.js";
 
-/**
- * RosterRevisionPublic
- */
 export type RosterRevisionPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
-   */
-  roster_period_id: string;
-  /**
-   * @type integer
-   */
-  revision_number: number;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  roster_period_id: string;
+  revision_number: number;
   action: RosterRevisionAction;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   changed_by_user_id: string;
   summary?: string | null;
-  /**
-   * @type object
-   */
   snapshot: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  /**
-   * @type string
-   */
   created_at: string;
 };

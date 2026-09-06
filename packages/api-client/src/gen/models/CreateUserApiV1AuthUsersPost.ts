@@ -7,41 +7,35 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserCreate } from "./UserCreate.js";
 import type { UserPublic } from "./UserPublic.js";
 
-/**
- * UserPublic
- * @description User created
- */
-export type CreateUserApiV1AuthUsersPost201 = UserPublic;
+export type CreateUserApiV1AuthUsersPostStatus201 = UserPublic;
 
-/**
- * @description User with this email already exists
- */
-export type CreateUserApiV1AuthUsersPost400 = any;
+export type CreateUserApiV1AuthUsersPostStatus400 = unknown;
 
-/**
- * @description Insufficient privileges
- */
-export type CreateUserApiV1AuthUsersPost403 = any;
+export type CreateUserApiV1AuthUsersPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateUserApiV1AuthUsersPost422 = HTTPValidationError;
+export type CreateUserApiV1AuthUsersPostStatus422 = HTTPValidationError;
 
-/**
- * UserCreate
- */
-export type CreateUserApiV1AuthUsersPostMutationRequest = UserCreate;
+export type CreateUserApiV1AuthUsersPostBody = UserCreate;
 
-export type CreateUserApiV1AuthUsersPostMutationResponse =
-  CreateUserApiV1AuthUsersPost201;
-
-export type CreateUserApiV1AuthUsersPostMutation = {
-  Response: CreateUserApiV1AuthUsersPost201;
-  Request: CreateUserApiV1AuthUsersPostMutationRequest;
-  Errors:
-    | CreateUserApiV1AuthUsersPost400
-    | CreateUserApiV1AuthUsersPost403
-    | CreateUserApiV1AuthUsersPost422;
+export type CreateUserApiV1AuthUsersPostOptions = {
+  body: CreateUserApiV1AuthUsersPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateUserApiV1AuthUsersPostResponses = {
+  "201": CreateUserApiV1AuthUsersPostStatus201;
+  "400": CreateUserApiV1AuthUsersPostStatus400;
+  "403": CreateUserApiV1AuthUsersPostStatus403;
+  "422": CreateUserApiV1AuthUsersPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateUserApiV1AuthUsersPostResponse =
+  | CreateUserApiV1AuthUsersPostStatus201
+  | CreateUserApiV1AuthUsersPostStatus400
+  | CreateUserApiV1AuthUsersPostStatus403
+  | CreateUserApiV1AuthUsersPostStatus422;

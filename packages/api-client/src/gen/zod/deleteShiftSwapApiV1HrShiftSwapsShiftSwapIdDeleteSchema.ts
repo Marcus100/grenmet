@@ -6,40 +6,31 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParamsSchema =
-  z.object({
-    shift_swap_id: z.string().uuid(),
-  });
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathShiftSwapIdSchema =
+  z.uuid();
 
-/**
- * @description Shift swap request deleted
- */
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204Schema =
-  z.any();
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Shift swap request is not a draft
- */
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400Schema =
-  z.any();
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to delete this shift swap request
- */
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403Schema =
-  z.any();
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403Schema =
+  z.unknown();
 
-/**
- * @description Shift swap request not found
- */
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404Schema =
-  z.any();
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponseSchema =
-  z.lazy(() => deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204Schema);
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponseSchema =
+  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204Schema;
+
+export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteErrorSchema =
+  z.union([
+    deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400Schema,
+    deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403Schema,
+    deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404Schema,
+    deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422Schema,
+  ]);

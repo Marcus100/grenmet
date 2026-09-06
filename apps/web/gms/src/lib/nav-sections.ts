@@ -130,18 +130,61 @@ export const NAV_SECTIONS: NavSection[] = [
       },
     ],
   },
-  // {
-  //   label: "Marine",
-  //   links: [
-  //     { name: "Marine Forecast", href: "/marine/forecast" },
-  //     { name: "Coastal Waters Forecast", href: "/marine/coastal" },
-  //     { name: "Sea Conditions", href: "/marine/sea-conditions" },
-  //     { name: "Wave / Swell Forecast", href: "/marine/wave-swell" },
-  //     { name: "Tide Information", href: "/marine/tides" },
-  //     { name: "Small Craft Advisories", href: "/marine/small-craft" },
-  //     { name: "Marine Safety", href: "/marine/safety" },
-  //   ],
-  // },
+  {
+    label: "Marine",
+    groups: [
+      {
+        heading: "Forecasts",
+        links: [
+          {
+            name: "Marine Forecast",
+            href: "/marine/forecast",
+            description: "Wind, sea state and swell for Grenada waters",
+          },
+          {
+            name: "Coastal Waters Forecast",
+            href: "/marine/coastal",
+            description: "Conditions by zone within 12 nautical miles",
+          },
+          {
+            name: "Wave / Swell Forecast",
+            href: "/marine/wave-swell",
+            description: "Significant height, period and direction",
+          },
+        ],
+      },
+      {
+        heading: "Conditions",
+        links: [
+          {
+            name: "Sea Conditions",
+            href: "/marine/sea-conditions",
+            description: "Observed sea state around the tri-island state",
+          },
+          {
+            name: "Tide Information",
+            href: "/marine/tides",
+            description: "Predicted high and low water",
+          },
+        ],
+      },
+      {
+        heading: "Safety",
+        links: [
+          {
+            name: "Small Craft Advisories",
+            href: "/marine/small-craft",
+            description: "Advisories in effect for small vessels",
+          },
+          {
+            name: "Marine Safety",
+            href: "/marine/safety",
+            description: "Staying safe on the water",
+          },
+        ],
+      },
+    ],
+  },
   {
     label: "Sectors",
     groups: [
@@ -162,7 +205,7 @@ export const NAV_SECTIONS: NavSection[] = [
           },
           {
             name: "Marine",
-            href: "/sectiors/marine",
+            href: "/sectors/marine",
             description: "Sea state and swell for fishers, sailors and ports",
           },
         ],
@@ -322,7 +365,58 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "About",
     href: "/about",
-    groups: [],
+    groups: [
+      {
+        heading: "The service",
+        links: [
+          {
+            name: "About GMS",
+            href: "/about",
+            description: "Who we are and what we do",
+          },
+          {
+            name: "Our services",
+            href: "/about/services",
+            description: "The full range of services we provide",
+          },
+          {
+            name: "Our history",
+            href: "/about/history",
+            description: "How meteorology in Grenada developed",
+          },
+        ],
+      },
+      {
+        heading: "How we work",
+        links: [
+          {
+            name: "Observing network",
+            href: "/about/network",
+            description: "Where our observations come from",
+          },
+          {
+            name: "Standards and partners",
+            href: "/about/standards",
+            description: "WMO, ICAO and regional cooperation",
+          },
+        ],
+      },
+      {
+        heading: "Get in touch",
+        links: [
+          {
+            name: "Contact us",
+            href: "/about/contact",
+            description: "Enquiries, media and data requests",
+          },
+          {
+            name: "Careers",
+            href: "/about/careers",
+            description: "Working as a meteorologist or met assistant",
+          },
+        ],
+      },
+    ],
   },
 ];
 

@@ -6,43 +6,29 @@
 import type { ShiftCategory } from "./ShiftCategory.js";
 
 /**
- * RosterCalendarEntry
  * @description One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime — a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times.
+ * @type object
  */
 export type RosterCalendarEntry = {
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   display_name: string;
   roster_name?: string | null;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   assignment_date: string;
-  /**
-   * @type string
-   */
   shift_code: string;
-  /**
-   * @type string
-   */
   label: string;
-  /**
-   * @type string
-   */
   category: ShiftCategory;
   starts_at_local?: string | null;
   ends_at_local?: string | null;
-  /**
-   * @type boolean
-   */
   all_day: boolean;
-  /**
-   * @type boolean
-   */
   is_draft: boolean;
 };

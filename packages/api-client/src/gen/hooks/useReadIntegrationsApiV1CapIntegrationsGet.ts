@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readIntegrationsApiV1CapIntegrationsGet } from "../clients/readIntegrationsApiV1CapIntegrationsGet.js";
-import type { ReadIntegrationsApiV1CapIntegrationsGetQueryResponse } from "../models/ReadIntegrationsApiV1CapIntegrationsGet.js";
+import type { ReadIntegrationsApiV1CapIntegrationsGetStatus200 } from "../models/ReadIntegrationsApiV1CapIntegrationsGet.js";
 
 export const readIntegrationsApiV1CapIntegrationsGetQueryKey = () =>
   [{ url: "/api/v1/cap/integrations" }] as const;
 
-export type ReadIntegrationsApiV1CapIntegrationsGetQueryKey = ReturnType<
+type ReadIntegrationsApiV1CapIntegrationsGetQueryKey = ReturnType<
   typeof readIntegrationsApiV1CapIntegrationsGetQueryKey
 >;
 
 export function readIntegrationsApiV1CapIntegrationsGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readIntegrationsApiV1CapIntegrationsGetQueryKey();
   return queryOptions<
-    ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
+    ReadIntegrationsApiV1CapIntegrationsGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
+    ReadIntegrationsApiV1CapIntegrationsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readIntegrationsApiV1CapIntegrationsGet(config);
+      return readIntegrationsApiV1CapIntegrationsGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -52,40 +50,43 @@ export function readIntegrationsApiV1CapIntegrationsGetQueryOptions(
  * {@link /api/v1/cap/integrations}
  */
 export function useReadIntegrationsApiV1CapIntegrationsGet<
-  TData = ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
-  TQueryData = ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
+  TData = ReadIntegrationsApiV1CapIntegrationsGetStatus200,
+  TQueryData = ReadIntegrationsApiV1CapIntegrationsGetStatus200,
   TQueryKey extends QueryKey = ReadIntegrationsApiV1CapIntegrationsGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadIntegrationsApiV1CapIntegrationsGetQueryResponse,
+        ReadIntegrationsApiV1CapIntegrationsGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readIntegrationsApiV1CapIntegrationsGetQueryKey();
+    resolvedOptions?.queryKey ??
+    readIntegrationsApiV1CapIntegrationsGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readIntegrationsApiV1CapIntegrationsGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

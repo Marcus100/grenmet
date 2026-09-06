@@ -7,29 +7,22 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
 
-export const listShiftCatalogApiV1HrRostersShiftsGetQueryParamsSchema =
-  z.object({
-    include_inactive: z.boolean().default(false),
-  });
+export const listShiftCatalogApiV1HrRostersShiftsGetQueryIncludeInactiveSchema =
+  z.boolean().optional().default(false);
 
-/**
- * @description Shift catalog returned
- */
-export const listShiftCatalogApiV1HrRostersShiftsGet200Schema = z.lazy(
-  () => shiftCatalogsPublicSchema
-);
+export const listShiftCatalogApiV1HrRostersShiftsGetStatus200Schema =
+  shiftCatalogsPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const listShiftCatalogApiV1HrRostersShiftsGet403Schema = z.any();
+export const listShiftCatalogApiV1HrRostersShiftsGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const listShiftCatalogApiV1HrRostersShiftsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const listShiftCatalogApiV1HrRostersShiftsGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const listShiftCatalogApiV1HrRostersShiftsGetQueryResponseSchema =
-  z.lazy(() => listShiftCatalogApiV1HrRostersShiftsGet200Schema);
+export const listShiftCatalogApiV1HrRostersShiftsGetResponseSchema =
+  listShiftCatalogApiV1HrRostersShiftsGetStatus200Schema;
+
+export const listShiftCatalogApiV1HrRostersShiftsGetErrorSchema = z.union([
+  listShiftCatalogApiV1HrRostersShiftsGetStatus403Schema,
+  listShiftCatalogApiV1HrRostersShiftsGetStatus422Schema,
+]);

@@ -8,40 +8,30 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestActionSchema } from "./leaveRequestActionSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParamsSchema =
-  z.object({
-    leave_request_id: z.string().uuid(),
-  });
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathLeaveRequestIdSchema =
+  z.uuid();
 
-/**
- * @description Leave request updated
- */
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200Schema =
-  z.lazy(() => leaveRequestPublicSchema);
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200Schema =
+  leaveRequestPublicSchema;
 
-/**
- * @description Not allowed to action this leave request
- */
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403Schema =
-  z.any();
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Leave request not found
- */
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404Schema =
-  z.any();
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequestSchema =
-  z.lazy(() => leaveRequestActionSchema);
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponseSchema =
+  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200Schema;
 
-export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponseSchema =
-  z.lazy(
-    () =>
-      actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch200Schema
-  );
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchErrorSchema =
+  z.union([
+    actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403Schema,
+    actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404Schema,
+    actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422Schema,
+  ]);
+
+export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBodySchema =
+  leaveRequestActionSchema;

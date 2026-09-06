@@ -5,9 +5,6 @@
 
 import type { EmploymentType } from "./EmploymentType.js";
 
-/**
- * EmploymentCreate
- */
 export type EmploymentCreate = {
   /**
    * @maxLength 50
@@ -21,6 +18,7 @@ export type EmploymentCreate = {
   department_id: string;
   position?: string | null;
   /**
+   * @default 'FULL_TIME'
    * @type string | undefined
    */
   employment_type?: EmploymentType;

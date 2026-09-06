@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capSeverityCapSeverityEnum = {
+export const capSeverity = {
   Extreme: "Extreme",
   Severe: "Severe",
   Moderate: "Moderate",
@@ -11,10 +11,4 @@ export const capSeverityCapSeverityEnum = {
   Unknown: "Unknown",
 } as const;
 
-export type CapSeverityCapSeverityEnumKey =
-  (typeof capSeverityCapSeverityEnum)[keyof typeof capSeverityCapSeverityEnum];
-
-/**
- * CapSeverity
- */
-export type CapSeverity = CapSeverityCapSeverityEnumKey;
+export type CapSeverity = (typeof capSeverity)[keyof typeof capSeverity];

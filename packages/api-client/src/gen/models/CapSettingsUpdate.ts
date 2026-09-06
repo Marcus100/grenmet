@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapSettingsUpdate
- */
 export type CapSettingsUpdate = {
   sender?: string | null;
   sender_name?: string | null;

@@ -6,35 +6,35 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowTemplatesPublic } from "./WorkflowTemplatesPublic.js";
 
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams = {
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQuery = {
   department_id?: string | null;
 };
 
-/**
- * WorkflowTemplatesPublic
- * @description Templates returned
- */
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGet200 =
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200 =
   WorkflowTemplatesPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGet403 = any;
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGet422 = HTTPValidationError;
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422 =
+  HTTPValidationError;
 
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse =
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet200;
-
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQuery = {
-  Response: ReadTemplatesApiV1HrWorkflowsTemplatesGet200;
-  QueryParams: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams;
-  Errors:
-    | ReadTemplatesApiV1HrWorkflowsTemplatesGet403
-    | ReadTemplatesApiV1HrWorkflowsTemplatesGet422;
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadTemplatesApiV1HrWorkflowsTemplatesGetQuery;
+  headers?: never;
 };
+
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetResponses = {
+  "200": ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200;
+  "403": ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403;
+  "422": ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadTemplatesApiV1HrWorkflowsTemplatesGetResponse =
+  | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200
+  | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403
+  | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422;

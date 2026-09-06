@@ -7,6 +7,6 @@ import * as z from "zod";
 import { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 
 export const rosterAssignmentBulkCreateSchema = z.object({
-  roster_period_id: z.string().uuid(),
-  assignments: z.optional(z.array(z.lazy(() => rosterAssignmentInputSchema))),
+  roster_period_id: z.uuid(),
+  assignments: z.array(rosterAssignmentInputSchema).optional(),
 });

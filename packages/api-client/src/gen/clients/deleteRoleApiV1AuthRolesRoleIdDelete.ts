@@ -3,53 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteRoleApiV1AuthRolesRoleIdDelete400,
-  DeleteRoleApiV1AuthRolesRoleIdDelete404,
-  DeleteRoleApiV1AuthRolesRoleIdDelete422,
-  DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
-  DeleteRoleApiV1AuthRolesRoleIdDeletePathParams,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteResponses,
 } from "../models/DeleteRoleApiV1AuthRolesRoleIdDelete.js";
-
-function getDeleteRoleApiV1AuthRolesRoleIdDeleteUrl(
-  role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/auth/roles/${role_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete a role (superuser only). Fails while any user still holds the role.
  * @summary Delete role
  * {@link /api/v1/auth/roles/:role_id}
  */
-export async function deleteRoleApiV1AuthRolesRoleIdDelete(
-  role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteRoleApiV1AuthRolesRoleIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<DeleteRoleApiV1AuthRolesRoleIdDeleteOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<DeleteRoleApiV1AuthRolesRoleIdDeleteResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteRoleApiV1AuthRolesRoleIdDelete400
-      | DeleteRoleApiV1AuthRolesRoleIdDelete404
-      | DeleteRoleApiV1AuthRolesRoleIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteRoleApiV1AuthRolesRoleIdDeleteUrl(role_id).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/auth/roles/{role_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<DeleteRoleApiV1AuthRolesRoleIdDeleteResponses, ThrowOnError>
+    >
+  );
 }

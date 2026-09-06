@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams,
-  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+  GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponses,
 } from "../models/GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
-
-function getGetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetUrl(
-  period_id: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams["period_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/rosters/periods/${period_id}/revisions` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return the revision history for a roster period. Requires roster.view permission.
  * @summary List roster period revisions
  * {@link /api/v1/hr/rosters/periods/:period_id/revisions}
  */
-export async function getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet(
-  period_id: GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetQueryResponse,
-    ResponseErrorConfig<
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet403
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet404
-      | GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getGetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetUrl(
-      period_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/periods/{period_id}/revisions",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        GetPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

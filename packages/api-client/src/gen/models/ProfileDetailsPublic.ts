@@ -6,19 +6,10 @@
 import type { Gender } from "./Gender.js";
 import type { Title } from "./Title.js";
 
-/**
- * ProfileDetailsPublic
- */
 export type ProfileDetailsPublic = {
   title?: Title | null;
-  /**
-   * @type string
-   */
   first_name: string;
   middle_name?: string | null;
-  /**
-   * @type string
-   */
   last_name: string;
   display_name?: string | null;
   date_of_birth?: string | null;

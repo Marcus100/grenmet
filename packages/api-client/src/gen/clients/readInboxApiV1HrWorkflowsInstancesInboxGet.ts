@@ -3,43 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadInboxApiV1HrWorkflowsInstancesInboxGet403,
-  ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetOptions,
+  ReadInboxApiV1HrWorkflowsInstancesInboxGetResponses,
 } from "../models/ReadInboxApiV1HrWorkflowsInstancesInboxGet.js";
-
-function getReadInboxApiV1HrWorkflowsInstancesInboxGetUrl() {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/workflows/instances/inbox` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return workflow instances awaiting an action the current user is authorized to take (named co-approver or role-based approver). Requires workflow.instance.view permission.
  * @summary List my pending approvals
  * {@link /api/v1/hr/workflows/instances/inbox}
  */
-export async function readInboxApiV1HrWorkflowsInstancesInboxGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readInboxApiV1HrWorkflowsInstancesInboxGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadInboxApiV1HrWorkflowsInstancesInboxGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadInboxApiV1HrWorkflowsInstancesInboxGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse,
-    ResponseErrorConfig<ReadInboxApiV1HrWorkflowsInstancesInboxGet403>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadInboxApiV1HrWorkflowsInstancesInboxGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/workflows/instances/inbox",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadInboxApiV1HrWorkflowsInstancesInboxGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

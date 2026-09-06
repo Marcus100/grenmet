@@ -8,27 +8,20 @@ import { capAlertActionSchema } from "./capAlertActionSchema.js";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const approveAlertApiV1CapAlertsAlertIdApprovePostPathParamsSchema =
-  z.object({
-    alert_id: z.string().uuid(),
-  });
+export const approveAlertApiV1CapAlertsAlertIdApprovePostPathAlertIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const approveAlertApiV1CapAlertsAlertIdApprovePost200Schema = z.lazy(
-  () => capAlertPublicSchema
-);
+export const approveAlertApiV1CapAlertsAlertIdApprovePostStatus200Schema =
+  capAlertPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const approveAlertApiV1CapAlertsAlertIdApprovePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const approveAlertApiV1CapAlertsAlertIdApprovePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const approveAlertApiV1CapAlertsAlertIdApprovePostMutationRequestSchema =
-  z.lazy(() => capAlertActionSchema);
+export const approveAlertApiV1CapAlertsAlertIdApprovePostResponseSchema =
+  approveAlertApiV1CapAlertsAlertIdApprovePostStatus200Schema;
 
-export const approveAlertApiV1CapAlertsAlertIdApprovePostMutationResponseSchema =
-  z.lazy(() => approveAlertApiV1CapAlertsAlertIdApprovePost200Schema);
+export const approveAlertApiV1CapAlertsAlertIdApprovePostErrorSchema =
+  approveAlertApiV1CapAlertsAlertIdApprovePostStatus422Schema;
+
+export const approveAlertApiV1CapAlertsAlertIdApprovePostBodySchema =
+  capAlertActionSchema;

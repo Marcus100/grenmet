@@ -7,5 +7,5 @@ import * as z from "zod";
 import { submissionModeSchema } from "./submissionModeSchema.js";
 
 export const timesheetSubmitRequestSchema = z.object({
-  mode: z.optional(z.lazy(() => submissionModeSchema)),
+  mode: submissionModeSchema.optional().default("SELF"),
 });

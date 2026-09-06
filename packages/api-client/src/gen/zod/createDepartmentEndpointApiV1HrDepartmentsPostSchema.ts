@@ -8,32 +8,27 @@ import { departmentCreateSchema } from "./departmentCreateSchema.js";
 import { departmentPublicSchema } from "./departmentPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Department created
- */
-export const createDepartmentEndpointApiV1HrDepartmentsPost201Schema = z.lazy(
-  () => departmentPublicSchema
-);
+export const createDepartmentEndpointApiV1HrDepartmentsPostStatus201Schema =
+  departmentPublicSchema;
 
-/**
- * @description Department already exists
- */
-export const createDepartmentEndpointApiV1HrDepartmentsPost400Schema = z.any();
+export const createDepartmentEndpointApiV1HrDepartmentsPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createDepartmentEndpointApiV1HrDepartmentsPost403Schema = z.any();
+export const createDepartmentEndpointApiV1HrDepartmentsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createDepartmentEndpointApiV1HrDepartmentsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createDepartmentEndpointApiV1HrDepartmentsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createDepartmentEndpointApiV1HrDepartmentsPostMutationRequestSchema =
-  z.lazy(() => departmentCreateSchema);
+export const createDepartmentEndpointApiV1HrDepartmentsPostResponseSchema =
+  createDepartmentEndpointApiV1HrDepartmentsPostStatus201Schema;
 
-export const createDepartmentEndpointApiV1HrDepartmentsPostMutationResponseSchema =
-  z.lazy(() => createDepartmentEndpointApiV1HrDepartmentsPost201Schema);
+export const createDepartmentEndpointApiV1HrDepartmentsPostErrorSchema =
+  z.union([
+    createDepartmentEndpointApiV1HrDepartmentsPostStatus400Schema,
+    createDepartmentEndpointApiV1HrDepartmentsPostStatus403Schema,
+    createDepartmentEndpointApiV1HrDepartmentsPostStatus422Schema,
+  ]);
+
+export const createDepartmentEndpointApiV1HrDepartmentsPostBodySchema =
+  departmentCreateSchema;

@@ -6,5 +6,5 @@
 import * as z from "zod";
 
 export const statusReportSubmitSchema = z.object({
-  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  co_approver_user_ids: z.array(z.uuid()).optional(),
 });

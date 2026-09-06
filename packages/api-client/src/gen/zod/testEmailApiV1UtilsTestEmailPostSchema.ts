@@ -7,24 +7,15 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const testEmailApiV1UtilsTestEmailPostQueryParamsSchema = z.object({
-  email_to: z.string().email(),
-});
+export const testEmailApiV1UtilsTestEmailPostQueryEmailToSchema = z.email();
 
-/**
- * @description Successful Response
- */
-export const testEmailApiV1UtilsTestEmailPost201Schema = z.lazy(
-  () => messageSchema
-);
+export const testEmailApiV1UtilsTestEmailPostStatus201Schema = messageSchema;
 
-/**
- * @description Validation Error
- */
-export const testEmailApiV1UtilsTestEmailPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const testEmailApiV1UtilsTestEmailPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const testEmailApiV1UtilsTestEmailPostMutationResponseSchema = z.lazy(
-  () => testEmailApiV1UtilsTestEmailPost201Schema
-);
+export const testEmailApiV1UtilsTestEmailPostResponseSchema =
+  testEmailApiV1UtilsTestEmailPostStatus201Schema;
+
+export const testEmailApiV1UtilsTestEmailPostErrorSchema =
+  testEmailApiV1UtilsTestEmailPostStatus422Schema;

@@ -3,37 +3,37 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
-
-function getHealthCheckApiV1UtilsHealthCheckGetUrl() {
-  const res = { method: "GET", url: `/api/v1/utils/health-check/` as const };
-  return res;
-}
+  HealthCheckApiV1UtilsHealthCheckGetOptions,
+  HealthCheckApiV1UtilsHealthCheckGetResponses,
+} from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
 
 /**
  * @description Simple liveness probe; returns 200 if the process is running.
  * @summary Liveness
  * {@link /api/v1/utils/health-check/}
  */
-export async function healthCheckApiV1UtilsHealthCheckGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function healthCheckApiV1UtilsHealthCheckGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    HealthCheckApiV1UtilsHealthCheckGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<HealthCheckApiV1UtilsHealthCheckGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getHealthCheckApiV1UtilsHealthCheckGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/utils/health-check/",
+      ...config,
+    }) as Promise<
+      RequestResult<HealthCheckApiV1UtilsHealthCheckGetResponses, ThrowOnError>
+    >
+  );
 }

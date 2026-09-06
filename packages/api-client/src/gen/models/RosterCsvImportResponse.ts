@@ -5,28 +5,15 @@
 
 import type { ImportStatus } from "./ImportStatus.js";
 
-/**
- * RosterCsvImportResponse
- */
 export type RosterCsvImportResponse = {
   /**
-   * @type string, uuid
-   */
-  job_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  job_id: string;
   status: ImportStatus;
-  /**
-   * @type integer
-   */
   total_rows: number;
-  /**
-   * @type integer
-   */
   valid_rows: number;
-  /**
-   * @type integer
-   */
   invalid_rows: number;
 };

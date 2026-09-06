@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * EmergencyContactUpdate
- */
 export type EmergencyContactUpdate = {
   name?: string | null;
   phone?: string | null;

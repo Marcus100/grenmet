@@ -10,54 +10,50 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readHrEmploymentApiV1HrEmploymentUserIdGet } from "../clients/readHrEmploymentApiV1HrEmploymentUserIdGet.js";
 import type {
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422,
 } from "../models/ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
 
-export const readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey = (
-  user_id: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams["user_id"]
-) =>
-  [
-    { url: "/api/v1/hr/employment/:user_id", params: { user_id: user_id } },
-  ] as const;
+export const readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey = ({
+  path,
+}: Omit<ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/hr/employment/:user_id", params: path }] as const;
 
-export type ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryKey = ReturnType<
+type ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryKey = ReturnType<
   typeof readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey
 >;
 
 export function readHrEmploymentApiV1HrEmploymentUserIdGetQueryOptions(
-  user_id: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey(user_id);
+  const queryKey = readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey({ path });
   return queryOptions<
-    ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+    ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
     ResponseErrorConfig<
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet403
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet404
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet422
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422
     >,
-    ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+    ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!user_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readHrEmploymentApiV1HrEmploymentUserIdGet(user_id, config);
+      return readHrEmploymentApiV1HrEmploymentUserIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -68,55 +64,64 @@ export function readHrEmploymentApiV1HrEmploymentUserIdGetQueryOptions(
  * {@link /api/v1/hr/employment/:user_id}
  */
 export function useReadHrEmploymentApiV1HrEmploymentUserIdGet<
-  TData = ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
-  TQueryData = ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+  TData = ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
+  TQueryData = ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
   TQueryKey extends
     QueryKey = ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
 >(
-  user_id: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams["user_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions["path"]
+      | (() => ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+        ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus200,
         ResponseErrorConfig<
-          | ReadHrEmploymentApiV1HrEmploymentUserIdGet403
-          | ReadHrEmploymentApiV1HrEmploymentUserIdGet404
-          | ReadHrEmploymentApiV1HrEmploymentUserIdGet422
+          | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403
+          | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404
+          | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey(user_id);
+    resolvedOptions?.queryKey ??
+    readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readHrEmploymentApiV1HrEmploymentUserIdGetQueryOptions(
-        user_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet403
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet404
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet422
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus403
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus404
+      | ReadHrEmploymentApiV1HrEmploymentUserIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

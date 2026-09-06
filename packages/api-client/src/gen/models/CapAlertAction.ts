@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapAlertAction
- */
 export type CapAlertAction = {
   note?: string | null;
 };

@@ -3,17 +3,11 @@
  * Do not edit manually.
  */
 
-export const shiftCategoryShiftCategoryEnum = {
+export const shiftCategory = {
   WORK: "WORK",
   OFF: "OFF",
   LEAVE: "LEAVE",
   HOLIDAY: "HOLIDAY",
 } as const;
 
-export type ShiftCategoryShiftCategoryEnumKey =
-  (typeof shiftCategoryShiftCategoryEnum)[keyof typeof shiftCategoryShiftCategoryEnum];
-
-/**
- * ShiftCategory
- */
-export type ShiftCategory = ShiftCategoryShiftCategoryEnumKey;
+export type ShiftCategory = (typeof shiftCategory)[keyof typeof shiftCategory];

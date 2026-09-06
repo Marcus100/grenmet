@@ -3,25 +3,13 @@
  * Do not edit manually.
  */
 
-/**
- * PermissionCreate
- */
 export type PermissionCreate = {
   key?: string | null;
-  /**
-   * @type string
-   */
   action: string;
-  /**
-   * @type string
-   */
   entity: string;
-  /**
-   * @type string
-   */
   access: string;
   /**
-   * @default ""
+   * @default ''
    * @type string | undefined
    */
   description?: string;

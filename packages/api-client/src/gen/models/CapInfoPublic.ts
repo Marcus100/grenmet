@@ -11,20 +11,14 @@ import type { CapResourcePublic } from "./CapResourcePublic.js";
 import type { CapSeverity } from "./CapSeverity.js";
 import type { CapUrgency } from "./CapUrgency.js";
 
-/**
- * CapInfoPublic
- */
 export type CapInfoPublic = {
   /**
    * @minLength 2
    * @maxLength 35
-   * @default "en"
+   * @default 'en'
    * @type string | undefined
    */
   language?: string;
-  /**
-   * @type array | undefined
-   */
   categories?: CapCategory[];
   /**
    * @minLength 1
@@ -32,23 +26,20 @@ export type CapInfoPublic = {
    * @type string
    */
   event: string;
-  /**
-   * @type array | undefined
-   */
   event_codes?: CapNameValue[];
-  /**
-   * @type array | undefined
-   */
   response_types?: string[];
   /**
+   * @default 'Expected'
    * @type string | undefined
    */
   urgency?: CapUrgency;
   /**
+   * @default 'Moderate'
    * @type string | undefined
    */
   severity?: CapSeverity;
   /**
+   * @default 'Likely'
    * @type string | undefined
    */
   certainty?: CapCertainty;
@@ -72,24 +63,14 @@ export type CapInfoPublic = {
   instruction?: string | null;
   web?: string | null;
   contact?: string | null;
-  /**
-   * @type array | undefined
-   */
   parameters?: CapNameValue[];
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type integer
-   */
   sequence: number;
-  /**
-   * @type array | undefined
-   */
   resources?: CapResourcePublic[];
-  /**
-   * @type array | undefined
-   */
   areas?: CapAreaPublic[];
 };

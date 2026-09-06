@@ -3,53 +3,37 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateAlertApiV1CapAlertsAlertIdPatch422,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest,
-  UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-  UpdateAlertApiV1CapAlertsAlertIdPatchPathParams,
+  UpdateAlertApiV1CapAlertsAlertIdPatchOptions,
+  UpdateAlertApiV1CapAlertsAlertIdPatchResponses,
 } from "../models/UpdateAlertApiV1CapAlertsAlertIdPatch.js";
-
-function getUpdateAlertApiV1CapAlertsAlertIdPatchUrl(
-  alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/cap/alerts/${alert_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Update Alert
  * {@link /api/v1/cap/alerts/:alert_id}
  */
-export async function updateAlertApiV1CapAlertsAlertIdPatch(
-  alert_id: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams["alert_id"],
-  data: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateAlertApiV1CapAlertsAlertIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateAlertApiV1CapAlertsAlertIdPatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateAlertApiV1CapAlertsAlertIdPatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateAlertApiV1CapAlertsAlertIdPatch422>,
-    UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateAlertApiV1CapAlertsAlertIdPatchUrl(alert_id).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/cap/alerts/{alert_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateAlertApiV1CapAlertsAlertIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

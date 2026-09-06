@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponses,
 } from "../models/RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
-
-function getRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteUrl(
-  holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/hr/rosters/public-holidays/${holiday_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Remove a public holiday. Requires roster.manage permission.
  * @summary Delete public holiday
  * {@link /api/v1/hr/rosters/public-holidays/:holiday_id}
  */
-export async function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
-  holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteUrl(
-      holiday_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/hr/rosters/public-holidays/{holiday_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

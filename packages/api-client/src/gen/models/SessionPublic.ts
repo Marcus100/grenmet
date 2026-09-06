@@ -3,38 +3,24 @@
  * Do not edit manually.
  */
 
-/**
- * SessionPublic
- */
 export type SessionPublic = {
-  /**
-   * @type string
-   */
   expires_at: string;
-  /**
-   * @type string
-   */
   client_type: string;
   app_name?: string | null;
-  /**
-   * @type string
-   */
   last_used_at: string;
   revoked_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };

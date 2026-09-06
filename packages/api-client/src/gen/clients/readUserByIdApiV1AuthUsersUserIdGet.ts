@@ -3,48 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadUserByIdApiV1AuthUsersUserIdGet403,
-  ReadUserByIdApiV1AuthUsersUserIdGet422,
-  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
-  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+  ReadUserByIdApiV1AuthUsersUserIdGetOptions,
+  ReadUserByIdApiV1AuthUsersUserIdGetResponses,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
-
-function getReadUserByIdApiV1AuthUsersUserIdGetUrl(
-  user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"]
-) {
-  const res = { method: "GET", url: `/api/v1/auth/users/${user_id}` as const };
-  return res;
-}
 
 /**
  * @description Return user by ID. Non-superusers can only fetch themselves.
  * @summary Get user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
-export async function readUserByIdApiV1AuthUsersUserIdGet(
-  user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readUserByIdApiV1AuthUsersUserIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadUserByIdApiV1AuthUsersUserIdGetOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ReadUserByIdApiV1AuthUsersUserIdGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadUserByIdApiV1AuthUsersUserIdGet403
-      | ReadUserByIdApiV1AuthUsersUserIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadUserByIdApiV1AuthUsersUserIdGetUrl(user_id).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/users/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadUserByIdApiV1AuthUsersUserIdGetResponses, ThrowOnError>
+    >
+  );
 }

@@ -7,12 +7,6 @@ import * as z from "zod";
 import { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
 
 export const calendarEventsPublicSchema = z.object({
-  data: z.array(
-    z
-      .lazy(() => calendarEventPublicSchema)
-      .describe(
-        "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
-      )
-  ),
-  count: z.number().int(),
+  data: z.array(calendarEventPublicSchema),
+  count: z.int(),
 });

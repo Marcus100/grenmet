@@ -27,7 +27,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function ShiftSwapSubmissions() {
-  const query = useListMyShiftSwapsApiV1HrShiftSwapsMeGet();
+  const query = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
   const deleteMutation = useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete();
@@ -36,7 +36,7 @@ export function ShiftSwapSubmissions() {
   const departmentId = profileQuery.data?.employment?.department?.id;
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      departmentId ?? "",
+      { path: { department_id: departmentId ?? "" } },
       { query: { enabled: Boolean(departmentId) } }
     );
   const swaps = query.data?.data ?? [];
@@ -45,9 +45,9 @@ export function ShiftSwapSubmissions() {
   async function remove(id: string) {
     setPendingId(id);
     try {
-      await deleteMutation.mutateAsync({ shift_swap_id: id });
+      await deleteMutation.mutateAsync({ path: { shift_swap_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(),
+        queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

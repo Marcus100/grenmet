@@ -10,48 +10,44 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readCapXmlApiCapIdentifierXmlGet } from "../clients/readCapXmlApiCapIdentifierXmlGet.js";
 import type {
-  ReadCapXmlApiCapIdentifierXmlGet422,
-  ReadCapXmlApiCapIdentifierXmlGetPathParams,
-  ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
+  ReadCapXmlApiCapIdentifierXmlGetOptions,
+  ReadCapXmlApiCapIdentifierXmlGetStatus200,
+  ReadCapXmlApiCapIdentifierXmlGetStatus422,
 } from "../models/ReadCapXmlApiCapIdentifierXmlGet.js";
 
-export const readCapXmlApiCapIdentifierXmlGetQueryKey = (
-  identifier: ReadCapXmlApiCapIdentifierXmlGetPathParams["identifier"]
-) =>
-  [
-    { url: "/api/cap/:identifier.xml", params: { identifier: identifier } },
-  ] as const;
+export const readCapXmlApiCapIdentifierXmlGetQueryKey = ({
+  path,
+}: Omit<ReadCapXmlApiCapIdentifierXmlGetOptions, "headers">) =>
+  [{ url: "/api/cap/:identifier.xml", params: path }] as const;
 
-export type ReadCapXmlApiCapIdentifierXmlGetQueryKey = ReturnType<
+type ReadCapXmlApiCapIdentifierXmlGetQueryKey = ReturnType<
   typeof readCapXmlApiCapIdentifierXmlGetQueryKey
 >;
 
 export function readCapXmlApiCapIdentifierXmlGetQueryOptions(
-  identifier: ReadCapXmlApiCapIdentifierXmlGetPathParams["identifier"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadCapXmlApiCapIdentifierXmlGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readCapXmlApiCapIdentifierXmlGetQueryKey(identifier);
+  const queryKey = readCapXmlApiCapIdentifierXmlGetQueryKey({ path });
   return queryOptions<
-    ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
-    ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGet422>,
-    ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
+    ReadCapXmlApiCapIdentifierXmlGetStatus200,
+    ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGetStatus422>,
+    ReadCapXmlApiCapIdentifierXmlGetStatus200,
     typeof queryKey
   >({
-    enabled: !!identifier,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readCapXmlApiCapIdentifierXmlGet(identifier, config);
+      return readCapXmlApiCapIdentifierXmlGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,43 +57,52 @@ export function readCapXmlApiCapIdentifierXmlGetQueryOptions(
  * {@link /api/cap/:identifier.xml}
  */
 export function useReadCapXmlApiCapIdentifierXmlGet<
-  TData = ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
-  TQueryData = ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
+  TData = ReadCapXmlApiCapIdentifierXmlGetStatus200,
+  TQueryData = ReadCapXmlApiCapIdentifierXmlGetStatus200,
   TQueryKey extends QueryKey = ReadCapXmlApiCapIdentifierXmlGetQueryKey,
 >(
-  identifier: ReadCapXmlApiCapIdentifierXmlGetPathParams["identifier"],
+  {
+    path,
+  }: {
+    path:
+      | ReadCapXmlApiCapIdentifierXmlGetOptions["path"]
+      | (() => ReadCapXmlApiCapIdentifierXmlGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
-        ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGet422>,
+        ReadCapXmlApiCapIdentifierXmlGetStatus200,
+        ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGetStatus422>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readCapXmlApiCapIdentifierXmlGetQueryKey(identifier);
+    resolvedOptions?.queryKey ??
+    readCapXmlApiCapIdentifierXmlGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readCapXmlApiCapIdentifierXmlGetQueryOptions(identifier, config),
+      ...readCapXmlApiCapIdentifierXmlGetQueryOptions(resolvedParams, config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGet422>
+    ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGetStatus422>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

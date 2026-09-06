@@ -8,6 +8,6 @@ import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
 export const workflowTemplateCreateSchema = z.object({
   department_id: z.string(),
-  workflow_type: z.lazy(() => workflowTypeSchema),
+  workflow_type: workflowTypeSchema,
   name: z.string().min(2).max(150),
 });

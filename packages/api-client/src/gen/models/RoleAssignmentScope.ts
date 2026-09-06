@@ -3,16 +3,11 @@
  * Do not edit manually.
  */
 
-export const roleAssignmentScopeRoleAssignmentScopeEnum = {
+export const roleAssignmentScope = {
   SELF: "SELF",
   DEPARTMENT: "DEPARTMENT",
   ALL: "ALL",
 } as const;
 
-export type RoleAssignmentScopeRoleAssignmentScopeEnumKey =
-  (typeof roleAssignmentScopeRoleAssignmentScopeEnum)[keyof typeof roleAssignmentScopeRoleAssignmentScopeEnum];
-
-/**
- * RoleAssignmentScope
- */
-export type RoleAssignmentScope = RoleAssignmentScopeRoleAssignmentScopeEnumKey;
+export type RoleAssignmentScope =
+  (typeof roleAssignmentScope)[keyof typeof roleAssignmentScope];

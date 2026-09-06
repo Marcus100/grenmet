@@ -5,11 +5,9 @@
 
 import type { SubmissionMode } from "./SubmissionMode.js";
 
-/**
- * TimesheetSubmitRequest
- */
 export type TimesheetSubmitRequest = {
   /**
+   * @default 'SELF'
    * @type string | undefined
    */
   mode?: SubmissionMode;

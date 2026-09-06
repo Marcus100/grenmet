@@ -9,51 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { offboardStaffApiV1HrSetupStaffUserIdOffboardPost } from "../clients/offboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
 import type {
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422,
 } from "../models/OffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
 
 export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationKey = () =>
   [{ url: "/api/v1/hr/setup/staff/:user_id/offboard" }] as const;
 
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationKey =
-  ReturnType<
-    typeof offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationKey
-  >;
-
 export function offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationKey();
   return mutationOptions<
-    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
     ResponseErrorConfig<
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422
     >,
-    {
-      user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"];
-    },
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id }) => {
-      return offboardStaffApiV1HrSetupStaffUserIdOffboardPost(user_id, config);
+    mutationFn: async ({ path }) => {
+      return offboardStaffApiV1HrSetupStaffUserIdOffboardPost({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,19 +62,19 @@ export function offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions<
 export function useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
+      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
       ResponseErrorConfig<
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422
       >,
-      {
-        user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"];
-      },
+      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -91,30 +87,26 @@ export function useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost<TContext>(
     offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions(
       config
     ) as UseMutationOptions<
-      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
+      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
       ResponseErrorConfig<
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+        | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422
       >,
-      {
-        user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"];
-      },
+      OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
       TContext
     >;
 
   return useMutation<
-    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
     ResponseErrorConfig<
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422
     >,
-    {
-      user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"];
-    },
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
     TContext
   >(
     {
@@ -124,16 +116,14 @@ export function useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200,
     ResponseErrorConfig<
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422
     >,
-    {
-      user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"];
-    },
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
     TContext
   >;
 }

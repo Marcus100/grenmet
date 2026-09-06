@@ -6,18 +6,12 @@
 import * as z from "zod";
 import { messageSchema } from "./messageSchema.js";
 
-/**
- * @description User deleted
- */
-export const deleteUserMeApiV1AuthUsersMeDelete200Schema = z.lazy(
-  () => messageSchema
-);
+export const deleteUserMeApiV1AuthUsersMeDeleteStatus200Schema = messageSchema;
 
-/**
- * @description Superuser cannot delete own account
- */
-export const deleteUserMeApiV1AuthUsersMeDelete403Schema = z.any();
+export const deleteUserMeApiV1AuthUsersMeDeleteStatus403Schema = z.unknown();
 
-export const deleteUserMeApiV1AuthUsersMeDeleteMutationResponseSchema = z.lazy(
-  () => deleteUserMeApiV1AuthUsersMeDelete200Schema
-);
+export const deleteUserMeApiV1AuthUsersMeDeleteResponseSchema =
+  deleteUserMeApiV1AuthUsersMeDeleteStatus200Schema;
+
+export const deleteUserMeApiV1AuthUsersMeDeleteErrorSchema =
+  deleteUserMeApiV1AuthUsersMeDeleteStatus403Schema;

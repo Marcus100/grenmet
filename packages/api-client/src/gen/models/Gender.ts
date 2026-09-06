@@ -3,17 +3,11 @@
  * Do not edit manually.
  */
 
-export const genderGenderEnum = {
+export const gender = {
   MALE: "MALE",
   FEMALE: "FEMALE",
   OTHER: "OTHER",
   UNSPECIFIED: "UNSPECIFIED",
 } as const;
 
-export type GenderGenderEnumKey =
-  (typeof genderGenderEnum)[keyof typeof genderGenderEnum];
-
-/**
- * Gender
- */
-export type Gender = GenderGenderEnumKey;
+export type Gender = (typeof gender)[keyof typeof gender];

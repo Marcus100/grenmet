@@ -8,27 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { parkingPermitCreateSchema } from "./parkingPermitCreateSchema.js";
 import { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 
-/**
- * @description Parking permit application created
- */
-export const createParkingPermitApiV1HrParkingPermitsPost201Schema = z.lazy(
-  () => parkingPermitPublicSchema
-);
+export const createParkingPermitApiV1HrParkingPermitsPostStatus201Schema =
+  parkingPermitPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const createParkingPermitApiV1HrParkingPermitsPost403Schema = z.any();
+export const createParkingPermitApiV1HrParkingPermitsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createParkingPermitApiV1HrParkingPermitsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createParkingPermitApiV1HrParkingPermitsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createParkingPermitApiV1HrParkingPermitsPostMutationRequestSchema =
-  z.lazy(() => parkingPermitCreateSchema);
+export const createParkingPermitApiV1HrParkingPermitsPostResponseSchema =
+  createParkingPermitApiV1HrParkingPermitsPostStatus201Schema;
 
-export const createParkingPermitApiV1HrParkingPermitsPostMutationResponseSchema =
-  z.lazy(() => createParkingPermitApiV1HrParkingPermitsPost201Schema);
+export const createParkingPermitApiV1HrParkingPermitsPostErrorSchema = z.union([
+  createParkingPermitApiV1HrParkingPermitsPostStatus403Schema,
+  createParkingPermitApiV1HrParkingPermitsPostStatus422Schema,
+]);
+
+export const createParkingPermitApiV1HrParkingPermitsPostBodySchema =
+  parkingPermitCreateSchema;

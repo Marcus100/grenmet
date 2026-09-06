@@ -7,37 +7,38 @@ import type { CapAlertAction } from "./CapAlertAction.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams = {
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type CancelAlertApiV1CapAlertsAlertIdCancelPost200 = CapAlertPublic;
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200 =
+  CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CancelAlertApiV1CapAlertsAlertIdCancelPost422 = HTTPValidationError;
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422 =
+  HTTPValidationError;
 
-/**
- * CapAlertAction
- */
-export type CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest =
-  CapAlertAction;
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostBody = CapAlertAction;
 
-export type CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse =
-  CancelAlertApiV1CapAlertsAlertIdCancelPost200;
-
-export type CancelAlertApiV1CapAlertsAlertIdCancelPostMutation = {
-  Response: CancelAlertApiV1CapAlertsAlertIdCancelPost200;
-  Request: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest;
-  PathParams: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams;
-  Errors: CancelAlertApiV1CapAlertsAlertIdCancelPost422;
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostOptions = {
+  body: CancelAlertApiV1CapAlertsAlertIdCancelPostBody;
+  path: CancelAlertApiV1CapAlertsAlertIdCancelPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostResponses = {
+  "200": CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200;
+  "422": CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CancelAlertApiV1CapAlertsAlertIdCancelPostResponse =
+  | CancelAlertApiV1CapAlertsAlertIdCancelPostStatus200
+  | CancelAlertApiV1CapAlertsAlertIdCancelPostStatus422;

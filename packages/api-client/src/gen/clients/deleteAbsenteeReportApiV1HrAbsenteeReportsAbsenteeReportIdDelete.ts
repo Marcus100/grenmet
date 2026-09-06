@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponses,
 } from "../models/DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
-
-function getDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteUrl(
-  absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/hr/absentee-reports/${absentee_report_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete an own DRAFT absentee report. Requires absentee.report.create permission and ownership.
  * @summary Delete a draft absentee report
  * {@link /api/v1/hr/absentee-reports/:absentee_report_id}
  */
-export async function deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete(
-  absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteUrl(
-      absentee_report_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/hr/absentee-reports/{absentee_report_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -95,7 +95,7 @@ export function LeaveApplicationEditor() {
   const draftParam = searchParams.get("draft");
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myRequestsQuery = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet();
+  const myRequestsQuery = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet({});
   const createMutation = useCreateLeaveRequestApiV1HrLeaveRequestsPost();
   const updateMutation =
     useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch();
@@ -167,7 +167,7 @@ export function LeaveApplicationEditor() {
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey(),
+      queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey({}),
     });
   }
 
@@ -185,14 +185,14 @@ export function LeaveApplicationEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            leave_request_id: draftId,
-            data: buildLeaveRequestPayload(values, departmentId),
+            path: { leave_request_id: draftId },
+            body: buildLeaveRequestPayload(values, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildLeaveRequestPayload(values, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -206,17 +206,17 @@ export function LeaveApplicationEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            leave_request_id: draftId,
-            data: buildLeaveRequestPayload(values, departmentId),
+            path: { leave_request_id: draftId },
+            body: buildLeaveRequestPayload(values, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            leave_request_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
+            path: { leave_request_id: draftId },
+            body: { co_approver_user_ids: coApprovers },
           });
           setSubmission(submitted);
         } else {
           const submitted = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildLeaveRequestPayload(values, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,

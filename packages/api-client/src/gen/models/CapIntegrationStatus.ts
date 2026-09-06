@@ -3,17 +3,11 @@
  * Do not edit manually.
  */
 
-export const capIntegrationStatusCapIntegrationStatusEnum = {
+export const capIntegrationStatus = {
   ACTIVE: "ACTIVE",
   INACTIVE: "INACTIVE",
   FAILED: "FAILED",
 } as const;
 
-export type CapIntegrationStatusCapIntegrationStatusEnumKey =
-  (typeof capIntegrationStatusCapIntegrationStatusEnum)[keyof typeof capIntegrationStatusCapIntegrationStatusEnum];
-
-/**
- * CapIntegrationStatus
- */
 export type CapIntegrationStatus =
-  CapIntegrationStatusCapIntegrationStatusEnumKey;
+  (typeof capIntegrationStatus)[keyof typeof capIntegrationStatus];

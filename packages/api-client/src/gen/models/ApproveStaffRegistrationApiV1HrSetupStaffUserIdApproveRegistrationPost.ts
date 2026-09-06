@@ -6,56 +6,54 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams =
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     user_id: string;
   };
 
-/**
- * Message
- * @description Successful Response
- */
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200 =
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200 =
   Message;
 
-/**
- * @description Administrator access required
- */
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403 =
-  any;
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403 =
+  unknown;
 
-/**
- * @description Record not found
- */
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404 =
-  any;
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404 =
+  unknown;
 
-/**
- * @description Setup conflict
- */
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409 =
-  any;
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422 =
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422 =
   HTTPValidationError;
 
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse =
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200;
-
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutation =
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions =
   {
-    Response: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200;
-    PathParams: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams;
-    Errors:
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422;
+    body?: never;
+    path: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPath;
+    query?: never;
+    headers?: never;
   };
+
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponses =
+  {
+    "200": ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200;
+    "403": ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403;
+    "404": ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404;
+    "409": ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409;
+    "422": ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponse =
+  | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200
+  | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+  | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+  | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+  | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422;

@@ -6,69 +6,68 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterCalendarPublic } from "./RosterCalendarPublic.js";
 
-export const listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnum = {
+export const listAssignmentsApiV1HrRostersAssignmentsGetScope = {
   me: "me",
   department: "department",
 } as const;
 
-export type ListAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnumKey =
-  (typeof listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnum)[keyof typeof listAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnum];
+export type ListAssignmentsApiV1HrRostersAssignmentsGetScope =
+  (typeof listAssignmentsApiV1HrRostersAssignmentsGetScope)[keyof typeof listAssignmentsApiV1HrRostersAssignmentsGetScope];
 
-export type ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams = {
+export type ListAssignmentsApiV1HrRostersAssignmentsGetQuery = {
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   start: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   end: string;
   department_id?: string | null;
   /**
-   * @default "me"
+   * @default 'me'
    * @type string | undefined
    */
-  scope?: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParamsScopeEnumKey;
+  scope?: ListAssignmentsApiV1HrRostersAssignmentsGetScope;
 };
 
-/**
- * RosterCalendarPublic
- * @description Assignments returned
- */
-export type ListAssignmentsApiV1HrRostersAssignmentsGet200 =
+export type ListAssignmentsApiV1HrRostersAssignmentsGetStatus200 =
   RosterCalendarPublic;
 
-/**
- * @description Invalid date range
- */
-export type ListAssignmentsApiV1HrRostersAssignmentsGet400 = any;
+export type ListAssignmentsApiV1HrRostersAssignmentsGetStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ListAssignmentsApiV1HrRostersAssignmentsGet403 = any;
+export type ListAssignmentsApiV1HrRostersAssignmentsGetStatus403 = unknown;
 
-/**
- * @description Department not found
- */
-export type ListAssignmentsApiV1HrRostersAssignmentsGet404 = any;
+export type ListAssignmentsApiV1HrRostersAssignmentsGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListAssignmentsApiV1HrRostersAssignmentsGet422 =
+export type ListAssignmentsApiV1HrRostersAssignmentsGetStatus422 =
   HTTPValidationError;
 
-export type ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse =
-  ListAssignmentsApiV1HrRostersAssignmentsGet200;
-
-export type ListAssignmentsApiV1HrRostersAssignmentsGetQuery = {
-  Response: ListAssignmentsApiV1HrRostersAssignmentsGet200;
-  QueryParams: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams;
-  Errors:
-    | ListAssignmentsApiV1HrRostersAssignmentsGet400
-    | ListAssignmentsApiV1HrRostersAssignmentsGet403
-    | ListAssignmentsApiV1HrRostersAssignmentsGet404
-    | ListAssignmentsApiV1HrRostersAssignmentsGet422;
+export type ListAssignmentsApiV1HrRostersAssignmentsGetOptions = {
+  body?: never;
+  path?: never;
+  query: ListAssignmentsApiV1HrRostersAssignmentsGetQuery;
+  headers?: never;
 };
+
+export type ListAssignmentsApiV1HrRostersAssignmentsGetResponses = {
+  "200": ListAssignmentsApiV1HrRostersAssignmentsGetStatus200;
+  "400": ListAssignmentsApiV1HrRostersAssignmentsGetStatus400;
+  "403": ListAssignmentsApiV1HrRostersAssignmentsGetStatus403;
+  "404": ListAssignmentsApiV1HrRostersAssignmentsGetStatus404;
+  "422": ListAssignmentsApiV1HrRostersAssignmentsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListAssignmentsApiV1HrRostersAssignmentsGetResponse =
+  | ListAssignmentsApiV1HrRostersAssignmentsGetStatus200
+  | ListAssignmentsApiV1HrRostersAssignmentsGetStatus400
+  | ListAssignmentsApiV1HrRostersAssignmentsGetStatus403
+  | ListAssignmentsApiV1HrRostersAssignmentsGetStatus404
+  | ListAssignmentsApiV1HrRostersAssignmentsGetStatus422;

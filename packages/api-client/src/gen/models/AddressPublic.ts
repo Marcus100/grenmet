@@ -5,9 +5,6 @@
 
 import type { Parish } from "./Parish.js";
 
-/**
- * AddressPublic
- */
 export type AddressPublic = {
   line_1?: string | null;
   line_2?: string | null;

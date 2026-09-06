@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capAreaKindCapAreaKindEnum = {
+export const capAreaKind = {
   AREA: "AREA",
   PREDEFINED: "PREDEFINED",
   POLYGON: "POLYGON",
@@ -12,10 +12,4 @@ export const capAreaKindCapAreaKindEnum = {
   GEOCODE: "GEOCODE",
 } as const;
 
-export type CapAreaKindCapAreaKindEnumKey =
-  (typeof capAreaKindCapAreaKindEnum)[keyof typeof capAreaKindCapAreaKindEnum];
-
-/**
- * CapAreaKind
- */
-export type CapAreaKind = CapAreaKindCapAreaKindEnumKey;
+export type CapAreaKind = (typeof capAreaKind)[keyof typeof capAreaKind];

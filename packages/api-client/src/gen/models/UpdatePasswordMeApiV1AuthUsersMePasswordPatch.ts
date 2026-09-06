@@ -7,37 +7,32 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 import type { UpdatePassword } from "./UpdatePassword.js";
 
-/**
- * Message
- * @description Password updated
- */
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch200 = Message;
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200 = Message;
 
-/**
- * @description Current password incorrect or new password unchanged
- */
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch400 = any;
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatch422 =
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422 =
   HTTPValidationError;
 
-/**
- * UpdatePassword
- */
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest =
-  UpdatePassword;
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchBody = UpdatePassword;
 
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse =
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch200;
-
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutation = {
-  Response: UpdatePasswordMeApiV1AuthUsersMePasswordPatch200;
-  Request: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest;
-  Errors:
-    | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-    | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422;
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions = {
+  body: UpdatePasswordMeApiV1AuthUsersMePasswordPatchBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponses = {
+  "200": UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200;
+  "400": UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400;
+  "422": UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchResponse =
+  | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200
+  | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+  | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422;

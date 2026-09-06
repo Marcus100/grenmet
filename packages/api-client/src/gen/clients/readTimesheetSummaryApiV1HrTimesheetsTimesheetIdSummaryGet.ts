@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponses,
 } from "../models/ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
-
-function getReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetUrl(
-  timesheet_id: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams["timesheet_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/timesheets/${timesheet_id}/summary` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.
  * @summary Get timesheet summary by shift
  * {@link /api/v1/hr/timesheets/:timesheet_id/summary}
  */
-export async function readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet(
-  timesheet_id: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams["timesheet_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetUrl(
-      timesheet_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/timesheets/{timesheet_id}/summary",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -9,52 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "../clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 import type {
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
-  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404,
+  RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422,
 } from "../models/RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 
 export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationKey =
   () => [{ url: "/api/v1/hr/rosters/public-holidays/:holiday_id" }] as const;
 
-export type RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationKey =
-  ReturnType<
-    typeof removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationKey
-  >;
-
 export function removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationKey();
   return mutationOptions<
-    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
     ResponseErrorConfig<
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422
     >,
-    {
-      holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"];
-    },
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ holiday_id }) => {
-      return removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete(
-        holiday_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -69,18 +62,18 @@ export function useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete<
 >(
   options: {
     mutation?: UseMutationOptions<
-      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
       ResponseErrorConfig<
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422
       >,
-      {
-        holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"];
-      },
+      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -93,28 +86,24 @@ export function useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete<
     removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
       ResponseErrorConfig<
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+        | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422
       >,
-      {
-        holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"];
-      },
+      RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
     ResponseErrorConfig<
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422
     >,
-    {
-      holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"];
-    },
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
     TContext
   >(
     {
@@ -124,15 +113,13 @@ export function useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete<
     },
     queryClient
   ) as UseMutationResult<
-    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponse,
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204,
     ResponseErrorConfig<
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404
-      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404
+      | RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422
     >,
-    {
-      holiday_id: RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams["holiday_id"];
-    },
+    RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteOptions,
     TContext
   >;
 }

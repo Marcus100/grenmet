@@ -6,22 +6,21 @@
 import * as z from "zod";
 import { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readAccountSecurityApiV1AuthModernSecurityGet200Schema = z.lazy(
-  () => accountSecurityPublicSchema
+export const readAccountSecurityApiV1AuthModernSecurityGetStatus200Schema =
+  accountSecurityPublicSchema;
+
+export const readAccountSecurityApiV1AuthModernSecurityGetStatus401Schema =
+  z.unknown();
+
+export const readAccountSecurityApiV1AuthModernSecurityGetStatus403Schema =
+  z.unknown();
+
+export const readAccountSecurityApiV1AuthModernSecurityGetResponseSchema =
+  readAccountSecurityApiV1AuthModernSecurityGetStatus200Schema;
+
+export const readAccountSecurityApiV1AuthModernSecurityGetErrorSchema = z.union(
+  [
+    readAccountSecurityApiV1AuthModernSecurityGetStatus401Schema,
+    readAccountSecurityApiV1AuthModernSecurityGetStatus403Schema,
+  ]
 );
-
-/**
- * @description Authentication required
- */
-export const readAccountSecurityApiV1AuthModernSecurityGet401Schema = z.any();
-
-/**
- * @description Verify account email first
- */
-export const readAccountSecurityApiV1AuthModernSecurityGet403Schema = z.any();
-
-export const readAccountSecurityApiV1AuthModernSecurityGetQueryResponseSchema =
-  z.lazy(() => readAccountSecurityApiV1AuthModernSecurityGet200Schema);

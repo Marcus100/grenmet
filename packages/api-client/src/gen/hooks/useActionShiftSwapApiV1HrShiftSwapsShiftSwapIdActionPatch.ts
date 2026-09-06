@@ -9,59 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch } from "../clients/actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 import type {
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422,
 } from "../models/ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 
 export const actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey =
   () => [{ url: "/api/v1/hr/shift-swaps/:shift_swap_id/action" }] as const;
 
-export type ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey =
-  ReturnType<
-    typeof actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey
-  >;
-
 export function actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationKey();
   return mutationOptions<
-    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422
     >,
-    {
-      shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"];
-      data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest;
-    },
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id, data }) => {
-      return actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch(
-        shift_swap_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -76,21 +63,18 @@ export function useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
       ResponseErrorConfig<
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422
       >,
-      {
-        shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"];
-        data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest;
-      },
+      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -103,30 +87,24 @@ export function useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch<
     actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
       ResponseErrorConfig<
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404
+        | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422
       >,
-      {
-        shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"];
-        data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest;
-      },
+      ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
       TContext
     >;
 
   return useMutation<
-    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422
     >,
-    {
-      shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"];
-      data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest;
-    },
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
     TContext
   >(
     {
@@ -136,16 +114,13 @@ export function useActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch<
     },
     queryClient
   ) as UseMutationResult<
-    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404
+      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422
     >,
-    {
-      shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"];
-      data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest;
-    },
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
     TContext
   >;
 }

@@ -6,9 +6,9 @@
 import * as z from "zod";
 
 export const sessionLoginRequestSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8).max(128),
-  client_type: z.optional(z.string().min(1).max(50).default("web")),
-  app_name: z.optional(z.union([z.string(), z.null()])),
-  totp_code: z.optional(z.union([z.string(), z.null()])),
+  client_type: z.string().min(1).max(50).optional().default("web"),
+  app_name: z.union([z.string().max(100), z.null()]).optional(),
+  totp_code: z.union([z.string().max(64), z.null()]).optional(),
 });

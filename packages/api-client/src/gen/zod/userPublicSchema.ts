@@ -7,18 +7,18 @@ import * as z from "zod";
 import { titleSchema } from "./titleSchema.js";
 
 export const userPublicSchema = z.object({
-  email: z.string().email().max(255),
+  email: z.email().max(255),
   username: z.string().max(255),
-  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
+  title: z.union([titleSchema, z.null()]).optional(),
   first_name: z.string().max(100),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
+  middle_name: z.union([z.string().max(100), z.null()]).optional(),
   last_name: z.string().max(100),
-  is_active: z.optional(z.boolean().default(true)),
-  is_superuser: z.optional(z.boolean().default(false)),
-  registration_pending: z.optional(z.boolean().default(false)),
-  id: z.string().uuid(),
+  is_active: z.boolean().optional().default(true),
+  is_superuser: z.boolean().optional().default(false),
+  registration_pending: z.boolean().optional().default(false),
+  id: z.uuid(),
   created_at: z.string(),
   updated_at: z.string(),
-  last_login_at: z.optional(z.union([z.string(), z.null()])),
+  last_login_at: z.union([z.string(), z.null()]).optional(),
   full_name: z.string(),
 });

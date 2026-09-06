@@ -5,34 +5,33 @@
 
 import type { PolicyPublic } from "./PolicyPublic.js";
 
-/**
- * Response Read Setup Policies Api V1 Hr Setup Policies Get
- * @description Successful Response
- */
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGet200 = PolicyPublic[];
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200 = PolicyPublic[];
 
-/**
- * @description Administrator access required
- */
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGet403 = any;
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGet404 = any;
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGet409 = any;
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409 = unknown;
 
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse =
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet200;
-
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGetQuery = {
-  Response: ReadSetupPoliciesApiV1HrSetupPoliciesGet200;
-  Errors:
-    | ReadSetupPoliciesApiV1HrSetupPoliciesGet403
-    | ReadSetupPoliciesApiV1HrSetupPoliciesGet404
-    | ReadSetupPoliciesApiV1HrSetupPoliciesGet409;
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetResponses = {
+  "200": ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200;
+  "403": ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403;
+  "404": ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404;
+  "409": ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadSetupPoliciesApiV1HrSetupPoliciesGetResponse =
+  | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200
+  | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403
+  | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404
+  | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409;

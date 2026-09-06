@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponses,
 } from "../models/ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
-
-function getActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchUrl(
-  leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/leave-requests/${leave_request_id}/action` as const,
-  };
-  return res;
-}
 
 /**
  * @description Approve or update a leave request. Requires leave.request.action and scope over the user.
  * @summary Action leave request
  * {@link /api/v1/hr/leave-requests/:leave_request_id/action}
  */
-export async function actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
-  leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"],
-  data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
-  config: Partial<
-    RequestConfig<ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
-    ResponseErrorConfig<
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
-    >,
-    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchUrl(
-      leave_request_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/leave-requests/{leave_request_id}/action",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

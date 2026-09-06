@@ -7,5 +7,5 @@ import * as z from "zod";
 
 export const tokenSchema = z.object({
   access_token: z.string(),
-  token_type: z.optional(z.string().default("bearer")),
+  token_type: z.string().optional().default("bearer"),
 });

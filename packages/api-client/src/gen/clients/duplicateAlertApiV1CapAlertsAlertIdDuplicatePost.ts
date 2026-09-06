@@ -3,48 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponses,
 } from "../models/DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
-
-function getDuplicateAlertApiV1CapAlertsAlertIdDuplicatePostUrl(
-  alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/duplicate` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Duplicate Alert
  * {@link /api/v1/cap/alerts/:alert_id/duplicate}
  */
-export async function duplicateAlertApiV1CapAlertsAlertIdDuplicatePost(
-  alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function duplicateAlertApiV1CapAlertsAlertIdDuplicatePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-    unknown
-  >({
-    method: "POST",
-    url: getDuplicateAlertApiV1CapAlertsAlertIdDuplicatePostUrl(
-      alert_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/duplicate",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

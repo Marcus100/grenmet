@@ -8,42 +8,33 @@ import { gradeInputSchema } from "./gradeInputSchema.js";
 import { gradeSetupSchema } from "./gradeSetupSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPutPathParamsSchema =
-  z.object({
-    grade_id: z.string(),
-  });
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutPathGradeIdSchema =
+  z.string();
 
-/**
- * @description Successful Response
- */
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPut200Schema = z.lazy(
-  () => gradeSetupSchema
-);
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200Schema =
+  gradeSetupSchema;
 
-/**
- * @description Administrator access required
- */
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPut403Schema = z.any();
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPut404Schema = z.any();
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPut409Schema = z.any();
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPut422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequestSchema =
-  z.lazy(() => gradeInputSchema);
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutResponseSchema =
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200Schema;
 
-export const updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponseSchema =
-  z.lazy(() => updateSetupGradeApiV1HrSetupGradesGradeIdPut200Schema);
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutErrorSchema = z.union([
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409Schema,
+  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422Schema,
+]);
+
+export const updateSetupGradeApiV1HrSetupGradesGradeIdPutBodySchema =
+  gradeInputSchema;

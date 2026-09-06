@@ -9,51 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { validateGridApiV1HrRostersImportGridValidatePost } from "../clients/validateGridApiV1HrRostersImportGridValidatePost.js";
 import type {
-  ValidateGridApiV1HrRostersImportGridValidatePost403,
-  ValidateGridApiV1HrRostersImportGridValidatePost404,
-  ValidateGridApiV1HrRostersImportGridValidatePost422,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+  ValidateGridApiV1HrRostersImportGridValidatePostOptions,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus403,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus404,
+  ValidateGridApiV1HrRostersImportGridValidatePostStatus422,
 } from "../models/ValidateGridApiV1HrRostersImportGridValidatePost.js";
 
 export const validateGridApiV1HrRostersImportGridValidatePostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/import-grid/validate" }] as const;
 
-export type ValidateGridApiV1HrRostersImportGridValidatePostMutationKey =
-  ReturnType<
-    typeof validateGridApiV1HrRostersImportGridValidatePostMutationKey
-  >;
-
 export function validateGridApiV1HrRostersImportGridValidatePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     validateGridApiV1HrRostersImportGridValidatePostMutationKey();
   return mutationOptions<
-    ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+    ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateGridApiV1HrRostersImportGridValidatePost403
-      | ValidateGridApiV1HrRostersImportGridValidatePost404
-      | ValidateGridApiV1HrRostersImportGridValidatePost422
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus422
     >,
-    { data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest },
+    ValidateGridApiV1HrRostersImportGridValidatePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return validateGridApiV1HrRostersImportGridValidatePost(data, config);
+    mutationFn: async ({ body }) => {
+      return validateGridApiV1HrRostersImportGridValidatePost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,18 +60,18 @@ export function validateGridApiV1HrRostersImportGridValidatePostMutationOptions<
 export function useValidateGridApiV1HrRostersImportGridValidatePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+      ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
       ResponseErrorConfig<
-        | ValidateGridApiV1HrRostersImportGridValidatePost403
-        | ValidateGridApiV1HrRostersImportGridValidatePost404
-        | ValidateGridApiV1HrRostersImportGridValidatePost422
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus422
       >,
-      { data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest },
+      ValidateGridApiV1HrRostersImportGridValidatePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,24 +84,24 @@ export function useValidateGridApiV1HrRostersImportGridValidatePost<TContext>(
     validateGridApiV1HrRostersImportGridValidatePostMutationOptions(
       config
     ) as UseMutationOptions<
-      ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+      ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
       ResponseErrorConfig<
-        | ValidateGridApiV1HrRostersImportGridValidatePost403
-        | ValidateGridApiV1HrRostersImportGridValidatePost404
-        | ValidateGridApiV1HrRostersImportGridValidatePost422
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+        | ValidateGridApiV1HrRostersImportGridValidatePostStatus422
       >,
-      { data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest },
+      ValidateGridApiV1HrRostersImportGridValidatePostOptions,
       TContext
     >;
 
   return useMutation<
-    ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+    ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateGridApiV1HrRostersImportGridValidatePost403
-      | ValidateGridApiV1HrRostersImportGridValidatePost404
-      | ValidateGridApiV1HrRostersImportGridValidatePost422
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus422
     >,
-    { data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest },
+    ValidateGridApiV1HrRostersImportGridValidatePostOptions,
     TContext
   >(
     {
@@ -117,13 +111,13 @@ export function useValidateGridApiV1HrRostersImportGridValidatePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+    ValidateGridApiV1HrRostersImportGridValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateGridApiV1HrRostersImportGridValidatePost403
-      | ValidateGridApiV1HrRostersImportGridValidatePost404
-      | ValidateGridApiV1HrRostersImportGridValidatePost422
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+      | ValidateGridApiV1HrRostersImportGridValidatePostStatus422
     >,
-    { data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest },
+    ValidateGridApiV1HrRostersImportGridValidatePostOptions,
     TContext
   >;
 }

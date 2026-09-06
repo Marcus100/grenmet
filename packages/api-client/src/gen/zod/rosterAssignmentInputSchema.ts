@@ -6,8 +6,8 @@
 import * as z from "zod";
 
 export const rosterAssignmentInputSchema = z.object({
-  user_id: z.string().uuid(),
-  assignment_date: z.string().date(),
+  user_id: z.uuid(),
+  assignment_date: z.iso.date(),
   shift_code: z.string(),
-  remarks: z.optional(z.union([z.string(), z.null()])),
+  remarks: z.union([z.string(), z.null()]).optional(),
 });

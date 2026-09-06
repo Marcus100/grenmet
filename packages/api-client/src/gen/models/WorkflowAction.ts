@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const workflowActionWorkflowActionEnum = {
+export const workflowAction = {
   SUBMIT: "SUBMIT",
   APPROVE: "APPROVE",
   REJECT: "REJECT",
@@ -11,10 +11,5 @@ export const workflowActionWorkflowActionEnum = {
   CANCEL: "CANCEL",
 } as const;
 
-export type WorkflowActionWorkflowActionEnumKey =
-  (typeof workflowActionWorkflowActionEnum)[keyof typeof workflowActionWorkflowActionEnum];
-
-/**
- * WorkflowAction
- */
-export type WorkflowAction = WorkflowActionWorkflowActionEnumKey;
+export type WorkflowAction =
+  (typeof workflowAction)[keyof typeof workflowAction];

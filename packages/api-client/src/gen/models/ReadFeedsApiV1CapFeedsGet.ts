@@ -5,16 +5,21 @@
 
 import type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 
-/**
- * Response Read Feeds Api V1 Cap Feeds Get
- * @description Successful Response
- */
-export type ReadFeedsApiV1CapFeedsGet200 = CapFeedImportPublic[];
+export type ReadFeedsApiV1CapFeedsGetStatus200 = CapFeedImportPublic[];
 
-export type ReadFeedsApiV1CapFeedsGetQueryResponse =
-  ReadFeedsApiV1CapFeedsGet200;
-
-export type ReadFeedsApiV1CapFeedsGetQuery = {
-  Response: ReadFeedsApiV1CapFeedsGet200;
-  Errors: any;
+export type ReadFeedsApiV1CapFeedsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadFeedsApiV1CapFeedsGetResponses = {
+  "200": ReadFeedsApiV1CapFeedsGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadFeedsApiV1CapFeedsGetResponse =
+  ReadFeedsApiV1CapFeedsGetStatus200;

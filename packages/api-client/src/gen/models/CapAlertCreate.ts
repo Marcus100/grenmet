@@ -9,46 +9,31 @@ import type { CapReferenceCreate } from "./CapReferenceCreate.js";
 import type { CapScope } from "./CapScope.js";
 import type { CapStatus } from "./CapStatus.js";
 
-/**
- * CapAlertCreate
- */
 export type CapAlertCreate = {
   identifier?: string | null;
   sender?: string | null;
   sent?: string | null;
   /**
+   * @default 'Draft'
    * @type string | undefined
    */
   status?: CapStatus;
   /**
+   * @default 'Alert'
    * @type string | undefined
    */
   msg_type?: CapMessageType;
   source?: string | null;
   /**
+   * @default 'Public'
    * @type string | undefined
    */
   scope?: CapScope;
   restriction?: string | null;
-  /**
-   * @type array | undefined
-   */
   addresses?: string[];
-  /**
-   * @type array | undefined
-   */
   codes?: string[];
   note?: string | null;
-  /**
-   * @type array | undefined
-   */
   references?: CapReferenceCreate[];
-  /**
-   * @type array | undefined
-   */
   incidents?: string[];
-  /**
-   * @type array | undefined
-   */
   info?: CapInfoCreate[];
 };

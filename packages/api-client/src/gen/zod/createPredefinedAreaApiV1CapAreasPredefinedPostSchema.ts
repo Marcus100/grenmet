@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 import { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const createPredefinedAreaApiV1CapAreasPredefinedPost201Schema = z.lazy(
-  () => capPredefinedAreaPublicSchema
-);
+export const createPredefinedAreaApiV1CapAreasPredefinedPostStatus201Schema =
+  capPredefinedAreaPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const createPredefinedAreaApiV1CapAreasPredefinedPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createPredefinedAreaApiV1CapAreasPredefinedPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createPredefinedAreaApiV1CapAreasPredefinedPostMutationRequestSchema =
-  z.lazy(() => capPredefinedAreaCreateSchema);
+export const createPredefinedAreaApiV1CapAreasPredefinedPostResponseSchema =
+  createPredefinedAreaApiV1CapAreasPredefinedPostStatus201Schema;
 
-export const createPredefinedAreaApiV1CapAreasPredefinedPostMutationResponseSchema =
-  z.lazy(() => createPredefinedAreaApiV1CapAreasPredefinedPost201Schema);
+export const createPredefinedAreaApiV1CapAreasPredefinedPostErrorSchema =
+  createPredefinedAreaApiV1CapAreasPredefinedPostStatus422Schema;
+
+export const createPredefinedAreaApiV1CapAreasPredefinedPostBodySchema =
+  capPredefinedAreaCreateSchema;

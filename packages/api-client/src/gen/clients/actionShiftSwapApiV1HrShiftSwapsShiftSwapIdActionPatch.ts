@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
+  ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponses,
 } from "../models/ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
-
-function getActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchUrl(
-  shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/shift-swaps/${shift_swap_id}/action` as const,
-  };
-  return res;
-}
 
 /**
  * @description Approve or reject a shift swap request. Requires shift_swap.request.action and scope over the requesting user.
  * @summary Action shift swap request
  * {@link /api/v1/hr/shift-swaps/:shift_swap_id/action}
  */
-export async function actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch(
-  shift_swap_id: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathParams["shift_swap_id"],
-  data: ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest,
-  config: Partial<
-    RequestConfig<ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationResponse,
-    ResponseErrorConfig<
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch403
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch404
-      | ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch422
-    >,
-    ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchUrl(
-      shift_swap_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/shift-swaps/{shift_swap_id}/action",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ActionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -5,17 +5,8 @@
 
 import type { UserPublic } from "./UserPublic.js";
 
-/**
- * PaginatedResponse[UserPublic]
- */
 export type PaginatedResponseUserPublic = {
-  /**
-   * @type array
-   */
   data: UserPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

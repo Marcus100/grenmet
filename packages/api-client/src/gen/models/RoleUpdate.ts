@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * RoleUpdate
- */
 export type RoleUpdate = {
   name?: string | null;
   description?: string | null;

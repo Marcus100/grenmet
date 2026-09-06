@@ -3,55 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ApproveAlertApiV1CapAlertsAlertIdApprovePost422,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-  ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
+  ApproveAlertApiV1CapAlertsAlertIdApprovePostResponses,
 } from "../models/ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
-
-function getApproveAlertApiV1CapAlertsAlertIdApprovePostUrl(
-  alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/approve` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Approve Alert
  * {@link /api/v1/cap/alerts/:alert_id/approve}
  */
-export async function approveAlertApiV1CapAlertsAlertIdApprovePost(
-  alert_id: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams["alert_id"],
-  data: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest,
-  config: Partial<
-    RequestConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function approveAlertApiV1CapAlertsAlertIdApprovePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ApproveAlertApiV1CapAlertsAlertIdApprovePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse,
-    ResponseErrorConfig<ApproveAlertApiV1CapAlertsAlertIdApprovePost422>,
-    ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest
-  >({
-    method: "POST",
-    url: getApproveAlertApiV1CapAlertsAlertIdApprovePostUrl(
-      alert_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/approve",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ApproveAlertApiV1CapAlertsAlertIdApprovePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

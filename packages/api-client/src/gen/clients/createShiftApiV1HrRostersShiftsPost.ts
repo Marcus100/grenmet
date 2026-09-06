@@ -3,53 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateShiftApiV1HrRostersShiftsPost400,
-  CreateShiftApiV1HrRostersShiftsPost403,
-  CreateShiftApiV1HrRostersShiftsPost422,
-  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
-  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+  CreateShiftApiV1HrRostersShiftsPostOptions,
+  CreateShiftApiV1HrRostersShiftsPostResponses,
 } from "../models/CreateShiftApiV1HrRostersShiftsPost.js";
-
-function getCreateShiftApiV1HrRostersShiftsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/rosters/shifts` as const };
-  return res;
-}
 
 /**
  * @description Create a shift catalog entry. Requires roster.manage permission.
  * @summary Create shift type
  * {@link /api/v1/hr/rosters/shifts}
  */
-export async function createShiftApiV1HrRostersShiftsPost(
-  data: CreateShiftApiV1HrRostersShiftsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateShiftApiV1HrRostersShiftsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createShiftApiV1HrRostersShiftsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateShiftApiV1HrRostersShiftsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateShiftApiV1HrRostersShiftsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateShiftApiV1HrRostersShiftsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateShiftApiV1HrRostersShiftsPost400
-      | CreateShiftApiV1HrRostersShiftsPost403
-      | CreateShiftApiV1HrRostersShiftsPost422
-    >,
-    CreateShiftApiV1HrRostersShiftsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateShiftApiV1HrRostersShiftsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/shifts",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateShiftApiV1HrRostersShiftsPostResponses, ThrowOnError>
+    >
+  );
 }

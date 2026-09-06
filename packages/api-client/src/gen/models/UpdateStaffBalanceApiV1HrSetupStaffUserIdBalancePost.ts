@@ -7,57 +7,54 @@ import type { BalanceInput } from "./BalanceInput.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams = {
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * Message
- * @description Successful Response
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200 = Message;
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200 =
+  Message;
 
-/**
- * @description Administrator access required
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403 = any;
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403 =
+  unknown;
 
-/**
- * @description Record not found
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404 = any;
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404 =
+  unknown;
 
-/**
- * @description Setup conflict
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409 = any;
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422 =
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422 =
   HTTPValidationError;
 
-/**
- * BalanceInput
- */
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest =
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostBody =
   BalanceInput;
 
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse =
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200;
-
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutation = {
-  Response: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200;
-  Request: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-  PathParams: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams;
-  Errors:
-    | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-    | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-    | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-    | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422;
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions = {
+  body: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostBody;
+  path: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponses = {
+  "200": UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200;
+  "403": UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403;
+  "404": UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404;
+  "409": UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409;
+  "422": UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponse =
+  | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200
+  | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+  | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+  | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+  | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422;

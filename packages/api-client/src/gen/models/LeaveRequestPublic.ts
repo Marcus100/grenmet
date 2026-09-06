@@ -7,33 +7,32 @@ import type { LeaveType } from "./LeaveType.js";
 import type { ProfAppointmentType } from "./ProfAppointmentType.js";
 import type { RequestStatus } from "./RequestStatus.js";
 
-/**
- * LeaveRequestPublic
- */
 export type LeaveRequestPublic = {
   submitted_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   leave_type: LeaveType;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   start_date: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   end_date: string;
   /**
@@ -57,28 +56,13 @@ export type LeaveRequestPublic = {
   leave_address?: string | null;
   travel_from_date?: string | null;
   travel_to_date?: string | null;
-  /**
-   * @type boolean
-   */
   salary_in_advance: boolean;
-  /**
-   * @type boolean
-   */
   requires_acting_appointment: boolean;
   acting_officer_id?: string | null;
   expected_return_date?: string | null;
   head_of_dept_comments?: string | null;
-  /**
-   * @type string
-   */
   status: RequestStatus;
   workflow_instance_id?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

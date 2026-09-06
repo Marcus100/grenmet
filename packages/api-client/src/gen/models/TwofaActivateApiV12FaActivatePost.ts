@@ -7,36 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
-/**
- * TwoFactorStatusPublic
- * @description Successful Response
- */
-export type TwofaActivateApiV12FaActivatePost200 = TwoFactorStatusPublic;
+export type TwofaActivateApiV12FaActivatePostStatus200 = TwoFactorStatusPublic;
 
-/**
- * @description Invalid or expired code
- */
-export type TwofaActivateApiV12FaActivatePost400 = any;
+export type TwofaActivateApiV12FaActivatePostStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type TwofaActivateApiV12FaActivatePost422 = HTTPValidationError;
+export type TwofaActivateApiV12FaActivatePostStatus422 = HTTPValidationError;
 
-/**
- * TwoFactorCodeRequest
- */
-export type TwofaActivateApiV12FaActivatePostMutationRequest =
-  TwoFactorCodeRequest;
+export type TwofaActivateApiV12FaActivatePostBody = TwoFactorCodeRequest;
 
-export type TwofaActivateApiV12FaActivatePostMutationResponse =
-  TwofaActivateApiV12FaActivatePost200;
-
-export type TwofaActivateApiV12FaActivatePostMutation = {
-  Response: TwofaActivateApiV12FaActivatePost200;
-  Request: TwofaActivateApiV12FaActivatePostMutationRequest;
-  Errors:
-    | TwofaActivateApiV12FaActivatePost400
-    | TwofaActivateApiV12FaActivatePost422;
+export type TwofaActivateApiV12FaActivatePostOptions = {
+  body: TwofaActivateApiV12FaActivatePostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type TwofaActivateApiV12FaActivatePostResponses = {
+  "200": TwofaActivateApiV12FaActivatePostStatus200;
+  "400": TwofaActivateApiV12FaActivatePostStatus400;
+  "422": TwofaActivateApiV12FaActivatePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TwofaActivateApiV12FaActivatePostResponse =
+  | TwofaActivateApiV12FaActivatePostStatus200
+  | TwofaActivateApiV12FaActivatePostStatus400
+  | TwofaActivateApiV12FaActivatePostStatus422;

@@ -9,50 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createCalendarEventApiV1HrCalendarEventsPost } from "../clients/createCalendarEventApiV1HrCalendarEventsPost.js";
 import type {
-  CreateCalendarEventApiV1HrCalendarEventsPost400,
-  CreateCalendarEventApiV1HrCalendarEventsPost403,
-  CreateCalendarEventApiV1HrCalendarEventsPost404,
-  CreateCalendarEventApiV1HrCalendarEventsPost422,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+  CreateCalendarEventApiV1HrCalendarEventsPostOptions,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus400,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus403,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus404,
+  CreateCalendarEventApiV1HrCalendarEventsPostStatus422,
 } from "../models/CreateCalendarEventApiV1HrCalendarEventsPost.js";
 
 export const createCalendarEventApiV1HrCalendarEventsPostMutationKey = () =>
   [{ url: "/api/v1/hr/calendar/events" }] as const;
 
-export type CreateCalendarEventApiV1HrCalendarEventsPostMutationKey =
-  ReturnType<typeof createCalendarEventApiV1HrCalendarEventsPostMutationKey>;
-
 export function createCalendarEventApiV1HrCalendarEventsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createCalendarEventApiV1HrCalendarEventsPostMutationKey();
   return mutationOptions<
-    CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+    CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
     ResponseErrorConfig<
-      | CreateCalendarEventApiV1HrCalendarEventsPost400
-      | CreateCalendarEventApiV1HrCalendarEventsPost403
-      | CreateCalendarEventApiV1HrCalendarEventsPost404
-      | CreateCalendarEventApiV1HrCalendarEventsPost422
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus422
     >,
-    { data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest },
+    CreateCalendarEventApiV1HrCalendarEventsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createCalendarEventApiV1HrCalendarEventsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createCalendarEventApiV1HrCalendarEventsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -65,19 +61,19 @@ export function createCalendarEventApiV1HrCalendarEventsPostMutationOptions<
 export function useCreateCalendarEventApiV1HrCalendarEventsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+      CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
       ResponseErrorConfig<
-        | CreateCalendarEventApiV1HrCalendarEventsPost400
-        | CreateCalendarEventApiV1HrCalendarEventsPost403
-        | CreateCalendarEventApiV1HrCalendarEventsPost404
-        | CreateCalendarEventApiV1HrCalendarEventsPost422
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus422
       >,
-      { data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest },
+      CreateCalendarEventApiV1HrCalendarEventsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,26 +86,26 @@ export function useCreateCalendarEventApiV1HrCalendarEventsPost<TContext>(
     createCalendarEventApiV1HrCalendarEventsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+      CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
       ResponseErrorConfig<
-        | CreateCalendarEventApiV1HrCalendarEventsPost400
-        | CreateCalendarEventApiV1HrCalendarEventsPost403
-        | CreateCalendarEventApiV1HrCalendarEventsPost404
-        | CreateCalendarEventApiV1HrCalendarEventsPost422
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+        | CreateCalendarEventApiV1HrCalendarEventsPostStatus422
       >,
-      { data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest },
+      CreateCalendarEventApiV1HrCalendarEventsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+    CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
     ResponseErrorConfig<
-      | CreateCalendarEventApiV1HrCalendarEventsPost400
-      | CreateCalendarEventApiV1HrCalendarEventsPost403
-      | CreateCalendarEventApiV1HrCalendarEventsPost404
-      | CreateCalendarEventApiV1HrCalendarEventsPost422
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus422
     >,
-    { data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest },
+    CreateCalendarEventApiV1HrCalendarEventsPostOptions,
     TContext
   >(
     {
@@ -119,14 +115,14 @@ export function useCreateCalendarEventApiV1HrCalendarEventsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+    CreateCalendarEventApiV1HrCalendarEventsPostStatus201,
     ResponseErrorConfig<
-      | CreateCalendarEventApiV1HrCalendarEventsPost400
-      | CreateCalendarEventApiV1HrCalendarEventsPost403
-      | CreateCalendarEventApiV1HrCalendarEventsPost404
-      | CreateCalendarEventApiV1HrCalendarEventsPost422
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+      | CreateCalendarEventApiV1HrCalendarEventsPostStatus422
     >,
-    { data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest },
+    CreateCalendarEventApiV1HrCalendarEventsPostOptions,
     TContext
   >;
 }
