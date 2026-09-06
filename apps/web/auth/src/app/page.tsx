@@ -1,4 +1,5 @@
 import { unstable_noStore as noStore } from "next/cache";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignInForm } from "@/components/SignInForm";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -210,6 +211,12 @@ function ProfileView({
         </div>
       </div>
 
+      <Link
+        className="block rounded-4xl border border-(--line) bg-(--panel-strong) p-6 font-medium underline"
+        href="/security"
+      >
+        Account security · email, Google, authenticator and sessions
+      </Link>
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-4xl border border-(--line) bg-(--panel-strong) p-6 shadow-card md:p-7">
           <h2 className="font-mono text-(--muted) text-label uppercase tracking-widest">
