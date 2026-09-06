@@ -19,7 +19,7 @@
       "title": "App Name"
     },
     "totp_code": {
-      "anyOf": [{ "type": "string", "maxLength": 10 }, { "type": "null" }],
+      "anyOf": [{ "type": "string", "maxLength": 64 }, { "type": "null" }],
       "title": "Totp Code"
     }
   },

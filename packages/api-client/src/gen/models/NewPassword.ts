@@ -12,7 +12,7 @@ export type NewPassword = {
    */
   token: string;
   /**
-   * @minLength 8
+   * @minLength 12
    * @maxLength 128
    * @type string
    */

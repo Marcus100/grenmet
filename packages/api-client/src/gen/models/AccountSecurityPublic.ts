@@ -10,6 +10,11 @@ import type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
  */
 export type AccountSecurityPublic = {
   /**
+   * @default 0
+   * @type integer | undefined
+   */
+  recovery_codes_remaining?: number;
+  /**
    * @type boolean
    */
   email_verified: boolean;

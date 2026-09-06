@@ -7,7 +7,7 @@
       "title": "Challenge"
     },
     "totp_code": {
-      "anyOf": [{ "type": "string", "maxLength": 6 }, { "type": "null" }],
+      "anyOf": [{ "type": "string", "maxLength": 64 }, { "type": "null" }],
       "title": "Totp Code"
     }
   },

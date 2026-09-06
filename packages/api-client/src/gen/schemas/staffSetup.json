@@ -1,5 +1,10 @@
 {
   "properties": {
+    "registration_pending": {
+      "type": "boolean",
+      "title": "Registration Pending",
+      "default": false
+    },
     "user_id": { "type": "string", "format": "uuid", "title": "User Id" },
     "email": { "type": "string", "title": "Email" },
     "name": { "type": "string", "title": "Name" },

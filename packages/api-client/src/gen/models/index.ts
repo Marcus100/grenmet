@@ -41,6 +41,16 @@ export type {
   ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams,
 } from "./ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export type {
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutation,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams,
+} from "./ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
+export type {
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200,
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403,
@@ -1126,6 +1136,7 @@ export type {
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
   RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
 } from "./RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
+export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 export type {
   RefreshSessionApiV1LoginSessionRefreshPost200,
   RefreshSessionApiV1LoginSessionRefreshPost422,
@@ -1151,6 +1162,14 @@ export type {
   RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParams,
 } from "./RemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export type {
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutation,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+} from "./ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
+export type {
   RequestStatus,
   RequestStatusRequestStatusEnumKey,
 } from "./RequestStatus.js";
@@ -1163,6 +1182,14 @@ export type {
   ResetPasswordApiV1ResetPasswordPostMutationRequest,
   ResetPasswordApiV1ResetPasswordPostMutationResponse,
 } from "./ResetPasswordApiV1ResetPasswordPost.js";
+export type {
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutation,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams,
+} from "./RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export type {
   RoleAssignmentScope,
   RoleAssignmentScopeRoleAssignmentScopeEnumKey,
@@ -1202,6 +1229,7 @@ export type {
 export { rosterRevisionActionRosterRevisionActionEnum } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
+export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./SessionLoginRequest.js";

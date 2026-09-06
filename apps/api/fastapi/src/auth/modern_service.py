@@ -15,7 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, delete, select
 from starlette.requests import Request
 
-from src.auth import service, totp
+from src.auth import service
+from src.auth.account_security import verify_factor
 from src.auth.config import auth_settings
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
@@ -82,6 +83,10 @@ async def consume(session: AsyncSession, token: str, purpose: str) -> AuthChalle
     return challenge
 
 
+class VerificationDeliveryError(RuntimeError):
+    """The verification provider could not deliver the requested message."""
+
+
 async def email_request(
     request: Request, session: SessionDep, body: EmailRequest
 ) -> Message:
@@ -98,12 +103,17 @@ async def email_request(
             session, "email", user_id=user.id, data={"email": user.email}
         )
         url = f"{auth_settings.AUTH_FRONTEND_URL.rstrip('/')}/verify-email?{urlencode({'token': token})}"
-        await run_in_threadpool(
-            send_email,
-            email_to=user.email,
-            subject="Verify your email and set your password",
-            html_content=f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>',
-        )
+        try:
+            await run_in_threadpool(
+                send_email,
+                email_to=user.email,
+                subject="Verify your email and set your password",
+                html_content=f'<p>Finish setting up your account. This link expires in 15 minutes.</p><p><a href="{url}">Verify email and set password</a></p>',
+            )
+        except Exception as exc:
+            raise VerificationDeliveryError(
+                "Verification delivery unavailable"
+            ) from exc
         await session.commit()
     return Message(
         message="If your account is ready, a verification link has been sent."
@@ -121,6 +131,9 @@ async def email_confirm(
     user.hashed_password = await get_password_hash_async(body.new_password)
     user.email_verified_at = utc_now()
     user.password_setup_pending = False
+    await session.execute(
+        delete(AuthChallenge).where(col(AuthChallenge.user_id) == user.id)
+    )
     session.add(user)
     from src.auth.models import Session as LoginSession
 
@@ -128,7 +141,11 @@ async def email_confirm(
         delete(LoginSession).where(col(LoginSession.user_id) == user.id)
     )
     await session.commit()
-    return Message(message="Email verified. You can now sign in.")
+    return Message(
+        message="Email verified. Your registration is awaiting administrator approval."
+        if user.registration_pending
+        else "Email verified. You can now sign in."
+    )
 
 
 def google_ready() -> None:
@@ -262,8 +279,9 @@ async def google_finish(
     user = await session.get(User, challenge.user_id)
     if not user or not user.is_active or user.email != challenge.data["email"]:
         raise AppException("Account unavailable", 403)
+    service.require_approved_account(user)
     if user.totp_enabled and (
-        not totp.verify_code(secret=user.totp_secret or "", code=body.totp_code or "")
+        not await verify_factor(session, user, body.totp_code or "")
     ):
         await session.commit()
         raise AppException(
@@ -339,6 +357,7 @@ async def account_security(
         .all()
     )
     return AccountSecurityPublic(
+        recovery_codes_remaining=len(user.mfa_recovery_hashes),
         email_verified=user.email_verified_at is not None,
         google_configured=bool(
             auth_settings.GOOGLE_CLIENT_ID

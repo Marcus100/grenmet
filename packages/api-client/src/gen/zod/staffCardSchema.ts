@@ -6,6 +6,10 @@
 import * as z from "zod";
 
 export const staffCardSchema = z.object({
+  email_verified: z.optional(z.boolean().default(false)),
+  account_approved: z.optional(z.boolean().default(true)),
+  employment_ready: z.optional(z.boolean().default(false)),
+  issued_at: z.optional(z.union([z.string(), z.null()])),
   user_id: z.string().uuid(),
   number: z.string(),
   name: z.string(),

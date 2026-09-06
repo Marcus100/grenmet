@@ -16,6 +16,12 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions,
   useApproveAlertApiV1CapAlertsAlertIdApprovePost,
 } from "./useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export type { ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey } from "./useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
+export {
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey,
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions,
+  useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
+} from "./useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export type { ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey } from "./useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationKey,
@@ -1072,12 +1078,24 @@ export {
   removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationOptions,
   useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete,
 } from "./useRemoveHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
+export type { ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey } from "./useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
+export {
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationKey,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationOptions,
+  useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost,
+} from "./useReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export type { ResetPasswordApiV1ResetPasswordPostMutationKey } from "./useResetPasswordApiV1ResetPasswordPost.js";
 export {
   resetPasswordApiV1ResetPasswordPostMutationKey,
   resetPasswordApiV1ResetPasswordPostMutationOptions,
   useResetPasswordApiV1ResetPasswordPost,
 } from "./useResetPasswordApiV1ResetPasswordPost.js";
+export type { RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey } from "./useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export {
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions,
+  useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
+} from "./useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export type { SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey } from "./useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,

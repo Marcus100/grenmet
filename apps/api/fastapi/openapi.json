@@ -7668,6 +7668,108 @@
         ]
       }
     },
+    "/api/v1/auth/modern/security/recovery-codes": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Replace MFA recovery codes",
+        "description": "Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.",
+        "operationId": "replace_recovery_codes_api_v1_auth_modern_security_recovery_codes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SecurityProof"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecoveryCodesPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Confirmation failed"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/modern/security/sessions/{session_id}": {
+      "delete": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Revoke one of your sessions",
+        "description": "Revokes only a session owned by the authenticated user.",
+        "operationId": "revoke_security_session_api_v1_auth_modern_security_sessions__session_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Session not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -8260,6 +8362,64 @@
         }
       }
     },
+    "/api/v1/hr/setup/staff/{user_id}/approve-registration": {
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Approve a verified staff registration",
+        "description": "Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.",
+        "operationId": "approve_staff_registration_api_v1_hr_setup_staff__user_id__approve_registration_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/dashboard": {
       "get": {
         "tags": [
@@ -8628,6 +8788,11 @@
       },
       "AccountSecurityPublic": {
         "properties": {
+          "recovery_codes_remaining": {
+            "type": "integer",
+            "title": "Recovery Codes Remaining",
+            "default": 0
+          },
           "email_verified": {
             "type": "boolean",
             "title": "Email Verified"
@@ -12506,7 +12671,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 6
+                "maxLength": 64
               },
               {
                 "type": "null"
@@ -13328,7 +13493,7 @@
           "new_password": {
             "type": "string",
             "maxLength": 128,
-            "minLength": 8,
+            "minLength": 12,
             "title": "New Password"
           }
         },
@@ -14364,6 +14529,22 @@
         ],
         "title": "PublicHolidaysPublic"
       },
+      "RecoveryCodesPublic": {
+        "properties": {
+          "codes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Codes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "codes"
+        ],
+        "title": "RecoveryCodesPublic"
+      },
       "RequestStatus": {
         "type": "string",
         "enum": [
@@ -15215,6 +15396,28 @@
         ],
         "title": "RosterRevisionsPublic"
       },
+      "SecurityProof": {
+        "properties": {
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 6,
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "password",
+          "code"
+        ],
+        "title": "SecurityProof"
+      },
       "SecuritySessionPublic": {
         "properties": {
           "id": {
@@ -15326,7 +15529,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 10
+                "maxLength": 64
               },
               {
                 "type": "null"
@@ -16125,6 +16328,32 @@
       },
       "StaffCard": {
         "properties": {
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified",
+            "default": false
+          },
+          "account_approved": {
+            "type": "boolean",
+            "title": "Account Approved",
+            "default": true
+          },
+          "employment_ready": {
+            "type": "boolean",
+            "title": "Employment Ready",
+            "default": false
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -16245,6 +16474,11 @@
       },
       "StaffSetup": {
         "properties": {
+          "registration_pending": {
+            "type": "boolean",
+            "title": "Registration Pending",
+            "default": false
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -17554,6 +17788,12 @@
       },
       "TwoFactorDisableRequest": {
         "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 6,
+            "title": "Code"
+          },
           "password": {
             "type": "string",
             "maxLength": 128,
@@ -17563,6 +17803,7 @@
         },
         "type": "object",
         "required": [
+          "code",
           "password"
         ],
         "title": "TwoFactorDisableRequest"
@@ -17607,7 +17848,7 @@
           "new_password": {
             "type": "string",
             "maxLength": 128,
-            "minLength": 8,
+            "minLength": 12,
             "title": "New Password"
           }
         },
@@ -17855,6 +18096,11 @@
             "title": "Is Superuser",
             "default": false
           },
+          "registration_pending": {
+            "type": "boolean",
+            "title": "Registration Pending",
+            "default": false
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -17913,7 +18159,7 @@
           "password": {
             "type": "string",
             "maxLength": 128,
-            "minLength": 8,
+            "minLength": 12,
             "title": "Password"
           },
           "first_name": {

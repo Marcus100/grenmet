@@ -199,3 +199,17 @@ async def update_role_configuration(
     return await service.update_role_configuration(
         session=session, current_user=current_user, role_id=role_id, body=body
     )
+
+
+@router.post(
+    "/setup/staff/{user_id}/approve-registration",
+    response_model=Message,
+    summary="Approve a verified staff registration",
+    status_code=200,
+    description="Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.",
+)
+async def approve_staff_registration(
+    *, session: SessionDep, current_user: AdminUser, user_id: uuid.UUID
+) -> Message:
+    await service.approve_registration(session, current_user, user_id)
+    return Message(message="Staff registration approved")
