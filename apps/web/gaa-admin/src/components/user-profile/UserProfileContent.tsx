@@ -2,11 +2,13 @@
 
 import {
   readHrProfileMeApiV1HrProfileMeGetQueryKey,
+  readStaffCardApiV1HrStaffCardMeGetQueryKey,
   type UserProfileUpdateMe,
   useReadHrProfileMeApiV1HrProfileMeGet,
   useUpdateHrProfileMeApiV1HrProfileMePatch,
 } from "@barrelsgd/api-client";
 import { useQueryClient } from "@tanstack/react-query";
+import { EmployeeDetailsCard } from "@/components/user-profile/EmployeeDetailsCard";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
@@ -17,9 +19,14 @@ export default function UserProfileContent() {
   const updateProfileMutation = useUpdateHrProfileMeApiV1HrProfileMePatch({
     mutation: {
       onSuccess: async () => {
-        await queryClient.invalidateQueries({
-          queryKey: readHrProfileMeApiV1HrProfileMeGetQueryKey(),
-        });
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: readHrProfileMeApiV1HrProfileMeGetQueryKey(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: readStaffCardApiV1HrStaffCardMeGetQueryKey(),
+          }),
+        ]);
       },
     },
   });
@@ -47,6 +54,7 @@ export default function UserProfileContent() {
   return (
     <div className="space-y-6">
       <UserMetaCard profile={profileQuery.data} />
+      <EmployeeDetailsCard employment={profileQuery.data.employment} />
       <UserInfoCard
         isSaving={updateProfileMutation.isPending}
         onSave={handleSave}
