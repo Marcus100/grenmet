@@ -12,6 +12,7 @@ COPY packages/ui/package.json packages/ui/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/theme/package.json packages/theme/
+COPY packages/gms/package.json packages/gms/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/

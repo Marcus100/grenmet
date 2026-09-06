@@ -9,6 +9,7 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
+COPY packages/gms/package.json packages/gms/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
