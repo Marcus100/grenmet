@@ -29,9 +29,9 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         </div>
         <Link
           className="block w-full rounded-full bg-(--auth-accent) px-5 py-3 text-center font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
-          href="/"
+          href="/verify-email"
         >
-          Sign in
+          Verify email
         </Link>
       </div>
     );
@@ -52,10 +52,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           autoComplete="new-password"
           className={inputClass}
           id="new_password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="new_password"
-          placeholder="At least 8 characters"
+          placeholder="At least 12 characters"
           required
           type="password"
         />
@@ -72,8 +72,8 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
           autoComplete="new-password"
           className={inputClass}
           id="confirm_password"
-          maxLength={40}
-          minLength={8}
+          maxLength={128}
+          minLength={12}
           name="confirm_password"
           placeholder="Repeat your new password"
           required

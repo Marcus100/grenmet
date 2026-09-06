@@ -5,7 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { activateMfa, beginMfa } from "./actions";
 import { SecurityPanel } from "./security-panel";
 
-vi.mock("./actions", () => ({ beginMfa: vi.fn(), activateMfa: vi.fn() }));
+vi.mock("./actions", () => ({
+  beginMfa: vi.fn(),
+  activateMfa: vi.fn(),
+  changeAccountPassword: vi.fn(),
+  replaceRecoveryCodes: vi.fn(),
+  revokeSecuritySession: vi.fn(),
+  disableMfa: vi.fn(),
+}));
 const security: AccountSecurityPublic = {
   email_verified: false,
   google_configured: false,

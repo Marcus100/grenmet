@@ -68,13 +68,14 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
       </div>
 
       <div className="space-y-2">
-        <label htmlFor="totp_code">Authenticator code (if enabled)</label>
+        <label htmlFor="totp_code">
+          Authenticator or recovery code (if enabled)
+        </label>
         <input
           autoComplete="one-time-code"
           className="w-full rounded-lg border border-border bg-background px-4 py-3"
           id="totp_code"
-          inputMode="numeric"
-          maxLength={6}
+          maxLength={64}
           name="totp_code"
         />
       </div>
