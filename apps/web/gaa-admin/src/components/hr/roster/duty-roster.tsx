@@ -37,31 +37,41 @@ import {
   Save,
   Send,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { rosterLabel } from "@/lib/people";
 import {
   buildAssignmentMap,
   buildCycleCodes,
   cellKey,
   findPeriodForMonth,
-  initialName,
+  groupByGrade,
   isoDate,
   legendLabel,
+  markShiftRuns,
   monthRange,
   nextCode,
+  workShiftCodes,
 } from "./roster-utils";
 
 const WEEKDAY = ["S", "M", "T", "W", "T", "F", "S"];
 
+/**
+ * Work shifts are ink on the page background — no fill — so a 31-column month
+ * stays calm; the time-of-day ramp (morning through night) is what separates
+ * them. Absence is the exception that earns a fill, kept to a soft tint rather
+ * than the saturated warning colours, which turned a month of leave into a
+ * solid block. Off duty is the most common code by far, so it recedes furthest.
+ */
 const CODE_STYLE: Record<string, string> = {
-  M: "bg-primary/10 text-primary",
-  E: "bg-primary/10 text-primary",
-  N: "bg-primary/10 text-primary",
-  D: "bg-accent/15 text-accent-foreground",
-  O: "bg-muted text-muted-foreground",
-  V: "bg-gm-warning-green-bg text-gm-warning-green-fg",
-  S: "bg-gm-warning-amber-bg text-gm-warning-amber-fg",
-  L: "bg-gm-warning-yellow-bg text-gm-warning-yellow-fg",
+  M: "text-gm-shift-morning",
+  D: "text-gm-shift-day",
+  E: "text-gm-shift-evening",
+  N: "font-bold text-gm-navy",
+  O: "font-normal text-muted-foreground/40",
+  V: "bg-gm-risk-green/15 text-gm-text-primary",
+  L: "bg-gm-risk-yellow/25 text-gm-text-primary",
+  S: "bg-gm-risk-amber/20 text-gm-text-primary",
 };
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -86,6 +96,7 @@ export function DutyRoster() {
   const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet();
   const catalog = shiftsQuery.data?.data ?? [];
   const cycleCodes = useMemo(() => buildCycleCodes(catalog), [catalog]);
+  const workCodes = useMemo(() => workShiftCodes(catalog), [catalog]);
 
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
@@ -93,6 +104,7 @@ export function DutyRoster() {
       { query: { enabled: Boolean(activeDepartmentId) } }
     );
   const members = membersQuery.data?.data ?? [];
+  const memberGroups = useMemo(() => groupByGrade(members), [members]);
 
   const periodsQuery = useListPeriodsApiV1HrRostersPeriodsGet(
     { department_id: activeDepartmentId ?? "" },
@@ -126,6 +138,10 @@ export function DutyRoster() {
       isSunday: date.getDay() === 0,
     };
   });
+  // The printed roster breaks the month into Sunday-first week blocks; a spacer
+  // column reproduces that gap. Every colSpan has to count those spacers too.
+  const weekGaps = days.filter((d, i) => d.isSunday && i > 0).length;
+  const totalColumns = daysInMonth + weekGaps + 1;
   const monthLabel = monthDate.toLocaleDateString("en-GB", {
     month: "long",
     year: "numeric",
@@ -371,74 +387,108 @@ export function DutyRoster() {
               >
                 Name
               </th>
-              {days.map((d) => (
-                <th
-                  className={cn(
-                    "w-7 border-border border-l py-0.5 font-medium",
-                    d.isSunday && "text-destructive"
-                  )}
-                  key={`wk-${d.day}`}
-                >
-                  {d.weekday}
-                </th>
+              {days.map((d, i) => (
+                <Fragment key={`wk-${d.day}`}>
+                  {d.isSunday && i > 0 ? (
+                    <td aria-hidden="true" className="w-2 bg-background" />
+                  ) : null}
+                  <th
+                    className={cn(
+                      "w-7 border-border border-l py-0.5 font-medium",
+                      d.isSunday && "text-destructive"
+                    )}
+                  >
+                    {d.weekday}
+                  </th>
+                </Fragment>
               ))}
             </tr>
             <tr>
-              {days.map((d) => (
-                <th
-                  className={cn(
-                    "border-border border-t border-l py-0.5 font-semibold",
-                    d.isSunday && "text-destructive"
-                  )}
-                  key={`day-${d.day}`}
-                >
-                  {d.day}
-                </th>
+              {days.map((d, i) => (
+                <Fragment key={`day-${d.day}`}>
+                  {d.isSunday && i > 0 ? (
+                    <td aria-hidden="true" className="w-2 bg-background" />
+                  ) : null}
+                  <th
+                    className={cn(
+                      "border-border border-t border-l py-0.5 font-semibold",
+                      d.isSunday && "text-destructive"
+                    )}
+                  >
+                    {d.day}
+                  </th>
+                </Fragment>
               ))}
             </tr>
           </thead>
           <tbody>
-            {members.map((member) => {
-              const name = initialName(member.first_name, member.last_name);
-              return (
-                <tr className="border-border border-t" key={member.user_id}>
-                  <td className="sticky left-0 z-10 border-border border-r bg-background px-2 py-1 text-left font-medium">
-                    {name}
-                  </td>
-                  {days.map((d) => {
-                    const key = cellKey(member.user_id, d.iso);
-                    const code =
-                      pendingEdits[key] ?? serverAssignments[key] ?? "";
-                    const isPending = key in pendingEdits;
-                    return (
-                      <td
-                        className="border-border border-l p-0"
-                        key={`${member.user_id}-${d.day}`}
-                      >
-                        <button
-                          className={cn(
-                            "h-6 w-full font-medium text-[11px] leading-none outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
-                            code && CODE_STYLE[code],
-                            isPending && "ring-1 ring-ring ring-inset",
-                            !editable && "cursor-default"
-                          )}
-                          disabled={!editable}
-                          onClick={() => cycle(member.user_id, d.iso)}
-                          type="button"
-                        >
-                          {code}
-                        </button>
+            {memberGroups.map((group) => (
+              <Fragment key={group.key || "ungraded"}>
+                {group.label ? (
+                  <tr className="border-border border-t">
+                    <th
+                      className="sticky left-0 z-10 bg-muted/40 px-2 py-1 text-left font-semibold text-[11px] text-muted-foreground uppercase tracking-wide"
+                      colSpan={totalColumns}
+                      scope="colgroup"
+                    >
+                      {group.label}
+                    </th>
+                  </tr>
+                ) : null}
+                {group.members.map((member) => {
+                  const rowCodes = days.map(
+                    (d) =>
+                      pendingEdits[cellKey(member.user_id, d.iso)] ??
+                      serverAssignments[cellKey(member.user_id, d.iso)] ??
+                      ""
+                  );
+                  const runMarks = markShiftRuns(rowCodes, workCodes);
+                  return (
+                    <tr className="border-border border-t" key={member.user_id}>
+                      <td className="sticky left-0 z-10 border-border border-r bg-background px-2 py-1 text-left font-medium">
+                        {rosterLabel(member)}
                       </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
+                      {days.map((d, i) => {
+                        const key = cellKey(member.user_id, d.iso);
+                        const code = rowCodes[i];
+                        const isPending = key in pendingEdits;
+                        return (
+                          <Fragment key={`${member.user_id}-${d.day}`}>
+                            {d.isSunday && i > 0 ? (
+                              <td
+                                aria-hidden="true"
+                                className="bg-background"
+                              />
+                            ) : null}
+                            <td className="border-border border-l p-0">
+                              <button
+                                className={cn(
+                                  "h-6 w-full font-medium text-[11px] leading-none outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
+                                  code && CODE_STYLE[code],
+                                  runMarks[i] && "border-current border-b-2",
+                                  isPending && "ring-1 ring-ring ring-inset",
+                                  !editable && "cursor-default"
+                                )}
+                                disabled={!editable}
+                                onClick={() => cycle(member.user_id, d.iso)}
+                                type="button"
+                              >
+                                {code}
+                              </button>
+                            </td>
+                          </Fragment>
+                        );
+                      })}
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
             {members.length === 0 && !membersQuery.isLoading ? (
               <tr>
                 <td
                   className="px-2 py-6 text-muted-foreground"
-                  colSpan={daysInMonth + 1}
+                  colSpan={totalColumns}
                 >
                   No active members in this department.
                 </td>

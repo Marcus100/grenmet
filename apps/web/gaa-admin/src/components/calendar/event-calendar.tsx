@@ -1,5 +1,11 @@
 "use client";
 
+import {
+  type CalendarEventPublic,
+  useListAssignmentsApiV1HrRostersAssignmentsGet,
+  useListCalendarEventsApiV1HrCalendarEventsGet,
+  useListHolidaysApiV1HrRostersPublicHolidaysGet,
+} from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { ButtonGroup } from "@barrelsgd/ui/components/ui/button-group";
 import {
@@ -17,10 +23,12 @@ import listPlugin from "@fullcalendar/react/list";
 import multiMonthPlugin from "@fullcalendar/react/multimonth";
 import timeGridPlugin from "@fullcalendar/react/timegrid";
 import {
+  addDays,
   differenceInCalendarDays,
   endOfMonth,
   format,
   startOfMonth,
+  subDays,
 } from "date-fns";
 import {
   Calendar as CalendarIcon,
@@ -30,22 +38,23 @@ import {
   XIcon,
 } from "lucide-react";
 import * as React from "react";
+import {
+  CALENDAR_VIEWS,
+  type CalendarView,
+  needsEvents,
+  needsRoster,
+  rosterScope,
+  toEventLayer,
+  toHolidayLayer,
+  toRosterLayer,
+} from "@/components/calendar/calendar-sources";
 import { EventCalendarViews } from "@/components/calendar/event-calendar-views";
-
-import { demoEvents } from "./events-data";
+import { EventDialog } from "@/components/calendar/event-dialog";
 
 const views = [
   { value: "dayGridMonth", label: "Month" },
   { value: "timeGridWeek", label: "Week" },
   { value: "timeGridDay", label: "Day" },
-];
-
-const calendars = [
-  { value: "all", label: "All calendars" },
-  { value: "work", label: "Work" },
-  { value: "personal", label: "Personal" },
-  { value: "team", label: "Team" },
-  { value: "focus", label: "Focus time" },
 ];
 
 const plugins = [
@@ -56,12 +65,18 @@ const plugins = [
   multiMonthPlugin,
 ];
 
+const iso = (date: Date) => format(date, "yyyy-MM-dd");
+
 export function Calendar() {
   const controller = useCalendarController();
-  const [eventCount, setEventCount] = React.useState(0);
-  const [selectedCalendar, setSelectedCalendar] = React.useState(
-    calendars[0].value
-  );
+  const [calendarView, setCalendarView] =
+    React.useState<CalendarView>("department");
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [editing, setEditing] = React.useState<CalendarEventPublic>();
+  const [range, setRange] = React.useState(() => {
+    const now = new Date();
+    return { start: startOfMonth(now), end: endOfMonth(now) };
+  });
   const [dateInfo, setDateInfo] = React.useState(() => {
     const now = new Date();
 
@@ -73,23 +88,80 @@ export function Calendar() {
   const title = dateInfo.title;
   const days = dateInfo.days;
 
+  // The visible grid overhangs the month on both sides, so pad the request
+  // rather than leaving the leading and trailing week empty. The API caps the
+  // window at 92 days; a padded month stays well inside that.
+  const windowStart = iso(subDays(range.start, 7));
+  const windowEnd = iso(addDays(range.end, 7));
+
+  const eventsQuery = useListCalendarEventsApiV1HrCalendarEventsGet(
+    { start: windowStart, end: windowEnd },
+    { query: { enabled: needsEvents(calendarView) } }
+  );
+  const rosterQuery = useListAssignmentsApiV1HrRostersAssignmentsGet(
+    {
+      start: windowStart,
+      end: windowEnd,
+      scope: rosterScope(calendarView),
+    },
+    { query: { enabled: needsRoster(calendarView) } }
+  );
+  const holidaysQuery = useListHolidaysApiV1HrRostersPublicHolidaysGet();
+
+  const departmentEvents = React.useMemo(
+    () => eventsQuery.data?.data ?? [],
+    [eventsQuery.data?.data]
+  );
+
+  const events = React.useMemo(() => {
+    const layers = [...toHolidayLayer(holidaysQuery.data?.data ?? [])];
+    if (needsEvents(calendarView)) {
+      layers.push(...toEventLayer(departmentEvents));
+    }
+    if (needsRoster(calendarView)) {
+      layers.push(
+        ...toRosterLayer(rosterQuery.data?.data ?? [], calendarView, {
+          showPerson: calendarView !== "mine",
+        })
+      );
+    }
+    return layers;
+  }, [
+    calendarView,
+    departmentEvents,
+    holidaysQuery.data?.data,
+    rosterQuery.data?.data,
+  ]);
+
+  const entryCount = events.filter(
+    (event) => event.extendedProps.kind !== "holiday"
+  ).length;
+
+  function openEvent(eventId: string | undefined) {
+    const match = departmentEvents.find(
+      (candidate) => candidate.id === eventId
+    );
+    setEditing(match);
+    setDialogOpen(true);
+  }
+
   return (
     <div className="flex flex-col overflow-hidden rounded-md border">
       <div className="flex flex-col gap-4 border-b bg-sidebar p-4 text-sidebar-foreground lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 shrink-0 flex-col gap-1">
           <div className="font-medium text-lg leading-none">{title}</div>
           <p className="text-muted-foreground text-sm">
-            {days} days - {eventCount} events
+            {days} days - {entryCount} entries
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Select
-            items={calendars}
+            items={CALENDAR_VIEWS}
             onValueChange={(value) => {
-              if (value !== null) setSelectedCalendar(value);
+              if (value !== null) setCalendarView(value as CalendarView);
             }}
-            value={selectedCalendar}
+            value={calendarView}
           >
             <SelectTrigger className="w-full sm:w-44">
               <CalendarIcon />
@@ -97,7 +169,7 @@ export function Calendar() {
             </SelectTrigger>
             <SelectContent align="start" alignItemWithTrigger={false}>
               <SelectGroup>
-                {calendars.map((calendar) => (
+                {CALENDAR_VIEWS.map((calendar) => (
                   <SelectItem key={calendar.value} value={calendar.value}>
                     {calendar.label}
                   </SelectItem>
@@ -144,12 +216,23 @@ export function Calendar() {
               </SelectGroup>
             </SelectContent>
           </Select>
-          <Button>
+          <Button
+            onClick={() => {
+              setEditing(undefined);
+              setDialogOpen(true);
+            }}
+          >
             <Plus />
             Add event
           </Button>
         </div>
       </div>
+
+      <EventDialog
+        event={editing}
+        onOpenChange={setDialogOpen}
+        open={dialogOpen}
+      />
 
       <EventCalendarViews
         controller={controller}
@@ -161,15 +244,13 @@ export function Calendar() {
               info.view.currentStart
             ),
           });
-          setEventCount(
-            demoEvents.filter((event) => {
-              const start = new Date(event.start);
-
-              return start >= info.start && start < info.end;
-            }).length
-          );
+          setRange({ start: info.start, end: info.end });
         }}
-        events={demoEvents}
+        eventClick={(info) => {
+          if (info.event.extendedProps.kind !== "event") return;
+          openEvent(info.event.extendedProps.eventId as string | undefined);
+        }}
+        events={events}
         initialView={views[0].value}
         nowIndicator
         plugins={[...plugins]}

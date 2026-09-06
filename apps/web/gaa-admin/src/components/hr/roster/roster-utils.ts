@@ -1,4 +1,5 @@
 import type {
+  DepartmentMemberPublic,
   RosterAssignmentPublic,
   RosterPeriodPublic,
   ShiftCatalogPublic,
@@ -43,12 +44,6 @@ export function cellKey(userId: string, date: string): string {
   return `${userId}|${date}`;
 }
 
-/** "Gerad" + "Tamar" → "G. Tamar", matching the printed roster convention. */
-export function initialName(firstName: string, lastName: string): string {
-  const initial = firstName.trim().charAt(0).toUpperCase();
-  return initial ? `${initial}. ${lastName}` : lastName;
-}
-
 export function buildCycleCodes(catalog: ShiftCatalogPublic[]): string[] {
   const active = new Set(catalog.filter((s) => s.is_active).map((s) => s.code));
   const preferred = PREFERRED_CYCLE.filter((code) => active.has(code));
@@ -80,4 +75,74 @@ export function buildAssignmentMap(
       assignment.shift_code;
   }
   return map;
+}
+
+/** A grade band and the members holding it, in the order the roster prints. */
+export interface MemberGroup {
+  key: string;
+  label: string | null;
+  members: DepartmentMemberPublic[];
+}
+
+/**
+ * Split department members into the grade bands the printed roster separates
+ * with blank rows. The API already returns members ordered by grade rank, so
+ * this only has to break the run whenever the grade changes. Members with no
+ * grade recorded fall into one trailing unlabelled group rather than vanishing.
+ */
+export function groupByGrade(members: DepartmentMemberPublic[]): MemberGroup[] {
+  const groups: MemberGroup[] = [];
+  for (const member of members) {
+    const key = member.grade?.code ?? "";
+    const last = groups.at(-1);
+    if (last && last.key === key) {
+      last.members.push(member);
+      continue;
+    }
+    groups.push({
+      key,
+      label: member.grade?.label ?? null,
+      members: [member],
+    });
+  }
+  return groups;
+}
+
+/**
+ * Flag every cell belonging to a run of two or more identical work shifts, so
+ * the grid can underline a run's extent without merging cells or hiding a day.
+ *
+ * Only work shifts are marked. Off duty stays quiet, and leave carries a
+ * highlight band of its own, so underlining those would double up. A blank cell
+ * never joins a run — an unrostered gap is not a stretch of anything.
+ */
+export function markShiftRuns(
+  codes: string[],
+  workCodes: ReadonlySet<string>
+): boolean[] {
+  const marks: boolean[] = new Array(codes.length).fill(false);
+  let start = 0;
+  while (start < codes.length) {
+    const code = codes[start];
+    let end = start;
+    while (end + 1 < codes.length && codes[end + 1] === code) {
+      end += 1;
+    }
+    if (code && workCodes.has(code) && end > start) {
+      for (let i = start; i <= end; i += 1) {
+        marks[i] = true;
+      }
+    }
+    start = end + 1;
+  }
+  return marks;
+}
+
+/** Codes the catalog classifies as work, for run marking. */
+export function workShiftCodes(
+  catalog: ShiftCatalogPublic[]
+): ReadonlySet<string> {
+  return new Set(
+    catalog.filter((s) => s.category === "WORK").map((s) => s.code)
+  );
 }
