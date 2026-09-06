@@ -5,7 +5,7 @@ import {
   readSessionCookie,
 } from "@/lib/server-session";
 
-export async function POST(): Promise<NextResponse> {
+export async function POST(request: Request): Promise<NextResponse> {
   const sessionToken = await readSessionCookie();
 
   if (sessionToken) {
@@ -17,7 +17,9 @@ export async function POST(): Promise<NextResponse> {
     }
   }
 
-  const response = NextResponse.json({ ok: true });
+  const response = request.headers.get("accept")?.includes("text/html")
+    ? NextResponse.redirect(new URL("/signin", request.url), 303)
+    : NextResponse.json({ ok: true });
   clearSessionCookieOnResponse(response);
   return response;
 }
