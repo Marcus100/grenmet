@@ -233,7 +233,7 @@ jobs:
             -e POSTGRES_USER=app -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
             -e FIRST_SUPERUSER=ci@weather.gd -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
             test-image:latest \
-            -lc 'uv run --frozen --no-dev --package fast-back python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
+            -lc 'python -c "from src.main import app; print(\"boot-ok: app + routers imported\")"'
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true
