@@ -1,0 +1,43 @@
+{
+  "name": "@barrelsgd/web-cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3006",
+    "build": "next build",
+    "start": "next start --port 3006",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "check:ci": "biome ci .",
+    "lint": "biome lint .",
+    "generate:types": "payload generate:types",
+    "generate:importmap": "payload generate:importmap"
+  },
+  "dependencies": {
+    "payload": "catalog:",
+    "@payloadcms/next": "catalog:",
+    "@payloadcms/db-postgres": "catalog:",
+    "@payloadcms/ui": "catalog:",
+    "graphql": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-markdown": "catalog:",
+    "remark-gfm": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:",
+    "zod": "catalog:",
+    "@barrelsgd/api-client": "workspace:*",
+    "@barrelsgd/auth": "workspace:*"
+  },
+  "devDependencies": {
+    "@barrelsgd/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

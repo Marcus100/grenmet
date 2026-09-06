@@ -47,7 +47,9 @@
     "validate": "turbo run type-check lint test",
     "fix": "ultracite fix",
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",
-    "check:drift": "node scripts/api/check-api-drift.mjs"
+    "check:drift": "node scripts/api/check-api-drift.mjs",
+    "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
+    "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

@@ -43,7 +43,6 @@
     "@tanstack/react-query": "catalog:",
     "@tanstack/react-table": "catalog:",
     "class-variance-authority": "catalog:",
-    "clsx": "catalog:",
     "date-fns": "^4.4.0",
     "drizzle-orm": "catalog:",
     "lucide-react": "catalog:",
