@@ -1,3 +1,4 @@
+import type { HrDashboardPublic } from "@barrelsgd/api-client";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { HrDashboard } from "./hr-dashboard";
@@ -15,6 +16,36 @@ vi.mock("@barrelsgd/auth", () => ({
   useSessionUser: () => mockUser,
 }));
 
+const data: HrDashboardPublic = {
+  date: "2026-09-06",
+  scope: "GMS",
+  can_approve: true,
+  vacation_balance: null,
+  next_shift: null,
+  open_requests: 0,
+  active_staff: 2,
+  departments: 1,
+  shift_types: 2,
+  requests: [],
+  approvals: [],
+  on_duty: [
+    {
+      id: "schedule-1",
+      name: "Scheduled Colleague",
+      department: "GMS",
+      shift: "Morning",
+    },
+  ],
+  away: [
+    {
+      id: "schedule-2",
+      name: "Away Colleague",
+      department: "GMS",
+      shift: "Day off",
+    },
+  ],
+};
+
 function switchTo(view: "Staff" | "Admin") {
   fireEvent.click(screen.getByRole("button", { name: view }));
 }
@@ -25,32 +56,32 @@ describe("HrDashboard", () => {
   });
 
   it("defaults to the staff view and greets the member by first name", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
 
     expect(
       screen.getByRole("heading", { name: "Welcome back, Aiyana" })
     ).toBeInTheDocument();
-    expect(screen.getByText("Attendance today")).toBeInTheDocument();
+    expect(screen.getByText("Published schedule today")).toBeInTheDocument();
     expect(screen.getByText("Recent activity")).toBeInTheDocument();
     expect(screen.getByText("My requests")).toBeInTheDocument();
-    expect(screen.getByText("Organisation")).toBeInTheDocument();
+    expect(screen.getByText("Organisation · GMS")).toBeInTheDocument();
   });
 
   it("shows who's on duty by default and who's away when toggled", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
 
     // On duty is the default list.
-    expect(screen.getByText("Kwame Noel")).toBeInTheDocument();
-    expect(screen.queryByText("Dwight Phillip")).not.toBeInTheDocument();
+    expect(screen.getByText("Scheduled Colleague")).toBeInTheDocument();
+    expect(screen.queryByText("Away Colleague")).not.toBeInTheDocument();
 
     // Flip the in-card toggle to the away list.
     fireEvent.click(screen.getByRole("button", { name: "Away" }));
-    expect(screen.getByText("Dwight Phillip")).toBeInTheDocument();
-    expect(screen.queryByText("Kwame Noel")).not.toBeInTheDocument();
+    expect(screen.getByText("Away Colleague")).toBeInTheDocument();
+    expect(screen.queryByText("Scheduled Colleague")).not.toBeInTheDocument();
   });
 
   it("keeps forms off the board — they live in the New request menu", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
 
     // The forms grid is gone from the dashboard body.
     expect(screen.queryByText("Forms & requests")).not.toBeInTheDocument();
@@ -63,14 +94,14 @@ describe("HrDashboard", () => {
   });
 
   it("keeps admin-only zones hidden while the staff view is active", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
 
     expect(screen.queryByText("Manage")).not.toBeInTheDocument();
     expect(screen.queryByText("Approvals inbox")).not.toBeInTheDocument();
   });
 
   it("reveals management and approvals when toggled to the admin view", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
     switchTo("Admin");
 
     expect(
@@ -83,7 +114,7 @@ describe("HrDashboard", () => {
   });
 
   it("returns to the staff view when toggled back", () => {
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
     switchTo("Admin");
     switchTo("Staff");
 
@@ -91,9 +122,26 @@ describe("HrDashboard", () => {
     expect(screen.queryByText("Approvals inbox")).not.toBeInTheDocument();
   });
 
+  it("shows missing balances and real empty states without sample records", () => {
+    render(<HrDashboard data={{ ...data, on_duty: [], away: [] }} />);
+    expect(screen.getByText("Not recorded")).toBeInTheDocument();
+    expect(screen.getByText("You have no requests yet.")).toBeInTheDocument();
+    expect(
+      screen.getByText("No published work shifts for today.")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Kwame Noel")).not.toBeInTheDocument();
+  });
+
+  it("does not expose management controls to staff without approval permission", () => {
+    render(<HrDashboard data={{ ...data, can_approve: false }} />);
+    expect(
+      screen.queryByRole("button", { name: "Admin" })
+    ).not.toBeInTheDocument();
+  });
+
   it("falls back gracefully when the user has no full name", () => {
     mockUser.full_name = null;
-    render(<HrDashboard />);
+    render(<HrDashboard data={data} />);
 
     expect(
       screen.getByRole("heading", { name: "Welcome back" })
