@@ -14,6 +14,8 @@
     "start": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools up -d && docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml up --build",
     "stop": "docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml down --remove-orphans && docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools down --remove-orphans",
     "reset": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools down -v && docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml up postgres -d",
+    "logs": "docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml logs -f",
+    "logs:infra": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools logs -f",
     "status": "docker compose -p grenmet --env-file infra/docker/.env.local -f infra/docker/docker-compose.yml --profile tools ps && docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml ps",
     "dev:web": "turbo run dev --filter=@barrelsgd/web-*",
     "dev:web:gaa-admin": "turbo run dev --filter=@barrelsgd/web-gaa-admin",
