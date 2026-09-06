@@ -36,6 +36,7 @@ describe("CurrentAlertsAccordion", () => {
                   headline: "Gale force winds",
                   identifier: "a",
                   severity: "Severe",
+                  status: "Actual" as const,
                 },
               ],
               name: "Wind",
