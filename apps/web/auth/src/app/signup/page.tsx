@@ -18,7 +18,8 @@ export default function SignUpPage() {
               Create your account
             </h1>
             <p className="text-(--muted) text-sm leading-6">
-              One account for every Grenmet web app.
+              Create an account, verify your email, and request administrator
+              approval for staff access.
             </p>
           </div>
 

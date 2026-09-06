@@ -8,14 +8,12 @@ export function GoogleConfirm({ requiresTotp }: { requiresTotp: boolean }) {
     <form action={action} className="space-y-4">
       {requiresTotp && (
         <label className="block">
-          Authenticator code
+          Authenticator or recovery code
           <input
             autoComplete="one-time-code"
             className="block w-full rounded border border-border bg-background p-3"
-            inputMode="numeric"
-            maxLength={6}
+            maxLength={64}
             name="totp_code"
-            pattern="[0-9]{6}"
             required
           />
         </label>

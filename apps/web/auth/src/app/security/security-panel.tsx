@@ -2,6 +2,7 @@
 import type { AccountSecurityPublic } from "@barrelsgd/api-client";
 import Link from "next/link";
 import { useState } from "react";
+import { AccountControls } from "./account-controls";
 import { activateMfa, beginMfa } from "./actions";
 
 export function SecurityPanel({
@@ -123,24 +124,11 @@ export function SecurityPanel({
         )}
         {message && <p role="status">{message}</p>}
       </section>
-      <section className="space-y-4 rounded-4xl border border-(--line) bg-(--panel-strong) p-6">
-        <h2 className="font-semibold text-xl">Active sessions</h2>
-        <p className="text-(--muted) text-sm">
-          Use “Sign out everywhere” on your account page to revoke these
-          sessions.
-        </p>
-        <ul className="divide-y">
-          {security.sessions.map((session) => (
-            <li className="py-3" key={session.id}>
-              <p>{session.app_name || session.client_type}</p>
-              <p className="text-(--muted) text-sm">
-                Last used {session.last_used_at.slice(0, 16).replace("T", " ")}{" "}
-                UTC · expires {session.expires_at.slice(0, 10)}
-              </p>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <AccountControls
+        mfaEnabled={enabled}
+        onMfaDisabled={() => setEnabled(false)}
+        security={security}
+      />
     </div>
   );
 }

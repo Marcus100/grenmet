@@ -1,11 +1,16 @@
 "use server";
 import {
   readAccountSecurityApiV1AuthModernSecurityGet,
+  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost,
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
   twofaActivateApiV12FaActivatePost,
+  twofaDisableApiV12FaDisablePost,
   twofaSetupApiV12FaSetupPost,
+  updatePasswordMeApiV1AuthUsersMePasswordPatch,
 } from "@barrelsgd/api-client";
 import { getAuthConfig } from "@/lib/auth-config";
 import {
+  clearSessionCookie,
   exchangeSessionForAccessToken,
   readSessionCookie,
 } from "@/lib/session";
@@ -60,6 +65,35 @@ export async function beginMfa() {
 export async function activateMfa(code: string) {
   return twofaActivateApiV12FaActivatePost(
     { code },
+    { client: await securityClient() }
+  );
+}
+
+export async function changeAccountPassword(
+  currentPassword: string,
+  newPassword: string
+) {
+  await updatePasswordMeApiV1AuthUsersMePasswordPatch(
+    { current_password: currentPassword, new_password: newPassword },
+    { client: await securityClient() }
+  );
+  await clearSessionCookie();
+}
+export async function replaceRecoveryCodes(password: string, code: string) {
+  return replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost(
+    { password, code },
+    { client: await securityClient() }
+  );
+}
+export async function disableMfa(password: string, code: string) {
+  return twofaDisableApiV12FaDisablePost(
+    { password, code },
+    { client: await securityClient() }
+  );
+}
+export async function revokeSecuritySession(id: string) {
+  return revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete(
+    id,
     { client: await securityClient() }
   );
 }
