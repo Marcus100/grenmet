@@ -24,6 +24,7 @@ acceptance.
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
+| `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
 | `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
@@ -92,6 +93,7 @@ away from GMS.
 | Repository surface | Classification and owner | Lifecycle | Boundary |
 | --- | --- | --- | --- |
 | `infra/docker` | Barrels platform infrastructure | Active; legacy naming remains during transition | Shared app/API databases and local/staging/production composition |
+| `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
@@ -125,7 +127,7 @@ references rather than duplicated here.
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
-| `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
+| `.claude/hooks`, `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
 | `scripts/sutron-collector/capture` | Sutron field-capture procedure and scripts | Governed | Promoted from the former `.capture-tools` scratch directory after field validation; that scratch copy is retired |

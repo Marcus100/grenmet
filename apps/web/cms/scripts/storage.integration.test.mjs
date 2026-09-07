@@ -7,17 +7,28 @@ import pg from "pg";
 
 const adminUrl = process.env.STORAGE_TEST_POSTGRES_URL;
 const directory = fileURLToPath(new URL("../", import.meta.url));
-function migrate(environment) {
+function migrate(environment, expectedFailure = false) {
   return new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["scripts/migrate.mjs"], {
       cwd: directory,
       env: { ...process.env, ...environment },
       stdio: ["ignore", "pipe", "pipe"],
     });
-    child.stdout.resume();
-    child.stderr.resume();
+    let output = "";
+    const capture = (chunk) => {
+      output += chunk.toString();
+    };
+    child.stdout.on("data", capture);
+    child.stderr.on("data", capture);
     child.on("error", reject);
-    child.on("exit", resolve);
+    child.on("close", (code) => {
+      const redacted = output
+        .replaceAll(environment.DATABASE_URL, "[DATABASE_URL]")
+        .replaceAll(environment.PAYLOAD_SECRET, "[PAYLOAD_SECRET]")
+        .replace(/postgres(?:ql)?:\/\/[^\s"']+/g, "[DATABASE_URL]");
+      if (code !== 0 && !expectedFailure) console.error(redacted);
+      resolve(code);
+    });
   });
 }
 
@@ -65,7 +76,7 @@ test("CMS fresh and repeated migrations preserve data and reject schema-push his
         "INSERT INTO payload_migrations(name, batch) VALUES ('dev', -1)"
       );
       assert.notEqual(
-        await migrate(environment),
+        await migrate(environment, true),
         0,
         "schema push adoption must be explicit"
       );
