@@ -35,6 +35,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -90,20 +91,61 @@ jobs:
             type=raw,value=latest,enable=${{ steps.ctx.outputs.is_staging == 'false' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
-      - name: Build and push Docker image
-        id: build
+      - name: Build image for verification
+        id: verify
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: apps/api/fastapi/Dockerfile.prod
           pull: true
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=api
+          provenance: false
+          platforms: linux/amd64
+
+      - name: Smoke-test image before publishing
+        env:
+          IMAGE: ghcr.io/${{ steps.ctx.outputs.repository }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+        run: |
+          bash scripts/production/smoke-image.sh "$IMAGE" api
+
+      - name: Publish verified image from builder cache
+        id: build
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: apps/api/fastapi/Dockerfile.prod
+          pull: false
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max,ignore-error=true
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max,ignore-error=true
           provenance: true
           platforms: linux/amd64
+
+
+      - name: Scan published image for vulnerabilities
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        with:
+          image-ref: ghcr.io/${{ steps.ctx.outputs.repository }}@${{ steps.build.outputs.digest }}
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          scanners: vuln
+
+      - name: Upload image security findings
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-api
 
       - name: Image digest summary
         run: |
