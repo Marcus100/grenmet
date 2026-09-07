@@ -9,24 +9,32 @@ without Redis).
 
 from __future__ import annotations
 
+from importlib import import_module
 from socket import gethostname
 from typing import Any
 
 from arq import cron
 from arq.connections import RedisSettings
 
-from src.cap import service as cap_service
-from src.database import async_session_factory
 from src.logging_config import configure_logging
 from src.worker.config import worker_settings
-from src.worker.dispatch import process_due_jobs
 
 configure_logging()
 
 
+async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
+    # Fail before the worker starts if task dependencies cannot load. Health
+    # probes only need Redis settings and must not repeat these imports.
+    for module in ("src.database", "src.cap.service", "src.worker.dispatch"):
+        import_module(module)
+
+
 async def process_cap_jobs(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+    from src.database import async_session_factory
+    from src.worker import dispatch
+
     async with async_session_factory() as session:
-        return await process_due_jobs(
+        return await dispatch.process_due_jobs(
             session=session,
             limit=worker_settings.CAP_JOB_BATCH_SIZE,
             max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
@@ -34,6 +42,9 @@ async def process_cap_jobs(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq pa
 
 
 async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+    from src.cap import service as cap_service
+    from src.database import async_session_factory
+
     async with async_session_factory() as session:
         return await cap_service.ingest_all_active_feeds(session=session)
 
@@ -43,6 +54,7 @@ class WorkerSettings:
     health_check_interval = 30
     health_check_key = f"grenmet:worker:{gethostname()}:health"
     redis_settings = RedisSettings.from_dsn(worker_settings.redis_dsn)
+    on_startup = startup
     functions = [process_cap_jobs, ingest_cap_feeds]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job

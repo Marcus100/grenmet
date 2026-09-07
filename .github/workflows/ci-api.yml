@@ -191,7 +191,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
-          uv run --frozen --package fast-back coverage run --source=src -m pytest -v --tb=short
+          uv run --frozen --package fast-back coverage run --source=src -m pytest -v --tb=short --durations=20 --durations-min=0.1
           uv run --frozen --package fast-back coverage report --show-missing
           uv run --frozen --package fast-back coverage xml
           uv run --frozen --package fast-back coverage html
