@@ -1,19 +1,19 @@
 name: Backup Freshness
 on:
-  schedule:
-    - cron: "30 * * * *"
   workflow_dispatch:
 permissions:
   contents: read
 jobs:
   check:
+    # Optional marker-based recovery tooling; the established backup job does not publish these markers.
+    if: vars.BACKUP_MARKERS_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
       fail-fast: false
       matrix:
-        environment: [staging, production]
-    environment: ${{ matrix.environment }}
+        environment: [production]
+    environment: production-backup
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
