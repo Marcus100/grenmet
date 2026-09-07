@@ -1,9 +1,10 @@
+# syntax=docker/dockerfile:1
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN apk upgrade --no-cache && corepack enable pnpm
 
-FROM base AS builder
+FROM base AS source
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
@@ -18,36 +19,51 @@ COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/gms/package.json apps/web/gms/
-RUN pnpm install --frozen-lockfile
+COPY apps/web/cms/package.json apps/web/cms/
+COPY apps/web/events/package.json apps/web/events/
+COPY apps/web/mbia/package.json apps/web/mbia/
+COPY apps/web/signal/package.json apps/web/signal/
+COPY packages/email-templates/package.json packages/email-templates/
+COPY packages/mdx/package.json packages/mdx/
+RUN HUSKY=0 pnpm install --frozen-lockfile
 
 # NEXT_PUBLIC_* vars are baked into the client bundle at build time
+ARG NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE="true"
+ENV NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE=$NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE
 ARG NEXT_PUBLIC_API_URL="https://api.barrels.gd"
 ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
-ARG RESEND_API_KEY="placeholder"
-ARG SENTRY_AUTH_TOKEN
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
-ENV RESEND_API_KEY=$RESEND_API_KEY
-ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NEXT_TELEMETRY_DISABLED=1
 
 COPY . .
-RUN pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
+
+FROM source AS builder
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
 RUN mkdir -p apps/web/gaa-admin/public
 
 # ── Migration runner ─────────────────────────────────────────────────────────
-# Built as a separate image (target=migrate) and run as a one-off by the compose
-# wxwatch-migrate / wxproducts-migrate services. Reuses the builder's full
-# node_modules (drizzle-orm + pg + migrator) and the committed drizzle/ SQL.
-FROM builder AS migrate
-WORKDIR /app
-CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs"]
+# One-off migrations use source and installed dependencies without a Next.js build.
+FROM source AS migration-package
+RUN pnpm --filter @barrelsgd/web-gaa-admin deploy --legacy --prod /migration-runtime
 
-FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
+FROM base AS migrate
+WORKDIR /app
+ENV NODE_ENV=production
+COPY --from=migration-package /migration-runtime/node_modules ./apps/web/gaa-admin/node_modules
+COPY --from=source /app/apps/web/gaa-admin/package.json ./apps/web/gaa-admin/package.json
+COPY --from=source /app/apps/web/gaa-admin/scripts ./apps/web/gaa-admin/scripts
+COPY --from=source /app/apps/web/gaa-admin/drizzle ./apps/web/gaa-admin/drizzle
+COPY --from=source /app/apps/web/gaa-admin/seed ./apps/web/gaa-admin/seed
+COPY --from=source /app/apps/web/gaa-admin/src/db ./apps/web/gaa-admin/src/db
+USER node
+CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs && node apps/web/gaa-admin/scripts/seed-transport.mjs && node apps/web/gaa-admin/scripts/seed-janitorial.mjs && node apps/web/gaa-admin/scripts/verify-databases.mjs"]
+
+FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1

@@ -15,7 +15,9 @@
 Thumbs.db
 
 # Node
-node_modules/
+**/node_modules/
+**/.pnpm-store/
+**/.npm/
 npm-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
@@ -56,6 +58,7 @@ docs/
 notebooks/
 geonetcast/
 scripts/scrapy-wxwatch/
+scripts/bishop-weather/raw/
 artifacts/
 
 # Vendored ops apps — run on the host, never part of web images.
@@ -75,3 +78,30 @@ logs/
 
 # Turbo cache
 .turbo/
+
+# Nested local secrets and authoritative runtime storage.
+**/.env
+**/.env.*
+**/*.dump
+**/*.sqlite*
+**/backups/
+**/acme.json
+infra/docker/runtime/
+data/
+scripts/sutron-collector/data/
+
+# Keep local caches, secrets and runtime artifacts out of every build.
+**/.cache/
+**/.scrapy/
+**/.coverage
+**/.coverage.*
+**/.git/
+**/*.env
+**/*.log
+
+# Local editor/agent state and scratch files are not application inputs.
+.devcontainer/
+.agents/
+.claude/
+.codex/
+temp-files/

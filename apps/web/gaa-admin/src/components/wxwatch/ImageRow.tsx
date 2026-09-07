@@ -101,7 +101,7 @@ function SynopticImageSlot({
         fill
         sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 12.5vw"
         src={imageUrl}
-        unoptimized={image.fileFormat === "gif"}
+        unoptimized={image.fileFormat === "gif" || imageUrl.startsWith("/api/")}
       />
       {/* Time label overlay */}
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">

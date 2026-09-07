@@ -813,3 +813,8 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostMutationKey,
   validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
 } from "./useValidateGridApiV1HrRostersImportGridValidatePost.js";
+export {
+  useWeatherImageApiV1WxwatchImagesStoragePathGet,
+  weatherImageApiV1WxwatchImagesStoragePathGetQueryKey,
+  weatherImageApiV1WxwatchImagesStoragePathGetQueryOptions,
+} from "./useWeatherImageApiV1WxwatchImagesStoragePathGet.js";

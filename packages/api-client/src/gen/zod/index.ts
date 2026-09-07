@@ -1562,6 +1562,13 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostStatus422Schema,
 } from "./validateGridApiV1HrRostersImportGridValidatePostSchema.js";
 export { validationErrorSchema } from "./validationErrorSchema.js";
+export {
+  weatherImageApiV1WxwatchImagesStoragePathGetErrorSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetPathStoragePathSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetResponseSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetStatus307Schema,
+  weatherImageApiV1WxwatchImagesStoragePathGetStatus422Schema,
+} from "./weatherImageApiV1WxwatchImagesStoragePathGetSchema.js";
 export { workflowActionRequestSchema } from "./workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./workflowActionSchema.js";
 export { workflowInboxItemSchema } from "./workflowInboxItemSchema.js";

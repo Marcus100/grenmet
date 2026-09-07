@@ -161,3 +161,4 @@ export { updateUserMeApiV1AuthUsersMePatch } from "./updateUserMeApiV1AuthUsersM
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./validateCsvApiV1HrRostersImportCsvValidatePost.js";
 export { validateGridApiV1HrRostersImportGridValidatePost } from "./validateGridApiV1HrRostersImportGridValidatePost.js";
+export { weatherImageApiV1WxwatchImagesStoragePathGet } from "./weatherImageApiV1WxwatchImagesStoragePathGet.js";

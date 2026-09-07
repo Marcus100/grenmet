@@ -85,7 +85,9 @@ export function Lightbox({ image, onClose }: LightboxProps) {
             height={image.height || 600}
             priority
             src={imageUrl}
-            unoptimized={image.fileFormat === "gif"}
+            unoptimized={
+              image.fileFormat === "gif" || imageUrl.startsWith("/api/")
+            }
             width={image.width || 800}
           />
         </div>

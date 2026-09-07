@@ -9,6 +9,7 @@ without Redis).
 
 from __future__ import annotations
 
+from socket import gethostname
 from typing import Any
 
 from arq import cron
@@ -38,6 +39,9 @@ async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq pa
 
 
 class WorkerSettings:
+    # Bound heartbeat staleness and prevent another worker masking this one.
+    health_check_interval = 30
+    health_check_key = f"grenmet:worker:{gethostname()}:health"
     redis_settings = RedisSettings.from_dsn(worker_settings.redis_dsn)
     functions = [process_cap_jobs, ingest_cap_feeds]
     # A poll/ingest run must not hang a worker slot; retries of the cron function

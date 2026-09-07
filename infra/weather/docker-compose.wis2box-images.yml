@@ -1,0 +1,42 @@
+# Reviewed immutable upstream artifacts; operator selects digests from the supported release.
+services:
+  web-proxy:
+    image: ${WIS2BOX_PROXY_IMAGE:?Reviewed immutable web-proxy image required}
+    container_name: !reset null
+  wis2box-ui:
+    image: ${WIS2BOX_UI_IMAGE:?Reviewed immutable wis2box-ui image required}
+    container_name: !reset null
+  wis2box-webapp:
+    image: ${WIS2BOX_WEBAPP_IMAGE:?Reviewed immutable wis2box-webapp image required}
+    container_name: !reset null
+  wis2box-api:
+    image: ${WIS2BOX_API_IMAGE:?Reviewed immutable wis2box-api image required}
+    container_name: !reset null
+  elasticsearch:
+    image: ${WIS2BOX_ELASTICSEARCH_IMAGE:?Reviewed immutable elasticsearch image required}
+    container_name: !reset null
+  mosquitto:
+    image: ${WIS2BOX_BROKER_IMAGE:?Reviewed immutable mosquitto image required}
+    container_name: !reset null
+  wis2box-management:
+    image: ${WIS2BOX_MANAGEMENT_IMAGE:?Reviewed immutable wis2box-management image required}
+    container_name: !reset null
+  mqtt_metrics_collector:
+    image: ${WIS2BOX_METRICS_IMAGE:?Reviewed immutable mqtt_metrics_collector image required}
+    container_name: !reset null
+  wis2box-auth:
+    image: ${WIS2BOX_AUTH_IMAGE:?Reviewed immutable wis2box-auth image required}
+    container_name: !reset null
+  loki:
+    image: ${WIS2BOX_LOKI_IMAGE:?Reviewed immutable loki image required}
+    container_name: !reset null
+  prometheus:
+    image: ${WIS2BOX_PROMETHEUS_IMAGE:?Reviewed immutable prometheus image required}
+    container_name: !reset null
+  grafana:
+    image: ${WIS2BOX_GRAFANA_IMAGE:?Reviewed immutable grafana image required}
+    container_name: !reset null
+  minio:
+    container_name: !reset null
+  elasticsearch-exporter:
+    container_name: !reset null

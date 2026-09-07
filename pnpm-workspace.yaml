@@ -40,6 +40,7 @@ catalog:
   "@payloadcms/next": "3.88.0"
   "@payloadcms/db-postgres": "3.88.0"
   "@payloadcms/ui": "3.88.0"
+  "@payloadcms/email-resend": "3.88.0"
   graphql: "^16.8.1"
   react-markdown: "^10.1.0"
 

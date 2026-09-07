@@ -134,6 +134,9 @@ catalogs:
     '@payloadcms/db-postgres':
       specifier: 3.88.0
       version: 3.88.0
+    '@payloadcms/email-resend':
+      specifier: 3.88.0
+      version: 3.88.0
     '@payloadcms/next':
       specifier: 3.88.0
       version: 3.88.0
@@ -465,6 +468,9 @@ importers:
       '@payloadcms/db-postgres':
         specifier: 'catalog:'
         version: 3.88.0(@opentelemetry/api@1.9.1)(payload@3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2))(supports-color@8.1.1)
+      '@payloadcms/email-resend':
+        specifier: 'catalog:'
+        version: 3.88.0(payload@3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2))
       '@payloadcms/next':
         specifier: 'catalog:'
         version: 3.88.0(@types/react@19.2.18)(graphql@16.14.2)(monaco-editor@0.56.0)(next@16.3.4(@babel/core@7.28.6(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@24.13.3)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4))(payload@3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(supports-color@8.1.1)(typescript@7.0.2)
@@ -483,6 +489,9 @@ importers:
       payload:
         specifier: 'catalog:'
         version: 3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2)
+      pg:
+        specifier: 'catalog:'
+        version: 8.23.0
       react:
         specifier: 'catalog:'
         version: 19.2.8
@@ -3570,6 +3579,12 @@ packages:
 
   '@payloadcms/drizzle@3.88.0':
     resolution: {integrity: sha512-qtPVSLjAFnQl1GwaQPhmnYTwCCWgTnRm4ps5yJxmN3RPdLF6S77gvqZMnC4HTeH7YADQJW3nFgQCVYExxWE6hA==}
+    peerDependencies:
+      payload: 3.88.0
+
+  '@payloadcms/email-resend@3.88.0':
+    resolution: {integrity: sha512-0iuTVkzCY6vpHSHHlDegrAeHQLj7MrvfONGgwyXSy92vwTeQ57aWq2iR2xyHeenLGI3To4DJpKzU1ydVBPJK4Q==}
+    engines: {node: ^18.20.2 || >=20.9.0}
     peerDependencies:
       payload: 3.88.0
 
@@ -10619,6 +10634,10 @@ snapshots:
       - prisma
       - sql.js
       - sqlite3
+
+  '@payloadcms/email-resend@3.88.0(payload@3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2))':
+    dependencies:
+      payload: 3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2)
 
   '@payloadcms/graphql@3.88.0(graphql@16.14.2)(payload@3.88.0(graphql@16.14.2)(supports-color@8.1.1)(typescript@7.0.2))(typescript@7.0.2)':
     dependencies:

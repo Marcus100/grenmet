@@ -1,7 +1,9 @@
-FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS builder
+FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN apk upgrade --no-cache && corepack enable pnpm
+
+FROM base AS builder
 WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY apps/api/honoapi/package.json apps/api/honoapi/
@@ -20,12 +22,13 @@ COPY packages/mdx/package.json packages/mdx/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
-RUN pnpm install --frozen-lockfile
+COPY apps/web/cms/package.json apps/web/cms/
+RUN HUSKY=0 pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm --filter @barrelsgd/api-hono build
 RUN pnpm --filter @barrelsgd/api-hono deploy --legacy --prod /runtime
 
-FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS runner
+FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0

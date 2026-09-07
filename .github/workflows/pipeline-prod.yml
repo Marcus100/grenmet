@@ -22,8 +22,22 @@ permissions:
   contents: read
 
 jobs:
+  ci-api:
+    uses: ./.github/workflows/ci-api.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write
+  ci-web:
+    uses: ./.github/workflows/ci-web.yml
+    secrets: inherit
+  api-client:
+    uses: ./.github/workflows/ci-api-client.yml
+    secrets: inherit
+
   build-api:
     name: Build API image
+    needs: [ci-api, ci-web, api-client]
     uses: ./.github/workflows/build-api-image.yml
     with:
       tag: ${{ github.event.release.tag_name }}
@@ -34,6 +48,7 @@ jobs:
 
   build-web:
     name: Build web images
+    needs: [ci-api, ci-web, api-client]
     uses: ./.github/workflows/build-web-images.yml
     with:
       tag: ${{ github.event.release.tag_name }}
@@ -43,6 +58,13 @@ jobs:
       packages: write
       security-events: write
 
+  build-weather:
+    needs: [ci-api, ci-web, api-client]
+    uses: ./.github/workflows/build-weather-images.yml
+    permissions:
+      contents: read
+      packages: write
+
   deploy:
     name: Deploy
     # Default needs semantics: runs only when BOTH builds succeeded — a release
@@ -51,8 +73,30 @@ jobs:
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
-      image_tag: ${{ github.event.release.tag_name }}
+      image_tag: sha-${{ github.sha }}
     secrets: inherit
     permissions:
       contents: read
       packages: read
+
+  deploy-weather:
+    needs: [build-weather, deploy]
+    if: ${{ vars.WEATHER_PRODUCTION_ENABLED == 'true' }}
+    uses: ./.github/workflows/deploy-weather.yml
+    with:
+      environment: production
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read
+
+  weather-configuration-status:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report integration state
+        env:
+          ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
+        run: |
+          if [[ "$ENABLED" != true ]]; then
+            echo "Weather integration UNCONFIGURED: provision and validate its dedicated host before enabling delivery." >> "$GITHUB_STEP_SUMMARY"
+          fi

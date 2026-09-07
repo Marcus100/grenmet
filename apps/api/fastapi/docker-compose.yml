@@ -145,6 +145,13 @@ services:
         condition: service_healthy
     env_file:
       - .env.local
+    # The worker has no HTTP server; override the API image's inherited probe.
+    healthcheck:
+      test: ["CMD", "uv", "run", "--frozen", "--package", "fast-back", "arq", "--check", "src.worker.main.WorkerSettings"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
     environment:
       - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}

@@ -164,6 +164,7 @@ export { updateUserMeApiV1AuthUsersMePatch } from "./clients/updateUserMeApiV1Au
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./clients/validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./clients/validateCsvApiV1HrRostersImportCsvValidatePost.js";
 export { validateGridApiV1HrRostersImportGridValidatePost } from "./clients/validateGridApiV1HrRostersImportGridValidatePost.js";
+export { weatherImageApiV1WxwatchImagesStoragePathGet } from "./clients/weatherImageApiV1WxwatchImagesStoragePathGet.js";
 export {
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey,
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationOptions,
@@ -979,6 +980,11 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostMutationKey,
   validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
 } from "./hooks/useValidateGridApiV1HrRostersImportGridValidatePost.js";
+export {
+  useWeatherImageApiV1WxwatchImagesStoragePathGet,
+  weatherImageApiV1WxwatchImagesStoragePathGetQueryKey,
+  weatherImageApiV1WxwatchImagesStoragePathGetQueryOptions,
+} from "./hooks/useWeatherImageApiV1WxwatchImagesStoragePathGet.js";
 export type { AbsenceReason } from "./models/AbsenceReason.js";
 export { absenceReason } from "./models/AbsenceReason.js";
 export type { AbsenteeReportCreate } from "./models/AbsenteeReportCreate.js";
@@ -2736,6 +2742,14 @@ export type {
   ValidateGridApiV1HrRostersImportGridValidatePostStatus422,
 } from "./models/ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./models/ValidationError.js";
+export type {
+  WeatherImageApiV1WxwatchImagesStoragePathGetOptions,
+  WeatherImageApiV1WxwatchImagesStoragePathGetPath,
+  WeatherImageApiV1WxwatchImagesStoragePathGetResponse,
+  WeatherImageApiV1WxwatchImagesStoragePathGetResponses,
+  WeatherImageApiV1WxwatchImagesStoragePathGetStatus307,
+  WeatherImageApiV1WxwatchImagesStoragePathGetStatus422,
+} from "./models/WeatherImageApiV1WxwatchImagesStoragePathGet.js";
 export type { WorkflowAction } from "./models/WorkflowAction.js";
 export { workflowAction } from "./models/WorkflowAction.js";
 export type { WorkflowActionRequest } from "./models/WorkflowActionRequest.js";
@@ -4318,6 +4332,13 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostStatus422Schema,
 } from "./zod/validateGridApiV1HrRostersImportGridValidatePostSchema.js";
 export { validationErrorSchema } from "./zod/validationErrorSchema.js";
+export {
+  weatherImageApiV1WxwatchImagesStoragePathGetErrorSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetPathStoragePathSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetResponseSchema,
+  weatherImageApiV1WxwatchImagesStoragePathGetStatus307Schema,
+  weatherImageApiV1WxwatchImagesStoragePathGetStatus422Schema,
+} from "./zod/weatherImageApiV1WxwatchImagesStoragePathGetSchema.js";
 export { workflowActionRequestSchema } from "./zod/workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./zod/workflowActionSchema.js";
 export { workflowInboxItemSchema } from "./zod/workflowInboxItemSchema.js";
