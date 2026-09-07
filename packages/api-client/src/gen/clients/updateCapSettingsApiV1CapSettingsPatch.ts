@@ -3,46 +3,37 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateCapSettingsApiV1CapSettingsPatch422,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationRequest,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
+  UpdateCapSettingsApiV1CapSettingsPatchOptions,
+  UpdateCapSettingsApiV1CapSettingsPatchResponses,
 } from "../models/UpdateCapSettingsApiV1CapSettingsPatch.js";
-
-function getUpdateCapSettingsApiV1CapSettingsPatchUrl() {
-  const res = { method: "PATCH", url: `/api/v1/cap/settings` as const };
-  return res;
-}
 
 /**
  * @summary Update Cap Settings
  * {@link /api/v1/cap/settings}
  */
-export async function updateCapSettingsApiV1CapSettingsPatch(
-  data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateCapSettingsApiV1CapSettingsPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateCapSettingsApiV1CapSettingsPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateCapSettingsApiV1CapSettingsPatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateCapSettingsApiV1CapSettingsPatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-    UpdateCapSettingsApiV1CapSettingsPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateCapSettingsApiV1CapSettingsPatchUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/cap/settings",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateCapSettingsApiV1CapSettingsPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

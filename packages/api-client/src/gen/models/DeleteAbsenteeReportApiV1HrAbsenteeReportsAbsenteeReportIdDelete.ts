@@ -5,55 +5,54 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams =
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     absentee_report_id: string;
   };
 
-/**
- * @description Absentee report deleted
- */
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204 =
-  any;
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204 =
+  unknown;
 
-/**
- * @description Absentee report is not a draft
- */
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400 =
-  any;
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to delete this absentee report
- */
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403 =
-  any;
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403 =
+  unknown;
 
-/**
- * @description Absentee report not found
- */
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404 =
-  any;
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422 =
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422 =
   HTTPValidationError;
 
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse =
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204;
-
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutation =
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions =
   {
-    Response: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204;
-    PathParams: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams;
-    Errors:
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422;
+    body?: never;
+    path: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePath;
+    query?: never;
+    headers?: never;
   };
+
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponses =
+  {
+    "204": DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204;
+    "400": DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400;
+    "403": DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403;
+    "404": DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404;
+    "422": DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponse =
+  | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204
+  | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+  | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+  | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+  | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422;

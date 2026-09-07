@@ -9,47 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateFeedApiV1CapFeedsFeedIdPatch } from "../clients/updateFeedApiV1CapFeedsFeedIdPatch.js";
 import type {
-  UpdateFeedApiV1CapFeedsFeedIdPatch422,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest,
-  UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-  UpdateFeedApiV1CapFeedsFeedIdPatchPathParams,
+  UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
+  UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+  UpdateFeedApiV1CapFeedsFeedIdPatchStatus422,
 } from "../models/UpdateFeedApiV1CapFeedsFeedIdPatch.js";
 
 export const updateFeedApiV1CapFeedsFeedIdPatchMutationKey = () =>
   [{ url: "/api/v1/cap/feeds/:feed_id" }] as const;
 
-export type UpdateFeedApiV1CapFeedsFeedIdPatchMutationKey = ReturnType<
-  typeof updateFeedApiV1CapFeedsFeedIdPatchMutationKey
->;
-
 export function updateFeedApiV1CapFeedsFeedIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateFeedApiV1CapFeedsFeedIdPatchMutationKey();
   return mutationOptions<
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-    {
-      feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"];
-      data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-    },
+    UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatchStatus422>,
+    UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ feed_id, data }) => {
-      return updateFeedApiV1CapFeedsFeedIdPatch(feed_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateFeedApiV1CapFeedsFeedIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +53,14 @@ export function updateFeedApiV1CapFeedsFeedIdPatchMutationOptions<
 export function useUpdateFeedApiV1CapFeedsFeedIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-      ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-      {
-        feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"];
-        data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-      },
+      UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+      ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatchStatus422>,
+      UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +72,16 @@ export function useUpdateFeedApiV1CapFeedsFeedIdPatch<TContext>(
   const baseOptions = updateFeedApiV1CapFeedsFeedIdPatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-    {
-      feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"];
-      data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-    },
+    UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatchStatus422>,
+    UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-    {
-      feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"];
-      data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-    },
+    UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatchStatus422>,
+    UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
     TContext
   >(
     {
@@ -108,12 +91,9 @@ export function useUpdateFeedApiV1CapFeedsFeedIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateFeedApiV1CapFeedsFeedIdPatchMutationResponse,
-    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatch422>,
-    {
-      feed_id: UpdateFeedApiV1CapFeedsFeedIdPatchPathParams["feed_id"];
-      data: UpdateFeedApiV1CapFeedsFeedIdPatchMutationRequest;
-    },
+    UpdateFeedApiV1CapFeedsFeedIdPatchStatus200,
+    ResponseErrorConfig<UpdateFeedApiV1CapFeedsFeedIdPatchStatus422>,
+    UpdateFeedApiV1CapFeedsFeedIdPatchOptions,
     TContext
   >;
 }

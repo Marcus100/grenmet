@@ -9,7 +9,9 @@ export interface ForecastDay {
   isToday: boolean;
   low: number;
   month: string;
-  slug: string; // YYYY-MM-DD, used as the [date] URL segment
+  /** `/forecasts/YYYY/MM/DD` — the dated forecast route for this day. */
+  path: string;
+  slug: string; // YYYY-MM-DD, the key used to look up the day's component
 }
 
 export function getForecastDays(): ForecastDay[] {
@@ -18,6 +20,7 @@ export function getForecastDays(): ForecastDay[] {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const forecast = DAY_FORECASTS[i];
+    const slug = d.toISOString().slice(0, 10);
     return {
       condition: forecast.condition,
       date: d.getDate(),
@@ -26,7 +29,8 @@ export function getForecastDays(): ForecastDay[] {
       isToday: i === 0,
       low: forecast.low,
       month: d.toLocaleString("en-US", { month: "short" }),
-      slug: d.toISOString().slice(0, 10),
+      path: `/forecasts/${slug.replace(/-/g, "/")}`,
+      slug,
     };
   });
 }
@@ -35,4 +39,23 @@ export function getUpcomingDaySlugs(): string[] {
   return getForecastDays()
     .slice(1)
     .map((d) => d.slug);
+}
+
+/** Splits a `YYYY-MM-DD` slug into the route's three segments. */
+export function slugToSegments(slug: string): {
+  day: string;
+  month: string;
+  year: string;
+} {
+  const [year, month, day] = slug.split("-");
+  return { year, month, day };
+}
+
+/** Rebuilds the `YYYY-MM-DD` slug from route segments. */
+export function segmentsToSlug(
+  year: string,
+  month: string,
+  day: string
+): string {
+  return `${year}-${month}-${day}`;
 }

@@ -5,16 +5,7 @@
 
 import type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 
-/**
- * PublicHolidaysPublic
- */
 export type PublicHolidaysPublic = {
-  /**
-   * @type array
-   */
   data: PublicHolidayPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

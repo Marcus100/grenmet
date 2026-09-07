@@ -3,36 +3,25 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadRssApiCapRssXmlGetQueryResponse } from "../models/ReadRssApiCapRssXmlGet.js";
-
-function getReadRssApiCapRssXmlGetUrl() {
-  const res = { method: "GET", url: `/api/cap/rss.xml` as const };
-  return res;
-}
+  ReadRssApiCapRssXmlGetOptions,
+  ReadRssApiCapRssXmlGetResponses,
+} from "../models/ReadRssApiCapRssXmlGet.js";
 
 /**
  * @summary Read Rss
  * {@link /api/cap/rss.xml}
  */
-export async function readRssApiCapRssXmlGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRssApiCapRssXmlGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadRssApiCapRssXmlGetOptions, ThrowOnError> = {}
+): Unwrappable<RequestResult<ReadRssApiCapRssXmlGetResponses, ThrowOnError>> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRssApiCapRssXmlGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRssApiCapRssXmlGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({ method: "GET", url: "/api/cap/rss.xml", ...config }) as Promise<
+      RequestResult<ReadRssApiCapRssXmlGetResponses, ThrowOnError>
+    >
+  );
 }

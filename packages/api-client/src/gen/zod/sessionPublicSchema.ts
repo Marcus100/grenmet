@@ -8,11 +8,11 @@ import * as z from "zod";
 export const sessionPublicSchema = z.object({
   expires_at: z.string(),
   client_type: z.string(),
-  app_name: z.optional(z.union([z.string(), z.null()])),
+  app_name: z.union([z.string(), z.null()]).optional(),
   last_used_at: z.string(),
-  revoked_at: z.optional(z.union([z.string(), z.null()])),
-  id: z.string().uuid(),
+  revoked_at: z.union([z.string(), z.null()]).optional(),
+  id: z.uuid(),
   created_at: z.string(),
   updated_at: z.string(),
-  user_id: z.string().uuid(),
+  user_id: z.uuid(),
 });

@@ -8,35 +8,28 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowTemplateCreateSchema } from "./workflowTemplateCreateSchema.js";
 import { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
 
-/**
- * @description Template created
- */
-export const createTemplateApiV1HrWorkflowsTemplatesPost200Schema = z.any();
+export const createTemplateApiV1HrWorkflowsTemplatesPostStatus200Schema =
+  z.unknown();
 
-/**
- * @description Successful Response
- */
-export const createTemplateApiV1HrWorkflowsTemplatesPost201Schema = z.lazy(
-  () => workflowTemplatePublicSchema
-);
+export const createTemplateApiV1HrWorkflowsTemplatesPostStatus201Schema =
+  workflowTemplatePublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const createTemplateApiV1HrWorkflowsTemplatesPost403Schema = z.any();
+export const createTemplateApiV1HrWorkflowsTemplatesPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createTemplateApiV1HrWorkflowsTemplatesPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createTemplateApiV1HrWorkflowsTemplatesPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createTemplateApiV1HrWorkflowsTemplatesPostMutationRequestSchema =
-  z.lazy(() => workflowTemplateCreateSchema);
-
-export const createTemplateApiV1HrWorkflowsTemplatesPostMutationResponseSchema =
+export const createTemplateApiV1HrWorkflowsTemplatesPostResponseSchema =
   z.union([
-    z.lazy(() => createTemplateApiV1HrWorkflowsTemplatesPost200Schema),
-    z.lazy(() => createTemplateApiV1HrWorkflowsTemplatesPost201Schema),
+    createTemplateApiV1HrWorkflowsTemplatesPostStatus200Schema,
+    createTemplateApiV1HrWorkflowsTemplatesPostStatus201Schema,
   ]);
+
+export const createTemplateApiV1HrWorkflowsTemplatesPostErrorSchema = z.union([
+  createTemplateApiV1HrWorkflowsTemplatesPostStatus403Schema,
+  createTemplateApiV1HrWorkflowsTemplatesPostStatus422Schema,
+]);
+
+export const createTemplateApiV1HrWorkflowsTemplatesPostBodySchema =
+  workflowTemplateCreateSchema;

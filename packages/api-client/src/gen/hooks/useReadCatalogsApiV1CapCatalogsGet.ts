@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readCatalogsApiV1CapCatalogsGet } from "../clients/readCatalogsApiV1CapCatalogsGet.js";
-import type { ReadCatalogsApiV1CapCatalogsGetQueryResponse } from "../models/ReadCatalogsApiV1CapCatalogsGet.js";
+import type { ReadCatalogsApiV1CapCatalogsGetStatus200 } from "../models/ReadCatalogsApiV1CapCatalogsGet.js";
 
 export const readCatalogsApiV1CapCatalogsGetQueryKey = () =>
   [{ url: "/api/v1/cap/catalogs" }] as const;
 
-export type ReadCatalogsApiV1CapCatalogsGetQueryKey = ReturnType<
+type ReadCatalogsApiV1CapCatalogsGetQueryKey = ReturnType<
   typeof readCatalogsApiV1CapCatalogsGetQueryKey
 >;
 
 export function readCatalogsApiV1CapCatalogsGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readCatalogsApiV1CapCatalogsGetQueryKey();
   return queryOptions<
-    ReadCatalogsApiV1CapCatalogsGetQueryResponse,
+    ReadCatalogsApiV1CapCatalogsGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadCatalogsApiV1CapCatalogsGetQueryResponse,
+    ReadCatalogsApiV1CapCatalogsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readCatalogsApiV1CapCatalogsGet(config);
+      return readCatalogsApiV1CapCatalogsGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function readCatalogsApiV1CapCatalogsGetQueryOptions(
  * {@link /api/v1/cap/catalogs}
  */
 export function useReadCatalogsApiV1CapCatalogsGet<
-  TData = ReadCatalogsApiV1CapCatalogsGetQueryResponse,
-  TQueryData = ReadCatalogsApiV1CapCatalogsGetQueryResponse,
+  TData = ReadCatalogsApiV1CapCatalogsGetStatus200,
+  TQueryData = ReadCatalogsApiV1CapCatalogsGetStatus200,
   TQueryKey extends QueryKey = ReadCatalogsApiV1CapCatalogsGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadCatalogsApiV1CapCatalogsGetQueryResponse,
+        ReadCatalogsApiV1CapCatalogsGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readCatalogsApiV1CapCatalogsGetQueryKey();
+    resolvedOptions?.queryKey ?? readCatalogsApiV1CapCatalogsGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readCatalogsApiV1CapCatalogsGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -6,30 +6,34 @@
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadAlertApiV1CapAlertsAlertIdGetPathParams = {
+export type ReadAlertApiV1CapAlertsAlertIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type ReadAlertApiV1CapAlertsAlertIdGet200 = CapAlertPublic;
+export type ReadAlertApiV1CapAlertsAlertIdGetStatus200 = CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadAlertApiV1CapAlertsAlertIdGet422 = HTTPValidationError;
+export type ReadAlertApiV1CapAlertsAlertIdGetStatus422 = HTTPValidationError;
 
-export type ReadAlertApiV1CapAlertsAlertIdGetQueryResponse =
-  ReadAlertApiV1CapAlertsAlertIdGet200;
-
-export type ReadAlertApiV1CapAlertsAlertIdGetQuery = {
-  Response: ReadAlertApiV1CapAlertsAlertIdGet200;
-  PathParams: ReadAlertApiV1CapAlertsAlertIdGetPathParams;
-  Errors: ReadAlertApiV1CapAlertsAlertIdGet422;
+export type ReadAlertApiV1CapAlertsAlertIdGetOptions = {
+  body?: never;
+  path: ReadAlertApiV1CapAlertsAlertIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadAlertApiV1CapAlertsAlertIdGetResponses = {
+  "200": ReadAlertApiV1CapAlertsAlertIdGetStatus200;
+  "422": ReadAlertApiV1CapAlertsAlertIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAlertApiV1CapAlertsAlertIdGetResponse =
+  | ReadAlertApiV1CapAlertsAlertIdGetStatus200
+  | ReadAlertApiV1CapAlertsAlertIdGetStatus422;

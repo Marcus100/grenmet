@@ -7,40 +7,37 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
 import type { SecurityProof } from "./SecurityProof.js";
 
-/**
- * RecoveryCodesPublic
- * @description Successful Response
- */
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200 =
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200 =
   RecoveryCodesPublic;
 
-/**
- * @description Confirmation failed
- */
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400 =
-  any;
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422 =
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422 =
   HTTPValidationError;
 
-/**
- * SecurityProof
- */
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest =
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostBody =
   SecurityProof;
 
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse =
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200;
-
-export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutation =
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions =
   {
-    Response: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost200;
-    Request: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest;
-    Errors:
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422;
+    body: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostBody;
+    path?: never;
+    query?: never;
+    headers?: never;
   };
+
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponses =
+  {
+    "200": ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200;
+    "400": ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400;
+    "422": ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponse =
+  | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200
+  | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400
+  | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422;

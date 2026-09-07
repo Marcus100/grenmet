@@ -9,41 +9,36 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createFeedApiV1CapFeedsPost } from "../clients/createFeedApiV1CapFeedsPost.js";
 import type {
-  CreateFeedApiV1CapFeedsPost422,
-  CreateFeedApiV1CapFeedsPostMutationRequest,
-  CreateFeedApiV1CapFeedsPostMutationResponse,
+  CreateFeedApiV1CapFeedsPostOptions,
+  CreateFeedApiV1CapFeedsPostStatus201,
+  CreateFeedApiV1CapFeedsPostStatus422,
 } from "../models/CreateFeedApiV1CapFeedsPost.js";
 
 export const createFeedApiV1CapFeedsPostMutationKey = () =>
   [{ url: "/api/v1/cap/feeds" }] as const;
 
-export type CreateFeedApiV1CapFeedsPostMutationKey = ReturnType<
-  typeof createFeedApiV1CapFeedsPostMutationKey
->;
-
 export function createFeedApiV1CapFeedsPostMutationOptions<TContext = unknown>(
-  config: Partial<RequestConfig<CreateFeedApiV1CapFeedsPostMutationRequest>> & {
-    client?: Client;
-  } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createFeedApiV1CapFeedsPostMutationKey();
   return mutationOptions<
-    CreateFeedApiV1CapFeedsPostMutationResponse,
-    ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-    { data: CreateFeedApiV1CapFeedsPostMutationRequest },
+    CreateFeedApiV1CapFeedsPostStatus201,
+    ResponseErrorConfig<CreateFeedApiV1CapFeedsPostStatus422>,
+    CreateFeedApiV1CapFeedsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createFeedApiV1CapFeedsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createFeedApiV1CapFeedsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -55,14 +50,14 @@ export function createFeedApiV1CapFeedsPostMutationOptions<TContext = unknown>(
 export function useCreateFeedApiV1CapFeedsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateFeedApiV1CapFeedsPostMutationResponse,
-      ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-      { data: CreateFeedApiV1CapFeedsPostMutationRequest },
+      CreateFeedApiV1CapFeedsPostStatus201,
+      ResponseErrorConfig<CreateFeedApiV1CapFeedsPostStatus422>,
+      CreateFeedApiV1CapFeedsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateFeedApiV1CapFeedsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -73,16 +68,16 @@ export function useCreateFeedApiV1CapFeedsPost<TContext>(
   const baseOptions = createFeedApiV1CapFeedsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateFeedApiV1CapFeedsPostMutationResponse,
-    ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-    { data: CreateFeedApiV1CapFeedsPostMutationRequest },
+    CreateFeedApiV1CapFeedsPostStatus201,
+    ResponseErrorConfig<CreateFeedApiV1CapFeedsPostStatus422>,
+    CreateFeedApiV1CapFeedsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateFeedApiV1CapFeedsPostMutationResponse,
-    ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-    { data: CreateFeedApiV1CapFeedsPostMutationRequest },
+    CreateFeedApiV1CapFeedsPostStatus201,
+    ResponseErrorConfig<CreateFeedApiV1CapFeedsPostStatus422>,
+    CreateFeedApiV1CapFeedsPostOptions,
     TContext
   >(
     {
@@ -92,9 +87,9 @@ export function useCreateFeedApiV1CapFeedsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateFeedApiV1CapFeedsPostMutationResponse,
-    ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-    { data: CreateFeedApiV1CapFeedsPostMutationRequest },
+    CreateFeedApiV1CapFeedsPostStatus201,
+    ResponseErrorConfig<CreateFeedApiV1CapFeedsPostStatus422>,
+    CreateFeedApiV1CapFeedsPostOptions,
     TContext
   >;
 }

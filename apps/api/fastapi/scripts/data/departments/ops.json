@@ -1,0 +1,30 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "OPS",
+    "name": "Operations Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 3 (Director of Operations). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "DIRECTOR",
+      "label": "Director of Operations",
+      "rank": 1,
+      "establishment_band": "Executive Management",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ADMIN_ASSISTANT",
+      "label": "Admin Assistant – Operations",
+      "rank": 2,
+      "establishment_band": "Crafted & Related Trade",
+      "_deck_posts": 1
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

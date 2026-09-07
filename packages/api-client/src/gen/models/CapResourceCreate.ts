@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapResourceCreate
- */
 export type CapResourceCreate = {
   /**
    * @minLength 1

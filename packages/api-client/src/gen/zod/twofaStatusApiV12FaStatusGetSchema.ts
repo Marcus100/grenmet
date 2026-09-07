@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const twofaStatusApiV12FaStatusGet200Schema = z.lazy(
-  () => twoFactorStatusPublicSchema
-);
+export const twofaStatusApiV12FaStatusGetStatus200Schema =
+  twoFactorStatusPublicSchema;
 
-export const twofaStatusApiV12FaStatusGetQueryResponseSchema = z.lazy(
-  () => twofaStatusApiV12FaStatusGet200Schema
-);
+export const twofaStatusApiV12FaStatusGetResponseSchema =
+  twofaStatusApiV12FaStatusGetStatus200Schema;

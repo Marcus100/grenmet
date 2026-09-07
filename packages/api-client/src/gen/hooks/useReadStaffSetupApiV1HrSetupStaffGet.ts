@@ -10,47 +10,45 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readStaffSetupApiV1HrSetupStaffGet } from "../clients/readStaffSetupApiV1HrSetupStaffGet.js";
 import type {
-  ReadStaffSetupApiV1HrSetupStaffGet403,
-  ReadStaffSetupApiV1HrSetupStaffGet404,
-  ReadStaffSetupApiV1HrSetupStaffGet409,
-  ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus200,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus403,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus404,
+  ReadStaffSetupApiV1HrSetupStaffGetStatus409,
 } from "../models/ReadStaffSetupApiV1HrSetupStaffGet.js";
 
 export const readStaffSetupApiV1HrSetupStaffGetQueryKey = () =>
   [{ url: "/api/v1/hr/setup/staff" }] as const;
 
-export type ReadStaffSetupApiV1HrSetupStaffGetQueryKey = ReturnType<
+type ReadStaffSetupApiV1HrSetupStaffGetQueryKey = ReturnType<
   typeof readStaffSetupApiV1HrSetupStaffGetQueryKey
 >;
 
 export function readStaffSetupApiV1HrSetupStaffGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readStaffSetupApiV1HrSetupStaffGetQueryKey();
   return queryOptions<
-    ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+    ReadStaffSetupApiV1HrSetupStaffGetStatus200,
     ResponseErrorConfig<
-      | ReadStaffSetupApiV1HrSetupStaffGet403
-      | ReadStaffSetupApiV1HrSetupStaffGet404
-      | ReadStaffSetupApiV1HrSetupStaffGet409
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus403
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus404
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus409
     >,
-    ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+    ReadStaffSetupApiV1HrSetupStaffGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readStaffSetupApiV1HrSetupStaffGet(config);
+      return readStaffSetupApiV1HrSetupStaffGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,49 +59,51 @@ export function readStaffSetupApiV1HrSetupStaffGetQueryOptions(
  * {@link /api/v1/hr/setup/staff}
  */
 export function useReadStaffSetupApiV1HrSetupStaffGet<
-  TData = ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
-  TQueryData = ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+  TData = ReadStaffSetupApiV1HrSetupStaffGetStatus200,
+  TQueryData = ReadStaffSetupApiV1HrSetupStaffGetStatus200,
   TQueryKey extends QueryKey = ReadStaffSetupApiV1HrSetupStaffGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+        ReadStaffSetupApiV1HrSetupStaffGetStatus200,
         ResponseErrorConfig<
-          | ReadStaffSetupApiV1HrSetupStaffGet403
-          | ReadStaffSetupApiV1HrSetupStaffGet404
-          | ReadStaffSetupApiV1HrSetupStaffGet409
+          | ReadStaffSetupApiV1HrSetupStaffGetStatus403
+          | ReadStaffSetupApiV1HrSetupStaffGetStatus404
+          | ReadStaffSetupApiV1HrSetupStaffGetStatus409
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readStaffSetupApiV1HrSetupStaffGetQueryKey();
+    resolvedOptions?.queryKey ?? readStaffSetupApiV1HrSetupStaffGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readStaffSetupApiV1HrSetupStaffGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadStaffSetupApiV1HrSetupStaffGet403
-      | ReadStaffSetupApiV1HrSetupStaffGet404
-      | ReadStaffSetupApiV1HrSetupStaffGet409
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus403
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus404
+      | ReadStaffSetupApiV1HrSetupStaffGetStatus409
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

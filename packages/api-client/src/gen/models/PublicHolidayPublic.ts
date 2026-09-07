@@ -3,36 +3,27 @@
  * Do not edit manually.
  */
 
-/**
- * PublicHolidayPublic
- */
 export type PublicHolidayPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   name: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   holiday_date: string;
-  /**
-   * @type boolean
-   */
   is_recurring: boolean;
-  /**
-   * @type string
-   */
   country_code: string;
   /**
-   * @type string, uuid
-   */
-  created_by_user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  created_by_user_id: string;
   created_at: string;
 };

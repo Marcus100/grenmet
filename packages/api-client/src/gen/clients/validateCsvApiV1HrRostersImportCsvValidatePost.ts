@@ -3,56 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ValidateCsvApiV1HrRostersImportCsvValidatePost400,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost403,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost422,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostResponses,
 } from "../models/ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
-
-function getValidateCsvApiV1HrRostersImportCsvValidatePostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/rosters/import-csv/validate` as const,
-  };
-  return res;
-}
 
 /**
  * @description Validate CSV content for roster import. Requires roster.import permission.
  * @summary Validate roster CSV
  * {@link /api/v1/hr/rosters/import-csv/validate}
  */
-export async function validateCsvApiV1HrRostersImportCsvValidatePost(
-  data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
-  config: Partial<
-    RequestConfig<ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function validateCsvApiV1HrRostersImportCsvValidatePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ValidateCsvApiV1HrRostersImportCsvValidatePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
-    ResponseErrorConfig<
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost422
-    >,
-    ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest
-  >({
-    method: "POST",
-    url: getValidateCsvApiV1HrRostersImportCsvValidatePostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/import-csv/validate",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ValidateCsvApiV1HrRostersImportCsvValidatePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

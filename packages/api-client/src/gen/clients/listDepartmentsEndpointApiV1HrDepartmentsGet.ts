@@ -3,40 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListDepartmentsEndpointApiV1HrDepartmentsGet403,
-  ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetOptions,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetResponses,
 } from "../models/ListDepartmentsEndpointApiV1HrDepartmentsGet.js";
-
-function getListDepartmentsEndpointApiV1HrDepartmentsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/departments` as const };
-  return res;
-}
 
 /**
  * @description Return all departments, ordered by name. Requires roster.view permission.
  * @summary List departments
  * {@link /api/v1/hr/departments}
  */
-export async function listDepartmentsEndpointApiV1HrDepartmentsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listDepartmentsEndpointApiV1HrDepartmentsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListDepartmentsEndpointApiV1HrDepartmentsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ListDepartmentsEndpointApiV1HrDepartmentsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse,
-    ResponseErrorConfig<ListDepartmentsEndpointApiV1HrDepartmentsGet403>,
-    unknown
-  >({
-    method: "GET",
-    url: getListDepartmentsEndpointApiV1HrDepartmentsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/departments",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListDepartmentsEndpointApiV1HrDepartmentsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

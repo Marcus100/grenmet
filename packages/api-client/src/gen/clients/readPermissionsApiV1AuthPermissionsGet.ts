@@ -3,43 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadPermissionsApiV1AuthPermissionsGet422,
-  ReadPermissionsApiV1AuthPermissionsGetQueryParams,
-  ReadPermissionsApiV1AuthPermissionsGetQueryResponse,
+  ReadPermissionsApiV1AuthPermissionsGetOptions,
+  ReadPermissionsApiV1AuthPermissionsGetResponses,
 } from "../models/ReadPermissionsApiV1AuthPermissionsGet.js";
-
-function getReadPermissionsApiV1AuthPermissionsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/permissions` as const };
-  return res;
-}
 
 /**
  * @description Return permissions (superuser only).
  * @summary List permissions
  * {@link /api/v1/auth/permissions}
  */
-export async function readPermissionsApiV1AuthPermissionsGet(
-  params?: ReadPermissionsApiV1AuthPermissionsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPermissionsApiV1AuthPermissionsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadPermissionsApiV1AuthPermissionsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadPermissionsApiV1AuthPermissionsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPermissionsApiV1AuthPermissionsGetQueryResponse,
-    ResponseErrorConfig<ReadPermissionsApiV1AuthPermissionsGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPermissionsApiV1AuthPermissionsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/permissions",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadPermissionsApiV1AuthPermissionsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

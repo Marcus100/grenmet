@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapReferenceCreate
- */
 export type CapReferenceCreate = {
   /**
    * @minLength 1
@@ -20,7 +17,9 @@ export type CapReferenceCreate = {
    */
   identifier: string;
   /**
-   * @type string, date-time
+   * @description
+   * Format: `date-time`
+   * @type string
    */
   sent: string;
 };

@@ -8,45 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 import { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
 
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParamsSchema =
-  z.object({
-    report_id: z.string().uuid(),
-  });
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathReportIdSchema =
+  z.uuid();
 
-/**
- * @description Status report submitted
- */
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPost200Schema =
-  z.lazy(() => statusReportPublicSchema);
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200Schema =
+  statusReportPublicSchema;
 
-/**
- * @description Status report is not a draft
- */
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPost400Schema =
-  z.any();
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to submit this status report
- */
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPost403Schema =
-  z.any();
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Status report not found
- */
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPost404Schema =
-  z.any();
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequestSchema =
-  z.lazy(() => statusReportSubmitSchema);
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponseSchema =
+  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200Schema;
 
-export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponseSchema =
-  z.lazy(
-    () => submitStatusReportApiV1HrStatusReportsReportIdSubmitPost200Schema
-  );
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostErrorSchema =
+  z.union([
+    submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400Schema,
+    submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403Schema,
+    submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404Schema,
+    submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422Schema,
+  ]);
+
+export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostBodySchema =
+  statusReportSubmitSchema;

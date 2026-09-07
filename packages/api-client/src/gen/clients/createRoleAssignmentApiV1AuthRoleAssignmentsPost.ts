@@ -3,47 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponses,
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
-
-function getCreateRoleAssignmentApiV1AuthRoleAssignmentsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/role-assignments` as const };
-  return res;
-}
 
 /**
  * @description Create a user-role assignment (superuser only).
  * @summary Create role assignment
  * {@link /api/v1/auth/role-assignments}
  */
-export async function createRoleAssignmentApiV1AuthRoleAssignmentsPost(
-  data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createRoleAssignmentApiV1AuthRoleAssignmentsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateRoleAssignmentApiV1AuthRoleAssignmentsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/role-assignments",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateRoleAssignmentApiV1AuthRoleAssignmentsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

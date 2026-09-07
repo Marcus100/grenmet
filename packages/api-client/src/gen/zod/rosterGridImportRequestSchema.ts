@@ -7,9 +7,9 @@ import * as z from "zod";
 
 export const rosterGridImportRequestSchema = z.object({
   department_id: z.string(),
-  period_start: z.string().date(),
-  period_end: z.string().date(),
+  period_start: z.iso.date(),
+  period_end: z.iso.date(),
   csv_text: z.string(),
-  file_name: z.optional(z.string().default("roster.csv")),
-  publish: z.optional(z.boolean().default(false)),
+  file_name: z.string().optional().default("roster.csv"),
+  publish: z.boolean().optional().default(false),
 });

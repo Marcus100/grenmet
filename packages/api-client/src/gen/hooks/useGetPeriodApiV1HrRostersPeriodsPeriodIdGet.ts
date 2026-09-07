@@ -10,57 +10,50 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "../clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 import type {
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet403,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet404,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet422,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams,
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404,
+  GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422,
 } from "../models/GetPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 
-export const getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey = (
-  period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"]
-) =>
-  [
-    {
-      url: "/api/v1/hr/rosters/periods/:period_id",
-      params: { period_id: period_id },
-    },
-  ] as const;
+export const getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey = ({
+  path,
+}: Omit<GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/hr/rosters/periods/:period_id", params: path }] as const;
 
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey = ReturnType<
+type GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey = ReturnType<
   typeof getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey
 >;
 
 export function getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryOptions(
-  period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(period_id);
+  const queryKey = getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({ path });
   return queryOptions<
-    GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+    GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
     ResponseErrorConfig<
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet403
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet404
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet422
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422
     >,
-    GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+    GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!period_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return getPeriodApiV1HrRostersPeriodsPeriodIdGet(period_id, config);
+      return getPeriodApiV1HrRostersPeriodsPeriodIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,55 +64,64 @@ export function getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryOptions(
  * {@link /api/v1/hr/rosters/periods/:period_id}
  */
 export function useGetPeriodApiV1HrRostersPeriodsPeriodIdGet<
-  TData = GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
-  TQueryData = GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+  TData = GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
+  TQueryData = GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
   TQueryKey extends
     QueryKey = GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
 >(
-  period_id: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams["period_id"],
+  {
+    path,
+  }: {
+    path:
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions["path"]
+      | (() => GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse,
+        GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200,
         ResponseErrorConfig<
-          | GetPeriodApiV1HrRostersPeriodsPeriodIdGet403
-          | GetPeriodApiV1HrRostersPeriodsPeriodIdGet404
-          | GetPeriodApiV1HrRostersPeriodsPeriodIdGet422
+          | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403
+          | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404
+          | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(period_id);
+    resolvedOptions?.queryKey ??
+    getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryOptions(
-        period_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet403
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet404
-      | GetPeriodApiV1HrRostersPeriodsPeriodIdGet422
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404
+      | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

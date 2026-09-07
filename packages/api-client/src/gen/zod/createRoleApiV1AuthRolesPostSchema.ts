@@ -3,29 +3,20 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { roleCreateSchema } from "./roleCreateSchema.js";
 import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 
-/**
- * @description Role created
- */
-export const createRoleApiV1AuthRolesPost201Schema = z.lazy(
-  () => srcAuthSchemasRolePublicSchema
-);
+export const createRoleApiV1AuthRolesPostStatus201Schema =
+  srcAuthSchemasRolePublicSchema;
 
-/**
- * @description Validation Error
- */
-export const createRoleApiV1AuthRolesPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createRoleApiV1AuthRolesPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createRoleApiV1AuthRolesPostMutationRequestSchema = z.lazy(
-  () => roleCreateSchema
-);
+export const createRoleApiV1AuthRolesPostResponseSchema =
+  createRoleApiV1AuthRolesPostStatus201Schema;
 
-export const createRoleApiV1AuthRolesPostMutationResponseSchema = z.lazy(
-  () => createRoleApiV1AuthRolesPost201Schema
-);
+export const createRoleApiV1AuthRolesPostErrorSchema =
+  createRoleApiV1AuthRolesPostStatus422Schema;
+
+export const createRoleApiV1AuthRolesPostBodySchema = roleCreateSchema;

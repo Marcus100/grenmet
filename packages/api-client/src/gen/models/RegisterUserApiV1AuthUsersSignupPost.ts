@@ -7,35 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { UserRegister } from "./UserRegister.js";
 
-/**
- * UserPublic
- * @description User registered successfully
- */
-export type RegisterUserApiV1AuthUsersSignupPost201 = UserPublic;
+export type RegisterUserApiV1AuthUsersSignupPostStatus201 = UserPublic;
 
-/**
- * @description User with this email already exists
- */
-export type RegisterUserApiV1AuthUsersSignupPost400 = any;
+export type RegisterUserApiV1AuthUsersSignupPostStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RegisterUserApiV1AuthUsersSignupPost422 = HTTPValidationError;
+export type RegisterUserApiV1AuthUsersSignupPostStatus422 = HTTPValidationError;
 
-/**
- * UserRegister
- */
-export type RegisterUserApiV1AuthUsersSignupPostMutationRequest = UserRegister;
+export type RegisterUserApiV1AuthUsersSignupPostBody = UserRegister;
 
-export type RegisterUserApiV1AuthUsersSignupPostMutationResponse =
-  RegisterUserApiV1AuthUsersSignupPost201;
-
-export type RegisterUserApiV1AuthUsersSignupPostMutation = {
-  Response: RegisterUserApiV1AuthUsersSignupPost201;
-  Request: RegisterUserApiV1AuthUsersSignupPostMutationRequest;
-  Errors:
-    | RegisterUserApiV1AuthUsersSignupPost400
-    | RegisterUserApiV1AuthUsersSignupPost422;
+export type RegisterUserApiV1AuthUsersSignupPostOptions = {
+  body: RegisterUserApiV1AuthUsersSignupPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type RegisterUserApiV1AuthUsersSignupPostResponses = {
+  "201": RegisterUserApiV1AuthUsersSignupPostStatus201;
+  "400": RegisterUserApiV1AuthUsersSignupPostStatus400;
+  "422": RegisterUserApiV1AuthUsersSignupPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type RegisterUserApiV1AuthUsersSignupPostResponse =
+  | RegisterUserApiV1AuthUsersSignupPostStatus201
+  | RegisterUserApiV1AuthUsersSignupPostStatus400
+  | RegisterUserApiV1AuthUsersSignupPostStatus422;

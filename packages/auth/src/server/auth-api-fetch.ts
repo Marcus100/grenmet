@@ -192,11 +192,11 @@ export async function authApiFormFetch<T>(
   return (await response.json()) as T;
 }
 
-export async function authApiFetch<T>(
+export async function authApiFetchResponse(
   config: AuthConfig,
   path: string,
   init: Omit<RequestInit, "body" | "headers"> & { body?: unknown } = {}
-): Promise<T> {
+): Promise<Response> {
   const requestHeaders = await getForwardHeaders();
   const hasBody = init.body !== undefined;
   const response = await fetchAuthApi(
@@ -215,5 +215,14 @@ export async function authApiFetch<T>(
     throw new AuthApiError(response.status, detail);
   }
 
+  return response;
+}
+
+export async function authApiFetch<T>(
+  config: AuthConfig,
+  path: string,
+  init: Omit<RequestInit, "body" | "headers"> & { body?: unknown } = {}
+): Promise<T> {
+  const response = await authApiFetchResponse(config, path, init);
   return (await response.json()) as T;
 }

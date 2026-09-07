@@ -32,7 +32,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "remark-gfm": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "simple-icons": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

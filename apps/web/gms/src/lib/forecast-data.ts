@@ -72,3 +72,64 @@ export const TODAY_CONDITIONS: Condition[] = [
   { label: "Sunset Today", value: "06:30 pm" },
   { label: "Sunrise Tomorrow", value: "05:50 am" },
 ];
+
+/**
+ * Conditions for each tab in the 5-day strip, index 0 = today.
+ *
+ * Keyed by position, not by date. The strip rolls forward every day, so a
+ * date-keyed map can only match during the few days it was written for — the
+ * previous map was pinned to May 2026 and every tab but today fell through to
+ * notFound(). Real per-date content will arrive keyed by date from the forecast
+ * API; until then position is the only mapping that stays correct.
+ */
+export const DAY_CONDITIONS: Condition[][] = [
+  TODAY_CONDITIONS,
+  [
+    { label: "Sunrise", value: "5:42 a.m." },
+    { label: "Sunset", value: "6:25 p.m." },
+    { label: "Max Temp", value: "31.0\u00b0C" },
+    { label: "Min Temp", value: "26.0\u00b0C" },
+    { label: "Wind Speed", value: "15\u201325 mph" },
+    { label: "Wind Direction", value: "E to SE" },
+    { label: "Sea State", value: "Moderate to slightly rough" },
+    { label: "Wave Height", value: "6\u20138 ft" },
+    { label: "Low Tide", value: "10:30 a.m." },
+    { label: "High Tide", value: "4:45 p.m." },
+  ],
+  [
+    { label: "Sunrise", value: "5:42 a.m." },
+    { label: "Sunset", value: "6:25 p.m." },
+    { label: "Max Temp", value: "30.0\u00b0C" },
+    { label: "Min Temp", value: "25.0\u00b0C" },
+    { label: "Wind Speed", value: "10\u201320 mph" },
+    { label: "Wind Direction", value: "NE to E" },
+    { label: "Sea State", value: "Moderate" },
+    { label: "Wave Height", value: "5\u20137 ft" },
+    { label: "Low Tide", value: "11:15 a.m." },
+    { label: "High Tide", value: "5:30 p.m." },
+  ],
+  [
+    { label: "Sunrise", value: "5:43 a.m." },
+    { label: "Sunset", value: "6:24 p.m." },
+    { label: "Max Temp", value: "29.0\u00b0C" },
+    { label: "Min Temp", value: "24.0\u00b0C" },
+    { label: "Wind Speed", value: "10\u201318 mph" },
+    { label: "Wind Direction", value: "E" },
+    { label: "Sea State", value: "Moderate to rough" },
+    { label: "Wave Height", value: "6\u20139 ft" },
+    { label: "Low Tide", value: "12:05 p.m." },
+    { label: "High Tide", value: "6:10 p.m." },
+  ],
+  [
+    { label: "Sunrise", value: "5:43 a.m." },
+    { label: "Sunset", value: "6:23 p.m." },
+    { label: "Max Temp", value: "31.0\u00b0C" },
+    { label: "Min Temp", value: "25.0\u00b0C" },
+    { label: "Wind Speed", value: "12\u201320 mph" },
+    { label: "Wind Direction", value: "NE" },
+    { label: "Sea State", value: "Slight to moderate" },
+    { label: "Wave Height", value: "4\u20136 ft" },
+    { label: "Low Tide", value: "12:50 p.m." },
+    { label: "High Tide", value: "6:55 p.m." },
+  ],
+];

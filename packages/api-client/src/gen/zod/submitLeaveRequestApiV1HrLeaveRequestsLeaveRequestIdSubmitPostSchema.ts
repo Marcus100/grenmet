@@ -8,46 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 import { leaveRequestSubmitSchema } from "./leaveRequestSubmitSchema.js";
 
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParamsSchema =
-  z.object({
-    leave_request_id: z.string().uuid(),
-  });
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathLeaveRequestIdSchema =
+  z.uuid();
 
-/**
- * @description Leave request submitted
- */
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200Schema =
-  z.lazy(() => leaveRequestPublicSchema);
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200Schema =
+  leaveRequestPublicSchema;
 
-/**
- * @description Leave request is not a draft
- */
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400Schema =
-  z.any();
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to submit this leave request
- */
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403Schema =
-  z.any();
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Leave request not found
- */
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404Schema =
-  z.any();
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequestSchema =
-  z.lazy(() => leaveRequestSubmitSchema);
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponseSchema =
+  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200Schema;
 
-export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponseSchema =
-  z.lazy(
-    () =>
-      submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200Schema
-  );
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostErrorSchema =
+  z.union([
+    submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400Schema,
+    submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403Schema,
+    submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404Schema,
+    submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422Schema,
+  ]);
+
+export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostBodySchema =
+  leaveRequestSubmitSchema;

@@ -8,52 +8,36 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowStepTemplateCreateSchema } from "./workflowStepTemplateCreateSchema.js";
 import { workflowStepTemplatePublicSchema } from "./workflowStepTemplatePublicSchema.js";
 
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParamsSchema =
-  z.object({
-    template_id: z.string().uuid(),
-  });
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathTemplateIdSchema =
+  z.uuid();
 
-/**
- * @description Step created
- */
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200Schema =
-  z.any();
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200Schema =
+  z.unknown();
 
-/**
- * @description Successful Response
- */
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201Schema =
-  z.lazy(() => workflowStepTemplatePublicSchema);
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201Schema =
+  workflowStepTemplatePublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403Schema =
-  z.any();
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Workflow template not found
- */
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404Schema =
-  z.any();
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequestSchema =
-  z.lazy(() => workflowStepTemplateCreateSchema);
-
-export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponseSchema =
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponseSchema =
   z.union([
-    z.lazy(
-      () =>
-        createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200Schema
-    ),
-    z.lazy(
-      () =>
-        createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201Schema
-    ),
+    createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200Schema,
+    createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201Schema,
   ]);
+
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostErrorSchema =
+  z.union([
+    createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403Schema,
+    createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404Schema,
+    createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422Schema,
+  ]);
+
+export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostBodySchema =
+  workflowStepTemplateCreateSchema;

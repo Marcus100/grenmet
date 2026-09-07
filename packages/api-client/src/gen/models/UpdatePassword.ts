@@ -3,13 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * UpdatePassword
- */
 export type UpdatePassword = {
-  /**
-   * @type string
-   */
   current_password: string;
   /**
    * @minLength 12

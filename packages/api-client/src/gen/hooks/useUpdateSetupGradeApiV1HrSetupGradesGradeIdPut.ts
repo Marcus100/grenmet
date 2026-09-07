@@ -9,58 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateSetupGradeApiV1HrSetupGradesGradeIdPut } from "../clients/updateSetupGradeApiV1HrSetupGradesGradeIdPut.js";
 import type {
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422,
 } from "../models/UpdateSetupGradeApiV1HrSetupGradesGradeIdPut.js";
 
 export const updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationKey = () =>
   [{ url: "/api/v1/hr/setup/grades/:grade_id" }] as const;
 
-export type UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationKey =
-  ReturnType<typeof updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationKey>;
-
 export function updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationKey();
   return mutationOptions<
-    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422
     >,
-    {
-      grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"];
-      data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-    },
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ grade_id, data }) => {
-      return updateSetupGradeApiV1HrSetupGradesGradeIdPut(
-        grade_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateSetupGradeApiV1HrSetupGradesGradeIdPut({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -73,22 +62,19 @@ export function updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationOptions<
 export function useUpdateSetupGradeApiV1HrSetupGradesGradeIdPut<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
+      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
       ResponseErrorConfig<
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422
       >,
-      {
-        grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"];
-        data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-      },
+      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -101,32 +87,26 @@ export function useUpdateSetupGradeApiV1HrSetupGradesGradeIdPut<TContext>(
     updateSetupGradeApiV1HrSetupGradesGradeIdPutMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
+      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
       ResponseErrorConfig<
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+        | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422
       >,
-      {
-        grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"];
-        data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-      },
+      UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422
     >,
-    {
-      grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"];
-      data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-    },
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
     TContext
   >(
     {
@@ -136,17 +116,14 @@ export function useUpdateSetupGradeApiV1HrSetupGradesGradeIdPut<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409
+      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422
     >,
-    {
-      grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"];
-      data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest;
-    },
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
     TContext
   >;
 }

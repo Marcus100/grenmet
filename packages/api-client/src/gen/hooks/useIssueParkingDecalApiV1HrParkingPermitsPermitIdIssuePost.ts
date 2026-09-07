@@ -9,59 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "../clients/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 import type {
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422,
 } from "../models/IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 
 export const issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey =
   () => [{ url: "/api/v1/hr/parking-permits/:permit_id/issue" }] as const;
 
-export type IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey =
-  ReturnType<
-    typeof issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey
-  >;
-
 export function issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey();
   return mutationOptions<
-    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
     ResponseErrorConfig<
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422
     >,
-    {
-      permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"];
-      data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-    },
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ permit_id, data }) => {
-      return issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost(
-        permit_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -76,21 +63,18 @@ export function useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
       ResponseErrorConfig<
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422
       >,
-      {
-        permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"];
-        data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-      },
+      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -103,30 +87,24 @@ export function useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost<
     issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationOptions(
       config
     ) as UseMutationOptions<
-      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
       ResponseErrorConfig<
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+        | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422
       >,
-      {
-        permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"];
-        data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-      },
+      IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
       TContext
     >;
 
   return useMutation<
-    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
     ResponseErrorConfig<
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422
     >,
-    {
-      permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"];
-      data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-    },
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
     TContext
   >(
     {
@@ -136,16 +114,13 @@ export function useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost<
     },
     queryClient
   ) as UseMutationResult<
-    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200,
     ResponseErrorConfig<
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404
+      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422
     >,
-    {
-      permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"];
-      data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest;
-    },
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
     TContext
   >;
 }

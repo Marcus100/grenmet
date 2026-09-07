@@ -16,18 +16,16 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@base-ui/react": "catalog:",
     "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
+    "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",
-    "clsx": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "tailwind-merge": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

@@ -3,24 +3,9 @@
  * Do not edit manually.
  */
 
-/**
- * DashboardPerson
- */
 export type DashboardPerson = {
-  /**
-   * @type string
-   */
   id: string;
-  /**
-   * @type string
-   */
   name: string;
-  /**
-   * @type string
-   */
   department: string;
-  /**
-   * @type string
-   */
   shift: string;
 };

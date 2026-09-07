@@ -1,0 +1,32 @@
+{
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "env": [
+        "PAYLOAD_SECRET",
+        "DATABASE_URL",
+        "AUTH_API_URL",
+        "AUTH_APP_URL",
+        "CMS_URL",
+        "CMS_DEPARTMENT_ID",
+        "SESSION_COOKIE_NAME",
+        "SESSION_COOKIE_DOMAIN"
+      ]
+    },
+    "dev": {
+      "passThroughEnv": [
+        "PAYLOAD_SECRET",
+        "DATABASE_URL",
+        "AUTH_API_URL",
+        "AUTH_APP_URL",
+        "CMS_URL",
+        "CMS_DEPARTMENT_ID",
+        "SESSION_COOKIE_NAME",
+        "SESSION_COOKIE_DOMAIN"
+      ]
+    },
+    "test": {
+      "env": ["CMS_TEST_DATABASE_URL"]
+    }
+  }
+}

@@ -8,29 +8,21 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.js";
 import { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const twofaDisableApiV12FaDisablePost200Schema = z.lazy(
-  () => twoFactorStatusPublicSchema
-);
+export const twofaDisableApiV12FaDisablePostStatus200Schema =
+  twoFactorStatusPublicSchema;
 
-/**
- * @description Incorrect password
- */
-export const twofaDisableApiV12FaDisablePost400Schema = z.any();
+export const twofaDisableApiV12FaDisablePostStatus400Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const twofaDisableApiV12FaDisablePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const twofaDisableApiV12FaDisablePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const twofaDisableApiV12FaDisablePostMutationRequestSchema = z.lazy(
-  () => twoFactorDisableRequestSchema
-);
+export const twofaDisableApiV12FaDisablePostResponseSchema =
+  twofaDisableApiV12FaDisablePostStatus200Schema;
 
-export const twofaDisableApiV12FaDisablePostMutationResponseSchema = z.lazy(
-  () => twofaDisableApiV12FaDisablePost200Schema
-);
+export const twofaDisableApiV12FaDisablePostErrorSchema = z.union([
+  twofaDisableApiV12FaDisablePostStatus400Schema,
+  twofaDisableApiV12FaDisablePostStatus422Schema,
+]);
+
+export const twofaDisableApiV12FaDisablePostBodySchema =
+  twoFactorDisableRequestSchema;

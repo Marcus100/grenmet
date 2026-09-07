@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { twofaStatusApiV12FaStatusGet } from "../clients/twofaStatusApiV12FaStatusGet.js";
-import type { TwofaStatusApiV12FaStatusGetQueryResponse } from "../models/TwofaStatusApiV12FaStatusGet.js";
+import type { TwofaStatusApiV12FaStatusGetStatus200 } from "../models/TwofaStatusApiV12FaStatusGet.js";
 
 export const twofaStatusApiV12FaStatusGetQueryKey = () =>
   [{ url: "/api/v1/2fa/status" }] as const;
 
-export type TwofaStatusApiV12FaStatusGetQueryKey = ReturnType<
+type TwofaStatusApiV12FaStatusGetQueryKey = ReturnType<
   typeof twofaStatusApiV12FaStatusGetQueryKey
 >;
 
 export function twofaStatusApiV12FaStatusGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = twofaStatusApiV12FaStatusGetQueryKey();
   return queryOptions<
-    TwofaStatusApiV12FaStatusGetQueryResponse,
+    TwofaStatusApiV12FaStatusGetStatus200,
     ResponseErrorConfig<Error>,
-    TwofaStatusApiV12FaStatusGetQueryResponse,
+    TwofaStatusApiV12FaStatusGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return twofaStatusApiV12FaStatusGet(config);
+      return twofaStatusApiV12FaStatusGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function twofaStatusApiV12FaStatusGetQueryOptions(
  * {@link /api/v1/2fa/status}
  */
 export function useTwofaStatusApiV12FaStatusGet<
-  TData = TwofaStatusApiV12FaStatusGetQueryResponse,
-  TQueryData = TwofaStatusApiV12FaStatusGetQueryResponse,
+  TData = TwofaStatusApiV12FaStatusGetStatus200,
+  TQueryData = TwofaStatusApiV12FaStatusGetStatus200,
   TQueryKey extends QueryKey = TwofaStatusApiV12FaStatusGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        TwofaStatusApiV12FaStatusGetQueryResponse,
+        TwofaStatusApiV12FaStatusGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? twofaStatusApiV12FaStatusGetQueryKey();
+    resolvedOptions?.queryKey ?? twofaStatusApiV12FaStatusGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...twofaStatusApiV12FaStatusGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

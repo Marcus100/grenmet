@@ -8,37 +8,29 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 import { shiftCatalogUpdateSchema } from "./shiftCatalogUpdateSchema.js";
 
-export const updateShiftApiV1HrRostersShiftsCodePatchPathParamsSchema =
-  z.object({
-    code: z.string(),
-  });
+export const updateShiftApiV1HrRostersShiftsCodePatchPathCodeSchema =
+  z.string();
 
-/**
- * @description Shift type updated
- */
-export const updateShiftApiV1HrRostersShiftsCodePatch200Schema = z.lazy(
-  () => shiftCatalogPublicSchema
-);
+export const updateShiftApiV1HrRostersShiftsCodePatchStatus200Schema =
+  shiftCatalogPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const updateShiftApiV1HrRostersShiftsCodePatch403Schema = z.any();
+export const updateShiftApiV1HrRostersShiftsCodePatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Shift type not found
- */
-export const updateShiftApiV1HrRostersShiftsCodePatch404Schema = z.any();
+export const updateShiftApiV1HrRostersShiftsCodePatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateShiftApiV1HrRostersShiftsCodePatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateShiftApiV1HrRostersShiftsCodePatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateShiftApiV1HrRostersShiftsCodePatchMutationRequestSchema =
-  z.lazy(() => shiftCatalogUpdateSchema);
+export const updateShiftApiV1HrRostersShiftsCodePatchResponseSchema =
+  updateShiftApiV1HrRostersShiftsCodePatchStatus200Schema;
 
-export const updateShiftApiV1HrRostersShiftsCodePatchMutationResponseSchema =
-  z.lazy(() => updateShiftApiV1HrRostersShiftsCodePatch200Schema);
+export const updateShiftApiV1HrRostersShiftsCodePatchErrorSchema = z.union([
+  updateShiftApiV1HrRostersShiftsCodePatchStatus403Schema,
+  updateShiftApiV1HrRostersShiftsCodePatchStatus404Schema,
+  updateShiftApiV1HrRostersShiftsCodePatchStatus422Schema,
+]);
+
+export const updateShiftApiV1HrRostersShiftsCodePatchBodySchema =
+  shiftCatalogUpdateSchema;

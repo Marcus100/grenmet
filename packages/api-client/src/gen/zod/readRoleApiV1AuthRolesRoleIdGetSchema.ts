@@ -7,29 +7,20 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 
-export const readRoleApiV1AuthRolesRoleIdGetPathParamsSchema = z.object({
-  role_id: z.string().uuid(),
-});
+export const readRoleApiV1AuthRolesRoleIdGetPathRoleIdSchema = z.uuid();
 
-/**
- * @description Role returned
- */
-export const readRoleApiV1AuthRolesRoleIdGet200Schema = z.lazy(
-  () => srcAuthSchemasRolePublicSchema
-);
+export const readRoleApiV1AuthRolesRoleIdGetStatus200Schema =
+  srcAuthSchemasRolePublicSchema;
 
-/**
- * @description Role not found
- */
-export const readRoleApiV1AuthRolesRoleIdGet404Schema = z.any();
+export const readRoleApiV1AuthRolesRoleIdGetStatus404Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readRoleApiV1AuthRolesRoleIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readRoleApiV1AuthRolesRoleIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readRoleApiV1AuthRolesRoleIdGetQueryResponseSchema = z.lazy(
-  () => readRoleApiV1AuthRolesRoleIdGet200Schema
-);
+export const readRoleApiV1AuthRolesRoleIdGetResponseSchema =
+  readRoleApiV1AuthRolesRoleIdGetStatus200Schema;
+
+export const readRoleApiV1AuthRolesRoleIdGetErrorSchema = z.union([
+  readRoleApiV1AuthRolesRoleIdGetStatus404Schema,
+  readRoleApiV1AuthRolesRoleIdGetStatus422Schema,
+]);

@@ -7,8 +7,8 @@ import * as z from "zod";
 import { shiftPatternSchema } from "./shiftPatternSchema.js";
 
 export const rosterPreferencesPublicSchema = z.object({
-  default_shift_pattern: z.optional(z.lazy(() => shiftPatternSchema)),
-  preferred_shifts: z.optional(z.array(z.string())),
-  restricted_shifts: z.optional(z.array(z.string())),
-  max_night_shifts_per_month: z.optional(z.number().int().default(6)),
+  default_shift_pattern: shiftPatternSchema.optional().default("ROTATION"),
+  preferred_shifts: z.array(z.string()).optional(),
+  restricted_shifts: z.array(z.string()).optional(),
+  max_night_shifts_per_month: z.int().optional().default(6),
 });

@@ -75,11 +75,11 @@ export function ShiftExchangeEditor() {
   const departmentId = profileQuery.data?.employment?.department?.id;
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      departmentId ?? "",
+      { path: { department_id: departmentId ?? "" } },
       { query: { enabled: Boolean(departmentId) } }
     );
   const members = membersQuery.data?.data ?? [];
-  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet();
+  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
   const createMutation = useCreateShiftSwapApiV1HrShiftSwapsPost();
   const updateMutation = useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch();
   const submitMutation =
@@ -150,7 +150,7 @@ export function ShiftExchangeEditor() {
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(),
+      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
     });
   }
 
@@ -191,14 +191,14 @@ export function ShiftExchangeEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: buildPayload(values, departmentId),
+            path: { shift_swap_id: draftId },
+            body: buildPayload(values, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildPayload(values, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -212,17 +212,17 @@ export function ShiftExchangeEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: buildPayload(values, departmentId),
+            path: { shift_swap_id: draftId },
+            body: buildPayload(values, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
+            path: { shift_swap_id: draftId },
+            body: { co_approver_user_ids: coApprovers },
           });
           setSubmission(submitted);
         } else {
           const submitted = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildPayload(values, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,

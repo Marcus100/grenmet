@@ -39,7 +39,10 @@
     --status-negative: #cc0033;
     --status-neutral: #dcdcdc;
 
-    --brand-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --brand-font-sans: var(
+      --font-noto-sans,
+      var(--font-inter, ui-sans-serif, system-ui, sans-serif)
+    );
     --brand-font-document: var(
       --font-noto-sans,
       "Noto Sans",
@@ -66,7 +69,8 @@
     --font-size-body: 14px;
     --font-size-body-base: 16px;
     --font-size-nav: 20px;
-    --font-size-heading-sm: 18px;
+    --font-size-heading-sm: 22px;
+    --font-size-heading-base: 26px;
     --font-size-heading-md: 30px;
     --font-size-heading-lg: 34px;
     --line-height-micro: 16px;
@@ -76,7 +80,8 @@
     --line-height-body: 20px;
     --line-height-body-base: 24px;
     --line-height-nav: 28px;
-    --line-height-heading-sm: 24px;
+    --line-height-heading-sm: 28px;
+    --line-height-heading-base: 32px;
     --line-height-heading-md: 36px;
     --line-height-heading-lg: 36px;
 
@@ -266,6 +271,7 @@
   --text-body-base: var(--font-size-body-base);
   --text-nav: var(--font-size-nav);
   --text-heading-sm: var(--font-size-heading-sm);
+  --text-heading-base: var(--font-size-heading-base);
   --text-heading-md: var(--font-size-heading-md);
   --text-heading-lg: var(--font-size-heading-lg);
   --leading-micro: var(--line-height-micro);
@@ -276,6 +282,7 @@
   --leading-body-base: var(--line-height-body-base);
   --leading-nav: var(--line-height-nav);
   --leading-heading-sm: var(--line-height-heading-sm);
+  --leading-heading-base: var(--line-height-heading-base);
   --leading-heading-md: var(--line-height-heading-md);
   --leading-heading-lg: var(--line-height-heading-lg);
   --shadow-card: var(--brand-shadow-card);

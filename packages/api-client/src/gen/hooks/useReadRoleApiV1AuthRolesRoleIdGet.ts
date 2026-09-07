@@ -10,51 +10,48 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readRoleApiV1AuthRolesRoleIdGet } from "../clients/readRoleApiV1AuthRolesRoleIdGet.js";
 import type {
-  ReadRoleApiV1AuthRolesRoleIdGet404,
-  ReadRoleApiV1AuthRolesRoleIdGet422,
-  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
-  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+  ReadRoleApiV1AuthRolesRoleIdGetOptions,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus200,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus404,
+  ReadRoleApiV1AuthRolesRoleIdGetStatus422,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
 
-export const readRoleApiV1AuthRolesRoleIdGetQueryKey = (
-  role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"]
-) =>
-  [
-    { url: "/api/v1/auth/roles/:role_id", params: { role_id: role_id } },
-  ] as const;
+export const readRoleApiV1AuthRolesRoleIdGetQueryKey = ({
+  path,
+}: Omit<ReadRoleApiV1AuthRolesRoleIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/auth/roles/:role_id", params: path }] as const;
 
-export type ReadRoleApiV1AuthRolesRoleIdGetQueryKey = ReturnType<
+type ReadRoleApiV1AuthRolesRoleIdGetQueryKey = ReturnType<
   typeof readRoleApiV1AuthRolesRoleIdGetQueryKey
 >;
 
 export function readRoleApiV1AuthRolesRoleIdGetQueryOptions(
-  role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadRoleApiV1AuthRolesRoleIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readRoleApiV1AuthRolesRoleIdGetQueryKey(role_id);
+  const queryKey = readRoleApiV1AuthRolesRoleIdGetQueryKey({ path });
   return queryOptions<
-    ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+    ReadRoleApiV1AuthRolesRoleIdGetStatus200,
     ResponseErrorConfig<
-      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
+      | ReadRoleApiV1AuthRolesRoleIdGetStatus404
+      | ReadRoleApiV1AuthRolesRoleIdGetStatus422
     >,
-    ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+    ReadRoleApiV1AuthRolesRoleIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!role_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readRoleApiV1AuthRolesRoleIdGet(role_id, config);
+      return readRoleApiV1AuthRolesRoleIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -65,47 +62,58 @@ export function readRoleApiV1AuthRolesRoleIdGetQueryOptions(
  * {@link /api/v1/auth/roles/:role_id}
  */
 export function useReadRoleApiV1AuthRolesRoleIdGet<
-  TData = ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-  TQueryData = ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+  TData = ReadRoleApiV1AuthRolesRoleIdGetStatus200,
+  TQueryData = ReadRoleApiV1AuthRolesRoleIdGetStatus200,
   TQueryKey extends QueryKey = ReadRoleApiV1AuthRolesRoleIdGetQueryKey,
 >(
-  role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadRoleApiV1AuthRolesRoleIdGetOptions["path"]
+      | (() => ReadRoleApiV1AuthRolesRoleIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+        ReadRoleApiV1AuthRolesRoleIdGetStatus200,
         ResponseErrorConfig<
-          | ReadRoleApiV1AuthRolesRoleIdGet404
-          | ReadRoleApiV1AuthRolesRoleIdGet422
+          | ReadRoleApiV1AuthRolesRoleIdGetStatus404
+          | ReadRoleApiV1AuthRolesRoleIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ?? readRoleApiV1AuthRolesRoleIdGetQueryKey(role_id);
+    resolvedOptions?.queryKey ??
+    readRoleApiV1AuthRolesRoleIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readRoleApiV1AuthRolesRoleIdGetQueryOptions(role_id, config),
+      ...readRoleApiV1AuthRolesRoleIdGetQueryOptions(resolvedParams, config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
+      | ReadRoleApiV1AuthRolesRoleIdGetStatus404
+      | ReadRoleApiV1AuthRolesRoleIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

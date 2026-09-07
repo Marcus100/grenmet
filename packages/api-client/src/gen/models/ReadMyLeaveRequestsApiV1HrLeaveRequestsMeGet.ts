@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { LeaveRequestListPublic } from "./LeaveRequestListPublic.js";
 
-export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams = {
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,25 +24,27 @@ export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams = {
   size?: number;
 };
 
-/**
- * LeaveRequestListPublic
- * @description Leave requests returned
- */
-export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200 =
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200 =
   LeaveRequestListPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422 =
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422 =
   HTTPValidationError;
 
-export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponse =
-  ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200;
-
-export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery = {
-  Response: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet200;
-  QueryParams: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParams;
-  Errors: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet422;
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuery;
+  headers?: never;
 };
+
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponses = {
+  "200": ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200;
+  "422": ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponse =
+  | ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200
+  | ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422;

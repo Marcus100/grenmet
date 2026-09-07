@@ -3,47 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadRoleApiV1AuthRolesRoleIdGet404,
-  ReadRoleApiV1AuthRolesRoleIdGet422,
-  ReadRoleApiV1AuthRolesRoleIdGetPathParams,
-  ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
+  ReadRoleApiV1AuthRolesRoleIdGetOptions,
+  ReadRoleApiV1AuthRolesRoleIdGetResponses,
 } from "../models/ReadRoleApiV1AuthRolesRoleIdGet.js";
-
-function getReadRoleApiV1AuthRolesRoleIdGetUrl(
-  role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"]
-) {
-  const res = { method: "GET", url: `/api/v1/auth/roles/${role_id}` as const };
-  return res;
-}
 
 /**
  * @description Return a role by ID (superuser only).
  * @summary Get role by ID
  * {@link /api/v1/auth/roles/:role_id}
  */
-export async function readRoleApiV1AuthRolesRoleIdGet(
-  role_id: ReadRoleApiV1AuthRolesRoleIdGetPathParams["role_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRoleApiV1AuthRolesRoleIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadRoleApiV1AuthRolesRoleIdGetOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ReadRoleApiV1AuthRolesRoleIdGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRoleApiV1AuthRolesRoleIdGetQueryResponse,
-    ResponseErrorConfig<
-      ReadRoleApiV1AuthRolesRoleIdGet404 | ReadRoleApiV1AuthRolesRoleIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRoleApiV1AuthRolesRoleIdGetUrl(role_id).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/roles/{role_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadRoleApiV1AuthRolesRoleIdGetResponses, ThrowOnError>
+    >
+  );
 }

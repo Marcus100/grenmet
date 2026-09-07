@@ -7,37 +7,38 @@ import type { CapAlertAction } from "./CapAlertAction.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams = {
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePost200 = CapAlertPublic;
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200 =
+  CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePost422 = HTTPValidationError;
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422 =
+  HTTPValidationError;
 
-/**
- * CapAlertAction
- */
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest =
-  CapAlertAction;
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostBody = CapAlertAction;
 
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationResponse =
-  ExpireAlertApiV1CapAlertsAlertIdExpirePost200;
-
-export type ExpireAlertApiV1CapAlertsAlertIdExpirePostMutation = {
-  Response: ExpireAlertApiV1CapAlertsAlertIdExpirePost200;
-  Request: ExpireAlertApiV1CapAlertsAlertIdExpirePostMutationRequest;
-  PathParams: ExpireAlertApiV1CapAlertsAlertIdExpirePostPathParams;
-  Errors: ExpireAlertApiV1CapAlertsAlertIdExpirePost422;
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostOptions = {
+  body: ExpireAlertApiV1CapAlertsAlertIdExpirePostBody;
+  path: ExpireAlertApiV1CapAlertsAlertIdExpirePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostResponses = {
+  "200": ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200;
+  "422": ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ExpireAlertApiV1CapAlertsAlertIdExpirePostResponse =
+  | ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200
+  | ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422;

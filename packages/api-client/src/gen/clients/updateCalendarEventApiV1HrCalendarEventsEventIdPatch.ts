@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponses,
 } from "../models/UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch.js";
-
-function getUpdateCalendarEventApiV1HrCalendarEventsEventIdPatchUrl(
-  event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/calendar/events/${event_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Edit an entry, or set cancelled=true to strike it from the calendar without deleting the record. The author may change their own entry; changing anyone else's requires calendar.manage.
  * @summary Update or cancel a department calendar event
  * {@link /api/v1/hr/calendar/events/:event_id}
  */
-export async function updateCalendarEventApiV1HrCalendarEventsEventIdPatch(
-  event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"],
-  data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateCalendarEventApiV1HrCalendarEventsEventIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
-    >,
-    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateCalendarEventApiV1HrCalendarEventsEventIdPatchUrl(
-      event_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/calendar/events/{event_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

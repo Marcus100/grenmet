@@ -7,29 +7,20 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 
-export const readUserByIdApiV1AuthUsersUserIdGetPathParamsSchema = z.object({
-  user_id: z.string().uuid(),
-});
+export const readUserByIdApiV1AuthUsersUserIdGetPathUserIdSchema = z.uuid();
 
-/**
- * @description User returned
- */
-export const readUserByIdApiV1AuthUsersUserIdGet200Schema = z.lazy(
-  () => userPublicSchema
-);
+export const readUserByIdApiV1AuthUsersUserIdGetStatus200Schema =
+  userPublicSchema;
 
-/**
- * @description Insufficient privileges
- */
-export const readUserByIdApiV1AuthUsersUserIdGet403Schema = z.any();
+export const readUserByIdApiV1AuthUsersUserIdGetStatus403Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readUserByIdApiV1AuthUsersUserIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readUserByIdApiV1AuthUsersUserIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readUserByIdApiV1AuthUsersUserIdGetQueryResponseSchema = z.lazy(
-  () => readUserByIdApiV1AuthUsersUserIdGet200Schema
-);
+export const readUserByIdApiV1AuthUsersUserIdGetResponseSchema =
+  readUserByIdApiV1AuthUsersUserIdGetStatus200Schema;
+
+export const readUserByIdApiV1AuthUsersUserIdGetErrorSchema = z.union([
+  readUserByIdApiV1AuthUsersUserIdGetStatus403Schema,
+  readUserByIdApiV1AuthUsersUserIdGetStatus422Schema,
+]);

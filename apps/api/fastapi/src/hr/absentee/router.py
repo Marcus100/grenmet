@@ -25,7 +25,7 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
     summary="Create absentee report",
     description="Create an absentee report. Requires absentee.report.create permission.",
     responses={
-        status.HTTP_200_OK: {"description": "Absentee report created"},
+        status.HTTP_201_CREATED: {"description": "Absentee report created"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )

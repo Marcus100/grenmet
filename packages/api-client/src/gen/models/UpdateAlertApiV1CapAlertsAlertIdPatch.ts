@@ -7,37 +7,37 @@ import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { CapAlertUpdate } from "./CapAlertUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateAlertApiV1CapAlertsAlertIdPatchPathParams = {
+export type UpdateAlertApiV1CapAlertsAlertIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type UpdateAlertApiV1CapAlertsAlertIdPatch200 = CapAlertPublic;
+export type UpdateAlertApiV1CapAlertsAlertIdPatchStatus200 = CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateAlertApiV1CapAlertsAlertIdPatch422 = HTTPValidationError;
+export type UpdateAlertApiV1CapAlertsAlertIdPatchStatus422 =
+  HTTPValidationError;
 
-/**
- * CapAlertUpdate
- */
-export type UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest =
-  CapAlertUpdate;
+export type UpdateAlertApiV1CapAlertsAlertIdPatchBody = CapAlertUpdate;
 
-export type UpdateAlertApiV1CapAlertsAlertIdPatchMutationResponse =
-  UpdateAlertApiV1CapAlertsAlertIdPatch200;
-
-export type UpdateAlertApiV1CapAlertsAlertIdPatchMutation = {
-  Response: UpdateAlertApiV1CapAlertsAlertIdPatch200;
-  Request: UpdateAlertApiV1CapAlertsAlertIdPatchMutationRequest;
-  PathParams: UpdateAlertApiV1CapAlertsAlertIdPatchPathParams;
-  Errors: UpdateAlertApiV1CapAlertsAlertIdPatch422;
+export type UpdateAlertApiV1CapAlertsAlertIdPatchOptions = {
+  body: UpdateAlertApiV1CapAlertsAlertIdPatchBody;
+  path: UpdateAlertApiV1CapAlertsAlertIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateAlertApiV1CapAlertsAlertIdPatchResponses = {
+  "200": UpdateAlertApiV1CapAlertsAlertIdPatchStatus200;
+  "422": UpdateAlertApiV1CapAlertsAlertIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateAlertApiV1CapAlertsAlertIdPatchResponse =
+  | UpdateAlertApiV1CapAlertsAlertIdPatchStatus200
+  | UpdateAlertApiV1CapAlertsAlertIdPatchStatus422;

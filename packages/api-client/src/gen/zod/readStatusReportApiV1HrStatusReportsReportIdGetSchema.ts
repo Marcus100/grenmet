@@ -7,34 +7,27 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 
-export const readStatusReportApiV1HrStatusReportsReportIdGetPathParamsSchema =
-  z.object({
-    report_id: z.string().uuid(),
-  });
+export const readStatusReportApiV1HrStatusReportsReportIdGetPathReportIdSchema =
+  z.uuid();
 
-/**
- * @description Status report and entries returned
- */
-export const readStatusReportApiV1HrStatusReportsReportIdGet200Schema = z.lazy(
-  () => statusReportDetailsSchema
-);
+export const readStatusReportApiV1HrStatusReportsReportIdGetStatus200Schema =
+  statusReportDetailsSchema;
 
-/**
- * @description Insufficient permission
- */
-export const readStatusReportApiV1HrStatusReportsReportIdGet403Schema = z.any();
+export const readStatusReportApiV1HrStatusReportsReportIdGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Status report not found
- */
-export const readStatusReportApiV1HrStatusReportsReportIdGet404Schema = z.any();
+export const readStatusReportApiV1HrStatusReportsReportIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readStatusReportApiV1HrStatusReportsReportIdGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readStatusReportApiV1HrStatusReportsReportIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readStatusReportApiV1HrStatusReportsReportIdGetQueryResponseSchema =
-  z.lazy(() => readStatusReportApiV1HrStatusReportsReportIdGet200Schema);
+export const readStatusReportApiV1HrStatusReportsReportIdGetResponseSchema =
+  readStatusReportApiV1HrStatusReportsReportIdGetStatus200Schema;
+
+export const readStatusReportApiV1HrStatusReportsReportIdGetErrorSchema =
+  z.union([
+    readStatusReportApiV1HrStatusReportsReportIdGetStatus403Schema,
+    readStatusReportApiV1HrStatusReportsReportIdGetStatus404Schema,
+    readStatusReportApiV1HrStatusReportsReportIdGetStatus422Schema,
+  ]);

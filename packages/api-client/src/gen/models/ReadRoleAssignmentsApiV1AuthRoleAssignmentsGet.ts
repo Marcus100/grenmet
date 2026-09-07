@@ -6,29 +6,31 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserRoleAssignmentsPublic } from "./UserRoleAssignmentsPublic.js";
 
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams = {
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQuery = {
   user_id?: string | null;
 };
 
-/**
- * UserRoleAssignmentsPublic
- * @description Role assignments returned
- */
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet200 =
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200 =
   UserRoleAssignmentsPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422 =
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422 =
   HTTPValidationError;
 
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse =
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet200;
-
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQuery = {
-  Response: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet200;
-  QueryParams: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams;
-  Errors: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422;
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQuery;
+  headers?: never;
 };
+
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponses = {
+  "200": ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200;
+  "422": ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetResponse =
+  | ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200
+  | ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422;

@@ -6,17 +6,14 @@
 import * as z from "zod";
 import { departmentsPublicSchema } from "./departmentsPublicSchema.js";
 
-/**
- * @description Departments returned
- */
-export const listDepartmentsEndpointApiV1HrDepartmentsGet200Schema = z.lazy(
-  () => departmentsPublicSchema
-);
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema =
+  departmentsPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const listDepartmentsEndpointApiV1HrDepartmentsGet403Schema = z.any();
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema =
+  z.unknown();
 
-export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryResponseSchema =
-  z.lazy(() => listDepartmentsEndpointApiV1HrDepartmentsGet200Schema);
+export const listDepartmentsEndpointApiV1HrDepartmentsGetResponseSchema =
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema;
+
+export const listDepartmentsEndpointApiV1HrDepartmentsGetErrorSchema =
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema;

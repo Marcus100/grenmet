@@ -3,36 +3,29 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadPublicPastAlertsApiCapPastGetQueryResponse } from "../models/ReadPublicPastAlertsApiCapPastGet.js";
-
-function getReadPublicPastAlertsApiCapPastGetUrl() {
-  const res = { method: "GET", url: `/api/cap/past` as const };
-  return res;
-}
+  ReadPublicPastAlertsApiCapPastGetOptions,
+  ReadPublicPastAlertsApiCapPastGetResponses,
+} from "../models/ReadPublicPastAlertsApiCapPastGet.js";
 
 /**
  * @summary Read Public Past Alerts
  * {@link /api/cap/past}
  */
-export async function readPublicPastAlertsApiCapPastGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPublicPastAlertsApiCapPastGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadPublicPastAlertsApiCapPastGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadPublicPastAlertsApiCapPastGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPublicPastAlertsApiCapPastGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPublicPastAlertsApiCapPastGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({ method: "GET", url: "/api/cap/past", ...config }) as Promise<
+      RequestResult<ReadPublicPastAlertsApiCapPastGetResponses, ThrowOnError>
+    >
+  );
 }

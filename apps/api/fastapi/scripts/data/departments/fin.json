@@ -1,0 +1,72 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "FIN",
+    "name": "Finance Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 10 (Finance Department). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Finance Manager",
+      "rank": 1,
+      "establishment_band": "Executive Management",
+      "_deck_posts": 1
+    },
+    {
+      "code": "SENIOR_ACCOUNTS_OFFICER",
+      "label": "Senior Accounts Officer",
+      "rank": 2,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "STORES_SUPERVISOR",
+      "label": "Supervisor – Stores",
+      "rank": 3,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASST_STORES_SUPERVISOR",
+      "label": "Asst. Supervisor – Stores",
+      "rank": 4,
+      "establishment_band": "Junior Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ACCOUNTS_OFFICER",
+      "label": "Accounts Officer",
+      "rank": 5,
+      "establishment_band": "Professional",
+      "_deck_posts": 4
+    },
+    {
+      "code": "STORES_ASSISTANT",
+      "label": "Stores Assistant",
+      "rank": 6,
+      "establishment_band": "Clerical",
+      "_deck_posts": 3
+    },
+    {
+      "code": "ADMIN_ASSISTANT",
+      "label": "Admin Asst. – Accounts",
+      "rank": 7,
+      "establishment_band": "Crafted & Related Trade",
+      "_deck_posts": 1
+    },
+    {
+      "code": "CAR_PARK_ATTENDANT",
+      "label": "Car Park Attendant",
+      "rank": 8,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 4
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

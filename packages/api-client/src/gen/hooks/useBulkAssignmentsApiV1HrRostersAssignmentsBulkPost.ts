@@ -9,51 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "../clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 import type {
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422,
 } from "../models/BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 
 export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/assignments/bulk" }] as const;
 
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey =
-  ReturnType<
-    typeof bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey
-  >;
-
 export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey();
   return mutationOptions<
-    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
     ResponseErrorConfig<
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422
     >,
-    { data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest },
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(data, config);
+    mutationFn: async ({ body }) => {
+      return bulkAssignmentsApiV1HrRostersAssignmentsBulkPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,18 +60,18 @@ export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions<
 export function useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
       ResponseErrorConfig<
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422
       >,
-      { data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest },
+      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,24 +84,24 @@ export function useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost<TContext>(
     bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions(
       config
     ) as UseMutationOptions<
-      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
       ResponseErrorConfig<
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+        | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422
       >,
-      { data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest },
+      BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
       TContext
     >;
 
   return useMutation<
-    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
     ResponseErrorConfig<
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422
     >,
-    { data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest },
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
     TContext
   >(
     {
@@ -117,13 +111,13 @@ export function useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200,
     ResponseErrorConfig<
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422
     >,
-    { data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest },
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
     TContext
   >;
 }

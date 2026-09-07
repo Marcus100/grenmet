@@ -5,11 +5,7 @@
 
 import * as z from "zod";
 
-/**
- * @description Successful Response
- */
-export const healthCheckApiV1UtilsHealthCheckGet200Schema = z.boolean();
+export const healthCheckApiV1UtilsHealthCheckGetStatus200Schema = z.boolean();
 
-export const healthCheckApiV1UtilsHealthCheckGetQueryResponseSchema = z.lazy(
-  () => healthCheckApiV1UtilsHealthCheckGet200Schema
-);
+export const healthCheckApiV1UtilsHealthCheckGetResponseSchema =
+  healthCheckApiV1UtilsHealthCheckGetStatus200Schema;

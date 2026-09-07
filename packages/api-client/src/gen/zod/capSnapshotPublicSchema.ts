@@ -6,11 +6,11 @@
 import * as z from "zod";
 
 export const capSnapshotPublicSchema = z.object({
-  id: z.string().uuid(),
-  alert_id: z.string().uuid(),
+  id: z.uuid(),
+  alert_id: z.uuid(),
   identifier: z.string(),
   content_hash: z.string(),
   generated_at: z.string(),
-  signed_at: z.optional(z.union([z.string(), z.null()])),
-  signing_key_ref: z.optional(z.union([z.string(), z.null()])),
+  signed_at: z.union([z.string(), z.null()]).optional(),
+  signing_key_ref: z.union([z.string(), z.null()]).optional(),
 });

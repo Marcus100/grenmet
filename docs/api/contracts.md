@@ -251,3 +251,15 @@ Password recovery uses a hashed, expiring, single-use challenge. Resetting or ch
 `POST /api/v1/auth/modern/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/modern/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
 
 Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account controls. Configure the email provider and Google OAuth callback for the target environment before advertising those flows; application code alone does not configure providers.
+
+### HR creation responses
+
+Creating a leave request, absentee report, daily status report, shift swap, or timesheet returns `201 Created` with its public response model, including when saving a draft. These routes do not advertise a separate untyped `200` response. Kubb generates the corresponding success types from this contract.
+
+### Dependency readiness
+
+`GET /api/v1/utils/ready/` retains its existing response contract but now requires the committed Alembic revision and readable auth/HR tables. Empty operational datasets are valid. Missing schemas, stale revisions and unavailable databases return 503. Liveness remains `/api/v1/utils/health-check/`.
+
+### Private weather images
+
+`GET /api/v1/wxwatch/images/{storage_path}` requires an active authenticated user and returns a private, non-cacheable 307 redirect to a 60-second signed GET URL. Keys are restricted to raster images within the environment-specific bucket’s `wxwatch/` prefix. It never reads or writes another application’s tables. Invalid paths return 400; unconfigured object storage returns 503. The admin’s existing authenticated proxy exchanges the session cookie for a bearer token.

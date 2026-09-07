@@ -3,40 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadHrProfileMeApiV1HrProfileMeGet404,
-  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGetOptions,
+  ReadHrProfileMeApiV1HrProfileMeGetResponses,
 } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
-
-function getReadHrProfileMeApiV1HrProfileMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/profile/me` as const };
-  return res;
-}
 
 /**
  * @description Return the current user's HR profile (identity, employment, address, preferences).
  * @summary Get my HR profile
  * {@link /api/v1/hr/profile/me}
  */
-export async function readHrProfileMeApiV1HrProfileMeGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readHrProfileMeApiV1HrProfileMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadHrProfileMeApiV1HrProfileMeGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadHrProfileMeApiV1HrProfileMeGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadHrProfileMeApiV1HrProfileMeGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/profile/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadHrProfileMeApiV1HrProfileMeGetResponses, ThrowOnError>
+    >
+  );
 }

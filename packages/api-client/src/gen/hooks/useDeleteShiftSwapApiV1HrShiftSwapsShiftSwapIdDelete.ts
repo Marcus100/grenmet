@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete } from "../clients/deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
 import type {
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422,
 } from "../models/DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
 
 export const deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey =
   () => [{ url: "/api/v1/hr/shift-swaps/:shift_swap_id" }] as const;
 
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey =
-  ReturnType<
-    typeof deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey
-  >;
-
 export function deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationKey();
   return mutationOptions<
-    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422
     >,
-    {
-      shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"];
-    },
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id }) => {
-      return deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete(
-        shift_swap_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -69,19 +62,19 @@ export function deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationOptions
 export function useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
+      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422
       >,
-      {
-        shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"];
-      },
+      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -94,30 +87,26 @@ export function useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete<TContext>(
     deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
+      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+        | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422
       >,
-      {
-        shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"];
-      },
+      DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422
     >,
-    {
-      shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"];
-    },
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
     TContext
   >(
     {
@@ -127,16 +116,14 @@ export function useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422
     >,
-    {
-      shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"];
-    },
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
     TContext
   >;
 }

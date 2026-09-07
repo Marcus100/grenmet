@@ -7,8 +7,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   alertsSummary,
+  exerciseStatuses,
   fetchActiveAlerts,
   groupAlerts,
+  HAZARD_GROUPS,
   OTHER_HAZARD,
   type PublicAlert,
   toPublicAlerts,
@@ -22,16 +24,27 @@ function alert(overrides: Partial<PublicAlert> = {}): PublicAlert {
     headline: "Small craft should remain in port",
     identifier: "id-1",
     severity: "Moderate",
+    status: "Actual",
     ...overrides,
   };
 }
 
 describe("groupAlerts", () => {
-  it("keeps the eight hazard names, in order, even when empty", () => {
+  it("keeps every hazard name, in order, even when empty", () => {
     const groups = groupAlerts([]);
-    expect(groups).toHaveLength(8);
+    // Derived from the source so adding a hazard cannot silently break this.
+    expect(groups).toHaveLength(HAZARD_GROUPS.length);
+    expect(groups.map((g) => g.name)).toEqual(HAZARD_GROUPS.map((g) => g.name));
     expect(groups[0].name).toBe("Tropical Cyclone");
     expect(groups.every((g) => g.alerts.length === 0)).toBe(true);
+  });
+
+  it("files a tsunami message under its own hazard, not the catch-all", () => {
+    const groups = groupAlerts([
+      alert({ event: "Tsunami Warning", identifier: "id-tsunami" }),
+    ]);
+    expect(groups.find((g) => g.name === "Tsunami")?.alerts).toHaveLength(1);
+    expect(groups.find((g) => g.name === OTHER_HAZARD)).toBeUndefined();
   });
 
   it("files an alert under the hazard its event name matches", () => {
@@ -109,6 +122,7 @@ describe("toPublicAlerts", () => {
       headline: "Gale force winds expected",
       identifier: "GD-2026-001",
       severity: "Severe",
+      status: "Actual",
     });
   });
 
@@ -174,5 +188,61 @@ describe("fetchActiveAlerts", () => {
     globalThis.fetch = (() =>
       Promise.resolve({ ok: false, status: 503 } as Response)) as typeof fetch;
     expect(await fetchActiveAlerts()).toEqual({ status: "unavailable" });
+  });
+});
+
+describe("toPublicAlerts status", () => {
+  function raw(status?: string) {
+    return [
+      {
+        identifier: "id-1",
+        status,
+        info: [{ event: "Tsunami Warning", headline: "Move to high ground" }],
+      },
+    ];
+  }
+
+  it("reads the CAP status off the alert", () => {
+    expect(toPublicAlerts(raw("Exercise"))[0].status).toBe("Exercise");
+  });
+
+  it("falls back to Actual when the status is missing", () => {
+    expect(toPublicAlerts(raw(undefined))[0].status).toBe("Actual");
+  });
+
+  it("falls back to Actual for an unrecognised status", () => {
+    // Safe direction: a real warning shown plainly beats a real warning
+    // wrongly badged as a drill.
+    expect(toPublicAlerts(raw("Nonsense"))[0].status).toBe("Actual");
+  });
+});
+
+describe("exerciseStatuses", () => {
+  function ok(alerts: PublicAlert[]) {
+    return {
+      status: "ok" as const,
+      groups: groupAlerts(alerts),
+      activeCount: alerts.length,
+    };
+  }
+
+  it("is empty when every alert is Actual", () => {
+    expect(exerciseStatuses(ok([alert()]))).toEqual([]);
+  });
+
+  it("reports each distinct non-Actual status once", () => {
+    const statuses = exerciseStatuses(
+      ok([
+        alert({ identifier: "a", status: "Exercise" }),
+        alert({ identifier: "b", status: "Exercise" }),
+        alert({ identifier: "c", status: "Test" }),
+        alert({ identifier: "d" }),
+      ])
+    );
+    expect(statuses.sort()).toEqual(["Exercise", "Test"]);
+  });
+
+  it("is empty when the feed is unavailable", () => {
+    expect(exerciseStatuses({ status: "unavailable" })).toEqual([]);
   });
 });

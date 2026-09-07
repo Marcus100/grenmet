@@ -9,51 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateRoleApiV1AuthRolesRoleIdPatch } from "../clients/updateRoleApiV1AuthRolesRoleIdPatch.js";
 import type {
-  UpdateRoleApiV1AuthRolesRoleIdPatch404,
-  UpdateRoleApiV1AuthRolesRoleIdPatch422,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest,
-  UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
-  UpdateRoleApiV1AuthRolesRoleIdPatchPathParams,
+  UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus404,
+  UpdateRoleApiV1AuthRolesRoleIdPatchStatus422,
 } from "../models/UpdateRoleApiV1AuthRolesRoleIdPatch.js";
 
 export const updateRoleApiV1AuthRolesRoleIdPatchMutationKey = () =>
   [{ url: "/api/v1/auth/roles/:role_id" }] as const;
 
-export type UpdateRoleApiV1AuthRolesRoleIdPatchMutationKey = ReturnType<
-  typeof updateRoleApiV1AuthRolesRoleIdPatchMutationKey
->;
-
 export function updateRoleApiV1AuthRolesRoleIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateRoleApiV1AuthRolesRoleIdPatchMutationKey();
   return mutationOptions<
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+    UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleApiV1AuthRolesRoleIdPatch404
-      | UpdateRoleApiV1AuthRolesRoleIdPatch422
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422
     >,
-    {
-      role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"];
-      data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-    },
+    UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ role_id, data }) => {
-      return updateRoleApiV1AuthRolesRoleIdPatch(role_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateRoleApiV1AuthRolesRoleIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,20 +58,17 @@ export function updateRoleApiV1AuthRolesRoleIdPatchMutationOptions<
 export function useUpdateRoleApiV1AuthRolesRoleIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+      UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateRoleApiV1AuthRolesRoleIdPatch404
-        | UpdateRoleApiV1AuthRolesRoleIdPatch422
+        | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+        | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422
       >,
-      {
-        role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"];
-        data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-      },
+      UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -91,28 +80,22 @@ export function useUpdateRoleApiV1AuthRolesRoleIdPatch<TContext>(
   const baseOptions = updateRoleApiV1AuthRolesRoleIdPatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+    UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleApiV1AuthRolesRoleIdPatch404
-      | UpdateRoleApiV1AuthRolesRoleIdPatch422
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422
     >,
-    {
-      role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"];
-      data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-    },
+    UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+    UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleApiV1AuthRolesRoleIdPatch404
-      | UpdateRoleApiV1AuthRolesRoleIdPatch422
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422
     >,
-    {
-      role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"];
-      data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-    },
+    UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
     TContext
   >(
     {
@@ -122,15 +105,12 @@ export function useUpdateRoleApiV1AuthRolesRoleIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse,
+    UpdateRoleApiV1AuthRolesRoleIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleApiV1AuthRolesRoleIdPatch404
-      | UpdateRoleApiV1AuthRolesRoleIdPatch422
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+      | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422
     >,
-    {
-      role_id: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams["role_id"];
-      data: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-    },
+    UpdateRoleApiV1AuthRolesRoleIdPatchOptions,
     TContext
   >;
 }

@@ -5,9 +5,6 @@
 
 import type { CapIntegrationStatus } from "./CapIntegrationStatus.js";
 
-/**
- * CapFeedImportUpdate
- */
 export type CapFeedImportUpdate = {
   name?: string | null;
   url?: string | null;

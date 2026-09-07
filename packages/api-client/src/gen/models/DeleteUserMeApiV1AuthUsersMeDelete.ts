@@ -5,21 +5,25 @@
 
 import type { Message } from "./Message.js";
 
-/**
- * Message
- * @description User deleted
- */
-export type DeleteUserMeApiV1AuthUsersMeDelete200 = Message;
+export type DeleteUserMeApiV1AuthUsersMeDeleteStatus200 = Message;
 
-/**
- * @description Superuser cannot delete own account
- */
-export type DeleteUserMeApiV1AuthUsersMeDelete403 = any;
+export type DeleteUserMeApiV1AuthUsersMeDeleteStatus403 = unknown;
 
-export type DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse =
-  DeleteUserMeApiV1AuthUsersMeDelete200;
-
-export type DeleteUserMeApiV1AuthUsersMeDeleteMutation = {
-  Response: DeleteUserMeApiV1AuthUsersMeDelete200;
-  Errors: DeleteUserMeApiV1AuthUsersMeDelete403;
+export type DeleteUserMeApiV1AuthUsersMeDeleteOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteUserMeApiV1AuthUsersMeDeleteResponses = {
+  "200": DeleteUserMeApiV1AuthUsersMeDeleteStatus200;
+  "403": DeleteUserMeApiV1AuthUsersMeDeleteStatus403;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteUserMeApiV1AuthUsersMeDeleteResponse =
+  | DeleteUserMeApiV1AuthUsersMeDeleteStatus200
+  | DeleteUserMeApiV1AuthUsersMeDeleteStatus403;

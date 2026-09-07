@@ -6,45 +6,44 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { StatusReportDetails } from "./StatusReportDetails.js";
 
-export type ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams = {
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   report_id: string;
 };
 
-/**
- * StatusReportDetails
- * @description Status report and entries returned
- */
-export type ReadStatusReportApiV1HrStatusReportsReportIdGet200 =
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200 =
   StatusReportDetails;
 
-/**
- * @description Insufficient permission
- */
-export type ReadStatusReportApiV1HrStatusReportsReportIdGet403 = any;
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403 = unknown;
 
-/**
- * @description Status report not found
- */
-export type ReadStatusReportApiV1HrStatusReportsReportIdGet404 = any;
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadStatusReportApiV1HrStatusReportsReportIdGet422 =
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422 =
   HTTPValidationError;
 
-export type ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse =
-  ReadStatusReportApiV1HrStatusReportsReportIdGet200;
-
-export type ReadStatusReportApiV1HrStatusReportsReportIdGetQuery = {
-  Response: ReadStatusReportApiV1HrStatusReportsReportIdGet200;
-  PathParams: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams;
-  Errors:
-    | ReadStatusReportApiV1HrStatusReportsReportIdGet403
-    | ReadStatusReportApiV1HrStatusReportsReportIdGet404
-    | ReadStatusReportApiV1HrStatusReportsReportIdGet422;
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetOptions = {
+  body?: never;
+  path: ReadStatusReportApiV1HrStatusReportsReportIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetResponses = {
+  "200": ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200;
+  "403": ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403;
+  "404": ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404;
+  "422": ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadStatusReportApiV1HrStatusReportsReportIdGetResponse =
+  | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200
+  | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403
+  | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404
+  | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422;

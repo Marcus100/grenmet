@@ -3,36 +3,42 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse } from "../models/ReadPublicLatestActiveApiCapLatestActiveGet.js";
-
-function getReadPublicLatestActiveApiCapLatestActiveGetUrl() {
-  const res = { method: "GET", url: `/api/cap/latest-active` as const };
-  return res;
-}
+  ReadPublicLatestActiveApiCapLatestActiveGetOptions,
+  ReadPublicLatestActiveApiCapLatestActiveGetResponses,
+} from "../models/ReadPublicLatestActiveApiCapLatestActiveGet.js";
 
 /**
  * @summary Read Public Latest Active
  * {@link /api/cap/latest-active}
  */
-export async function readPublicLatestActiveApiCapLatestActiveGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPublicLatestActiveApiCapLatestActiveGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadPublicLatestActiveApiCapLatestActiveGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadPublicLatestActiveApiCapLatestActiveGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPublicLatestActiveApiCapLatestActiveGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/cap/latest-active",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadPublicLatestActiveApiCapLatestActiveGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

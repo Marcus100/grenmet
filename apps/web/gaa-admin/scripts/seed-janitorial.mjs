@@ -22,21 +22,15 @@ import {
   taskBundleItems,
   taskBundles,
 } from "../src/db/janitorial/schema.ts";
+import { databaseConfig } from "./database-config.mjs";
 
 const { Pool } = pg;
-
-const url =
-  process.env.JANITORIAL_DATABASE_URL ?? process.env.JANITORIAL_DB_URL;
-if (!url) {
-  console.error("JANITORIAL_DATABASE_URL environment variable is required");
-  process.exit(1);
-}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const csvPath = join(here, "..", "seed", "janitorial-spec.csv");
 const spec = parseSpec(readFileSync(csvPath, "utf8"));
 
-const pool = new Pool({ connectionString: url });
+const pool = new Pool(databaseConfig("janitorial"));
 const client = await pool.connect();
 const db = drizzle(client, { casing: "snake_case" });
 try {
@@ -52,7 +46,9 @@ try {
   if (seeded.rowCount) {
     console.log("janitorial already initialised; online edits preserved");
   } else {
-    const existing = await client.query('SELECT 1 FROM "buildings" LIMIT 1');
+    const existing = await client.query(
+      'SELECT 1 FROM "buildings" UNION ALL SELECT 1 FROM "sections" UNION ALL SELECT 1 FROM "areas" UNION ALL SELECT 1 FROM "activities" UNION ALL SELECT 1 FROM "task_bundles" UNION ALL SELECT 1 FROM "task_bundle_items" UNION ALL SELECT 1 FROM "area_tasks" UNION ALL SELECT 1 FROM "area_bundle_refs" LIMIT 1'
+    );
     if (existing.rowCount) {
       throw new Error(
         "Existing janitorial data requires review; refusing to overwrite it"

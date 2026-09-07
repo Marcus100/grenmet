@@ -1,0 +1,51 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "GEN",
+    "name": "General Office"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 12 (General Office). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "GENERAL_MANAGER",
+      "label": "General Manager",
+      "rank": 1,
+      "establishment_band": "Executive Management",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASSISTANT_TO_GM",
+      "label": "Assistant to the General Manager",
+      "rank": 2,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "AIRPORT_ENGINEER",
+      "label": "Airport Engineer",
+      "rank": 3,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "OFFICE_ATTENDANT_DRIVER",
+      "label": "Office Attendant/Driver",
+      "rank": 4,
+      "establishment_band": "Clerical",
+      "_deck_posts": 1
+    },
+    {
+      "code": "OFFICE_ATTENDANT",
+      "label": "Office Attendant",
+      "rank": 5,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 1
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

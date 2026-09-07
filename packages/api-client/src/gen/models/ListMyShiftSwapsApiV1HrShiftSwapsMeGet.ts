@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftSwapRequestsPublic } from "./ShiftSwapRequestsPublic.js";
 
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams = {
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,23 +24,27 @@ export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams = {
   size?: number;
 };
 
-/**
- * ShiftSwapRequestsPublic
- * @description Shift swap requests returned
- */
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGet200 = ShiftSwapRequestsPublic;
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200 =
+  ShiftSwapRequestsPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGet422 = HTTPValidationError;
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422 =
+  HTTPValidationError;
 
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse =
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGet200;
-
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery = {
-  Response: ListMyShiftSwapsApiV1HrShiftSwapsMeGet200;
-  QueryParams: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams;
-  Errors: ListMyShiftSwapsApiV1HrShiftSwapsMeGet422;
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQuery;
+  headers?: never;
 };
+
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponses = {
+  "200": ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200;
+  "422": ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetResponse =
+  | ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200
+  | ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422;

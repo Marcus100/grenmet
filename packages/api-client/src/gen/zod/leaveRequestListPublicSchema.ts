@@ -7,8 +7,8 @@ import * as z from "zod";
 import { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 
 export const leaveRequestListPublicSchema = z.object({
-  data: z.array(z.lazy(() => leaveRequestPublicSchema)),
-  count: z.number().int(),
-  page: z.optional(z.number().int().default(1)),
-  size: z.optional(z.number().int().default(100)),
+  data: z.array(leaveRequestPublicSchema),
+  count: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
 });

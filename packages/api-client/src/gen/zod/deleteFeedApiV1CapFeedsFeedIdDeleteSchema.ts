@@ -6,22 +6,15 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteFeedApiV1CapFeedsFeedIdDeletePathParamsSchema = z.object({
-  feed_id: z.string().uuid(),
-});
+export const deleteFeedApiV1CapFeedsFeedIdDeletePathFeedIdSchema = z.uuid();
 
-/**
- * @description Successful Response
- */
-export const deleteFeedApiV1CapFeedsFeedIdDelete204Schema = z.any();
+export const deleteFeedApiV1CapFeedsFeedIdDeleteStatus204Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteFeedApiV1CapFeedsFeedIdDelete422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const deleteFeedApiV1CapFeedsFeedIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteFeedApiV1CapFeedsFeedIdDeleteMutationResponseSchema = z.lazy(
-  () => deleteFeedApiV1CapFeedsFeedIdDelete204Schema
-);
+export const deleteFeedApiV1CapFeedsFeedIdDeleteResponseSchema =
+  deleteFeedApiV1CapFeedsFeedIdDeleteStatus204Schema;
+
+export const deleteFeedApiV1CapFeedsFeedIdDeleteErrorSchema =
+  deleteFeedApiV1CapFeedsFeedIdDeleteStatus422Schema;

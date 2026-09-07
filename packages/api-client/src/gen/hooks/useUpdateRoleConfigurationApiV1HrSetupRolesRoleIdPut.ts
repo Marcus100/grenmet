@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateRoleConfigurationApiV1HrSetupRolesRoleIdPut } from "../clients/updateRoleConfigurationApiV1HrSetupRolesRoleIdPut.js";
 import type {
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422,
 } from "../models/UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut.js";
 
 export const updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationKey =
   () => [{ url: "/api/v1/hr/setup/roles/:role_id" }] as const;
 
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationKey =
-  ReturnType<
-    typeof updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationKey
-  >;
-
 export function updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationKey();
   return mutationOptions<
-    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422
     >,
-    {
-      role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"];
-      data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-    },
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ role_id, data }) => {
-      return updateRoleConfigurationApiV1HrSetupRolesRoleIdPut(
-        role_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateRoleConfigurationApiV1HrSetupRolesRoleIdPut({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -76,22 +63,19 @@ export function updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationOptions
 export function useUpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
+      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
       ResponseErrorConfig<
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422
       >,
-      {
-        role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"];
-        data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-      },
+      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -104,32 +88,26 @@ export function useUpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut<TContext>(
     updateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
+      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
       ResponseErrorConfig<
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+        | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422
       >,
-      {
-        role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"];
-        data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-      },
+      UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422
     >,
-    {
-      role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"];
-      data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-    },
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
     TContext
   >(
     {
@@ -139,17 +117,14 @@ export function useUpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200,
     ResponseErrorConfig<
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422
     >,
-    {
-      role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"];
-      data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-    },
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
     TContext
   >;
 }

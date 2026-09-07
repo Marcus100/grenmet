@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateCalendarEventApiV1HrCalendarEventsPost400,
-  CreateCalendarEventApiV1HrCalendarEventsPost403,
-  CreateCalendarEventApiV1HrCalendarEventsPost404,
-  CreateCalendarEventApiV1HrCalendarEventsPost422,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest,
-  CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
+  CreateCalendarEventApiV1HrCalendarEventsPostOptions,
+  CreateCalendarEventApiV1HrCalendarEventsPostResponses,
 } from "../models/CreateCalendarEventApiV1HrCalendarEventsPost.js";
-
-function getCreateCalendarEventApiV1HrCalendarEventsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/calendar/events` as const };
-  return res;
-}
 
 /**
  * @description Record anything the department needs on its calendar. Any member of staff may add an entry (calendar.event.create) and may edit or cancel their own; changing someone else's needs calendar.manage. Times are department-local wall clock, matching the roster.
  * @summary Add a department calendar event
  * {@link /api/v1/hr/calendar/events}
  */
-export async function createCalendarEventApiV1HrCalendarEventsPost(
-  data: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createCalendarEventApiV1HrCalendarEventsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateCalendarEventApiV1HrCalendarEventsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateCalendarEventApiV1HrCalendarEventsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateCalendarEventApiV1HrCalendarEventsPost400
-      | CreateCalendarEventApiV1HrCalendarEventsPost403
-      | CreateCalendarEventApiV1HrCalendarEventsPost404
-      | CreateCalendarEventApiV1HrCalendarEventsPost422
-    >,
-    CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateCalendarEventApiV1HrCalendarEventsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/calendar/events",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateCalendarEventApiV1HrCalendarEventsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

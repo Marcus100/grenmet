@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  LoginAccessTokenApiV1LoginAccessTokenPost400,
-  LoginAccessTokenApiV1LoginAccessTokenPost422,
-  LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+  LoginAccessTokenApiV1LoginAccessTokenPostOptions,
+  LoginAccessTokenApiV1LoginAccessTokenPostResponses,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
-
-function getLoginAccessTokenApiV1LoginAccessTokenPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/access-token` as const };
-  return res;
-}
 
 /**
  * @description OAuth2 compatible token login. Returns an access token for future requests.
  * @summary Login with OAuth2
  * {@link /api/v1/login/access-token}
  */
-export async function loginAccessTokenApiV1LoginAccessTokenPost(
-  data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  config: Partial<
-    RequestConfig<LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function loginAccessTokenApiV1LoginAccessTokenPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    LoginAccessTokenApiV1LoginAccessTokenPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    LoginAccessTokenApiV1LoginAccessTokenPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
-    ResponseErrorConfig<
-      | LoginAccessTokenApiV1LoginAccessTokenPost400
-      | LoginAccessTokenApiV1LoginAccessTokenPost422
-      | LoginAccessTokenApiV1LoginAccessTokenPost429
-    >,
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest
-  >({
-    method: "POST",
-    url: getLoginAccessTokenApiV1LoginAccessTokenPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      ...requestConfig.headers,
-    },
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/access-token",
+      contentType: { request: "application/x-www-form-urlencoded" },
+      ...config,
+    }) as Promise<
+      RequestResult<
+        LoginAccessTokenApiV1LoginAccessTokenPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

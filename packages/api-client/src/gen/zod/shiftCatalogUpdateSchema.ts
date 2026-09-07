@@ -7,13 +7,13 @@ import * as z from "zod";
 import { shiftCategorySchema } from "./shiftCategorySchema.js";
 
 export const shiftCatalogUpdateSchema = z.object({
-  label: z.optional(z.union([z.string(), z.null()])),
-  category: z.optional(z.union([z.lazy(() => shiftCategorySchema), z.null()])),
-  start_time: z.optional(z.union([z.string(), z.null()])),
-  end_time: z.optional(z.union([z.string(), z.null()])),
-  ends_next_day: z.optional(z.union([z.boolean(), z.null()])),
-  counts_as_work_hours: z.optional(z.union([z.boolean(), z.null()])),
-  needs_reason: z.optional(z.union([z.boolean(), z.null()])),
-  needs_approval: z.optional(z.union([z.boolean(), z.null()])),
-  is_active: z.optional(z.union([z.boolean(), z.null()])),
+  label: z.union([z.string().max(120), z.null()]).optional(),
+  category: z.union([shiftCategorySchema, z.null()]).optional(),
+  start_time: z.union([z.string().max(5), z.null()]).optional(),
+  end_time: z.union([z.string().max(5), z.null()]).optional(),
+  ends_next_day: z.union([z.boolean(), z.null()]).optional(),
+  counts_as_work_hours: z.union([z.boolean(), z.null()]).optional(),
+  needs_reason: z.union([z.boolean(), z.null()]).optional(),
+  needs_approval: z.union([z.boolean(), z.null()]).optional(),
+  is_active: z.union([z.boolean(), z.null()]).optional(),
 });

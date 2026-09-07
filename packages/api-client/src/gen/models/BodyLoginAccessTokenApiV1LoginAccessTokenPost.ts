@@ -3,27 +3,24 @@
  * Do not edit manually.
  */
 
-/**
- * Body_login_access_token_api_v1_login_access_token_post
- */
 export type BodyLoginAccessTokenApiV1LoginAccessTokenPost = {
   grant_type?: string | null;
-  /**
-   * @type string
-   */
   username: string;
   /**
-   * @type string, password
+   * @description
+   * Format: `password`
+   * @type string
    */
   password: string;
   /**
-   * @default ""
+   * @default ''
    * @type string | undefined
    */
   scope?: string;
   client_id?: string | null;
   /**
-   * @type unknown | undefined, password
+   * @description
+   * Format: `password`
    */
   client_secret?: string | null;
 };

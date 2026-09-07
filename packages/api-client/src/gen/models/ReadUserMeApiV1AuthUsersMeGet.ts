@@ -5,16 +5,21 @@
 
 import type { UserPublic } from "./UserPublic.js";
 
-/**
- * UserPublic
- * @description Current user returned
- */
-export type ReadUserMeApiV1AuthUsersMeGet200 = UserPublic;
+export type ReadUserMeApiV1AuthUsersMeGetStatus200 = UserPublic;
 
-export type ReadUserMeApiV1AuthUsersMeGetQueryResponse =
-  ReadUserMeApiV1AuthUsersMeGet200;
-
-export type ReadUserMeApiV1AuthUsersMeGetQuery = {
-  Response: ReadUserMeApiV1AuthUsersMeGet200;
-  Errors: any;
+export type ReadUserMeApiV1AuthUsersMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadUserMeApiV1AuthUsersMeGetResponses = {
+  "200": ReadUserMeApiV1AuthUsersMeGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadUserMeApiV1AuthUsersMeGetResponse =
+  ReadUserMeApiV1AuthUsersMeGetStatus200;

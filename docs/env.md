@@ -51,7 +51,7 @@ not require an env file unless those defaults need to be overridden.
 | `scripts/scrapy-wxwatch/.env.local` | wxwatch crawler and database pipeline | N/A |
 | `infra/docker/staging.env` | Staging non-secret deploy configuration | First `--env-file` in deploy workflow |
 | `infra/docker/production.env` | Production non-secret deploy configuration | First `--env-file` in deploy workflow |
-| Runtime `.env.secrets` | Deploy-only secrets and derived database URLs | Second `--env-file`; generated and deleted by CI |
+| Runtime `infra/docker/runtime/.env.local` | Deploy-only secrets and derived database URLs | Second `--env-file`; generated and deleted by CI |
 
 > **Why two Docker files?** The infra compose needs database provisioning variables (`WXWATCH_DB_NAME`, `APP_DB_USER`, `ADMINER_DESIGN`) that don't belong in the FastAPI env. Sharing one file caused infra variables to be sourced from the wrong place.
 
@@ -193,16 +193,19 @@ Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Production (both domains — `barrels.gd` + `weather.gd` coexist; see [`weather-gd-golive.md`](./weather-gd-golive.md)):**
+**Production:**
+
+```text
+AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
 ```
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd,.weather.gd
-```
-A leading-dot entry matches the apex domain and every subdomain (cookie `Domain`
-semantics), so no per-app maintenance is needed. Suffix matching is implemented in
-`apps/web/auth/src/lib/return-to.ts` (`getSafeReturnTo`) and covered by
-`apps/web/auth/src/test/return-to.test.ts`. In the new deploy stack this value is
-assembled as `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS}` — see
-`infra/docker/production.env`. Staging uses `.staging.barrels.gd` only.
+
+Staging uses `.staging.barrels.gd`. The shared Compose file assembles this as
+`.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; current production configuration does
+not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+listed in `infra/docker/production.env`; staging uses their staging equivalents.
+
+A leading-dot entry accepts the apex and its subdomains. The superseded
+weather.gd go-live plan is historical context, not an active allowlist recipe.
 
 ### Apps that delegate auth (docs, gms)
 
@@ -337,3 +340,17 @@ secrets, not in either file.
 .env.local
 .env.*.local
 ```
+
+## Storage alignment and CMS
+
+Local migration commands explicitly load `.env.local` and use the same migration runners as deployment. Generic `DB_URL` fallbacks are unsupported. `python3 scripts/production/check-local-env.py` reports missing variable names and ignore coverage without displaying values.
+
+CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `SESSION_COOKIE_NAME` and `SESSION_COOKIE_DOMAIN`. `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
+
+The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
+
+### CMS email
+
+CMS uses Payload's official Resend adapter. In `apps/web/cms/.env.local`, configure `RESEND_API_KEY` and `EMAILS_FROM_EMAIL` (an address on your verified Resend domain). `EMAILS_FROM_NAME` defaults to `GMS Content`. Keep the API key private and restart the local CMS after configuring it. With no key, local development and migrations remain usable and Payload reports email as unconfigured. A key without a sender fails configuration validation.
+
+Deployment supplies the existing environment-scoped `RESEND_API_KEY` secret and `EMAILS_FROM_EMAIL` setting to CMS. The adapter sends only when CMS calls its email API; startup and migration do not send test messages. Shared FastAPI sign-in remains responsible for account emails. Mailchimp campaigns are separate and have not been configured by this change.

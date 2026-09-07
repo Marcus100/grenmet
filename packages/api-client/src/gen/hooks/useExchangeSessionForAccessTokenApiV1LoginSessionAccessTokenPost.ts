@@ -9,50 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost } from "../clients/exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
 import type {
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest,
-  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+  ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422,
 } from "../models/ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
 
 export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey =
   () => [{ url: "/api/v1/login/session/access-token" }] as const;
 
-export type ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey =
-  ReturnType<
-    typeof exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey
-  >;
-
 export function exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationKey();
   return mutationOptions<
-    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-    {
-      data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-    },
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422>,
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost(
-        data,
-        config
-      );
+    mutationFn: async ({ body }) => {
+      return exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -67,16 +56,14 @@ export function useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost
 >(
   options: {
     mutation?: UseMutationOptions<
-      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-      ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-      {
-        data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-      },
+      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+      ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422>,
+      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -89,20 +76,16 @@ export function useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost
     exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationOptions(
       config
     ) as UseMutationOptions<
-      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-      ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-      {
-        data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-      },
+      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+      ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422>,
+      ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
       TContext
     >;
 
   return useMutation<
-    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-    {
-      data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-    },
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422>,
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
     TContext
   >(
     {
@@ -112,11 +95,9 @@ export function useExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost
     },
     queryClient
   ) as UseMutationResult<
-    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponse,
-    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422>,
-    {
-      data: ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequest;
-    },
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200,
+    ResponseErrorConfig<ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422>,
+    ExchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostOptions,
     TContext
   >;
 }

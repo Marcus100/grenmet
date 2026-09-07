@@ -8,46 +8,34 @@ import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParamsSchema =
-  z.object({
-    absentee_report_id: z.string().uuid(),
-  });
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathAbsenteeReportIdSchema =
+  z.uuid();
 
-/**
- * @description Absentee report updated
- */
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200Schema =
-  z.lazy(() => absenteeReportPublicSchema);
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200Schema =
+  absenteeReportPublicSchema;
 
-/**
- * @description Absentee report is not a draft
- */
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400Schema =
-  z.any();
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to edit this absentee report
- */
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403Schema =
-  z.any();
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Absentee report not found
- */
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404Schema =
-  z.any();
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequestSchema =
-  z.lazy(() => absenteeReportCreateSchema);
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponseSchema =
+  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200Schema;
 
-export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponseSchema =
-  z.lazy(
-    () =>
-      updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch200Schema
-  );
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchErrorSchema =
+  z.union([
+    updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400Schema,
+    updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403Schema,
+    updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404Schema,
+    updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422Schema,
+  ]);
+
+export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBodySchema =
+  absenteeReportCreateSchema;

@@ -7,35 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { UserUpdateMe } from "./UserUpdateMe.js";
 
-/**
- * UserPublic
- * @description User updated
- */
-export type UpdateUserMeApiV1AuthUsersMePatch200 = UserPublic;
+export type UpdateUserMeApiV1AuthUsersMePatchStatus200 = UserPublic;
 
-/**
- * @description Email already exists
- */
-export type UpdateUserMeApiV1AuthUsersMePatch409 = any;
+export type UpdateUserMeApiV1AuthUsersMePatchStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateUserMeApiV1AuthUsersMePatch422 = HTTPValidationError;
+export type UpdateUserMeApiV1AuthUsersMePatchStatus422 = HTTPValidationError;
 
-/**
- * UserUpdateMe
- */
-export type UpdateUserMeApiV1AuthUsersMePatchMutationRequest = UserUpdateMe;
+export type UpdateUserMeApiV1AuthUsersMePatchBody = UserUpdateMe;
 
-export type UpdateUserMeApiV1AuthUsersMePatchMutationResponse =
-  UpdateUserMeApiV1AuthUsersMePatch200;
-
-export type UpdateUserMeApiV1AuthUsersMePatchMutation = {
-  Response: UpdateUserMeApiV1AuthUsersMePatch200;
-  Request: UpdateUserMeApiV1AuthUsersMePatchMutationRequest;
-  Errors:
-    | UpdateUserMeApiV1AuthUsersMePatch409
-    | UpdateUserMeApiV1AuthUsersMePatch422;
+export type UpdateUserMeApiV1AuthUsersMePatchOptions = {
+  body: UpdateUserMeApiV1AuthUsersMePatchBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateUserMeApiV1AuthUsersMePatchResponses = {
+  "200": UpdateUserMeApiV1AuthUsersMePatchStatus200;
+  "409": UpdateUserMeApiV1AuthUsersMePatchStatus409;
+  "422": UpdateUserMeApiV1AuthUsersMePatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateUserMeApiV1AuthUsersMePatchResponse =
+  | UpdateUserMeApiV1AuthUsersMePatchStatus200
+  | UpdateUserMeApiV1AuthUsersMePatchStatus409
+  | UpdateUserMeApiV1AuthUsersMePatchStatus422;

@@ -10,48 +10,44 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readPublicAlertApiCapAlertsIdentifierGet } from "../clients/readPublicAlertApiCapAlertsIdentifierGet.js";
 import type {
-  ReadPublicAlertApiCapAlertsIdentifierGet422,
-  ReadPublicAlertApiCapAlertsIdentifierGetPathParams,
-  ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
+  ReadPublicAlertApiCapAlertsIdentifierGetOptions,
+  ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
+  ReadPublicAlertApiCapAlertsIdentifierGetStatus422,
 } from "../models/ReadPublicAlertApiCapAlertsIdentifierGet.js";
 
-export const readPublicAlertApiCapAlertsIdentifierGetQueryKey = (
-  identifier: ReadPublicAlertApiCapAlertsIdentifierGetPathParams["identifier"]
-) =>
-  [
-    { url: "/api/cap/alerts/:identifier", params: { identifier: identifier } },
-  ] as const;
+export const readPublicAlertApiCapAlertsIdentifierGetQueryKey = ({
+  path,
+}: Omit<ReadPublicAlertApiCapAlertsIdentifierGetOptions, "headers">) =>
+  [{ url: "/api/cap/alerts/:identifier", params: path }] as const;
 
-export type ReadPublicAlertApiCapAlertsIdentifierGetQueryKey = ReturnType<
+type ReadPublicAlertApiCapAlertsIdentifierGetQueryKey = ReturnType<
   typeof readPublicAlertApiCapAlertsIdentifierGetQueryKey
 >;
 
 export function readPublicAlertApiCapAlertsIdentifierGetQueryOptions(
-  identifier: ReadPublicAlertApiCapAlertsIdentifierGetPathParams["identifier"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadPublicAlertApiCapAlertsIdentifierGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readPublicAlertApiCapAlertsIdentifierGetQueryKey(identifier);
+  const queryKey = readPublicAlertApiCapAlertsIdentifierGetQueryKey({ path });
   return queryOptions<
-    ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
-    ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGet422>,
-    ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
+    ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
+    ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGetStatus422>,
+    ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
     typeof queryKey
   >({
-    enabled: !!identifier,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readPublicAlertApiCapAlertsIdentifierGet(identifier, config);
+      return readPublicAlertApiCapAlertsIdentifierGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,46 +57,55 @@ export function readPublicAlertApiCapAlertsIdentifierGetQueryOptions(
  * {@link /api/cap/alerts/:identifier}
  */
 export function useReadPublicAlertApiCapAlertsIdentifierGet<
-  TData = ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
-  TQueryData = ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
+  TData = ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
+  TQueryData = ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
   TQueryKey extends QueryKey = ReadPublicAlertApiCapAlertsIdentifierGetQueryKey,
 >(
-  identifier: ReadPublicAlertApiCapAlertsIdentifierGetPathParams["identifier"],
+  {
+    path,
+  }: {
+    path:
+      | ReadPublicAlertApiCapAlertsIdentifierGetOptions["path"]
+      | (() => ReadPublicAlertApiCapAlertsIdentifierGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
-        ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGet422>,
+        ReadPublicAlertApiCapAlertsIdentifierGetStatus200,
+        ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGetStatus422>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readPublicAlertApiCapAlertsIdentifierGetQueryKey(identifier);
+    resolvedOptions?.queryKey ??
+    readPublicAlertApiCapAlertsIdentifierGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readPublicAlertApiCapAlertsIdentifierGetQueryOptions(
-        identifier,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGet422>
+    ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGetStatus422>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

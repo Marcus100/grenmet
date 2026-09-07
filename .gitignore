@@ -22,6 +22,8 @@ __pycache__/
 .Python
 develop-eggs/
 downloads/
+!apps/web/gms/src/app/(pages)/resources/downloads/
+!apps/web/gms/src/app/(pages)/resources/downloads/page.tsx
 eggs/
 .eggs/
 lib64/
@@ -197,3 +199,18 @@ apps/web/mbia/.source/
 
 # Downloaded tide-gauge research snapshots (keep outside source control)
 /scripts/bishop-weather/raw/
+
+# Storage and deployment output (never source data).
+backups/
+*.dump
+*.sqlite
+*.sqlite3
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3-wal
+*.sqlite3-shm
+acme.json
+/infra/docker/runtime/
+/scripts/sutron-collector/data/
+/scripts/scrapy-wxwatch/data/
+/scripts/scrapy-wxwatch/images/

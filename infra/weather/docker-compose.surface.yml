@@ -1,0 +1,128 @@
+# Dedicated SURFACE project; all persistent paths must match the host inventory.
+x-surface: &surface
+  image: ${SURFACE_IMAGE:?A commit-matched SURFACE image is required}
+  env_file: ["${SURFACE_ENV_FILE:?SURFACE_ENV_FILE required}"]
+  volumes:
+    - ${SURFACE_DATA_ROOT:?}/media:/data/media
+    - ${SURFACE_DATA_ROOT}/shared:/data/shared
+    - ${SURFACE_DATA_ROOT}/backup:/data/backup
+    - ${SURFACE_DATA_ROOT}/exported_data:/data/exported_data
+    - ${SURFACE_DATA_ROOT}/documents:/data/documents
+  networks: [surface-net]
+  restart: unless-stopped
+
+services:
+  postgres:
+    image: timescale/timescaledb-postgis:2.3.0-pg13@sha256:7a742a575416eafd8479dcac205846797583bc1bd53c18ffaf707f40bbe9b03e
+    env_file: ["${SURFACE_ENV_FILE:?}"]
+    restart: unless-stopped
+    shm_size: 4g
+    volumes:
+      - ${SURFACE_DATA_ROOT:?}/postgresql:/var/lib/postgresql/data
+      - ${SURFACE_PG_HBA:?}:/etc/postgresql/pg_hba.custom.conf:ro
+    command: ["postgres", "-c", "max_locks_per_transaction=1024", "-c", "hba_file=/etc/postgresql/pg_hba.custom.conf"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [surface-net]
+  redis:
+    image: ${SURFACE_REDIS_IMAGE:?Use a reviewed immutable Redis image}
+    command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
+    volumes: ["redis-data:/data"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks: [surface-net]
+  cache:
+    image: ${SURFACE_MEMCACHED_IMAGE:?Use a reviewed immutable Memcached image}
+    restart: unless-stopped
+    networks: [surface-net]
+  migrate:
+    <<: *surface
+    restart: "no"
+    command: ["python", "manage.py", "migrate", "--noinput"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *surface
+    command: ["sh", "startup.sh"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+      cache: {condition: service_started}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+  nginx:
+    image: ${SURFACE_NGINX_IMAGE:?Use a reviewed immutable nginx image}
+    restart: unless-stopped
+    volumes:
+      - ./surface-nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${SURFACE_STATIC_ROOT:?}:/home/app/web/staticfiles:ro
+      - ${SURFACE_DATA_ROOT:?}/media:/home/app/web/data/media:ro
+      - ${SURFACE_DATA_ROOT}/exported_data:/home/app/web/data/exported_data:ro
+    depends_on:
+      api: {condition: service_healthy}
+    networks: [surface-net, weather-proxy]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${WEATHER_PROXY_NETWORK:?}"
+      - "traefik.http.routers.surface.rule=Host(`${SURFACE_HOST:?}`)"
+      - "traefik.http.routers.surface.entrypoints=websecure"
+      - "traefik.http.routers.surface.tls.certresolver=myresolver"
+      - "traefik.http.services.surface.loadbalancer.server.port=80"
+      - "traefik.http.services.surface.loadbalancer.healthcheck.path=/health/ready/"
+  celery_worker_default:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q celery --concurrency=5 --prefetch-multiplier=1
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  celery_worker_summary:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q summary --concurrency=6 --prefetch-multiplier=1
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  celery_worker_ingest:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q ingest --concurrency=4 --prefetch-multiplier=1
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  celery_worker_maintenance:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q maintenance --concurrency=3 --prefetch-multiplier=1
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  celery_worker_export:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q export --concurrency=2 --prefetch-multiplier=1
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+  celery_beat:
+    <<: *surface
+    command: /home/surface/.local/bin/celery -A tempestas_api beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+      redis: {condition: service_healthy}
+
+networks:
+  surface-net:
+  weather-proxy:
+    external: true
+    name: ${WEATHER_PROXY_NETWORK:?}
+volumes:
+  redis-data:
+    external: true
+    name: ${SURFACE_REDIS_VOLUME:?Preserve the reviewed queue volume}

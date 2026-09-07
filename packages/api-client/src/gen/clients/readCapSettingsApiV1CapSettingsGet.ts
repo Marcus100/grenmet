@@ -3,36 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadCapSettingsApiV1CapSettingsGetQueryResponse } from "../models/ReadCapSettingsApiV1CapSettingsGet.js";
-
-function getReadCapSettingsApiV1CapSettingsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/settings` as const };
-  return res;
-}
+  ReadCapSettingsApiV1CapSettingsGetOptions,
+  ReadCapSettingsApiV1CapSettingsGetResponses,
+} from "../models/ReadCapSettingsApiV1CapSettingsGet.js";
 
 /**
  * @summary Read Cap Settings
  * {@link /api/v1/cap/settings}
  */
-export async function readCapSettingsApiV1CapSettingsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readCapSettingsApiV1CapSettingsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadCapSettingsApiV1CapSettingsGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadCapSettingsApiV1CapSettingsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadCapSettingsApiV1CapSettingsGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadCapSettingsApiV1CapSettingsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/settings",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadCapSettingsApiV1CapSettingsGetResponses, ThrowOnError>
+    >
+  );
 }

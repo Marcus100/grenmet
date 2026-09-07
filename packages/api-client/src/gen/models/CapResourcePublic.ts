@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapResourcePublic
- */
 export type CapResourcePublic = {
   /**
    * @minLength 1
@@ -24,11 +21,10 @@ export type CapResourcePublic = {
   deref_uri?: string | null;
   digest?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type integer
-   */
   sequence: number;
 };

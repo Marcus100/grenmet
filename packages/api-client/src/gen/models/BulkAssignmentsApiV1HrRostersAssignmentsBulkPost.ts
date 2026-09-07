@@ -7,44 +7,38 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 import type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
 
-/**
- * Response Bulk Assignments Api V1 Hr Rosters Assignments Bulk Post
- * @description Assignments created or updated
- */
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPost200 =
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200 =
   RosterAssignmentPublic[];
 
-/**
- * @description Insufficient permission
- */
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403 = any;
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403 = unknown;
 
-/**
- * @description Roster period not found
- */
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404 = any;
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422 =
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422 =
   HTTPValidationError;
 
-/**
- * RosterAssignmentBulkCreate
- */
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest =
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody =
   RosterAssignmentBulkCreate;
 
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse =
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost200;
-
-export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutation = {
-  Response: BulkAssignmentsApiV1HrRostersAssignmentsBulkPost200;
-  Request: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest;
-  Errors:
-    | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-    | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-    | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422;
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions = {
+  body: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponses = {
+  "200": BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200;
+  "403": BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403;
+  "404": BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404;
+  "422": BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponse =
+  | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200
+  | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403
+  | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404
+  | BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422;

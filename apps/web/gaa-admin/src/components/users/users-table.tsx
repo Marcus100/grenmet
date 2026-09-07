@@ -27,7 +27,8 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
-import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { flexRender } from "@tanstack/react-table";
+import type { LegacyReactTable } from "@tanstack/react-table/legacy";
 import type { MouseEvent } from "react";
 
 import type { UserRow } from "./users-row";
@@ -48,7 +49,7 @@ function getPageNumbers(currentPage: number, pageCount: number) {
   return [currentPage - 1, currentPage, currentPage + 1];
 }
 
-export function UsersTable({ table }: { table: TableType<UserRow> }) {
+export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
   const pageCount = Math.max(table.getPageCount(), 1);
   const currentPage = Math.min(
     table.getState().pagination.pageIndex + 1,

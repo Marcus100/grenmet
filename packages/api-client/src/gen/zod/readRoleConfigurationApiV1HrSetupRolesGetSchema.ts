@@ -6,27 +6,24 @@
 import * as z from "zod";
 import { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readRoleConfigurationApiV1HrSetupRolesGet200Schema = z.array(
-  z.lazy(() => roleConfigurationSchema)
+export const readRoleConfigurationApiV1HrSetupRolesGetStatus200Schema = z.array(
+  roleConfigurationSchema
 );
 
-/**
- * @description Administrator access required
- */
-export const readRoleConfigurationApiV1HrSetupRolesGet403Schema = z.any();
+export const readRoleConfigurationApiV1HrSetupRolesGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const readRoleConfigurationApiV1HrSetupRolesGet404Schema = z.any();
+export const readRoleConfigurationApiV1HrSetupRolesGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const readRoleConfigurationApiV1HrSetupRolesGet409Schema = z.any();
+export const readRoleConfigurationApiV1HrSetupRolesGetStatus409Schema =
+  z.unknown();
 
-export const readRoleConfigurationApiV1HrSetupRolesGetQueryResponseSchema =
-  z.lazy(() => readRoleConfigurationApiV1HrSetupRolesGet200Schema);
+export const readRoleConfigurationApiV1HrSetupRolesGetResponseSchema =
+  readRoleConfigurationApiV1HrSetupRolesGetStatus200Schema;
+
+export const readRoleConfigurationApiV1HrSetupRolesGetErrorSchema = z.union([
+  readRoleConfigurationApiV1HrSetupRolesGetStatus403Schema,
+  readRoleConfigurationApiV1HrSetupRolesGetStatus404Schema,
+  readRoleConfigurationApiV1HrSetupRolesGetStatus409Schema,
+]);

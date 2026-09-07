@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GoogleFinish
- */
 export type GoogleFinish = {
   /**
    * @minLength 32

@@ -1,5 +1,6 @@
 export {
   authApiFetch,
+  authApiFetchResponse,
   authApiFormFetch,
   clearSessionCookie,
   clearSessionCookieOnResponse,

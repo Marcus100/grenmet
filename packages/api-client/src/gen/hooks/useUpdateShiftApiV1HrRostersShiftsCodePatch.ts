@@ -9,53 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateShiftApiV1HrRostersShiftsCodePatch } from "../clients/updateShiftApiV1HrRostersShiftsCodePatch.js";
 import type {
-  UpdateShiftApiV1HrRostersShiftsCodePatch403,
-  UpdateShiftApiV1HrRostersShiftsCodePatch404,
-  UpdateShiftApiV1HrRostersShiftsCodePatch422,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
-  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+  UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus403,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus404,
+  UpdateShiftApiV1HrRostersShiftsCodePatchStatus422,
 } from "../models/UpdateShiftApiV1HrRostersShiftsCodePatch.js";
 
 export const updateShiftApiV1HrRostersShiftsCodePatchMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/shifts/:code" }] as const;
 
-export type UpdateShiftApiV1HrRostersShiftsCodePatchMutationKey = ReturnType<
-  typeof updateShiftApiV1HrRostersShiftsCodePatchMutationKey
->;
-
 export function updateShiftApiV1HrRostersShiftsCodePatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateShiftApiV1HrRostersShiftsCodePatchMutationKey();
   return mutationOptions<
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+    UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftApiV1HrRostersShiftsCodePatch403
-      | UpdateShiftApiV1HrRostersShiftsCodePatch404
-      | UpdateShiftApiV1HrRostersShiftsCodePatch422
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422
     >,
-    {
-      code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"];
-      data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-    },
+    UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ code, data }) => {
-      return updateShiftApiV1HrRostersShiftsCodePatch(code, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateShiftApiV1HrRostersShiftsCodePatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -68,21 +60,18 @@ export function updateShiftApiV1HrRostersShiftsCodePatchMutationOptions<
 export function useUpdateShiftApiV1HrRostersShiftsCodePatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+      UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
       ResponseErrorConfig<
-        | UpdateShiftApiV1HrRostersShiftsCodePatch403
-        | UpdateShiftApiV1HrRostersShiftsCodePatch404
-        | UpdateShiftApiV1HrRostersShiftsCodePatch422
+        | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+        | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+        | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422
       >,
-      {
-        code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"];
-        data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-      },
+      UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -94,30 +83,24 @@ export function useUpdateShiftApiV1HrRostersShiftsCodePatch<TContext>(
   const baseOptions = updateShiftApiV1HrRostersShiftsCodePatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+    UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftApiV1HrRostersShiftsCodePatch403
-      | UpdateShiftApiV1HrRostersShiftsCodePatch404
-      | UpdateShiftApiV1HrRostersShiftsCodePatch422
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422
     >,
-    {
-      code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"];
-      data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-    },
+    UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+    UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftApiV1HrRostersShiftsCodePatch403
-      | UpdateShiftApiV1HrRostersShiftsCodePatch404
-      | UpdateShiftApiV1HrRostersShiftsCodePatch422
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422
     >,
-    {
-      code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"];
-      data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-    },
+    UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
     TContext
   >(
     {
@@ -127,16 +110,13 @@ export function useUpdateShiftApiV1HrRostersShiftsCodePatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
+    UpdateShiftApiV1HrRostersShiftsCodePatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftApiV1HrRostersShiftsCodePatch403
-      | UpdateShiftApiV1HrRostersShiftsCodePatch404
-      | UpdateShiftApiV1HrRostersShiftsCodePatch422
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus403
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus404
+      | UpdateShiftApiV1HrRostersShiftsCodePatchStatus422
     >,
-    {
-      code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"];
-      data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest;
-    },
+    UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
     TContext
   >;
 }

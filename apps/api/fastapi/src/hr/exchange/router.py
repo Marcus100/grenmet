@@ -52,7 +52,7 @@ async def list_my_shift_swaps(
     summary="Create shift swap request",
     description="Create a shift swap request. Requires shift_swap.request.create.self permission.",
     responses={
-        status.HTTP_200_OK: {"description": "Shift swap request created"},
+        status.HTTP_201_CREATED: {"description": "Shift swap request created"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )

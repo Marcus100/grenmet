@@ -3,16 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { userPublicSchema } from "./userPublicSchema.js";
 
-/**
- * @description Current user returned
- */
-export const readUserMeApiV1AuthUsersMeGet200Schema = z.lazy(
-  () => userPublicSchema
-);
+export const readUserMeApiV1AuthUsersMeGetStatus200Schema = userPublicSchema;
 
-export const readUserMeApiV1AuthUsersMeGetQueryResponseSchema = z.lazy(
-  () => readUserMeApiV1AuthUsersMeGet200Schema
-);
+export const readUserMeApiV1AuthUsersMeGetResponseSchema =
+  readUserMeApiV1AuthUsersMeGetStatus200Schema;

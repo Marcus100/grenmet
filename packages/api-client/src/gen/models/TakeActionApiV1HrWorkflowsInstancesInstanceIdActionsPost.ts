@@ -7,59 +7,55 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
 import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
 
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams =
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  instance_id: string;
+};
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200 =
+  WorkflowInstancePublic;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400 =
+  unknown;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403 =
+  unknown;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404 =
+  unknown;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422 =
+  HTTPValidationError;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBody =
+  WorkflowActionRequest;
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions = {
+  body: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBody;
+  path: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPath;
+  query?: never;
+  headers?: never;
+};
+
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponses =
   {
-    /**
-     * @type string, uuid
-     */
-    instance_id: string;
+    "200": TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200;
+    "400": TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400;
+    "403": TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403;
+    "404": TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404;
+    "422": TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422;
   };
 
 /**
- * WorkflowInstancePublic
- * @description Action applied
+ * @description Union of all possible responses
  */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200 =
-  WorkflowInstancePublic;
-
-/**
- * @description Workflow cannot be submitted or is not pending
- */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400 = any;
-
-/**
- * @description Not allowed to perform this workflow action
- */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403 = any;
-
-/**
- * @description Workflow instance or step not found
- */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422 =
-  HTTPValidationError;
-
-/**
- * WorkflowActionRequest
- */
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest =
-  WorkflowActionRequest;
-
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponse =
-  TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200;
-
-export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutation = {
-  Response: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200;
-  Request: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequest;
-  PathParams: TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParams;
-  Errors:
-    | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400
-    | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403
-    | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404
-    | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422;
-};
+export type TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponse =
+  | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200
+  | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400
+  | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403
+  | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404
+  | TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422;

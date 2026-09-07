@@ -3,40 +3,28 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadyApiV1UtilsReadyGet503,
-  ReadyApiV1UtilsReadyGetQueryResponse,
+  ReadyApiV1UtilsReadyGetOptions,
+  ReadyApiV1UtilsReadyGetResponses,
 } from "../models/ReadyApiV1UtilsReadyGet.js";
-
-function getReadyApiV1UtilsReadyGetUrl() {
-  const res = { method: "GET", url: `/api/v1/utils/ready/` as const };
-  return res;
-}
 
 /**
  * @description Readiness probe; returns 200 if the app can reach the database, 503 otherwise.
  * @summary Readiness
  * {@link /api/v1/utils/ready/}
  */
-export async function readyApiV1UtilsReadyGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readyApiV1UtilsReadyGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadyApiV1UtilsReadyGetOptions, ThrowOnError> = {}
+): Unwrappable<RequestResult<ReadyApiV1UtilsReadyGetResponses, ThrowOnError>> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadyApiV1UtilsReadyGetQueryResponse,
-    ResponseErrorConfig<ReadyApiV1UtilsReadyGet503>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadyApiV1UtilsReadyGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/utils/ready/",
+      ...config,
+    }) as Promise<RequestResult<ReadyApiV1UtilsReadyGetResponses, ThrowOnError>>
+  );
 }

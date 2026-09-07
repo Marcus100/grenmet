@@ -9,45 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteRoleApiV1AuthRolesRoleIdDelete } from "../clients/deleteRoleApiV1AuthRolesRoleIdDelete.js";
 import type {
-  DeleteRoleApiV1AuthRolesRoleIdDelete400,
-  DeleteRoleApiV1AuthRolesRoleIdDelete404,
-  DeleteRoleApiV1AuthRolesRoleIdDelete422,
-  DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
-  DeleteRoleApiV1AuthRolesRoleIdDeletePathParams,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404,
+  DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422,
 } from "../models/DeleteRoleApiV1AuthRolesRoleIdDelete.js";
 
 export const deleteRoleApiV1AuthRolesRoleIdDeleteMutationKey = () =>
   [{ url: "/api/v1/auth/roles/:role_id" }] as const;
 
-export type DeleteRoleApiV1AuthRolesRoleIdDeleteMutationKey = ReturnType<
-  typeof deleteRoleApiV1AuthRolesRoleIdDeleteMutationKey
->;
-
 export function deleteRoleApiV1AuthRolesRoleIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey = deleteRoleApiV1AuthRolesRoleIdDeleteMutationKey();
   return mutationOptions<
-    DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+    DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleApiV1AuthRolesRoleIdDelete400
-      | DeleteRoleApiV1AuthRolesRoleIdDelete404
-      | DeleteRoleApiV1AuthRolesRoleIdDelete422
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422
     >,
-    { role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"] },
+    DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ role_id }) => {
-      return deleteRoleApiV1AuthRolesRoleIdDelete(role_id, config);
+    mutationFn: async ({ path }) => {
+      return deleteRoleApiV1AuthRolesRoleIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -60,16 +59,18 @@ export function deleteRoleApiV1AuthRolesRoleIdDeleteMutationOptions<
 export function useDeleteRoleApiV1AuthRolesRoleIdDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+      DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteRoleApiV1AuthRolesRoleIdDelete400
-        | DeleteRoleApiV1AuthRolesRoleIdDelete404
-        | DeleteRoleApiV1AuthRolesRoleIdDelete422
+        | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+        | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+        | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422
       >,
-      { role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"] },
+      DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -81,24 +82,24 @@ export function useDeleteRoleApiV1AuthRolesRoleIdDelete<TContext>(
   const baseOptions = deleteRoleApiV1AuthRolesRoleIdDeleteMutationOptions(
     config
   ) as UseMutationOptions<
-    DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+    DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleApiV1AuthRolesRoleIdDelete400
-      | DeleteRoleApiV1AuthRolesRoleIdDelete404
-      | DeleteRoleApiV1AuthRolesRoleIdDelete422
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422
     >,
-    { role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"] },
+    DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
     TContext
   >;
 
   return useMutation<
-    DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+    DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleApiV1AuthRolesRoleIdDelete400
-      | DeleteRoleApiV1AuthRolesRoleIdDelete404
-      | DeleteRoleApiV1AuthRolesRoleIdDelete422
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422
     >,
-    { role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"] },
+    DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
     TContext
   >(
     {
@@ -108,13 +109,13 @@ export function useDeleteRoleApiV1AuthRolesRoleIdDelete<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    DeleteRoleApiV1AuthRolesRoleIdDeleteMutationResponse,
+    DeleteRoleApiV1AuthRolesRoleIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleApiV1AuthRolesRoleIdDelete400
-      | DeleteRoleApiV1AuthRolesRoleIdDelete404
-      | DeleteRoleApiV1AuthRolesRoleIdDelete422
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus400
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus404
+      | DeleteRoleApiV1AuthRolesRoleIdDeleteStatus422
     >,
-    { role_id: DeleteRoleApiV1AuthRolesRoleIdDeletePathParams["role_id"] },
+    DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
     TContext
   >;
 }

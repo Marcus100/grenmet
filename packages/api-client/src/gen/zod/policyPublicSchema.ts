@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const policyPublicSchema = z.object({
-  allow_self_approval: z.optional(z.boolean().default(false)),
-  require_distinct_approvers: z.optional(z.boolean().default(true)),
+  allow_self_approval: z.boolean().optional().default(false),
+  require_distinct_approvers: z.boolean().optional().default(true),
   key: z.string(),
 });

@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * UserUpdateMe
- */
 export type UserUpdateMe = {
   email?: string | null;
   username?: string | null;

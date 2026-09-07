@@ -3,45 +3,39 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadPublicAlertApiCapAlertsIdentifierGet422,
-  ReadPublicAlertApiCapAlertsIdentifierGetPathParams,
-  ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
+  ReadPublicAlertApiCapAlertsIdentifierGetOptions,
+  ReadPublicAlertApiCapAlertsIdentifierGetResponses,
 } from "../models/ReadPublicAlertApiCapAlertsIdentifierGet.js";
-
-function getReadPublicAlertApiCapAlertsIdentifierGetUrl(
-  identifier: ReadPublicAlertApiCapAlertsIdentifierGetPathParams["identifier"]
-) {
-  const res = { method: "GET", url: `/api/cap/alerts/${identifier}` as const };
-  return res;
-}
 
 /**
  * @summary Read Public Alert
  * {@link /api/cap/alerts/:identifier}
  */
-export async function readPublicAlertApiCapAlertsIdentifierGet(
-  identifier: ReadPublicAlertApiCapAlertsIdentifierGetPathParams["identifier"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPublicAlertApiCapAlertsIdentifierGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadPublicAlertApiCapAlertsIdentifierGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<ReadPublicAlertApiCapAlertsIdentifierGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPublicAlertApiCapAlertsIdentifierGetQueryResponse,
-    ResponseErrorConfig<ReadPublicAlertApiCapAlertsIdentifierGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPublicAlertApiCapAlertsIdentifierGetUrl(
-      identifier
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/cap/alerts/{identifier}",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadPublicAlertApiCapAlertsIdentifierGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponses,
 } from "../models/SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
-
-function getSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostUrl(
-  shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/shift-swaps/${shift_swap_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit a previously-saved DRAFT shift swap request, attaching named co-approvers. Requires shift_swap.request.create.self permission and ownership of the request.
  * @summary Submit a draft shift swap request
  * {@link /api/v1/hr/shift-swaps/:shift_swap_id/submit}
  */
-export async function submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost(
-  shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"],
-  data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
-    ResponseErrorConfig<
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
-    >,
-    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest
-  >({
-    method: "POST",
-    url: getSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostUrl(
-      shift_swap_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/shift-swaps/{shift_swap_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

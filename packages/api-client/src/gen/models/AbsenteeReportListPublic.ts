@@ -5,17 +5,8 @@
 
 import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 
-/**
- * AbsenteeReportListPublic
- */
 export type AbsenteeReportListPublic = {
-  /**
-   * @type array
-   */
   data: AbsenteeReportPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

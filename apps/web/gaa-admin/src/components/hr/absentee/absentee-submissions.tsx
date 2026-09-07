@@ -24,7 +24,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function AbsenteeSubmissions() {
-  const query = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet();
+  const query = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
   const deleteMutation =
@@ -35,9 +35,9 @@ export function AbsenteeSubmissions() {
   async function remove(id: string) {
     setPendingId(id);
     try {
-      await deleteMutation.mutateAsync({ absentee_report_id: id });
+      await deleteMutation.mutateAsync({ path: { absentee_report_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(),
+        queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

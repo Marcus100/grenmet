@@ -6,38 +6,34 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams = {
-  /**
-   * @type string
-   */
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostPath = {
   email: string;
 };
 
-/**
- * Message
- * @description Successful Response
- */
-export type RecoverPasswordApiV1PasswordRecoveryEmailPost200 = Message;
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200 = Message;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RecoverPasswordApiV1PasswordRecoveryEmailPost422 =
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422 =
   HTTPValidationError;
 
-/**
- * @description Rate limit exceeded
- */
-export type RecoverPasswordApiV1PasswordRecoveryEmailPost429 = any;
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429 = unknown;
 
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse =
-  RecoverPasswordApiV1PasswordRecoveryEmailPost200;
-
-export type RecoverPasswordApiV1PasswordRecoveryEmailPostMutation = {
-  Response: RecoverPasswordApiV1PasswordRecoveryEmailPost200;
-  PathParams: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams;
-  Errors:
-    | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-    | RecoverPasswordApiV1PasswordRecoveryEmailPost429;
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostOptions = {
+  body?: never;
+  path: RecoverPasswordApiV1PasswordRecoveryEmailPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostResponses = {
+  "200": RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200;
+  "422": RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422;
+  "429": RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type RecoverPasswordApiV1PasswordRecoveryEmailPostResponse =
+  | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus200
+  | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus422
+  | RecoverPasswordApiV1PasswordRecoveryEmailPostStatus429;

@@ -3,56 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ValidateGridApiV1HrRostersImportGridValidatePost403,
-  ValidateGridApiV1HrRostersImportGridValidatePost404,
-  ValidateGridApiV1HrRostersImportGridValidatePost422,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
-  ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
+  ValidateGridApiV1HrRostersImportGridValidatePostOptions,
+  ValidateGridApiV1HrRostersImportGridValidatePostResponses,
 } from "../models/ValidateGridApiV1HrRostersImportGridValidatePost.js";
-
-function getValidateGridApiV1HrRostersImportGridValidatePostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/rosters/import-grid/validate` as const,
-  };
-  return res;
-}
 
 /**
  * @description Parse a name×day grid CSV, match names to department staff, and report unmatched names / invalid codes without importing. Requires roster.manage permission.
  * @summary Preview a grid roster import
  * {@link /api/v1/hr/rosters/import-grid/validate}
  */
-export async function validateGridApiV1HrRostersImportGridValidatePost(
-  data: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest,
-  config: Partial<
-    RequestConfig<ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function validateGridApiV1HrRostersImportGridValidatePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ValidateGridApiV1HrRostersImportGridValidatePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ValidateGridApiV1HrRostersImportGridValidatePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse,
-    ResponseErrorConfig<
-      | ValidateGridApiV1HrRostersImportGridValidatePost403
-      | ValidateGridApiV1HrRostersImportGridValidatePost404
-      | ValidateGridApiV1HrRostersImportGridValidatePost422
-    >,
-    ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest
-  >({
-    method: "POST",
-    url: getValidateGridApiV1HrRostersImportGridValidatePostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/import-grid/validate",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ValidateGridApiV1HrRostersImportGridValidatePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

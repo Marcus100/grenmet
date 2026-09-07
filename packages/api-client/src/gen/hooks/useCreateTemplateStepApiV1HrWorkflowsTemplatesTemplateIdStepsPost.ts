@@ -9,59 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost } from "../clients/createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 import type {
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422,
 } from "../models/CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
 
 export const createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationKey =
   () => [{ url: "/api/v1/hr/workflows/templates/:template_id/steps" }] as const;
 
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationKey =
-  ReturnType<
-    typeof createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationKey
-  >;
-
 export function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationKey();
   return mutationOptions<
-    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422
     >,
-    {
-      template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"];
-      data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-    },
+    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ template_id, data }) => {
-      return createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
-        template_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -76,21 +65,19 @@ export function useCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPos
 >(
   options: {
     mutation?: UseMutationOptions<
-      CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
       ResponseErrorConfig<
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422
       >,
-      {
-        template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"];
-        data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-      },
+      CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -103,30 +90,26 @@ export function useCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPos
     createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
       ResponseErrorConfig<
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+        | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422
       >,
-      {
-        template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"];
-        data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-      },
+      CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422
     >,
-    {
-      template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"];
-      data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-    },
+    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
     TContext
   >(
     {
@@ -136,16 +119,14 @@ export function useCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPos
     },
     queryClient
   ) as UseMutationResult<
-    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+    | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201,
     ResponseErrorConfig<
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422
     >,
-    {
-      template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"];
-      data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-    },
+    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
     TContext
   >;
 }

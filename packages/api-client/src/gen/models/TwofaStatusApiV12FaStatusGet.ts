@@ -5,16 +5,21 @@
 
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
-/**
- * TwoFactorStatusPublic
- * @description Successful Response
- */
-export type TwofaStatusApiV12FaStatusGet200 = TwoFactorStatusPublic;
+export type TwofaStatusApiV12FaStatusGetStatus200 = TwoFactorStatusPublic;
 
-export type TwofaStatusApiV12FaStatusGetQueryResponse =
-  TwofaStatusApiV12FaStatusGet200;
-
-export type TwofaStatusApiV12FaStatusGetQuery = {
-  Response: TwofaStatusApiV12FaStatusGet200;
-  Errors: any;
+export type TwofaStatusApiV12FaStatusGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type TwofaStatusApiV12FaStatusGetResponses = {
+  "200": TwofaStatusApiV12FaStatusGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TwofaStatusApiV12FaStatusGetResponse =
+  TwofaStatusApiV12FaStatusGetStatus200;

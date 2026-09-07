@@ -7,9 +7,9 @@ import * as z from "zod";
 import { personnelStatusSchema } from "./personnelStatusSchema.js";
 
 export const statusReportEntryInputSchema = z.object({
-  user_id: z.string().uuid(),
-  personnel_status: z.lazy(() => personnelStatusSchema),
-  arrival_time: z.optional(z.union([z.string(), z.null()])),
-  departure_time: z.optional(z.union([z.string(), z.null()])),
-  notes: z.optional(z.union([z.string(), z.null()])),
+  user_id: z.uuid(),
+  personnel_status: personnelStatusSchema,
+  arrival_time: z.union([z.string(), z.null()]).optional(),
+  departure_time: z.union([z.string(), z.null()]).optional(),
+  notes: z.union([z.string(), z.null()]).optional(),
 });

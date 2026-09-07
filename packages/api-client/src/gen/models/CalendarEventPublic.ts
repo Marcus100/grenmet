@@ -6,21 +6,17 @@
 import type { CalendarEventKind } from "./CalendarEventKind.js";
 
 /**
- * CalendarEventPublic
  * @description A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC.
+ * @type object
  */
 export type CalendarEventPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   title: string;
   description?: string | null;
   /**
@@ -28,30 +24,17 @@ export type CalendarEventPublic = {
    * @type string
    */
   kind: CalendarEventKind;
-  /**
-   * @type string
-   */
   starts_at_local: string;
-  /**
-   * @type string
-   */
   ends_at_local: string;
-  /**
-   * @type boolean
-   */
   all_day: boolean;
   location?: string | null;
-  /**
-   * @type boolean
-   */
   is_cancelled: boolean;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   created_by_user_id: string;
   created_by_name?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
 };

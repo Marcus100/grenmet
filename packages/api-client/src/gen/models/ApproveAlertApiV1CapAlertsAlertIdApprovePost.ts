@@ -7,38 +7,38 @@ import type { CapAlertAction } from "./CapAlertAction.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams = {
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePost200 = CapAlertPublic;
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200 =
+  CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePost422 =
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422 =
   HTTPValidationError;
 
-/**
- * CapAlertAction
- */
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest =
-  CapAlertAction;
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostBody = CapAlertAction;
 
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationResponse =
-  ApproveAlertApiV1CapAlertsAlertIdApprovePost200;
-
-export type ApproveAlertApiV1CapAlertsAlertIdApprovePostMutation = {
-  Response: ApproveAlertApiV1CapAlertsAlertIdApprovePost200;
-  Request: ApproveAlertApiV1CapAlertsAlertIdApprovePostMutationRequest;
-  PathParams: ApproveAlertApiV1CapAlertsAlertIdApprovePostPathParams;
-  Errors: ApproveAlertApiV1CapAlertsAlertIdApprovePost422;
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostOptions = {
+  body: ApproveAlertApiV1CapAlertsAlertIdApprovePostBody;
+  path: ApproveAlertApiV1CapAlertsAlertIdApprovePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostResponses = {
+  "200": ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200;
+  "422": ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ApproveAlertApiV1CapAlertsAlertIdApprovePostResponse =
+  | ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus200
+  | ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422;

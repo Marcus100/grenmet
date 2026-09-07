@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost } from "../clients/submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
 import type {
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404,
+  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422,
 } from "../models/SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost.js";
 
 export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey =
   () => [{ url: "/api/v1/hr/shift-swaps/:shift_swap_id/submit" }] as const;
 
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey =
-  ReturnType<
-    typeof submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey
-  >;
-
 export function submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationKey();
   return mutationOptions<
-    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422
     >,
-    {
-      shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"];
-      data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-    },
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id, data }) => {
-      return submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost(
-        shift_swap_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
+      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422
       >,
-      {
-        shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"];
-        data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-      },
+      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost<
     submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationOptions(
       config
     ) as UseMutationOptions<
-      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
+      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+        | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422
       >,
-      {
-        shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"];
-        data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-      },
+      SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
       TContext
     >;
 
   return useMutation<
-    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422
     >,
-    {
-      shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"];
-      data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-    },
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost<
     },
     queryClient
   ) as UseMutationResult<
-    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse,
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+      | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422
     >,
-    {
-      shift_swap_id: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams["shift_swap_id"];
-      data: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-    },
+    SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions,
     TContext
   >;
 }

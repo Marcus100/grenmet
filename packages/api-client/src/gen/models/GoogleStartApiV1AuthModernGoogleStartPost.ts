@@ -7,42 +7,37 @@ import type { GoogleStart } from "./GoogleStart.js";
 import type { GoogleStartPublic } from "./GoogleStartPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * GoogleStartPublic
- * @description Successful Response
- */
-export type GoogleStartApiV1AuthModernGoogleStartPost200 = GoogleStartPublic;
+export type GoogleStartApiV1AuthModernGoogleStartPostStatus200 =
+  GoogleStartPublic;
 
-/**
- * @description Invalid or expired proof
- */
-export type GoogleStartApiV1AuthModernGoogleStartPost400 = any;
+export type GoogleStartApiV1AuthModernGoogleStartPostStatus400 = unknown;
 
-/**
- * @description Account is not eligible
- */
-export type GoogleStartApiV1AuthModernGoogleStartPost403 = any;
+export type GoogleStartApiV1AuthModernGoogleStartPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type GoogleStartApiV1AuthModernGoogleStartPost422 = HTTPValidationError;
+export type GoogleStartApiV1AuthModernGoogleStartPostStatus422 =
+  HTTPValidationError;
 
-/**
- * GoogleStart
- */
-export type GoogleStartApiV1AuthModernGoogleStartPostMutationRequest =
-  GoogleStart;
+export type GoogleStartApiV1AuthModernGoogleStartPostBody = GoogleStart;
 
-export type GoogleStartApiV1AuthModernGoogleStartPostMutationResponse =
-  GoogleStartApiV1AuthModernGoogleStartPost200;
-
-export type GoogleStartApiV1AuthModernGoogleStartPostMutation = {
-  Response: GoogleStartApiV1AuthModernGoogleStartPost200;
-  Request: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest;
-  Errors:
-    | GoogleStartApiV1AuthModernGoogleStartPost400
-    | GoogleStartApiV1AuthModernGoogleStartPost403
-    | GoogleStartApiV1AuthModernGoogleStartPost422;
+export type GoogleStartApiV1AuthModernGoogleStartPostOptions = {
+  body: GoogleStartApiV1AuthModernGoogleStartPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type GoogleStartApiV1AuthModernGoogleStartPostResponses = {
+  "200": GoogleStartApiV1AuthModernGoogleStartPostStatus200;
+  "400": GoogleStartApiV1AuthModernGoogleStartPostStatus400;
+  "403": GoogleStartApiV1AuthModernGoogleStartPostStatus403;
+  "422": GoogleStartApiV1AuthModernGoogleStartPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type GoogleStartApiV1AuthModernGoogleStartPostResponse =
+  | GoogleStartApiV1AuthModernGoogleStartPostStatus200
+  | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+  | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+  | GoogleStartApiV1AuthModernGoogleStartPostStatus422;

@@ -10,50 +10,48 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listPeriodsApiV1HrRostersPeriodsGet } from "../clients/listPeriodsApiV1HrRostersPeriodsGet.js";
 import type {
-  ListPeriodsApiV1HrRostersPeriodsGet403,
-  ListPeriodsApiV1HrRostersPeriodsGet422,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+  ListPeriodsApiV1HrRostersPeriodsGetOptions,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus200,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus403,
+  ListPeriodsApiV1HrRostersPeriodsGetStatus422,
 } from "../models/ListPeriodsApiV1HrRostersPeriodsGet.js";
 
-export const listPeriodsApiV1HrRostersPeriodsGetQueryKey = (
-  params: ListPeriodsApiV1HrRostersPeriodsGetQueryParams
-) =>
-  [{ url: "/api/v1/hr/rosters/periods" }, ...(params ? [params] : [])] as const;
+export const listPeriodsApiV1HrRostersPeriodsGetQueryKey = ({
+  query,
+}: Omit<ListPeriodsApiV1HrRostersPeriodsGetOptions, "headers">) =>
+  [{ url: "/api/v1/hr/rosters/periods" }, ...(query ? [query] : [])] as const;
 
-export type ListPeriodsApiV1HrRostersPeriodsGetQueryKey = ReturnType<
+type ListPeriodsApiV1HrRostersPeriodsGetQueryKey = ReturnType<
   typeof listPeriodsApiV1HrRostersPeriodsGetQueryKey
 >;
 
 export function listPeriodsApiV1HrRostersPeriodsGetQueryOptions(
-  params: ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListPeriodsApiV1HrRostersPeriodsGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listPeriodsApiV1HrRostersPeriodsGetQueryKey(params);
+  const queryKey = listPeriodsApiV1HrRostersPeriodsGetQueryKey({ query });
   return queryOptions<
-    ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+    ListPeriodsApiV1HrRostersPeriodsGetStatus200,
     ResponseErrorConfig<
-      | ListPeriodsApiV1HrRostersPeriodsGet403
-      | ListPeriodsApiV1HrRostersPeriodsGet422
+      | ListPeriodsApiV1HrRostersPeriodsGetStatus403
+      | ListPeriodsApiV1HrRostersPeriodsGetStatus422
     >,
-    ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+    ListPeriodsApiV1HrRostersPeriodsGetStatus200,
     typeof queryKey
   >({
-    enabled: !!params,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listPeriodsApiV1HrRostersPeriodsGet(params, config);
+      return listPeriodsApiV1HrRostersPeriodsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,49 +62,63 @@ export function listPeriodsApiV1HrRostersPeriodsGetQueryOptions(
  * {@link /api/v1/hr/rosters/periods}
  */
 export function useListPeriodsApiV1HrRostersPeriodsGet<
-  TData = ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
-  TQueryData = ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+  TData = ListPeriodsApiV1HrRostersPeriodsGetStatus200,
+  TQueryData = ListPeriodsApiV1HrRostersPeriodsGetStatus200,
   TQueryKey extends QueryKey = ListPeriodsApiV1HrRostersPeriodsGetQueryKey,
 >(
-  params: ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
+  {
+    query,
+  }: {
+    query:
+      | ListPeriodsApiV1HrRostersPeriodsGetOptions["query"]
+      | (() => ListPeriodsApiV1HrRostersPeriodsGetOptions["query"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+        ListPeriodsApiV1HrRostersPeriodsGetStatus200,
         ResponseErrorConfig<
-          | ListPeriodsApiV1HrRostersPeriodsGet403
-          | ListPeriodsApiV1HrRostersPeriodsGet422
+          | ListPeriodsApiV1HrRostersPeriodsGetStatus403
+          | ListPeriodsApiV1HrRostersPeriodsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listPeriodsApiV1HrRostersPeriodsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listPeriodsApiV1HrRostersPeriodsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...listPeriodsApiV1HrRostersPeriodsGetQueryOptions(params, config),
+      ...listPeriodsApiV1HrRostersPeriodsGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListPeriodsApiV1HrRostersPeriodsGet403
-      | ListPeriodsApiV1HrRostersPeriodsGet422
+      | ListPeriodsApiV1HrRostersPeriodsGetStatus403
+      | ListPeriodsApiV1HrRostersPeriodsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

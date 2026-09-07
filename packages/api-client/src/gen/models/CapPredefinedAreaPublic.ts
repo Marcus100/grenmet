@@ -5,9 +5,6 @@
 
 import type { CapNameValue } from "./CapNameValue.js";
 
-/**
- * CapPredefinedAreaPublic
- */
 export type CapPredefinedAreaPublic = {
   /**
    * @minLength 1
@@ -22,25 +19,13 @@ export type CapPredefinedAreaPublic = {
    */
   area_desc: string;
   geometry?: {
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
-  /**
-   * @type array | undefined
-   */
   polygons?: number[][][];
-  /**
-   * @type array | undefined
-   */
   multipolygons?: number[][][][];
-  /**
-   * @type array | undefined
-   */
   circles?: {
     [key: string]: number;
   }[];
-  /**
-   * @type array | undefined
-   */
   geocodes?: CapNameValue[];
   /**
    * @default true
@@ -48,15 +33,11 @@ export type CapPredefinedAreaPublic = {
    */
   is_active?: boolean;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

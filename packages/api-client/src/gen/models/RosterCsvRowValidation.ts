@@ -3,20 +3,8 @@
  * Do not edit manually.
  */
 
-/**
- * RosterCsvRowValidation
- */
 export type RosterCsvRowValidation = {
-  /**
-   * @type integer
-   */
   row_number: number;
-  /**
-   * @type boolean
-   */
   is_valid: boolean;
-  /**
-   * @type array | undefined
-   */
   errors?: string[];
 };

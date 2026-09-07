@@ -7,42 +7,31 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPost200Schema = z.lazy(
-  () => messageSchema
-);
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200Schema =
+  messageSchema;
 
-/**
- * @description Administrator access required
- */
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPost403Schema =
-  z.any();
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPost404Schema =
-  z.any();
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPost409Schema =
-  z.any();
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponseSchema =
-  z.lazy(() => offboardStaffApiV1HrSetupStaffUserIdOffboardPost200Schema);
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostResponseSchema =
+  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200Schema;
+
+export const offboardStaffApiV1HrSetupStaffUserIdOffboardPostErrorSchema =
+  z.union([
+    offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403Schema,
+    offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404Schema,
+    offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409Schema,
+    offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422Schema,
+  ]);

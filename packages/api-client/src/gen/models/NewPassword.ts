@@ -3,13 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * NewPassword
- */
 export type NewPassword = {
-  /**
-   * @type string
-   */
   token: string;
   /**
    * @minLength 12

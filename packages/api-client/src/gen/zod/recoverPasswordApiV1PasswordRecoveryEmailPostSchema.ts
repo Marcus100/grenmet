@@ -7,29 +7,24 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const recoverPasswordApiV1PasswordRecoveryEmailPostPathParamsSchema =
-  z.object({
-    email: z.string(),
-  });
+export const recoverPasswordApiV1PasswordRecoveryEmailPostPathEmailSchema =
+  z.string();
 
-/**
- * @description Successful Response
- */
-export const recoverPasswordApiV1PasswordRecoveryEmailPost200Schema = z.lazy(
-  () => messageSchema
+export const recoverPasswordApiV1PasswordRecoveryEmailPostStatus200Schema =
+  messageSchema;
+
+export const recoverPasswordApiV1PasswordRecoveryEmailPostStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const recoverPasswordApiV1PasswordRecoveryEmailPostStatus429Schema =
+  z.unknown();
+
+export const recoverPasswordApiV1PasswordRecoveryEmailPostResponseSchema =
+  recoverPasswordApiV1PasswordRecoveryEmailPostStatus200Schema;
+
+export const recoverPasswordApiV1PasswordRecoveryEmailPostErrorSchema = z.union(
+  [
+    recoverPasswordApiV1PasswordRecoveryEmailPostStatus422Schema,
+    recoverPasswordApiV1PasswordRecoveryEmailPostStatus429Schema,
+  ]
 );
-
-/**
- * @description Validation Error
- */
-export const recoverPasswordApiV1PasswordRecoveryEmailPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
-
-/**
- * @description Rate limit exceeded
- */
-export const recoverPasswordApiV1PasswordRecoveryEmailPost429Schema = z.any();
-
-export const recoverPasswordApiV1PasswordRecoveryEmailPostMutationResponseSchema =
-  z.lazy(() => recoverPasswordApiV1PasswordRecoveryEmailPost200Schema);

@@ -6,12 +6,12 @@
 import * as z from "zod";
 
 export const capSettingsUpdateSchema = z.object({
-  sender: z.optional(z.union([z.string(), z.null()])),
-  sender_name: z.optional(z.union([z.string(), z.null()])),
-  wmo_oid: z.optional(z.union([z.string(), z.null()])),
-  web: z.optional(z.union([z.string(), z.null()])),
-  contact: z.optional(z.union([z.string(), z.null()])),
-  feed_limit: z.optional(z.union([z.number().int(), z.null()])),
-  signing_enabled: z.optional(z.union([z.boolean(), z.null()])),
-  signing_certificate_ref: z.optional(z.union([z.string(), z.null()])),
+  sender: z.union([z.string().min(1).max(255), z.null()]).optional(),
+  sender_name: z.union([z.string().min(1).max(255), z.null()]).optional(),
+  wmo_oid: z.union([z.string().max(120), z.null()]).optional(),
+  web: z.union([z.string().max(500), z.null()]).optional(),
+  contact: z.union([z.string().max(500), z.null()]).optional(),
+  feed_limit: z.union([z.int().min(1).max(500), z.null()]).optional(),
+  signing_enabled: z.union([z.boolean(), z.null()]).optional(),
+  signing_certificate_ref: z.union([z.string().max(255), z.null()]).optional(),
 });

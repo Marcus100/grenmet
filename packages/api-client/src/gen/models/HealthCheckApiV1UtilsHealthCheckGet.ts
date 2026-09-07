@@ -3,16 +3,21 @@
  * Do not edit manually.
  */
 
-/**
- * Response Health Check Api V1 Utils Health Check  Get
- * @description Successful Response
- */
-export type HealthCheckApiV1UtilsHealthCheckGet200 = boolean;
+export type HealthCheckApiV1UtilsHealthCheckGetStatus200 = boolean;
 
-export type HealthCheckApiV1UtilsHealthCheckGetQueryResponse =
-  HealthCheckApiV1UtilsHealthCheckGet200;
-
-export type HealthCheckApiV1UtilsHealthCheckGetQuery = {
-  Response: HealthCheckApiV1UtilsHealthCheckGet200;
-  Errors: any;
+export type HealthCheckApiV1UtilsHealthCheckGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type HealthCheckApiV1UtilsHealthCheckGetResponses = {
+  "200": HealthCheckApiV1UtilsHealthCheckGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type HealthCheckApiV1UtilsHealthCheckGetResponse =
+  HealthCheckApiV1UtilsHealthCheckGetStatus200;

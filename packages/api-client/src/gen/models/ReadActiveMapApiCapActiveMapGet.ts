@@ -3,18 +3,23 @@
  * Do not edit manually.
  */
 
+export type ReadActiveMapApiCapActiveMapGetStatus200 = {
+  [key: string]: unknown;
+};
+
+export type ReadActiveMapApiCapActiveMapGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
+};
+
+export type ReadActiveMapApiCapActiveMapGetResponses = {
+  "200": ReadActiveMapApiCapActiveMapGetStatus200;
+};
+
 /**
- * Response Read Active Map Api Cap Active Map Get
- * @description Successful Response
+ * @description Union of all possible responses
  */
-export type ReadActiveMapApiCapActiveMapGet200 = {
-  [key: string]: any;
-};
-
-export type ReadActiveMapApiCapActiveMapGetQueryResponse =
-  ReadActiveMapApiCapActiveMapGet200;
-
-export type ReadActiveMapApiCapActiveMapGetQuery = {
-  Response: ReadActiveMapApiCapActiveMapGet200;
-  Errors: any;
-};
+export type ReadActiveMapApiCapActiveMapGetResponse =
+  ReadActiveMapApiCapActiveMapGetStatus200;

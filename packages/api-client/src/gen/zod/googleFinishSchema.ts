@@ -7,5 +7,5 @@ import * as z from "zod";
 
 export const googleFinishSchema = z.object({
   challenge: z.string().min(32).max(256),
-  totp_code: z.optional(z.union([z.string(), z.null()])),
+  totp_code: z.union([z.string().max(64), z.null()]).optional(),
 });

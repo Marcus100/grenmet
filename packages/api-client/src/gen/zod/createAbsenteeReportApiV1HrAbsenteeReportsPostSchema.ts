@@ -8,35 +8,23 @@ import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 import { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Absentee report created
- */
-export const createAbsenteeReportApiV1HrAbsenteeReportsPost200Schema = z.any();
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostStatus201Schema =
+  absenteeReportPublicSchema;
 
-/**
- * @description Successful Response
- */
-export const createAbsenteeReportApiV1HrAbsenteeReportsPost201Schema = z.lazy(
-  () => absenteeReportPublicSchema
-);
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createAbsenteeReportApiV1HrAbsenteeReportsPost403Schema = z.any();
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Validation Error
- */
-export const createAbsenteeReportApiV1HrAbsenteeReportsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostResponseSchema =
+  createAbsenteeReportApiV1HrAbsenteeReportsPostStatus201Schema;
 
-export const createAbsenteeReportApiV1HrAbsenteeReportsPostMutationRequestSchema =
-  z.lazy(() => absenteeReportCreateSchema);
-
-export const createAbsenteeReportApiV1HrAbsenteeReportsPostMutationResponseSchema =
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostErrorSchema =
   z.union([
-    z.lazy(() => createAbsenteeReportApiV1HrAbsenteeReportsPost200Schema),
-    z.lazy(() => createAbsenteeReportApiV1HrAbsenteeReportsPost201Schema),
+    createAbsenteeReportApiV1HrAbsenteeReportsPostStatus403Schema,
+    createAbsenteeReportApiV1HrAbsenteeReportsPostStatus422Schema,
   ]);
+
+export const createAbsenteeReportApiV1HrAbsenteeReportsPostBodySchema =
+  absenteeReportCreateSchema;

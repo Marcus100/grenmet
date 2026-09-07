@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Noto_Sans } from "next/font/google";
 import { env } from "@/lib/env";
 import { Providers } from "./providers";
 import "./globals.css";
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-noto-sans",
+  display: "swap",
+});
 
 const inter = Inter({
   variable: "--font-inter",
@@ -29,7 +35,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html className={inter.variable} lang="en" style={{ colorScheme: "light" }}>
+    <html
+      className={`${inter.variable} ${notoSans.variable}`}
+      lang="en"
+      style={{ colorScheme: "light" }}
+    >
       <body>
         <Providers
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}

@@ -3,49 +3,45 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
+  RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses,
 } from "../models/RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
-
-function getRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostUrl(
-  email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/password-recovery-html-content/${email}` as const,
-  };
-  return res;
-}
 
 /**
  * @description HTML Content for Password Recovery.
  * @summary Recover Password Html Content
  * {@link /api/v1/password-recovery-html-content/:email}
  */
-export async function recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost(
-  email: RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParams["email"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponse,
-    ResponseErrorConfig<RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422>,
-    unknown
-  >({
-    method: "POST",
-    url: getRecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostUrl(
-      email
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/password-recovery-html-content/{email}",
+      security: [{ type: "oauth2" }],
+      responseType: "text",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        RecoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

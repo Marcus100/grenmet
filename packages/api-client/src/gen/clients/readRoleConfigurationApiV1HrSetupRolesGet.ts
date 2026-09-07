@@ -3,46 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadRoleConfigurationApiV1HrSetupRolesGet403,
-  ReadRoleConfigurationApiV1HrSetupRolesGet404,
-  ReadRoleConfigurationApiV1HrSetupRolesGet409,
-  ReadRoleConfigurationApiV1HrSetupRolesGetQueryResponse,
+  ReadRoleConfigurationApiV1HrSetupRolesGetOptions,
+  ReadRoleConfigurationApiV1HrSetupRolesGetResponses,
 } from "../models/ReadRoleConfigurationApiV1HrSetupRolesGet.js";
-
-function getReadRoleConfigurationApiV1HrSetupRolesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/setup/roles` as const };
-  return res;
-}
 
 /**
  * @description Review modular role permissions.
  * @summary Review modular role permissions
  * {@link /api/v1/hr/setup/roles}
  */
-export async function readRoleConfigurationApiV1HrSetupRolesGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRoleConfigurationApiV1HrSetupRolesGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadRoleConfigurationApiV1HrSetupRolesGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadRoleConfigurationApiV1HrSetupRolesGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRoleConfigurationApiV1HrSetupRolesGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadRoleConfigurationApiV1HrSetupRolesGet403
-      | ReadRoleConfigurationApiV1HrSetupRolesGet404
-      | ReadRoleConfigurationApiV1HrSetupRolesGet409
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRoleConfigurationApiV1HrSetupRolesGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/setup/roles",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadRoleConfigurationApiV1HrSetupRolesGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -3,17 +3,12 @@
  * Do not edit manually.
  */
 
-export const timesheetStatusTimesheetStatusEnum = {
+export const timesheetStatus = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",
   APPROVED: "APPROVED",
   REJECTED: "REJECTED",
 } as const;
 
-export type TimesheetStatusTimesheetStatusEnumKey =
-  (typeof timesheetStatusTimesheetStatusEnum)[keyof typeof timesheetStatusTimesheetStatusEnum];
-
-/**
- * TimesheetStatus
- */
-export type TimesheetStatus = TimesheetStatusTimesheetStatusEnumKey;
+export type TimesheetStatus =
+  (typeof timesheetStatus)[keyof typeof timesheetStatus];

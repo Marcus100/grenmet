@@ -59,8 +59,8 @@ export function ApprovalsInbox() {
     setPendingId(instanceId);
     try {
       await actionMutation.mutateAsync({
-        instance_id: instanceId,
-        data: { action },
+        path: { instance_id: instanceId },
+        body: { action },
       });
       await queryClient.invalidateQueries({
         queryKey: readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey(),

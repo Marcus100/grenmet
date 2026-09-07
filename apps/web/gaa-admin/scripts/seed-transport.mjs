@@ -28,20 +28,15 @@ import {
   tripStops,
   trips,
 } from "../src/db/transport/schema.ts";
+import { databaseConfig } from "./database-config.mjs";
 
 const { Pool } = pg;
-
-const url = process.env.TRANSPORT_DATABASE_URL ?? process.env.TRANSPORT_DB_URL;
-if (!url) {
-  console.error("TRANSPORT_DATABASE_URL environment variable is required");
-  process.exit(1);
-}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const csvPath = join(here, "..", "seed", "transport-routes.csv");
 const spec = parseSpec(readFileSync(csvPath, "utf8"));
 
-const pool = new Pool({ connectionString: url });
+const pool = new Pool(databaseConfig("transport"));
 const client = await pool.connect();
 const db = drizzle(client, { casing: "snake_case" });
 try {
@@ -57,7 +52,9 @@ try {
   if (seeded.rowCount) {
     console.log("transport already initialised; online edits preserved");
   } else {
-    const existing = await client.query('SELECT 1 FROM "routes" LIMIT 1');
+    const existing = await client.query(
+      'SELECT 1 FROM "routes" UNION ALL SELECT 1 FROM "shifts" UNION ALL SELECT 1 FROM "stops" UNION ALL SELECT 1 FROM "trips" UNION ALL SELECT 1 FROM "trip_stops" LIMIT 1'
+    );
     if (existing.rowCount) {
       throw new Error(
         "Existing transport data requires review; refusing to overwrite it"

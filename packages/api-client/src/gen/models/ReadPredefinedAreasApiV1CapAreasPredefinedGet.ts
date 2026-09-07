@@ -5,17 +5,22 @@
 
 import type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
 
-/**
- * Response Read Predefined Areas Api V1 Cap Areas Predefined Get
- * @description Successful Response
- */
-export type ReadPredefinedAreasApiV1CapAreasPredefinedGet200 =
+export type ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200 =
   CapPredefinedAreaPublic[];
 
-export type ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse =
-  ReadPredefinedAreasApiV1CapAreasPredefinedGet200;
-
-export type ReadPredefinedAreasApiV1CapAreasPredefinedGetQuery = {
-  Response: ReadPredefinedAreasApiV1CapAreasPredefinedGet200;
-  Errors: any;
+export type ReadPredefinedAreasApiV1CapAreasPredefinedGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses = {
+  "200": ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadPredefinedAreasApiV1CapAreasPredefinedGetResponse =
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200;

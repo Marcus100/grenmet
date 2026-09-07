@@ -9,21 +9,15 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "../clients/submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 import type {
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422,
 } from "../models/SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 
 export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey =
@@ -32,41 +26,31 @@ export const submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPos
       { url: "/api/v1/hr/absentee-reports/:absentee_report_id/submit" },
     ] as const;
 
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey =
-  ReturnType<
-    typeof submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey
-  >;
-
 export function submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey();
   return mutationOptions<
-    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422
     >,
-    {
-      absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"];
-      data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-    },
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ absentee_report_id, data }) => {
+    mutationFn: async ({ path, body }) => {
       return submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost(
-        absentee_report_id,
-        data,
-        config
-      );
+        { ...config, path, body, throwOnError: true }
+      ).unwrap();
     },
   });
 }
@@ -81,22 +65,19 @@ export function useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSub
 >(
   options: {
     mutation?: UseMutationOptions<
-      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
+      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422
       >,
-      {
-        absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"];
-        data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-      },
+      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -109,32 +90,26 @@ export function useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSub
     submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions(
       config
     ) as UseMutationOptions<
-      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
+      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+        | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422
       >,
-      {
-        absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"];
-        data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-      },
+      SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
       TContext
     >;
 
   return useMutation<
-    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422
     >,
-    {
-      absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"];
-      data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-    },
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
     TContext
   >(
     {
@@ -144,17 +119,14 @@ export function useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSub
     },
     queryClient
   ) as UseMutationResult<
-    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422
     >,
-    {
-      absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"];
-      data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-    },
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
     TContext
   >;
 }

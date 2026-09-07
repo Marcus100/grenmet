@@ -3,55 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPost422,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponses,
 } from "../models/SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
-
-function getSubmitAlertApiV1CapAlertsAlertIdSubmitPostUrl(
-  alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Submit Alert
  * {@link /api/v1/cap/alerts/:alert_id/submit}
  */
-export async function submitAlertApiV1CapAlertsAlertIdSubmitPost(
-  alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"],
-  data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitAlertApiV1CapAlertsAlertIdSubmitPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest
-  >({
-    method: "POST",
-    url: getSubmitAlertApiV1CapAlertsAlertIdSubmitPostUrl(
-      alert_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

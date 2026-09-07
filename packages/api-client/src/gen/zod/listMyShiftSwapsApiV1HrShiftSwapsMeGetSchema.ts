@@ -7,38 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapRequestsPublicSchema } from "./shiftSwapRequestsPublicSchema.js";
 
-export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParamsSchema = z.object(
-  {
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  }
-);
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Shift swap requests returned
- */
-export const listMyShiftSwapsApiV1HrShiftSwapsMeGet200Schema = z.lazy(
-  () => shiftSwapRequestsPublicSchema
-);
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const listMyShiftSwapsApiV1HrShiftSwapsMeGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200Schema =
+  shiftSwapRequestsPublicSchema;
 
-export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponseSchema = z.lazy(
-  () => listMyShiftSwapsApiV1HrShiftSwapsMeGet200Schema
-);
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetResponseSchema =
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200Schema;
+
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetErrorSchema =
+  listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422Schema;

@@ -6,32 +6,36 @@
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams = {
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200 =
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200 =
   CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422 =
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422 =
   HTTPValidationError;
 
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse =
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200;
-
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutation = {
-  Response: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost200;
-  PathParams: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams;
-  Errors: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422;
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions = {
+  body?: never;
+  path: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponses = {
+  "200": DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200;
+  "422": DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponse =
+  | DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200
+  | DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422;

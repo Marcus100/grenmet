@@ -7,6 +7,6 @@ import * as z from "zod";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const shiftSwapActionSchema = z.object({
-  status: z.lazy(() => requestStatusSchema),
-  comments: z.optional(z.union([z.string(), z.null()])),
+  status: requestStatusSchema,
+  comments: z.union([z.string(), z.null()]).optional(),
 });

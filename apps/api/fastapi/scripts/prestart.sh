@@ -60,6 +60,10 @@ fi
 echo ""
 
 # Required bootstrap errors must fail deployment. Development users are opt-in.
-python scripts/initial_data.py
+if [ "${ENVIRONMENT:-local}" = "local" ]; then
+    python scripts/initial_data.py
+else
+    echo "Account/staff baseline is an explicit operator action"
+fi
 
 echo "Prestart completed successfully"

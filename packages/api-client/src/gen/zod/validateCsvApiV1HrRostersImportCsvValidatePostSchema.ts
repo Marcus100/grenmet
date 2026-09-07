@@ -8,32 +8,27 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterCsvValidationRequestSchema } from "./rosterCsvValidationRequestSchema.js";
 import { rosterCsvValidationResponseSchema } from "./rosterCsvValidationResponseSchema.js";
 
-/**
- * @description Validation result returned
- */
-export const validateCsvApiV1HrRostersImportCsvValidatePost200Schema = z.lazy(
-  () => rosterCsvValidationResponseSchema
-);
+export const validateCsvApiV1HrRostersImportCsvValidatePostStatus200Schema =
+  rosterCsvValidationResponseSchema;
 
-/**
- * @description Invalid CSV (e.g. missing header or columns)
- */
-export const validateCsvApiV1HrRostersImportCsvValidatePost400Schema = z.any();
+export const validateCsvApiV1HrRostersImportCsvValidatePostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const validateCsvApiV1HrRostersImportCsvValidatePost403Schema = z.any();
+export const validateCsvApiV1HrRostersImportCsvValidatePostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const validateCsvApiV1HrRostersImportCsvValidatePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const validateCsvApiV1HrRostersImportCsvValidatePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const validateCsvApiV1HrRostersImportCsvValidatePostMutationRequestSchema =
-  z.lazy(() => rosterCsvValidationRequestSchema);
+export const validateCsvApiV1HrRostersImportCsvValidatePostResponseSchema =
+  validateCsvApiV1HrRostersImportCsvValidatePostStatus200Schema;
 
-export const validateCsvApiV1HrRostersImportCsvValidatePostMutationResponseSchema =
-  z.lazy(() => validateCsvApiV1HrRostersImportCsvValidatePost200Schema);
+export const validateCsvApiV1HrRostersImportCsvValidatePostErrorSchema =
+  z.union([
+    validateCsvApiV1HrRostersImportCsvValidatePostStatus400Schema,
+    validateCsvApiV1HrRostersImportCsvValidatePostStatus403Schema,
+    validateCsvApiV1HrRostersImportCsvValidatePostStatus422Schema,
+  ]);
+
+export const validateCsvApiV1HrRostersImportCsvValidatePostBodySchema =
+  rosterCsvValidationRequestSchema;

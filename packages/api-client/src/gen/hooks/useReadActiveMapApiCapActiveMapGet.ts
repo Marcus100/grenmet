@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readActiveMapApiCapActiveMapGet } from "../clients/readActiveMapApiCapActiveMapGet.js";
-import type { ReadActiveMapApiCapActiveMapGetQueryResponse } from "../models/ReadActiveMapApiCapActiveMapGet.js";
+import type { ReadActiveMapApiCapActiveMapGetStatus200 } from "../models/ReadActiveMapApiCapActiveMapGet.js";
 
 export const readActiveMapApiCapActiveMapGetQueryKey = () =>
   [{ url: "/api/cap/active-map" }] as const;
 
-export type ReadActiveMapApiCapActiveMapGetQueryKey = ReturnType<
+type ReadActiveMapApiCapActiveMapGetQueryKey = ReturnType<
   typeof readActiveMapApiCapActiveMapGetQueryKey
 >;
 
 export function readActiveMapApiCapActiveMapGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readActiveMapApiCapActiveMapGetQueryKey();
   return queryOptions<
-    ReadActiveMapApiCapActiveMapGetQueryResponse,
+    ReadActiveMapApiCapActiveMapGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadActiveMapApiCapActiveMapGetQueryResponse,
+    ReadActiveMapApiCapActiveMapGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readActiveMapApiCapActiveMapGet(config);
+      return readActiveMapApiCapActiveMapGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function readActiveMapApiCapActiveMapGetQueryOptions(
  * {@link /api/cap/active-map}
  */
 export function useReadActiveMapApiCapActiveMapGet<
-  TData = ReadActiveMapApiCapActiveMapGetQueryResponse,
-  TQueryData = ReadActiveMapApiCapActiveMapGetQueryResponse,
+  TData = ReadActiveMapApiCapActiveMapGetStatus200,
+  TQueryData = ReadActiveMapApiCapActiveMapGetStatus200,
   TQueryKey extends QueryKey = ReadActiveMapApiCapActiveMapGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadActiveMapApiCapActiveMapGetQueryResponse,
+        ReadActiveMapApiCapActiveMapGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readActiveMapApiCapActiveMapGetQueryKey();
+    resolvedOptions?.queryKey ?? readActiveMapApiCapActiveMapGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readActiveMapApiCapActiveMapGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

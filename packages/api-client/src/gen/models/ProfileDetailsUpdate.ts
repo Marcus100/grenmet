@@ -6,9 +6,6 @@
 import type { Gender } from "./Gender.js";
 import type { Title } from "./Title.js";
 
-/**
- * ProfileDetailsUpdate
- */
 export type ProfileDetailsUpdate = {
   title?: Title | null;
   first_name?: string | null;

@@ -3,46 +3,38 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadSetupGradesApiV1HrSetupGradesGet403,
-  ReadSetupGradesApiV1HrSetupGradesGet404,
-  ReadSetupGradesApiV1HrSetupGradesGet409,
-  ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+  ReadSetupGradesApiV1HrSetupGradesGetOptions,
+  ReadSetupGradesApiV1HrSetupGradesGetResponses,
 } from "../models/ReadSetupGradesApiV1HrSetupGradesGet.js";
-
-function getReadSetupGradesApiV1HrSetupGradesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/setup/grades` as const };
-  return res;
-}
 
 /**
  * @description List editable grade definitions.
  * @summary List editable grade definitions
  * {@link /api/v1/hr/setup/grades}
  */
-export async function readSetupGradesApiV1HrSetupGradesGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readSetupGradesApiV1HrSetupGradesGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadSetupGradesApiV1HrSetupGradesGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadSetupGradesApiV1HrSetupGradesGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadSetupGradesApiV1HrSetupGradesGet403
-      | ReadSetupGradesApiV1HrSetupGradesGet404
-      | ReadSetupGradesApiV1HrSetupGradesGet409
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadSetupGradesApiV1HrSetupGradesGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/setup/grades",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadSetupGradesApiV1HrSetupGradesGetResponses, ThrowOnError>
+    >
+  );
 }

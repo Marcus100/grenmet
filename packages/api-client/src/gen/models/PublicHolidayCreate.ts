@@ -3,16 +3,12 @@
  * Do not edit manually.
  */
 
-/**
- * PublicHolidayCreate
- */
 export type PublicHolidayCreate = {
-  /**
-   * @type string
-   */
   name: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   holiday_date: string;
   /**
@@ -21,7 +17,7 @@ export type PublicHolidayCreate = {
    */
   is_recurring?: boolean;
   /**
-   * @default "GD"
+   * @default 'GD'
    * @type string | undefined
    */
   country_code?: string;

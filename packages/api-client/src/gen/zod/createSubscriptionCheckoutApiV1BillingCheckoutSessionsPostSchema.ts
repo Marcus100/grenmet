@@ -6,31 +6,24 @@
 import * as z from "zod";
 import { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
 
-/**
- * @description Checkout Session created
- */
-export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201Schema =
-  z.lazy(() => checkoutSessionPublicSchema);
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201Schema =
+  checkoutSessionPublicSchema;
 
-/**
- * @description Authentication required
- */
-export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401Schema =
-  z.any();
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401Schema =
+  z.unknown();
 
-/**
- * @description Stripe request failed
- */
-export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502Schema =
-  z.any();
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502Schema =
+  z.unknown();
 
-/**
- * @description Billing is not configured
- */
-export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503Schema =
-  z.any();
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503Schema =
+  z.unknown();
 
-export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponseSchema =
-  z.lazy(
-    () => createSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201Schema
-  );
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponseSchema =
+  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201Schema;
+
+export const createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostErrorSchema =
+  z.union([
+    createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401Schema,
+    createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502Schema,
+    createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503Schema,
+  ]);

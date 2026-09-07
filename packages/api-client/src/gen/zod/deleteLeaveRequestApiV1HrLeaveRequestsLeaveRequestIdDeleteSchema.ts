@@ -6,42 +6,31 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParamsSchema =
-  z.object({
-    leave_request_id: z.string().uuid(),
-  });
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathLeaveRequestIdSchema =
+  z.uuid();
 
-/**
- * @description Leave request deleted
- */
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204Schema =
-  z.any();
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Leave request is not a draft
- */
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400Schema =
-  z.any();
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to delete this request
- */
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403Schema =
-  z.any();
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403Schema =
+  z.unknown();
 
-/**
- * @description Leave request not found
- */
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404Schema =
-  z.any();
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponseSchema =
-  z.lazy(
-    () => deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete204Schema
-  );
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponseSchema =
+  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204Schema;
+
+export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteErrorSchema =
+  z.union([
+    deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400Schema,
+    deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403Schema,
+    deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404Schema,
+    deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422Schema,
+  ]);

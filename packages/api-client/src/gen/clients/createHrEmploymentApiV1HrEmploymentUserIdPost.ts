@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost400,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost403,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost404,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost422,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostResponses,
 } from "../models/CreateHrEmploymentApiV1HrEmploymentUserIdPost.js";
-
-function getCreateHrEmploymentApiV1HrEmploymentUserIdPostUrl(
-  user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/employment/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create a user's employment record (department, employee number, position). Supervisor or admin only.
  * @summary Create employment record
  * {@link /api/v1/hr/employment/:user_id}
  */
-export async function createHrEmploymentApiV1HrEmploymentUserIdPost(
-  user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"],
-  data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createHrEmploymentApiV1HrEmploymentUserIdPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
-    >,
-    CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateHrEmploymentApiV1HrEmploymentUserIdPostUrl(
-      user_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/employment/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateHrEmploymentApiV1HrEmploymentUserIdPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

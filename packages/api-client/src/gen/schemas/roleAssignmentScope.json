@@ -1,6 +1,0 @@
-{
-  "type": "string",
-  "enum": ["SELF", "DEPARTMENT", "ALL"],
-  "title": "RoleAssignmentScope",
-  "x-readme-ref-name": "RoleAssignmentScope"
-}

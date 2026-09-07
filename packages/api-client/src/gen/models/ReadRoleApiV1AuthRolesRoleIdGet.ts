@@ -6,37 +6,38 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
-export type ReadRoleApiV1AuthRolesRoleIdGetPathParams = {
+export type ReadRoleApiV1AuthRolesRoleIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   role_id: string;
 };
 
-/**
- * RolePublic
- * @description Role returned
- */
-export type ReadRoleApiV1AuthRolesRoleIdGet200 = SrcAuthSchemasRolePublic;
+export type ReadRoleApiV1AuthRolesRoleIdGetStatus200 = SrcAuthSchemasRolePublic;
 
-/**
- * @description Role not found
- */
-export type ReadRoleApiV1AuthRolesRoleIdGet404 = any;
+export type ReadRoleApiV1AuthRolesRoleIdGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadRoleApiV1AuthRolesRoleIdGet422 = HTTPValidationError;
+export type ReadRoleApiV1AuthRolesRoleIdGetStatus422 = HTTPValidationError;
 
-export type ReadRoleApiV1AuthRolesRoleIdGetQueryResponse =
-  ReadRoleApiV1AuthRolesRoleIdGet200;
-
-export type ReadRoleApiV1AuthRolesRoleIdGetQuery = {
-  Response: ReadRoleApiV1AuthRolesRoleIdGet200;
-  PathParams: ReadRoleApiV1AuthRolesRoleIdGetPathParams;
-  Errors:
-    | ReadRoleApiV1AuthRolesRoleIdGet404
-    | ReadRoleApiV1AuthRolesRoleIdGet422;
+export type ReadRoleApiV1AuthRolesRoleIdGetOptions = {
+  body?: never;
+  path: ReadRoleApiV1AuthRolesRoleIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadRoleApiV1AuthRolesRoleIdGetResponses = {
+  "200": ReadRoleApiV1AuthRolesRoleIdGetStatus200;
+  "404": ReadRoleApiV1AuthRolesRoleIdGetStatus404;
+  "422": ReadRoleApiV1AuthRolesRoleIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadRoleApiV1AuthRolesRoleIdGetResponse =
+  | ReadRoleApiV1AuthRolesRoleIdGetStatus200
+  | ReadRoleApiV1AuthRolesRoleIdGetStatus404
+  | ReadRoleApiV1AuthRolesRoleIdGetStatus422;

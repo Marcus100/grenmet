@@ -9,9 +9,9 @@ import { employmentTypeSchema } from "./employmentTypeSchema.js";
 export const employmentCreateSchema = z.object({
   employee_number: z.string().max(50),
   department_id: z.string().max(100),
-  position: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(z.lazy(() => employmentTypeSchema)),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  work_location: z.optional(z.union([z.string(), z.null()])),
+  position: z.union([z.string().max(150), z.null()]).optional(),
+  employment_type: employmentTypeSchema.optional().default("FULL_TIME"),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
+  work_location: z.union([z.string().max(255), z.null()]).optional(),
 });

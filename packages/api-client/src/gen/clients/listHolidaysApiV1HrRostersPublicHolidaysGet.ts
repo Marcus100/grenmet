@@ -3,50 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListHolidaysApiV1HrRostersPublicHolidaysGet403,
-  ListHolidaysApiV1HrRostersPublicHolidaysGet422,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetOptions,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetResponses,
 } from "../models/ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
-
-function getListHolidaysApiV1HrRostersPublicHolidaysGetUrl() {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/rosters/public-holidays` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return public holidays, optionally filtered by year. Requires roster.view permission.
  * @summary List public holidays
  * {@link /api/v1/hr/rosters/public-holidays}
  */
-export async function listHolidaysApiV1HrRostersPublicHolidaysGet(
-  params?: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listHolidaysApiV1HrRostersPublicHolidaysGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListHolidaysApiV1HrRostersPublicHolidaysGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ListHolidaysApiV1HrRostersPublicHolidaysGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
-    ResponseErrorConfig<
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet403
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListHolidaysApiV1HrRostersPublicHolidaysGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/public-holidays",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListHolidaysApiV1HrRostersPublicHolidaysGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -3,15 +3,10 @@
  * Do not edit manually.
  */
 
-export const submissionModeSubmissionModeEnum = {
+export const submissionMode = {
   SELF: "SELF",
   PROXY: "PROXY",
 } as const;
 
-export type SubmissionModeSubmissionModeEnumKey =
-  (typeof submissionModeSubmissionModeEnum)[keyof typeof submissionModeSubmissionModeEnum];
-
-/**
- * SubmissionMode
- */
-export type SubmissionMode = SubmissionModeSubmissionModeEnumKey;
+export type SubmissionMode =
+  (typeof submissionMode)[keyof typeof submissionMode];

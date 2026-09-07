@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const personnelStatusPersonnelStatusEnum = {
+export const personnelStatus = {
   PRESENT: "PRESENT",
   ABSENT: "ABSENT",
   LATE: "LATE",
@@ -11,10 +11,5 @@ export const personnelStatusPersonnelStatusEnum = {
   EXCUSED: "EXCUSED",
 } as const;
 
-export type PersonnelStatusPersonnelStatusEnumKey =
-  (typeof personnelStatusPersonnelStatusEnum)[keyof typeof personnelStatusPersonnelStatusEnum];
-
-/**
- * PersonnelStatus
- */
-export type PersonnelStatus = PersonnelStatusPersonnelStatusEnumKey;
+export type PersonnelStatus =
+  (typeof personnelStatus)[keyof typeof personnelStatus];

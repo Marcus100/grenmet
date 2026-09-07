@@ -8,12 +8,12 @@ import { genderSchema } from "./genderSchema.js";
 import { titleSchema } from "./titleSchema.js";
 
 export const profileDetailsPublicSchema = z.object({
-  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
+  title: z.union([titleSchema, z.null()]).optional(),
   first_name: z.string(),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
+  middle_name: z.union([z.string(), z.null()]).optional(),
   last_name: z.string(),
-  display_name: z.optional(z.union([z.string(), z.null()])),
-  date_of_birth: z.optional(z.union([z.string().date(), z.null()])),
-  nationality: z.optional(z.union([z.string(), z.null()])),
-  gender: z.optional(z.union([z.lazy(() => genderSchema), z.null()])),
+  display_name: z.union([z.string(), z.null()]).optional(),
+  date_of_birth: z.union([z.iso.date(), z.null()]).optional(),
+  nationality: z.union([z.string(), z.null()]).optional(),
+  gender: z.union([genderSchema, z.null()]).optional(),
 });

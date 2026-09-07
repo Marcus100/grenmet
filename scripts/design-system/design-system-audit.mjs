@@ -9,26 +9,26 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const webApps = [
   {
     name: "@barrelsgd/ui",
-    root: "packages/ui",
     note: "Shared primitives should stay token-clean; generated foundation blocks are masked before scanning.",
+    root: "packages/ui",
   },
   {
     name: "gaa-admin",
-    root: "apps/web/gaa-admin",
     note: "Template-origin theme scales are expected to be noisy; treat them as migration debt.",
+    root: "apps/web/gaa-admin",
   },
   { name: "auth", root: "apps/web/auth" },
   {
     name: "docs",
-    root: "apps/web/docs",
     note: "Docs-template styling is expected to be noisy; review global shell colors first.",
+    root: "apps/web/docs",
   },
   { name: "mbia", root: "apps/web/mbia" },
   { name: "signal", root: "apps/web/signal" },
   {
     name: "gms",
-    root: "apps/web/gms",
     note: "Pilot app for the first foundation cleanup pass.",
+    root: "apps/web/gms",
   },
 ];
 
@@ -59,12 +59,12 @@ const ignoredDirectories = new Set([
 
 const categoryLabels = {
   colors: "Hard-coded colors",
-  typography: "Font and typography drift",
-  spacing: "Arbitrary spacing, sizing, or layout values",
-  radius: "Arbitrary radius values",
-  shadows: "App-local shadows/elevation",
   darkMode: "Dark/system theme hooks",
   localTokens: "Local theme tokens not mapped to the design system",
+  radius: "Arbitrary radius values",
+  shadows: "App-local shadows/elevation",
+  spacing: "Arbitrary spacing, sizing, or layout values",
+  typography: "Font and typography drift",
 };
 
 const semanticTokenPattern =
@@ -257,8 +257,8 @@ function addFinding(report, category, filePath, lineNumber, value, message) {
   report.findings[category].push({
     filePath,
     lineNumber,
-    value: normalizedValue,
     message,
+    value: normalizedValue,
   });
 }
 

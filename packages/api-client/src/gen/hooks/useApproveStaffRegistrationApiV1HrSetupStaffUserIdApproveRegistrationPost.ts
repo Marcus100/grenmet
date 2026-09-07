@@ -9,55 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "../clients/approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 import type {
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
-  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409,
+  ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422,
 } from "../models/ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 
 export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey =
   () =>
     [{ url: "/api/v1/hr/setup/staff/:user_id/approve-registration" }] as const;
 
-export type ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey =
-  ReturnType<
-    typeof approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey
-  >;
-
 export function approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey();
   return mutationOptions<
-    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
     ResponseErrorConfig<
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422
     >,
-    {
-      user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"];
-    },
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id }) => {
+    mutationFn: async ({ path }) => {
       return approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost(
-        user_id,
-        config
-      );
+        { ...config, path, throwOnError: true }
+      ).unwrap();
     },
   });
 }
@@ -72,19 +63,19 @@ export function useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistr
 >(
   options: {
     mutation?: UseMutationOptions<
-      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
       ResponseErrorConfig<
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422
       >,
-      {
-        user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"];
-      },
+      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -97,30 +88,26 @@ export function useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistr
     approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions(
       config
     ) as UseMutationOptions<
-      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
       ResponseErrorConfig<
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+        | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422
       >,
-      {
-        user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"];
-      },
+      ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
       TContext
     >;
 
   return useMutation<
-    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
     ResponseErrorConfig<
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422
     >,
-    {
-      user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"];
-    },
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
     TContext
   >(
     {
@@ -130,16 +117,14 @@ export function useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistr
     },
     queryClient
   ) as UseMutationResult<
-    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponse,
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200,
     ResponseErrorConfig<
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409
-      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409
+      | ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422
     >,
-    {
-      user_id: ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParams["user_id"];
-    },
+    ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
     TContext
   >;
 }

@@ -3,47 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadStatusReportsApiV1HrStatusReportsGet403,
-  ReadStatusReportsApiV1HrStatusReportsGet422,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
-  ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
+  ReadStatusReportsApiV1HrStatusReportsGetOptions,
+  ReadStatusReportsApiV1HrStatusReportsGetResponses,
 } from "../models/ReadStatusReportsApiV1HrStatusReportsGet.js";
-
-function getReadStatusReportsApiV1HrStatusReportsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/status-reports` as const };
-  return res;
-}
 
 /**
  * @description List status reports. Requires status.report.read permission. Optionally filter by department_id.
  * @summary List status reports
  * {@link /api/v1/hr/status-reports}
  */
-export async function readStatusReportsApiV1HrStatusReportsGet(
-  params?: ReadStatusReportsApiV1HrStatusReportsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readStatusReportsApiV1HrStatusReportsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadStatusReportsApiV1HrStatusReportsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadStatusReportsApiV1HrStatusReportsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadStatusReportsApiV1HrStatusReportsGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadStatusReportsApiV1HrStatusReportsGet403
-      | ReadStatusReportsApiV1HrStatusReportsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadStatusReportsApiV1HrStatusReportsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/status-reports",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadStatusReportsApiV1HrStatusReportsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

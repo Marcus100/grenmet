@@ -10,45 +10,43 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readHrDashboardApiV1HrDashboardGet } from "../clients/readHrDashboardApiV1HrDashboardGet.js";
 import type {
-  ReadHrDashboardApiV1HrDashboardGet401,
-  ReadHrDashboardApiV1HrDashboardGet403,
-  ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+  ReadHrDashboardApiV1HrDashboardGetStatus200,
+  ReadHrDashboardApiV1HrDashboardGetStatus401,
+  ReadHrDashboardApiV1HrDashboardGetStatus403,
 } from "../models/ReadHrDashboardApiV1HrDashboardGet.js";
 
 export const readHrDashboardApiV1HrDashboardGetQueryKey = () =>
   [{ url: "/api/v1/hr/dashboard" }] as const;
 
-export type ReadHrDashboardApiV1HrDashboardGetQueryKey = ReturnType<
+type ReadHrDashboardApiV1HrDashboardGetQueryKey = ReturnType<
   typeof readHrDashboardApiV1HrDashboardGetQueryKey
 >;
 
 export function readHrDashboardApiV1HrDashboardGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readHrDashboardApiV1HrDashboardGetQueryKey();
   return queryOptions<
-    ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+    ReadHrDashboardApiV1HrDashboardGetStatus200,
     ResponseErrorConfig<
-      | ReadHrDashboardApiV1HrDashboardGet401
-      | ReadHrDashboardApiV1HrDashboardGet403
+      | ReadHrDashboardApiV1HrDashboardGetStatus401
+      | ReadHrDashboardApiV1HrDashboardGetStatus403
     >,
-    ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+    ReadHrDashboardApiV1HrDashboardGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readHrDashboardApiV1HrDashboardGet(config);
+      return readHrDashboardApiV1HrDashboardGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -59,47 +57,49 @@ export function readHrDashboardApiV1HrDashboardGetQueryOptions(
  * {@link /api/v1/hr/dashboard}
  */
 export function useReadHrDashboardApiV1HrDashboardGet<
-  TData = ReadHrDashboardApiV1HrDashboardGetQueryResponse,
-  TQueryData = ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+  TData = ReadHrDashboardApiV1HrDashboardGetStatus200,
+  TQueryData = ReadHrDashboardApiV1HrDashboardGetStatus200,
   TQueryKey extends QueryKey = ReadHrDashboardApiV1HrDashboardGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+        ReadHrDashboardApiV1HrDashboardGetStatus200,
         ResponseErrorConfig<
-          | ReadHrDashboardApiV1HrDashboardGet401
-          | ReadHrDashboardApiV1HrDashboardGet403
+          | ReadHrDashboardApiV1HrDashboardGetStatus401
+          | ReadHrDashboardApiV1HrDashboardGetStatus403
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readHrDashboardApiV1HrDashboardGetQueryKey();
+    resolvedOptions?.queryKey ?? readHrDashboardApiV1HrDashboardGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readHrDashboardApiV1HrDashboardGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadHrDashboardApiV1HrDashboardGet401
-      | ReadHrDashboardApiV1HrDashboardGet403
+      | ReadHrDashboardApiV1HrDashboardGetStatus401
+      | ReadHrDashboardApiV1HrDashboardGetStatus403
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

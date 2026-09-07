@@ -26,7 +26,7 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
     summary="Create leave request",
     description="Create a leave request for the current user. Requires leave.request.create.self permission.",
     responses={
-        status.HTTP_200_OK: {"description": "Leave request created"},
+        status.HTTP_201_CREATED: {"description": "Leave request created"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )

@@ -3,14 +3,20 @@
  * Do not edit manually.
  */
 
-/**
- * @description Successful Response
- */
-export type ReadRssApiCapRssXmlGet200 = any;
+export type ReadRssApiCapRssXmlGetStatus200 = unknown;
 
-export type ReadRssApiCapRssXmlGetQueryResponse = ReadRssApiCapRssXmlGet200;
-
-export type ReadRssApiCapRssXmlGetQuery = {
-  Response: ReadRssApiCapRssXmlGet200;
-  Errors: any;
+export type ReadRssApiCapRssXmlGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadRssApiCapRssXmlGetResponses = {
+  "200": ReadRssApiCapRssXmlGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadRssApiCapRssXmlGetResponse = ReadRssApiCapRssXmlGetStatus200;

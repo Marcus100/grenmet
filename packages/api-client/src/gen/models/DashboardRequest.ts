@@ -3,24 +3,9 @@
  * Do not edit manually.
  */
 
-/**
- * DashboardRequest
- */
 export type DashboardRequest = {
-  /**
-   * @type string
-   */
   id: string;
-  /**
-   * @type string
-   */
   title: string;
-  /**
-   * @type string
-   */
   status: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

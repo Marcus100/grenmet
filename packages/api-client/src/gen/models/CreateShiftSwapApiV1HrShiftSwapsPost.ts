@@ -7,44 +7,32 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 
-/**
- * @description Shift swap request created
- */
-export type CreateShiftSwapApiV1HrShiftSwapsPost200 = any;
+export type CreateShiftSwapApiV1HrShiftSwapsPostStatus201 =
+  ShiftSwapRequestPublic;
 
-/**
- * ShiftSwapRequestPublic
- * @description Successful Response
- */
-export type CreateShiftSwapApiV1HrShiftSwapsPost201 = ShiftSwapRequestPublic;
+export type CreateShiftSwapApiV1HrShiftSwapsPostStatus403 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateShiftSwapApiV1HrShiftSwapsPost403 = any;
+export type CreateShiftSwapApiV1HrShiftSwapsPostStatus422 = HTTPValidationError;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateShiftSwapApiV1HrShiftSwapsPost422 = HTTPValidationError;
+export type CreateShiftSwapApiV1HrShiftSwapsPostBody = ShiftSwapRequestCreate;
 
-/**
- * ShiftSwapRequestCreate
- */
-export type CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest =
-  ShiftSwapRequestCreate;
-
-export type CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse =
-  | CreateShiftSwapApiV1HrShiftSwapsPost200
-  | CreateShiftSwapApiV1HrShiftSwapsPost201;
-
-export type CreateShiftSwapApiV1HrShiftSwapsPostMutation = {
-  Response:
-    | CreateShiftSwapApiV1HrShiftSwapsPost200
-    | CreateShiftSwapApiV1HrShiftSwapsPost201;
-  Request: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest;
-  Errors:
-    | CreateShiftSwapApiV1HrShiftSwapsPost403
-    | CreateShiftSwapApiV1HrShiftSwapsPost422;
+export type CreateShiftSwapApiV1HrShiftSwapsPostOptions = {
+  body: CreateShiftSwapApiV1HrShiftSwapsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateShiftSwapApiV1HrShiftSwapsPostResponses = {
+  "201": CreateShiftSwapApiV1HrShiftSwapsPostStatus201;
+  "403": CreateShiftSwapApiV1HrShiftSwapsPostStatus403;
+  "422": CreateShiftSwapApiV1HrShiftSwapsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateShiftSwapApiV1HrShiftSwapsPostResponse =
+  | CreateShiftSwapApiV1HrShiftSwapsPostStatus201
+  | CreateShiftSwapApiV1HrShiftSwapsPostStatus403
+  | CreateShiftSwapApiV1HrShiftSwapsPostStatus422;

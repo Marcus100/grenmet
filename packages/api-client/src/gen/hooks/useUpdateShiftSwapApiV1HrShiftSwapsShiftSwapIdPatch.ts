@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch } from "../clients/updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 import type {
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404,
+  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422,
 } from "../models/UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch.js";
 
 export const updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey = () =>
   [{ url: "/api/v1/hr/shift-swaps/:shift_swap_id" }] as const;
 
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey =
-  ReturnType<
-    typeof updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey
-  >;
-
 export function updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationKey();
   return mutationOptions<
-    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422
     >,
-    {
-      shift_swap_id: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams["shift_swap_id"];
-      data: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-    },
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ shift_swap_id, data }) => {
-      return updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch(
-        shift_swap_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -76,22 +63,19 @@ export function updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationOptions<
 export function useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
+      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422
       >,
-      {
-        shift_swap_id: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams["shift_swap_id"];
-        data: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-      },
+      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -104,32 +88,26 @@ export function useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch<TContext>(
     updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
+      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+        | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422
       >,
-      {
-        shift_swap_id: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams["shift_swap_id"];
-        data: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-      },
+      UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422
     >,
-    {
-      shift_swap_id: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams["shift_swap_id"];
-      data: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-    },
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
     TContext
   >(
     {
@@ -139,17 +117,14 @@ export function useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse,
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+      | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422
     >,
-    {
-      shift_swap_id: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams["shift_swap_id"];
-      data: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-    },
+    UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions,
     TContext
   >;
 }

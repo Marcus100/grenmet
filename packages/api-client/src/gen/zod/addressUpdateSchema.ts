@@ -7,10 +7,10 @@ import * as z from "zod";
 import { parishSchema } from "./parishSchema.js";
 
 export const addressUpdateSchema = z.object({
-  line_1: z.optional(z.union([z.string(), z.null()])),
-  line_2: z.optional(z.union([z.string(), z.null()])),
-  city: z.optional(z.union([z.string(), z.null()])),
-  parish: z.optional(z.union([z.lazy(() => parishSchema), z.null()])),
-  postal_code: z.optional(z.union([z.string(), z.null()])),
-  country: z.optional(z.union([z.string(), z.null()])),
+  line_1: z.union([z.string().max(255), z.null()]).optional(),
+  line_2: z.union([z.string().max(255), z.null()]).optional(),
+  city: z.union([z.string().max(100), z.null()]).optional(),
+  parish: z.union([parishSchema, z.null()]).optional(),
+  postal_code: z.union([z.string().max(20), z.null()]).optional(),
+  country: z.union([z.string().max(100), z.null()]).optional(),
 });

@@ -9,49 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createHolidayApiV1HrRostersPublicHolidaysPost } from "../clients/createHolidayApiV1HrRostersPublicHolidaysPost.js";
 import type {
-  CreateHolidayApiV1HrRostersPublicHolidaysPost400,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost403,
-  CreateHolidayApiV1HrRostersPublicHolidaysPost422,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest,
-  CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403,
+  CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422,
 } from "../models/CreateHolidayApiV1HrRostersPublicHolidaysPost.js";
 
 export const createHolidayApiV1HrRostersPublicHolidaysPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/public-holidays" }] as const;
 
-export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutationKey =
-  ReturnType<typeof createHolidayApiV1HrRostersPublicHolidaysPostMutationKey>;
-
 export function createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createHolidayApiV1HrRostersPublicHolidaysPostMutationKey();
   return mutationOptions<
-    CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
     ResponseErrorConfig<
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost422
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422
     >,
-    { data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest },
+    CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createHolidayApiV1HrRostersPublicHolidaysPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createHolidayApiV1HrRostersPublicHolidaysPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +62,19 @@ export function createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions<
 export function useCreateHolidayApiV1HrRostersPublicHolidaysPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
       ResponseErrorConfig<
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost422
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422
       >,
-      { data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest },
+      CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +87,26 @@ export function useCreateHolidayApiV1HrRostersPublicHolidaysPost<TContext>(
     createHolidayApiV1HrRostersPublicHolidaysPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
       ResponseErrorConfig<
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-        | CreateHolidayApiV1HrRostersPublicHolidaysPost422
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+        | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422
       >,
-      { data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest },
+      CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
     ResponseErrorConfig<
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost422
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422
     >,
-    { data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest },
+    CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
     TContext
   >(
     {
@@ -115,13 +116,14 @@ export function useCreateHolidayApiV1HrRostersPublicHolidaysPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse,
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+    | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201,
     ResponseErrorConfig<
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-      | CreateHolidayApiV1HrRostersPublicHolidaysPost422
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+      | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422
     >,
-    { data: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest },
+    CreateHolidayApiV1HrRostersPublicHolidaysPostOptions,
     TContext
   >;
 }

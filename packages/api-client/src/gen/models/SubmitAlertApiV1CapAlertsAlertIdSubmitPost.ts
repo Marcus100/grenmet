@@ -7,37 +7,38 @@ import type { CapAlertAction } from "./CapAlertAction.js";
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams = {
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapAlertPublic
- * @description Successful Response
- */
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPost200 = CapAlertPublic;
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200 =
+  CapAlertPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPost422 = HTTPValidationError;
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422 =
+  HTTPValidationError;
 
-/**
- * CapAlertAction
- */
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest =
-  CapAlertAction;
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostBody = CapAlertAction;
 
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse =
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPost200;
-
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutation = {
-  Response: SubmitAlertApiV1CapAlertsAlertIdSubmitPost200;
-  Request: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-  PathParams: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams;
-  Errors: SubmitAlertApiV1CapAlertsAlertIdSubmitPost422;
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions = {
+  body: SubmitAlertApiV1CapAlertsAlertIdSubmitPostBody;
+  path: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponses = {
+  "200": SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200;
+  "422": SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostResponse =
+  | SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200
+  | SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422;

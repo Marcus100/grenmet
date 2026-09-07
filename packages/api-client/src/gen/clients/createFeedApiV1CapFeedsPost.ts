@@ -3,46 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateFeedApiV1CapFeedsPost422,
-  CreateFeedApiV1CapFeedsPostMutationRequest,
-  CreateFeedApiV1CapFeedsPostMutationResponse,
+  CreateFeedApiV1CapFeedsPostOptions,
+  CreateFeedApiV1CapFeedsPostResponses,
 } from "../models/CreateFeedApiV1CapFeedsPost.js";
-
-function getCreateFeedApiV1CapFeedsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/cap/feeds` as const };
-  return res;
-}
 
 /**
  * @summary Register an external CAP feed source
  * {@link /api/v1/cap/feeds}
  */
-export async function createFeedApiV1CapFeedsPost(
-  data: CreateFeedApiV1CapFeedsPostMutationRequest,
-  config: Partial<RequestConfig<CreateFeedApiV1CapFeedsPostMutationRequest>> & {
-    client?: Client;
-  } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createFeedApiV1CapFeedsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateFeedApiV1CapFeedsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateFeedApiV1CapFeedsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateFeedApiV1CapFeedsPostMutationResponse,
-    ResponseErrorConfig<CreateFeedApiV1CapFeedsPost422>,
-    CreateFeedApiV1CapFeedsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateFeedApiV1CapFeedsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/feeds",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateFeedApiV1CapFeedsPostResponses, ThrowOnError>
+    >
+  );
 }

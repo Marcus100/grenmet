@@ -5,12 +5,9 @@
 
 import * as z from "zod";
 
-/**
- * @description Successful Response
- */
-export const readIntegrationsApiV1CapIntegrationsGet200Schema = z
+export const readIntegrationsApiV1CapIntegrationsGetStatus200Schema = z
   .object({})
-  .catchall(z.array(z.object({}).catchall(z.any())));
+  .catchall(z.array(z.object({}).catchall(z.unknown())));
 
-export const readIntegrationsApiV1CapIntegrationsGetQueryResponseSchema =
-  z.lazy(() => readIntegrationsApiV1CapIntegrationsGet200Schema);
+export const readIntegrationsApiV1CapIntegrationsGetResponseSchema =
+  readIntegrationsApiV1CapIntegrationsGetStatus200Schema;

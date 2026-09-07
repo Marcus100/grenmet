@@ -1,0 +1,14 @@
+[Unit]
+Description=Bounded Grenmet collector %i
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/usr/bin/python3 /opt/grenmet/scripts/production/collector.py %i
+TimeoutStartSec=190min
+KillMode=control-group
+UMask=0077

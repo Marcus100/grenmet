@@ -9,43 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createPredefinedAreaApiV1CapAreasPredefinedPost } from "../clients/createPredefinedAreaApiV1CapAreasPredefinedPost.js";
 import type {
-  CreatePredefinedAreaApiV1CapAreasPredefinedPost422,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422,
 } from "../models/CreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
 
 export const createPredefinedAreaApiV1CapAreasPredefinedPostMutationKey = () =>
   [{ url: "/api/v1/cap/areas/predefined" }] as const;
 
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationKey =
-  ReturnType<typeof createPredefinedAreaApiV1CapAreasPredefinedPostMutationKey>;
-
 export function createPredefinedAreaApiV1CapAreasPredefinedPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createPredefinedAreaApiV1CapAreasPredefinedPostMutationKey();
   return mutationOptions<
-    CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-    { data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest },
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422>,
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPredefinedAreaApiV1CapAreasPredefinedPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createPredefinedAreaApiV1CapAreasPredefinedPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,14 +53,14 @@ export function createPredefinedAreaApiV1CapAreasPredefinedPostMutationOptions<
 export function useCreatePredefinedAreaApiV1CapAreasPredefinedPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-      ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-      { data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest },
+      CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+      ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422>,
+      CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -77,16 +73,16 @@ export function useCreatePredefinedAreaApiV1CapAreasPredefinedPost<TContext>(
     createPredefinedAreaApiV1CapAreasPredefinedPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-      ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-      { data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest },
+      CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+      ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422>,
+      CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-    { data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest },
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422>,
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
     TContext
   >(
     {
@@ -96,9 +92,9 @@ export function useCreatePredefinedAreaApiV1CapAreasPredefinedPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-    { data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest },
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201,
+    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422>,
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
     TContext
   >;
 }

@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListAssignmentsApiV1HrRostersAssignmentsGet400,
-  ListAssignmentsApiV1HrRostersAssignmentsGet403,
-  ListAssignmentsApiV1HrRostersAssignmentsGet404,
-  ListAssignmentsApiV1HrRostersAssignmentsGet422,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+  ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
+  ListAssignmentsApiV1HrRostersAssignmentsGetResponses,
 } from "../models/ListAssignmentsApiV1HrRostersAssignmentsGet.js";
-
-function getListAssignmentsApiV1HrRostersAssignmentsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/rosters/assignments` as const };
-  return res;
-}
 
 /**
  * @description Return rostered days between start and end, expanded to concrete local times, for the calendar. scope=me (the default) returns the caller's own assignments and needs no roster permission; scope=department returns the whole department's and requires roster.view. Draft periods are included only for callers with roster.manage. The range is capped at 92 days.
  * @summary List roster assignments for a date range
  * {@link /api/v1/hr/rosters/assignments}
  */
-export async function listAssignmentsApiV1HrRostersAssignmentsGet(
-  params: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listAssignmentsApiV1HrRostersAssignmentsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ListAssignmentsApiV1HrRostersAssignmentsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
-    ResponseErrorConfig<
-      | ListAssignmentsApiV1HrRostersAssignmentsGet400
-      | ListAssignmentsApiV1HrRostersAssignmentsGet403
-      | ListAssignmentsApiV1HrRostersAssignmentsGet404
-      | ListAssignmentsApiV1HrRostersAssignmentsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListAssignmentsApiV1HrRostersAssignmentsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/assignments",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListAssignmentsApiV1HrRostersAssignmentsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

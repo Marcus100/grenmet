@@ -6,6 +6,6 @@
 import * as z from "zod";
 
 export const roleUpdateSchema = z.object({
-  name: z.optional(z.union([z.string(), z.null()])),
-  description: z.optional(z.union([z.string(), z.null()])),
+  name: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string(), z.null()]).optional(),
 });

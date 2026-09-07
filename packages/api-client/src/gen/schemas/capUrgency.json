@@ -1,6 +1,0 @@
-{
-  "type": "string",
-  "enum": ["Immediate", "Expected", "Future", "Past", "Unknown"],
-  "title": "CapUrgency",
-  "x-readme-ref-name": "CapUrgency"
-}
