@@ -12,7 +12,7 @@ const manifests = new Map(
 
 // These Dockerfiles intentionally cache installation using explicit manifest
 // COPY instructions. Validate that list against the actual workspace graph.
-const installPattern = /^RUN pnpm install\b/m;
+const installPattern = /^RUN (?:HUSKY=0 )?pnpm install\b/m;
 const copyPattern = /^COPY (\S+\/package\.json)\s+/gm;
 let failures = 0;
 for (const dockerfile of globSync([

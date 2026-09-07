@@ -297,6 +297,8 @@ jobs:
       - uses: ./.github/actions/setup-node
       - name: Install PostgreSQL client for runtime privilege checks
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Build API client required by CMS migration configuration
+        run: pnpm --filter @barrelsgd/api-client build
       - name: Fresh, concurrent and failed migrations; catalogue preservation
         env:
           STORAGE_TEST_POSTGRES_URL: postgresql://storage_test:test-only-password@localhost:5432/postgres
