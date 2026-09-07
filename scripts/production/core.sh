@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Sole core deployment/backup entrypoint; operator must provision the lock directory.
+# Core deployment and optional recovery tooling; scheduled backups retain their existing workflow.
 set -euo pipefail
 operation=${1:?Expected deploy, backup or cleanup}
 : "${DEPLOY_ENV:?}" "${COMPOSE_PROJECT:?}"
@@ -31,10 +31,6 @@ set -euo pipefail
 umask 077
 python3 ../../scripts/production/render-env.py "$DEPLOY_ENV.env" runtime/.env.local
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --quiet
-
-printf "%s\n" "Required off-host backup before changing services"
-GITHUB_OUTPUT="$PWD/runtime/bootstrap-result" python3 ../../scripts/production/backup-core.py "$DEPLOY_ENV" "$COMPOSE_PROJECT" "$DEPLOY_ENV.env" --before-provisioning
-python3 ../../scripts/production/backup-files.py /etc/grenmet/objects.json
 
 printf "%s\n" "Authenticate with GHCR"
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -72,13 +68,6 @@ done
 
 printf "%s\n" "Provision and verify least-privilege API runtime access"
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /opt/grenmet/grant-api-runtime.sh
-
-printf "%s\n" "Required complete backup after first CMS migration"
-bootstrap_result=$(cat runtime/bootstrap-result)
-[[ "$bootstrap_result" == cms_missing=true || "$bootstrap_result" == cms_missing=false ]] || { echo "Invalid bootstrap backup result" >&2; exit 1; }
-if [[ "$bootstrap_result" == cms_missing=true ]]; then
-  python3 ../../scripts/production/backup-core.py "$DEPLOY_ENV" "$COMPOSE_PROJECT" "$DEPLOY_ENV.env"
-fi
 
 printf "%s\n" "Start applications only after migration success"
 set -euo pipefail

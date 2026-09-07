@@ -25,6 +25,7 @@ const projects = globSync(
   .sort();
 const required = [
   "node_modules",
+  ".venv",
   ...projects.map((path) => `${path}/node_modules`),
   ".turbo",
   ...projects
@@ -80,4 +81,42 @@ test("bootstrap checks mounts before install and owns only image-declared volume
   assert.ok(setup.indexOf("mountpoint -q") < setup.indexOf("chown node:node"));
   assert.ok(setup.includes("/usr/local/share/grenmet-dependency-volumes.txt"));
   assert.ok(!setup.includes("chown -R"));
+});
+
+test("editor waits for Node and Python setup and uses declared SDKs", () => {
+  assert.equal(config.waitFor, "postCreateCommand");
+  assert.ok(
+    config.postCreateCommand.includes("uv sync --frozen --package fast-back")
+  );
+  assert.ok(config.postCreateCommand.includes("pnpm exec turbo --version"));
+  assert.ok(
+    config.postCreateCommand.indexOf("check-dependency-isolation.mjs") <
+      config.postCreateCommand.indexOf("uv sync")
+  );
+  const settings = JSON.parse(read(".vscode/settings.json"));
+  assert.equal(
+    settings["python.defaultInterpreterPath"],
+    "${workspaceFolder}/.venv"
+  );
+  assert.equal(
+    settings["js/ts.tsdk.path"],
+    "./apps/web/gaa-admin/node_modules/typescript"
+  );
+  assert.equal(settings["js/ts.experimental.useTsgo"], true);
+  assert.ok(
+    config.customizations.vscode.extensions.includes(
+      "TypeScriptTeam.native-preview"
+    )
+  );
+  assert.equal(
+    JSON.parse(read("apps/web/gaa-admin/package.json")).devDependencies
+      .typescript,
+    "catalog:"
+  );
+  assert.ok(!("typescript.tsdk" in settings));
+  assert.ok(
+    read(".devcontainer/Dockerfile").includes(
+      "UV_PYTHON_INSTALL_DIR=/opt/uv/python"
+    )
+  );
 });
