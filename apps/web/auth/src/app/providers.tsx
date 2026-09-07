@@ -1,14 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const PostHogProvider = dynamic(
-  () =>
-    import("@barrelsgd/ui/components/posthog-provider").then((m) => ({
-      default: m.PostHogProvider,
-    })),
-  { ssr: false }
-);
+import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 
 export function Providers({
   apiHost,
