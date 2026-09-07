@@ -47,6 +47,7 @@ transition:
 
 | Repository surface | Primary classification and owner | Lifecycle | Dependency rule |
 | --- | --- | --- | --- |
+| `packages/admin-migrations` | Barrels delivery tooling for GAA | Active | Dependency-only package for admin migrations and baselines; no web runtime dependencies |
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |

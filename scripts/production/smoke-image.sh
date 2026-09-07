@@ -17,8 +17,8 @@ case "$kind" in
       -e "await import('payload'); await import('@payloadcms/db-postgres'); import {createRequire} from 'node:module'; createRequire(import.meta.url).resolve('@barrelsgd/tsconfig/tsconfig.nextjs.json')"
     ;;
   admin-migrate)
-    docker run --rm --network none --entrypoint node "$image" --input-type=module \
-      -e "await import('./apps/web/gaa-admin/scripts/migrate-domain.mjs')"
+    docker run --rm --network none --entrypoint node "$image" \
+      --test apps/web/gaa-admin/scripts/migration-runtime.test.mjs
     ;;
   web|auth)
     port=${3:?Expected port}

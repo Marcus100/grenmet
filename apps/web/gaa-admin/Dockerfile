@@ -4,11 +4,12 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN apk upgrade --no-cache && corepack enable pnpm
 
-FROM base AS source
+FROM base AS dependencies
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/admin-migrations/package.json packages/admin-migrations/
 COPY packages/ui/package.json packages/ui/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
@@ -26,6 +27,8 @@ COPY apps/web/signal/package.json apps/web/signal/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/mdx/package.json packages/mdx/
 RUN HUSKY=0 pnpm install --frozen-lockfile
+
+FROM dependencies AS source
 
 # NEXT_PUBLIC_* vars are baked into the client bundle at build time
 ARG NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE="true"
@@ -48,8 +51,8 @@ RUN mkdir -p apps/web/gaa-admin/public
 
 # ── Migration runner ─────────────────────────────────────────────────────────
 # One-off migrations use source and installed dependencies without a Next.js build.
-FROM source AS migration-package
-RUN pnpm --filter @barrelsgd/web-gaa-admin deploy --legacy --prod /migration-runtime
+FROM dependencies AS migration-package
+RUN pnpm --filter @barrelsgd/admin-migrations deploy --legacy --prod /migration-runtime
 
 FROM base AS migrate
 WORKDIR /app
