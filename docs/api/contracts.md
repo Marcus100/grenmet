@@ -255,3 +255,11 @@ Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account c
 ### HR creation responses
 
 Creating a leave request, absentee report, daily status report, shift swap, or timesheet returns `201 Created` with its public response model, including when saving a draft. These routes do not advertise a separate untyped `200` response. Kubb generates the corresponding success types from this contract.
+
+### Dependency readiness
+
+`GET /api/v1/utils/ready/` retains its existing response contract but now requires the committed Alembic revision and readable auth/HR tables. Empty operational datasets are valid. Missing schemas, stale revisions and unavailable databases return 503. Liveness remains `/api/v1/utils/health-check/`.
+
+### Private weather images
+
+`GET /api/v1/wxwatch/images/{storage_path}` requires an active authenticated user and returns a private, non-cacheable 307 redirect to a 60-second signed GET URL. Keys are restricted to raster images within the environment-specific bucket’s `wxwatch/` prefix. It never reads or writes another application’s tables. Invalid paths return 400; unconfigured object storage returns 503. The admin’s existing authenticated proxy exchanges the session cookie for a bearer token.

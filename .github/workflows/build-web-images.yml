@@ -65,6 +65,12 @@ jobs:
           - app: web-events
             path: apps/web/events
             port: 3009
+          - app: web-cms
+            path: apps/web/cms
+            port: 3006
+          - app: web-cms-migrate
+            path: apps/web/cms
+            target: migrate
           - app: api-hono
             path: apps/api/honoapi
             port: 4000
@@ -87,15 +93,18 @@ jobs:
 
       - name: Resolve environment context
         id: ctx
+        env:
+          BUILD_TAG: ${{ inputs.tag }}
         run: |
-          EVENT="${{ github.event_name }}"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          EVENT="$GITHUB_EVENT_NAME"
           # inputs.tag covers both workflow_dispatch and workflow_call callers.
-          if [ -n "${{ inputs.tag }}" ]; then
-            BRANCH="${{ inputs.tag }}"
+          if [ -n "$BUILD_TAG" ]; then
+            BRANCH="$BUILD_TAG"
           elif [ "$EVENT" == "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            BRANCH="$GITHUB_REF_NAME"
           else
-            BRANCH="${{ github.ref_name }}"
+            BRANCH="$GITHUB_REF_NAME"
           fi
 
           if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
@@ -113,8 +122,11 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/barrelsgd-${{ matrix.app }}
+            ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.app }}
+          labels: |
+            gd.barrels.environment=${{ steps.ctx.outputs.environment }}
           tags: |
+            type=raw,value=${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
             type=raw,value=staging,enable=${{ steps.ctx.outputs.environment == 'staging' }}
             type=raw,value=latest,enable=${{ steps.ctx.outputs.environment == 'production' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
@@ -132,6 +144,7 @@ jobs:
             NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || secrets.SENTRY_DSN_PRODUCTION }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+          secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -145,7 +158,7 @@ jobs:
         continue-on-error: true
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/barrelsgd-${{ matrix.app }}@${{ steps.build.outputs.digest }}
+          image-ref: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.app }}@${{ steps.build.outputs.digest }}
           format: sarif
           output: trivy-results.sarif
           severity: CRITICAL,HIGH

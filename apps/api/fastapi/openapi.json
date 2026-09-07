@@ -7380,6 +7380,47 @@
         }
       }
     },
+    "/api/v1/wxwatch/images/{storage_path}": {
+      "get": {
+        "tags": [
+          "weather-images"
+        ],
+        "summary": "Weather Image",
+        "description": "Issue a short-lived download redirect scoped to the environment's wxwatch prefix.",
+        "operationId": "weather_image_api_v1_wxwatch_images__storage_path__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "storage_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Storage Path"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/modern/email/request": {
       "post": {
         "tags": [

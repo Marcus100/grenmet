@@ -1,3 +1,7 @@
+from functools import lru_cache
+from pathlib import Path
+
+from alembic.script import ScriptDirectory
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from pydantic.networks import EmailStr
@@ -7,6 +11,16 @@ from src.auth.dependencies import get_current_active_superuser
 from src.dependencies import SessionDep
 from src.email import generate_test_email, send_email
 from src.models import Message
+
+
+@lru_cache(maxsize=1)
+def _migration_heads() -> frozenset[str]:
+    return frozenset(
+        ScriptDirectory(
+            str(Path(__file__).resolve().parents[2] / "alembic")
+        ).get_heads()
+    )
+
 
 router = APIRouter(prefix="/utils", tags=["utils"])
 
@@ -47,7 +61,14 @@ async def health_check() -> bool:
 )
 async def ready(session: SessionDep) -> dict[str, str]:
     try:
-        await session.execute(text("SELECT 1"))
+        versions = await session.execute(
+            text("SELECT version_num FROM alembic_version")
+        )
+        if frozenset(versions.scalars()) != _migration_heads():
+            raise RuntimeError("Schema revision mismatch")
+        # Empty datasets are valid; these reads verify required schema and permissions.
+        await session.execute(text('SELECT id FROM "user" LIMIT 0'))
+        await session.execute(text("SELECT id FROM hr.department LIMIT 0"))
         return {"status": "ready"}
     except Exception:
         raise HTTPException(status_code=503, detail="Database unreachable")

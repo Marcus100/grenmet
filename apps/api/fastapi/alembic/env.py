@@ -126,6 +126,7 @@ def do_run_migrations(connection: Connection) -> None:
     )
 
     with context.begin_transaction():
+        connection.exec_driver_sql("SELECT pg_advisory_xact_lock(73190506)")
         context.run_migrations()
 
 

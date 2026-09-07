@@ -49,6 +49,7 @@ from src.logging_config import configure_logging
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
+from src.storage.router import router as weather_images_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
 
@@ -161,6 +162,7 @@ app.include_router(cap_public_router)
 
 # Other routers
 app.include_router(utils_router, prefix="/api/v1")
+app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 
 # Register exception handlers

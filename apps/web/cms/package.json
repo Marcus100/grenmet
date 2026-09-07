@@ -13,8 +13,12 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "lint": "biome lint .",
-    "generate:types": "payload generate:types",
-    "generate:importmap": "payload generate:importmap"
+    "generate:types": "node --env-file-if-exists=.env.local node_modules/payload/bin.js generate:types",
+    "generate:importmap": "node --env-file-if-exists=.env.local node_modules/payload/bin.js generate:importmap",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
+    "db:generate": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:create",
+    "db:status": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:status",
+    "db:adopt": "node --env-file-if-exists=.env.local scripts/adopt.mjs"
   },
   "dependencies": {
     "payload": "catalog:",
@@ -30,7 +34,9 @@
     "@t3-oss/env-nextjs": "catalog:",
     "zod": "catalog:",
     "@barrelsgd/api-client": "workspace:*",
-    "@barrelsgd/auth": "workspace:*"
+    "@barrelsgd/auth": "workspace:*",
+    "pg": "catalog:",
+    "@payloadcms/email-resend": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

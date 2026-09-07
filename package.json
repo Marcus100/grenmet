@@ -49,7 +49,9 @@
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",
     "check:drift": "node scripts/api/check-api-drift.mjs",
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
-    "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh"
+    "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh",
+    "storage:init": "bash scripts/production/init-local.sh",
+    "test:delivery": "node --test scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

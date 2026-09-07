@@ -1,0 +1,42 @@
+name: Backup Freshness
+on:
+  schedule:
+    - cron: "30 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [staging, production]
+    environment: ${{ matrix.environment }}
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
+      AWS_EC2_METADATA_DISABLED: "true"
+      DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+      DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+      DEPLOY_ENV: ${{ matrix.environment }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+      - run: python3 scripts/production/check-backup-age.py "$DEPLOY_ENV" core objects
+      - name: Weather backup freshness
+        if: vars.WEATHER_BACKUP_ENABLED == 'true'
+        run: python3 scripts/production/check-backup-age.py "$DEPLOY_ENV" weather
+      - name: Sutron backup freshness
+        if: vars.SUTRON_BACKUP_ENABLED == 'true'
+        run: python3 scripts/production/check-backup-age.py "$DEPLOY_ENV" sutron
+      - name: Report unconfigured recovery integrations
+        env:
+          WEATHER: ${{ vars.WEATHER_BACKUP_ENABLED }}
+          SUTRON: ${{ vars.SUTRON_BACKUP_ENABLED }}
+        run: |
+          [[ "$WEATHER" == true ]] || echo "Weather backup UNCONFIGURED; infrastructure release acceptance pending." >> "$GITHUB_STEP_SUMMARY"
+          [[ "$SUTRON" == true ]] || echo "Sutron backup UNCONFIGURED; edge recovery acceptance pending." >> "$GITHUB_STEP_SUMMARY"

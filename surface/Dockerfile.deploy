@@ -1,0 +1,5 @@
+FROM nmsbdocker/surface-base:v1.0.0@sha256:6182729b77706a37e6de22572b2fb08cb2b552f6c9073b567bd3ca37293f22f1
+WORKDIR /surface
+COPY --chown=surface:surface surface/api/ /surface/
+ENV DJANGO_SETTINGS_MODULE=tempestas_api.settings
+CMD ["sh", "startup.sh"]

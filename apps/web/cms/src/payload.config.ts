@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
+import { resendAdapter } from "@payloadcms/email-resend";
 import { buildConfig } from "payload";
 import { Content } from "./collections/content";
 import { Users } from "./collections/users";
@@ -10,7 +11,19 @@ const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   secret: env.PAYLOAD_SECRET,
-  db: postgresAdapter({ pool: { connectionString: env.DATABASE_URL } }),
+  email:
+    env.RESEND_API_KEY && env.EMAILS_FROM_EMAIL
+      ? resendAdapter({
+          apiKey: env.RESEND_API_KEY,
+          defaultFromAddress: env.EMAILS_FROM_EMAIL,
+          defaultFromName: env.EMAILS_FROM_NAME,
+        })
+      : undefined,
+  db: postgresAdapter({
+    pool: { connectionString: env.DATABASE_URL, connectionTimeoutMillis: 5000 },
+    push: false,
+    migrationDir: path.resolve(baseDir, "migrations"),
+  }),
   admin: {
     user: "users",
     components: {

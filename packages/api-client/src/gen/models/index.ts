@@ -1755,6 +1755,14 @@ export type {
   ValidateGridApiV1HrRostersImportGridValidatePostStatus422,
 } from "./ValidateGridApiV1HrRostersImportGridValidatePost.js";
 export type { ValidationError } from "./ValidationError.js";
+export type {
+  WeatherImageApiV1WxwatchImagesStoragePathGetOptions,
+  WeatherImageApiV1WxwatchImagesStoragePathGetPath,
+  WeatherImageApiV1WxwatchImagesStoragePathGetResponse,
+  WeatherImageApiV1WxwatchImagesStoragePathGetResponses,
+  WeatherImageApiV1WxwatchImagesStoragePathGetStatus307,
+  WeatherImageApiV1WxwatchImagesStoragePathGetStatus422,
+} from "./WeatherImageApiV1WxwatchImagesStoragePathGet.js";
 export type { WorkflowAction } from "./WorkflowAction.js";
 export { workflowAction } from "./WorkflowAction.js";
 export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";

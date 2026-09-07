@@ -45,7 +45,7 @@ services:
     shm_size: 4g
     restart: unless-stopped
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     volumes:
       - ./:/app
       - ./data/postgresql:/var/lib/postgresql/data
@@ -75,7 +75,7 @@ services:
     container_name: surface-api
     command: ./startup.sh
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface
@@ -102,7 +102,7 @@ services:
     restart: unless-stopped
     command: /home/surface/.local/bin/celery -A tempestas_api beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     volumes:
       - ./api:/surface
       - ./data/postgresql:/data
@@ -150,7 +150,7 @@ services:
     container_name: surface-celery-worker-default
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q celery --concurrency=5 --prefetch-multiplier=1
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface
@@ -197,7 +197,7 @@ services:
     container_name: surface-celery-worker-summary
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q summary --concurrency=6 --prefetch-multiplier=1
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface
@@ -244,7 +244,7 @@ services:
     container_name: surface-celery-worker-ingest
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q ingest --concurrency=4 --prefetch-multiplier=1
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface
@@ -293,7 +293,7 @@ services:
     container_name: surface-celery-worker-maintenance
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q maintenance --concurrency=3 --prefetch-multiplier=1
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface
@@ -338,7 +338,7 @@ services:
     container_name: surface-celery-worker-export
     command: /home/surface/.local/bin/celery -A tempestas_api worker -l info -Q export --concurrency=2 --prefetch-multiplier=1
     env_file:
-      - api/production.env
+      - ${SURFACE_ENV_FILE:-api/.env.local}
     restart: unless-stopped
     volumes:
       - ./api:/surface

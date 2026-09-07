@@ -4,7 +4,7 @@ services:
     image: WIS2BOX-RELEASE
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     depends_on:
       - wis2box-ui
       - wis2box-auth
@@ -18,7 +18,7 @@ services:
     image: WIS2BOX-RELEASE
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     depends_on:
       - wis2box-api
 
@@ -26,7 +26,7 @@ services:
     container_name: wis2box-webapp
     image: WIS2BOX-RELEASE
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     restart: always
 
   wis2box-api:
@@ -34,7 +34,7 @@ services:
     image: WIS2BOX-RELEASE
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     depends_on:
       elasticsearch:
         condition: service_healthy
@@ -52,7 +52,7 @@ services:
     memswap_limit: 768m
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     environment:
       - MINIO_BROWSER_LOGIN_ANIMATION=off
       - MINIO_BROWSER_REDIRECT=false
@@ -109,7 +109,7 @@ services:
     image: WIS2BOX-RELEASE
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     volumes:
       - mosquitto-config:/mosquitto/config
 
@@ -120,7 +120,7 @@ services:
     restart: always
     image: WIS2BOX-RELEASE
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     volumes:
       - ${WIS2BOX_HOST_DATADIR}:/data/wis2box:rw
     depends_on:
@@ -135,7 +135,7 @@ services:
     image: WIS2BOX-RELEASE
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     volumes:
       - auth-data:/data/wis2box:rw
     depends_on:
