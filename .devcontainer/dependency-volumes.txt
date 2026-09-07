@@ -25,3 +25,4 @@ apps/web/gaa-admin/.next
 apps/web/gms/.next
 apps/web/mbia/.next
 apps/web/signal/.next
+.venv
