@@ -9,7 +9,7 @@ case "$kind" in
       -e PROJECT_NAME=ci -e SECRET_KEY=ci-secret-key-min-32-characters-long \
       -e POSTGRES_SERVER=db -e POSTGRES_PORT=5432 -e POSTGRES_USER=app \
       -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
-      -e FIRST_SUPERUSER=ci@example.test -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
+      -e FIRST_SUPERUSER=ci@example.com -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
       "$image" -c 'from src.main import app; print("boot-ok: app + routers imported")'
     ;;
   cms-migrate)
