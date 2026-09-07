@@ -26,6 +26,7 @@
         "tamasfe.even-better-toml",
         "unifiedjs.vscode-mdx",
         "vitest.explorer",
+        "TypeScriptTeam.native-preview",
         "yoavbls.pretty-ts-errors"
       ]
     }
@@ -55,6 +56,9 @@
   // daemon needs paths that exist on the host. Run all `docker compose`
   // commands from ${localWorkspaceFolder}/<app>, never /workspace/<app>.
   "mounts": [
+    // Container-only Python environment; never reuse the host interpreter or native wheels.
+    "source=grenmet-${devcontainerId}-venv,target=/workspace/.venv,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-venv,target=${localWorkspaceFolder}/.venv,type=volume,volume-nocopy",
     // Container-only dependencies and caches, including the mirrored repo path.
     // Keep dependency-volumes.txt and the guardrail test in sync when adding apps.
     "source=grenmet-${devcontainerId}-node_modules,target=/workspace/node_modules,type=volume,volume-nocopy",
@@ -133,6 +137,8 @@
   // tests), so publishing those ports here would collide with the host stack.
 
   "remoteUser": "node",
+  "init": true,
+  "waitFor": "postCreateCommand",
 
   // Claude's login/trust state lives in .claude.json. By default that file sits
   // in the home root (outside any volume) and is wiped on every rebuild, forcing
@@ -144,6 +150,6 @@
   },
 
   // On create: install workspace deps, then print every tool's version.
-  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && node -v && pnpm -v && uv --version && claude --version && codex --version",
+  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version",
   "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs"
 }
