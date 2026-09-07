@@ -245,3 +245,47 @@ For the next staging deployment, capture `vmstat 1 60` and, if already installed
 since-boot sample; correlate subsequent swap-in/out, I/O wait, CPU steal and disk
 latency with workflow timestamps. These read-only measurements help distinguish
 resource contention from image size and file-count overhead.
+
+
+#### Follow-up: reduce admin migration dependencies
+
+Staging run [34165847203](https://github.com/Marcus100/grenmet/actions/runs/34165847203)
+passed all 306 API tests, migrations, readiness and external functional checks.
+Elapsed pipeline time was 13m32s versus 14m35s for the preceding run; image
+pull/validation was 3m49s versus 4m26s. This is not a controlled cache comparison.
+The operator's five post-deployment worker probes took 2.28–5.04 seconds, median
+4.33 seconds, versus the earlier 9.71–11.74 seconds, median 10.26 seconds.
+That establishes a lower observed median probe time, not sole causation for the
+pipeline improvement.
+
+Admin migrations previously deployed the full web application's production
+graph. The dependency-only `packages/admin-migrations` workspace now declares
+`pg` and `drizzle-orm` from the existing catalog. SQL, seeds, script paths,
+database checks and the non-root runtime user remain in the existing app image.
+The Docker dependency-packaging stage precedes application-source copying so
+source-only changes can reuse the packaged dependency layer.
+
+Local `pnpm deploy --legacy --prod` measurements for the original and minimal
+packages (same workspace, Linux host, September 7) were:
+
+| Dependency footprint | Web application graph | Migration graph |
+| --- | --- | --- |
+| Installed packages reported by pnpm | 331 | 15 |
+| Regular files, excluding symlinks | 61,239 | 2,807 |
+| Sum of regular-file bytes | 624,081,624 | 10,894,860 |
+
+This is about 98.3% fewer dependency bytes. These are unpacked local package
+measurements, not compressed Alpine image sizes or measured deployment savings.
+The standalone minimal package passed all eleven migration-runtime tests,
+including every entrypoint and all four SQL journals. Removing a SQL directory
+from a temporary fixture made the check fail. CI now runs the same checks in
+the exact migration image with networking disabled before publishing.
+
+This follows [pnpm's portable deploy packaging](https://pnpm.io/cli/deploy) and
+[Docker's guidance to omit unnecessary runtime packages](https://docs.docker.com/build/building/best-practices/).
+The CMS migration image remains a separate investigation: its Payload runtime
+has different dependency requirements. Local Docker daemon access is still
+denied, so image verification and actual migration execution must pass CI and
+staging before accepting this change. Compare image size, pull/extraction time
+and migration success on the next staging run; retain the previous image for
+schema-compatible rollback.
