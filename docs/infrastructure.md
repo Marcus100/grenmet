@@ -89,7 +89,7 @@ arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment.
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the original five databases remain covered. Staging is disposable and has no scheduled backup requirement.
 
 Implemented backup behavior:
 

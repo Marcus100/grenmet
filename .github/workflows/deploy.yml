@@ -49,7 +49,7 @@ jobs:
     runs-on: [self-hosted, "${{ inputs.environment }}", core]
     timeout-minutes: 45
     concurrency:
-      group: core-${{ inputs.environment }}
+      group: ${{ inputs.environment == 'production' && 'prod-droplet' || 'core-staging' }}
       cancel-in-progress: false
     environment:
       name: ${{ inputs.environment }}
@@ -100,13 +100,6 @@ jobs:
           STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
           STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
           STORAGE_PUBLIC_BASE_URL: ${{ secrets.STORAGE_PUBLIC_BASE_URL }}
-          BOOTSTRAP_CMS: ${{ vars.BOOTSTRAP_CMS }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
-          AWS_EC2_METADATA_DISABLED: "true"
-          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
-          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Service state on failure

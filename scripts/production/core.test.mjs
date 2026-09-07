@@ -12,31 +12,32 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-for (const failure of [
-  "migration",
-  "images",
-  "backup",
-  "revision",
-  "environment",
-  "none",
-]) {
-  test(`core delivery enforces gates: ${failure}`, () => {
-    const root = mkdtempSync(join(tmpdir(), "core-delivery-"));
-    try {
-      for (const dir of [
-        "scripts/production",
-        "infra/docker/runtime",
-        "bin",
-        "locks",
-      ])
-        mkdirSync(join(root, dir), { recursive: true });
-      copyFileSync(
-        new URL("./core.sh", import.meta.url),
-        join(root, "scripts/production/core.sh")
-      );
-      writeFileSync(
-        join(root, "bin/python3"),
-        `#!/bin/bash
+for (const environment of ["staging", "production"]) {
+  for (const failure of [
+    "migration",
+    "images",
+    "backup",
+    "revision",
+    "environment",
+    "none",
+  ]) {
+    test(`${environment} core delivery enforces gates: ${failure}`, () => {
+      const root = mkdtempSync(join(tmpdir(), "core-delivery-"));
+      try {
+        for (const dir of [
+          "scripts/production",
+          "infra/docker/runtime",
+          "bin",
+          "locks",
+        ])
+          mkdirSync(join(root, dir), { recursive: true });
+        copyFileSync(
+          new URL("./core.sh", import.meta.url),
+          join(root, "scripts/production/core.sh")
+        );
+        writeFileSync(
+          join(root, "bin/python3"),
+          `#!/bin/bash
 printf 'python %s\\n' "$*" >> "$TEST_LOG"
 case "$1" in
   *render-env.py) touch runtime/.env.local ;;
@@ -46,11 +47,11 @@ case "$1" in
   -c) echo staging.example.test ;;
 esac
 `,
-        { mode: 0o700 }
-      );
-      writeFileSync(
-        join(root, "bin/docker"),
-        `#!/bin/bash
+          { mode: 0o700 }
+        );
+        writeFileSync(
+          join(root, "bin/docker"),
+          `#!/bin/bash
 printf 'docker %s\\n' "$*" >> "$TEST_LOG"
 case "$*" in
   *"config --images"*)
@@ -62,45 +63,46 @@ case "$*" in
 esac
 exit 0
 `,
-        { mode: 0o700 }
-      );
-      writeFileSync(
-        join(root, "bin/node"),
-        '#!/bin/bash\necho smoke >> "$TEST_LOG"\n',
-        { mode: 0o700 }
-      );
-      const result = spawnSync(
-        "bash",
-        [join(root, "scripts/production/core.sh"), "deploy"],
-        {
-          env: {
-            ...process.env,
-            PATH: `${join(root, "bin")}:${process.env.PATH}`,
-            DEPLOY_ENV: "staging",
-            COMPOSE_PROJECT: "test",
-            CORE_LOCK_DIR: join(root, "locks"),
-            GITHUB_SHA: "a".repeat(40),
-            GHCR_TOKEN: "test",
-            GITHUB_ACTOR: "test",
-            GITHUB_STEP_SUMMARY: join(root, "summary"),
-            GITHUB_OUTPUT: "",
-            TEST_FAILURE: failure,
-            TEST_LOG: join(root, "calls"),
-          },
-          encoding: "utf8",
-          timeout: 10_000,
-        }
-      );
-      const calls = readFileSync(join(root, "calls"), "utf8");
-      assert.equal(result.status === 0, failure === "none", result.stderr);
-      assert.equal(
-        calls.includes("--wait-timeout 180 api worker"),
-        failure === "none"
-      );
-      assert.equal(calls.includes("smoke"), failure === "none");
-      assert.ok(calls.includes("logout"));
-    } finally {
-      rmSync(root, { recursive: true, force: true });
-    }
-  });
+          { mode: 0o700 }
+        );
+        writeFileSync(
+          join(root, "bin/node"),
+          '#!/bin/bash\necho smoke >> "$TEST_LOG"\n',
+          { mode: 0o700 }
+        );
+        const result = spawnSync(
+          "bash",
+          [join(root, "scripts/production/core.sh"), "deploy"],
+          {
+            env: {
+              ...process.env,
+              PATH: `${join(root, "bin")}:${process.env.PATH}`,
+              DEPLOY_ENV: environment,
+              COMPOSE_PROJECT: "test",
+              CORE_LOCK_DIR: join(root, "locks"),
+              GITHUB_SHA: "a".repeat(40),
+              GHCR_TOKEN: "test",
+              GITHUB_ACTOR: "test",
+              GITHUB_STEP_SUMMARY: join(root, "summary"),
+              GITHUB_OUTPUT: "",
+              TEST_FAILURE: failure,
+              TEST_LOG: join(root, "calls"),
+            },
+            encoding: "utf8",
+            timeout: 10_000,
+          }
+        );
+        const calls = readFileSync(join(root, "calls"), "utf8");
+        const succeeds = failure === "none" || failure === "backup";
+        assert.equal(result.status === 0, succeeds, result.stderr);
+        assert.equal(calls.includes("backup-core.py"), false);
+        assert.equal(calls.includes("backup-files.py"), false);
+        assert.equal(calls.includes("--wait-timeout 180 api worker"), succeeds);
+        assert.equal(calls.includes("smoke"), succeeds);
+        assert.ok(calls.includes("logout"));
+      } finally {
+        rmSync(root, { recursive: true, force: true });
+      }
+    });
+  }
 }
