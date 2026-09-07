@@ -1,0 +1,11 @@
+{
+  "name": "@barrelsgd/admin-migrations",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Production dependencies for the gaa-admin migration and baseline runners",
+  "files": [],
+  "dependencies": {
+    "drizzle-orm": "catalog:",
+    "pg": "catalog:"
+  }
+}

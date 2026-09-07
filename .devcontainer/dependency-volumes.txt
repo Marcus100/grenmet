@@ -8,6 +8,7 @@ apps/web/gaa-admin/node_modules
 apps/web/gms/node_modules
 apps/web/mbia/node_modules
 apps/web/signal/node_modules
+packages/admin-migrations/node_modules
 packages/api-client/node_modules
 packages/auth/node_modules
 packages/email-templates/node_modules
