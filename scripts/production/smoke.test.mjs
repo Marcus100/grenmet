@@ -1,6 +1,36 @@
+const authFailure = /auth.staging.example.test/;
+
 import assert from "node:assert/strict";
 import test from "node:test";
-import { check, validPage } from "./smoke.mjs";
+import { check, checkDeployment, validPage } from "./smoke.mjs";
+
+test("deployment probes the real sign-in route and requires its form", async () => {
+  const urls = [];
+  const fetcher = (url) => {
+    urls.push(url);
+    const { hostname, pathname } = new URL(url);
+    if (hostname.startsWith("auth.")) {
+      return Promise.resolve(
+        new Response("<form>Sign in</form>", {
+          status: pathname === "/" ? 200 : 404,
+        })
+      );
+    }
+    return Promise.resolve(
+      new Response('<main>{"docs":[],"ready":true}</main>')
+    );
+  };
+  await checkDeployment("staging.example.test", fetcher);
+  assert.ok(urls.includes("https://auth.staging.example.test/"));
+  await assert.rejects(
+    checkDeployment("staging.example.test", (url) =>
+      new URL(url).hostname.startsWith("auth.")
+        ? Promise.resolve(new Response("<html>Empty shell</html>"))
+        : fetcher(url)
+    ),
+    authFailure
+  );
+});
 
 test("rejects streamed 200 render failures", () => {
   assert.equal(
