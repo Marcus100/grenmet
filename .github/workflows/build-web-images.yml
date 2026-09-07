@@ -131,13 +131,43 @@ jobs:
             type=raw,value=latest,enable=${{ steps.ctx.outputs.environment == 'production' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
-      - name: Build and push
+      - name: Build image for verification
+        id: verify
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ${{ matrix.path }}/Dockerfile
+          target: ${{ matrix.target || 'runner' }}
+          push: false
+          load: true
+          build-args: |
+            NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
+            NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || secrets.SENTRY_DSN_PRODUCTION }}
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+          secrets: |
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }}
+          platforms: linux/amd64
+
+      - name: Smoke-test image before publishing
+        env:
+          IMAGE: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.app }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          KIND: ${{ matrix.app == 'web-cms-migrate' && 'cms-migrate' || matrix.app == 'web-gaa-admin-migrate' && 'admin-migrate' || matrix.app == 'web-auth' && 'auth' || 'web' }}
+          PORT: ${{ matrix.port }}
+          HEALTH: ${{ matrix.app == 'api-hono' && '/health' || '/api/health' }}
+        run: |
+          bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
+
+      - name: Publish verified image from builder cache
         id: build
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: ${{ matrix.path }}/Dockerfile
-          target: ${{ matrix.target }}
+          target: ${{ matrix.target || 'runner' }}
           push: true
           build-args: |
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
@@ -148,9 +178,10 @@ jobs:
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,scope=${{ matrix.app }},mode=max,ignore-error=true
+          cache-from: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }}
+          cache-to: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }},mode=max,ignore-error=true
           platforms: linux/amd64
+
 
       # Report-only vulnerability scan (mirrors the API pipeline). continue-on-error
       # keeps it non-blocking for now; results land in the Security tab per app.

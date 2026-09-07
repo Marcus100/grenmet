@@ -20,7 +20,7 @@ required checks on `staging` and `main` PRs.
 - `gh pr create --base staging --head dev --title "chore: promote dev to staging"`
 - Wait for required checks: `gh pr checks <num> --watch`
 - **Human merges the PR.** The push to `staging` triggers `pipeline-staging.yml`,
-  which builds changed images and deploys staging in one `needs:` chain.
+  which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
@@ -53,3 +53,35 @@ tag. For a release before the domain migration, select that release tag as the
 workflow ref too, so its matching Compose definition is used. The
 `deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
 workflow; they no longer use separate legacy Compose files.
+
+
+## CI acceleration rollout acceptance
+
+Phase 1 must pass a real staging deployment before runtime configuration or
+manifest promotion changes release behaviour. Local regression tests do not
+satisfy that gate. Confirm the run belongs to the reviewed commit, all required
+checks pass, migrations and runtime permissions succeed, and external readiness
+and page-content smoke checks pass (including the auth form at `/`).
+
+Retain the workflow run URL, commit, runner type, image set, BuildKit build
+records and timestamped logs for comparable cold-cache and warm-cache runs.
+Record these measurements separately; parallel job durations must not be added
+together as end-to-end elapsed time:
+
+| Measurement | Evidence |
+| --- | --- |
+| Build | BuildKit compilation vertices, excluding image export; record cache hits per image |
+| Export | Docker load/export and registry push vertices in BuildKit records |
+| Queue | Workflow/job timestamps and runner/environment approval waiting time, separately from execution |
+| Migration | Timestamped log interval for each of `prestart`, `web-migrate`, and `cms-migrate` |
+| Startup | Timestamped interval from application start to Compose readiness |
+| Functional verification | External readiness and page-content smoke interval |
+| Feedback and deployment | Commit-to-required-check completion and trigger-to-successful-deployment elapsed times |
+
+Staging acceptance and timing measurements are pending for this patch. Do not
+claim the ten-minute feedback target or cache savings until these runs exist.
+Portable runtime configuration, verified release manifests, authenticated
+synthetic-account tests, vulnerability baseline review/enforcement, and retained
+manifest rollback remain later work. Existing vulnerability scans still report
+findings without blocking publication; they do not yet enforce the planned
+high/critical policy.
