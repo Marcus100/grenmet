@@ -81,6 +81,8 @@
     "source=grenmet-${devcontainerId}-apps-web-mbia-node_modules,target=${localWorkspaceFolder}/apps/web/mbia/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=/workspace/apps/web/signal/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=${localWorkspaceFolder}/apps/web/signal/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=/workspace/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=${localWorkspaceFolder}/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=/workspace/packages/api-client/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=${localWorkspaceFolder}/packages/api-client/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-auth-node_modules,target=/workspace/packages/auth/node_modules,type=volume,volume-nocopy",
