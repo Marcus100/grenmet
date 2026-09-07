@@ -31,8 +31,8 @@
   "dependencies": {
     "@base-ui/react": "catalog:",
     "class-variance-authority": "catalog:",
-    "clsx": "catalog:",
     "cmdk": "catalog:",
+    "cn": "catalog:",
     "embla-carousel-react": "catalog:",
     "input-otp": "catalog:",
     "lucide-react": "catalog:",
@@ -42,7 +42,6 @@
     "react-resizable-panels": "catalog:",
     "recharts": "catalog:",
     "sonner": "catalog:",
-    "tailwind-merge": "catalog:",
     "vaul": "catalog:"
   },
   "peerDependencies": {
@@ -58,6 +57,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "next": "catalog:"
   }
 }

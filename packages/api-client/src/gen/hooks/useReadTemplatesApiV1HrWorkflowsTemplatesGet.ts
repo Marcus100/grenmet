@@ -10,52 +10,51 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readTemplatesApiV1HrWorkflowsTemplatesGet } from "../clients/readTemplatesApiV1HrWorkflowsTemplatesGet.js";
 import type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422,
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
 
-export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey = (
-  params: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams = {}
-) =>
+export const readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey = ({
+  query,
+}: Omit<ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions, "headers"> = {}) =>
   [
     { url: "/api/v1/hr/workflows/templates" },
-    ...(params ? [params] : []),
+    ...(query ? [query] : []),
   ] as const;
 
-export type ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryKey = ReturnType<
+type ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryKey = ReturnType<
   typeof readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey
 >;
 
 export function readTemplatesApiV1HrWorkflowsTemplatesGetQueryOptions(
-  params?: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey(params);
+  const queryKey = readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey({ query });
   return queryOptions<
-    ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+    ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
     ResponseErrorConfig<
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet403
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet422
+      | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403
+      | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422
     >,
-    ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+    ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readTemplatesApiV1HrWorkflowsTemplatesGet(params, config);
+      return readTemplatesApiV1HrWorkflowsTemplatesGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,50 +65,64 @@ export function readTemplatesApiV1HrWorkflowsTemplatesGetQueryOptions(
  * {@link /api/v1/hr/workflows/templates}
  */
 export function useReadTemplatesApiV1HrWorkflowsTemplatesGet<
-  TData = ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
-  TQueryData = ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+  TData = ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
+  TQueryData = ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
   TQueryKey extends
     QueryKey = ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryKey,
 >(
-  params?: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions["query"]
+      | (() => ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+        ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus200,
         ResponseErrorConfig<
-          | ReadTemplatesApiV1HrWorkflowsTemplatesGet403
-          | ReadTemplatesApiV1HrWorkflowsTemplatesGet422
+          | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403
+          | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readTemplatesApiV1HrWorkflowsTemplatesGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readTemplatesApiV1HrWorkflowsTemplatesGetQueryOptions(params, config),
+      ...readTemplatesApiV1HrWorkflowsTemplatesGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet403
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet422
+      | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus403
+      | ReadTemplatesApiV1HrWorkflowsTemplatesGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

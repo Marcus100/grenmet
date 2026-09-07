@@ -3,16 +3,11 @@
  * Do not edit manually.
  */
 
-export const rosterPeriodStatusRosterPeriodStatusEnum = {
+export const rosterPeriodStatus = {
   DRAFT: "DRAFT",
   PUBLISHED: "PUBLISHED",
   CLOSED: "CLOSED",
 } as const;
 
-export type RosterPeriodStatusRosterPeriodStatusEnumKey =
-  (typeof rosterPeriodStatusRosterPeriodStatusEnum)[keyof typeof rosterPeriodStatusRosterPeriodStatusEnum];
-
-/**
- * RosterPeriodStatus
- */
-export type RosterPeriodStatus = RosterPeriodStatusRosterPeriodStatusEnumKey;
+export type RosterPeriodStatus =
+  (typeof rosterPeriodStatus)[keyof typeof rosterPeriodStatus];

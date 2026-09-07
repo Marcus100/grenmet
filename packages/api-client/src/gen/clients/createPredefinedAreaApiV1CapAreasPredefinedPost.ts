@@ -3,46 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreatePredefinedAreaApiV1CapAreasPredefinedPost422,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest,
-  CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
+  CreatePredefinedAreaApiV1CapAreasPredefinedPostResponses,
 } from "../models/CreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
-
-function getCreatePredefinedAreaApiV1CapAreasPredefinedPostUrl() {
-  const res = { method: "POST", url: `/api/v1/cap/areas/predefined` as const };
-  return res;
-}
 
 /**
  * @summary Create Predefined Area
  * {@link /api/v1/cap/areas/predefined}
  */
-export async function createPredefinedAreaApiV1CapAreasPredefinedPost(
-  data: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createPredefinedAreaApiV1CapAreasPredefinedPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreatePredefinedAreaApiV1CapAreasPredefinedPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse,
-    ResponseErrorConfig<CreatePredefinedAreaApiV1CapAreasPredefinedPost422>,
-    CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreatePredefinedAreaApiV1CapAreasPredefinedPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/areas/predefined",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreatePredefinedAreaApiV1CapAreasPredefinedPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

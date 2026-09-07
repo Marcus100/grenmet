@@ -3,46 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadStaffSetupApiV1HrSetupStaffGet403,
-  ReadStaffSetupApiV1HrSetupStaffGet404,
-  ReadStaffSetupApiV1HrSetupStaffGet409,
-  ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
+  ReadStaffSetupApiV1HrSetupStaffGetOptions,
+  ReadStaffSetupApiV1HrSetupStaffGetResponses,
 } from "../models/ReadStaffSetupApiV1HrSetupStaffGet.js";
-
-function getReadStaffSetupApiV1HrSetupStaffGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/setup/staff` as const };
-  return res;
-}
 
 /**
  * @description Review staff onboarding.
  * @summary Review staff onboarding
  * {@link /api/v1/hr/setup/staff}
  */
-export async function readStaffSetupApiV1HrSetupStaffGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readStaffSetupApiV1HrSetupStaffGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadStaffSetupApiV1HrSetupStaffGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadStaffSetupApiV1HrSetupStaffGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadStaffSetupApiV1HrSetupStaffGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadStaffSetupApiV1HrSetupStaffGet403
-      | ReadStaffSetupApiV1HrSetupStaffGet404
-      | ReadStaffSetupApiV1HrSetupStaffGet409
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadStaffSetupApiV1HrSetupStaffGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/setup/staff",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadStaffSetupApiV1HrSetupStaffGetResponses, ThrowOnError>
+    >
+  );
 }

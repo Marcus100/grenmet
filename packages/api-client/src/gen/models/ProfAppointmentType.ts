@@ -3,17 +3,12 @@
  * Do not edit manually.
  */
 
-export const profAppointmentTypeProfAppointmentTypeEnum = {
+export const profAppointmentType = {
   BANK: "BANK",
   MEDICAL: "MEDICAL",
   LEGAL: "LEGAL",
   DENTAL: "DENTAL",
 } as const;
 
-export type ProfAppointmentTypeProfAppointmentTypeEnumKey =
-  (typeof profAppointmentTypeProfAppointmentTypeEnum)[keyof typeof profAppointmentTypeProfAppointmentTypeEnum];
-
-/**
- * ProfAppointmentType
- */
-export type ProfAppointmentType = ProfAppointmentTypeProfAppointmentTypeEnumKey;
+export type ProfAppointmentType =
+  (typeof profAppointmentType)[keyof typeof profAppointmentType];

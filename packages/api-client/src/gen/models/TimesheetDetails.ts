@@ -6,16 +6,7 @@
 import type { TimesheetEntryPublic } from "./TimesheetEntryPublic.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 
-/**
- * TimesheetDetails
- */
 export type TimesheetDetails = {
-  /**
-   * @type object
-   */
   timesheet: TimesheetPublic;
-  /**
-   * @type array
-   */
   entries: TimesheetEntryPublic[];
 };

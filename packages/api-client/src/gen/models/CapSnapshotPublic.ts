@@ -3,29 +3,21 @@
  * Do not edit manually.
  */
 
-/**
- * CapSnapshotPublic
- */
 export type CapSnapshotPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
-  /**
-   * @type string
-   */
   identifier: string;
-  /**
-   * @type string
-   */
   content_hash: string;
-  /**
-   * @type string
-   */
   generated_at: string;
   signed_at?: string | null;
   signing_key_ref?: string | null;

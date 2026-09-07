@@ -131,9 +131,12 @@ export function EventDialog({ event, onOpenChange, open }: EventDialogProps) {
     };
     try {
       if (event) {
-        await updateMutation.mutateAsync({ event_id: event.id, data: body });
+        await updateMutation.mutateAsync({
+          path: { event_id: event.id },
+          body,
+        });
       } else {
-        await createMutation.mutateAsync({ data: body });
+        await createMutation.mutateAsync({ body });
       }
       await invalidateAfterCalendarEventChange(queryClient);
       toast.success(isEdit ? "Event updated" : "Added to the calendar");
@@ -149,8 +152,8 @@ export function EventDialog({ event, onOpenChange, open }: EventDialogProps) {
     if (!event) return;
     try {
       await updateMutation.mutateAsync({
-        event_id: event.id,
-        data: { cancelled: !event.is_cancelled },
+        path: { event_id: event.id },
+        body: { cancelled: !event.is_cancelled },
       });
       await invalidateAfterCalendarEventChange(queryClient);
       toast.success(

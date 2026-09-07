@@ -6,46 +6,48 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
 
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams =
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  timesheet_id: string;
+};
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200 =
+  TimesheetSummaryByShift;
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403 =
+  unknown;
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404 =
+  unknown;
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422 =
+  HTTPValidationError;
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions =
   {
-    /**
-     * @type string, uuid
-     */
-    timesheet_id: string;
+    body?: never;
+    path: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPath;
+    query?: never;
+    headers?: never;
+  };
+
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponses =
+  {
+    "200": ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200;
+    "403": ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403;
+    "404": ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404;
+    "422": ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422;
   };
 
 /**
- * TimesheetSummaryByShift
- * @description Summary returned
+ * @description Union of all possible responses
  */
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200 =
-  TimesheetSummaryByShift;
-
-/**
- * @description Not allowed to read this timesheet
- */
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403 = any;
-
-/**
- * @description Timesheet not found
- */
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422 =
-  HTTPValidationError;
-
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse =
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200;
-
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQuery = {
-  Response: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200;
-  PathParams: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams;
-  Errors:
-    | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403
-    | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404
-    | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422;
-};
+export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponse =
+  | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200
+  | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403
+  | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404
+  | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422;

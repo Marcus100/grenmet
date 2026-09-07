@@ -6,13 +6,17 @@
 import type { CalendarEventsPublic } from "./CalendarEventsPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ListCalendarEventsApiV1HrCalendarEventsGetQueryParams = {
+export type ListCalendarEventsApiV1HrCalendarEventsGetQuery = {
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   start: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   end: string;
   department_id?: string | null;
@@ -23,43 +27,39 @@ export type ListCalendarEventsApiV1HrCalendarEventsGetQueryParams = {
   include_cancelled?: boolean;
 };
 
-/**
- * CalendarEventsPublic
- * @description Calendar events returned
- */
-export type ListCalendarEventsApiV1HrCalendarEventsGet200 =
+export type ListCalendarEventsApiV1HrCalendarEventsGetStatus200 =
   CalendarEventsPublic;
 
-/**
- * @description Invalid date range
- */
-export type ListCalendarEventsApiV1HrCalendarEventsGet400 = any;
+export type ListCalendarEventsApiV1HrCalendarEventsGetStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ListCalendarEventsApiV1HrCalendarEventsGet403 = any;
+export type ListCalendarEventsApiV1HrCalendarEventsGetStatus403 = unknown;
 
-/**
- * @description Department not found
- */
-export type ListCalendarEventsApiV1HrCalendarEventsGet404 = any;
+export type ListCalendarEventsApiV1HrCalendarEventsGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListCalendarEventsApiV1HrCalendarEventsGet422 = HTTPValidationError;
+export type ListCalendarEventsApiV1HrCalendarEventsGetStatus422 =
+  HTTPValidationError;
 
-export type ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse =
-  ListCalendarEventsApiV1HrCalendarEventsGet200;
-
-export type ListCalendarEventsApiV1HrCalendarEventsGetQuery = {
-  Response: ListCalendarEventsApiV1HrCalendarEventsGet200;
-  QueryParams: ListCalendarEventsApiV1HrCalendarEventsGetQueryParams;
-  Errors:
-    | ListCalendarEventsApiV1HrCalendarEventsGet400
-    | ListCalendarEventsApiV1HrCalendarEventsGet403
-    | ListCalendarEventsApiV1HrCalendarEventsGet404
-    | ListCalendarEventsApiV1HrCalendarEventsGet422;
+export type ListCalendarEventsApiV1HrCalendarEventsGetOptions = {
+  body?: never;
+  path?: never;
+  query: ListCalendarEventsApiV1HrCalendarEventsGetQuery;
+  headers?: never;
 };
+
+export type ListCalendarEventsApiV1HrCalendarEventsGetResponses = {
+  "200": ListCalendarEventsApiV1HrCalendarEventsGetStatus200;
+  "400": ListCalendarEventsApiV1HrCalendarEventsGetStatus400;
+  "403": ListCalendarEventsApiV1HrCalendarEventsGetStatus403;
+  "404": ListCalendarEventsApiV1HrCalendarEventsGetStatus404;
+  "422": ListCalendarEventsApiV1HrCalendarEventsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListCalendarEventsApiV1HrCalendarEventsGetResponse =
+  | ListCalendarEventsApiV1HrCalendarEventsGetStatus200
+  | ListCalendarEventsApiV1HrCalendarEventsGetStatus400
+  | ListCalendarEventsApiV1HrCalendarEventsGetStatus403
+  | ListCalendarEventsApiV1HrCalendarEventsGetStatus404
+  | ListCalendarEventsApiV1HrCalendarEventsGetStatus422;

@@ -5,13 +5,9 @@
 
 import * as z from "zod";
 
-/**
- * @description Successful Response
- */
-export const readActiveMapApiCapActiveMapGet200Schema = z
+export const readActiveMapApiCapActiveMapGetStatus200Schema = z
   .object({})
-  .catchall(z.any());
+  .catchall(z.unknown());
 
-export const readActiveMapApiCapActiveMapGetQueryResponseSchema = z.lazy(
-  () => readActiveMapApiCapActiveMapGet200Schema
-);
+export const readActiveMapApiCapActiveMapGetResponseSchema =
+  readActiveMapApiCapActiveMapGetStatus200Schema;

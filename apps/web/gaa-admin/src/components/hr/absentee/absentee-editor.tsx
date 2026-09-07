@@ -98,7 +98,7 @@ export function AbsenteeEditor() {
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const userId = profileQuery.data?.id;
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myReportsQuery = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet();
+  const myReportsQuery = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet({});
   const createMutation = useCreateAbsenteeReportApiV1HrAbsenteeReportsPost();
   const updateMutation =
     useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch();
@@ -170,7 +170,7 @@ export function AbsenteeEditor() {
 
   async function refreshMyReports() {
     await queryClient.invalidateQueries({
-      queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(),
+      queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({}),
     });
   }
 
@@ -188,14 +188,14 @@ export function AbsenteeEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: buildAbsenteeReportPayload(values, userId, departmentId),
+            path: { absentee_report_id: draftId },
+            body: buildAbsenteeReportPayload(values, userId, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildAbsenteeReportPayload(values, userId, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -209,17 +209,17 @@ export function AbsenteeEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: buildAbsenteeReportPayload(values, userId, departmentId),
+            path: { absentee_report_id: draftId },
+            body: buildAbsenteeReportPayload(values, userId, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
+            path: { absentee_report_id: draftId },
+            body: { co_approver_user_ids: coApprovers },
           });
           setSubmission(submitted);
         } else {
           const submitted = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildAbsenteeReportPayload(values, userId, departmentId),
               as_draft: false,
               co_approver_user_ids: coApprovers,

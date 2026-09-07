@@ -8,43 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 import { timesheetSubmitRequestSchema } from "./timesheetSubmitRequestSchema.js";
 
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParamsSchema =
-  z.object({
-    timesheet_id: z.string().uuid(),
-  });
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathTimesheetIdSchema =
+  z.uuid();
 
-/**
- * @description Timesheet submitted
- */
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200Schema =
-  z.lazy(() => timesheetPublicSchema);
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200Schema =
+  timesheetPublicSchema;
 
-/**
- * @description Timesheet already submitted
- */
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400Schema =
-  z.any();
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed (self only for own; proxy not allowed)
- */
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403Schema =
-  z.any();
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Timesheet not found
- */
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404Schema =
-  z.any();
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequestSchema =
-  z.lazy(() => timesheetSubmitRequestSchema);
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponseSchema =
+  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200Schema;
 
-export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponseSchema =
-  z.lazy(() => submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200Schema);
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchErrorSchema =
+  z.union([
+    submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400Schema,
+    submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403Schema,
+    submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404Schema,
+    submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422Schema,
+  ]);
+
+export const submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchBodySchema =
+  timesheetSubmitRequestSchema;

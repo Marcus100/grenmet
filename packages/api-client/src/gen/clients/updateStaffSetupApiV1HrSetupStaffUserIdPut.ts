@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut403,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut404,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut409,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut422,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
+  UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponses,
 } from "../models/UpdateStaffSetupApiV1HrSetupStaffUserIdPut.js";
-
-function getUpdateStaffSetupApiV1HrSetupStaffUserIdPutUrl(
-  user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"]
-) {
-  const res = {
-    method: "PUT",
-    url: `/api/v1/hr/setup/staff/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Complete or update staff onboarding.
  * @summary Complete or update staff onboarding
  * {@link /api/v1/hr/setup/staff/:user_id}
  */
-export async function updateStaffSetupApiV1HrSetupStaffUserIdPut(
-  user_id: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams["user_id"],
-  data: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateStaffSetupApiV1HrSetupStaffUserIdPut<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse,
-    ResponseErrorConfig<
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-      | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422
-    >,
-    UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest
-  >({
-    method: "PUT",
-    url: getUpdateStaffSetupApiV1HrSetupStaffUserIdPutUrl(
-      user_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PUT",
+      url: "/api/v1/hr/setup/staff/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

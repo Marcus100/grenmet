@@ -1,0 +1,93 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "ATS",
+    "name": "Air Traffic Services Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 16 (Air Traffic Services Department). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Air Traffic Services Manager",
+      "rank": 1,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASSISTANT_MANAGER",
+      "label": "Asst. Air Traffic Services Manager",
+      "rank": 2,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ATC_CO3",
+      "label": "Air Traffic Controller (CO3)",
+      "rank": 3,
+      "establishment_band": "Senior Supervisor",
+      "_deck_posts": 3
+    },
+    {
+      "code": "DESIGNATED_EXAMINER",
+      "label": "Designated Examiner & Assessor",
+      "rank": 4,
+      "establishment_band": "Senior Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ATC_CO2",
+      "label": "Air Traffic Controller (CO2)",
+      "rank": 5,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 2
+    },
+    {
+      "code": "AIS_SUPERVISOR",
+      "label": "Aeronautical Information Service Supervisor",
+      "rank": 6,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ATC_CO1",
+      "label": "Air Traffic Controller (CO1)",
+      "rank": 7,
+      "establishment_band": "Professional",
+      "_deck_posts": 2
+    },
+    {
+      "code": "AIS_OFFICER",
+      "label": "Aeronautical Information Service Officer",
+      "rank": 8,
+      "establishment_band": "Technical/Administrative",
+      "_deck_posts": 2
+    },
+    {
+      "code": "ADMIN_ASSISTANT",
+      "label": "Admin Assistant – ATS",
+      "rank": 9,
+      "establishment_band": "Crafted & Related Trade",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ATC_CADET",
+      "label": "Air Traffic Controller Cadet",
+      "rank": 10,
+      "establishment_band": "Junior Professional/Trainee",
+      "_deck_posts": 9
+    },
+    {
+      "code": "AIS_CADET",
+      "label": "Aeronautical Information Service Cadet",
+      "rank": 11,
+      "establishment_band": "Junior Professional/Trainee",
+      "_deck_posts": 3
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

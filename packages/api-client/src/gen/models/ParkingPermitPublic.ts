@@ -6,38 +6,32 @@
 import type { ParkingAction } from "./ParkingAction.js";
 import type { RequestStatus } from "./RequestStatus.js";
 
-/**
- * ParkingPermitPublic
- */
 export type ParkingPermitPublic = {
   submitted_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   department_id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   submitted_by_user_id: string;
   company_name?: string | null;
   phone?: string | null;
-  /**
-   * @type string
-   */
   vehicle_registration_no: string;
   vehicle_insurance_issue_date?: string | null;
   vehicle_insurance_expiry_date?: string | null;
-  /**
-   * @type string
-   */
   action_requested: ParkingAction;
   action_other_detail?: string | null;
   /**
@@ -51,17 +45,8 @@ export type ParkingPermitPublic = {
   issued_by_user_id?: string | null;
   received_by?: string | null;
   issued_at?: string | null;
-  /**
-   * @type string
-   */
   status: RequestStatus;
   workflow_instance_id?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

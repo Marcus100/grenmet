@@ -7,42 +7,31 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParamsSchema =
-  z.object({
-    timesheet_id: z.string().uuid(),
-  });
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathTimesheetIdSchema =
+  z.uuid();
 
-/**
- * @description Timesheet approved
- */
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200Schema =
-  z.lazy(() => timesheetPublicSchema);
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200Schema =
+  timesheetPublicSchema;
 
-/**
- * @description Timesheet is not submitted
- */
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400Schema =
-  z.any();
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to approve this timesheet
- */
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403Schema =
-  z.any();
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Timesheet not found
- */
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404Schema =
-  z.any();
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponseSchema =
-  z.lazy(
-    () => approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200Schema
-  );
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponseSchema =
+  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200Schema;
+
+export const approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchErrorSchema =
+  z.union([
+    approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400Schema,
+    approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403Schema,
+    approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404Schema,
+    approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422Schema,
+  ]);

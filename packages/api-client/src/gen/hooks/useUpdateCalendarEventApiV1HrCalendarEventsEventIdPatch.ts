@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateCalendarEventApiV1HrCalendarEventsEventIdPatch } from "../clients/updateCalendarEventApiV1HrCalendarEventsEventIdPatch.js";
 import type {
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
-  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404,
+  UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422,
 } from "../models/UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch.js";
 
 export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationKey =
   () => [{ url: "/api/v1/hr/calendar/events/:event_id" }] as const;
 
-export type UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationKey =
-  ReturnType<
-    typeof updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationKey
-  >;
-
 export function updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationKey();
   return mutationOptions<
-    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422
     >,
-    {
-      event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"];
-      data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-    },
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ event_id, data }) => {
-      return updateCalendarEventApiV1HrCalendarEventsEventIdPatch(
-        event_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateCalendarEventApiV1HrCalendarEventsEventIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateCalendarEventApiV1HrCalendarEventsEventIdPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
+      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422
       >,
-      {
-        event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"];
-        data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-      },
+      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateCalendarEventApiV1HrCalendarEventsEventIdPatch<
     updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
+      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+        | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422
       >,
-      {
-        event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"];
-        data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-      },
+      UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422
     >,
-    {
-      event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"];
-      data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-    },
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateCalendarEventApiV1HrCalendarEventsEventIdPatch<
     },
     queryClient
   ) as UseMutationResult<
-    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponse,
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch400
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch403
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch404
-      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatch422
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404
+      | UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422
     >,
-    {
-      event_id: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParams["event_id"];
-      data: UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequest;
-    },
+    UpdateCalendarEventApiV1HrCalendarEventsEventIdPatchOptions,
     TContext
   >;
 }

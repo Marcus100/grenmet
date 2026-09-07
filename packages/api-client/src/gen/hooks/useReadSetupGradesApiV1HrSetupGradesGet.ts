@@ -10,47 +10,45 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readSetupGradesApiV1HrSetupGradesGet } from "../clients/readSetupGradesApiV1HrSetupGradesGet.js";
 import type {
-  ReadSetupGradesApiV1HrSetupGradesGet403,
-  ReadSetupGradesApiV1HrSetupGradesGet404,
-  ReadSetupGradesApiV1HrSetupGradesGet409,
-  ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus200,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus403,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus404,
+  ReadSetupGradesApiV1HrSetupGradesGetStatus409,
 } from "../models/ReadSetupGradesApiV1HrSetupGradesGet.js";
 
 export const readSetupGradesApiV1HrSetupGradesGetQueryKey = () =>
   [{ url: "/api/v1/hr/setup/grades" }] as const;
 
-export type ReadSetupGradesApiV1HrSetupGradesGetQueryKey = ReturnType<
+type ReadSetupGradesApiV1HrSetupGradesGetQueryKey = ReturnType<
   typeof readSetupGradesApiV1HrSetupGradesGetQueryKey
 >;
 
 export function readSetupGradesApiV1HrSetupGradesGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readSetupGradesApiV1HrSetupGradesGetQueryKey();
   return queryOptions<
-    ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+    ReadSetupGradesApiV1HrSetupGradesGetStatus200,
     ResponseErrorConfig<
-      | ReadSetupGradesApiV1HrSetupGradesGet403
-      | ReadSetupGradesApiV1HrSetupGradesGet404
-      | ReadSetupGradesApiV1HrSetupGradesGet409
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus403
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus404
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus409
     >,
-    ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+    ReadSetupGradesApiV1HrSetupGradesGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readSetupGradesApiV1HrSetupGradesGet(config);
+      return readSetupGradesApiV1HrSetupGradesGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,49 +59,51 @@ export function readSetupGradesApiV1HrSetupGradesGetQueryOptions(
  * {@link /api/v1/hr/setup/grades}
  */
 export function useReadSetupGradesApiV1HrSetupGradesGet<
-  TData = ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
-  TQueryData = ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+  TData = ReadSetupGradesApiV1HrSetupGradesGetStatus200,
+  TQueryData = ReadSetupGradesApiV1HrSetupGradesGetStatus200,
   TQueryKey extends QueryKey = ReadSetupGradesApiV1HrSetupGradesGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadSetupGradesApiV1HrSetupGradesGetQueryResponse,
+        ReadSetupGradesApiV1HrSetupGradesGetStatus200,
         ResponseErrorConfig<
-          | ReadSetupGradesApiV1HrSetupGradesGet403
-          | ReadSetupGradesApiV1HrSetupGradesGet404
-          | ReadSetupGradesApiV1HrSetupGradesGet409
+          | ReadSetupGradesApiV1HrSetupGradesGetStatus403
+          | ReadSetupGradesApiV1HrSetupGradesGetStatus404
+          | ReadSetupGradesApiV1HrSetupGradesGetStatus409
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readSetupGradesApiV1HrSetupGradesGetQueryKey();
+    resolvedOptions?.queryKey ?? readSetupGradesApiV1HrSetupGradesGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readSetupGradesApiV1HrSetupGradesGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadSetupGradesApiV1HrSetupGradesGet403
-      | ReadSetupGradesApiV1HrSetupGradesGet404
-      | ReadSetupGradesApiV1HrSetupGradesGet409
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus403
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus404
+      | ReadSetupGradesApiV1HrSetupGradesGetStatus409
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -5,7 +5,7 @@ For infrastructure commands (Postgres, FastAPI, Docker): see the
 
 ## Prerequisites
 
-- Node.js 22+, pnpm 10+
+- Node.js 24 LTS, pnpm 12.3.4 (pinned in `package.json`)
 - Docker (for `pnpm start` — required by apps that call FastAPI)
 - `.env.local` in each app you're running — copy from `.env.local.example`
 

@@ -8,33 +8,27 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 import { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
 
-/**
- * @description Assignments created or updated
- */
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPost200Schema =
-  z.array(z.lazy(() => rosterAssignmentPublicSchema));
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200Schema =
+  z.array(rosterAssignmentPublicSchema);
 
-/**
- * @description Insufficient permission
- */
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPost403Schema =
-  z.any();
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Roster period not found
- */
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPost404Schema =
-  z.any();
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequestSchema =
-  z.lazy(() => rosterAssignmentBulkCreateSchema);
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponseSchema =
+  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200Schema;
 
-export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponseSchema =
-  z.lazy(() => bulkAssignmentsApiV1HrRostersAssignmentsBulkPost200Schema);
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostErrorSchema =
+  z.union([
+    bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403Schema,
+    bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404Schema,
+    bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422Schema,
+  ]);
+
+export const bulkAssignmentsApiV1HrRostersAssignmentsBulkPostBodySchema =
+  rosterAssignmentBulkCreateSchema;

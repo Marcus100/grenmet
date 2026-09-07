@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { emailRequestApiV1AuthModernEmailRequestPost } from "../clients/emailRequestApiV1AuthModernEmailRequestPost.js";
 import type {
-  EmailRequestApiV1AuthModernEmailRequestPost400,
-  EmailRequestApiV1AuthModernEmailRequestPost403,
-  EmailRequestApiV1AuthModernEmailRequestPost422,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationRequest,
-  EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+  EmailRequestApiV1AuthModernEmailRequestPostOptions,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus200,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus400,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus403,
+  EmailRequestApiV1AuthModernEmailRequestPostStatus422,
 } from "../models/EmailRequestApiV1AuthModernEmailRequestPost.js";
 
 export const emailRequestApiV1AuthModernEmailRequestPostMutationKey = () =>
   [{ url: "/api/v1/auth/modern/email/request" }] as const;
 
-export type EmailRequestApiV1AuthModernEmailRequestPostMutationKey = ReturnType<
-  typeof emailRequestApiV1AuthModernEmailRequestPostMutationKey
->;
-
 export function emailRequestApiV1AuthModernEmailRequestPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<EmailRequestApiV1AuthModernEmailRequestPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = emailRequestApiV1AuthModernEmailRequestPostMutationKey();
   return mutationOptions<
-    EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+    EmailRequestApiV1AuthModernEmailRequestPostStatus200,
     ResponseErrorConfig<
-      | EmailRequestApiV1AuthModernEmailRequestPost400
-      | EmailRequestApiV1AuthModernEmailRequestPost403
-      | EmailRequestApiV1AuthModernEmailRequestPost422
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus422
     >,
-    { data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest },
+    EmailRequestApiV1AuthModernEmailRequestPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return emailRequestApiV1AuthModernEmailRequestPost(data, config);
+    mutationFn: async ({ body }) => {
+      return emailRequestApiV1AuthModernEmailRequestPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function emailRequestApiV1AuthModernEmailRequestPostMutationOptions<
 export function useEmailRequestApiV1AuthModernEmailRequestPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+      EmailRequestApiV1AuthModernEmailRequestPostStatus200,
       ResponseErrorConfig<
-        | EmailRequestApiV1AuthModernEmailRequestPost400
-        | EmailRequestApiV1AuthModernEmailRequestPost403
-        | EmailRequestApiV1AuthModernEmailRequestPost422
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus422
       >,
-      { data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest },
+      EmailRequestApiV1AuthModernEmailRequestPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<EmailRequestApiV1AuthModernEmailRequestPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +83,24 @@ export function useEmailRequestApiV1AuthModernEmailRequestPost<TContext>(
     emailRequestApiV1AuthModernEmailRequestPostMutationOptions(
       config
     ) as UseMutationOptions<
-      EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+      EmailRequestApiV1AuthModernEmailRequestPostStatus200,
       ResponseErrorConfig<
-        | EmailRequestApiV1AuthModernEmailRequestPost400
-        | EmailRequestApiV1AuthModernEmailRequestPost403
-        | EmailRequestApiV1AuthModernEmailRequestPost422
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+        | EmailRequestApiV1AuthModernEmailRequestPostStatus422
       >,
-      { data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest },
+      EmailRequestApiV1AuthModernEmailRequestPostOptions,
       TContext
     >;
 
   return useMutation<
-    EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+    EmailRequestApiV1AuthModernEmailRequestPostStatus200,
     ResponseErrorConfig<
-      | EmailRequestApiV1AuthModernEmailRequestPost400
-      | EmailRequestApiV1AuthModernEmailRequestPost403
-      | EmailRequestApiV1AuthModernEmailRequestPost422
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus422
     >,
-    { data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest },
+    EmailRequestApiV1AuthModernEmailRequestPostOptions,
     TContext
   >(
     {
@@ -115,13 +110,13 @@ export function useEmailRequestApiV1AuthModernEmailRequestPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    EmailRequestApiV1AuthModernEmailRequestPostMutationResponse,
+    EmailRequestApiV1AuthModernEmailRequestPostStatus200,
     ResponseErrorConfig<
-      | EmailRequestApiV1AuthModernEmailRequestPost400
-      | EmailRequestApiV1AuthModernEmailRequestPost403
-      | EmailRequestApiV1AuthModernEmailRequestPost422
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus400
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus403
+      | EmailRequestApiV1AuthModernEmailRequestPostStatus422
     >,
-    { data: EmailRequestApiV1AuthModernEmailRequestPostMutationRequest },
+    EmailRequestApiV1AuthModernEmailRequestPostOptions,
     TContext
   >;
 }

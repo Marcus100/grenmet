@@ -7,34 +7,27 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowInstanceDetailsSchema } from "./workflowInstanceDetailsSchema.js";
 
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParamsSchema =
-  z.object({
-    instance_id: z.string().uuid(),
-  });
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathInstanceIdSchema =
+  z.uuid();
 
-/**
- * @description Instance and steps returned
- */
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGet200Schema =
-  z.lazy(() => workflowInstanceDetailsSchema);
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200Schema =
+  workflowInstanceDetailsSchema;
 
-/**
- * @description Insufficient permission
- */
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGet403Schema =
-  z.any();
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Workflow instance not found
- */
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGet404Schema =
-  z.any();
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponseSchema =
-  z.lazy(() => readInstanceApiV1HrWorkflowsInstancesInstanceIdGet200Schema);
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponseSchema =
+  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200Schema;
+
+export const readInstanceApiV1HrWorkflowsInstancesInstanceIdGetErrorSchema =
+  z.union([
+    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403Schema,
+    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404Schema,
+    readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422Schema,
+  ]);

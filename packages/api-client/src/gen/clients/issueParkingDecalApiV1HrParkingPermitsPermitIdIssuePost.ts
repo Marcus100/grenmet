@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
-  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
+  IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponses,
 } from "../models/IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
-
-function getIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostUrl(
-  permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/parking-permits/${permit_id}/issue` as const,
-  };
-  return res;
-}
 
 /**
  * @description Record decal issuance for a parking permit. Requires parking.permit.issue permission.
  * @summary Issue a parking decal
  * {@link /api/v1/hr/parking-permits/:permit_id/issue}
  */
-export async function issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost(
-  permit_id: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathParams["permit_id"],
-  data: IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest,
-  config: Partial<
-    RequestConfig<IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationResponse,
-    ResponseErrorConfig<
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost403
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost404
-      | IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost422
-    >,
-    IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationRequest
-  >({
-    method: "POST",
-    url: getIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostUrl(
-      permit_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/parking-permits/{permit_id}/issue",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

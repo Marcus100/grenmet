@@ -7,38 +7,34 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterPeriodStatus } from "./RosterPeriodStatus.js";
 import type { RosterPeriodsPublic } from "./RosterPeriodsPublic.js";
 
-export type ListPeriodsApiV1HrRostersPeriodsGetQueryParams = {
-  /**
-   * @type string
-   */
+export type ListPeriodsApiV1HrRostersPeriodsGetQuery = {
   department_id: string;
   period_status?: RosterPeriodStatus | null;
 };
 
-/**
- * RosterPeriodsPublic
- * @description Roster periods returned
- */
-export type ListPeriodsApiV1HrRostersPeriodsGet200 = RosterPeriodsPublic;
+export type ListPeriodsApiV1HrRostersPeriodsGetStatus200 = RosterPeriodsPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ListPeriodsApiV1HrRostersPeriodsGet403 = any;
+export type ListPeriodsApiV1HrRostersPeriodsGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListPeriodsApiV1HrRostersPeriodsGet422 = HTTPValidationError;
+export type ListPeriodsApiV1HrRostersPeriodsGetStatus422 = HTTPValidationError;
 
-export type ListPeriodsApiV1HrRostersPeriodsGetQueryResponse =
-  ListPeriodsApiV1HrRostersPeriodsGet200;
-
-export type ListPeriodsApiV1HrRostersPeriodsGetQuery = {
-  Response: ListPeriodsApiV1HrRostersPeriodsGet200;
-  QueryParams: ListPeriodsApiV1HrRostersPeriodsGetQueryParams;
-  Errors:
-    | ListPeriodsApiV1HrRostersPeriodsGet403
-    | ListPeriodsApiV1HrRostersPeriodsGet422;
+export type ListPeriodsApiV1HrRostersPeriodsGetOptions = {
+  body?: never;
+  path?: never;
+  query: ListPeriodsApiV1HrRostersPeriodsGetQuery;
+  headers?: never;
 };
+
+export type ListPeriodsApiV1HrRostersPeriodsGetResponses = {
+  "200": ListPeriodsApiV1HrRostersPeriodsGetStatus200;
+  "403": ListPeriodsApiV1HrRostersPeriodsGetStatus403;
+  "422": ListPeriodsApiV1HrRostersPeriodsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListPeriodsApiV1HrRostersPeriodsGetResponse =
+  | ListPeriodsApiV1HrRostersPeriodsGetStatus200
+  | ListPeriodsApiV1HrRostersPeriodsGetStatus403
+  | ListPeriodsApiV1HrRostersPeriodsGetStatus422;

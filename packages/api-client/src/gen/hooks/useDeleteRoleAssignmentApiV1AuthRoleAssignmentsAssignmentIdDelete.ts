@@ -9,50 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete } from "../clients/deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
 import type {
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
-  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404,
+  DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422,
 } from "../models/DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete.js";
 
 export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationKey =
   () => [{ url: "/api/v1/auth/role-assignments/:assignment_id" }] as const;
 
-export type DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationKey =
-  ReturnType<
-    typeof deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationKey
-  >;
-
 export function deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationKey();
   return mutationOptions<
-    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422
     >,
-    {
-      assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"];
-    },
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ assignment_id }) => {
-      return deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete(
-        assignment_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -67,17 +60,17 @@ export function useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelet
 >(
   options: {
     mutation?: UseMutationOptions<
-      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
+        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422
       >,
-      {
-        assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"];
-      },
+      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,26 +83,22 @@ export function useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelet
     deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
+        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+        | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422
       >,
-      {
-        assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"];
-      },
+      DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422
     >,
-    {
-      assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"];
-    },
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
     TContext
   >(
     {
@@ -119,14 +108,12 @@ export function useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelet
     },
     queryClient
   ) as UseMutationResult<
-    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponse,
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404
-      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404
+      | DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422
     >,
-    {
-      assignment_id: DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParams["assignment_id"];
-    },
+    DeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteOptions,
     TContext
   >;
 }

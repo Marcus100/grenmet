@@ -27,7 +27,7 @@ router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
     summary="Create timesheet",
     description="Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
     responses={
-        status.HTTP_200_OK: {"description": "Timesheet and entries created"},
+        status.HTTP_201_CREATED: {"description": "Timesheet and entries created"},
         status.HTTP_403_FORBIDDEN: {
             "description": "Self/proxy submission disabled or not allowed for user"
         },

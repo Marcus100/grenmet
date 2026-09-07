@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createPermissionApiV1AuthPermissionsPost } from "../clients/createPermissionApiV1AuthPermissionsPost.js";
 import type {
-  CreatePermissionApiV1AuthPermissionsPost422,
-  CreatePermissionApiV1AuthPermissionsPostMutationRequest,
-  CreatePermissionApiV1AuthPermissionsPostMutationResponse,
+  CreatePermissionApiV1AuthPermissionsPostOptions,
+  CreatePermissionApiV1AuthPermissionsPostStatus201,
+  CreatePermissionApiV1AuthPermissionsPostStatus422,
 } from "../models/CreatePermissionApiV1AuthPermissionsPost.js";
 
 export const createPermissionApiV1AuthPermissionsPostMutationKey = () =>
   [{ url: "/api/v1/auth/permissions" }] as const;
 
-export type CreatePermissionApiV1AuthPermissionsPostMutationKey = ReturnType<
-  typeof createPermissionApiV1AuthPermissionsPostMutationKey
->;
-
 export function createPermissionApiV1AuthPermissionsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreatePermissionApiV1AuthPermissionsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createPermissionApiV1AuthPermissionsPostMutationKey();
   return mutationOptions<
-    CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-    { data: CreatePermissionApiV1AuthPermissionsPostMutationRequest },
+    CreatePermissionApiV1AuthPermissionsPostStatus201,
+    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPostStatus422>,
+    CreatePermissionApiV1AuthPermissionsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPermissionApiV1AuthPermissionsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createPermissionApiV1AuthPermissionsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -58,14 +53,14 @@ export function createPermissionApiV1AuthPermissionsPostMutationOptions<
 export function useCreatePermissionApiV1AuthPermissionsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-      ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-      { data: CreatePermissionApiV1AuthPermissionsPostMutationRequest },
+      CreatePermissionApiV1AuthPermissionsPostStatus201,
+      ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPostStatus422>,
+      CreatePermissionApiV1AuthPermissionsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreatePermissionApiV1AuthPermissionsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -77,16 +72,16 @@ export function useCreatePermissionApiV1AuthPermissionsPost<TContext>(
   const baseOptions = createPermissionApiV1AuthPermissionsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-    { data: CreatePermissionApiV1AuthPermissionsPostMutationRequest },
+    CreatePermissionApiV1AuthPermissionsPostStatus201,
+    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPostStatus422>,
+    CreatePermissionApiV1AuthPermissionsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-    { data: CreatePermissionApiV1AuthPermissionsPostMutationRequest },
+    CreatePermissionApiV1AuthPermissionsPostStatus201,
+    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPostStatus422>,
+    CreatePermissionApiV1AuthPermissionsPostOptions,
     TContext
   >(
     {
@@ -96,9 +91,9 @@ export function useCreatePermissionApiV1AuthPermissionsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreatePermissionApiV1AuthPermissionsPostMutationResponse,
-    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPost422>,
-    { data: CreatePermissionApiV1AuthPermissionsPostMutationRequest },
+    CreatePermissionApiV1AuthPermissionsPostStatus201,
+    ResponseErrorConfig<CreatePermissionApiV1AuthPermissionsPostStatus422>,
+    CreatePermissionApiV1AuthPermissionsPostOptions,
     TContext
   >;
 }

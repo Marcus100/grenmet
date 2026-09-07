@@ -5,17 +5,8 @@
 
 import type { EmploymentType } from "./EmploymentType.js";
 
-/**
- * StaffInput
- */
 export type StaffInput = {
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   grade_id: string;
   employee_number?: string | null;
   employment_type?: EmploymentType | null;

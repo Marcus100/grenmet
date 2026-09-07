@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { twofaActivateApiV12FaActivatePost } from "../clients/twofaActivateApiV12FaActivatePost.js";
 import type {
-  TwofaActivateApiV12FaActivatePost400,
-  TwofaActivateApiV12FaActivatePost422,
-  TwofaActivateApiV12FaActivatePostMutationRequest,
-  TwofaActivateApiV12FaActivatePostMutationResponse,
+  TwofaActivateApiV12FaActivatePostOptions,
+  TwofaActivateApiV12FaActivatePostStatus200,
+  TwofaActivateApiV12FaActivatePostStatus400,
+  TwofaActivateApiV12FaActivatePostStatus422,
 } from "../models/TwofaActivateApiV12FaActivatePost.js";
 
 export const twofaActivateApiV12FaActivatePostMutationKey = () =>
   [{ url: "/api/v1/2fa/activate" }] as const;
 
-export type TwofaActivateApiV12FaActivatePostMutationKey = ReturnType<
-  typeof twofaActivateApiV12FaActivatePostMutationKey
->;
-
 export function twofaActivateApiV12FaActivatePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<TwofaActivateApiV12FaActivatePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = twofaActivateApiV12FaActivatePostMutationKey();
   return mutationOptions<
-    TwofaActivateApiV12FaActivatePostMutationResponse,
+    TwofaActivateApiV12FaActivatePostStatus200,
     ResponseErrorConfig<
-      | TwofaActivateApiV12FaActivatePost400
-      | TwofaActivateApiV12FaActivatePost422
+      | TwofaActivateApiV12FaActivatePostStatus400
+      | TwofaActivateApiV12FaActivatePostStatus422
     >,
-    { data: TwofaActivateApiV12FaActivatePostMutationRequest },
+    TwofaActivateApiV12FaActivatePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return twofaActivateApiV12FaActivatePost(data, config);
+    mutationFn: async ({ body }) => {
+      return twofaActivateApiV12FaActivatePost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +56,17 @@ export function twofaActivateApiV12FaActivatePostMutationOptions<
 export function useTwofaActivateApiV12FaActivatePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      TwofaActivateApiV12FaActivatePostMutationResponse,
+      TwofaActivateApiV12FaActivatePostStatus200,
       ResponseErrorConfig<
-        | TwofaActivateApiV12FaActivatePost400
-        | TwofaActivateApiV12FaActivatePost422
+        | TwofaActivateApiV12FaActivatePostStatus400
+        | TwofaActivateApiV12FaActivatePostStatus422
       >,
-      { data: TwofaActivateApiV12FaActivatePostMutationRequest },
+      TwofaActivateApiV12FaActivatePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<TwofaActivateApiV12FaActivatePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +78,22 @@ export function useTwofaActivateApiV12FaActivatePost<TContext>(
   const baseOptions = twofaActivateApiV12FaActivatePostMutationOptions(
     config
   ) as UseMutationOptions<
-    TwofaActivateApiV12FaActivatePostMutationResponse,
+    TwofaActivateApiV12FaActivatePostStatus200,
     ResponseErrorConfig<
-      | TwofaActivateApiV12FaActivatePost400
-      | TwofaActivateApiV12FaActivatePost422
+      | TwofaActivateApiV12FaActivatePostStatus400
+      | TwofaActivateApiV12FaActivatePostStatus422
     >,
-    { data: TwofaActivateApiV12FaActivatePostMutationRequest },
+    TwofaActivateApiV12FaActivatePostOptions,
     TContext
   >;
 
   return useMutation<
-    TwofaActivateApiV12FaActivatePostMutationResponse,
+    TwofaActivateApiV12FaActivatePostStatus200,
     ResponseErrorConfig<
-      | TwofaActivateApiV12FaActivatePost400
-      | TwofaActivateApiV12FaActivatePost422
+      | TwofaActivateApiV12FaActivatePostStatus400
+      | TwofaActivateApiV12FaActivatePostStatus422
     >,
-    { data: TwofaActivateApiV12FaActivatePostMutationRequest },
+    TwofaActivateApiV12FaActivatePostOptions,
     TContext
   >(
     {
@@ -108,12 +103,12 @@ export function useTwofaActivateApiV12FaActivatePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    TwofaActivateApiV12FaActivatePostMutationResponse,
+    TwofaActivateApiV12FaActivatePostStatus200,
     ResponseErrorConfig<
-      | TwofaActivateApiV12FaActivatePost400
-      | TwofaActivateApiV12FaActivatePost422
+      | TwofaActivateApiV12FaActivatePostStatus400
+      | TwofaActivateApiV12FaActivatePostStatus422
     >,
-    { data: TwofaActivateApiV12FaActivatePostMutationRequest },
+    TwofaActivateApiV12FaActivatePostOptions,
     TContext
   >;
 }

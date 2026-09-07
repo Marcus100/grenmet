@@ -10,57 +10,52 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readStatusReportApiV1HrStatusReportsReportIdGet } from "../clients/readStatusReportApiV1HrStatusReportsReportIdGet.js";
 import type {
-  ReadStatusReportApiV1HrStatusReportsReportIdGet403,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet404,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet422,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetOptions,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422,
 } from "../models/ReadStatusReportApiV1HrStatusReportsReportIdGet.js";
 
-export const readStatusReportApiV1HrStatusReportsReportIdGetQueryKey = (
-  report_id: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams["report_id"]
-) =>
-  [
-    {
-      url: "/api/v1/hr/status-reports/:report_id",
-      params: { report_id: report_id },
-    },
-  ] as const;
+export const readStatusReportApiV1HrStatusReportsReportIdGetQueryKey = ({
+  path,
+}: Omit<ReadStatusReportApiV1HrStatusReportsReportIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/hr/status-reports/:report_id", params: path }] as const;
 
-export type ReadStatusReportApiV1HrStatusReportsReportIdGetQueryKey =
-  ReturnType<typeof readStatusReportApiV1HrStatusReportsReportIdGetQueryKey>;
+type ReadStatusReportApiV1HrStatusReportsReportIdGetQueryKey = ReturnType<
+  typeof readStatusReportApiV1HrStatusReportsReportIdGetQueryKey
+>;
 
 export function readStatusReportApiV1HrStatusReportsReportIdGetQueryOptions(
-  report_id: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams["report_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadStatusReportApiV1HrStatusReportsReportIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey =
-    readStatusReportApiV1HrStatusReportsReportIdGetQueryKey(report_id);
+  const queryKey = readStatusReportApiV1HrStatusReportsReportIdGetQueryKey({
+    path,
+  });
   return queryOptions<
-    ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+    ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
     ResponseErrorConfig<
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet403
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet404
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet422
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422
     >,
-    ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+    ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!report_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readStatusReportApiV1HrStatusReportsReportIdGet(report_id, config);
+      return readStatusReportApiV1HrStatusReportsReportIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,55 +66,64 @@ export function readStatusReportApiV1HrStatusReportsReportIdGetQueryOptions(
  * {@link /api/v1/hr/status-reports/:report_id}
  */
 export function useReadStatusReportApiV1HrStatusReportsReportIdGet<
-  TData = ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
-  TQueryData = ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+  TData = ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
+  TQueryData = ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
   TQueryKey extends
     QueryKey = ReadStatusReportApiV1HrStatusReportsReportIdGetQueryKey,
 >(
-  report_id: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams["report_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetOptions["path"]
+      | (() => ReadStatusReportApiV1HrStatusReportsReportIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+        ReadStatusReportApiV1HrStatusReportsReportIdGetStatus200,
         ResponseErrorConfig<
-          | ReadStatusReportApiV1HrStatusReportsReportIdGet403
-          | ReadStatusReportApiV1HrStatusReportsReportIdGet404
-          | ReadStatusReportApiV1HrStatusReportsReportIdGet422
+          | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403
+          | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404
+          | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readStatusReportApiV1HrStatusReportsReportIdGetQueryKey(report_id);
+    resolvedOptions?.queryKey ??
+    readStatusReportApiV1HrStatusReportsReportIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readStatusReportApiV1HrStatusReportsReportIdGetQueryOptions(
-        report_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet403
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet404
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet422
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus403
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus404
+      | ReadStatusReportApiV1HrStatusReportsReportIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

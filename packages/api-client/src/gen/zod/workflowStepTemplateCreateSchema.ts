@@ -7,8 +7,8 @@ import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const workflowStepTemplateCreateSchema = z.object({
-  step_order: z.number().int().min(1),
-  required_role_id: z.string().uuid(),
-  required_scope: z.optional(z.lazy(() => roleAssignmentScopeSchema)),
-  is_required: z.optional(z.boolean().default(true)),
+  step_order: z.int().min(1),
+  required_role_id: z.uuid(),
+  required_scope: roleAssignmentScopeSchema.optional().default("SELF"),
+  is_required: z.boolean().optional().default(true),
 });

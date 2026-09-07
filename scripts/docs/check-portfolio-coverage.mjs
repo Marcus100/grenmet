@@ -67,7 +67,6 @@ const parseArguments = (args) => {
   if (args.length === 2 && args[0] === "--root" && args[1]) {
     return { root: resolve(args[1]) };
   }
-  return;
 };
 
 const fallbackRepositoryFiles = (root) => {

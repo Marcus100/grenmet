@@ -8,39 +8,32 @@ import { calendarEventCreateSchema } from "./calendarEventCreateSchema.js";
 import { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Calendar event created
- */
-export const createCalendarEventApiV1HrCalendarEventsPost201Schema = z
-  .lazy(() => calendarEventPublicSchema)
-  .describe(
+export const createCalendarEventApiV1HrCalendarEventsPostStatus201Schema =
+  calendarEventPublicSchema.describe(
     "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
   );
 
-/**
- * @description Invalid event
- */
-export const createCalendarEventApiV1HrCalendarEventsPost400Schema = z.any();
+export const createCalendarEventApiV1HrCalendarEventsPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createCalendarEventApiV1HrCalendarEventsPost403Schema = z.any();
+export const createCalendarEventApiV1HrCalendarEventsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Department not found
- */
-export const createCalendarEventApiV1HrCalendarEventsPost404Schema = z.any();
+export const createCalendarEventApiV1HrCalendarEventsPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createCalendarEventApiV1HrCalendarEventsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createCalendarEventApiV1HrCalendarEventsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createCalendarEventApiV1HrCalendarEventsPostMutationRequestSchema =
-  z.lazy(() => calendarEventCreateSchema);
+export const createCalendarEventApiV1HrCalendarEventsPostResponseSchema =
+  createCalendarEventApiV1HrCalendarEventsPostStatus201Schema;
 
-export const createCalendarEventApiV1HrCalendarEventsPostMutationResponseSchema =
-  z.lazy(() => createCalendarEventApiV1HrCalendarEventsPost201Schema);
+export const createCalendarEventApiV1HrCalendarEventsPostErrorSchema = z.union([
+  createCalendarEventApiV1HrCalendarEventsPostStatus400Schema,
+  createCalendarEventApiV1HrCalendarEventsPostStatus403Schema,
+  createCalendarEventApiV1HrCalendarEventsPostStatus404Schema,
+  createCalendarEventApiV1HrCalendarEventsPostStatus422Schema,
+]);
+
+export const createCalendarEventApiV1HrCalendarEventsPostBodySchema =
+  calendarEventCreateSchema;

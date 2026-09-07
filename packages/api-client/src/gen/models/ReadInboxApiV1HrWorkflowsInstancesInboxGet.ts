@@ -5,21 +5,26 @@
 
 import type { WorkflowInboxList } from "./WorkflowInboxList.js";
 
-/**
- * WorkflowInboxList
- * @description Pending approvals returned
- */
-export type ReadInboxApiV1HrWorkflowsInstancesInboxGet200 = WorkflowInboxList;
+export type ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200 =
+  WorkflowInboxList;
 
-/**
- * @description Insufficient permission
- */
-export type ReadInboxApiV1HrWorkflowsInstancesInboxGet403 = any;
+export type ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403 = unknown;
 
-export type ReadInboxApiV1HrWorkflowsInstancesInboxGetQueryResponse =
-  ReadInboxApiV1HrWorkflowsInstancesInboxGet200;
-
-export type ReadInboxApiV1HrWorkflowsInstancesInboxGetQuery = {
-  Response: ReadInboxApiV1HrWorkflowsInstancesInboxGet200;
-  Errors: ReadInboxApiV1HrWorkflowsInstancesInboxGet403;
+export type ReadInboxApiV1HrWorkflowsInstancesInboxGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadInboxApiV1HrWorkflowsInstancesInboxGetResponses = {
+  "200": ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200;
+  "403": ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadInboxApiV1HrWorkflowsInstancesInboxGetResponse =
+  | ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus200
+  | ReadInboxApiV1HrWorkflowsInstancesInboxGetStatus403;

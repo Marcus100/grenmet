@@ -7,31 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParamsSchema =
-  z.object({
-    session_id: z.string().uuid(),
-  });
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathSessionIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200Schema =
-  z.lazy(() => messageSchema);
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200Schema =
+  messageSchema;
 
-/**
- * @description Session not found
- */
-export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404Schema =
-  z.any();
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponseSchema =
-  z.lazy(
-    () =>
-      revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200Schema
-  );
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponseSchema =
+  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200Schema;
+
+export const revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteErrorSchema =
+  z.union([
+    revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404Schema,
+    revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422Schema,
+  ]);

@@ -351,7 +351,7 @@ def create_wis2box_env(host_datadir: str) -> None:
     :returns: None
     """
 
-    wis2box_env = Path('wis2box.env')
+    wis2box_env = Path('.env.local')
 
     with wis2box_env.open('w') as fh:
         fh.write('# directory on the host with wis2box-configuration\n') # noqa
@@ -655,7 +655,7 @@ def get_host_datadir() -> str:
 
     host_datadir = None
 
-    with Path("wis2box.env").open() as fh:
+    with Path(".env.local").open() as fh:
         lines = fh.readlines()
 
         for line in lines:
@@ -681,7 +681,7 @@ def main():
     """
 
     host_datadir = None
-    dev_env = Path("wis2box.env")
+    dev_env = Path(".env.local")
 
     # check if wis2box.env exists
     # if it does, read the value for WIS2BOX_HOST_DATADIR
@@ -692,7 +692,7 @@ def main():
         answer = input()
 
         if answer == "y":
-            os.remove("wis2box.env")
+            os.remove(".env.local")
         elif answer == "exit":
             exit()
         else:

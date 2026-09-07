@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete } from "../clients/deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
 import type {
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
-  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404,
+  DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422,
 } from "../models/DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete.js";
 
 export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey =
   () => [{ url: "/api/v1/hr/absentee-reports/:absentee_report_id" }] as const;
 
-export type DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey =
-  ReturnType<
-    typeof deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey
-  >;
-
 export function deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationKey();
   return mutationOptions<
-    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422
     >,
-    {
-      absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"];
-    },
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ absentee_report_id }) => {
-      return deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete(
-        absentee_report_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,19 +64,19 @@ export function useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDel
 >(
   options: {
     mutation?: UseMutationOptions<
-      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
+      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422
       >,
-      {
-        absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"];
-      },
+      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -96,30 +89,26 @@ export function useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDel
     deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
+      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+        | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422
       >,
-      {
-        absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"];
-      },
+      DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422
     >,
-    {
-      absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"];
-    },
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
     TContext
   >(
     {
@@ -129,16 +118,14 @@ export function useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDel
     },
     queryClient
   ) as UseMutationResult<
-    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponse,
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404
-      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404
+      | DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422
     >,
-    {
-      absentee_report_id: DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParams["absentee_report_id"];
-    },
+    DeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteOptions,
     TContext
   >;
 }

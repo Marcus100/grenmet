@@ -8,27 +8,24 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { updatePasswordSchema } from "./updatePasswordSchema.js";
 
-/**
- * @description Password updated
- */
-export const updatePasswordMeApiV1AuthUsersMePasswordPatch200Schema = z.lazy(
-  () => messageSchema
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchStatus200Schema =
+  messageSchema;
+
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchStatus400Schema =
+  z.unknown();
+
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchResponseSchema =
+  updatePasswordMeApiV1AuthUsersMePasswordPatchStatus200Schema;
+
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchErrorSchema = z.union(
+  [
+    updatePasswordMeApiV1AuthUsersMePasswordPatchStatus400Schema,
+    updatePasswordMeApiV1AuthUsersMePasswordPatchStatus422Schema,
+  ]
 );
 
-/**
- * @description Current password incorrect or new password unchanged
- */
-export const updatePasswordMeApiV1AuthUsersMePasswordPatch400Schema = z.any();
-
-/**
- * @description Validation Error
- */
-export const updatePasswordMeApiV1AuthUsersMePasswordPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
-
-export const updatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequestSchema =
-  z.lazy(() => updatePasswordSchema);
-
-export const updatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponseSchema =
-  z.lazy(() => updatePasswordMeApiV1AuthUsersMePasswordPatch200Schema);
+export const updatePasswordMeApiV1AuthUsersMePasswordPatchBodySchema =
+  updatePasswordSchema;

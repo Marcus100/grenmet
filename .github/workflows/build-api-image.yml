@@ -55,19 +55,25 @@ jobs:
 
       - name: Resolve effective branch
         id: ctx
+        env:
+          BUILD_TAG: ${{ inputs.tag }}
         run: |
-          EVENT="${{ github.event_name }}"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          EVENT="$GITHUB_EVENT_NAME"
           # inputs.tag covers both workflow_dispatch and workflow_call callers.
-          if [ -n "${{ inputs.tag }}" ]; then
-            BRANCH="${{ inputs.tag }}"
+          if [ -n "$BUILD_TAG" ]; then
+            BRANCH="$BUILD_TAG"
           elif [ "$EVENT" == "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            BRANCH="$GITHUB_REF_NAME"
           else
-            BRANCH="${{ github.ref_name }}"
+            BRANCH="$GITHUB_REF_NAME"
           fi
           if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
             echo "is_staging=true" >> $GITHUB_OUTPUT
           else
+            echo "environment=production" >> "$GITHUB_OUTPUT"
             echo "is_staging=false" >> $GITHUB_OUTPUT
           fi
 
@@ -75,13 +81,17 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ steps.ctx.outputs.repository }}
+          labels: |
+            gd.barrels.environment=${{ steps.ctx.outputs.environment }}
           tags: |
+            type=raw,value=${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
             type=raw,value=staging,enable=${{ steps.ctx.outputs.is_staging == 'true' }}
             type=raw,value=latest,enable=${{ steps.ctx.outputs.is_staging == 'false' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
@@ -99,3 +109,4 @@ jobs:
         run: |
           echo "✅ grenmet-api image built and pushed successfully"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Image: ghcr.io/${{ steps.ctx.outputs.repository }}@${{ steps.build.outputs.digest }}"

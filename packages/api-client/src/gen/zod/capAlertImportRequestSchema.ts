@@ -6,6 +6,6 @@
 import * as z from "zod";
 
 export const capAlertImportRequestSchema = z.object({
-  source: z.optional(z.enum(["url", "xml"]).default("xml")),
+  source: z.enum(["url", "xml"]).optional().default("xml"),
   value: z.string().min(1),
 });

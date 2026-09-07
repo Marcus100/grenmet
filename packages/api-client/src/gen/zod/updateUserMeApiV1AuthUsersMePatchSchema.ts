@@ -8,29 +8,20 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 import { userUpdateMeSchema } from "./userUpdateMeSchema.js";
 
-/**
- * @description User updated
- */
-export const updateUserMeApiV1AuthUsersMePatch200Schema = z.lazy(
-  () => userPublicSchema
-);
+export const updateUserMeApiV1AuthUsersMePatchStatus200Schema =
+  userPublicSchema;
 
-/**
- * @description Email already exists
- */
-export const updateUserMeApiV1AuthUsersMePatch409Schema = z.any();
+export const updateUserMeApiV1AuthUsersMePatchStatus409Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateUserMeApiV1AuthUsersMePatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateUserMeApiV1AuthUsersMePatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateUserMeApiV1AuthUsersMePatchMutationRequestSchema = z.lazy(
-  () => userUpdateMeSchema
-);
+export const updateUserMeApiV1AuthUsersMePatchResponseSchema =
+  updateUserMeApiV1AuthUsersMePatchStatus200Schema;
 
-export const updateUserMeApiV1AuthUsersMePatchMutationResponseSchema = z.lazy(
-  () => updateUserMeApiV1AuthUsersMePatch200Schema
-);
+export const updateUserMeApiV1AuthUsersMePatchErrorSchema = z.union([
+  updateUserMeApiV1AuthUsersMePatchStatus409Schema,
+  updateUserMeApiV1AuthUsersMePatchStatus422Schema,
+]);
+
+export const updateUserMeApiV1AuthUsersMePatchBodySchema = userUpdateMeSchema;

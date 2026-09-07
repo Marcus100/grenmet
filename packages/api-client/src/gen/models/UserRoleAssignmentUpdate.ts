@@ -5,9 +5,6 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-/**
- * UserRoleAssignmentUpdate
- */
 export type UserRoleAssignmentUpdate = {
   scope?: RoleAssignmentScope | null;
   department_id?: string | null;

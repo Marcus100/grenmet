@@ -8,43 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 import { shiftSwapSubmitSchema } from "./shiftSwapSubmitSchema.js";
 
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParamsSchema =
-  z.object({
-    shift_swap_id: z.string().uuid(),
-  });
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathShiftSwapIdSchema =
+  z.uuid();
 
-/**
- * @description Shift swap request submitted
- */
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200Schema =
-  z.lazy(() => shiftSwapRequestPublicSchema);
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200Schema =
+  shiftSwapRequestPublicSchema;
 
-/**
- * @description Shift swap request is not a draft
- */
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400Schema =
-  z.any();
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to submit this shift swap request
- */
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403Schema =
-  z.any();
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Shift swap request not found
- */
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404Schema =
-  z.any();
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequestSchema =
-  z.lazy(() => shiftSwapSubmitSchema);
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponseSchema =
+  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200Schema;
 
-export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponseSchema =
-  z.lazy(() => submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200Schema);
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostErrorSchema =
+  z.union([
+    submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400Schema,
+    submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403Schema,
+    submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404Schema,
+    submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422Schema,
+  ]);
+
+export const submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostBodySchema =
+  shiftSwapSubmitSchema;

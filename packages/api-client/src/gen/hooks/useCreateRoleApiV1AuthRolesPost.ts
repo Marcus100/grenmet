@@ -9,41 +9,36 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createRoleApiV1AuthRolesPost } from "../clients/createRoleApiV1AuthRolesPost.js";
 import type {
-  CreateRoleApiV1AuthRolesPost422,
-  CreateRoleApiV1AuthRolesPostMutationRequest,
-  CreateRoleApiV1AuthRolesPostMutationResponse,
+  CreateRoleApiV1AuthRolesPostOptions,
+  CreateRoleApiV1AuthRolesPostStatus201,
+  CreateRoleApiV1AuthRolesPostStatus422,
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
 
 export const createRoleApiV1AuthRolesPostMutationKey = () =>
   [{ url: "/api/v1/auth/roles" }] as const;
 
-export type CreateRoleApiV1AuthRolesPostMutationKey = ReturnType<
-  typeof createRoleApiV1AuthRolesPostMutationKey
->;
-
 export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
   config: Partial<
-    RequestConfig<CreateRoleApiV1AuthRolesPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createRoleApiV1AuthRolesPostMutationKey();
   return mutationOptions<
-    CreateRoleApiV1AuthRolesPostMutationResponse,
-    ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-    { data: CreateRoleApiV1AuthRolesPostMutationRequest },
+    CreateRoleApiV1AuthRolesPostStatus201,
+    ResponseErrorConfig<CreateRoleApiV1AuthRolesPostStatus422>,
+    CreateRoleApiV1AuthRolesPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createRoleApiV1AuthRolesPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createRoleApiV1AuthRolesPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -56,14 +51,14 @@ export function createRoleApiV1AuthRolesPostMutationOptions<TContext = unknown>(
 export function useCreateRoleApiV1AuthRolesPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateRoleApiV1AuthRolesPostMutationResponse,
-      ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-      { data: CreateRoleApiV1AuthRolesPostMutationRequest },
+      CreateRoleApiV1AuthRolesPostStatus201,
+      ResponseErrorConfig<CreateRoleApiV1AuthRolesPostStatus422>,
+      CreateRoleApiV1AuthRolesPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateRoleApiV1AuthRolesPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -74,16 +69,16 @@ export function useCreateRoleApiV1AuthRolesPost<TContext>(
   const baseOptions = createRoleApiV1AuthRolesPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateRoleApiV1AuthRolesPostMutationResponse,
-    ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-    { data: CreateRoleApiV1AuthRolesPostMutationRequest },
+    CreateRoleApiV1AuthRolesPostStatus201,
+    ResponseErrorConfig<CreateRoleApiV1AuthRolesPostStatus422>,
+    CreateRoleApiV1AuthRolesPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateRoleApiV1AuthRolesPostMutationResponse,
-    ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-    { data: CreateRoleApiV1AuthRolesPostMutationRequest },
+    CreateRoleApiV1AuthRolesPostStatus201,
+    ResponseErrorConfig<CreateRoleApiV1AuthRolesPostStatus422>,
+    CreateRoleApiV1AuthRolesPostOptions,
     TContext
   >(
     {
@@ -93,9 +88,9 @@ export function useCreateRoleApiV1AuthRolesPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateRoleApiV1AuthRolesPostMutationResponse,
-    ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-    { data: CreateRoleApiV1AuthRolesPostMutationRequest },
+    CreateRoleApiV1AuthRolesPostStatus201,
+    ResponseErrorConfig<CreateRoleApiV1AuthRolesPostStatus422>,
+    CreateRoleApiV1AuthRolesPostOptions,
     TContext
   >;
 }

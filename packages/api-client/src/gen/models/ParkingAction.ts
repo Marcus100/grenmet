@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const parkingActionParkingActionEnum = {
+export const parkingAction = {
   NEW_PERMIT: "NEW_PERMIT",
   ANNUAL_RENEWAL: "ANNUAL_RENEWAL",
   REPLACEMENT_LOST_STOLEN: "REPLACEMENT_LOST_STOLEN",
@@ -11,10 +11,4 @@ export const parkingActionParkingActionEnum = {
   OTHER: "OTHER",
 } as const;
 
-export type ParkingActionParkingActionEnumKey =
-  (typeof parkingActionParkingActionEnum)[keyof typeof parkingActionParkingActionEnum];
-
-/**
- * ParkingAction
- */
-export type ParkingAction = ParkingActionParkingActionEnumKey;
+export type ParkingAction = (typeof parkingAction)[keyof typeof parkingAction];

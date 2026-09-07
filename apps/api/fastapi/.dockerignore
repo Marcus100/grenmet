@@ -74,3 +74,33 @@ Dockerfile
 Dockerfile.prod
 
 # Note: alembic.ini and scripts/ are needed by the Dockerfile, so they are NOT excluded
+
+# Keep local caches, secrets and runtime artifacts out of every build.
+**/node_modules/
+**/.pnpm-store/
+**/.npm/
+**/.cache/
+**/.venv/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.scrapy/
+**/.next/
+**/.turbo/
+**/*.tsbuildinfo
+**/coverage/
+**/.coverage
+**/.coverage.*
+**/test-results/
+**/playwright-report/
+**/.git/
+**/.env
+**/.env.*
+**/*.env
+**/*.dump
+**/*.sqlite*
+**/backups/
+**/acme.json
+**/*.log

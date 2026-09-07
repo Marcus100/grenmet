@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-/**
- * UserRegister
- */
 export type UserRegister = {
   /**
-   * @type string, email
+   * @description
+   * Format: `email`
+   * @type string
    */
   email: string;
   /**

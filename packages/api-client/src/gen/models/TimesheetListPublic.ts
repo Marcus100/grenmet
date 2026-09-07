@@ -5,17 +5,8 @@
 
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 
-/**
- * TimesheetListPublic
- */
 export type TimesheetListPublic = {
-  /**
-   * @type array
-   */
   data: TimesheetPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

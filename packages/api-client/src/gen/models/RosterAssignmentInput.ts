@@ -3,21 +3,19 @@
  * Do not edit manually.
  */
 
-/**
- * RosterAssignmentInput
- */
 export type RosterAssignmentInput = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
   /**
-   * @type string, date
-   */
-  assignment_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  assignment_date: string;
   shift_code: string;
   remarks?: string | null;
 };

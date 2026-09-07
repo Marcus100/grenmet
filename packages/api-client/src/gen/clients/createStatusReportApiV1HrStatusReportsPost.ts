@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateStatusReportApiV1HrStatusReportsPost403,
-  CreateStatusReportApiV1HrStatusReportsPost422,
-  CreateStatusReportApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+  CreateStatusReportApiV1HrStatusReportsPostOptions,
+  CreateStatusReportApiV1HrStatusReportsPostResponses,
 } from "../models/CreateStatusReportApiV1HrStatusReportsPost.js";
-
-function getCreateStatusReportApiV1HrStatusReportsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/status-reports` as const };
-  return res;
-}
 
 /**
  * @description Create a status report with optional personnel entries. Requires status.report.create permission.
  * @summary Create status report
  * {@link /api/v1/hr/status-reports}
  */
-export async function createStatusReportApiV1HrStatusReportsPost(
-  data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateStatusReportApiV1HrStatusReportsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createStatusReportApiV1HrStatusReportsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateStatusReportApiV1HrStatusReportsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateStatusReportApiV1HrStatusReportsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateStatusReportApiV1HrStatusReportsPost403
-      | CreateStatusReportApiV1HrStatusReportsPost422
-    >,
-    CreateStatusReportApiV1HrStatusReportsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateStatusReportApiV1HrStatusReportsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/status-reports",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateStatusReportApiV1HrStatusReportsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

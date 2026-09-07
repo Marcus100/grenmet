@@ -93,27 +93,27 @@ export function DutyRoster() {
   const departments = departmentsQuery.data?.data ?? [];
   const activeDepartmentId = departmentId ?? departments[0]?.id;
 
-  const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet();
+  const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet({});
   const catalog = shiftsQuery.data?.data ?? [];
   const cycleCodes = useMemo(() => buildCycleCodes(catalog), [catalog]);
   const workCodes = useMemo(() => workShiftCodes(catalog), [catalog]);
 
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      activeDepartmentId ?? "",
+      { path: { department_id: activeDepartmentId ?? "" } },
       { query: { enabled: Boolean(activeDepartmentId) } }
     );
   const members = membersQuery.data?.data ?? [];
   const memberGroups = useMemo(() => groupByGrade(members), [members]);
 
   const periodsQuery = useListPeriodsApiV1HrRostersPeriodsGet(
-    { department_id: activeDepartmentId ?? "" },
+    { query: { department_id: activeDepartmentId ?? "" } },
     { query: { enabled: Boolean(activeDepartmentId) } }
   );
   const period = findPeriodForMonth(periodsQuery.data?.data ?? [], monthDate);
 
   const detailsQuery = useGetPeriodApiV1HrRostersPeriodsPeriodIdGet(
-    period?.id ?? "",
+    { path: { period_id: period?.id ?? "" } },
     { query: { enabled: Boolean(period) } }
   );
   const serverAssignments = useMemo(
@@ -178,7 +178,7 @@ export function DutyRoster() {
     if (!activeDepartmentId) return;
     const range = monthRange(monthDate);
     await createPeriodMutation.mutateAsync({
-      data: {
+      body: {
         department_id: activeDepartmentId,
         period_start: range.start,
         period_end: range.end,
@@ -186,7 +186,9 @@ export function DutyRoster() {
     });
     await queryClient.invalidateQueries({
       queryKey: listPeriodsApiV1HrRostersPeriodsGetQueryKey({
-        department_id: activeDepartmentId,
+        query: {
+          department_id: activeDepartmentId,
+        },
       }),
     });
     toast.success(`Roster period created for ${monthLabel}`);
@@ -205,10 +207,12 @@ export function DutyRoster() {
       };
     });
     await bulkMutation.mutateAsync({
-      data: { roster_period_id: period.id, assignments },
+      body: { roster_period_id: period.id, assignments },
     });
     await queryClient.invalidateQueries({
-      queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(period.id),
+      queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+        path: { period_id: period.id },
+      }),
     });
     setPendingEdits({});
     toast.success(`Saved ${assignments.length} assignment(s)`);
@@ -216,15 +220,19 @@ export function DutyRoster() {
 
   async function publish() {
     if (!period) return;
-    await publishMutation.mutateAsync({ period_id: period.id });
+    await publishMutation.mutateAsync({ path: { period_id: period.id } });
     await Promise.all([
       queryClient.invalidateQueries({
         queryKey: listPeriodsApiV1HrRostersPeriodsGetQueryKey({
-          department_id: activeDepartmentId ?? "",
+          query: {
+            department_id: activeDepartmentId ?? "",
+          },
         }),
       }),
       queryClient.invalidateQueries({
-        queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(period.id),
+        queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+          path: { period_id: period.id },
+        }),
       }),
     ]);
     toast.success(`${monthLabel} roster published`);

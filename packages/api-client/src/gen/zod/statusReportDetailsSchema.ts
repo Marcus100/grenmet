@@ -8,6 +8,6 @@ import { statusReportEntryPublicSchema } from "./statusReportEntryPublicSchema.j
 import { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 
 export const statusReportDetailsSchema = z.object({
-  report: z.lazy(() => statusReportPublicSchema),
-  entries: z.array(z.lazy(() => statusReportEntryPublicSchema)),
+  report: statusReportPublicSchema,
+  entries: z.array(statusReportEntryPublicSchema),
 });

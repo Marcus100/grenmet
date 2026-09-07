@@ -10,41 +10,39 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readHrProfileMeApiV1HrProfileMeGet } from "../clients/readHrProfileMeApiV1HrProfileMeGet.js";
 import type {
-  ReadHrProfileMeApiV1HrProfileMeGet404,
-  ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  ReadHrProfileMeApiV1HrProfileMeGetStatus200,
+  ReadHrProfileMeApiV1HrProfileMeGetStatus404,
 } from "../models/ReadHrProfileMeApiV1HrProfileMeGet.js";
 
 export const readHrProfileMeApiV1HrProfileMeGetQueryKey = () =>
   [{ url: "/api/v1/hr/profile/me" }] as const;
 
-export type ReadHrProfileMeApiV1HrProfileMeGetQueryKey = ReturnType<
+type ReadHrProfileMeApiV1HrProfileMeGetQueryKey = ReturnType<
   typeof readHrProfileMeApiV1HrProfileMeGetQueryKey
 >;
 
 export function readHrProfileMeApiV1HrProfileMeGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readHrProfileMeApiV1HrProfileMeGetQueryKey();
   return queryOptions<
-    ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
-    ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+    ReadHrProfileMeApiV1HrProfileMeGetStatus200,
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGetStatus404>,
+    ReadHrProfileMeApiV1HrProfileMeGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readHrProfileMeApiV1HrProfileMeGet(config);
+      return readHrProfileMeApiV1HrProfileMeGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -55,41 +53,43 @@ export function readHrProfileMeApiV1HrProfileMeGetQueryOptions(
  * {@link /api/v1/hr/profile/me}
  */
 export function useReadHrProfileMeApiV1HrProfileMeGet<
-  TData = ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-  TQueryData = ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
+  TData = ReadHrProfileMeApiV1HrProfileMeGetStatus200,
+  TQueryData = ReadHrProfileMeApiV1HrProfileMeGetStatus200,
   TQueryKey extends QueryKey = ReadHrProfileMeApiV1HrProfileMeGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadHrProfileMeApiV1HrProfileMeGetQueryResponse,
-        ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>,
+        ReadHrProfileMeApiV1HrProfileMeGetStatus200,
+        ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGetStatus404>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readHrProfileMeApiV1HrProfileMeGetQueryKey();
+    resolvedOptions?.queryKey ?? readHrProfileMeApiV1HrProfileMeGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readHrProfileMeApiV1HrProfileMeGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGet404>
+    ResponseErrorConfig<ReadHrProfileMeApiV1HrProfileMeGetStatus404>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

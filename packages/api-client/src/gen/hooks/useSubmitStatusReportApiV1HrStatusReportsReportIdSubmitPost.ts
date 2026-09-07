@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitStatusReportApiV1HrStatusReportsReportIdSubmitPost } from "../clients/submitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
 import type {
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422,
 } from "../models/SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
 
 export const submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey =
   () => [{ url: "/api/v1/hr/status-reports/:report_id/submit" }] as const;
 
-export type SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey =
-  ReturnType<
-    typeof submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey
-  >;
-
 export function submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationKey();
   return mutationOptions<
-    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422
     >,
-    {
-      report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"];
-      data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-    },
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ report_id, data }) => {
-      return submitStatusReportApiV1HrStatusReportsReportIdSubmitPost(
-        report_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return submitStatusReportApiV1HrStatusReportsReportIdSubmitPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
+      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422
       >,
-      {
-        report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"];
-        data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-      },
+      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost<
     submitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationOptions(
       config
     ) as UseMutationOptions<
-      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
+      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+        | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422
       >,
-      {
-        report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"];
-        data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-      },
+      SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
       TContext
     >;
 
   return useMutation<
-    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422
     >,
-    {
-      report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"];
-      data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-    },
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost<
     },
     queryClient
   ) as UseMutationResult<
-    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404
+      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422
     >,
-    {
-      report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"];
-      data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest;
-    },
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
     TContext
   >;
 }

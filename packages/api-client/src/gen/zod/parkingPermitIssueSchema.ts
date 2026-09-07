@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const parkingPermitIssueSchema = z.object({
   decal_number: z.string(),
-  valid_from: z.string().date(),
-  valid_to: z.string().date(),
-  received_by: z.optional(z.union([z.string(), z.null()])),
+  valid_from: z.iso.date(),
+  valid_to: z.iso.date(),
+  received_by: z.union([z.string(), z.null()]).optional(),
 });

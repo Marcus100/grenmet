@@ -7,48 +7,42 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
 import type { RosterGridImportResult } from "./RosterGridImportResult.js";
 
-/**
- * RosterGridImportResult
- * @description Roster imported
- */
-export type ImportGridApiV1HrRostersImportGridPost200 = RosterGridImportResult;
+export type ImportGridApiV1HrRostersImportGridPostStatus200 =
+  RosterGridImportResult;
 
-/**
- * @description Grid has unmatched names or invalid codes
- */
-export type ImportGridApiV1HrRostersImportGridPost400 = any;
+export type ImportGridApiV1HrRostersImportGridPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ImportGridApiV1HrRostersImportGridPost403 = any;
+export type ImportGridApiV1HrRostersImportGridPostStatus403 = unknown;
 
-/**
- * @description Department not found
- */
-export type ImportGridApiV1HrRostersImportGridPost404 = any;
+export type ImportGridApiV1HrRostersImportGridPostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ImportGridApiV1HrRostersImportGridPost422 = HTTPValidationError;
+export type ImportGridApiV1HrRostersImportGridPostStatus422 =
+  HTTPValidationError;
 
-/**
- * RosterGridImportRequest
- */
-export type ImportGridApiV1HrRostersImportGridPostMutationRequest =
+export type ImportGridApiV1HrRostersImportGridPostBody =
   RosterGridImportRequest;
 
-export type ImportGridApiV1HrRostersImportGridPostMutationResponse =
-  ImportGridApiV1HrRostersImportGridPost200;
-
-export type ImportGridApiV1HrRostersImportGridPostMutation = {
-  Response: ImportGridApiV1HrRostersImportGridPost200;
-  Request: ImportGridApiV1HrRostersImportGridPostMutationRequest;
-  Errors:
-    | ImportGridApiV1HrRostersImportGridPost400
-    | ImportGridApiV1HrRostersImportGridPost403
-    | ImportGridApiV1HrRostersImportGridPost404
-    | ImportGridApiV1HrRostersImportGridPost422;
+export type ImportGridApiV1HrRostersImportGridPostOptions = {
+  body: ImportGridApiV1HrRostersImportGridPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ImportGridApiV1HrRostersImportGridPostResponses = {
+  "200": ImportGridApiV1HrRostersImportGridPostStatus200;
+  "400": ImportGridApiV1HrRostersImportGridPostStatus400;
+  "403": ImportGridApiV1HrRostersImportGridPostStatus403;
+  "404": ImportGridApiV1HrRostersImportGridPostStatus404;
+  "422": ImportGridApiV1HrRostersImportGridPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ImportGridApiV1HrRostersImportGridPostResponse =
+  | ImportGridApiV1HrRostersImportGridPostStatus200
+  | ImportGridApiV1HrRostersImportGridPostStatus400
+  | ImportGridApiV1HrRostersImportGridPostStatus403
+  | ImportGridApiV1HrRostersImportGridPostStatus404
+  | ImportGridApiV1HrRostersImportGridPostStatus422;

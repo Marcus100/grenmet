@@ -8,43 +8,28 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 import { userUpdateSchema } from "./userUpdateSchema.js";
 
-export const updateUserApiV1AuthUsersUserIdPatchPathParamsSchema = z.object({
-  user_id: z.string().uuid(),
-});
+export const updateUserApiV1AuthUsersUserIdPatchPathUserIdSchema = z.uuid();
 
-/**
- * @description User updated
- */
-export const updateUserApiV1AuthUsersUserIdPatch200Schema = z.lazy(
-  () => userPublicSchema
-);
+export const updateUserApiV1AuthUsersUserIdPatchStatus200Schema =
+  userPublicSchema;
 
-/**
- * @description Insufficient privileges
- */
-export const updateUserApiV1AuthUsersUserIdPatch403Schema = z.any();
+export const updateUserApiV1AuthUsersUserIdPatchStatus403Schema = z.unknown();
 
-/**
- * @description User not found
- */
-export const updateUserApiV1AuthUsersUserIdPatch404Schema = z.any();
+export const updateUserApiV1AuthUsersUserIdPatchStatus404Schema = z.unknown();
 
-/**
- * @description Email already exists
- */
-export const updateUserApiV1AuthUsersUserIdPatch409Schema = z.any();
+export const updateUserApiV1AuthUsersUserIdPatchStatus409Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateUserApiV1AuthUsersUserIdPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateUserApiV1AuthUsersUserIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateUserApiV1AuthUsersUserIdPatchMutationRequestSchema = z.lazy(
-  () => userUpdateSchema
-);
+export const updateUserApiV1AuthUsersUserIdPatchResponseSchema =
+  updateUserApiV1AuthUsersUserIdPatchStatus200Schema;
 
-export const updateUserApiV1AuthUsersUserIdPatchMutationResponseSchema = z.lazy(
-  () => updateUserApiV1AuthUsersUserIdPatch200Schema
-);
+export const updateUserApiV1AuthUsersUserIdPatchErrorSchema = z.union([
+  updateUserApiV1AuthUsersUserIdPatchStatus403Schema,
+  updateUserApiV1AuthUsersUserIdPatchStatus404Schema,
+  updateUserApiV1AuthUsersUserIdPatchStatus409Schema,
+  updateUserApiV1AuthUsersUserIdPatchStatus422Schema,
+]);
+
+export const updateUserApiV1AuthUsersUserIdPatchBodySchema = userUpdateSchema;

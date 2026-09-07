@@ -5,13 +5,7 @@
 
 import type { RequestStatus } from "./RequestStatus.js";
 
-/**
- * LeaveRequestAction
- */
 export type LeaveRequestAction = {
-  /**
-   * @type string
-   */
   status: RequestStatus;
   head_of_dept_comments?: string | null;
 };

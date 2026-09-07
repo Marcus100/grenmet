@@ -5,9 +5,9 @@
 # Environment differences live in the committed env files:
 #   staging.env / production.env   — non-secret config (domains, DB names,
 #                                    volume/network names, router suffix, profiles)
-# plus a runtime-only .env.secrets written by the deploy workflow (secrets +
+# plus a runtime-only runtime/.env.local written by the deploy workflow (secrets +
 # image tags + DB URLs) and deleted afterwards. Invocation:
-#   docker compose --env-file <env>.env --env-file .env.secrets \
+#   docker compose --env-file <env>.env --env-file runtime/.env.local \
 #     -f docker-compose.deploy.yml -p <project> ...
 #
 # IMPORTANT: the explicit `name:` fields on volumes/networks pin the exact
@@ -18,14 +18,25 @@
 # adminer is staging-only: it sits behind `profiles: ["staging"]`, activated by
 # COMPOSE_PROFILES=staging in staging.env.
 
+# Bound disk consumption while keeping JSON logs compatible with existing readers.
+x-logging: &bounded-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   # ── Database ────────────────────────────────────────────────────────────────
   db:
-    image: postgres:17
+    logging: *bounded-logging
+    image: ${CORE_POSTGRES_IMAGE:?Set the reviewed immutable PostgreSQL 17 image}
+    ports:
+      - "${CORE_PRIVATE_IP:?Set the core host private IP}:5432:5432"
     restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+      - ../postgres/grant-api-runtime.sh:/opt/grenmet/grant-api-runtime.sh:ro
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -42,6 +53,11 @@ services:
       TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
       TRANSPORT_DB_USER: ${TRANSPORT_DB_USER}
       TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD}
+      CMS_DB_NAME: ${CMS_DB_NAME:?CMS_DB_NAME required}
+      CMS_DB_USER: ${CMS_DB_USER:?CMS_DB_USER required}
+      CMS_DB_PASSWORD: ${CMS_DB_PASSWORD:?CMS_DB_PASSWORD required}
+      FASTAPI_DB_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
+      FASTAPI_DB_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -53,9 +69,12 @@ services:
 
   # ── FastAPI ─────────────────────────────────────────────────────────────────
   prestart:
+    logging: *bounded-logging
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: "no"
     command: bash scripts/prestart.sh
+    healthcheck:
+      disable: true
     depends_on:
       db:
         condition: service_healthy
@@ -74,8 +93,15 @@ services:
       - grenmet
 
   api:
+    logging: *bounded-logging
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--show-error", "http://127.0.0.1:8000/api/v1/utils/ready/"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 5
     depends_on:
       prestart:
         condition: service_completed_successfully
@@ -83,8 +109,8 @@ services:
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
+      POSTGRES_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
       SECRET_KEY: ${SECRET_KEY}
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
@@ -118,14 +144,16 @@ services:
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.grenmet-api${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.server.port=8000"
+      - "traefik.http.services.grenmet-api${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/v1/utils/ready/"
     networks:
       - grenmet
 
   # ── Redis + Background worker (CAP outbox) ───────────────────────────────────
   redis:
-    image: redis:7-alpine
+    logging: *bounded-logging
+    image: ${CORE_REDIS_IMAGE:?Set the reviewed immutable Redis 7 image}
     restart: always
-    command: redis-server --save 60 1 --loglevel warning
+    command: redis-server --appendonly yes --appendfsync everysec --save 60 1 --loglevel warning
     volumes:
       - redis-data:/data
     healthcheck:
@@ -137,6 +165,7 @@ services:
       - grenmet
 
   worker:
+    logging: *bounded-logging
     image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
     restart: always
     depends_on:
@@ -145,12 +174,19 @@ services:
       redis:
         condition: service_healthy
     command: arq src.worker.main.WorkerSettings
+    # The worker has no HTTP server; override the API image's inherited probe.
+    healthcheck:
+      test: ["CMD", "arq", "--check", "src.worker.main.WorkerSettings"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
     environment:
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
+      POSTGRES_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
       SECRET_KEY: ${SECRET_KEY}
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
@@ -171,22 +207,73 @@ services:
   # image (built target=migrate), which carries all schema folders and runs all
   # migration scripts.
   web-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG}
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin-migrate:${WEB_TAG}
     restart: "no"
     depends_on:
       db:
         condition: service_healthy
     environment:
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
-      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
+      ENVIRONMENT: ${ENVIRONMENT}
+      WXWATCH_DB_NAME: ${WXWATCH_DB_NAME}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
+      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
+      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
+      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
+      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
     networks:
       - grenmet
 
+  cms-migrate:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms-migrate:${WEB_TAG}
+    restart: "no"
+    environment: &cms-environment
+      DATABASE_URL: ${CMS_DATABASE_URL:?CMS_DATABASE_URL required}
+      CMS_DB_NAME: ${CMS_DB_NAME}
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?PAYLOAD_SECRET required}
+      RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY is required}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL:?EMAILS_FROM_EMAIL is required}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-GMS Content}
+      CMS_URL: https://cms.${BASE_DOMAIN}
+      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
+      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [grenmet]
+
+  web-cms:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms:${WEB_TAG}
+    restart: always
+    environment: *cms-environment
+    depends_on:
+      cms-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3006/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.rule=Host(`cms.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-cms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.server.port=3006"
+      - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+    networks: [grenmet]
+
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG}
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-auth:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -210,10 +297,11 @@ services:
       - grenmet
 
   web-admin:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin:${WEB_TAG}
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin:${WEB_TAG}
     restart: always
     healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -230,10 +318,15 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
       # Consolidated apps' dedicated Postgres databases.
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
-      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
+      ENVIRONMENT: ${ENVIRONMENT}
+      WXWATCH_DB_NAME: ${WXWATCH_DB_NAME}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
+      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
+      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
+      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
+      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       CAP_API_URL: https://api.${BASE_DOMAIN}
     labels:
       - "traefik.enable=true"
@@ -241,11 +334,13 @@ services:
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.entrypoints=websecure"
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
+      - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
     networks:
       - grenmet
 
-  web-hurricaneplan:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-hurricaneplan:${WEB_TAG}
+  web-docs:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-docs:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3002/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -261,15 +356,16 @@ services:
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.rule=Host(`hurricane.${BASE_DOMAIN}`)${HURRICANEPLAN_EXTRA_HOSTS_RULE:-}"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-hurricaneplan${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-hurricaneplan${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.rule=Host(`docs.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-docs${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-docs${ROUTER_SUFFIX}.loadbalancer.server.port=3002"
     networks:
       - grenmet
 
-  web-spicewx:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-spicewx:${WEB_TAG}
+  web-gms:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gms:${WEB_TAG}
     restart: always
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3003/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
@@ -285,15 +381,95 @@ services:
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.rule=Host(`spice.${BASE_DOMAIN}`)${SPICEWX_EXTRA_HOSTS_RULE:-}"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.web-spicewx${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.web-spicewx${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.rule=Host(`weather.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gms${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-gms${ROUTER_SUFFIX}.loadbalancer.server.port=3003"
+    networks:
+      - grenmet
+
+  web-signal:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-signal:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3004/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.rule=Host(`signal.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-signal${ROUTER_SUFFIX}.loadbalancer.server.port=3004"
+    networks:
+      - grenmet
+
+  web-mbia:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-mbia:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3005/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-mbia${ROUTER_SUFFIX}.loadbalancer.server.port=3005"
+    networks:
+      - grenmet
+
+  web-events:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-events:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3009/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-events${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-events${ROUTER_SUFFIX}.loadbalancer.server.port=3009"
+    networks:
+      - grenmet
+
+  api-hono:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-api-hono:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT}
+      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.rule=Host(`hapi.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api-hono${ROUTER_SUFFIX}.loadbalancer.server.port=4000"
     networks:
       - grenmet
 
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:
+    logging: *bounded-logging
     image: adminer:5.5.0@sha256:494d4a9461105644222c938679fe58d5e3fd13fb228c76a426e81c16d4ffbaef
     restart: always
     profiles: ["staging"]
@@ -314,6 +490,7 @@ services:
 
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
+    logging: *bounded-logging
     image: traefik:v3.7@sha256:652929a140a32d7cafafb13c6cdfab5376cfeff800f51397b87b524501ed02a8
     restart: always
     ports:

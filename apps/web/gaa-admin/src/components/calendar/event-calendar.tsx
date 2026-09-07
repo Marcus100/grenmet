@@ -95,18 +95,20 @@ export function Calendar() {
   const windowEnd = iso(addDays(range.end, 7));
 
   const eventsQuery = useListCalendarEventsApiV1HrCalendarEventsGet(
-    { start: windowStart, end: windowEnd },
+    { query: { start: windowStart, end: windowEnd } },
     { query: { enabled: needsEvents(calendarView) } }
   );
   const rosterQuery = useListAssignmentsApiV1HrRostersAssignmentsGet(
     {
-      start: windowStart,
-      end: windowEnd,
-      scope: rosterScope(calendarView),
+      query: {
+        start: windowStart,
+        end: windowEnd,
+        scope: rosterScope(calendarView),
+      },
     },
     { query: { enabled: needsRoster(calendarView) } }
   );
-  const holidaysQuery = useListHolidaysApiV1HrRostersPublicHolidaysGet();
+  const holidaysQuery = useListHolidaysApiV1HrRostersPublicHolidaysGet({});
 
   const departmentEvents = React.useMemo(
     () => eventsQuery.data?.data ?? [],

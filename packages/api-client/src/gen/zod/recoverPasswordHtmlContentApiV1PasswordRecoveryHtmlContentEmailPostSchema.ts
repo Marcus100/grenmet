@@ -6,25 +6,17 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathParamsSchema =
-  z.object({
-    email: z.string(),
-  });
-
-/**
- * @description Successful Response
- */
-export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200Schema =
+export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathEmailSchema =
   z.string();
 
-/**
- * @description Validation Error
- */
-export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200Schema =
+  z.string();
 
-export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostMutationResponseSchema =
-  z.lazy(
-    () =>
-      recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost200Schema
-  );
+export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponseSchema =
+  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200Schema;
+
+export const recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrorSchema =
+  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422Schema;

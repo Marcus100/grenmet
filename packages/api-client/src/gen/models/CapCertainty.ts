@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capCertaintyCapCertaintyEnum = {
+export const capCertainty = {
   Observed: "Observed",
   Likely: "Likely",
   Possible: "Possible",
@@ -11,10 +11,4 @@ export const capCertaintyCapCertaintyEnum = {
   Unknown: "Unknown",
 } as const;
 
-export type CapCertaintyCapCertaintyEnumKey =
-  (typeof capCertaintyCapCertaintyEnum)[keyof typeof capCertaintyCapCertaintyEnum];
-
-/**
- * CapCertainty
- */
-export type CapCertainty = CapCertaintyCapCertaintyEnumKey;
+export type CapCertainty = (typeof capCertainty)[keyof typeof capCertainty];

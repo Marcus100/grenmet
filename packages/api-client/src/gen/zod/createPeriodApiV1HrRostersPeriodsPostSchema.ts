@@ -8,32 +8,24 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterPeriodCreateSchema } from "./rosterPeriodCreateSchema.js";
 import { rosterPeriodPublicSchema } from "./rosterPeriodPublicSchema.js";
 
-/**
- * @description Roster period created
- */
-export const createPeriodApiV1HrRostersPeriodsPost201Schema = z.lazy(
-  () => rosterPeriodPublicSchema
-);
+export const createPeriodApiV1HrRostersPeriodsPostStatus201Schema =
+  rosterPeriodPublicSchema;
 
-/**
- * @description Validation error (e.g. period_end before period_start)
- */
-export const createPeriodApiV1HrRostersPeriodsPost400Schema = z.any();
+export const createPeriodApiV1HrRostersPeriodsPostStatus400Schema = z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createPeriodApiV1HrRostersPeriodsPost403Schema = z.any();
+export const createPeriodApiV1HrRostersPeriodsPostStatus403Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createPeriodApiV1HrRostersPeriodsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createPeriodApiV1HrRostersPeriodsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createPeriodApiV1HrRostersPeriodsPostMutationRequestSchema =
-  z.lazy(() => rosterPeriodCreateSchema);
+export const createPeriodApiV1HrRostersPeriodsPostResponseSchema =
+  createPeriodApiV1HrRostersPeriodsPostStatus201Schema;
 
-export const createPeriodApiV1HrRostersPeriodsPostMutationResponseSchema =
-  z.lazy(() => createPeriodApiV1HrRostersPeriodsPost201Schema);
+export const createPeriodApiV1HrRostersPeriodsPostErrorSchema = z.union([
+  createPeriodApiV1HrRostersPeriodsPostStatus400Schema,
+  createPeriodApiV1HrRostersPeriodsPostStatus403Schema,
+  createPeriodApiV1HrRostersPeriodsPostStatus422Schema,
+]);
+
+export const createPeriodApiV1HrRostersPeriodsPostBodySchema =
+  rosterPeriodCreateSchema;

@@ -10,65 +10,60 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet } from "../clients/readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 import type {
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams,
-  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404,
+  ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422,
 } from "../models/ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 
 export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey =
-  (
-    timesheet_id: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams["timesheet_id"]
-  ) =>
+  ({
+    path,
+  }: Omit<
+    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+    "headers"
+  >) =>
     [
-      {
-        url: "/api/v1/hr/timesheets/:timesheet_id/summary",
-        params: { timesheet_id: timesheet_id },
-      },
+      { url: "/api/v1/hr/timesheets/:timesheet_id/summary", params: path },
     ] as const;
 
-export type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey =
+type ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey =
   ReturnType<
     typeof readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey
   >;
 
 export function readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryOptions(
-  timesheet_id: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams["timesheet_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey =
-    readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey(
-      timesheet_id
-    );
+    readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey({
+      path,
+    });
   return queryOptions<
-    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
     ResponseErrorConfig<
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422
     >,
-    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+    ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
     typeof queryKey
   >({
-    enabled: !!timesheet_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet(
-        timesheet_id,
-        config
-      );
+      return readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -79,57 +74,66 @@ export function readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryO
  * {@link /api/v1/hr/timesheets/:timesheet_id/summary}
  */
 export function useReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet<
-  TData = ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
-  TQueryData = ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+  TData = ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
+  TQueryData = ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
   TQueryKey extends
     QueryKey = ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey,
 >(
-  timesheet_id: ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParams["timesheet_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions["path"]
+      | (() => ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponse,
+        ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200,
         ResponseErrorConfig<
-          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403
-          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404
-          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422
+          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403
+          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404
+          | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryKey(
-      timesheet_id
+      resolvedParams
     );
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryOptions(
-        timesheet_id,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404
-      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404
+      | ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

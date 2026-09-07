@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 
-export type ReadRolesApiV1AuthRolesGetQueryParams = {
+export type ReadRolesApiV1AuthRolesGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,23 +24,25 @@ export type ReadRolesApiV1AuthRolesGetQueryParams = {
   size?: number;
 };
 
-/**
- * PaginatedResponse[RolePublic]
- * @description Roles returned
- */
-export type ReadRolesApiV1AuthRolesGet200 = PaginatedResponseRolePublic;
+export type ReadRolesApiV1AuthRolesGetStatus200 = PaginatedResponseRolePublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadRolesApiV1AuthRolesGet422 = HTTPValidationError;
+export type ReadRolesApiV1AuthRolesGetStatus422 = HTTPValidationError;
 
-export type ReadRolesApiV1AuthRolesGetQueryResponse =
-  ReadRolesApiV1AuthRolesGet200;
-
-export type ReadRolesApiV1AuthRolesGetQuery = {
-  Response: ReadRolesApiV1AuthRolesGet200;
-  QueryParams: ReadRolesApiV1AuthRolesGetQueryParams;
-  Errors: ReadRolesApiV1AuthRolesGet422;
+export type ReadRolesApiV1AuthRolesGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadRolesApiV1AuthRolesGetQuery;
+  headers?: never;
 };
+
+export type ReadRolesApiV1AuthRolesGetResponses = {
+  "200": ReadRolesApiV1AuthRolesGetStatus200;
+  "422": ReadRolesApiV1AuthRolesGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadRolesApiV1AuthRolesGetResponse =
+  | ReadRolesApiV1AuthRolesGetStatus200
+  | ReadRolesApiV1AuthRolesGetStatus422;

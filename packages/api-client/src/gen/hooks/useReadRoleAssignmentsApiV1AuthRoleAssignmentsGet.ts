@@ -10,49 +10,52 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readRoleAssignmentsApiV1AuthRoleAssignmentsGet } from "../clients/readRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 import type {
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422,
 } from "../models/ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
 
-export const readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = (
-  params: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams = {}
-) =>
+export const readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = ({
+  query,
+}: Omit<
+  ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions,
+  "headers"
+> = {}) =>
   [
     { url: "/api/v1/auth/role-assignments" },
-    ...(params ? [params] : []),
+    ...(query ? [query] : []),
   ] as const;
 
-export type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = ReturnType<
+type ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey = ReturnType<
   typeof readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey
 >;
 
 export function readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryOptions(
-  params?: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey =
-    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey(params);
+  const queryKey = readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-    ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422>,
-    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
+    ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422>,
+    ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readRoleAssignmentsApiV1AuthRoleAssignmentsGet(params, config);
+      return readRoleAssignmentsApiV1AuthRoleAssignmentsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -63,47 +66,58 @@ export function readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryOptions(
  * {@link /api/v1/auth/role-assignments}
  */
 export function useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet<
-  TData = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-  TQueryData = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
+  TData = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
+  TQueryData = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
   TQueryKey extends
     QueryKey = ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
 >(
-  params?: ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions["query"]
+      | (() => ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryResponse,
-        ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422>,
+        ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200,
+        ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryOptions(
-        params,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGet422>
+    ResponseErrorConfig<ReadRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

@@ -6,42 +6,44 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams =
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     session_id: string;
   };
 
-/**
- * Message
- * @description Successful Response
- */
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200 =
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200 =
   Message;
 
-/**
- * @description Session not found
- */
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404 =
-  any;
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422 =
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422 =
   HTTPValidationError;
 
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse =
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200;
-
-export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutation =
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions =
   {
-    Response: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete200;
-    PathParams: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams;
-    Errors:
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422;
+    body?: never;
+    path: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePath;
+    query?: never;
+    headers?: never;
   };
+
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponses =
+  {
+    "200": RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200;
+    "404": RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404;
+    "422": RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponse =
+  | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200
+  | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404
+  | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422;

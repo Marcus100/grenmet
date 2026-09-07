@@ -7,44 +7,33 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 
-/**
- * @description Leave request created
- */
-export type CreateLeaveRequestApiV1HrLeaveRequestsPost200 = any;
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201 =
+  LeaveRequestPublic;
 
-/**
- * LeaveRequestPublic
- * @description Successful Response
- */
-export type CreateLeaveRequestApiV1HrLeaveRequestsPost201 = LeaveRequestPublic;
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateLeaveRequestApiV1HrLeaveRequestsPost403 = any;
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422 =
+  HTTPValidationError;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateLeaveRequestApiV1HrLeaveRequestsPost422 = HTTPValidationError;
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostBody = LeaveRequestCreate;
 
-/**
- * LeaveRequestCreate
- */
-export type CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest =
-  LeaveRequestCreate;
-
-export type CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse =
-  | CreateLeaveRequestApiV1HrLeaveRequestsPost200
-  | CreateLeaveRequestApiV1HrLeaveRequestsPost201;
-
-export type CreateLeaveRequestApiV1HrLeaveRequestsPostMutation = {
-  Response:
-    | CreateLeaveRequestApiV1HrLeaveRequestsPost200
-    | CreateLeaveRequestApiV1HrLeaveRequestsPost201;
-  Request: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest;
-  Errors:
-    | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-    | CreateLeaveRequestApiV1HrLeaveRequestsPost422;
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostOptions = {
+  body: CreateLeaveRequestApiV1HrLeaveRequestsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostResponses = {
+  "201": CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201;
+  "403": CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403;
+  "422": CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateLeaveRequestApiV1HrLeaveRequestsPostResponse =
+  | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201
+  | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+  | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422;

@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const rosterCsvRowValidationSchema = z.object({
-  row_number: z.number().int(),
+  row_number: z.int(),
   is_valid: z.boolean(),
-  errors: z.optional(z.array(z.string())),
+  errors: z.array(z.string()).optional(),
 });

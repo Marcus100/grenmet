@@ -6,27 +6,22 @@
 import * as z from "zod";
 import { calendarEventKindSchema } from "./calendarEventKindSchema.js";
 
-/**
- * @description A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC.
- */
 export const calendarEventPublicSchema = z
   .object({
-    id: z.string().uuid(),
+    id: z.uuid(),
     department_id: z.string(),
     title: z.string(),
-    description: z.optional(z.union([z.string(), z.null()])),
-    kind: z
-      .lazy(() => calendarEventKindSchema)
-      .describe(
-        "What a department puts on its calendar besides the duty roster."
-      ),
+    description: z.union([z.string(), z.null()]).optional(),
+    kind: calendarEventKindSchema.describe(
+      "What a department puts on its calendar besides the duty roster."
+    ),
     starts_at_local: z.string(),
     ends_at_local: z.string(),
     all_day: z.boolean(),
-    location: z.optional(z.union([z.string(), z.null()])),
+    location: z.union([z.string(), z.null()]).optional(),
     is_cancelled: z.boolean(),
-    created_by_user_id: z.string().uuid(),
-    created_by_name: z.optional(z.union([z.string(), z.null()])),
+    created_by_user_id: z.uuid(),
+    created_by_name: z.union([z.string(), z.null()]).optional(),
     created_at: z.string(),
   })
   .describe(

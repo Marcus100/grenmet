@@ -8,43 +8,34 @@ import { balanceInputSchema } from "./balanceInputSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200Schema =
-  z.lazy(() => messageSchema);
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200Schema =
+  messageSchema;
 
-/**
- * @description Administrator access required
- */
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403Schema =
-  z.any();
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404Schema =
-  z.any();
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409Schema =
-  z.any();
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequestSchema =
-  z.lazy(() => balanceInputSchema);
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponseSchema =
+  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200Schema;
 
-export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponseSchema =
-  z.lazy(() => updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost200Schema);
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostErrorSchema =
+  z.union([
+    updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403Schema,
+    updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404Schema,
+    updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409Schema,
+    updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422Schema,
+  ]);
+
+export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostBodySchema =
+  balanceInputSchema;

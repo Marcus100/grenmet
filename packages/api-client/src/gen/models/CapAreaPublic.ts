@@ -6,11 +6,9 @@
 import type { CapAreaKind } from "./CapAreaKind.js";
 import type { CapNameValue } from "./CapNameValue.js";
 
-/**
- * CapAreaPublic
- */
 export type CapAreaPublic = {
   /**
+   * @default 'AREA'
    * @type string | undefined
    */
   kind?: CapAreaKind;
@@ -21,35 +19,22 @@ export type CapAreaPublic = {
    */
   area_desc: string;
   predefined_area_id?: string | null;
-  /**
-   * @type array | undefined
-   */
   polygons?: number[][][];
-  /**
-   * @type array | undefined
-   */
   multipolygons?: number[][][][];
-  /**
-   * @type array | undefined
-   */
   circles?: {
     [key: string]: number;
   }[];
-  /**
-   * @type array | undefined
-   */
   geocodes?: CapNameValue[];
   geometry?: {
-    [key: string]: any;
+    [key: string]: unknown;
   } | null;
   altitude?: number | null;
   ceiling?: number | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type integer
-   */
   sequence: number;
 };

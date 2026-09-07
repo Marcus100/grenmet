@@ -10,54 +10,54 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listCalendarEventsApiV1HrCalendarEventsGet } from "../clients/listCalendarEventsApiV1HrCalendarEventsGet.js";
 import type {
-  ListCalendarEventsApiV1HrCalendarEventsGet400,
-  ListCalendarEventsApiV1HrCalendarEventsGet403,
-  ListCalendarEventsApiV1HrCalendarEventsGet404,
-  ListCalendarEventsApiV1HrCalendarEventsGet422,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+  ListCalendarEventsApiV1HrCalendarEventsGetOptions,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus400,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus403,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus404,
+  ListCalendarEventsApiV1HrCalendarEventsGetStatus422,
 } from "../models/ListCalendarEventsApiV1HrCalendarEventsGet.js";
 
-export const listCalendarEventsApiV1HrCalendarEventsGetQueryKey = (
-  params: ListCalendarEventsApiV1HrCalendarEventsGetQueryParams
-) =>
-  [{ url: "/api/v1/hr/calendar/events" }, ...(params ? [params] : [])] as const;
+export const listCalendarEventsApiV1HrCalendarEventsGetQueryKey = ({
+  query,
+}: Omit<ListCalendarEventsApiV1HrCalendarEventsGetOptions, "headers">) =>
+  [{ url: "/api/v1/hr/calendar/events" }, ...(query ? [query] : [])] as const;
 
-export type ListCalendarEventsApiV1HrCalendarEventsGetQueryKey = ReturnType<
+type ListCalendarEventsApiV1HrCalendarEventsGetQueryKey = ReturnType<
   typeof listCalendarEventsApiV1HrCalendarEventsGetQueryKey
 >;
 
 export function listCalendarEventsApiV1HrCalendarEventsGetQueryOptions(
-  params: ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListCalendarEventsApiV1HrCalendarEventsGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listCalendarEventsApiV1HrCalendarEventsGetQueryKey(params);
+  const queryKey = listCalendarEventsApiV1HrCalendarEventsGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+    ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
     ResponseErrorConfig<
-      | ListCalendarEventsApiV1HrCalendarEventsGet400
-      | ListCalendarEventsApiV1HrCalendarEventsGet403
-      | ListCalendarEventsApiV1HrCalendarEventsGet404
-      | ListCalendarEventsApiV1HrCalendarEventsGet422
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus400
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus403
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus404
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus422
     >,
-    ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+    ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
     typeof queryKey
   >({
-    enabled: !!params,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listCalendarEventsApiV1HrCalendarEventsGet(params, config);
+      return listCalendarEventsApiV1HrCalendarEventsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -68,54 +68,68 @@ export function listCalendarEventsApiV1HrCalendarEventsGetQueryOptions(
  * {@link /api/v1/hr/calendar/events}
  */
 export function useListCalendarEventsApiV1HrCalendarEventsGet<
-  TData = ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
-  TQueryData = ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+  TData = ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
+  TQueryData = ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
   TQueryKey extends
     QueryKey = ListCalendarEventsApiV1HrCalendarEventsGetQueryKey,
 >(
-  params: ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
+  {
+    query,
+  }: {
+    query:
+      | ListCalendarEventsApiV1HrCalendarEventsGetOptions["query"]
+      | (() => ListCalendarEventsApiV1HrCalendarEventsGetOptions["query"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+        ListCalendarEventsApiV1HrCalendarEventsGetStatus200,
         ResponseErrorConfig<
-          | ListCalendarEventsApiV1HrCalendarEventsGet400
-          | ListCalendarEventsApiV1HrCalendarEventsGet403
-          | ListCalendarEventsApiV1HrCalendarEventsGet404
-          | ListCalendarEventsApiV1HrCalendarEventsGet422
+          | ListCalendarEventsApiV1HrCalendarEventsGetStatus400
+          | ListCalendarEventsApiV1HrCalendarEventsGetStatus403
+          | ListCalendarEventsApiV1HrCalendarEventsGetStatus404
+          | ListCalendarEventsApiV1HrCalendarEventsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listCalendarEventsApiV1HrCalendarEventsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listCalendarEventsApiV1HrCalendarEventsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...listCalendarEventsApiV1HrCalendarEventsGetQueryOptions(params, config),
+      ...listCalendarEventsApiV1HrCalendarEventsGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListCalendarEventsApiV1HrCalendarEventsGet400
-      | ListCalendarEventsApiV1HrCalendarEventsGet403
-      | ListCalendarEventsApiV1HrCalendarEventsGet404
-      | ListCalendarEventsApiV1HrCalendarEventsGet422
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus400
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus403
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus404
+      | ListCalendarEventsApiV1HrCalendarEventsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

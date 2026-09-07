@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readPublicLatestActiveApiCapLatestActiveGet } from "../clients/readPublicLatestActiveApiCapLatestActiveGet.js";
-import type { ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse } from "../models/ReadPublicLatestActiveApiCapLatestActiveGet.js";
+import type { ReadPublicLatestActiveApiCapLatestActiveGetStatus200 } from "../models/ReadPublicLatestActiveApiCapLatestActiveGet.js";
 
 export const readPublicLatestActiveApiCapLatestActiveGetQueryKey = () =>
   [{ url: "/api/cap/latest-active" }] as const;
 
-export type ReadPublicLatestActiveApiCapLatestActiveGetQueryKey = ReturnType<
+type ReadPublicLatestActiveApiCapLatestActiveGetQueryKey = ReturnType<
   typeof readPublicLatestActiveApiCapLatestActiveGetQueryKey
 >;
 
 export function readPublicLatestActiveApiCapLatestActiveGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readPublicLatestActiveApiCapLatestActiveGetQueryKey();
   return queryOptions<
-    ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
+    ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
+    ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readPublicLatestActiveApiCapLatestActiveGet(config);
+      return readPublicLatestActiveApiCapLatestActiveGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,42 +49,44 @@ export function readPublicLatestActiveApiCapLatestActiveGetQueryOptions(
  * {@link /api/cap/latest-active}
  */
 export function useReadPublicLatestActiveApiCapLatestActiveGet<
-  TData = ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
-  TQueryData = ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
+  TData = ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
+  TQueryData = ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
   TQueryKey extends
     QueryKey = ReadPublicLatestActiveApiCapLatestActiveGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadPublicLatestActiveApiCapLatestActiveGetQueryResponse,
+        ReadPublicLatestActiveApiCapLatestActiveGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readPublicLatestActiveApiCapLatestActiveGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readPublicLatestActiveApiCapLatestActiveGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

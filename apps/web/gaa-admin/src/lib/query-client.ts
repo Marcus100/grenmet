@@ -6,11 +6,12 @@ function getErrorDetail(error: unknown): string | null {
 
   const candidate = error as {
     detail?: unknown;
+    data?: unknown;
     message?: unknown;
     response?: { data?: unknown };
   };
 
-  const responseData = candidate.response?.data;
+  const responseData = candidate.data ?? candidate.response?.data;
   let detail: string | null = null;
   if (typeof candidate.detail === "string") {
     detail = candidate.detail;

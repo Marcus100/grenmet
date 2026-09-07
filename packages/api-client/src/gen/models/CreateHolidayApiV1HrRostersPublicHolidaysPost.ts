@@ -7,52 +7,42 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 import type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 
-/**
- * @description Public holiday created
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost200 = any;
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200 = unknown;
 
-/**
- * PublicHolidayPublic
- * @description Successful Response
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost201 =
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201 =
   PublicHolidayPublic;
 
-/**
- * @description Duplicate date
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost400 = any;
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost403 = any;
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPost422 =
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422 =
   HTTPValidationError;
 
-/**
- * PublicHolidayCreate
- */
-export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest =
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostBody =
   PublicHolidayCreate;
 
-export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutationResponse =
-  | CreateHolidayApiV1HrRostersPublicHolidaysPost200
-  | CreateHolidayApiV1HrRostersPublicHolidaysPost201;
-
-export type CreateHolidayApiV1HrRostersPublicHolidaysPostMutation = {
-  Response:
-    | CreateHolidayApiV1HrRostersPublicHolidaysPost200
-    | CreateHolidayApiV1HrRostersPublicHolidaysPost201;
-  Request: CreateHolidayApiV1HrRostersPublicHolidaysPostMutationRequest;
-  Errors:
-    | CreateHolidayApiV1HrRostersPublicHolidaysPost400
-    | CreateHolidayApiV1HrRostersPublicHolidaysPost403
-    | CreateHolidayApiV1HrRostersPublicHolidaysPost422;
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostOptions = {
+  body: CreateHolidayApiV1HrRostersPublicHolidaysPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostResponses = {
+  "200": CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200;
+  "201": CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201;
+  "400": CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400;
+  "403": CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403;
+  "422": CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateHolidayApiV1HrRostersPublicHolidaysPostResponse =
+  | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus200
+  | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus201
+  | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus400
+  | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus403
+  | CreateHolidayApiV1HrRostersPublicHolidaysPostStatus422;

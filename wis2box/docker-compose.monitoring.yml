@@ -41,7 +41,7 @@ services:
     container_name: mqtt_metrics_collector
     restart: unless-stopped
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     image: WIS2BOX-RELEASE
     depends_on:
       - mosquitto
@@ -82,7 +82,7 @@ services:
     container_name: grafana
     restart: always
     env_file:
-      - wis2box.env
+      - ${WIS2BOX_ENV_FILE:-.env.local}
     image: WIS2BOX-RELEASE
     volumes:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards

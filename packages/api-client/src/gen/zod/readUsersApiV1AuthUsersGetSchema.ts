@@ -7,36 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
 
-export const readUsersApiV1AuthUsersGetQueryParamsSchema = z.object({
-  page: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .default(1)
-    .describe("Page number (1-indexed)"),
-  size: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(1000)
-    .default(100)
-    .describe("Items per page"),
-});
+export const readUsersApiV1AuthUsersGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Users returned
- */
-export const readUsersApiV1AuthUsersGet200Schema = z.lazy(
-  () => paginatedResponseUserPublicSchema
-);
+export const readUsersApiV1AuthUsersGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readUsersApiV1AuthUsersGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readUsersApiV1AuthUsersGetStatus200Schema =
+  paginatedResponseUserPublicSchema;
 
-export const readUsersApiV1AuthUsersGetQueryResponseSchema = z.lazy(
-  () => readUsersApiV1AuthUsersGet200Schema
-);
+export const readUsersApiV1AuthUsersGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readUsersApiV1AuthUsersGetResponseSchema =
+  readUsersApiV1AuthUsersGetStatus200Schema;
+
+export const readUsersApiV1AuthUsersGetErrorSchema =
+  readUsersApiV1AuthUsersGetStatus422Schema;

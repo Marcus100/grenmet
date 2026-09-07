@@ -5,11 +5,7 @@
 
 import * as z from "zod";
 
-/**
- * @description Successful Response
- */
-export const readRssApiCapRssXmlGet200Schema = z.any();
+export const readRssApiCapRssXmlGetStatus200Schema = z.unknown();
 
-export const readRssApiCapRssXmlGetQueryResponseSchema = z.lazy(
-  () => readRssApiCapRssXmlGet200Schema
-);
+export const readRssApiCapRssXmlGetResponseSchema =
+  readRssApiCapRssXmlGetStatus200Schema;

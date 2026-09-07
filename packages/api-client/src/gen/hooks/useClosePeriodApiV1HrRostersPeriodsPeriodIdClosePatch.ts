@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "../clients/closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 import type {
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422,
 } from "../models/ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 
 export const closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey =
   () => [{ url: "/api/v1/hr/rosters/periods/:period_id/close" }] as const;
 
-export type ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey =
-  ReturnType<
-    typeof closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey
-  >;
-
 export function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationKey();
   return mutationOptions<
-    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
     ResponseErrorConfig<
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422
     >,
-    {
-      period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"];
-    },
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) => {
-      return closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(
-        period_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -69,19 +62,19 @@ export function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOption
 export function useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
       ResponseErrorConfig<
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422
       >,
-      {
-        period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"];
-      },
+      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -94,30 +87,26 @@ export function useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch<TContext>(
     closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationOptions(
       config
     ) as UseMutationOptions<
-      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
       ResponseErrorConfig<
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+        | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422
       >,
-      {
-        period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"];
-      },
+      ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
       TContext
     >;
 
   return useMutation<
-    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
     ResponseErrorConfig<
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422
     >,
-    {
-      period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"];
-    },
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
     TContext
   >(
     {
@@ -127,16 +116,14 @@ export function useClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200,
     ResponseErrorConfig<
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404
+      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422
     >,
-    {
-      period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"];
-    },
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
     TContext
   >;
 }

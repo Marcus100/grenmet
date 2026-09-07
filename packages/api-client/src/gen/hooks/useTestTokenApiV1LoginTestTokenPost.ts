@@ -9,35 +9,33 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { testTokenApiV1LoginTestTokenPost } from "../clients/testTokenApiV1LoginTestTokenPost.js";
-import type { TestTokenApiV1LoginTestTokenPostMutationResponse } from "../models/TestTokenApiV1LoginTestTokenPost.js";
+import type { TestTokenApiV1LoginTestTokenPostStatus200 } from "../models/TestTokenApiV1LoginTestTokenPost.js";
 
 export const testTokenApiV1LoginTestTokenPostMutationKey = () =>
   [{ url: "/api/v1/login/test-token" }] as const;
 
-export type TestTokenApiV1LoginTestTokenPostMutationKey = ReturnType<
-  typeof testTokenApiV1LoginTestTokenPostMutationKey
->;
-
 export function testTokenApiV1LoginTestTokenPostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey = testTokenApiV1LoginTestTokenPostMutationKey();
   return mutationOptions<
-    TestTokenApiV1LoginTestTokenPostMutationResponse,
+    TestTokenApiV1LoginTestTokenPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return testTokenApiV1LoginTestTokenPost(config);
+    mutationFn: async (_) => {
+      return testTokenApiV1LoginTestTokenPost({
+        ...config,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -50,12 +48,14 @@ export function testTokenApiV1LoginTestTokenPostMutationOptions<
 export function useTestTokenApiV1LoginTestTokenPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      TestTokenApiV1LoginTestTokenPostMutationResponse,
+      TestTokenApiV1LoginTestTokenPostStatus200,
       ResponseErrorConfig<Error>,
-      void,
+      undefined,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -67,16 +67,16 @@ export function useTestTokenApiV1LoginTestTokenPost<TContext>(
   const baseOptions = testTokenApiV1LoginTestTokenPostMutationOptions(
     config
   ) as UseMutationOptions<
-    TestTokenApiV1LoginTestTokenPostMutationResponse,
+    TestTokenApiV1LoginTestTokenPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >;
 
   return useMutation<
-    TestTokenApiV1LoginTestTokenPostMutationResponse,
+    TestTokenApiV1LoginTestTokenPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >(
     {
@@ -86,9 +86,9 @@ export function useTestTokenApiV1LoginTestTokenPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    TestTokenApiV1LoginTestTokenPostMutationResponse,
+    TestTokenApiV1LoginTestTokenPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >;
 }

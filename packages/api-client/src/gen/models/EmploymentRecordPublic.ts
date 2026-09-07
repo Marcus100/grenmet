@@ -6,30 +6,25 @@
 import type { EmploymentStatus } from "./EmploymentStatus.js";
 import type { EmploymentType } from "./EmploymentType.js";
 
-/**
- * EmploymentRecordPublic
- */
 export type EmploymentRecordPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
   employee_number?: string | null;
-  /**
-   * @type string
-   */
   department_id: string;
   position?: string | null;
   employment_type?: EmploymentType | null;
   start_date?: string | null;
   supervisor_id?: string | null;
   work_location?: string | null;
-  /**
-   * @type string
-   */
   status: EmploymentStatus;
 };

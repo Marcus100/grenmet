@@ -6,45 +6,46 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowInstanceDetails } from "./WorkflowInstanceDetails.js";
 
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams = {
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   instance_id: string;
 };
 
-/**
- * WorkflowInstanceDetails
- * @description Instance and steps returned
- */
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet200 =
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200 =
   WorkflowInstanceDetails;
 
-/**
- * @description Insufficient permission
- */
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403 = any;
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403 =
+  unknown;
 
-/**
- * @description Workflow instance not found
- */
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404 = any;
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422 =
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422 =
   HTTPValidationError;
 
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse =
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet200;
-
-export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQuery = {
-  Response: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet200;
-  PathParams: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams;
-  Errors:
-    | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403
-    | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404
-    | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422;
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions = {
+  body?: never;
+  path: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponses = {
+  "200": ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200;
+  "403": ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403;
+  "404": ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404;
+  "422": ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponse =
+  | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200
+  | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403
+  | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404
+  | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422;

@@ -7,44 +7,38 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 import type { RosterCsvValidationResponse } from "./RosterCsvValidationResponse.js";
 
-/**
- * RosterCsvValidationResponse
- * @description Validation result returned
- */
-export type ValidateCsvApiV1HrRostersImportCsvValidatePost200 =
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200 =
   RosterCsvValidationResponse;
 
-/**
- * @description Invalid CSV (e.g. missing header or columns)
- */
-export type ValidateCsvApiV1HrRostersImportCsvValidatePost400 = any;
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ValidateCsvApiV1HrRostersImportCsvValidatePost403 = any;
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ValidateCsvApiV1HrRostersImportCsvValidatePost422 =
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422 =
   HTTPValidationError;
 
-/**
- * RosterCsvValidationRequest
- */
-export type ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest =
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostBody =
   RosterCsvValidationRequest;
 
-export type ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse =
-  ValidateCsvApiV1HrRostersImportCsvValidatePost200;
-
-export type ValidateCsvApiV1HrRostersImportCsvValidatePostMutation = {
-  Response: ValidateCsvApiV1HrRostersImportCsvValidatePost200;
-  Request: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest;
-  Errors:
-    | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-    | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-    | ValidateCsvApiV1HrRostersImportCsvValidatePost422;
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostOptions = {
+  body: ValidateCsvApiV1HrRostersImportCsvValidatePostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostResponses = {
+  "200": ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200;
+  "400": ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400;
+  "403": ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403;
+  "422": ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ValidateCsvApiV1HrRostersImportCsvValidatePostResponse =
+  | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200
+  | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+  | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+  | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422;

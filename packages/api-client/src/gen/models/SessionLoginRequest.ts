@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-/**
- * SessionLoginRequest
- */
 export type SessionLoginRequest = {
   /**
-   * @type string, email
+   * @description
+   * Format: `email`
+   * @type string
    */
   email: string;
   /**
@@ -20,7 +19,7 @@ export type SessionLoginRequest = {
   /**
    * @minLength 1
    * @maxLength 50
-   * @default "web"
+   * @default 'web'
    * @type string | undefined
    */
   client_type?: string;

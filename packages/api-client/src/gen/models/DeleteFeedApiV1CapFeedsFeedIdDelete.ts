@@ -5,29 +5,34 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteFeedApiV1CapFeedsFeedIdDeletePathParams = {
+export type DeleteFeedApiV1CapFeedsFeedIdDeletePath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   feed_id: string;
 };
 
-/**
- * @description Successful Response
- */
-export type DeleteFeedApiV1CapFeedsFeedIdDelete204 = any;
+export type DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteFeedApiV1CapFeedsFeedIdDelete422 = HTTPValidationError;
+export type DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422 = HTTPValidationError;
 
-export type DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse =
-  DeleteFeedApiV1CapFeedsFeedIdDelete204;
-
-export type DeleteFeedApiV1CapFeedsFeedIdDeleteMutation = {
-  Response: DeleteFeedApiV1CapFeedsFeedIdDelete204;
-  PathParams: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams;
-  Errors: DeleteFeedApiV1CapFeedsFeedIdDelete422;
+export type DeleteFeedApiV1CapFeedsFeedIdDeleteOptions = {
+  body?: never;
+  path: DeleteFeedApiV1CapFeedsFeedIdDeletePath;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteFeedApiV1CapFeedsFeedIdDeleteResponses = {
+  "204": DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204;
+  "422": DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteFeedApiV1CapFeedsFeedIdDeleteResponse =
+  | DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204
+  | DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422;

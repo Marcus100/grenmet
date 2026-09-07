@@ -7,8 +7,8 @@ import * as z from "zod";
 import { rosterCsvRowValidationSchema } from "./rosterCsvRowValidationSchema.js";
 
 export const rosterCsvValidationResponseSchema = z.object({
-  total_rows: z.number().int(),
-  valid_rows: z.number().int(),
-  invalid_rows: z.number().int(),
-  rows: z.array(z.lazy(() => rosterCsvRowValidationSchema)),
+  total_rows: z.int(),
+  valid_rows: z.int(),
+  invalid_rows: z.int(),
+  rows: z.array(rosterCsvRowValidationSchema),
 });

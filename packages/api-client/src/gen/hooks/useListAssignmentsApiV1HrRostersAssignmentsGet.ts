@@ -10,57 +10,57 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listAssignmentsApiV1HrRostersAssignmentsGet } from "../clients/listAssignmentsApiV1HrRostersAssignmentsGet.js";
 import type {
-  ListAssignmentsApiV1HrRostersAssignmentsGet400,
-  ListAssignmentsApiV1HrRostersAssignmentsGet403,
-  ListAssignmentsApiV1HrRostersAssignmentsGet404,
-  ListAssignmentsApiV1HrRostersAssignmentsGet422,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
-  ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+  ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus400,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus403,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus404,
+  ListAssignmentsApiV1HrRostersAssignmentsGetStatus422,
 } from "../models/ListAssignmentsApiV1HrRostersAssignmentsGet.js";
 
-export const listAssignmentsApiV1HrRostersAssignmentsGetQueryKey = (
-  params: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams
-) =>
+export const listAssignmentsApiV1HrRostersAssignmentsGetQueryKey = ({
+  query,
+}: Omit<ListAssignmentsApiV1HrRostersAssignmentsGetOptions, "headers">) =>
   [
     { url: "/api/v1/hr/rosters/assignments" },
-    ...(params ? [params] : []),
+    ...(query ? [query] : []),
   ] as const;
 
-export type ListAssignmentsApiV1HrRostersAssignmentsGetQueryKey = ReturnType<
+type ListAssignmentsApiV1HrRostersAssignmentsGetQueryKey = ReturnType<
   typeof listAssignmentsApiV1HrRostersAssignmentsGetQueryKey
 >;
 
 export function listAssignmentsApiV1HrRostersAssignmentsGetQueryOptions(
-  params: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listAssignmentsApiV1HrRostersAssignmentsGetQueryKey(params);
+  const queryKey = listAssignmentsApiV1HrRostersAssignmentsGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+    ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
     ResponseErrorConfig<
-      | ListAssignmentsApiV1HrRostersAssignmentsGet400
-      | ListAssignmentsApiV1HrRostersAssignmentsGet403
-      | ListAssignmentsApiV1HrRostersAssignmentsGet404
-      | ListAssignmentsApiV1HrRostersAssignmentsGet422
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus400
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus403
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus404
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus422
     >,
-    ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+    ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
     typeof queryKey
   >({
-    enabled: !!params,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listAssignmentsApiV1HrRostersAssignmentsGet(params, config);
+      return listAssignmentsApiV1HrRostersAssignmentsGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,57 +71,68 @@ export function listAssignmentsApiV1HrRostersAssignmentsGetQueryOptions(
  * {@link /api/v1/hr/rosters/assignments}
  */
 export function useListAssignmentsApiV1HrRostersAssignmentsGet<
-  TData = ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
-  TQueryData = ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+  TData = ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
+  TQueryData = ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
   TQueryKey extends
     QueryKey = ListAssignmentsApiV1HrRostersAssignmentsGetQueryKey,
 >(
-  params: ListAssignmentsApiV1HrRostersAssignmentsGetQueryParams,
+  {
+    query,
+  }: {
+    query:
+      | ListAssignmentsApiV1HrRostersAssignmentsGetOptions["query"]
+      | (() => ListAssignmentsApiV1HrRostersAssignmentsGetOptions["query"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListAssignmentsApiV1HrRostersAssignmentsGetQueryResponse,
+        ListAssignmentsApiV1HrRostersAssignmentsGetStatus200,
         ResponseErrorConfig<
-          | ListAssignmentsApiV1HrRostersAssignmentsGet400
-          | ListAssignmentsApiV1HrRostersAssignmentsGet403
-          | ListAssignmentsApiV1HrRostersAssignmentsGet404
-          | ListAssignmentsApiV1HrRostersAssignmentsGet422
+          | ListAssignmentsApiV1HrRostersAssignmentsGetStatus400
+          | ListAssignmentsApiV1HrRostersAssignmentsGetStatus403
+          | ListAssignmentsApiV1HrRostersAssignmentsGetStatus404
+          | ListAssignmentsApiV1HrRostersAssignmentsGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listAssignmentsApiV1HrRostersAssignmentsGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listAssignmentsApiV1HrRostersAssignmentsGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...listAssignmentsApiV1HrRostersAssignmentsGetQueryOptions(
-        params,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListAssignmentsApiV1HrRostersAssignmentsGet400
-      | ListAssignmentsApiV1HrRostersAssignmentsGet403
-      | ListAssignmentsApiV1HrRostersAssignmentsGet404
-      | ListAssignmentsApiV1HrRostersAssignmentsGet422
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus400
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus403
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus404
+      | ListAssignmentsApiV1HrRostersAssignmentsGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

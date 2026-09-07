@@ -32,7 +32,7 @@ export default function UserProfileContent() {
   });
 
   const handleSave = async (payload: UserProfileUpdateMe) => {
-    await updateProfileMutation.mutateAsync({ data: payload });
+    await updateProfileMutation.mutateAsync({ body: payload });
   };
 
   if (profileQuery.isLoading) {

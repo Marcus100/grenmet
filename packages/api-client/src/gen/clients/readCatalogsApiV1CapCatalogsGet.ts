@@ -3,36 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadCatalogsApiV1CapCatalogsGetQueryResponse } from "../models/ReadCatalogsApiV1CapCatalogsGet.js";
-
-function getReadCatalogsApiV1CapCatalogsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/catalogs` as const };
-  return res;
-}
+  ReadCatalogsApiV1CapCatalogsGetOptions,
+  ReadCatalogsApiV1CapCatalogsGetResponses,
+} from "../models/ReadCatalogsApiV1CapCatalogsGet.js";
 
 /**
  * @summary Read Catalogs
  * {@link /api/v1/cap/catalogs}
  */
-export async function readCatalogsApiV1CapCatalogsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readCatalogsApiV1CapCatalogsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadCatalogsApiV1CapCatalogsGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadCatalogsApiV1CapCatalogsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadCatalogsApiV1CapCatalogsGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadCatalogsApiV1CapCatalogsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/catalogs",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadCatalogsApiV1CapCatalogsGetResponses, ThrowOnError>
+    >
+  );
 }

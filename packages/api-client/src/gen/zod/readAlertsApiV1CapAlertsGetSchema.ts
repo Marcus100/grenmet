@@ -8,39 +8,33 @@ import { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
 import { capLifecycleStateSchema } from "./capLifecycleStateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAlertsApiV1CapAlertsGetQueryParamsSchema = z.object({
-  lifecycle_state: z.optional(
-    z.union([z.lazy(() => capLifecycleStateSchema), z.null()])
-  ),
-  page: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .default(1)
-    .describe("Page number (1-indexed)"),
-  size: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(1000)
-    .default(100)
-    .describe("Items per page"),
-});
+export const readAlertsApiV1CapAlertsGetQueryLifecycleStateSchema = z
+  .union([capLifecycleStateSchema, z.null()])
+  .optional();
 
-/**
- * @description Successful Response
- */
-export const readAlertsApiV1CapAlertsGet200Schema = z.lazy(
-  () => capAlertListPublicSchema
-);
+export const readAlertsApiV1CapAlertsGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Validation Error
- */
-export const readAlertsApiV1CapAlertsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readAlertsApiV1CapAlertsGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-export const readAlertsApiV1CapAlertsGetQueryResponseSchema = z.lazy(
-  () => readAlertsApiV1CapAlertsGet200Schema
-);
+export const readAlertsApiV1CapAlertsGetStatus200Schema =
+  capAlertListPublicSchema;
+
+export const readAlertsApiV1CapAlertsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readAlertsApiV1CapAlertsGetResponseSchema =
+  readAlertsApiV1CapAlertsGetStatus200Schema;
+
+export const readAlertsApiV1CapAlertsGetErrorSchema =
+  readAlertsApiV1CapAlertsGetStatus422Schema;

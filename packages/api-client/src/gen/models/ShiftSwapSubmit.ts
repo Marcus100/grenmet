@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * ShiftSwapSubmit
- */
 export type ShiftSwapSubmit = {
-  /**
-   * @type array | undefined
-   */
   co_approver_user_ids?: string[];
 };

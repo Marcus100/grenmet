@@ -36,12 +36,14 @@ export function invalidateAfterEmploymentChange(
     new Set(opts.departmentIds.filter((id): id is string => Boolean(id)))
   ).map((id) =>
     listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      id
+      { path: { department_id: id } }
     )
   );
   return invalidateKeys(queryClient, [
-    readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey(opts.userId),
-    readUsersApiV1AuthUsersGetQueryKey(),
+    readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey({
+      path: { user_id: opts.userId },
+    }),
+    readUsersApiV1AuthUsersGetQueryKey({}),
     ...departmentKeys,
   ]);
 }
@@ -54,13 +56,13 @@ export function invalidateAfterUserOnboard(
   const departmentKeys = opts.departmentId
     ? [
         listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          opts.departmentId
+          { path: { department_id: opts.departmentId } }
         ),
       ]
     : [];
   return invalidateKeys(queryClient, [
-    readUsersApiV1AuthUsersGetQueryKey(),
-    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey(),
+    readUsersApiV1AuthUsersGetQueryKey({}),
+    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({}),
     ...departmentKeys,
   ]);
 }
@@ -72,14 +74,20 @@ export function invalidateAfterRosterImport(
 ): Promise<void> {
   const keys: (readonly unknown[])[] = [
     listPeriodsApiV1HrRostersPeriodsGetQueryKey({
-      department_id: opts.departmentId,
+      query: {
+        department_id: opts.departmentId,
+      },
     }),
     listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      opts.departmentId
+      { path: { department_id: opts.departmentId } }
     ),
   ];
   if (opts.periodId) {
-    keys.push(getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey(opts.periodId));
+    keys.push(
+      getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+        path: { period_id: opts.periodId },
+      })
+    );
   }
   return invalidateKeys(queryClient, keys);
 }

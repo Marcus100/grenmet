@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GoogleStartPublic
- */
 export type GoogleStartPublic = {
-  /**
-   * @type string
-   */
   authorization_url: string;
 };

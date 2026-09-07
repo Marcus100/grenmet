@@ -1,0 +1,68 @@
+# Overlay on wis2box base + monitoring + versioned upstream images.
+services:
+  elasticsearch:
+    environment:
+      path.repo: /snapshots
+    volumes:
+      - ${WIS2BOX_SNAPSHOT_ROOT:?Provision a writable snapshot directory}:/snapshots
+  web-proxy:
+    networks: [default, weather-proxy]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${WEATHER_PROXY_NETWORK:?}"
+      - "traefik.http.routers.wis2box.rule=Host(`${WIS2BOX_HOST:?}`)"
+      - "traefik.http.routers.wis2box.entrypoints=websecure"
+      - "traefik.http.routers.wis2box.tls.certresolver=myresolver"
+      - "traefik.http.services.wis2box.loadbalancer.server.port=80"
+      - "traefik.http.services.wis2box.loadbalancer.healthcheck.path=/oapi/collections"
+  minio:
+    image: ghcr.io/world-meteorological-organization/wis2box-minio@sha256:b3ab3152a2eb335f7772f8eea609ca8edd345625ff63f9f1ac8a531c614e330d
+    ports: !reset []
+  elasticsearch-exporter:
+    image: ${WIS2BOX_ES_EXPORTER_IMAGE:?Set the reviewed immutable exporter image}
+  mqtt_metrics_collector:
+    ports: !reset []
+  grafana:
+    ports: !reset []
+    volumes:
+      - grafana-data:/var/lib/grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_USERS_VIEWERS_CAN_EDIT: "false"
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set a stable Grafana password}
+      GF_SERVER_ROOT_URL: https://${WEATHER_MONITOR_HOST:?}
+    networks: [default, weather-proxy]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${WEATHER_PROXY_NETWORK:?}"
+      - "traefik.http.routers.weather-monitor.rule=Host(`${WEATHER_MONITOR_HOST:?}`)"
+      - "traefik.http.routers.weather-monitor.entrypoints=websecure"
+      - "traefik.http.routers.weather-monitor.tls.certresolver=myresolver"
+      - "traefik.http.services.weather-monitor.loadbalancer.server.port=3000"
+
+networks:
+  weather-proxy:
+    external: true
+    name: ${WEATHER_PROXY_NETWORK:?}
+volumes:
+  es-data:
+    external: true
+    name: ${WIS2BOX_ES_VOLUME:?Preserve existing volume}
+  minio-data:
+    external: true
+    name: ${WIS2BOX_MINIO_VOLUME:?Preserve existing volume}
+  auth-data:
+    external: true
+    name: ${WIS2BOX_AUTH_VOLUME:?Preserve existing volume}
+  mosquitto-config:
+    external: true
+    name: ${WIS2BOX_MOSQUITTO_VOLUME:?Preserve existing volume}
+  loki-data:
+    external: true
+    name: ${WIS2BOX_LOKI_VOLUME:?Preserve existing volume}
+  prometheus-data:
+    external: true
+    name: ${WIS2BOX_PROMETHEUS_VOLUME:?Preserve existing volume}
+  grafana-data:
+    external: true
+    name: ${WIS2BOX_GRAFANA_VOLUME:?Adopt existing Grafana state before first rollout}

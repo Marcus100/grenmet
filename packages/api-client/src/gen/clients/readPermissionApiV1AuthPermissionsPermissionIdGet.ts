@@ -3,53 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet404,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGet422,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams,
-  ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions,
+  ReadPermissionApiV1AuthPermissionsPermissionIdGetResponses,
 } from "../models/ReadPermissionApiV1AuthPermissionsPermissionIdGet.js";
-
-function getReadPermissionApiV1AuthPermissionsPermissionIdGetUrl(
-  permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/auth/permissions/${permission_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a permission by ID (superuser only).
  * @summary Get permission by ID
  * {@link /api/v1/auth/permissions/:permission_id}
  */
-export async function readPermissionApiV1AuthPermissionsPermissionIdGet(
-  permission_id: ReadPermissionApiV1AuthPermissionsPermissionIdGetPathParams["permission_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPermissionApiV1AuthPermissionsPermissionIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadPermissionApiV1AuthPermissionsPermissionIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadPermissionApiV1AuthPermissionsPermissionIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPermissionApiV1AuthPermissionsPermissionIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet404
-      | ReadPermissionApiV1AuthPermissionsPermissionIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPermissionApiV1AuthPermissionsPermissionIdGetUrl(
-      permission_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/permissions/{permission_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadPermissionApiV1AuthPermissionsPermissionIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

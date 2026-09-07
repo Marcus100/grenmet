@@ -7,8 +7,10 @@ from rest_framework_simplejwt.views import (
 from django.urls import path, include
 
 from .views import change_password
+from .readiness import ready
 
 urlpatterns = [
+    path("health/ready/", ready, name="dependency-readiness"),
     path('accounts/', include('django.contrib.auth.urls')),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

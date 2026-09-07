@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * EmailConfirm
- */
 export type EmailConfirm = {
   /**
    * @minLength 32

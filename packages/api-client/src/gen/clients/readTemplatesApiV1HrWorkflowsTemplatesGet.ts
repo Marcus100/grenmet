@@ -3,47 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet403,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGet422,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
-  ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions,
+  ReadTemplatesApiV1HrWorkflowsTemplatesGetResponses,
 } from "../models/ReadTemplatesApiV1HrWorkflowsTemplatesGet.js";
-
-function getReadTemplatesApiV1HrWorkflowsTemplatesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/workflows/templates` as const };
-  return res;
-}
 
 /**
  * @description List workflow templates, optionally filtered by department_id. Requires workflow.template.view permission.
  * @summary List workflow templates
  * {@link /api/v1/hr/workflows/templates}
  */
-export async function readTemplatesApiV1HrWorkflowsTemplatesGet(
-  params?: ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readTemplatesApiV1HrWorkflowsTemplatesGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadTemplatesApiV1HrWorkflowsTemplatesGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadTemplatesApiV1HrWorkflowsTemplatesGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadTemplatesApiV1HrWorkflowsTemplatesGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet403
-      | ReadTemplatesApiV1HrWorkflowsTemplatesGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadTemplatesApiV1HrWorkflowsTemplatesGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/workflows/templates",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadTemplatesApiV1HrWorkflowsTemplatesGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

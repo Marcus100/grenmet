@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const workflowTypeWorkflowTypeEnum = {
+export const workflowType = {
   LEAVE_REQUEST: "LEAVE_REQUEST",
   SHIFT_SWAP: "SHIFT_SWAP",
   ABSENTEE_REPORT: "ABSENTEE_REPORT",
@@ -12,10 +12,4 @@ export const workflowTypeWorkflowTypeEnum = {
   PARKING_PERMIT: "PARKING_PERMIT",
 } as const;
 
-export type WorkflowTypeWorkflowTypeEnumKey =
-  (typeof workflowTypeWorkflowTypeEnum)[keyof typeof workflowTypeWorkflowTypeEnum];
-
-/**
- * WorkflowType
- */
-export type WorkflowType = WorkflowTypeWorkflowTypeEnumKey;
+export type WorkflowType = (typeof workflowType)[keyof typeof workflowType];

@@ -9,38 +9,36 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteUserMeApiV1AuthUsersMeDelete } from "../clients/deleteUserMeApiV1AuthUsersMeDelete.js";
 import type {
-  DeleteUserMeApiV1AuthUsersMeDelete403,
-  DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
+  DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+  DeleteUserMeApiV1AuthUsersMeDeleteStatus403,
 } from "../models/DeleteUserMeApiV1AuthUsersMeDelete.js";
 
 export const deleteUserMeApiV1AuthUsersMeDeleteMutationKey = () =>
   [{ url: "/api/v1/auth/users/me" }] as const;
 
-export type DeleteUserMeApiV1AuthUsersMeDeleteMutationKey = ReturnType<
-  typeof deleteUserMeApiV1AuthUsersMeDeleteMutationKey
->;
-
 export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey = deleteUserMeApiV1AuthUsersMeDeleteMutationKey();
   return mutationOptions<
-    DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-    void,
+    DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDeleteStatus403>,
+    undefined,
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return deleteUserMeApiV1AuthUsersMeDelete(config);
+    mutationFn: async (_) => {
+      return deleteUserMeApiV1AuthUsersMeDelete({
+        ...config,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -53,12 +51,14 @@ export function deleteUserMeApiV1AuthUsersMeDeleteMutationOptions<
 export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-      ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-      void,
+      DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+      ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDeleteStatus403>,
+      undefined,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -70,16 +70,16 @@ export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
   const baseOptions = deleteUserMeApiV1AuthUsersMeDeleteMutationOptions(
     config
   ) as UseMutationOptions<
-    DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-    void,
+    DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDeleteStatus403>,
+    undefined,
     TContext
   >;
 
   return useMutation<
-    DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-    void,
+    DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDeleteStatus403>,
+    undefined,
     TContext
   >(
     {
@@ -89,9 +89,9 @@ export function useDeleteUserMeApiV1AuthUsersMeDelete<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    DeleteUserMeApiV1AuthUsersMeDeleteMutationResponse,
-    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDelete403>,
-    void,
+    DeleteUserMeApiV1AuthUsersMeDeleteStatus200,
+    ResponseErrorConfig<DeleteUserMeApiV1AuthUsersMeDeleteStatus403>,
+    undefined,
     TContext
   >;
 }

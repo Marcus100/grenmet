@@ -8,32 +8,26 @@ import { emailConfirmSchema } from "./emailConfirmSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-/**
- * @description Successful Response
- */
-export const emailConfirmApiV1AuthModernEmailConfirmPost200Schema = z.lazy(
-  () => messageSchema
-);
+export const emailConfirmApiV1AuthModernEmailConfirmPostStatus200Schema =
+  messageSchema;
 
-/**
- * @description Invalid or expired proof
- */
-export const emailConfirmApiV1AuthModernEmailConfirmPost400Schema = z.any();
+export const emailConfirmApiV1AuthModernEmailConfirmPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Account is not eligible
- */
-export const emailConfirmApiV1AuthModernEmailConfirmPost403Schema = z.any();
+export const emailConfirmApiV1AuthModernEmailConfirmPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const emailConfirmApiV1AuthModernEmailConfirmPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const emailConfirmApiV1AuthModernEmailConfirmPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const emailConfirmApiV1AuthModernEmailConfirmPostMutationRequestSchema =
-  z.lazy(() => emailConfirmSchema);
+export const emailConfirmApiV1AuthModernEmailConfirmPostResponseSchema =
+  emailConfirmApiV1AuthModernEmailConfirmPostStatus200Schema;
 
-export const emailConfirmApiV1AuthModernEmailConfirmPostMutationResponseSchema =
-  z.lazy(() => emailConfirmApiV1AuthModernEmailConfirmPost200Schema);
+export const emailConfirmApiV1AuthModernEmailConfirmPostErrorSchema = z.union([
+  emailConfirmApiV1AuthModernEmailConfirmPostStatus400Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPostStatus403Schema,
+  emailConfirmApiV1AuthModernEmailConfirmPostStatus422Schema,
+]);
+
+export const emailConfirmApiV1AuthModernEmailConfirmPostBodySchema =
+  emailConfirmSchema;

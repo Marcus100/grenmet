@@ -95,7 +95,7 @@ export function TimesheetEditor() {
       let timesheetId = savedTimesheetId;
       if (!timesheetId) {
         const created = await createMutation.mutateAsync({
-          data: {
+          body: {
             department_id: departmentId,
             period_start: periodStart,
             period_end: periodEnd,
@@ -107,12 +107,12 @@ export function TimesheetEditor() {
       }
       if (!timesheetId) throw new Error("The saved timesheet has no ID");
       const submitted = await submitMutation.mutateAsync({
-        timesheet_id: timesheetId,
-        data: { mode: "SELF" },
+        path: { timesheet_id: timesheetId },
+        body: { mode: "SELF" },
       });
       setSubmission(submitted);
       await queryClient.invalidateQueries({
-        queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey(),
+        queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey({}),
       });
       toast.success("Time sheet submitted");
     } catch (error) {

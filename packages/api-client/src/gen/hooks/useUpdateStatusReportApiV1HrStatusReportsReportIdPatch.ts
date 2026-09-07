@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateStatusReportApiV1HrStatusReportsReportIdPatch } from "../clients/updateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 import type {
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch400,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch403,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch404,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch422,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404,
+  UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422,
 } from "../models/UpdateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 
 export const updateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey =
   () => [{ url: "/api/v1/hr/status-reports/:report_id" }] as const;
 
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey =
-  ReturnType<
-    typeof updateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey
-  >;
-
 export function updateStatusReportApiV1HrStatusReportsReportIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateStatusReportApiV1HrStatusReportsReportIdPatchMutationKey();
   return mutationOptions<
-    UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422
     >,
-    {
-      report_id: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams["report_id"];
-      data: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-    },
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ report_id, data }) => {
-      return updateStatusReportApiV1HrStatusReportsReportIdPatch(
-        report_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateStatusReportApiV1HrStatusReportsReportIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateStatusReportApiV1HrStatusReportsReportIdPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
+      UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422
       >,
-      {
-        report_id: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams["report_id"];
-        data: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-      },
+      UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateStatusReportApiV1HrStatusReportsReportIdPatch<
     updateStatusReportApiV1HrStatusReportsReportIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
+      UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-        | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+        | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422
       >,
-      {
-        report_id: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams["report_id"];
-        data: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-      },
+      UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422
     >,
-    {
-      report_id: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams["report_id"];
-      data: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-    },
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateStatusReportApiV1HrStatusReportsReportIdPatch<
     },
     queryClient
   ) as UseMutationResult<
-    UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse,
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-      | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+      | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422
     >,
-    {
-      report_id: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams["report_id"];
-      data: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-    },
+    UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions,
     TContext
   >;
 }

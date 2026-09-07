@@ -3,18 +3,14 @@
  * Do not edit manually.
  */
 
-/**
- * CheckoutSessionPublic
- */
 export type CheckoutSessionPublic = {
-  /**
-   * @type string
-   */
   id: string;
   /**
+   * @description
+   * Format: `uri`
    * @minLength 1
    * @maxLength 2083
-   * @type string, uri
+   * @type string
    */
   url: string;
 };

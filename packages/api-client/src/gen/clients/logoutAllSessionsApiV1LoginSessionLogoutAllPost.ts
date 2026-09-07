@@ -3,50 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPost422,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest,
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationResponse,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostOptions,
+  LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponses,
 } from "../models/LogoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
-
-function getLogoutAllSessionsApiV1LoginSessionLogoutAllPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/login/session/logout-all` as const,
-  };
-  return res;
-}
 
 /**
  * @description Invalidate all persisted sessions belonging to the current user.
  * @summary Revoke every session for the current user
  * {@link /api/v1/login/session/logout-all}
  */
-export async function logoutAllSessionsApiV1LoginSessionLogoutAllPost(
-  data: LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest,
-  config: Partial<
-    RequestConfig<LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function logoutAllSessionsApiV1LoginSessionLogoutAllPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    LogoutAllSessionsApiV1LoginSessionLogoutAllPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationResponse,
-    ResponseErrorConfig<LogoutAllSessionsApiV1LoginSessionLogoutAllPost422>,
-    LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest
-  >({
-    method: "POST",
-    url: getLogoutAllSessionsApiV1LoginSessionLogoutAllPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/session/logout-all",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

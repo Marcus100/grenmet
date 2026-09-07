@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { StatusReportListPublic } from "./StatusReportListPublic.js";
 
-export type ReadStatusReportsApiV1HrStatusReportsGetQueryParams = {
+export type ReadStatusReportsApiV1HrStatusReportsGetQuery = {
   department_id?: string | null;
   /**
    * @description Page number (1-indexed)
@@ -25,31 +25,31 @@ export type ReadStatusReportsApiV1HrStatusReportsGetQueryParams = {
   size?: number;
 };
 
-/**
- * StatusReportListPublic
- * @description Status reports returned
- */
-export type ReadStatusReportsApiV1HrStatusReportsGet200 =
+export type ReadStatusReportsApiV1HrStatusReportsGetStatus200 =
   StatusReportListPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadStatusReportsApiV1HrStatusReportsGet403 = any;
+export type ReadStatusReportsApiV1HrStatusReportsGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadStatusReportsApiV1HrStatusReportsGet422 = HTTPValidationError;
+export type ReadStatusReportsApiV1HrStatusReportsGetStatus422 =
+  HTTPValidationError;
 
-export type ReadStatusReportsApiV1HrStatusReportsGetQueryResponse =
-  ReadStatusReportsApiV1HrStatusReportsGet200;
-
-export type ReadStatusReportsApiV1HrStatusReportsGetQuery = {
-  Response: ReadStatusReportsApiV1HrStatusReportsGet200;
-  QueryParams: ReadStatusReportsApiV1HrStatusReportsGetQueryParams;
-  Errors:
-    | ReadStatusReportsApiV1HrStatusReportsGet403
-    | ReadStatusReportsApiV1HrStatusReportsGet422;
+export type ReadStatusReportsApiV1HrStatusReportsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadStatusReportsApiV1HrStatusReportsGetQuery;
+  headers?: never;
 };
+
+export type ReadStatusReportsApiV1HrStatusReportsGetResponses = {
+  "200": ReadStatusReportsApiV1HrStatusReportsGetStatus200;
+  "403": ReadStatusReportsApiV1HrStatusReportsGetStatus403;
+  "422": ReadStatusReportsApiV1HrStatusReportsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadStatusReportsApiV1HrStatusReportsGetResponse =
+  | ReadStatusReportsApiV1HrStatusReportsGetStatus200
+  | ReadStatusReportsApiV1HrStatusReportsGetStatus403
+  | ReadStatusReportsApiV1HrStatusReportsGetStatus422;

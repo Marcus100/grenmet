@@ -9,49 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createDepartmentEndpointApiV1HrDepartmentsPost } from "../clients/createDepartmentEndpointApiV1HrDepartmentsPost.js";
 import type {
-  CreateDepartmentEndpointApiV1HrDepartmentsPost400,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost403,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost422,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422,
 } from "../models/CreateDepartmentEndpointApiV1HrDepartmentsPost.js";
 
 export const createDepartmentEndpointApiV1HrDepartmentsPostMutationKey = () =>
   [{ url: "/api/v1/hr/departments" }] as const;
 
-export type CreateDepartmentEndpointApiV1HrDepartmentsPostMutationKey =
-  ReturnType<typeof createDepartmentEndpointApiV1HrDepartmentsPostMutationKey>;
-
 export function createDepartmentEndpointApiV1HrDepartmentsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createDepartmentEndpointApiV1HrDepartmentsPostMutationKey();
   return mutationOptions<
-    CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+    CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
     ResponseErrorConfig<
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost422
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422
     >,
-    { data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest },
+    CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createDepartmentEndpointApiV1HrDepartmentsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createDepartmentEndpointApiV1HrDepartmentsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +60,18 @@ export function createDepartmentEndpointApiV1HrDepartmentsPostMutationOptions<
 export function useCreateDepartmentEndpointApiV1HrDepartmentsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+      CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
       ResponseErrorConfig<
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost422
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422
       >,
-      { data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest },
+      CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +84,24 @@ export function useCreateDepartmentEndpointApiV1HrDepartmentsPost<TContext>(
     createDepartmentEndpointApiV1HrDepartmentsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+      CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
       ResponseErrorConfig<
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-        | CreateDepartmentEndpointApiV1HrDepartmentsPost422
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+        | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422
       >,
-      { data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest },
+      CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+    CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
     ResponseErrorConfig<
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost422
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422
     >,
-    { data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest },
+    CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
     TContext
   >(
     {
@@ -115,13 +111,13 @@ export function useCreateDepartmentEndpointApiV1HrDepartmentsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+    CreateDepartmentEndpointApiV1HrDepartmentsPostStatus201,
     ResponseErrorConfig<
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost422
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus400
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus403
+      | CreateDepartmentEndpointApiV1HrDepartmentsPostStatus422
     >,
-    { data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest },
+    CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
     TContext
   >;
 }

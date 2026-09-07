@@ -6,5 +6,5 @@
 import * as z from "zod";
 
 export const emailRequestSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });

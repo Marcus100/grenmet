@@ -9,9 +9,9 @@ import { userPublicSchema } from "./userPublicSchema.js";
 
 export const sessionAccessTokenResponseSchema = z.object({
   access_token: z.string(),
-  token_type: z.optional(z.string().default("bearer")),
+  token_type: z.string().optional().default("bearer"),
   access_token_expires_at: z.string(),
   session_expires_at: z.string(),
-  session: z.lazy(() => sessionPublicSchema),
-  user: z.lazy(() => userPublicSchema),
+  session: sessionPublicSchema,
+  user: userPublicSchema,
 });

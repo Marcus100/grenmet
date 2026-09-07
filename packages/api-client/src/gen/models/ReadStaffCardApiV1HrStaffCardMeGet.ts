@@ -5,34 +5,33 @@
 
 import type { StaffCard } from "./StaffCard.js";
 
-/**
- * StaffCard
- * @description Successful Response
- */
-export type ReadStaffCardApiV1HrStaffCardMeGet200 = StaffCard;
+export type ReadStaffCardApiV1HrStaffCardMeGetStatus200 = StaffCard;
 
-/**
- * @description Administrator access required
- */
-export type ReadStaffCardApiV1HrStaffCardMeGet403 = any;
+export type ReadStaffCardApiV1HrStaffCardMeGetStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type ReadStaffCardApiV1HrStaffCardMeGet404 = any;
+export type ReadStaffCardApiV1HrStaffCardMeGetStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type ReadStaffCardApiV1HrStaffCardMeGet409 = any;
+export type ReadStaffCardApiV1HrStaffCardMeGetStatus409 = unknown;
 
-export type ReadStaffCardApiV1HrStaffCardMeGetQueryResponse =
-  ReadStaffCardApiV1HrStaffCardMeGet200;
-
-export type ReadStaffCardApiV1HrStaffCardMeGetQuery = {
-  Response: ReadStaffCardApiV1HrStaffCardMeGet200;
-  Errors:
-    | ReadStaffCardApiV1HrStaffCardMeGet403
-    | ReadStaffCardApiV1HrStaffCardMeGet404
-    | ReadStaffCardApiV1HrStaffCardMeGet409;
+export type ReadStaffCardApiV1HrStaffCardMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadStaffCardApiV1HrStaffCardMeGetResponses = {
+  "200": ReadStaffCardApiV1HrStaffCardMeGetStatus200;
+  "403": ReadStaffCardApiV1HrStaffCardMeGetStatus403;
+  "404": ReadStaffCardApiV1HrStaffCardMeGetStatus404;
+  "409": ReadStaffCardApiV1HrStaffCardMeGetStatus409;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadStaffCardApiV1HrStaffCardMeGetResponse =
+  | ReadStaffCardApiV1HrStaffCardMeGetStatus200
+  | ReadStaffCardApiV1HrStaffCardMeGetStatus403
+  | ReadStaffCardApiV1HrStaffCardMeGetStatus404
+  | ReadStaffCardApiV1HrStaffCardMeGetStatus409;

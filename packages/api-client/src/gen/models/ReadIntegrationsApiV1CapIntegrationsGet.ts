@@ -3,20 +3,25 @@
  * Do not edit manually.
  */
 
-/**
- * Response Read Integrations Api V1 Cap Integrations Get
- * @description Successful Response
- */
-export type ReadIntegrationsApiV1CapIntegrationsGet200 = {
+export type ReadIntegrationsApiV1CapIntegrationsGetStatus200 = {
   [key: string]: {
-    [key: string]: any;
+    [key: string]: unknown;
   }[];
 };
 
-export type ReadIntegrationsApiV1CapIntegrationsGetQueryResponse =
-  ReadIntegrationsApiV1CapIntegrationsGet200;
-
-export type ReadIntegrationsApiV1CapIntegrationsGetQuery = {
-  Response: ReadIntegrationsApiV1CapIntegrationsGet200;
-  Errors: any;
+export type ReadIntegrationsApiV1CapIntegrationsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadIntegrationsApiV1CapIntegrationsGetResponses = {
+  "200": ReadIntegrationsApiV1CapIntegrationsGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadIntegrationsApiV1CapIntegrationsGetResponse =
+  ReadIntegrationsApiV1CapIntegrationsGetStatus200;

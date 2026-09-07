@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readRssApiCapRssXmlGet } from "../clients/readRssApiCapRssXmlGet.js";
-import type { ReadRssApiCapRssXmlGetQueryResponse } from "../models/ReadRssApiCapRssXmlGet.js";
+import type { ReadRssApiCapRssXmlGetStatus200 } from "../models/ReadRssApiCapRssXmlGet.js";
 
 export const readRssApiCapRssXmlGetQueryKey = () =>
   [{ url: "/api/cap/rss.xml" }] as const;
 
-export type ReadRssApiCapRssXmlGetQueryKey = ReturnType<
+type ReadRssApiCapRssXmlGetQueryKey = ReturnType<
   typeof readRssApiCapRssXmlGetQueryKey
 >;
 
 export function readRssApiCapRssXmlGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readRssApiCapRssXmlGetQueryKey();
   return queryOptions<
-    ReadRssApiCapRssXmlGetQueryResponse,
+    ReadRssApiCapRssXmlGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadRssApiCapRssXmlGetQueryResponse,
+    ReadRssApiCapRssXmlGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readRssApiCapRssXmlGet(config);
+      return readRssApiCapRssXmlGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,39 +49,42 @@ export function readRssApiCapRssXmlGetQueryOptions(
  * {@link /api/cap/rss.xml}
  */
 export function useReadRssApiCapRssXmlGet<
-  TData = ReadRssApiCapRssXmlGetQueryResponse,
-  TQueryData = ReadRssApiCapRssXmlGetQueryResponse,
+  TData = ReadRssApiCapRssXmlGetStatus200,
+  TQueryData = ReadRssApiCapRssXmlGetStatus200,
   TQueryKey extends QueryKey = ReadRssApiCapRssXmlGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadRssApiCapRssXmlGetQueryResponse,
+        ReadRssApiCapRssXmlGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
-  const queryKey = queryOptions?.queryKey ?? readRssApiCapRssXmlGetQueryKey();
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const queryKey =
+    resolvedOptions?.queryKey ?? readRssApiCapRssXmlGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readRssApiCapRssXmlGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

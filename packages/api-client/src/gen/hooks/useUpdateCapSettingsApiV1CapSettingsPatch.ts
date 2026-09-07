@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateCapSettingsApiV1CapSettingsPatch } from "../clients/updateCapSettingsApiV1CapSettingsPatch.js";
 import type {
-  UpdateCapSettingsApiV1CapSettingsPatch422,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationRequest,
-  UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
+  UpdateCapSettingsApiV1CapSettingsPatchOptions,
+  UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+  UpdateCapSettingsApiV1CapSettingsPatchStatus422,
 } from "../models/UpdateCapSettingsApiV1CapSettingsPatch.js";
 
 export const updateCapSettingsApiV1CapSettingsPatchMutationKey = () =>
   [{ url: "/api/v1/cap/settings" }] as const;
 
-export type UpdateCapSettingsApiV1CapSettingsPatchMutationKey = ReturnType<
-  typeof updateCapSettingsApiV1CapSettingsPatchMutationKey
->;
-
 export function updateCapSettingsApiV1CapSettingsPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateCapSettingsApiV1CapSettingsPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateCapSettingsApiV1CapSettingsPatchMutationKey();
   return mutationOptions<
-    UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-    { data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest },
+    UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatchStatus422>,
+    UpdateCapSettingsApiV1CapSettingsPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updateCapSettingsApiV1CapSettingsPatch(data, config);
+    mutationFn: async ({ body }) => {
+      return updateCapSettingsApiV1CapSettingsPatch({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,14 +52,14 @@ export function updateCapSettingsApiV1CapSettingsPatchMutationOptions<
 export function useUpdateCapSettingsApiV1CapSettingsPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-      ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-      { data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest },
+      UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+      ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatchStatus422>,
+      UpdateCapSettingsApiV1CapSettingsPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateCapSettingsApiV1CapSettingsPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -76,16 +71,16 @@ export function useUpdateCapSettingsApiV1CapSettingsPatch<TContext>(
   const baseOptions = updateCapSettingsApiV1CapSettingsPatchMutationOptions(
     config
   ) as UseMutationOptions<
-    UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-    { data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest },
+    UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatchStatus422>,
+    UpdateCapSettingsApiV1CapSettingsPatchOptions,
     TContext
   >;
 
   return useMutation<
-    UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-    { data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest },
+    UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatchStatus422>,
+    UpdateCapSettingsApiV1CapSettingsPatchOptions,
     TContext
   >(
     {
@@ -95,9 +90,9 @@ export function useUpdateCapSettingsApiV1CapSettingsPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateCapSettingsApiV1CapSettingsPatchMutationResponse,
-    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatch422>,
-    { data: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest },
+    UpdateCapSettingsApiV1CapSettingsPatchStatus200,
+    ResponseErrorConfig<UpdateCapSettingsApiV1CapSettingsPatchStatus422>,
+    UpdateCapSettingsApiV1CapSettingsPatchOptions,
     TContext
   >;
 }

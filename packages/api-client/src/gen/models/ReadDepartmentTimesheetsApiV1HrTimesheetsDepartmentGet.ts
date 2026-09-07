@@ -6,55 +6,51 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetListPublic } from "./TimesheetListPublic.js";
 
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams =
-  {
-    /**
-     * @type string
-     */
-    department_id: string;
-    /**
-     * @description Page number (1-indexed)
-     * @minLength 1
-     * @default 1
-     * @type integer | undefined
-     */
-    page?: number;
-    /**
-     * @description Items per page
-     * @minLength 1
-     * @maxLength 1000
-     * @default 100
-     * @type integer | undefined
-     */
-    size?: number;
-  };
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuery = {
+  department_id: string;
+  /**
+   * @description Page number (1-indexed)
+   * @minLength 1
+   * @default 1
+   * @type integer | undefined
+   */
+  page?: number;
+  /**
+   * @description Items per page
+   * @minLength 1
+   * @maxLength 1000
+   * @default 100
+   * @type integer | undefined
+   */
+  size?: number;
+};
 
-/**
- * TimesheetListPublic
- * @description Timesheets returned
- */
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200 =
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200 =
   TimesheetListPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403 = any;
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422 =
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422 =
   HTTPValidationError;
 
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse =
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200;
-
-export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuery = {
-  Response: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200;
-  QueryParams: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams;
-  Errors:
-    | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403
-    | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422;
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions = {
+  body?: never;
+  path?: never;
+  query: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuery;
+  headers?: never;
 };
+
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponses = {
+  "200": ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200;
+  "403": ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403;
+  "422": ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponse =
+  | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200
+  | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403
+  | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422;

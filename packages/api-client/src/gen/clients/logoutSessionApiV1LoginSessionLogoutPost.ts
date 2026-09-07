@@ -3,47 +3,40 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  LogoutSessionApiV1LoginSessionLogoutPost422,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationRequest,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
+  LogoutSessionApiV1LoginSessionLogoutPostOptions,
+  LogoutSessionApiV1LoginSessionLogoutPostResponses,
 } from "../models/LogoutSessionApiV1LoginSessionLogoutPost.js";
-
-function getLogoutSessionApiV1LoginSessionLogoutPostUrl() {
-  const res = { method: "POST", url: `/api/v1/login/session/logout` as const };
-  return res;
-}
 
 /**
  * @description Revoke the current persisted session. This endpoint is idempotent.
  * @summary Revoke a persisted session
  * {@link /api/v1/login/session/logout}
  */
-export async function logoutSessionApiV1LoginSessionLogoutPost(
-  data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest,
-  config: Partial<
-    RequestConfig<LogoutSessionApiV1LoginSessionLogoutPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function logoutSessionApiV1LoginSessionLogoutPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    LogoutSessionApiV1LoginSessionLogoutPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<LogoutSessionApiV1LoginSessionLogoutPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-    LogoutSessionApiV1LoginSessionLogoutPostMutationRequest
-  >({
-    method: "POST",
-    url: getLogoutSessionApiV1LoginSessionLogoutPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/login/session/logout",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        LogoutSessionApiV1LoginSessionLogoutPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

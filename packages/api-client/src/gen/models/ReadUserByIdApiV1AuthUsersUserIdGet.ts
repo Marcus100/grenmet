@@ -6,37 +6,38 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserPublic } from "./UserPublic.js";
 
-export type ReadUserByIdApiV1AuthUsersUserIdGetPathParams = {
+export type ReadUserByIdApiV1AuthUsersUserIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * UserPublic
- * @description User returned
- */
-export type ReadUserByIdApiV1AuthUsersUserIdGet200 = UserPublic;
+export type ReadUserByIdApiV1AuthUsersUserIdGetStatus200 = UserPublic;
 
-/**
- * @description Insufficient privileges
- */
-export type ReadUserByIdApiV1AuthUsersUserIdGet403 = any;
+export type ReadUserByIdApiV1AuthUsersUserIdGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadUserByIdApiV1AuthUsersUserIdGet422 = HTTPValidationError;
+export type ReadUserByIdApiV1AuthUsersUserIdGetStatus422 = HTTPValidationError;
 
-export type ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse =
-  ReadUserByIdApiV1AuthUsersUserIdGet200;
-
-export type ReadUserByIdApiV1AuthUsersUserIdGetQuery = {
-  Response: ReadUserByIdApiV1AuthUsersUserIdGet200;
-  PathParams: ReadUserByIdApiV1AuthUsersUserIdGetPathParams;
-  Errors:
-    | ReadUserByIdApiV1AuthUsersUserIdGet403
-    | ReadUserByIdApiV1AuthUsersUserIdGet422;
+export type ReadUserByIdApiV1AuthUsersUserIdGetOptions = {
+  body?: never;
+  path: ReadUserByIdApiV1AuthUsersUserIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadUserByIdApiV1AuthUsersUserIdGetResponses = {
+  "200": ReadUserByIdApiV1AuthUsersUserIdGetStatus200;
+  "403": ReadUserByIdApiV1AuthUsersUserIdGetStatus403;
+  "422": ReadUserByIdApiV1AuthUsersUserIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadUserByIdApiV1AuthUsersUserIdGetResponse =
+  | ReadUserByIdApiV1AuthUsersUserIdGetStatus200
+  | ReadUserByIdApiV1AuthUsersUserIdGetStatus403
+  | ReadUserByIdApiV1AuthUsersUserIdGetStatus422;

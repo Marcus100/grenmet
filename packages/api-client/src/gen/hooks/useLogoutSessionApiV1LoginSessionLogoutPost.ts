@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { logoutSessionApiV1LoginSessionLogoutPost } from "../clients/logoutSessionApiV1LoginSessionLogoutPost.js";
 import type {
-  LogoutSessionApiV1LoginSessionLogoutPost422,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationRequest,
-  LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
+  LogoutSessionApiV1LoginSessionLogoutPostOptions,
+  LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+  LogoutSessionApiV1LoginSessionLogoutPostStatus422,
 } from "../models/LogoutSessionApiV1LoginSessionLogoutPost.js";
 
 export const logoutSessionApiV1LoginSessionLogoutPostMutationKey = () =>
   [{ url: "/api/v1/login/session/logout" }] as const;
 
-export type LogoutSessionApiV1LoginSessionLogoutPostMutationKey = ReturnType<
-  typeof logoutSessionApiV1LoginSessionLogoutPostMutationKey
->;
-
 export function logoutSessionApiV1LoginSessionLogoutPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<LogoutSessionApiV1LoginSessionLogoutPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = logoutSessionApiV1LoginSessionLogoutPostMutationKey();
   return mutationOptions<
-    LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-    { data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest },
+    LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPostStatus422>,
+    LogoutSessionApiV1LoginSessionLogoutPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return logoutSessionApiV1LoginSessionLogoutPost(data, config);
+    mutationFn: async ({ body }) => {
+      return logoutSessionApiV1LoginSessionLogoutPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -58,14 +53,14 @@ export function logoutSessionApiV1LoginSessionLogoutPostMutationOptions<
 export function useLogoutSessionApiV1LoginSessionLogoutPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-      ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-      { data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest },
+      LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+      ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPostStatus422>,
+      LogoutSessionApiV1LoginSessionLogoutPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<LogoutSessionApiV1LoginSessionLogoutPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -77,16 +72,16 @@ export function useLogoutSessionApiV1LoginSessionLogoutPost<TContext>(
   const baseOptions = logoutSessionApiV1LoginSessionLogoutPostMutationOptions(
     config
   ) as UseMutationOptions<
-    LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-    { data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest },
+    LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPostStatus422>,
+    LogoutSessionApiV1LoginSessionLogoutPostOptions,
     TContext
   >;
 
   return useMutation<
-    LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-    { data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest },
+    LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPostStatus422>,
+    LogoutSessionApiV1LoginSessionLogoutPostOptions,
     TContext
   >(
     {
@@ -96,9 +91,9 @@ export function useLogoutSessionApiV1LoginSessionLogoutPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    LogoutSessionApiV1LoginSessionLogoutPostMutationResponse,
-    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPost422>,
-    { data: LogoutSessionApiV1LoginSessionLogoutPostMutationRequest },
+    LogoutSessionApiV1LoginSessionLogoutPostStatus200,
+    ResponseErrorConfig<LogoutSessionApiV1LoginSessionLogoutPostStatus422>,
+    LogoutSessionApiV1LoginSessionLogoutPostOptions,
     TContext
   >;
 }

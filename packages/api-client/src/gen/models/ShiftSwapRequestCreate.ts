@@ -5,44 +5,36 @@
 
 import type { SwapType } from "./SwapType.js";
 
-/**
- * ShiftSwapRequestCreate
- */
 export type ShiftSwapRequestCreate = {
   /**
-   * @type string, uuid
-   */
-  counterpart_user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  counterpart_user_id: string;
   department_id: string;
   /**
+   * @default 'TEMPORARY'
    * @type string | undefined
    */
   swap_type?: SwapType;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   source_date: string;
-  /**
-   * @type string
-   */
   source_shift_code: string;
   /**
-   * @type string, date
-   */
-  target_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  target_date: string;
   target_shift_code: string;
   effective_date?: string | null;
   restoration_date?: string | null;
   reason?: string | null;
-  /**
-   * @type array | undefined
-   */
   co_approver_user_ids?: string[];
   /**
    * @default false

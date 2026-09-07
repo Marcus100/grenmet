@@ -1,0 +1,198 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "MAINT",
+    "name": "Maintenance Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 8 (Maintenance Department). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Maintenance Manager",
+      "rank": 1,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASSISTANT_MANAGER",
+      "label": "Assistant Maintenance Manager",
+      "rank": 2,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "MAINTENANCE_PLANNER",
+      "label": "Asst. Maintenance Planner",
+      "rank": 3,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "PLUMBING_SUPERVISOR",
+      "label": "Plumbing Supervisor",
+      "rank": 4,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "TRADES_SUPERVISOR",
+      "label": "Trades Supervisor",
+      "rank": 5,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "MECHANIC_SUPERVISOR",
+      "label": "Mechanic Supervisor",
+      "rank": 6,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "AC_REFRIGERATION_SUPERVISOR",
+      "label": "AC & Refrigeration Supervisor",
+      "rank": 7,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ELECTRICAL_SUPERVISOR",
+      "label": "Electrical Supervisor",
+      "rank": 8,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "FIELDS_GROUNDS_SUPERVISOR",
+      "label": "Fields & Grounds Supervisor",
+      "rank": 9,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASST_SUPERVISOR_BUILDINGS",
+      "label": "Asst. Supervisor – Buildings",
+      "rank": 10,
+      "establishment_band": "Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ASST_FIELDS_GROUNDS_SUPERVISOR",
+      "label": "Asst. Fields & Grounds Supervisor",
+      "rank": 11,
+      "establishment_band": "Junior Supervisor",
+      "_deck_posts": 1
+    },
+    {
+      "code": "TECHNICAL_OFFICER_ELECTRICIAN",
+      "label": "Technical Officer Electrician",
+      "rank": 12,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "AIR_CONDITIONING_TECHNICIAN",
+      "label": "Air Conditioning Technician",
+      "rank": 13,
+      "establishment_band": "Technical/Administrative",
+      "_deck_posts": 4
+    },
+    {
+      "code": "ELECTRICIAN",
+      "label": "Electrician",
+      "rank": 14,
+      "establishment_band": "Technical/Administrative",
+      "_deck_posts": 5
+    },
+    {
+      "code": "ADMIN_ASSISTANT",
+      "label": "Admin Asst. – Maintenance",
+      "rank": 15,
+      "establishment_band": "Clerical",
+      "_deck_posts": 1
+    },
+    {
+      "code": "OFFICE_ASSISTANT_ELECTRICAL",
+      "label": "Office Assistant Electrical",
+      "rank": 16,
+      "establishment_band": "Clerical",
+      "_deck_posts": 1
+    },
+    {
+      "code": "DRAFTSMAN",
+      "label": "Draftsman",
+      "rank": 17,
+      "establishment_band": "Clerical",
+      "_deck_posts": 1
+    },
+    {
+      "code": "FIELDS_GROUNDS_OFFICER",
+      "label": "Fields/Grounds Officer",
+      "rank": 18,
+      "establishment_band": "Crafted & Related Trade",
+      "_deck_posts": 15
+    },
+    {
+      "code": "PLUMBING_ASSISTANT",
+      "label": "Plumbing Assistant",
+      "rank": 19,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 1
+    },
+    {
+      "code": "PLUMBER",
+      "label": "Plumber",
+      "rank": 20,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    },
+    {
+      "code": "TRADESMAN",
+      "label": "Tradesman",
+      "rank": 21,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 1
+    },
+    {
+      "code": "TRADES_HELPER",
+      "label": "Trades Helper",
+      "rank": 22,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    },
+    {
+      "code": "MECHANIC",
+      "label": "Mechanic",
+      "rank": 23,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 3
+    },
+    {
+      "code": "WELDER",
+      "label": "Welder",
+      "rank": 24,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 1
+    },
+    {
+      "code": "ELECTRICAL_ASSISTANT",
+      "label": "Electrical Assistant",
+      "rank": 25,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 3
+    },
+    {
+      "code": "OFFICE_ASSISTANT_GARAGE",
+      "label": "Office Assistant Garage",
+      "rank": 26,
+      "establishment_band": "Junior Clerical/Trainee",
+      "_deck_posts": 2
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

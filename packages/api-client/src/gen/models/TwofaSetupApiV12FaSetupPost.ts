@@ -5,16 +5,21 @@
 
 import type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
 
-/**
- * TwoFactorSetupResponse
- * @description Successful Response
- */
-export type TwofaSetupApiV12FaSetupPost200 = TwoFactorSetupResponse;
+export type TwofaSetupApiV12FaSetupPostStatus200 = TwoFactorSetupResponse;
 
-export type TwofaSetupApiV12FaSetupPostMutationResponse =
-  TwofaSetupApiV12FaSetupPost200;
-
-export type TwofaSetupApiV12FaSetupPostMutation = {
-  Response: TwofaSetupApiV12FaSetupPost200;
-  Errors: any;
+export type TwofaSetupApiV12FaSetupPostOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type TwofaSetupApiV12FaSetupPostResponses = {
+  "200": TwofaSetupApiV12FaSetupPostStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TwofaSetupApiV12FaSetupPostResponse =
+  TwofaSetupApiV12FaSetupPostStatus200;

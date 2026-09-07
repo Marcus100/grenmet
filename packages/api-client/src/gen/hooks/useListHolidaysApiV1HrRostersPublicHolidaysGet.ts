@@ -10,52 +10,53 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listHolidaysApiV1HrRostersPublicHolidaysGet } from "../clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
 import type {
-  ListHolidaysApiV1HrRostersPublicHolidaysGet403,
-  ListHolidaysApiV1HrRostersPublicHolidaysGet422,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
-  ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetOptions,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403,
+  ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422,
 } from "../models/ListHolidaysApiV1HrRostersPublicHolidaysGet.js";
 
-export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey = (
-  params: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams = {}
-) =>
+export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey = ({
+  query,
+}: Omit<ListHolidaysApiV1HrRostersPublicHolidaysGetOptions, "headers"> = {}) =>
   [
     { url: "/api/v1/hr/rosters/public-holidays" },
-    ...(params ? [params] : []),
+    ...(query ? [query] : []),
   ] as const;
 
-export type ListHolidaysApiV1HrRostersPublicHolidaysGetQueryKey = ReturnType<
+type ListHolidaysApiV1HrRostersPublicHolidaysGetQueryKey = ReturnType<
   typeof listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey
 >;
 
 export function listHolidaysApiV1HrRostersPublicHolidaysGetQueryOptions(
-  params?: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListHolidaysApiV1HrRostersPublicHolidaysGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey(params);
+  const queryKey = listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey({
+    query,
+  });
   return queryOptions<
-    ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+    ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
     ResponseErrorConfig<
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet403
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet422
+      | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403
+      | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422
     >,
-    ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+    ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listHolidaysApiV1HrRostersPublicHolidaysGet(params, config);
+      return listHolidaysApiV1HrRostersPublicHolidaysGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,53 +67,64 @@ export function listHolidaysApiV1HrRostersPublicHolidaysGetQueryOptions(
  * {@link /api/v1/hr/rosters/public-holidays}
  */
 export function useListHolidaysApiV1HrRostersPublicHolidaysGet<
-  TData = ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
-  TQueryData = ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+  TData = ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
+  TQueryData = ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
   TQueryKey extends
     QueryKey = ListHolidaysApiV1HrRostersPublicHolidaysGetQueryKey,
 >(
-  params?: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ListHolidaysApiV1HrRostersPublicHolidaysGetOptions["query"]
+      | (() => ListHolidaysApiV1HrRostersPublicHolidaysGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse,
+        ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200,
         ResponseErrorConfig<
-          | ListHolidaysApiV1HrRostersPublicHolidaysGet403
-          | ListHolidaysApiV1HrRostersPublicHolidaysGet422
+          | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403
+          | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listHolidaysApiV1HrRostersPublicHolidaysGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...listHolidaysApiV1HrRostersPublicHolidaysGetQueryOptions(
-        params,
+        resolvedParams,
         config
       ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet403
-      | ListHolidaysApiV1HrRostersPublicHolidaysGet422
+      | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403
+      | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

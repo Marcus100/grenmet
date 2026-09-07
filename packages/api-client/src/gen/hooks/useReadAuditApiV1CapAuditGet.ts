@@ -10,44 +10,44 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readAuditApiV1CapAuditGet } from "../clients/readAuditApiV1CapAuditGet.js";
 import type {
-  ReadAuditApiV1CapAuditGet422,
-  ReadAuditApiV1CapAuditGetQueryParams,
-  ReadAuditApiV1CapAuditGetQueryResponse,
+  ReadAuditApiV1CapAuditGetOptions,
+  ReadAuditApiV1CapAuditGetStatus200,
+  ReadAuditApiV1CapAuditGetStatus422,
 } from "../models/ReadAuditApiV1CapAuditGet.js";
 
-export const readAuditApiV1CapAuditGetQueryKey = (
-  params: ReadAuditApiV1CapAuditGetQueryParams = {}
-) => [{ url: "/api/v1/cap/audit" }, ...(params ? [params] : [])] as const;
+export const readAuditApiV1CapAuditGetQueryKey = ({
+  query,
+}: Omit<ReadAuditApiV1CapAuditGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/cap/audit" }, ...(query ? [query] : [])] as const;
 
-export type ReadAuditApiV1CapAuditGetQueryKey = ReturnType<
+type ReadAuditApiV1CapAuditGetQueryKey = ReturnType<
   typeof readAuditApiV1CapAuditGetQueryKey
 >;
 
 export function readAuditApiV1CapAuditGetQueryOptions(
-  params?: ReadAuditApiV1CapAuditGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ReadAuditApiV1CapAuditGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readAuditApiV1CapAuditGetQueryKey(params);
+  const queryKey = readAuditApiV1CapAuditGetQueryKey({ query });
   return queryOptions<
-    ReadAuditApiV1CapAuditGetQueryResponse,
-    ResponseErrorConfig<ReadAuditApiV1CapAuditGet422>,
-    ReadAuditApiV1CapAuditGetQueryResponse,
+    ReadAuditApiV1CapAuditGetStatus200,
+    ResponseErrorConfig<ReadAuditApiV1CapAuditGetStatus422>,
+    ReadAuditApiV1CapAuditGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readAuditApiV1CapAuditGet(params, config);
+      return readAuditApiV1CapAuditGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,42 +57,54 @@ export function readAuditApiV1CapAuditGetQueryOptions(
  * {@link /api/v1/cap/audit}
  */
 export function useReadAuditApiV1CapAuditGet<
-  TData = ReadAuditApiV1CapAuditGetQueryResponse,
-  TQueryData = ReadAuditApiV1CapAuditGetQueryResponse,
+  TData = ReadAuditApiV1CapAuditGetStatus200,
+  TQueryData = ReadAuditApiV1CapAuditGetStatus200,
   TQueryKey extends QueryKey = ReadAuditApiV1CapAuditGetQueryKey,
 >(
-  params?: ReadAuditApiV1CapAuditGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ReadAuditApiV1CapAuditGetOptions["query"]
+      | (() => ReadAuditApiV1CapAuditGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadAuditApiV1CapAuditGetQueryResponse,
-        ResponseErrorConfig<ReadAuditApiV1CapAuditGet422>,
+        ReadAuditApiV1CapAuditGetStatus200,
+        ResponseErrorConfig<ReadAuditApiV1CapAuditGetStatus422>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ?? readAuditApiV1CapAuditGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    readAuditApiV1CapAuditGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readAuditApiV1CapAuditGetQueryOptions(params, config),
+      ...readAuditApiV1CapAuditGetQueryOptions(resolvedParams, config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadAuditApiV1CapAuditGet422>
+    ResponseErrorConfig<ReadAuditApiV1CapAuditGetStatus422>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

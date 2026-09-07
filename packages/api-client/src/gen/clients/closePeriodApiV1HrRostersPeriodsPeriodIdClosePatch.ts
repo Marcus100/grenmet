@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
-  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
+  ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponses,
 } from "../models/ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
-
-function getClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchUrl(
-  period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/rosters/periods/${period_id}/close` as const,
-  };
-  return res;
-}
 
 /**
  * @description Close a published roster period. Requires roster.manage permission.
  * @summary Close roster period
  * {@link /api/v1/hr/rosters/periods/:period_id/close}
  */
-export async function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch(
-  period_id: ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathParams["period_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchMutationResponse,
-    ResponseErrorConfig<
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch400
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch403
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch404
-      | ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatch422
-    >,
-    unknown
-  >({
-    method: "PATCH",
-    url: getClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchUrl(
-      period_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/rosters/periods/{period_id}/close",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

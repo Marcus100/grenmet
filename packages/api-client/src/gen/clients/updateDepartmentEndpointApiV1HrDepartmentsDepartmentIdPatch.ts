@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
+  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponses,
 } from "../models/UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch.js";
-
-function getUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchUrl(
-  department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/departments/${department_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a department's name. Requires user.manage permission.
  * @summary Rename department
  * {@link /api/v1/hr/departments/:department_id}
  */
-export async function updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch(
-  department_id: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams["department_id"],
-  data: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422
-    >,
-    UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchUrl(
-      department_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/departments/{department_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

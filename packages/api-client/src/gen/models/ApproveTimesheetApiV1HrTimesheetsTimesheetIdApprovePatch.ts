@@ -6,52 +6,52 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams =
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPath = {
+  /**
+   * @description
+   * Format: `uuid`
+   * @type string
+   */
+  timesheet_id: string;
+};
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200 =
+  TimesheetPublic;
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400 =
+  unknown;
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403 =
+  unknown;
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404 =
+  unknown;
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422 =
+  HTTPValidationError;
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions = {
+  body?: never;
+  path: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPath;
+  query?: never;
+  headers?: never;
+};
+
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponses =
   {
-    /**
-     * @type string, uuid
-     */
-    timesheet_id: string;
+    "200": ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200;
+    "400": ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400;
+    "403": ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403;
+    "404": ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404;
+    "422": ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422;
   };
 
 /**
- * TimesheetPublic
- * @description Timesheet approved
+ * @description Union of all possible responses
  */
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200 =
-  TimesheetPublic;
-
-/**
- * @description Timesheet is not submitted
- */
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400 = any;
-
-/**
- * @description Not allowed to approve this timesheet
- */
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403 = any;
-
-/**
- * @description Timesheet not found
- */
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404 = any;
-
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422 =
-  HTTPValidationError;
-
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse =
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200;
-
-export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutation = {
-  Response: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch200;
-  PathParams: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams;
-  Errors:
-    | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-    | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-    | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-    | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422;
-};
+export type ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponse =
+  | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200
+  | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400
+  | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403
+  | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404
+  | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422;

@@ -9,5 +9,5 @@ export const dashboardApprovalSchema = z.object({
   id: z.string(),
   name: z.string(),
   kind: z.string(),
-  submitted_at: z.optional(z.union([z.string(), z.null()])),
+  submitted_at: z.union([z.string(), z.null()]).optional(),
 });

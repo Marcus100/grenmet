@@ -8,34 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userCreateSchema } from "./userCreateSchema.js";
 import { userPublicSchema } from "./userPublicSchema.js";
 
-/**
- * @description User created
- */
-export const createUserApiV1AuthUsersPost201Schema = z.lazy(
-  () => userPublicSchema
-);
+export const createUserApiV1AuthUsersPostStatus201Schema = userPublicSchema;
 
-/**
- * @description User with this email already exists
- */
-export const createUserApiV1AuthUsersPost400Schema = z.any();
+export const createUserApiV1AuthUsersPostStatus400Schema = z.unknown();
 
-/**
- * @description Insufficient privileges
- */
-export const createUserApiV1AuthUsersPost403Schema = z.any();
+export const createUserApiV1AuthUsersPostStatus403Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createUserApiV1AuthUsersPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createUserApiV1AuthUsersPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createUserApiV1AuthUsersPostMutationRequestSchema = z.lazy(
-  () => userCreateSchema
-);
+export const createUserApiV1AuthUsersPostResponseSchema =
+  createUserApiV1AuthUsersPostStatus201Schema;
 
-export const createUserApiV1AuthUsersPostMutationResponseSchema = z.lazy(
-  () => createUserApiV1AuthUsersPost201Schema
-);
+export const createUserApiV1AuthUsersPostErrorSchema = z.union([
+  createUserApiV1AuthUsersPostStatus400Schema,
+  createUserApiV1AuthUsersPostStatus403Schema,
+  createUserApiV1AuthUsersPostStatus422Schema,
+]);
+
+export const createUserApiV1AuthUsersPostBodySchema = userCreateSchema;

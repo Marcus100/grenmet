@@ -6,28 +6,20 @@
 import * as z from "zod";
 import { staffCardSchema } from "./staffCardSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readStaffCardApiV1HrStaffCardMeGet200Schema = z.lazy(
-  () => staffCardSchema
-);
+export const readStaffCardApiV1HrStaffCardMeGetStatus200Schema =
+  staffCardSchema;
 
-/**
- * @description Administrator access required
- */
-export const readStaffCardApiV1HrStaffCardMeGet403Schema = z.any();
+export const readStaffCardApiV1HrStaffCardMeGetStatus403Schema = z.unknown();
 
-/**
- * @description Record not found
- */
-export const readStaffCardApiV1HrStaffCardMeGet404Schema = z.any();
+export const readStaffCardApiV1HrStaffCardMeGetStatus404Schema = z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const readStaffCardApiV1HrStaffCardMeGet409Schema = z.any();
+export const readStaffCardApiV1HrStaffCardMeGetStatus409Schema = z.unknown();
 
-export const readStaffCardApiV1HrStaffCardMeGetQueryResponseSchema = z.lazy(
-  () => readStaffCardApiV1HrStaffCardMeGet200Schema
-);
+export const readStaffCardApiV1HrStaffCardMeGetResponseSchema =
+  readStaffCardApiV1HrStaffCardMeGetStatus200Schema;
+
+export const readStaffCardApiV1HrStaffCardMeGetErrorSchema = z.union([
+  readStaffCardApiV1HrStaffCardMeGetStatus403Schema,
+  readStaffCardApiV1HrStaffCardMeGetStatus404Schema,
+  readStaffCardApiV1HrStaffCardMeGetStatus409Schema,
+]);

@@ -7,58 +7,54 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RoleConfiguration } from "./RoleConfiguration.js";
 import type { RolePermissionsInput } from "./RolePermissionsInput.js";
 
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams = {
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   role_id: string;
 };
 
-/**
- * RoleConfiguration
- * @description Successful Response
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut200 =
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200 =
   RoleConfiguration;
 
-/**
- * @description Administrator access required
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403 = any;
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403 =
+  unknown;
 
-/**
- * @description Record not found
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404 = any;
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404 =
+  unknown;
 
-/**
- * @description Setup conflict
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409 = any;
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422 =
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422 =
   HTTPValidationError;
 
-/**
- * RolePermissionsInput
- */
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest =
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutBody =
   RolePermissionsInput;
 
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse =
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut200;
-
-export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutation = {
-  Response: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut200;
-  Request: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest;
-  PathParams: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams;
-  Errors:
-    | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-    | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-    | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-    | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422;
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions = {
+  body: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutBody;
+  path: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponses = {
+  "200": UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200;
+  "403": UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403;
+  "404": UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404;
+  "409": UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409;
+  "422": UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponse =
+  | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200
+  | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403
+  | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404
+  | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409
+  | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422;

@@ -3,16 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * DepartmentPublic
- */
 export type DepartmentPublic = {
-  /**
-   * @type string
-   */
   id: string;
-  /**
-   * @type string
-   */
   name: string;
 };

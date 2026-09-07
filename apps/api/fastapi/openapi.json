@@ -3924,7 +3924,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Timesheet and entries created",
             "content": {
               "application/json": {
                 "schema": {
@@ -3932,9 +3932,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Timesheet and entries created"
           },
           "403": {
             "description": "Self/proxy submission disabled or not allowed for user"
@@ -4357,7 +4354,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Leave request created",
             "content": {
               "application/json": {
                 "schema": {
@@ -4365,9 +4362,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Leave request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -4731,7 +4725,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Absentee report created",
             "content": {
               "application/json": {
                 "schema": {
@@ -4739,9 +4733,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Absentee report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5113,7 +5104,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Shift swap request created",
             "content": {
               "application/json": {
                 "schema": {
@@ -5121,9 +5112,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Shift swap request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5421,7 +5409,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Status report created",
             "content": {
               "application/json": {
                 "schema": {
@@ -5429,9 +5417,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Status report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -7391,6 +7376,47 @@
           },
           "503": {
             "description": "Database unreachable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/images/{storage_path}": {
+      "get": {
+        "tags": [
+          "weather-images"
+        ],
+        "summary": "Weather Image",
+        "description": "Issue a short-lived download redirect scoped to the environment's wxwatch prefix.",
+        "operationId": "weather_image_api_v1_wxwatch_images__storage_path__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "storage_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Storage Path"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
         }
       }

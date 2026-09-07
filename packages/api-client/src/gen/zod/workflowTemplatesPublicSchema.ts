@@ -7,6 +7,6 @@ import * as z from "zod";
 import { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
 
 export const workflowTemplatesPublicSchema = z.object({
-  data: z.array(z.lazy(() => workflowTemplatePublicSchema)),
-  count: z.number().int(),
+  data: z.array(workflowTemplatePublicSchema),
+  count: z.int(),
 });

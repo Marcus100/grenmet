@@ -5,17 +5,8 @@
 
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 
-/**
- * CapAlertListPublic
- */
 export type CapAlertListPublic = {
-  /**
-   * @type array
-   */
   data: CapAlertPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

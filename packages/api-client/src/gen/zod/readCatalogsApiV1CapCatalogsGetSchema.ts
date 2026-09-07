@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readCatalogsApiV1CapCatalogsGet200Schema = z.lazy(
-  () => capCatalogsPublicSchema
-);
+export const readCatalogsApiV1CapCatalogsGetStatus200Schema =
+  capCatalogsPublicSchema;
 
-export const readCatalogsApiV1CapCatalogsGetQueryResponseSchema = z.lazy(
-  () => readCatalogsApiV1CapCatalogsGet200Schema
-);
+export const readCatalogsApiV1CapCatalogsGetResponseSchema =
+  readCatalogsApiV1CapCatalogsGetStatus200Schema;

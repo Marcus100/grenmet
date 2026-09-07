@@ -6,9 +6,9 @@
 import * as z from "zod";
 
 export const userUpdateMeSchema = z.object({
-  email: z.optional(z.union([z.string().email(), z.null()])),
-  username: z.optional(z.union([z.string(), z.null()])),
-  first_name: z.optional(z.union([z.string(), z.null()])),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
-  last_name: z.optional(z.union([z.string(), z.null()])),
+  email: z.union([z.email(), z.null()]).optional(),
+  username: z.union([z.string().min(3).max(255), z.null()]).optional(),
+  first_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  middle_name: z.union([z.string().max(100), z.null()]).optional(),
+  last_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
 });

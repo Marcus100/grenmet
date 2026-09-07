@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
 
-export type ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {
+export type ListShiftCatalogApiV1HrRostersShiftsGetQuery = {
   /**
    * @default false
    * @type boolean | undefined
@@ -14,30 +14,31 @@ export type ListShiftCatalogApiV1HrRostersShiftsGetQueryParams = {
   include_inactive?: boolean;
 };
 
-/**
- * ShiftCatalogsPublic
- * @description Shift catalog returned
- */
-export type ListShiftCatalogApiV1HrRostersShiftsGet200 = ShiftCatalogsPublic;
+export type ListShiftCatalogApiV1HrRostersShiftsGetStatus200 =
+  ShiftCatalogsPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ListShiftCatalogApiV1HrRostersShiftsGet403 = any;
+export type ListShiftCatalogApiV1HrRostersShiftsGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListShiftCatalogApiV1HrRostersShiftsGet422 = HTTPValidationError;
+export type ListShiftCatalogApiV1HrRostersShiftsGetStatus422 =
+  HTTPValidationError;
 
-export type ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse =
-  ListShiftCatalogApiV1HrRostersShiftsGet200;
-
-export type ListShiftCatalogApiV1HrRostersShiftsGetQuery = {
-  Response: ListShiftCatalogApiV1HrRostersShiftsGet200;
-  QueryParams: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams;
-  Errors:
-    | ListShiftCatalogApiV1HrRostersShiftsGet403
-    | ListShiftCatalogApiV1HrRostersShiftsGet422;
+export type ListShiftCatalogApiV1HrRostersShiftsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ListShiftCatalogApiV1HrRostersShiftsGetQuery;
+  headers?: never;
 };
+
+export type ListShiftCatalogApiV1HrRostersShiftsGetResponses = {
+  "200": ListShiftCatalogApiV1HrRostersShiftsGetStatus200;
+  "403": ListShiftCatalogApiV1HrRostersShiftsGetStatus403;
+  "422": ListShiftCatalogApiV1HrRostersShiftsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListShiftCatalogApiV1HrRostersShiftsGetResponse =
+  | ListShiftCatalogApiV1HrRostersShiftsGetStatus200
+  | ListShiftCatalogApiV1HrRostersShiftsGetStatus403
+  | ListShiftCatalogApiV1HrRostersShiftsGetStatus422;

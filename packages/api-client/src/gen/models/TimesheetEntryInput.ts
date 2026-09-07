@@ -3,30 +3,29 @@
  * Do not edit manually.
  */
 
-/**
- * TimesheetEntryInput
- */
 export type TimesheetEntryInput = {
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   entry_date: string;
   shift_code?: string | null;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   roster_hours?: number | string;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   actual_hours?: number | string;
   total_hours?: number | string | null;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   overtime_hours?: number | string;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   break_hours?: number | string;
   hours_worked?: number | string | null;

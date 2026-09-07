@@ -3,53 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateUserApiV1AuthUsersPost400,
-  CreateUserApiV1AuthUsersPost403,
-  CreateUserApiV1AuthUsersPost422,
-  CreateUserApiV1AuthUsersPostMutationRequest,
-  CreateUserApiV1AuthUsersPostMutationResponse,
+  CreateUserApiV1AuthUsersPostOptions,
+  CreateUserApiV1AuthUsersPostResponses,
 } from "../models/CreateUserApiV1AuthUsersPost.js";
-
-function getCreateUserApiV1AuthUsersPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/users` as const };
-  return res;
-}
 
 /**
  * @description Create a user (superuser or user.manage). Only superusers can create superuser accounts.
  * @summary Create user
  * {@link /api/v1/auth/users}
  */
-export async function createUserApiV1AuthUsersPost(
-  data: CreateUserApiV1AuthUsersPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateUserApiV1AuthUsersPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createUserApiV1AuthUsersPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateUserApiV1AuthUsersPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateUserApiV1AuthUsersPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateUserApiV1AuthUsersPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateUserApiV1AuthUsersPost400
-      | CreateUserApiV1AuthUsersPost403
-      | CreateUserApiV1AuthUsersPost422
-    >,
-    CreateUserApiV1AuthUsersPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateUserApiV1AuthUsersPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/users",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateUserApiV1AuthUsersPostResponses, ThrowOnError>
+    >
+  );
 }

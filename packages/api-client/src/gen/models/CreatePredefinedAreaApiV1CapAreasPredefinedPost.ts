@@ -7,31 +7,30 @@ import type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 import type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * CapPredefinedAreaPublic
- * @description Successful Response
- */
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPost201 =
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201 =
   CapPredefinedAreaPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPost422 =
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422 =
   HTTPValidationError;
 
-/**
- * CapPredefinedAreaCreate
- */
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest =
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostBody =
   CapPredefinedAreaCreate;
 
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationResponse =
-  CreatePredefinedAreaApiV1CapAreasPredefinedPost201;
-
-export type CreatePredefinedAreaApiV1CapAreasPredefinedPostMutation = {
-  Response: CreatePredefinedAreaApiV1CapAreasPredefinedPost201;
-  Request: CreatePredefinedAreaApiV1CapAreasPredefinedPostMutationRequest;
-  Errors: CreatePredefinedAreaApiV1CapAreasPredefinedPost422;
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostOptions = {
+  body: CreatePredefinedAreaApiV1CapAreasPredefinedPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostResponses = {
+  "201": CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201;
+  "422": CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreatePredefinedAreaApiV1CapAreasPredefinedPostResponse =
+  | CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus201
+  | CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422;

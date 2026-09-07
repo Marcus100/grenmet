@@ -6,43 +6,44 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterPeriodDetails } from "./RosterPeriodDetails.js";
 
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams = {
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   period_id: string;
 };
 
-/**
- * RosterPeriodDetails
- * @description Period and assignments returned
- */
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGet200 = RosterPeriodDetails;
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200 =
+  RosterPeriodDetails;
 
-/**
- * @description Insufficient permission
- */
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGet403 = any;
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403 = unknown;
 
-/**
- * @description Roster period not found
- */
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGet404 = any;
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGet422 = HTTPValidationError;
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422 =
+  HTTPValidationError;
 
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetQueryResponse =
-  GetPeriodApiV1HrRostersPeriodsPeriodIdGet200;
-
-export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetQuery = {
-  Response: GetPeriodApiV1HrRostersPeriodsPeriodIdGet200;
-  PathParams: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPathParams;
-  Errors:
-    | GetPeriodApiV1HrRostersPeriodsPeriodIdGet403
-    | GetPeriodApiV1HrRostersPeriodsPeriodIdGet404
-    | GetPeriodApiV1HrRostersPeriodsPeriodIdGet422;
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetOptions = {
+  body?: never;
+  path: GetPeriodApiV1HrRostersPeriodsPeriodIdGetPath;
+  query?: never;
+  headers?: never;
 };
+
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponses = {
+  "200": GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200;
+  "403": GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403;
+  "404": GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404;
+  "422": GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type GetPeriodApiV1HrRostersPeriodsPeriodIdGetResponse =
+  | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200
+  | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403
+  | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404
+  | GetPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422;

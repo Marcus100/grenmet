@@ -7,55 +7,48 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserPublic } from "./UserPublic.js";
 import type { UserUpdate } from "./UserUpdate.js";
 
-export type UpdateUserApiV1AuthUsersUserIdPatchPathParams = {
+export type UpdateUserApiV1AuthUsersUserIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * UserPublic
- * @description User updated
- */
-export type UpdateUserApiV1AuthUsersUserIdPatch200 = UserPublic;
+export type UpdateUserApiV1AuthUsersUserIdPatchStatus200 = UserPublic;
 
-/**
- * @description Insufficient privileges
- */
-export type UpdateUserApiV1AuthUsersUserIdPatch403 = any;
+export type UpdateUserApiV1AuthUsersUserIdPatchStatus403 = unknown;
 
-/**
- * @description User not found
- */
-export type UpdateUserApiV1AuthUsersUserIdPatch404 = any;
+export type UpdateUserApiV1AuthUsersUserIdPatchStatus404 = unknown;
 
-/**
- * @description Email already exists
- */
-export type UpdateUserApiV1AuthUsersUserIdPatch409 = any;
+export type UpdateUserApiV1AuthUsersUserIdPatchStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateUserApiV1AuthUsersUserIdPatch422 = HTTPValidationError;
+export type UpdateUserApiV1AuthUsersUserIdPatchStatus422 = HTTPValidationError;
 
-/**
- * UserUpdate
- */
-export type UpdateUserApiV1AuthUsersUserIdPatchMutationRequest = UserUpdate;
+export type UpdateUserApiV1AuthUsersUserIdPatchBody = UserUpdate;
 
-export type UpdateUserApiV1AuthUsersUserIdPatchMutationResponse =
-  UpdateUserApiV1AuthUsersUserIdPatch200;
-
-export type UpdateUserApiV1AuthUsersUserIdPatchMutation = {
-  Response: UpdateUserApiV1AuthUsersUserIdPatch200;
-  Request: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest;
-  PathParams: UpdateUserApiV1AuthUsersUserIdPatchPathParams;
-  Errors:
-    | UpdateUserApiV1AuthUsersUserIdPatch403
-    | UpdateUserApiV1AuthUsersUserIdPatch404
-    | UpdateUserApiV1AuthUsersUserIdPatch409
-    | UpdateUserApiV1AuthUsersUserIdPatch422;
+export type UpdateUserApiV1AuthUsersUserIdPatchOptions = {
+  body: UpdateUserApiV1AuthUsersUserIdPatchBody;
+  path: UpdateUserApiV1AuthUsersUserIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateUserApiV1AuthUsersUserIdPatchResponses = {
+  "200": UpdateUserApiV1AuthUsersUserIdPatchStatus200;
+  "403": UpdateUserApiV1AuthUsersUserIdPatchStatus403;
+  "404": UpdateUserApiV1AuthUsersUserIdPatchStatus404;
+  "409": UpdateUserApiV1AuthUsersUserIdPatchStatus409;
+  "422": UpdateUserApiV1AuthUsersUserIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateUserApiV1AuthUsersUserIdPatchResponse =
+  | UpdateUserApiV1AuthUsersUserIdPatchStatus200
+  | UpdateUserApiV1AuthUsersUserIdPatchStatus403
+  | UpdateUserApiV1AuthUsersUserIdPatchStatus404
+  | UpdateUserApiV1AuthUsersUserIdPatchStatus409
+  | UpdateUserApiV1AuthUsersUserIdPatchStatus422;

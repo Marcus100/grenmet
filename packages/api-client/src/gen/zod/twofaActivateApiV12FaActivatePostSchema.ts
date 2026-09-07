@@ -8,29 +8,21 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 import { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const twofaActivateApiV12FaActivatePost200Schema = z.lazy(
-  () => twoFactorStatusPublicSchema
-);
+export const twofaActivateApiV12FaActivatePostStatus200Schema =
+  twoFactorStatusPublicSchema;
 
-/**
- * @description Invalid or expired code
- */
-export const twofaActivateApiV12FaActivatePost400Schema = z.any();
+export const twofaActivateApiV12FaActivatePostStatus400Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const twofaActivateApiV12FaActivatePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const twofaActivateApiV12FaActivatePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const twofaActivateApiV12FaActivatePostMutationRequestSchema = z.lazy(
-  () => twoFactorCodeRequestSchema
-);
+export const twofaActivateApiV12FaActivatePostResponseSchema =
+  twofaActivateApiV12FaActivatePostStatus200Schema;
 
-export const twofaActivateApiV12FaActivatePostMutationResponseSchema = z.lazy(
-  () => twofaActivateApiV12FaActivatePost200Schema
-);
+export const twofaActivateApiV12FaActivatePostErrorSchema = z.union([
+  twofaActivateApiV12FaActivatePostStatus400Schema,
+  twofaActivateApiV12FaActivatePostStatus422Schema,
+]);
+
+export const twofaActivateApiV12FaActivatePostBodySchema =
+  twoFactorCodeRequestSchema;

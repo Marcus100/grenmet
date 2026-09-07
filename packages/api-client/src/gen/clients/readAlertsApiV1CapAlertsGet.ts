@@ -3,42 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadAlertsApiV1CapAlertsGet422,
-  ReadAlertsApiV1CapAlertsGetQueryParams,
-  ReadAlertsApiV1CapAlertsGetQueryResponse,
+  ReadAlertsApiV1CapAlertsGetOptions,
+  ReadAlertsApiV1CapAlertsGetResponses,
 } from "../models/ReadAlertsApiV1CapAlertsGet.js";
-
-function getReadAlertsApiV1CapAlertsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/alerts` as const };
-  return res;
-}
 
 /**
  * @summary Read Alerts
  * {@link /api/v1/cap/alerts}
  */
-export async function readAlertsApiV1CapAlertsGet(
-  params?: ReadAlertsApiV1CapAlertsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAlertsApiV1CapAlertsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadAlertsApiV1CapAlertsGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadAlertsApiV1CapAlertsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAlertsApiV1CapAlertsGetQueryResponse,
-    ResponseErrorConfig<ReadAlertsApiV1CapAlertsGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAlertsApiV1CapAlertsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/alerts",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadAlertsApiV1CapAlertsGetResponses, ThrowOnError>
+    >
+  );
 }

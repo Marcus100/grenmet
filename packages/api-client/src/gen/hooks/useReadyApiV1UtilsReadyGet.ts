@@ -10,41 +10,39 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readyApiV1UtilsReadyGet } from "../clients/readyApiV1UtilsReadyGet.js";
 import type {
-  ReadyApiV1UtilsReadyGet503,
-  ReadyApiV1UtilsReadyGetQueryResponse,
+  ReadyApiV1UtilsReadyGetStatus200,
+  ReadyApiV1UtilsReadyGetStatus503,
 } from "../models/ReadyApiV1UtilsReadyGet.js";
 
 export const readyApiV1UtilsReadyGetQueryKey = () =>
   [{ url: "/api/v1/utils/ready/" }] as const;
 
-export type ReadyApiV1UtilsReadyGetQueryKey = ReturnType<
+type ReadyApiV1UtilsReadyGetQueryKey = ReturnType<
   typeof readyApiV1UtilsReadyGetQueryKey
 >;
 
 export function readyApiV1UtilsReadyGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readyApiV1UtilsReadyGetQueryKey();
   return queryOptions<
-    ReadyApiV1UtilsReadyGetQueryResponse,
-    ResponseErrorConfig<ReadyApiV1UtilsReadyGet503>,
-    ReadyApiV1UtilsReadyGetQueryResponse,
+    ReadyApiV1UtilsReadyGetStatus200,
+    ResponseErrorConfig<ReadyApiV1UtilsReadyGetStatus503>,
+    ReadyApiV1UtilsReadyGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readyApiV1UtilsReadyGet(config);
+      return readyApiV1UtilsReadyGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -55,40 +53,43 @@ export function readyApiV1UtilsReadyGetQueryOptions(
  * {@link /api/v1/utils/ready/}
  */
 export function useReadyApiV1UtilsReadyGet<
-  TData = ReadyApiV1UtilsReadyGetQueryResponse,
-  TQueryData = ReadyApiV1UtilsReadyGetQueryResponse,
+  TData = ReadyApiV1UtilsReadyGetStatus200,
+  TQueryData = ReadyApiV1UtilsReadyGetStatus200,
   TQueryKey extends QueryKey = ReadyApiV1UtilsReadyGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadyApiV1UtilsReadyGetQueryResponse,
-        ResponseErrorConfig<ReadyApiV1UtilsReadyGet503>,
+        ReadyApiV1UtilsReadyGetStatus200,
+        ResponseErrorConfig<ReadyApiV1UtilsReadyGetStatus503>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
-  const queryKey = queryOptions?.queryKey ?? readyApiV1UtilsReadyGetQueryKey();
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const queryKey =
+    resolvedOptions?.queryKey ?? readyApiV1UtilsReadyGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readyApiV1UtilsReadyGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ReadyApiV1UtilsReadyGet503>
+    ResponseErrorConfig<ReadyApiV1UtilsReadyGetStatus503>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

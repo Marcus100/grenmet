@@ -3,56 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  GoogleCompleteApiV1AuthModernGoogleCompletePost400,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost403,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost422,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostResponses,
 } from "../models/GoogleCompleteApiV1AuthModernGoogleCompletePost.js";
-
-function getGoogleCompleteApiV1AuthModernGoogleCompletePostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/modern/google/complete` as const,
-  };
-  return res;
-}
 
 /**
  * @description Verify Google callback. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify Google callback
  * {@link /api/v1/auth/modern/google/complete}
  */
-export async function googleCompleteApiV1AuthModernGoogleCompletePost(
-  data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest,
-  config: Partial<
-    RequestConfig<GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function googleCompleteApiV1AuthModernGoogleCompletePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    GoogleCompleteApiV1AuthModernGoogleCompletePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
-    ResponseErrorConfig<
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost422
-    >,
-    GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest
-  >({
-    method: "POST",
-    url: getGoogleCompleteApiV1AuthModernGoogleCompletePostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/modern/google/complete",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        GoogleCompleteApiV1AuthModernGoogleCompletePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

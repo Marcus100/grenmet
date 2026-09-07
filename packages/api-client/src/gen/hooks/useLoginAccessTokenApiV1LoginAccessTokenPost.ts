@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { loginAccessTokenApiV1LoginAccessTokenPost } from "../clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
 import type {
-  LoginAccessTokenApiV1LoginAccessTokenPost400,
-  LoginAccessTokenApiV1LoginAccessTokenPost422,
-  LoginAccessTokenApiV1LoginAccessTokenPost429,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest,
-  LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+  LoginAccessTokenApiV1LoginAccessTokenPostOptions,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus400,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus422,
+  LoginAccessTokenApiV1LoginAccessTokenPostStatus429,
 } from "../models/LoginAccessTokenApiV1LoginAccessTokenPost.js";
 
 export const loginAccessTokenApiV1LoginAccessTokenPostMutationKey = () =>
   [{ url: "/api/v1/login/access-token" }] as const;
 
-export type LoginAccessTokenApiV1LoginAccessTokenPostMutationKey = ReturnType<
-  typeof loginAccessTokenApiV1LoginAccessTokenPostMutationKey
->;
-
 export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = loginAccessTokenApiV1LoginAccessTokenPostMutationKey();
   return mutationOptions<
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+    LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
     ResponseErrorConfig<
-      | LoginAccessTokenApiV1LoginAccessTokenPost400
-      | LoginAccessTokenApiV1LoginAccessTokenPost422
-      | LoginAccessTokenApiV1LoginAccessTokenPost429
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus429
     >,
-    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
+    LoginAccessTokenApiV1LoginAccessTokenPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return loginAccessTokenApiV1LoginAccessTokenPost(data, config);
+    mutationFn: async ({ body }) => {
+      return loginAccessTokenApiV1LoginAccessTokenPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function loginAccessTokenApiV1LoginAccessTokenPostMutationOptions<
 export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+      LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
       ResponseErrorConfig<
-        | LoginAccessTokenApiV1LoginAccessTokenPost400
-        | LoginAccessTokenApiV1LoginAccessTokenPost422
-        | LoginAccessTokenApiV1LoginAccessTokenPost429
+        | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+        | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+        | LoginAccessTokenApiV1LoginAccessTokenPostStatus429
       >,
-      { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
+      LoginAccessTokenApiV1LoginAccessTokenPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
   const baseOptions = loginAccessTokenApiV1LoginAccessTokenPostMutationOptions(
     config
   ) as UseMutationOptions<
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+    LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
     ResponseErrorConfig<
-      | LoginAccessTokenApiV1LoginAccessTokenPost400
-      | LoginAccessTokenApiV1LoginAccessTokenPost422
-      | LoginAccessTokenApiV1LoginAccessTokenPost429
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus429
     >,
-    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
+    LoginAccessTokenApiV1LoginAccessTokenPostOptions,
     TContext
   >;
 
   return useMutation<
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+    LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
     ResponseErrorConfig<
-      | LoginAccessTokenApiV1LoginAccessTokenPost400
-      | LoginAccessTokenApiV1LoginAccessTokenPost422
-      | LoginAccessTokenApiV1LoginAccessTokenPost429
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus429
     >,
-    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
+    LoginAccessTokenApiV1LoginAccessTokenPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useLoginAccessTokenApiV1LoginAccessTokenPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse,
+    LoginAccessTokenApiV1LoginAccessTokenPostStatus200,
     ResponseErrorConfig<
-      | LoginAccessTokenApiV1LoginAccessTokenPost400
-      | LoginAccessTokenApiV1LoginAccessTokenPost422
-      | LoginAccessTokenApiV1LoginAccessTokenPost429
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+      | LoginAccessTokenApiV1LoginAccessTokenPostStatus429
     >,
-    { data: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest },
+    LoginAccessTokenApiV1LoginAccessTokenPostOptions,
     TContext
   >;
 }

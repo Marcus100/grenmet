@@ -3,36 +3,39 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse } from "../models/ReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
-
-function getReadAlertsGeojsonApiCapAlertsGeojsonGetUrl() {
-  const res = { method: "GET", url: `/api/cap/alerts.geojson` as const };
-  return res;
-}
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetOptions,
+  ReadAlertsGeojsonApiCapAlertsGeojsonGetResponses,
+} from "../models/ReadAlertsGeojsonApiCapAlertsGeojsonGet.js";
 
 /**
  * @summary Read Alerts Geojson
  * {@link /api/cap/alerts.geojson}
  */
-export async function readAlertsGeojsonApiCapAlertsGeojsonGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAlertsGeojsonApiCapAlertsGeojsonGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadAlertsGeojsonApiCapAlertsGeojsonGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadAlertsGeojsonApiCapAlertsGeojsonGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAlertsGeojsonApiCapAlertsGeojsonGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAlertsGeojsonApiCapAlertsGeojsonGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/cap/alerts.geojson",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadAlertsGeojsonApiCapAlertsGeojsonGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -7,37 +7,33 @@ import * as z from "zod";
 import { capAuditEventListPublicSchema } from "./capAuditEventListPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const readAuditApiV1CapAuditGetQueryParamsSchema = z.object({
-  alert_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  page: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .default(1)
-    .describe("Page number (1-indexed)"),
-  size: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(1000)
-    .default(100)
-    .describe("Items per page"),
-});
+export const readAuditApiV1CapAuditGetQueryAlertIdSchema = z
+  .union([z.uuid(), z.null()])
+  .optional();
 
-/**
- * @description Successful Response
- */
-export const readAuditApiV1CapAuditGet200Schema = z.lazy(
-  () => capAuditEventListPublicSchema
-);
+export const readAuditApiV1CapAuditGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Validation Error
- */
-export const readAuditApiV1CapAuditGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readAuditApiV1CapAuditGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-export const readAuditApiV1CapAuditGetQueryResponseSchema = z.lazy(
-  () => readAuditApiV1CapAuditGet200Schema
-);
+export const readAuditApiV1CapAuditGetStatus200Schema =
+  capAuditEventListPublicSchema;
+
+export const readAuditApiV1CapAuditGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readAuditApiV1CapAuditGetResponseSchema =
+  readAuditApiV1CapAuditGetStatus200Schema;
+
+export const readAuditApiV1CapAuditGetErrorSchema =
+  readAuditApiV1CapAuditGetStatus422Schema;

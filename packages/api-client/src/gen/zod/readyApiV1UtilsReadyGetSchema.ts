@@ -5,18 +5,14 @@
 
 import * as z from "zod";
 
-/**
- * @description Database reachable
- */
-export const readyApiV1UtilsReadyGet200Schema = z
+export const readyApiV1UtilsReadyGetStatus200Schema = z
   .object({})
   .catchall(z.string());
 
-/**
- * @description Database unreachable
- */
-export const readyApiV1UtilsReadyGet503Schema = z.any();
+export const readyApiV1UtilsReadyGetStatus503Schema = z.unknown();
 
-export const readyApiV1UtilsReadyGetQueryResponseSchema = z.lazy(
-  () => readyApiV1UtilsReadyGet200Schema
-);
+export const readyApiV1UtilsReadyGetResponseSchema =
+  readyApiV1UtilsReadyGetStatus200Schema;
+
+export const readyApiV1UtilsReadyGetErrorSchema =
+  readyApiV1UtilsReadyGetStatus503Schema;

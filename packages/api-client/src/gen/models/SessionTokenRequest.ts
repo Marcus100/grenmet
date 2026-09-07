@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * SessionTokenRequest
- */
 export type SessionTokenRequest = {
   /**
    * @minLength 32

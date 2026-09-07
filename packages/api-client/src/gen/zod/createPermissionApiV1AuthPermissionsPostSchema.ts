@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { permissionCreateSchema } from "./permissionCreateSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
 
-/**
- * @description Permission created
- */
-export const createPermissionApiV1AuthPermissionsPost201Schema = z.lazy(
-  () => permissionPublicSchema
-);
+export const createPermissionApiV1AuthPermissionsPostStatus201Schema =
+  permissionPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const createPermissionApiV1AuthPermissionsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createPermissionApiV1AuthPermissionsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createPermissionApiV1AuthPermissionsPostMutationRequestSchema =
-  z.lazy(() => permissionCreateSchema);
+export const createPermissionApiV1AuthPermissionsPostResponseSchema =
+  createPermissionApiV1AuthPermissionsPostStatus201Schema;
 
-export const createPermissionApiV1AuthPermissionsPostMutationResponseSchema =
-  z.lazy(() => createPermissionApiV1AuthPermissionsPost201Schema);
+export const createPermissionApiV1AuthPermissionsPostErrorSchema =
+  createPermissionApiV1AuthPermissionsPostStatus422Schema;
+
+export const createPermissionApiV1AuthPermissionsPostBodySchema =
+  permissionCreateSchema;

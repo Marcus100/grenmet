@@ -1,6 +1,3 @@
 export function GET() {
-  return Response.json(
-    { status: "ok", service: "web-spicewx" },
-    { status: 200 }
-  );
+  return Response.json({ service: "web-gms", status: "ok" }, { status: 200 });
 }

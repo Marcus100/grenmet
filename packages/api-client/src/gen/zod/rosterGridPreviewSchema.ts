@@ -6,10 +6,10 @@
 import * as z from "zod";
 
 export const rosterGridPreviewSchema = z.object({
-  total_people: z.number().int(),
-  matched_people: z.number().int(),
+  total_people: z.int(),
+  matched_people: z.int(),
   unmatched_names: z.array(z.string()),
-  total_assignments: z.number().int(),
+  total_assignments: z.int(),
   errors: z.array(z.string()),
   can_import: z.boolean(),
 });

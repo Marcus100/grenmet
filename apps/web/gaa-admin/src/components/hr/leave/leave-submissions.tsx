@@ -23,7 +23,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function LeaveSubmissions() {
-  const query = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet();
+  const query = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet({});
   const queryClient = useQueryClient();
   const deleteMutation =
     useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete();
@@ -33,9 +33,9 @@ export function LeaveSubmissions() {
   async function remove(id: string) {
     setPendingId(id);
     try {
-      await deleteMutation.mutateAsync({ leave_request_id: id });
+      await deleteMutation.mutateAsync({ path: { leave_request_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey(),
+        queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

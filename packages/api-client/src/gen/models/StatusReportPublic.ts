@@ -6,30 +6,27 @@
 import type { RequestStatus } from "./RequestStatus.js";
 import type { ShiftPeriod } from "./ShiftPeriod.js";
 
-/**
- * StatusReportPublic
- */
 export type StatusReportPublic = {
   submitted_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @type string, date
-   */
-  report_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  report_date: string;
   shift_code: string;
   shift_period?: ShiftPeriod | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   submitted_by_user_id: string;
   all_personnel_reported_on_time?: boolean | null;
@@ -48,17 +45,8 @@ export type StatusReportPublic = {
   navaids_status?: string | null;
   communications_status?: string | null;
   general_remarks?: string | null;
-  /**
-   * @type string
-   */
   status: RequestStatus;
   workflow_instance_id?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

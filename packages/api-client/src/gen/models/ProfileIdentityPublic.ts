@@ -5,22 +5,10 @@
 
 import type { UserStatus } from "./UserStatus.js";
 
-/**
- * ProfileIdentityPublic
- */
 export type ProfileIdentityPublic = {
-  /**
-   * @type string
-   */
   username: string;
-  /**
-   * @type string
-   */
   email: string;
   phone?: string | null;
   avatar_url?: string | null;
-  /**
-   * @type string
-   */
   status: UserStatus;
 };

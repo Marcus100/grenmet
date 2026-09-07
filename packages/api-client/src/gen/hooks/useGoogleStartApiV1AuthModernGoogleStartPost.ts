@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { googleStartApiV1AuthModernGoogleStartPost } from "../clients/googleStartApiV1AuthModernGoogleStartPost.js";
 import type {
-  GoogleStartApiV1AuthModernGoogleStartPost400,
-  GoogleStartApiV1AuthModernGoogleStartPost403,
-  GoogleStartApiV1AuthModernGoogleStartPost422,
-  GoogleStartApiV1AuthModernGoogleStartPostMutationRequest,
-  GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+  GoogleStartApiV1AuthModernGoogleStartPostOptions,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus200,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus400,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus403,
+  GoogleStartApiV1AuthModernGoogleStartPostStatus422,
 } from "../models/GoogleStartApiV1AuthModernGoogleStartPost.js";
 
 export const googleStartApiV1AuthModernGoogleStartPostMutationKey = () =>
   [{ url: "/api/v1/auth/modern/google/start" }] as const;
 
-export type GoogleStartApiV1AuthModernGoogleStartPostMutationKey = ReturnType<
-  typeof googleStartApiV1AuthModernGoogleStartPostMutationKey
->;
-
 export function googleStartApiV1AuthModernGoogleStartPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<GoogleStartApiV1AuthModernGoogleStartPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = googleStartApiV1AuthModernGoogleStartPostMutationKey();
   return mutationOptions<
-    GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+    GoogleStartApiV1AuthModernGoogleStartPostStatus200,
     ResponseErrorConfig<
-      | GoogleStartApiV1AuthModernGoogleStartPost400
-      | GoogleStartApiV1AuthModernGoogleStartPost403
-      | GoogleStartApiV1AuthModernGoogleStartPost422
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus422
     >,
-    { data: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest },
+    GoogleStartApiV1AuthModernGoogleStartPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return googleStartApiV1AuthModernGoogleStartPost(data, config);
+    mutationFn: async ({ body }) => {
+      return googleStartApiV1AuthModernGoogleStartPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function googleStartApiV1AuthModernGoogleStartPostMutationOptions<
 export function useGoogleStartApiV1AuthModernGoogleStartPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+      GoogleStartApiV1AuthModernGoogleStartPostStatus200,
       ResponseErrorConfig<
-        | GoogleStartApiV1AuthModernGoogleStartPost400
-        | GoogleStartApiV1AuthModernGoogleStartPost403
-        | GoogleStartApiV1AuthModernGoogleStartPost422
+        | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+        | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+        | GoogleStartApiV1AuthModernGoogleStartPostStatus422
       >,
-      { data: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest },
+      GoogleStartApiV1AuthModernGoogleStartPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<GoogleStartApiV1AuthModernGoogleStartPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useGoogleStartApiV1AuthModernGoogleStartPost<TContext>(
   const baseOptions = googleStartApiV1AuthModernGoogleStartPostMutationOptions(
     config
   ) as UseMutationOptions<
-    GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+    GoogleStartApiV1AuthModernGoogleStartPostStatus200,
     ResponseErrorConfig<
-      | GoogleStartApiV1AuthModernGoogleStartPost400
-      | GoogleStartApiV1AuthModernGoogleStartPost403
-      | GoogleStartApiV1AuthModernGoogleStartPost422
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus422
     >,
-    { data: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest },
+    GoogleStartApiV1AuthModernGoogleStartPostOptions,
     TContext
   >;
 
   return useMutation<
-    GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+    GoogleStartApiV1AuthModernGoogleStartPostStatus200,
     ResponseErrorConfig<
-      | GoogleStartApiV1AuthModernGoogleStartPost400
-      | GoogleStartApiV1AuthModernGoogleStartPost403
-      | GoogleStartApiV1AuthModernGoogleStartPost422
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus422
     >,
-    { data: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest },
+    GoogleStartApiV1AuthModernGoogleStartPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useGoogleStartApiV1AuthModernGoogleStartPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    GoogleStartApiV1AuthModernGoogleStartPostMutationResponse,
+    GoogleStartApiV1AuthModernGoogleStartPostStatus200,
     ResponseErrorConfig<
-      | GoogleStartApiV1AuthModernGoogleStartPost400
-      | GoogleStartApiV1AuthModernGoogleStartPost403
-      | GoogleStartApiV1AuthModernGoogleStartPost422
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus400
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus403
+      | GoogleStartApiV1AuthModernGoogleStartPostStatus422
     >,
-    { data: GoogleStartApiV1AuthModernGoogleStartPostMutationRequest },
+    GoogleStartApiV1AuthModernGoogleStartPostOptions,
     TContext
   >;
 }

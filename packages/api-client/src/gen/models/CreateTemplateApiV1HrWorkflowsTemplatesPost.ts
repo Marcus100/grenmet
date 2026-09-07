@@ -7,46 +7,38 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowTemplateCreate } from "./WorkflowTemplateCreate.js";
 import type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 
-/**
- * @description Template created
- */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPost200 = any;
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200 = unknown;
 
-/**
- * WorkflowTemplatePublic
- * @description Successful Response
- */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPost201 =
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201 =
   WorkflowTemplatePublic;
 
-/**
- * @description Insufficient permission
- */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPost403 = any;
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPost422 =
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422 =
   HTTPValidationError;
 
-/**
- * WorkflowTemplateCreate
- */
-export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest =
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostBody =
   WorkflowTemplateCreate;
 
-export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse =
-  | CreateTemplateApiV1HrWorkflowsTemplatesPost200
-  | CreateTemplateApiV1HrWorkflowsTemplatesPost201;
-
-export type CreateTemplateApiV1HrWorkflowsTemplatesPostMutation = {
-  Response:
-    | CreateTemplateApiV1HrWorkflowsTemplatesPost200
-    | CreateTemplateApiV1HrWorkflowsTemplatesPost201;
-  Request: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest;
-  Errors:
-    | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-    | CreateTemplateApiV1HrWorkflowsTemplatesPost422;
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostOptions = {
+  body: CreateTemplateApiV1HrWorkflowsTemplatesPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostResponses = {
+  "200": CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200;
+  "201": CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201;
+  "403": CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403;
+  "422": CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateTemplateApiV1HrWorkflowsTemplatesPostResponse =
+  | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus200
+  | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus201
+  | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus403
+  | CreateTemplateApiV1HrWorkflowsTemplatesPostStatus422;

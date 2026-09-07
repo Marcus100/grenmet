@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const absenceReasonAbsenceReasonEnum = {
+export const absenceReason = {
   UNCERTIFIED_SICK: "UNCERTIFIED_SICK",
   ILLNESS_FAMILY_MEMBER: "ILLNESS_FAMILY_MEMBER",
   ILLNESS_ON_JOB: "ILLNESS_ON_JOB",
@@ -11,10 +11,4 @@ export const absenceReasonAbsenceReasonEnum = {
   OTHER: "OTHER",
 } as const;
 
-export type AbsenceReasonAbsenceReasonEnumKey =
-  (typeof absenceReasonAbsenceReasonEnum)[keyof typeof absenceReasonAbsenceReasonEnum];
-
-/**
- * AbsenceReason
- */
-export type AbsenceReason = AbsenceReasonAbsenceReasonEnumKey;
+export type AbsenceReason = (typeof absenceReason)[keyof typeof absenceReason];

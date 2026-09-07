@@ -7,42 +7,35 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { SessionLoginRequest } from "./SessionLoginRequest.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 
-/**
- * SessionLoginResponse
- * @description Session created successfully
- */
-export type LoginSessionApiV1LoginSessionPost200 = SessionLoginResponse;
+export type LoginSessionApiV1LoginSessionPostStatus200 = SessionLoginResponse;
 
-/**
- * @description Incorrect email/password or inactive user
- */
-export type LoginSessionApiV1LoginSessionPost400 = any;
+export type LoginSessionApiV1LoginSessionPostStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type LoginSessionApiV1LoginSessionPost422 = HTTPValidationError;
+export type LoginSessionApiV1LoginSessionPostStatus422 = HTTPValidationError;
 
-/**
- * @description Rate limit exceeded
- */
-export type LoginSessionApiV1LoginSessionPost429 = any;
+export type LoginSessionApiV1LoginSessionPostStatus429 = unknown;
 
-/**
- * SessionLoginRequest
- */
-export type LoginSessionApiV1LoginSessionPostMutationRequest =
-  SessionLoginRequest;
+export type LoginSessionApiV1LoginSessionPostBody = SessionLoginRequest;
 
-export type LoginSessionApiV1LoginSessionPostMutationResponse =
-  LoginSessionApiV1LoginSessionPost200;
-
-export type LoginSessionApiV1LoginSessionPostMutation = {
-  Response: LoginSessionApiV1LoginSessionPost200;
-  Request: LoginSessionApiV1LoginSessionPostMutationRequest;
-  Errors:
-    | LoginSessionApiV1LoginSessionPost400
-    | LoginSessionApiV1LoginSessionPost422
-    | LoginSessionApiV1LoginSessionPost429;
+export type LoginSessionApiV1LoginSessionPostOptions = {
+  body: LoginSessionApiV1LoginSessionPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type LoginSessionApiV1LoginSessionPostResponses = {
+  "200": LoginSessionApiV1LoginSessionPostStatus200;
+  "400": LoginSessionApiV1LoginSessionPostStatus400;
+  "422": LoginSessionApiV1LoginSessionPostStatus422;
+  "429": LoginSessionApiV1LoginSessionPostStatus429;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type LoginSessionApiV1LoginSessionPostResponse =
+  | LoginSessionApiV1LoginSessionPostStatus200
+  | LoginSessionApiV1LoginSessionPostStatus400
+  | LoginSessionApiV1LoginSessionPostStatus422
+  | LoginSessionApiV1LoginSessionPostStatus429;

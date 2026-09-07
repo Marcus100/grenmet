@@ -3,17 +3,11 @@
  * Do not edit manually.
  */
 
-export const importStatusImportStatusEnum = {
+export const importStatus = {
   PENDING: "PENDING",
   VALIDATED: "VALIDATED",
   COMPLETED: "COMPLETED",
   FAILED: "FAILED",
 } as const;
 
-export type ImportStatusImportStatusEnumKey =
-  (typeof importStatusImportStatusEnum)[keyof typeof importStatusImportStatusEnum];
-
-/**
- * ImportStatus
- */
-export type ImportStatus = ImportStatusImportStatusEnumKey;
+export type ImportStatus = (typeof importStatus)[keyof typeof importStatus];

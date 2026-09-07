@@ -7,18 +7,17 @@ import * as z from "zod";
 import { calendarEventKindSchema } from "./calendarEventKindSchema.js";
 
 export const calendarEventCreateSchema = z.object({
-  department_id: z.optional(z.union([z.string(), z.null()])),
+  department_id: z.union([z.string(), z.null()]).optional(),
   title: z.string(),
-  description: z.optional(z.union([z.string(), z.null()])),
-  kind: z.optional(
-    z
-      .lazy(() => calendarEventKindSchema)
-      .describe(
-        "What a department puts on its calendar besides the duty roster."
-      )
-  ),
-  starts_at: z.string().datetime(),
-  ends_at: z.string().datetime(),
-  all_day: z.optional(z.boolean().default(false)),
-  location: z.optional(z.union([z.string(), z.null()])),
+  description: z.union([z.string(), z.null()]).optional(),
+  kind: calendarEventKindSchema
+    .optional()
+    .default("MEETING")
+    .describe(
+      "What a department puts on its calendar besides the duty roster."
+    ),
+  starts_at: z.iso.datetime(),
+  ends_at: z.iso.datetime(),
+  all_day: z.boolean().optional().default(false),
+  location: z.union([z.string(), z.null()]).optional(),
 });

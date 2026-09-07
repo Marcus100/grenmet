@@ -3,60 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateShiftApiV1HrRostersShiftsCodePatch403,
-  UpdateShiftApiV1HrRostersShiftsCodePatch404,
-  UpdateShiftApiV1HrRostersShiftsCodePatch422,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
-  UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
-  UpdateShiftApiV1HrRostersShiftsCodePatchPathParams,
+  UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
+  UpdateShiftApiV1HrRostersShiftsCodePatchResponses,
 } from "../models/UpdateShiftApiV1HrRostersShiftsCodePatch.js";
-
-function getUpdateShiftApiV1HrRostersShiftsCodePatchUrl(
-  code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/rosters/shifts/${code}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a shift catalog entry; set is_active=false to deactivate it (historical rosters are preserved). Requires roster.manage permission.
  * @summary Update or deactivate shift type
  * {@link /api/v1/hr/rosters/shifts/:code}
  */
-export async function updateShiftApiV1HrRostersShiftsCodePatch(
-  code: UpdateShiftApiV1HrRostersShiftsCodePatchPathParams["code"],
-  data: UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateShiftApiV1HrRostersShiftsCodePatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateShiftApiV1HrRostersShiftsCodePatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<UpdateShiftApiV1HrRostersShiftsCodePatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateShiftApiV1HrRostersShiftsCodePatch403
-      | UpdateShiftApiV1HrRostersShiftsCodePatch404
-      | UpdateShiftApiV1HrRostersShiftsCodePatch422
-    >,
-    UpdateShiftApiV1HrRostersShiftsCodePatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateShiftApiV1HrRostersShiftsCodePatchUrl(code).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/rosters/shifts/{code}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateShiftApiV1HrRostersShiftsCodePatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

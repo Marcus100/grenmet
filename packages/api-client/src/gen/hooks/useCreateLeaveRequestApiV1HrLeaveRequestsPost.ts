@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createLeaveRequestApiV1HrLeaveRequestsPost } from "../clients/createLeaveRequestApiV1HrLeaveRequestsPost.js";
 import type {
-  CreateLeaveRequestApiV1HrLeaveRequestsPost403,
-  CreateLeaveRequestApiV1HrLeaveRequestsPost422,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest,
-  CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403,
+  CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422,
 } from "../models/CreateLeaveRequestApiV1HrLeaveRequestsPost.js";
 
 export const createLeaveRequestApiV1HrLeaveRequestsPostMutationKey = () =>
   [{ url: "/api/v1/hr/leave-requests" }] as const;
 
-export type CreateLeaveRequestApiV1HrLeaveRequestsPostMutationKey = ReturnType<
-  typeof createLeaveRequestApiV1HrLeaveRequestsPostMutationKey
->;
-
 export function createLeaveRequestApiV1HrLeaveRequestsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createLeaveRequestApiV1HrLeaveRequestsPostMutationKey();
   return mutationOptions<
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+    CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
     ResponseErrorConfig<
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost422
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422
     >,
-    { data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest },
+    CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createLeaveRequestApiV1HrLeaveRequestsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createLeaveRequestApiV1HrLeaveRequestsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function createLeaveRequestApiV1HrLeaveRequestsPostMutationOptions<
 export function useCreateLeaveRequestApiV1HrLeaveRequestsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+      CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
       ResponseErrorConfig<
-        | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-        | CreateLeaveRequestApiV1HrLeaveRequestsPost422
+        | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+        | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422
       >,
-      { data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest },
+      CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useCreateLeaveRequestApiV1HrLeaveRequestsPost<TContext>(
   const baseOptions = createLeaveRequestApiV1HrLeaveRequestsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+    CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
     ResponseErrorConfig<
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost422
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422
     >,
-    { data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest },
+    CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+    CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
     ResponseErrorConfig<
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost422
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422
     >,
-    { data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest },
+    CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useCreateLeaveRequestApiV1HrLeaveRequestsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateLeaveRequestApiV1HrLeaveRequestsPostMutationResponse,
+    CreateLeaveRequestApiV1HrLeaveRequestsPostStatus201,
     ResponseErrorConfig<
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost403
-      | CreateLeaveRequestApiV1HrLeaveRequestsPost422
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus403
+      | CreateLeaveRequestApiV1HrLeaveRequestsPostStatus422
     >,
-    { data: CreateLeaveRequestApiV1HrLeaveRequestsPostMutationRequest },
+    CreateLeaveRequestApiV1HrLeaveRequestsPostOptions,
     TContext
   >;
 }

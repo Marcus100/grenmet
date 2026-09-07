@@ -10,45 +10,43 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readAccountSecurityApiV1AuthModernSecurityGet } from "../clients/readAccountSecurityApiV1AuthModernSecurityGet.js";
 import type {
-  ReadAccountSecurityApiV1AuthModernSecurityGet401,
-  ReadAccountSecurityApiV1AuthModernSecurityGet403,
-  ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus401,
+  ReadAccountSecurityApiV1AuthModernSecurityGetStatus403,
 } from "../models/ReadAccountSecurityApiV1AuthModernSecurityGet.js";
 
 export const readAccountSecurityApiV1AuthModernSecurityGetQueryKey = () =>
   [{ url: "/api/v1/auth/modern/security" }] as const;
 
-export type ReadAccountSecurityApiV1AuthModernSecurityGetQueryKey = ReturnType<
+type ReadAccountSecurityApiV1AuthModernSecurityGetQueryKey = ReturnType<
   typeof readAccountSecurityApiV1AuthModernSecurityGetQueryKey
 >;
 
 export function readAccountSecurityApiV1AuthModernSecurityGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readAccountSecurityApiV1AuthModernSecurityGetQueryKey();
   return queryOptions<
-    ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+    ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
     ResponseErrorConfig<
-      | ReadAccountSecurityApiV1AuthModernSecurityGet401
-      | ReadAccountSecurityApiV1AuthModernSecurityGet403
+      | ReadAccountSecurityApiV1AuthModernSecurityGetStatus401
+      | ReadAccountSecurityApiV1AuthModernSecurityGetStatus403
     >,
-    ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+    ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readAccountSecurityApiV1AuthModernSecurityGet(config);
+      return readAccountSecurityApiV1AuthModernSecurityGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -59,49 +57,51 @@ export function readAccountSecurityApiV1AuthModernSecurityGetQueryOptions(
  * {@link /api/v1/auth/modern/security}
  */
 export function useReadAccountSecurityApiV1AuthModernSecurityGet<
-  TData = ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
-  TQueryData = ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+  TData = ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
+  TQueryData = ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
   TQueryKey extends
     QueryKey = ReadAccountSecurityApiV1AuthModernSecurityGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+        ReadAccountSecurityApiV1AuthModernSecurityGetStatus200,
         ResponseErrorConfig<
-          | ReadAccountSecurityApiV1AuthModernSecurityGet401
-          | ReadAccountSecurityApiV1AuthModernSecurityGet403
+          | ReadAccountSecurityApiV1AuthModernSecurityGetStatus401
+          | ReadAccountSecurityApiV1AuthModernSecurityGetStatus403
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readAccountSecurityApiV1AuthModernSecurityGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readAccountSecurityApiV1AuthModernSecurityGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadAccountSecurityApiV1AuthModernSecurityGet401
-      | ReadAccountSecurityApiV1AuthModernSecurityGet403
+      | ReadAccountSecurityApiV1AuthModernSecurityGetStatus401
+      | ReadAccountSecurityApiV1AuthModernSecurityGetStatus403
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

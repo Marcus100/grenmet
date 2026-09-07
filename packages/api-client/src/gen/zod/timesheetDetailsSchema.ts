@@ -8,6 +8,6 @@ import { timesheetEntryPublicSchema } from "./timesheetEntryPublicSchema.js";
 import { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 
 export const timesheetDetailsSchema = z.object({
-  timesheet: z.lazy(() => timesheetPublicSchema),
-  entries: z.array(z.lazy(() => timesheetEntryPublicSchema)),
+  timesheet: timesheetPublicSchema,
+  entries: z.array(timesheetEntryPublicSchema),
 });

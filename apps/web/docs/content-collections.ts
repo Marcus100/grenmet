@@ -5,8 +5,12 @@ import { slugifyWithCounter } from "@sindresorhus/slugify";
 import { toString as mdastToString } from "mdast-util-to-string";
 import { mdxAnnotations } from "mdx-annotations";
 import remarkGfm from "remark-gfm";
-import type { Highlighter } from "shiki";
-import { getHighlighter, renderToHtml } from "shiki";
+import {
+  bundledLanguages,
+  createCssVariablesTheme,
+  createHighlighter,
+  hastToHtml,
+} from "shiki";
 import { visit } from "unist-util-visit";
 import { z } from "zod";
 
@@ -18,7 +22,11 @@ interface ExtendedMdxOptions extends MdxOptions {
   recmaPlugins?: NonNullable<MdxOptions["remarkPlugins"]>;
 }
 
-let highlighter: Highlighter | undefined;
+// Share initialization across concurrently compiled pages.
+const highlighter = createHighlighter({
+  themes: [createCssVariablesTheme()],
+  langs: Object.keys(bundledLanguages),
+});
 
 const LANGUAGE_RE = /^language-/;
 
@@ -36,26 +44,25 @@ function rehypeParseCodeBlocks() {
 
 function rehypeShikiHighlight() {
   return async (tree: AstNode) => {
-    highlighter ??= await getHighlighter({ theme: "css-variables" });
-    const h = highlighter;
+    const h = await highlighter;
     visit(tree, "element", (node: AstNode) => {
       if (node.tagName === "pre" && node.children[0]?.tagName === "code") {
         const codeNode = node.children[0];
         const textNode = codeNode.children[0];
         node.properties.code = textNode.value;
         if (node.properties.language) {
-          const tokens = h.codeToThemedTokens(
-            textNode.value,
-            node.properties.language
-          );
-          textNode.value = renderToHtml(tokens, {
-            elements: {
-              pre: ({ children }: { children: string }) => children,
-              code: ({ children }: { children: string }) => children,
-              line: ({ children }: { children: string }) =>
-                `<span>${children}</span>`,
-            },
+          const highlighted = h.codeToHast(textNode.value, {
+            lang: node.properties.language,
+            theme: "css-variables",
           });
+          const pre = highlighted.children[0];
+          const code = pre?.type === "element" ? pre.children[0] : undefined;
+          if (code?.type === "element") {
+            textNode.value = hastToHtml({
+              type: "root",
+              children: code.children,
+            });
+          }
         }
       }
     });
@@ -92,6 +99,7 @@ const pages = defineCollection({
   directory: "src/content",
   include: "**/*.mdx",
   schema: z.object({
+    content: z.string(),
     title: z.string(),
     description: z.string().optional().default(""),
   }),
@@ -112,4 +120,4 @@ const pages = defineCollection({
   },
 });
 
-export default defineConfig({ collections: [pages] });
+export default defineConfig({ content: [pages] });

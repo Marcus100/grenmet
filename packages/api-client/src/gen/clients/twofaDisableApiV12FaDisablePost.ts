@@ -3,50 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  TwofaDisableApiV12FaDisablePost400,
-  TwofaDisableApiV12FaDisablePost422,
-  TwofaDisableApiV12FaDisablePostMutationRequest,
-  TwofaDisableApiV12FaDisablePostMutationResponse,
+  TwofaDisableApiV12FaDisablePostOptions,
+  TwofaDisableApiV12FaDisablePostResponses,
 } from "../models/TwofaDisableApiV12FaDisablePost.js";
-
-function getTwofaDisableApiV12FaDisablePostUrl() {
-  const res = { method: "POST", url: `/api/v1/2fa/disable` as const };
-  return res;
-}
 
 /**
  * @description Disable 2FA after confirming the account password.
  * @summary Disable 2FA
  * {@link /api/v1/2fa/disable}
  */
-export async function twofaDisableApiV12FaDisablePost(
-  data: TwofaDisableApiV12FaDisablePostMutationRequest,
-  config: Partial<
-    RequestConfig<TwofaDisableApiV12FaDisablePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function twofaDisableApiV12FaDisablePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TwofaDisableApiV12FaDisablePostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<TwofaDisableApiV12FaDisablePostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    TwofaDisableApiV12FaDisablePostMutationResponse,
-    ResponseErrorConfig<
-      TwofaDisableApiV12FaDisablePost400 | TwofaDisableApiV12FaDisablePost422
-    >,
-    TwofaDisableApiV12FaDisablePostMutationRequest
-  >({
-    method: "POST",
-    url: getTwofaDisableApiV12FaDisablePostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/2fa/disable",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TwofaDisableApiV12FaDisablePostResponses, ThrowOnError>
+    >
+  );
 }

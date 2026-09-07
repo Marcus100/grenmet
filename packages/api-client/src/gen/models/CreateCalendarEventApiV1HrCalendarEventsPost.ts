@@ -8,49 +8,45 @@ import type { CalendarEventPublic } from "./CalendarEventPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 /**
- * CalendarEventPublic
- * @description Calendar event created
+ * @description A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC.
+ * @type object
  */
-export type CreateCalendarEventApiV1HrCalendarEventsPost201 =
+export type CreateCalendarEventApiV1HrCalendarEventsPostStatus201 =
   CalendarEventPublic;
 
-/**
- * @description Invalid event
- */
-export type CreateCalendarEventApiV1HrCalendarEventsPost400 = any;
+export type CreateCalendarEventApiV1HrCalendarEventsPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateCalendarEventApiV1HrCalendarEventsPost403 = any;
+export type CreateCalendarEventApiV1HrCalendarEventsPostStatus403 = unknown;
 
-/**
- * @description Department not found
- */
-export type CreateCalendarEventApiV1HrCalendarEventsPost404 = any;
+export type CreateCalendarEventApiV1HrCalendarEventsPostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateCalendarEventApiV1HrCalendarEventsPost422 =
+export type CreateCalendarEventApiV1HrCalendarEventsPostStatus422 =
   HTTPValidationError;
 
-/**
- * CalendarEventCreate
- */
-export type CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest =
+export type CreateCalendarEventApiV1HrCalendarEventsPostBody =
   CalendarEventCreate;
 
-export type CreateCalendarEventApiV1HrCalendarEventsPostMutationResponse =
-  CreateCalendarEventApiV1HrCalendarEventsPost201;
-
-export type CreateCalendarEventApiV1HrCalendarEventsPostMutation = {
-  Response: CreateCalendarEventApiV1HrCalendarEventsPost201;
-  Request: CreateCalendarEventApiV1HrCalendarEventsPostMutationRequest;
-  Errors:
-    | CreateCalendarEventApiV1HrCalendarEventsPost400
-    | CreateCalendarEventApiV1HrCalendarEventsPost403
-    | CreateCalendarEventApiV1HrCalendarEventsPost404
-    | CreateCalendarEventApiV1HrCalendarEventsPost422;
+export type CreateCalendarEventApiV1HrCalendarEventsPostOptions = {
+  body: CreateCalendarEventApiV1HrCalendarEventsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateCalendarEventApiV1HrCalendarEventsPostResponses = {
+  "201": CreateCalendarEventApiV1HrCalendarEventsPostStatus201;
+  "400": CreateCalendarEventApiV1HrCalendarEventsPostStatus400;
+  "403": CreateCalendarEventApiV1HrCalendarEventsPostStatus403;
+  "404": CreateCalendarEventApiV1HrCalendarEventsPostStatus404;
+  "422": CreateCalendarEventApiV1HrCalendarEventsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateCalendarEventApiV1HrCalendarEventsPostResponse =
+  | CreateCalendarEventApiV1HrCalendarEventsPostStatus201
+  | CreateCalendarEventApiV1HrCalendarEventsPostStatus400
+  | CreateCalendarEventApiV1HrCalendarEventsPostStatus403
+  | CreateCalendarEventApiV1HrCalendarEventsPostStatus404
+  | CreateCalendarEventApiV1HrCalendarEventsPostStatus422;

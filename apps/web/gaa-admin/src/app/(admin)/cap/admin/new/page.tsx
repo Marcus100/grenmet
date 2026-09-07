@@ -32,6 +32,78 @@ interface AreaRow {
   id: string;
 }
 
+/**
+ * Standard event names, grouped by the hazard the public site files them under.
+ *
+ * CAP `event` is free text and stays free text here — forecasters must be able
+ * to describe something the list does not cover. But the public site groups
+ * warnings by matching this string, so an off-list wording ("Sea Wave
+ * Advisory") lands in the catch-all instead of its hazard. These presets keep
+ * the common cases on the wording that groups correctly.
+ */
+const EVENT_PRESETS: readonly { hazard: string; names: readonly string[] }[] = [
+  {
+    hazard: "Tropical cyclone",
+    names: [
+      "Tropical Cyclone Watch",
+      "Tropical Cyclone Warning",
+      "Hurricane Watch",
+      "Hurricane Warning",
+      "Tropical Storm Watch",
+      "Tropical Storm Warning",
+    ],
+  },
+  {
+    hazard: "Marine",
+    names: [
+      "Small Craft Advisory",
+      "High Surf Advisory",
+      "Gale Warning",
+      "Storm Warning",
+      "High Swell Advisory",
+    ],
+  },
+  {
+    hazard: "Flood and rain",
+    names: [
+      "Heavy Rainfall Advisory",
+      "Heavy Rainfall Watch",
+      "Heavy Rainfall Warning",
+      "Flash Flood Watch",
+      "Flash Flood Warning",
+    ],
+  },
+  {
+    hazard: "Thunderstorm",
+    names: ["Severe Thunderstorm Watch", "Severe Thunderstorm Warning"],
+  },
+  {
+    hazard: "Wind",
+    names: ["High Wind Advisory", "High Wind Warning"],
+  },
+  {
+    hazard: "Heat",
+    names: ["Heat Advisory", "Excessive Heat Warning"],
+  },
+  {
+    hazard: "Dust and haze",
+    names: ["Saharan Dust Advisory", "Saharan Dust Warning"],
+  },
+  {
+    hazard: "Coastal",
+    names: ["Coastal Inundation Advisory", "Rip Current Statement"],
+  },
+  {
+    hazard: "Tsunami",
+    names: [
+      "Tsunami Information Statement",
+      "Tsunami Watch",
+      "Tsunami Advisory",
+      "Tsunami Warning",
+    ],
+  },
+];
+
 const INITIAL_FORM = {
   headline: "",
   event: "",
@@ -158,7 +230,7 @@ export default function NewAlertPage() {
     };
 
     try {
-      await createAlertApiV1CapAlertsPost(payload);
+      await createAlertApiV1CapAlertsPost({ body: payload }).unwrap();
       router.push("/cap");
       router.refresh();
     } catch (err) {
@@ -205,6 +277,25 @@ export default function NewAlertPage() {
         </div>
       ) : null}
 
+      {/* A non-Actual status must be impossible to miss while drafting: the
+          public site badges these as a drill, so a status set by accident
+          either suppresses a real warning or dresses a drill as a real one. */}
+      {form.status === "Actual" ? null : (
+        <div
+          className="mt-4 border-2 border-gm-risk-red bg-gm-risk-yellow px-4 py-3"
+          role="alert"
+        >
+          <p className="font-bold text-body-sm text-gm-text-primary uppercase leading-body-sm">
+            Status: {form.status} — this is not a live warning
+          </p>
+          <p className="mt-1 text-body-sm text-gm-text-primary leading-body-sm">
+            The public site will label this message as a drill and tell readers
+            to take no protective action. Set the status to Actual before
+            issuing a real warning.
+          </p>
+        </div>
+      )}
+
       {/* Form body */}
       <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
         {/* Main column */}
@@ -223,10 +314,18 @@ export default function NewAlertPage() {
 
             <Field label="Event" required>
               <Input
+                list="cap-event-presets"
                 onChange={(e) => update("event", e.target.value)}
                 placeholder="e.g. Tropical Storm"
                 value={form.event}
               />
+              <datalist id="cap-event-presets">
+                {EVENT_PRESETS.flatMap((group) =>
+                  group.names.map((name) => (
+                    <option key={name} label={group.hazard} value={name} />
+                  ))
+                )}
+              </datalist>
             </Field>
 
             <div className="grid gap-4 sm:grid-cols-3">

@@ -5,13 +5,7 @@
 
 import type { WorkflowAction } from "./WorkflowAction.js";
 
-/**
- * WorkflowActionRequest
- */
 export type WorkflowActionRequest = {
-  /**
-   * @type string
-   */
   action: WorkflowAction;
   comments?: string | null;
 };

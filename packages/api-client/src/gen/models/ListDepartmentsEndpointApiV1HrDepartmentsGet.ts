@@ -5,21 +5,26 @@
 
 import type { DepartmentsPublic } from "./DepartmentsPublic.js";
 
-/**
- * DepartmentsPublic
- * @description Departments returned
- */
-export type ListDepartmentsEndpointApiV1HrDepartmentsGet200 = DepartmentsPublic;
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200 =
+  DepartmentsPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ListDepartmentsEndpointApiV1HrDepartmentsGet403 = any;
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403 = unknown;
 
-export type ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse =
-  ListDepartmentsEndpointApiV1HrDepartmentsGet200;
-
-export type ListDepartmentsEndpointApiV1HrDepartmentsGetQuery = {
-  Response: ListDepartmentsEndpointApiV1HrDepartmentsGet200;
-  Errors: ListDepartmentsEndpointApiV1HrDepartmentsGet403;
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponses = {
+  "200": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200;
+  "403": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponse =
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403;

@@ -3,53 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams,
-  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+  ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponses,
 } from "../models/ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
-
-function getReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetUrl(
-  assignment_id: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams["assignment_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/auth/role-assignments/${assignment_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a role assignment by ID (superuser only).
  * @summary Get role assignment by ID
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
-export async function readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet(
-  assignment_id: ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathParams["assignment_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet404
-      | ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetUrl(
-      assignment_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/role-assignments/{assignment_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

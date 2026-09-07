@@ -3,37 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { TwofaSetupApiV12FaSetupPostMutationResponse } from "../models/TwofaSetupApiV12FaSetupPost.js";
-
-function getTwofaSetupApiV12FaSetupPostUrl() {
-  const res = { method: "POST", url: `/api/v1/2fa/setup` as const };
-  return res;
-}
+  TwofaSetupApiV12FaSetupPostOptions,
+  TwofaSetupApiV12FaSetupPostResponses,
+} from "../models/TwofaSetupApiV12FaSetupPost.js";
 
 /**
  * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /2fa/activate.
  * @summary Begin 2FA enrollment
  * {@link /api/v1/2fa/setup}
  */
-export async function twofaSetupApiV12FaSetupPost(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function twofaSetupApiV12FaSetupPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TwofaSetupApiV12FaSetupPostOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<TwofaSetupApiV12FaSetupPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    TwofaSetupApiV12FaSetupPostMutationResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "POST",
-    url: getTwofaSetupApiV12FaSetupPostUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/2fa/setup",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TwofaSetupApiV12FaSetupPostResponses, ThrowOnError>
+    >
+  );
 }

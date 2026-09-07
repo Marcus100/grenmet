@@ -1,314 +1,40 @@
 name: Database Backup
-
 on:
   schedule:
-    # Daily at 2 AM UTC
     - cron: "0 2 * * *"
   workflow_dispatch:
-
-# Shares a group with Deploy to Production so a backup and a deploy never
-# run concurrently on the production runner.
-concurrency:
-  group: prod-droplet
-  cancel-in-progress: false
-
+permissions:
+  contents: read
 jobs:
   backup:
-    name: Database Backup
-    runs-on: [self-hosted, production]
-    timeout-minutes: 30
-    environment:
-      name: production-backup
-    permissions:
-      contents: read
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      fail-fast: false
+      matrix:
+        environment: [staging, production]
+    runs-on: [self-hosted, "${{ matrix.environment }}", core]
+    timeout-minutes: 45
+    concurrency:
+      group: core-${{ matrix.environment }}
+      cancel-in-progress: false
+    environment: ${{ matrix.environment }}
     env:
-      BACKUP_RETENTION_DAYS: 30
-      BACKUP_DIR: /var/backups/grenmet
-
+      AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
+      AWS_EC2_METADATA_DISABLED: "true"
+      DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+      DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+      STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
+      STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
+      STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
+      STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL }}
+      DEPLOY_ENV: ${{ matrix.environment }}
+      COMPOSE_PROJECT: ${{ matrix.environment == 'production' && 'grenmet' || 'grenmet-staging' }}
     steps:
-      - name: Verify database connectivity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          if docker compose -p "grenmet" exec -T db pg_isready -U "$POSTGRES_USER" -d app_prod; then
-            echo "Database ready"
-          else
-            echo "Database not ready" && exit 1
-          fi
-
-      # ── app_prod ────────────────────────────────────────────────────────────────
-
-      - name: Backup app_prod
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$BACKUP_DIR"
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          FILENAME="app_prod_${TIMESTAMP}.dump"
-          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
-
-          docker compose -p "grenmet" exec -T db pg_dump \
-            -U "$POSTGRES_USER" -d app_prod \
-            --format=custom --compress=9 --file="/tmp/backup.dump"
-
-          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
-          chmod 640 "$BACKUP_PATH"
-
-          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
-          echo "app_prod: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
-          echo "APP_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-
-      - name: Verify app_prod backup integrity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TEMP_DB="verify_$(date +%s)"
-          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker cp "$APP_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
-          docker compose -p "grenmet" exec -T db pg_restore \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
-          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
-            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
-          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
-          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
-          echo "app_prod integrity OK ($TABLE_COUNT tables)"
-
-      # ── wxwatch ─────────────────────────────────────────────────────────────────
-
-      - name: Backup wxwatch
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          FILENAME="wxwatch_${TIMESTAMP}.dump"
-          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
-
-          docker compose -p "grenmet" exec -T db pg_dump \
-            -U "$POSTGRES_USER" -d wxwatch \
-            --format=custom --compress=9 --file="/tmp/backup.dump"
-
-          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
-          chmod 640 "$BACKUP_PATH"
-
-          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
-          echo "wxwatch: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
-          echo "WXWATCH_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-
-      - name: Verify wxwatch backup integrity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TEMP_DB="verify_$(date +%s)"
-          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker cp "$WXWATCH_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
-          docker compose -p "grenmet" exec -T db pg_restore \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
-          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
-            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
-          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
-          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
-          echo "wxwatch integrity OK ($TABLE_COUNT tables)"
-
-      # ── wxproducts ───────────────────────────────────────────────────────────────
-
-      - name: Backup wxproducts
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          FILENAME="wxproducts_${TIMESTAMP}.dump"
-          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
-
-          docker compose -p "grenmet" exec -T db pg_dump \
-            -U "$POSTGRES_USER" -d wxproducts \
-            --format=custom --compress=9 --file="/tmp/backup.dump"
-
-          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
-          chmod 640 "$BACKUP_PATH"
-
-          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
-          echo "wxproducts: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
-          echo "WXPRODUCTS_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-
-      - name: Verify wxproducts backup integrity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TEMP_DB="verify_$(date +%s)"
-          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker cp "$WXPRODUCTS_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
-          docker compose -p "grenmet" exec -T db pg_restore \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
-          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
-            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
-          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
-          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
-          echo "wxproducts integrity OK ($TABLE_COUNT tables)"
-
-      # ── janitorial ───────────────────────────────────────────────────────────────
-
-      - name: Backup janitorial
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          FILENAME="janitorial_${TIMESTAMP}.dump"
-          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
-
-          docker compose -p "grenmet" exec -T db pg_dump \
-            -U "$POSTGRES_USER" -d janitorial \
-            --format=custom --compress=9 --file="/tmp/backup.dump"
-
-          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
-          chmod 640 "$BACKUP_PATH"
-
-          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
-          echo "janitorial: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
-          echo "JANITORIAL_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-
-      - name: Verify janitorial backup integrity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TEMP_DB="verify_$(date +%s)"
-          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker cp "$JANITORIAL_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
-          docker compose -p "grenmet" exec -T db pg_restore \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
-          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
-            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
-          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
-          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
-          echo "janitorial integrity OK ($TABLE_COUNT tables)"
-
-      # ── transport ────────────────────────────────────────────────────────────────
-
-      - name: Backup transport
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-          FILENAME="transport_${TIMESTAMP}.dump"
-          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
-
-          docker compose -p "grenmet" exec -T db pg_dump \
-            -U "$POSTGRES_USER" -d transport \
-            --format=custom --compress=9 --file="/tmp/backup.dump"
-
-          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/backup.dump
-          chmod 640 "$BACKUP_PATH"
-
-          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
-          echo "transport: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
-          echo "TRANSPORT_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
-
-      - name: Verify transport backup integrity
-        env:
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-        run: |
-          set -euo pipefail
-          TEMP_DB="verify_$(date +%s)"
-          docker compose -p "grenmet" exec -T db createdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker cp "$TRANSPORT_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
-          docker compose -p "grenmet" exec -T db pg_restore \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
-          TABLE_COUNT=$(docker compose -p "grenmet" exec -T db psql \
-            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
-            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
-          docker compose -p "grenmet" exec -T db dropdb -U "$POSTGRES_USER" "$TEMP_DB"
-          docker compose -p "grenmet" exec -T db rm -f /tmp/verify.dump
-          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
-          echo "transport integrity OK ($TABLE_COUNT tables)"
-
-      # ── Offsite upload ───────────────────────────────────────────────────────────
-
-      - name: Upload backups to DigitalOcean Spaces
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
-          AWS_EC2_METADATA_DISABLED: "true"
-          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
-          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
-        run: |
-          set -euo pipefail
-          command -v aws >/dev/null || { echo "aws CLI is required for Spaces uploads" && exit 1; }
-          : "${AWS_ACCESS_KEY_ID:?DO_SPACES_ACCESS_KEY_ID is required}"
-          : "${AWS_SECRET_ACCESS_KEY:?DO_SPACES_SECRET_ACCESS_KEY is required}"
-          : "${AWS_DEFAULT_REGION:?DO_SPACES_REGION is required}"
-          : "${DO_SPACES_BUCKET:?DO_SPACES_BUCKET is required}"
-          : "${DO_SPACES_ENDPOINT:?DO_SPACES_ENDPOINT is required}"
-
-          UPLOAD_DATE=$(date -u +%Y/%m/%d)
-
-          upload_backup() {
-            local backup_path="$1"
-            local filename
-            local object_key
-
-            filename=$(basename "$backup_path")
-            object_key="production/$UPLOAD_DATE/$filename"
-
-            [ -f "$backup_path" ] && [ -s "$backup_path" ] || { echo "$filename missing or empty" && exit 1; }
-
-            aws s3 cp "$backup_path" "s3://$DO_SPACES_BUCKET/$object_key" \
-              --endpoint-url "$DO_SPACES_ENDPOINT" \
-              --only-show-errors
-
-            aws s3api head-object \
-              --bucket "$DO_SPACES_BUCKET" \
-              --key "$object_key" \
-              --endpoint-url "$DO_SPACES_ENDPOINT" >/dev/null
-
-            echo "Uploaded $filename to s3://$DO_SPACES_BUCKET/$object_key"
-          }
-
-          upload_backup "$APP_BACKUP_PATH"
-          upload_backup "$WXWATCH_BACKUP_PATH"
-          upload_backup "$WXPRODUCTS_BACKUP_PATH"
-          upload_backup "$JANITORIAL_BACKUP_PATH"
-          upload_backup "$TRANSPORT_BACKUP_PATH"
-
-      # ── Retention & summary ──────────────────────────────────────────────────────
-
-      - name: Remove old backups
-        run: |
-          find "$BACKUP_DIR" -name "app_prod_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          find "$BACKUP_DIR" -name "wxwatch_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          find "$BACKUP_DIR" -name "wxproducts_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          find "$BACKUP_DIR" -name "janitorial_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          find "$BACKUP_DIR" -name "transport_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
-          echo "Remaining backups:"
-          ls -lah "$BACKUP_DIR"/*.dump 2>/dev/null || echo "(none)"
-
-      - name: Summary
-        run: |
-          echo "app_prod:   $(du -h "$APP_BACKUP_PATH" | cut -f1)"
-          echo "wxwatch:    $(du -h "$WXWATCH_BACKUP_PATH" | cut -f1)"
-          echo "wxproducts: $(du -h "$WXPRODUCTS_BACKUP_PATH" | cut -f1)"
-          echo "janitorial: $(du -h "$JANITORIAL_BACKUP_PATH" | cut -f1)"
-          echo "transport:  $(du -h "$TRANSPORT_BACKUP_PATH" | cut -f1)"
-          echo "Retention: $BACKUP_RETENTION_DAYS days"
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: main
+          clean: false
+      - name: Back up all authoritative core databases off-host
+        run: bash scripts/production/core.sh backup

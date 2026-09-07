@@ -5,33 +5,15 @@
 
 import type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 
-/**
- * AccountSecurityPublic
- */
 export type AccountSecurityPublic = {
   /**
    * @default 0
    * @type integer | undefined
    */
   recovery_codes_remaining?: number;
-  /**
-   * @type boolean
-   */
   email_verified: boolean;
-  /**
-   * @type boolean
-   */
   google_configured: boolean;
-  /**
-   * @type boolean
-   */
   google_linked: boolean;
-  /**
-   * @type boolean
-   */
   totp_enabled: boolean;
-  /**
-   * @type array
-   */
   sessions: SecuritySessionPublic[];
 };

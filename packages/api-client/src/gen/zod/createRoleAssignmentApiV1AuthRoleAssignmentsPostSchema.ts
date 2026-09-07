@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentCreateSchema } from "./userRoleAssignmentCreateSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 
-/**
- * @description Role assignment created
- */
-export const createRoleAssignmentApiV1AuthRoleAssignmentsPost201Schema = z.lazy(
-  () => userRoleAssignmentPublicSchema
-);
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201Schema =
+  userRoleAssignmentPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const createRoleAssignmentApiV1AuthRoleAssignmentsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequestSchema =
-  z.lazy(() => userRoleAssignmentCreateSchema);
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPostResponseSchema =
+  createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201Schema;
 
-export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponseSchema =
-  z.lazy(() => createRoleAssignmentApiV1AuthRoleAssignmentsPost201Schema);
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPostErrorSchema =
+  createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422Schema;
+
+export const createRoleAssignmentApiV1AuthRoleAssignmentsPostBodySchema =
+  userRoleAssignmentCreateSchema;

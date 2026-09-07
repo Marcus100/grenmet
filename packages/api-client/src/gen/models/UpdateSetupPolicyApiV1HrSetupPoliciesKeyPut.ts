@@ -7,57 +7,44 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PolicyInput } from "./PolicyInput.js";
 import type { PolicyPublic } from "./PolicyPublic.js";
 
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams = {
-  /**
-   * @type string
-   */
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPath = {
   key: string;
 };
 
-/**
- * PolicyPublic
- * @description Successful Response
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut200 = PolicyPublic;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200 = PolicyPublic;
 
-/**
- * @description Administrator access required
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403 = any;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404 = any;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409 = any;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422 =
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422 =
   HTTPValidationError;
 
-/**
- * PolicyInput
- */
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest =
-  PolicyInput;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutBody = PolicyInput;
 
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse =
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut200;
-
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutation = {
-  Response: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut200;
-  Request: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-  PathParams: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams;
-  Errors:
-    | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-    | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-    | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-    | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422;
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions = {
+  body: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutBody;
+  path: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponses = {
+  "200": UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200;
+  "403": UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403;
+  "404": UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404;
+  "409": UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409;
+  "422": UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutResponse =
+  | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200
+  | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+  | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+  | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+  | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422;

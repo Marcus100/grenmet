@@ -3,46 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet403,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet404,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet409,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetOptions,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetResponses,
 } from "../models/ReadSetupPoliciesApiV1HrSetupPoliciesGet.js";
-
-function getReadSetupPoliciesApiV1HrSetupPoliciesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/setup/policies` as const };
-  return res;
-}
 
 /**
  * @description List approval policies.
  * @summary List approval policies
  * {@link /api/v1/hr/setup/policies}
  */
-export async function readSetupPoliciesApiV1HrSetupPoliciesGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readSetupPoliciesApiV1HrSetupPoliciesGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadSetupPoliciesApiV1HrSetupPoliciesGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ReadSetupPoliciesApiV1HrSetupPoliciesGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet403
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet404
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet409
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadSetupPoliciesApiV1HrSetupPoliciesGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/setup/policies",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadSetupPoliciesApiV1HrSetupPoliciesGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }
