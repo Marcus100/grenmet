@@ -17,6 +17,8 @@ jobs:
   ci-api:
     name: CI (API)
     uses: ./.github/workflows/ci-api.yml
+    with:
+      deployment-builds: true
     secrets: inherit
     permissions:
       contents: read
@@ -25,6 +27,8 @@ jobs:
   ci-web:
     name: CI (Web)
     uses: ./.github/workflows/ci-web.yml
+    with:
+      deployment-builds: true
     secrets: inherit
     permissions:
       contents: read
@@ -38,7 +42,6 @@ jobs:
 
   build-api:
     name: Build API image
-    needs: [ci-api]
     uses: ./.github/workflows/build-api-image.yml
     with:
       tag: staging
@@ -46,10 +49,10 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
   build-web:
     name: Build web images
-    needs: [ci-web]
     uses: ./.github/workflows/build-web-images.yml
     with:
       tag: staging
@@ -60,7 +63,7 @@ jobs:
       security-events: write
 
   build-weather:
-    needs: [ci-api, ci-web, api-client]
+    if: ${{ vars.WEATHER_STAGING_ENABLED == 'true' }}
     uses: ./.github/workflows/build-weather-images.yml
     permissions:
       contents: read

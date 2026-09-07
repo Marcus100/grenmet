@@ -16,6 +16,11 @@ on:
       - main
       - dev
   workflow_call:
+    inputs:
+      deployment-builds:
+        description: Deployment pipeline builds and smoke-tests its published images
+        type: boolean
+        default: false
   pull_request:
     branches:
       - main
@@ -25,9 +30,9 @@ on:
 # Cancel in-progress runs when a new workflow on the same PR is triggered
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR; push/called runs are unique per run.
+# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
 concurrency:
-  group: ci-api-${{ github.event.pull_request.number || github.run_id }}
+  group: ci-api-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
   cancel-in-progress: true
 
 env:
@@ -35,6 +40,23 @@ env:
   UV_CACHE_DIR: ~/.cache/uv
 
 jobs:
+  image-selection:
+    name: Select image checks
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.select.outputs.web }}
+      weather: ${{ steps.select.outputs.weather }}
+      api: ${{ steps.select.outputs.api }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Select affected images (full set when comparison is unavailable)
+        id: select
+        env:
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+        run: node scripts/ci/select-images.mjs
+
   # Job 1: Code Quality Checks
   quality:
     name: Code Quality
@@ -189,6 +211,8 @@ jobs:
 
   # Job 4: Docker Build Test
   docker:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.api == 'true'
     name: Docker Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -211,8 +235,8 @@ jobs:
           file: apps/api/fastapi/Dockerfile.prod
           push: false
           tags: test-image:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max,ignore-error=true
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max,ignore-error=true
           outputs: type=docker,dest=/tmp/test-image.tar
 
       - name: Load Docker image for scanning
@@ -221,19 +245,8 @@ jobs:
           docker load -i /tmp/test-image.tar
           echo "SUCCESS Image loaded successfully"
 
-      - name: Smoke test — prod image boots and imports the full app
-        # Runs the actual production image and imports the whole FastAPI app
-        # (all routers/services/deps). Catches crash-on-boot — e.g. a missing
-        # dependency — in the exact artifact that gets deployed, before release.
-        run: |
-          docker run --rm --entrypoint /app/.venv/bin/python \
-            -e PROJECT_NAME=ci \
-            -e SECRET_KEY=ci-secret-key-min-32-characters-long \
-            -e POSTGRES_SERVER=db -e POSTGRES_PORT=5432 \
-            -e POSTGRES_USER=app -e POSTGRES_PASSWORD=ci -e POSTGRES_DB=app \
-            -e FIRST_SUPERUSER=ci@weather.gd -e FIRST_SUPERUSER_PASSWORD=changethis-ci \
-            test-image:latest \
-            -c 'from src.main import app; print("boot-ok: app + routers imported")'
+      - name: Smoke test production imports
+        run: bash scripts/production/smoke-image.sh test-image:latest api
 
       - name: Scan Docker image for vulnerabilities
         continue-on-error: true
@@ -353,7 +366,7 @@ jobs:
   # Final status check
   ci-success:
     name: CI Success
-    needs: [quality, security, test, docker, docs]
+    needs: [image-selection, quality, security, test, docker, docs]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -370,10 +383,12 @@ jobs:
           echo "Docker: ${{ needs.docker.result }}"
           echo "Docs: ${{ needs.docs.result }}"
 
-          if [ "${{ needs.quality.result }}" != "success" ] || \
+          if [ "${{ needs.image-selection.result }}" != "success" ] ||
+             [ "${{ needs.quality.result }}" != "success" ] || \
              [ "${{ needs.security.result }}" != "success" ] || \
              [ "${{ needs.test.result }}" != "success" ] || \
-             [ "${{ needs.docker.result }}" != "success" ] || \
+             { [ "${{ needs.docker.result }}" != "success" ] &&
+               ! { [ "${{ needs.docker.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.api }}" = "false" ]; }; } || \
              [ "${{ needs.docs.result }}" != "success" ]; then
             echo "ERROR One or more CI jobs failed"
             echo "🚫 CI pipeline failed - deployment blocked"

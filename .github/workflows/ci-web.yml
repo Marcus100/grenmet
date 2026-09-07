@@ -1,10 +1,11 @@
 name: CI — Web Apps
 
 on:
-  # No paths filter anywhere. Flow is dev → (PR) → staging → (PR) → main; those
+  # Required workflows always report; image selection happens inside jobs.
+  # No workflow-level paths filter. Flow is dev → (PR) → staging → (PR) → main; those
   # promotion PRs are integration gates that must not skip checks (a path-skipped
-  # required check also deadlocks the PR). Full suite on every push and PR to a
-  # long-lived branch keeps the gates honest and safe to mark "required".
+  # required check also deadlocks the PR). Promotion PRs check every image; dev changes select affected images.
+  # The stable aggregate gate fails on unexpected skips or selection failures.
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
@@ -12,18 +13,40 @@ on:
   pull_request:
     branches: [main, staging, dev]
   workflow_call:
+    inputs:
+      deployment-builds:
+        description: Deployment pipeline builds and smoke-tests its published images
+        type: boolean
+        default: false
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR; push/called runs are unique per run.
+# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
 concurrency:
-  group: ci-web-${{ github.event.pull_request.number || github.run_id }}
+  group: ci-web-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  image-selection:
+    name: Select image checks
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.select.outputs.web }}
+      weather: ${{ steps.select.outputs.weather }}
+      api: ${{ steps.select.outputs.api }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Select affected images (full set when comparison is unavailable)
+        id: select
+        env:
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+        run: node scripts/ci/select-images.mjs
+
   # Job 1: Biome lint/format check (fast, runs on all web code)
   biome:
     name: Biome Check
@@ -151,78 +174,42 @@ jobs:
       - name: Run all TypeScript unit tests
         run: pnpm test
 
-  # Job 7: Build all web apps (validates no build errors)
+  # Stable required gate: absent images are intentional only when selection succeeds.
+  # Runtime Dockerfiles already compile each application; do not rebuild with pnpm.
   build:
     name: Build Web Apps
-    needs: [biome, type-check, peer-check, guardrails, drift, tests, container-smoke, storage-integration]
+    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, container-smoke, storage-integration, weather-images]
+    if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
-
-      - name: Setup Node.js with pnpm
-        uses: ./.github/actions/setup-node
-
-      - name: Build all web apps
+      - name: Verify checks and selected images
         env:
-          # admin-gms validates RESEND_API_KEY at build time via @t3-oss/env-nextjs.
-          # Its WXWATCH/WXPRODUCTS_DATABASE_URL are optional, so no DB URL is needed here.
-          RESEND_API_KEY: re_placeholder
-          EMAILS_FROM_EMAIL: cms@example.test
-          PAYLOAD_SECRET: ci-build-only-placeholder-not-for-runtime-use
-          DATABASE_URL: postgresql://unused:unused@127.0.0.1:1/gms_cms
-        run: pnpm build
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module <<'JS'
+          const results = JSON.parse(process.env.RESULTS);
+          const selection = results['image-selection'];
+          for (const [name, job] of Object.entries(results)) {
+            const key = name === 'container-smoke' ? 'web' : name === 'weather-images' ? 'weather' : null;
+            const omitted = key && selection.result === 'success' && selection.outputs[key] === '[]';
+            if (job.result !== 'success' && !(omitted && job.result === 'skipped')) {
+              console.error(`${name}: ${job.result}`);
+              process.exitCode = 1;
+            }
+          }
+          JS
 
   container-smoke:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.web != '[]'
     name: Container smoke (${{ matrix.app }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - app: auth
-            path: apps/web/auth
-            port: 3000
-            health: /api/health
-          - app: admin
-            path: apps/web/gaa-admin
-            port: 3001
-            health: /api/health
-          - app: docs
-            path: apps/web/docs
-            port: 3002
-            health: /api/health
-          - app: gms
-            path: apps/web/gms
-            port: 3003
-            health: /api/health
-          - app: cms
-            path: apps/web/cms
-            port: 3006
-            health: /api/health
-          - app: cms-migrate
-            path: apps/web/cms
-            target: migrate
-          - app: admin-migrate
-            path: apps/web/gaa-admin
-            target: migrate
-          - app: signal
-            path: apps/web/signal
-            port: 3004
-            health: /api/health
-          - app: mbia
-            path: apps/web/mbia
-            port: 3005
-            health: /api/health
-          - app: events
-            path: apps/web/events
-            port: 3009
-            health: /api/health
-          - app: hono
-            path: apps/api/honoapi
-            port: 4000
-            health: /health
+        include: ${{ fromJSON(needs.image-selection.outputs.web) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
@@ -234,48 +221,15 @@ jobs:
           target: ${{ matrix.target || 'runner' }}
           load: true
           tags: smoke-${{ matrix.app }}:ci
-          cache-from: type=gha,scope=smoke-${{ matrix.app }}
-          cache-to: type=gha,scope=smoke-${{ matrix.app }},mode=max,ignore-error=true
-      - name: Start image and check health
-        if: matrix.target != 'migrate'
+          cache-from: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }}
+          cache-to: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }},mode=max,ignore-error=true
+      - name: Smoke-test the runtime or migration image
         env:
-          APP: ${{ matrix.app }}
+          IMAGE: smoke-${{ matrix.app }}:ci
+          KIND: ${{ matrix.target == 'migrate' && matrix.app || matrix.app == 'auth' && 'auth' || 'web' }}
           PORT: ${{ matrix.port }}
-          HEALTH_PATH: ${{ matrix.health }}
-        run: |
-          set -euo pipefail
-          docker run -d --name smoke -p "127.0.0.1:8080:$PORT" \
-            -e RESEND_API_KEY=ci-placeholder \
-            -e EMAILS_FROM_EMAIL=ci@example.test \
-            -e PAYLOAD_SECRET=ci-only-placeholder-not-for-runtime-use \
-            -e DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms \
-            "smoke-$APP:ci"
-          for attempt in {1..30}; do
-            if curl --fail --silent --max-time 5 "http://127.0.0.1:8080$HEALTH_PATH"; then
-              exit 0
-            fi
-            sleep 2
-          done
-          docker logs smoke
-          exit 1
-      - name: Check migration package imports
-        if: matrix.target == 'migrate'
-        env:
-          APP: ${{ matrix.app }}
-        run: |
-          set -euo pipefail
-          if [[ "$APP" == cms-migrate ]]; then
-            docker run --rm --network none --entrypoint node "smoke-$APP:ci" \
-              --input-type=module -e "await import('payload'); await import('@payloadcms/db-postgres'); import {createRequire} from 'node:module'; createRequire(import.meta.url).resolve('@barrelsgd/tsconfig/tsconfig.nextjs.json')"
-          else
-            docker run --rm --network none --entrypoint node "smoke-$APP:ci" \
-              --input-type=module -e "await import('./apps/web/gaa-admin/scripts/migrate-domain.mjs')"
-          fi
-      - name: Container logs and cleanup
-        if: always()
-        run: |
-          docker logs smoke || true
-          docker rm -f smoke || true
+          HEALTH: ${{ matrix.app == 'hono' && '/health' || '/api/health' }}
+        run: bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
 
   storage-integration:
     name: Core storage integration
@@ -306,6 +260,8 @@ jobs:
         run: node --test apps/web/gaa-admin/scripts/storage.integration.test.mjs apps/web/cms/scripts/storage.integration.test.mjs scripts/production/runtime-role.integration.test.mjs
 
   weather-images:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.weather != '[]'
     name: Weather image build (${{ matrix.name }})
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -314,16 +270,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: surface
-            dockerfile: surface/Dockerfile.deploy
-            target: ""
-          - name: wxwatch
-            dockerfile: infra/weather/Dockerfile.collectors
-            target: wxwatch
-          - name: gms-ingest
-            dockerfile: infra/weather/Dockerfile.collectors
-            target: gms-ingest
+        include: ${{ fromJSON(needs.image-selection.outputs.weather) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
