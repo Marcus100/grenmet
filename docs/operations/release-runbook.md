@@ -193,3 +193,55 @@ come from job logs, not decoded build records.
 - Keep vulnerability baseline review/enforcement and Phase 2 runtime portability
   as explicit outstanding work. Passing report-only scans is not security-policy
   acceptance, and production has not been used as a test target.
+
+
+#### Follow-up: worker probes and migration extraction
+
+Operator diagnostics on `grenmet-staging-01` after the successful run showed
+1.9 GiB RAM, 637 MiB available, 535 MiB swap used, and root storage 43% used.
+Swap occupancy alone does not establish active swapping or explain deployment
+latency. Container block-I/O totals are cumulative, not instantaneous throughput.
+Five healthy worker probes took 9.7–11.7 seconds each; API probes took
+0.08–0.21 seconds. These were steady-state probes around 21:55–21:58 UTC,
+not startup measurements.
+
+The worker settings module loaded CAP publishing and database dependencies for
+every `arq --check` invocation. Task imports now happen inside the task functions,
+with an `on_startup` hook warming and validating them once in the real worker.
+The existing host-specific Redis heartbeat, expiry behavior, intervals and CLI
+remain intact. This uses arq's documented
+[startup hook and health-check mechanisms](https://arq-docs.helpmanual.io/).
+Regression tests exercise the actual CLI with present/missing heartbeat values,
+and startup with available/missing task dependencies, in fresh Python processes.
+
+Five fresh-process settings imports on the same local workspace had a median
+of 1.851 seconds before and 0.320 seconds after the change (about 83% lower).
+This measures imports only, not Redis round trips or staging deployment time.
+Recheck the deployed worker's health logs after promotion before claiming a
+staging speedup. Local database integration tests could not bootstrap because
+the available role lacks CREATE DATABASE; the full CI database suite remains
+required. Local Docker daemon access was denied, so real container acceptance
+also remains required in CI/staging.
+
+The CMS migration dependency layer finished downloading at 21:36:20.829 UTC
+and completed extraction at 21:39:11.670 UTC: approximately 171 seconds of
+extraction, inside the measured image-pull interval. Registry metadata reports
+162,048,837 compressed bytes for that layer. Review migration-only dependency
+requirements and measure storage/CPU/memory pressure during deployment before
+changing image contents or purchasing compute.
+
+The API suite passed 302 tests in 283.30 seconds in the recorded CI run. CI now
+prints its slowest 20 setup/call/teardown durations using
+[pytest's duration reporting](https://docs.pytest.org/en/stable/how-to/usage.html#profiling-test-execution-duration).
+Keep database isolation intact when considering parallel execution.
+
+Keep BuildKit cache `mode=max` until a comparison proves a better choice:
+[Docker documents](https://docs.docker.com/build/cache/backends/) that `min`
+exports final-image layers, while `max` also retains intermediate stages.
+Changing the mode solely to shorten export risks losing expensive builder cache.
+
+For the next staging deployment, capture `vmstat 1 60` and, if already installed,
+`iostat -xz 1 60` during image extraction and startup. Ignore the initial
+since-boot sample; correlate subsequent swap-in/out, I/O wait, CPU steal and disk
+latency with workflow timestamps. These read-only measurements help distinguish
+resource contention from image size and file-count overhead.
