@@ -8,6 +8,7 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/ui/package.json packages/ui/
 COPY packages/auth/package.json packages/auth/
 COPY packages/api-client/package.json packages/api-client/
@@ -34,9 +35,9 @@ FROM source AS builder
 # Build-only placeholders; never copied into the runtime environment.
 RUN PAYLOAD_SECRET=build-only-placeholder-not-for-runtime-use DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms pnpm exec turbo run build --filter=@barrelsgd/web-cms
 
-# Package only this application's production dependency graph.
+# Package the canonical migration config dependencies, excluding the web UI.
 FROM source AS migration-package
-RUN pnpm --filter @barrelsgd/web-cms deploy --legacy --prod /migration-runtime
+RUN pnpm --filter @barrelsgd/cms-migrations deploy --legacy --prod /migration-runtime
 
 FROM base AS migrate
 RUN apk add --no-cache postgresql-client

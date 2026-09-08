@@ -13,8 +13,11 @@ case "$kind" in
       "$image" -c 'from src.main import app; print("boot-ok: app + routers imported")'
     ;;
   cms-migrate)
-    docker run --rm --network none --entrypoint node "$image" --input-type=module \
-      -e "await import('payload'); await import('@payloadcms/db-postgres'); import {createRequire} from 'node:module'; createRequire(import.meta.url).resolve('@barrelsgd/tsconfig/tsconfig.nextjs.json')"
+    docker run --rm --network none --entrypoint node \
+      -e PAYLOAD_SECRET=ci-only-placeholder-not-for-runtime-use \
+      -e DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms \
+      -e RESEND_API_KEY=ci-placeholder -e EMAILS_FROM_EMAIL=ci@example.com \
+      "$image" node_modules/payload/bin.js run scripts/check-migration-runtime.mjs
     ;;
   admin-migrate)
     docker run --rm --network none --entrypoint node "$image" \
