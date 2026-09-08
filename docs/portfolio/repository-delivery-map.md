@@ -99,6 +99,7 @@ away from GMS.
 | `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
+| `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |

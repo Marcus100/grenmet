@@ -83,7 +83,7 @@ A comparable cold-cache/warm-cache pair is still required before claiming
 performance improvement or consistent ten-minute feedback.
 Portable runtime configuration, verified release manifests, authenticated
 synthetic-account tests, vulnerability baseline review/enforcement, and retained
-manifest rollback remain later work. Existing vulnerability scans still report
+manifest rollback remain later work. At that acceptance point, vulnerability scans still reported
 findings without blocking publication; they do not yet enforce the planned
 high/critical policy.
 
@@ -340,3 +340,14 @@ reviewed vulnerability enforcement, runtime environment portability, attested
 release manifests, authenticated staging flows and a schema-compatible rollback
 exercise remain explicit acceptance items. Confirm the CMS image build, actual
 migrations and end-to-end staging checks before the next release behavior change.
+
+
+#### Vulnerability enforcement candidate
+
+The next candidate adds a shared pre-publish image policy gate. See
+[the security baseline](../security.md#image-vulnerability-policy) for coverage,
+exception requirements and the reviewed findings. It intentionally starts with
+no exceptions. The September 8 staging baseline contains fixable high/critical
+findings, so remediation is required before a passing promotion. This source
+change is not evidence of completed security acceptance. Preserve production
+approval and all existing migration and readiness checks while resolving it.

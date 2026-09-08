@@ -96,7 +96,10 @@ test("publishing follows successful smoke verification on the same builder", () 
       "- name: Publish verified image from builder cache"
     );
     assert.ok(verify > 0 && smoke > verify && publish > smoke);
-    const steps = source.slice(verify, source.indexOf("- name: Scan", publish));
+    const steps = source.slice(
+      verify,
+      source.indexOf("- name: Upload", publish)
+    );
     assert.ok(!steps.includes("continue-on-error:"));
     assert.ok(!steps.includes("if:"));
     assert.ok(!steps.includes("setup-buildx-action"));
