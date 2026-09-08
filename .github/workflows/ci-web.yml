@@ -230,6 +230,13 @@ jobs:
           PORT: ${{ matrix.port }}
           HEALTH: ${{ matrix.app == 'hono' && '/health' || '/api/health' }}
         run: bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
+      - name: Enforce image vulnerability policy
+        uses: ./.github/actions/scan-image
+        with:
+          image: smoke-${{ matrix.app }}:ci
+          scope: ${{ matrix.path }}/Dockerfile#${{ matrix.target || 'runner' }}
+          name: ${{ matrix.app }}
+
 
   storage-integration:
     name: Core storage integration
@@ -280,6 +287,14 @@ jobs:
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.target }}
           push: false
+          load: true
+          tags: weather-${{ matrix.name }}:ci
           platforms: linux/amd64
           cache-from: type=gha,scope=weather-${{ matrix.name }}
           cache-to: type=gha,scope=weather-${{ matrix.name }},mode=max,ignore-error=true
+      - name: Enforce weather image vulnerability policy
+        uses: ./.github/actions/scan-image
+        with:
+          image: weather-${{ matrix.name }}:ci
+          scope: ${{ matrix.dockerfile }}#${{ matrix.target || 'runner' }}
+          name: ${{ matrix.name }}
