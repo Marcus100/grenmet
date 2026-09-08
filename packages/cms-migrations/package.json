@@ -1,0 +1,17 @@
+{
+  "name": "@barrelsgd/cms-migrations",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Runtime dependencies for the existing CMS migration configuration",
+  "files": [],
+  "dependencies": {
+    "payload": "catalog:",
+    "@payloadcms/db-postgres": "catalog:",
+    "@payloadcms/email-resend": "catalog:",
+    "graphql": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:",
+    "zod": "catalog:",
+    "pg": "catalog:",
+    "@barrelsgd/api-client": "workspace:*"
+  }
+}
