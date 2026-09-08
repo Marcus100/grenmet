@@ -289,3 +289,54 @@ denied, so image verification and actual migration execution must pass CI and
 staging before accepting this change. Compare image size, pull/extraction time
 and migration success on the next staging run; retain the previous image for
 schema-compatible rollback.
+
+
+#### Verified admin packaging and next CMS reduction
+
+Staging run [34168206336](https://github.com/Marcus100/grenmet/actions/runs/34168206336)
+passed the admin image's eleven runtime checks, core storage integration,
+actual migrations, readiness and external smoke checks. For linux/amd64, registry
+manifest layer sizes totalled 211,584,675 bytes before and 61,929,795 bytes after.
+The admin dependency layer fell from 151,116,751 to 1,461,355 compressed bytes.
+Observed extraction for that layer fell from about 142 seconds to 5.3 seconds;
+admin image pull elapsed time fell from 3m40s to 47s. Concurrent image pulls and
+cache conditions prevent treating these timings as a controlled benchmark.
+
+The verified admin image index digest is
+`sha256:105bdcc940301f78a76ea1dd9cd4f4a7cc3563f5d3be5e31f8ed76ccda3cc09e`.
+Total staging pipeline elapsed time increased from 13m32s to 14m22s, while the
+deployment job decreased from 7m03s to 6m47s. Pre-deployment work therefore offset
+the delivery improvement. CMS remained the last image pull at about 3m15s.
+
+The CMS migration image now uses `packages/cms-migrations`, which retains the
+canonical app config and its runtime imports while excluding Next.js UI
+packages. Local isolated deployment measurements on September 8 were:
+
+| Dependency footprint | Web application graph | Migration graph |
+| --- | --- | --- |
+| Installed packages reported by pnpm | 388 | 142 |
+| Regular files excluding symlinks | 49,086 | 23,761 |
+| Sum of regular-file bytes | 686,071,650 | 204,255,586 |
+
+This is approximately 70% fewer unpacked dependency bytes. It does not establish
+compressed image size or staging delivery savings. The reduced runtime loaded
+the canonical config and migration modules using Payload's CLI, including with
+the email adapter configured. Missing shared tsconfig and missing migration
+assets must fail verification. The image smoke gate exercises this path with
+networking disabled and test-only configuration; actual migrations remain behind
+the database integration and staging gates.
+
+This uses [pnpm's supported portable packaging](https://pnpm.io/cli/deploy),
+[Docker's test-before-push pattern](https://docs.docker.com/build/ci/github-actions/test-before-push/)
+and [Payload's standard migration flow](https://payloadcms.com/docs/database/migrations).
+The `--legacy` deploy flag is pnpm's documented compatibility option for the
+repository's non-injected workspace dependencies, not a separate package manager
+or an unlocked install. No production credentials or environment files are used
+for image verification. Existing pinned base images, non-root runtime users,
+migration locks, schema-push refusal and deployment approvals remain required.
+
+This packaging work does not complete the security or release-promotion plan:
+reviewed vulnerability enforcement, runtime environment portability, attested
+release manifests, authenticated staging flows and a schema-compatible rollback
+exercise remain explicit acceptance items. Confirm the CMS image build, actual
+migrations and end-to-end staging checks before the next release behavior change.
