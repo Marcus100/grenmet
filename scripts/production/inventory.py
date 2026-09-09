@@ -2,6 +2,7 @@
 """Read-only configured and actual storage inventory. Output is an allowlist."""
 import argparse
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -10,10 +11,50 @@ COMPOSE = ["infra/docker/docker-compose.yml", "infra/docker/docker-compose.deplo
 
 
 def capture(args):
-    result = subprocess.run(args, capture_output=True, text=True)
+    result = subprocess.run(args, capture_output=True, text=True, timeout=60)
     if result.returncode:
         raise RuntimeError("Inventory command unavailable; run on the configured Docker host")
     return result.stdout
+
+
+def service_inventory(project):
+    """Compare one core project to current configuration; never mutate Docker."""
+    model = json.loads(capture([
+        "docker", "compose", "-f", str(ROOT / "infra/docker/docker-compose.deploy.yml"),
+        "config", "--no-interpolate", "--no-env-resolution", "--no-consistency", "--format", "json",
+    ]))
+    expected = sorted(model["services"])
+    if not expected:
+        raise RuntimeError("Current service configuration is empty")
+    identifiers = capture(["docker", "ps", "-aq", "--filter", f"label=com.docker.compose.project={project}"]).split()
+    containers = []
+    images = {}
+    for identifier in identifiers:
+        item = json.loads(capture(["docker", "container", "inspect", identifier]))[0]
+        labels = item["Config"].get("Labels") or {}
+        if labels.get("com.docker.compose.project") != project:
+            raise RuntimeError("Container ownership changed during inventory; retry")
+        service = labels.get("com.docker.compose.service")
+        if item["Image"] not in images:
+            image = json.loads(capture(["docker", "image", "inspect", item["Image"]]))[0]
+            images[item["Image"]] = image.get("RepoDigests") or []
+        containers.append({
+            "id": item["Id"], "container": item["Name"], "project": project,
+            "service": service, "status": item["State"]["Status"],
+            "restart_policy": item.get("HostConfig", {}).get("RestartPolicy", {}).get("Name"),
+            "classification": "current" if service in expected else "unexpected-review-required",
+            "legacy_service": service in {"web-hurricaneplan", "web-spicewx"},
+            "oneoff": labels.get("com.docker.compose.oneoff"),
+            "image": item["Config"]["Image"], "image_id": item["Image"],
+            "image_digests": images[item["Image"]],
+            "mounts": [{key: mount.get(key) for key in ["Type", "Name", "Source", "Destination", "RW"]} for mount in item.get("Mounts", [])],
+            "networks": sorted(item.get("NetworkSettings", {}).get("Networks", {})),
+            "routing": {key: value for key, value in labels.items() if key == "traefik.enable" or re.fullmatch(r"traefik\.http\.routers\.[^.]+\.(rule|entrypoints|service|tls\.certresolver)", key) or re.fullmatch(r"traefik\.http\.services\.[^.]+\.loadbalancer\.server\.port", key)},
+        })
+    return {"schema_version": 1, "project": project, "expected_services": expected,
+            "containers": sorted(containers, key=lambda item: item["container"]),
+            "unexpected_services": sorted({item["service"] or "<missing-service-label>" for item in containers if item["classification"] != "current"}),
+            "note": "Read-only snapshot, not retirement approval. Review traffic, writable data and recovery before stopping any container."}
 
 
 def configured():
@@ -52,7 +93,16 @@ def database_inventory(container):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--configured-only", action="store_true")
+    parser.add_argument("--services-only", action="store_true", help="Read-only core service/router inventory; no database queries")
+    parser.add_argument("--project", choices=["grenmet", "grenmet-staging"])
     args = parser.parse_args()
+    if args.services_only:
+        if not args.project or args.configured_only:
+            parser.error("--services-only requires --project and cannot be combined with --configured-only")
+        print(json.dumps(service_inventory(args.project)))
+        return
+    if args.project:
+        parser.error("--project requires --services-only")
     configured()
     if args.configured_only:
         return
@@ -68,5 +118,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except RuntimeError as error:
-        raise SystemExit(str(error)) from None
+    except (RuntimeError, OSError, ValueError, KeyError, IndexError, TypeError, subprocess.TimeoutExpired):
+        raise SystemExit("Inventory failed; run on the configured Docker host and retry. No retirement decision was produced.") from None

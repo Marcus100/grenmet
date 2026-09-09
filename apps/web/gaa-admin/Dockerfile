@@ -1,10 +1,19 @@
 # syntax=docker/dockerfile:1
 FROM node:24-alpine@sha256:a0b9bf06e4e6193cf7a0f58816cc935ff8c2a908f81e6f1a95432d679c54fbfd AS base
+RUN apk upgrade --no-cache
+
+# Applications and migrations run directly with Node; keep package managers in builders.
+FROM base AS runtime-base
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-v* && \
+    rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack \
+          /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/yarn /usr/local/bin/yarnpkg
+
+FROM base AS build-base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN apk upgrade --no-cache && corepack enable pnpm
+RUN corepack enable pnpm
 
-FROM base AS dependencies
+FROM build-base AS dependencies
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
@@ -54,7 +63,7 @@ RUN mkdir -p apps/web/gaa-admin/public
 FROM dependencies AS migration-package
 RUN pnpm --filter @barrelsgd/admin-migrations deploy --legacy --prod /migration-runtime
 
-FROM base AS migrate
+FROM runtime-base AS migrate
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=migration-package /migration-runtime/node_modules ./apps/web/gaa-admin/node_modules
@@ -66,7 +75,7 @@ COPY --from=source /app/apps/web/gaa-admin/src/db ./apps/web/gaa-admin/src/db
 USER node
 CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs && node apps/web/gaa-admin/scripts/seed-transport.mjs && node apps/web/gaa-admin/scripts/seed-janitorial.mjs && node apps/web/gaa-admin/scripts/verify-databases.mjs"]
 
-FROM base AS runner
+FROM runtime-base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
