@@ -50,6 +50,7 @@ export { googleFinishApiV1AuthModernGoogleFinishPost } from "./googleFinishApiV1
 export { googleStartApiV1AuthModernGoogleStartPost } from "./googleStartApiV1AuthModernGoogleStartPost.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./healthCheckApiV1UtilsHealthCheckGet.js";
 export { importAlertApiV1CapAlertsImportPost } from "./importAlertApiV1CapAlertsImportPost.js";
+export { importCatalogueApiV1HrSetupCataloguePost } from "./importCatalogueApiV1HrSetupCataloguePost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./importCsvApiV1HrRostersImportCsvPost.js";
 export { importGridApiV1HrRostersImportGridPost } from "./importGridApiV1HrRostersImportGridPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
@@ -66,6 +67,7 @@ export { loginSessionApiV1LoginSessionPost } from "./loginSessionApiV1LoginSessi
 export { logoutAllSessionsApiV1LoginSessionLogoutAllPost } from "./logoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
 export { logoutSessionApiV1LoginSessionLogoutPost } from "./logoutSessionApiV1LoginSessionLogoutPost.js";
 export { offboardStaffApiV1HrSetupStaffUserIdOffboardPost } from "./offboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export { previewCatalogueApiV1HrSetupCatalogueGet } from "./previewCatalogueApiV1HrSetupCatalogueGet.js";
 export { publishAlertApiV1CapAlertsAlertIdPublishPost } from "./publishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "./publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "./readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";

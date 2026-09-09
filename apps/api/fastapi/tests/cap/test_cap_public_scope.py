@@ -13,6 +13,9 @@ from typing import Any
 
 import httpx
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.baseline.models import ApprovalPolicy
 
 pytestmark = pytest.mark.asyncio
 
@@ -51,10 +54,12 @@ async def _publish_alert(
 
 async def test_restricted_alert_hidden_from_public_feeds(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    _ = db_async
+    # Explicit single-actor policy for publication/feed tests.
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
     public_id = await _publish_alert(
         async_client, superuser_token_headers_async, scope="Public"
     )
@@ -87,10 +92,12 @@ async def test_restricted_alert_hidden_from_public_feeds(
 
 async def test_private_alert_hidden_from_public_feeds(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    _ = db_async
+    # Explicit single-actor policy for publication/feed tests.
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
     private_id = await _publish_alert(
         async_client,
         superuser_token_headers_async,
@@ -109,7 +116,7 @@ async def test_private_alert_hidden_from_public_feeds(
 
 async def test_catalogs_requires_authentication(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     _ = db_async

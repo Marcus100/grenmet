@@ -53,6 +53,7 @@ export { googleFinishApiV1AuthModernGoogleFinishPost } from "./clients/googleFin
 export { googleStartApiV1AuthModernGoogleStartPost } from "./clients/googleStartApiV1AuthModernGoogleStartPost.js";
 export { healthCheckApiV1UtilsHealthCheckGet } from "./clients/healthCheckApiV1UtilsHealthCheckGet.js";
 export { importAlertApiV1CapAlertsImportPost } from "./clients/importAlertApiV1CapAlertsImportPost.js";
+export { importCatalogueApiV1HrSetupCataloguePost } from "./clients/importCatalogueApiV1HrSetupCataloguePost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./clients/importCsvApiV1HrRostersImportCsvPost.js";
 export { importGridApiV1HrRostersImportGridPost } from "./clients/importGridApiV1HrRostersImportGridPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./clients/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
@@ -69,6 +70,7 @@ export { loginSessionApiV1LoginSessionPost } from "./clients/loginSessionApiV1Lo
 export { logoutAllSessionsApiV1LoginSessionLogoutAllPost } from "./clients/logoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
 export { logoutSessionApiV1LoginSessionLogoutPost } from "./clients/logoutSessionApiV1LoginSessionLogoutPost.js";
 export { offboardStaffApiV1HrSetupStaffUserIdOffboardPost } from "./clients/offboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export { previewCatalogueApiV1HrSetupCatalogueGet } from "./clients/previewCatalogueApiV1HrSetupCatalogueGet.js";
 export { publishAlertApiV1CapAlertsAlertIdPublishPost } from "./clients/publishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "./clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "./clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
@@ -429,6 +431,11 @@ export {
   useImportAlertApiV1CapAlertsImportPost,
 } from "./hooks/useImportAlertApiV1CapAlertsImportPost.js";
 export {
+  importCatalogueApiV1HrSetupCataloguePostMutationKey,
+  importCatalogueApiV1HrSetupCataloguePostMutationOptions,
+  useImportCatalogueApiV1HrSetupCataloguePost,
+} from "./hooks/useImportCatalogueApiV1HrSetupCataloguePost.js";
+export {
   importCsvApiV1HrRostersImportCsvPostMutationKey,
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
@@ -508,6 +515,11 @@ export {
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions,
   useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost,
 } from "./hooks/useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export {
+  previewCatalogueApiV1HrSetupCatalogueGetQueryKey,
+  previewCatalogueApiV1HrSetupCatalogueGetQueryOptions,
+  usePreviewCatalogueApiV1HrSetupCatalogueGet,
+} from "./hooks/usePreviewCatalogueApiV1HrSetupCatalogueGet.js";
 export {
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey,
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions,
@@ -1146,6 +1158,8 @@ export { capStatus } from "./models/CapStatus.js";
 export type { CapUrgency } from "./models/CapUrgency.js";
 export { capUrgency } from "./models/CapUrgency.js";
 export type { CapValidationResult } from "./models/CapValidationResult.js";
+export type { CatalogueApply } from "./models/CatalogueApply.js";
+export type { CataloguePreview } from "./models/CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./models/CheckoutSessionPublic.js";
 export type {
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
@@ -1608,6 +1622,17 @@ export type {
   ImportAlertApiV1CapAlertsImportPostStatus422,
 } from "./models/ImportAlertApiV1CapAlertsImportPost.js";
 export type {
+  ImportCatalogueApiV1HrSetupCataloguePostBody,
+  ImportCatalogueApiV1HrSetupCataloguePostOptions,
+  ImportCatalogueApiV1HrSetupCataloguePostResponse,
+  ImportCatalogueApiV1HrSetupCataloguePostResponses,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus200,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus403,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus404,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus409,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus422,
+} from "./models/ImportCatalogueApiV1HrSetupCataloguePost.js";
+export type {
   ImportCsvApiV1HrRostersImportCsvPostBody,
   ImportCsvApiV1HrRostersImportCsvPostOptions,
   ImportCsvApiV1HrRostersImportCsvPostResponse,
@@ -1791,6 +1816,17 @@ export type { PersonnelStatus } from "./models/PersonnelStatus.js";
 export { personnelStatus } from "./models/PersonnelStatus.js";
 export type { PolicyInput } from "./models/PolicyInput.js";
 export type { PolicyPublic } from "./models/PolicyPublic.js";
+export type {
+  PreviewCatalogueApiV1HrSetupCatalogueGetOptions,
+  PreviewCatalogueApiV1HrSetupCatalogueGetQuery,
+  PreviewCatalogueApiV1HrSetupCatalogueGetResponse,
+  PreviewCatalogueApiV1HrSetupCatalogueGetResponses,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus200,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus403,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus404,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus409,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus422,
+} from "./models/PreviewCatalogueApiV1HrSetupCatalogueGet.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
@@ -2941,6 +2977,8 @@ export { capSnapshotPublicSchema } from "./zod/capSnapshotPublicSchema.js";
 export { capStatusSchema } from "./zod/capStatusSchema.js";
 export { capUrgencySchema } from "./zod/capUrgencySchema.js";
 export { capValidationResultSchema } from "./zod/capValidationResultSchema.js";
+export { catalogueApplySchema } from "./zod/catalogueApplySchema.js";
+export { cataloguePreviewSchema } from "./zod/cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./zod/checkoutSessionPublicSchema.js";
 export {
   closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchErrorSchema,
@@ -3354,6 +3392,16 @@ export {
   importAlertApiV1CapAlertsImportPostStatus422Schema,
 } from "./zod/importAlertApiV1CapAlertsImportPostSchema.js";
 export {
+  importCatalogueApiV1HrSetupCataloguePostBodySchema,
+  importCatalogueApiV1HrSetupCataloguePostErrorSchema,
+  importCatalogueApiV1HrSetupCataloguePostResponseSchema,
+  importCatalogueApiV1HrSetupCataloguePostStatus200Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus403Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus404Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus409Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus422Schema,
+} from "./zod/importCatalogueApiV1HrSetupCataloguePostSchema.js";
+export {
   importCsvApiV1HrRostersImportCsvPostBodySchema,
   importCsvApiV1HrRostersImportCsvPostErrorSchema,
   importCsvApiV1HrRostersImportCsvPostResponseSchema,
@@ -3522,6 +3570,16 @@ export { permissionPublicSchema } from "./zod/permissionPublicSchema.js";
 export { personnelStatusSchema } from "./zod/personnelStatusSchema.js";
 export { policyInputSchema } from "./zod/policyInputSchema.js";
 export { policyPublicSchema } from "./zod/policyPublicSchema.js";
+export {
+  previewCatalogueApiV1HrSetupCatalogueGetErrorSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetQueryDepartmentIdSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetResponseSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus200Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus403Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus404Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus409Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus422Schema,
+} from "./zod/previewCatalogueApiV1HrSetupCatalogueGetSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";

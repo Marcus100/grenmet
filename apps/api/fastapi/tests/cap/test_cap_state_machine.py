@@ -3,9 +3,10 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.baseline.models import ApprovalPolicy
 from src.cap import service as cap_service
 from src.cap.exceptions import CapStateError
-from src.cap.models import CapLifecycleState
+from src.cap.models import CapAlert, CapLifecycleState
 from src.cap.schemas import CapAlertAction
 from src.cap.service import (
     approve_alert,
@@ -16,6 +17,7 @@ from src.cap.service import (
     submit_alert,
     update_alert,
 )
+from src.exceptions import AppException
 from tests.factories import make_user
 
 # Minimal valid alert payload shared across tests
@@ -42,6 +44,10 @@ _VALID_PAYLOAD_DICT = {
 async def _create_alert_for_test(db_async, user):
     from src.cap.schemas import CapAlertCreate
 
+    # Transition tests deliberately exercise a configured single-actor policy.
+    if await db_async.get(ApprovalPolicy, "cap") is None:
+        db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+        await db_async.commit()
     return await create_alert(
         session=db_async,
         current_user=user,
@@ -241,3 +247,20 @@ async def test_update_published_alert_raises(db_async: AsyncSession) -> None:
             alert_id=alert.id,
             payload=CapAlertUpdate(note="Cannot update published"),
         )
+
+
+async def test_submit_without_policy_preserves_draft(db_async: AsyncSession) -> None:
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    policy = await db_async.get(ApprovalPolicy, "cap")
+    await db_async.delete(policy)
+    await db_async.commit()
+    with pytest.raises(AppException):
+        await submit_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(),
+        )
+    stored = await db_async.get(CapAlert, alert.id)
+    assert stored.lifecycle_state == CapLifecycleState.DRAFT

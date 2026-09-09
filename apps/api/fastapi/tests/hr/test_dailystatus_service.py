@@ -10,10 +10,12 @@ from src.hr.dailystatus.models import PersonnelStatus
 from src.hr.dailystatus.schemas import StatusReportCreate, StatusReportEntryInput
 from src.hr.dailystatus.service import create_status_report
 from src.hr.models import RequestStatus
+from src.hr.workflow.models import WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_user,
 )
 
@@ -41,6 +43,8 @@ async def test_create_status_report_with_entries(db_async: AsyncSession) -> None
     dept = await make_department(db_async, "dept_status_ok")
     role, _ = await make_role_with_permission(db_async, "status.report.create")
     await assign_role(db_async, user=user, role=role)
+
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.STATUS_REPORT)
 
     report, entries = await create_status_report(
         session=db_async,

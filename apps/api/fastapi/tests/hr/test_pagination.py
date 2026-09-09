@@ -9,6 +9,7 @@ from src.hr.leave.service import create_leave_request, list_leave_requests
 from tests.factories import (
     assign_role,
     make_department,
+    make_ready_staff,
     make_role_with_permission,
     make_user,
 )
@@ -19,11 +20,13 @@ async def _seed_leave_requests(db: AsyncSession, n: int):
     dept = await make_department(db, "dept_pagination")
     role, _ = await make_role_with_permission(db, "leave.request.create.self")
     await assign_role(db, user=user, role=role)
+    await make_ready_staff(db, user, dept.id)
     for _ in range(n):
         await create_leave_request(
             session=db,
             current_user=user,
             payload=LeaveRequestCreate(
+                as_draft=True,
                 department_id=dept.id,
                 leave_type="VACATION",
                 start_date="2026-07-01",

@@ -2,8 +2,10 @@ import {
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
   balanceInputSchema,
   gradeInputSchema,
+  importCatalogueApiV1HrSetupCataloguePost,
   offboardStaffApiV1HrSetupStaffUserIdOffboardPost,
   policyInputSchema,
+  previewCatalogueApiV1HrSetupCatalogueGet,
   readSetupGradesApiV1HrSetupGradesGet,
   readSetupPoliciesApiV1HrSetupPoliciesGet,
   readStaffSetupApiV1HrSetupStaffGet,
@@ -47,4 +49,13 @@ export const recordBalance = (id: string, body: unknown) =>
 export const approveRegistration = (id: string) =>
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost({
     path: { user_id: id },
+  }).unwrap();
+
+export const previewCatalogue = (departmentId: string) =>
+  previewCatalogueApiV1HrSetupCatalogueGet({
+    query: { department_id: departmentId },
+  }).unwrap();
+export const importCatalogue = (departmentId: string) =>
+  importCatalogueApiV1HrSetupCataloguePost({
+    body: { department_id: departmentId },
   }).unwrap();

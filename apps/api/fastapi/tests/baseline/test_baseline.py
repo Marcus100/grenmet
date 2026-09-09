@@ -131,3 +131,42 @@ async def test_pending_staff_grade_edit_updates_profile_source_and_preserves_log
         and staff.status == "draft"
     )
     assert (await service.card_for(db_async, user)).grade == grade.label
+
+
+@pytest.mark.asyncio
+async def test_seed_reuses_existing_department_identity(db_async):
+    from src.hr.models import Department, Grade
+
+    await seed_permissions_and_roles_async(db_async)
+    db_async.add(
+        Department(id="meteorological_department", name="Meteorological Department")
+    )
+    await db_async.commit()
+    await run_in_threadpool(seed, True)
+    assert await db_async.get(Department, "gms") is None
+    grade = await db_async.get(Grade, "GMS_MANAGER")
+    assert grade.department_id == "meteorological_department"
+
+
+@pytest.mark.asyncio
+async def test_seed_rejects_conflicting_existing_employment_before_writes(db_async):
+    from src.hr.models import Department, EmploymentRecord
+
+    await seed_permissions_and_roles_async(db_async)
+    db_async.add(Department(id="gms", name="Meteorological Department"))
+    user = User(
+        username="ewhint",
+        email="ewhint@weather.gd",
+        first_name="Existing",
+        last_name="Administrator",
+        hashed_password="unused",
+        is_superuser=True,
+    )
+    db_async.add(user)
+    await db_async.flush()
+    db_async.add(EmploymentRecord(user_id=user.id, department_id="gms", grade_id=None))
+    await db_async.commit()
+    for apply in (False, True):
+        with pytest.raises(ValueError, match="Employment conflict"):
+            await run_in_threadpool(seed, apply)
+    assert not (await db_async.execute(select(StaffCredential))).scalars().all()

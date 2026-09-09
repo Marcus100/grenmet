@@ -4,10 +4,12 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from src.auth.models import User
-from src.baseline import product_access, service
+from src.baseline import catalogue, product_access, service
 from src.baseline.models import ApprovalPolicy
 from src.baseline.schemas import (
     BalanceInput,
+    CatalogueApply,
+    CataloguePreview,
     GradeInput,
     GradeSetup,
     PolicyInput,
@@ -263,3 +265,29 @@ async def update_product_policy(
     *, session: SessionDep, current_user: AdminUser, kind: str, body: ProductAccessInput
 ) -> ProductAccessPublic:
     return await product_access.save_policy(session, current_user, kind, body)
+
+
+@router.get(
+    "/setup/catalogue",
+    response_model=CataloguePreview,
+    summary="Preview missing GMS reference data",
+    description="Preview missing ingested grades, approval policies and workflow templates without changing records.",
+    status_code=200,
+)
+async def preview_catalogue(
+    *, session: SessionDep, current_user: AdminUser, department_id: str
+) -> CataloguePreview:
+    return await catalogue.preview(session, current_user, department_id)
+
+
+@router.post(
+    "/setup/catalogue",
+    response_model=CataloguePreview,
+    summary="Import missing GMS reference data",
+    description="Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+    status_code=200,
+)
+async def import_catalogue(
+    *, session: SessionDep, current_user: AdminUser, body: CatalogueApply
+) -> CataloguePreview:
+    return await catalogue.apply(session, current_user, body.department_id)
