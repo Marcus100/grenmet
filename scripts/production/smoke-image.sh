@@ -3,6 +3,26 @@
 set -euo pipefail
 image=${1:?Expected image}
 kind=${2:?Expected web, auth, api, cms-migrate or admin-migrate}
+# Check the final filesystem, not just the Dockerfile: inherited tools are scan inputs.
+case "$kind" in
+  web|auth|cms-migrate|admin-migrate)
+    docker run --rm --network none --entrypoint sh "$image" -ec '
+      for tool in npm npx corepack pnpm pnpx yarn yarnpkg; do
+        if command -v "$tool" >/dev/null 2>&1; then
+          echo "Unexpected runtime package manager: $tool" >&2
+          exit 1
+        fi
+      done
+      for path in /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn-v*; do
+        if [ -e "$path" ]; then
+          echo "Unexpected runtime package-manager files: $path" >&2
+          exit 1
+        fi
+      done
+      node --version
+    '
+    ;;
+esac
 case "$kind" in
   api)
     docker run --rm --network none --entrypoint /app/.venv/bin/python \

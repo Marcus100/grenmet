@@ -3,6 +3,7 @@ import { readdir } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import payload from "payload";
 import { findConfig } from "payload/node";
+import ts from "typescript";
 
 // Run through Payload's CLI so its own TypeScript loader and config discovery
 // are exercised. No database connection or application onInit hook is allowed.
@@ -10,6 +11,17 @@ const config = await (await import(pathToFileURL(findConfig()).href)).default;
 try {
   await payload.init({ config, disableDBConnect: true, disableOnInit: true });
   assert.equal(typeof payload.db.migrate, "function");
+  // Exercise the compiler API and Drizzle tooling used by migration generation.
+  const compiled = ts.transpileModule("const value: number = 1;", {
+    compilerOptions: { module: ts.ModuleKind.ESNext },
+    reportDiagnostics: true,
+  });
+  assert.equal(compiled.diagnostics.length, 0);
+  assert.match(compiled.outputText, /value = 1/);
+  const { generateDrizzleJson, generateMigration } =
+    payload.db.requireDrizzleKit();
+  const snapshot = generateDrizzleJson(payload.db.schema);
+  assert.deepEqual(await generateMigration(snapshot, snapshot), []);
   const directory = payload.db.migrationDir;
   assert.ok(directory, "Migration directory must be configured");
   const files = (await readdir(directory)).filter(
