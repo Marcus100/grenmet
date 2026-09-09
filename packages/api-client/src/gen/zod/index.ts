@@ -699,6 +699,9 @@ export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";
 export { policyInputSchema } from "./policyInputSchema.js";
 export { policyPublicSchema } from "./policyPublicSchema.js";
+export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
+export { productAccessInputSchema } from "./productAccessInputSchema.js";
+export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
@@ -891,6 +894,22 @@ export {
   readPredefinedAreasApiV1CapAreasPredefinedGetResponseSchema,
   readPredefinedAreasApiV1CapAreasPredefinedGetStatus200Schema,
 } from "./readPredefinedAreasApiV1CapAreasPredefinedGetSchema.js";
+export {
+  readProductAccessApiV1HrProductAccessMeGetErrorSchema,
+  readProductAccessApiV1HrProductAccessMeGetResponseSchema,
+  readProductAccessApiV1HrProductAccessMeGetStatus200Schema,
+  readProductAccessApiV1HrProductAccessMeGetStatus403Schema,
+  readProductAccessApiV1HrProductAccessMeGetStatus404Schema,
+  readProductAccessApiV1HrProductAccessMeGetStatus409Schema,
+} from "./readProductAccessApiV1HrProductAccessMeGetSchema.js";
+export {
+  readProductPoliciesApiV1HrSetupProductAccessGetErrorSchema,
+  readProductPoliciesApiV1HrSetupProductAccessGetResponseSchema,
+  readProductPoliciesApiV1HrSetupProductAccessGetStatus200Schema,
+  readProductPoliciesApiV1HrSetupProductAccessGetStatus403Schema,
+  readProductPoliciesApiV1HrSetupProductAccessGetStatus404Schema,
+  readProductPoliciesApiV1HrSetupProductAccessGetStatus409Schema,
+} from "./readProductPoliciesApiV1HrSetupProductAccessGetSchema.js";
 export {
   readPublicAlertApiCapAlertsIdentifierGetErrorSchema,
   readPublicAlertApiCapAlertsIdentifierGetPathIdentifierSchema,
@@ -1400,6 +1419,19 @@ export {
   updatePasswordMeApiV1AuthUsersMePasswordPatchStatus422Schema,
 } from "./updatePasswordMeApiV1AuthUsersMePasswordPatchSchema.js";
 export { updatePasswordSchema } from "./updatePasswordSchema.js";
+export {
+  updateProductPolicyApiV1HrSetupProductAccessKindPutBodySchema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutErrorSchema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutPathKindSchema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutResponseSchema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus200Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus400Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus401Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus403Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus404Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus409Schema,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus422Schema,
+} from "./updateProductPolicyApiV1HrSetupProductAccessKindPutSchema.js";
 export {
   updateRoleApiV1AuthRolesRoleIdPatchBodySchema,
   updateRoleApiV1AuthRolesRoleIdPatchErrorSchema,

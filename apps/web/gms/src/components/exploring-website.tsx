@@ -12,8 +12,8 @@ const RELATED_LINKS = [
 export function ExploringWebsite() {
   return (
     // Stacks on mobile, side-by-side once there is room for the fixed-width card.
-    <div className="flex flex-col gap-8 py-10 lg:flex-row lg:gap-20 lg:py-16">
-      <div className="flex flex-col items-start gap-5 rounded-md bg-gm-navy p-7 text-gm-text-inverse lg:w-175 lg:flex-none lg:p-11">
+    <div className="flex flex-col gap-8 py-10 md:flex-row md:items-start md:gap-10 lg:gap-20 lg:py-16">
+      <div className="flex flex-col items-start gap-5 rounded-md bg-gm-navy p-7 text-gm-text-inverse md:flex-1 lg:w-175 lg:min-w-0 lg:flex-initial lg:p-11">
         <span className="font-bold text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Exploring this website
         </span>
@@ -28,7 +28,7 @@ export function ExploringWebsite() {
           Website help
         </Link>
       </div>
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-80 flex-1 flex-col">
         <span className="pb-5 font-bold text-gm-text-primary text-heading-sm leading-heading-sm">
           You may also be interested in
         </span>

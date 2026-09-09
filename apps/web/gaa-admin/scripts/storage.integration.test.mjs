@@ -1,8 +1,20 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
 import pg from "pg";
 
 const adminUrl = process.env.STORAGE_TEST_POSTGRES_URL;
@@ -118,5 +130,83 @@ test("fresh/repeat initialization, concurrent migrations, conflicting data and w
     }
   } finally {
     await admin.end();
+  }
+});
+
+test("authored-product migration upgrades the previous schema and preserves existing records on repeat", {
+  skip: !adminUrl,
+  timeout: 120_000,
+}, async () => {
+  const admin = new pg.Client({ connectionString: adminUrl });
+  await admin.connect();
+  const name = `storage_test_wxproducts_${randomUUID().replaceAll("-", "")}`;
+  const url = new URL(adminUrl);
+  url.pathname = `/${name}`;
+  const directory = mkdtempSync(join(tmpdir(), "wxproducts-prior-schema-"));
+  await admin.query(`CREATE DATABASE "${name}"`);
+  const client = new pg.Client({ connectionString: url.toString() });
+  try {
+    await client.connect();
+    const migrations = fileURLToPath(
+      new URL("../drizzle/wxproducts/", import.meta.url)
+    );
+    const journal = JSON.parse(
+      readFileSync(join(migrations, "meta/_journal.json"), "utf8")
+    );
+    journal.entries = journal.entries.filter((entry) => entry.idx < 2);
+    mkdirSync(join(directory, "meta"));
+    writeFileSync(
+      join(directory, "meta/_journal.json"),
+      JSON.stringify(journal)
+    );
+    for (const entry of journal.entries)
+      copyFileSync(
+        join(migrations, `${entry.tag}.sql`),
+        join(directory, `${entry.tag}.sql`)
+      );
+    await migrate(drizzle(client), { migrationsFolder: directory });
+    await client.query(
+      "INSERT INTO cap_bundles (cap_bundle_id, issued_at_utc) VALUES ('preserved-release-fixture', now())"
+    );
+    const environment = {
+      ENVIRONMENT: "local",
+      WXPRODUCTS_DB_NAME: name,
+      WXPRODUCTS_DATABASE_URL: url.toString(),
+    };
+    assert.equal(await run("migrate-wxproducts", environment), 0);
+    await client.query(
+      "INSERT INTO authored_products (id, kind, draft, revision) VALUES ($1, 'marine', $2, 1)",
+      [
+        randomUUID(),
+        JSON.stringify({ kind: "marine", values: { synopsis: "Saved draft" } }),
+      ]
+    );
+    assert.equal(await run("migrate-wxproducts", environment), 0);
+    assert.equal(
+      (
+        await client.query(
+          "SELECT count(*)::int AS n FROM cap_bundles WHERE cap_bundle_id = 'preserved-release-fixture'"
+        )
+      ).rows[0].n,
+      1
+    );
+    assert.equal(
+      (await client.query("SELECT count(*)::int AS n FROM authored_products"))
+        .rows[0].n,
+      1
+    );
+    assert.equal(
+      (
+        await client.query(
+          "SELECT count(*)::int AS n FROM drizzle.__drizzle_migrations"
+        )
+      ).rows[0].n,
+      3
+    );
+  } finally {
+    await client.end();
+    await admin.query(`DROP DATABASE "${name}"`);
+    await admin.end();
+    rmSync(directory, { recursive: true, force: true });
   }
 });

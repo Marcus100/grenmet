@@ -8446,6 +8446,155 @@
         }
       }
     },
+    "/api/v1/hr/product-access/me": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Read current authored product access",
+        "description": "Evaluate current GMS employment grade and per-product policies. CAP permissions are independent.",
+        "operationId": "read_product_access_api_v1_hr_product_access_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductAccessCurrent"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/product-access": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Review authored product grade policies",
+        "description": "List the allowed GMS grades for each authored product. Administrators only.",
+        "operationId": "read_product_policies_api_v1_hr_setup_product_access_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductAccessPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Product Policies Api V1 Hr Setup Product Access Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/product-access/{kind}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Configure authored product grade access",
+        "description": "Replace one product's allowed GMS grades and record an audit event. An empty list permits only superusers. CAP is unchanged.",
+        "operationId": "update_product_policy_api_v1_hr_setup_product_access__kind__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductAccessInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductAccessPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "400": {
+            "description": "Unknown product kind or inactive/non-GMS grade"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/dashboard": {
       "get": {
         "tags": [
@@ -14181,6 +14330,61 @@
           "key"
         ],
         "title": "PolicyPublic"
+      },
+      "ProductAccessCurrent": {
+        "properties": {
+          "allowed_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Kinds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowed_kinds"
+        ],
+        "title": "ProductAccessCurrent"
+      },
+      "ProductAccessInput": {
+        "properties": {
+          "grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Grade Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade_ids"
+        ],
+        "title": "ProductAccessInput"
+      },
+      "ProductAccessPublic": {
+        "properties": {
+          "grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Grade Ids"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade_ids",
+          "kind"
+        ],
+        "title": "ProductAccessPublic"
       },
       "ProfAppointmentType": {
         "type": "string",

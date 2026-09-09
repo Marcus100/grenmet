@@ -786,6 +786,9 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
+export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
+export type { ProductAccessInput } from "./ProductAccessInput.js";
+export type { ProductAccessPublic } from "./ProductAccessPublic.js";
 export type { ProfAppointmentType } from "./ProfAppointmentType.js";
 export { profAppointmentType } from "./ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
@@ -999,6 +1002,24 @@ export type {
   ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses,
   ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
 } from "./ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
+export type {
+  ReadProductAccessApiV1HrProductAccessMeGetOptions,
+  ReadProductAccessApiV1HrProductAccessMeGetResponse,
+  ReadProductAccessApiV1HrProductAccessMeGetResponses,
+  ReadProductAccessApiV1HrProductAccessMeGetStatus200,
+  ReadProductAccessApiV1HrProductAccessMeGetStatus403,
+  ReadProductAccessApiV1HrProductAccessMeGetStatus404,
+  ReadProductAccessApiV1HrProductAccessMeGetStatus409,
+} from "./ReadProductAccessApiV1HrProductAccessMeGet.js";
+export type {
+  ReadProductPoliciesApiV1HrSetupProductAccessGetOptions,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetResponse,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetResponses,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetStatus200,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetStatus403,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetStatus404,
+  ReadProductPoliciesApiV1HrSetupProductAccessGetStatus409,
+} from "./ReadProductPoliciesApiV1HrSetupProductAccessGet.js";
 export type {
   ReadPublicAlertApiCapAlertsIdentifierGetOptions,
   ReadPublicAlertApiCapAlertsIdentifierGetPath,
@@ -1577,6 +1598,20 @@ export type {
   UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400,
   UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422,
 } from "./UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
+export type {
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutBody,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutOptions,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutPath,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutResponse,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutResponses,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus200,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus400,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus401,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus403,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus404,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus409,
+  UpdateProductPolicyApiV1HrSetupProductAccessKindPutStatus422,
+} from "./UpdateProductPolicyApiV1HrSetupProductAccessKindPut.js";
 export type {
   UpdateRoleApiV1AuthRolesRoleIdPatchBody,
   UpdateRoleApiV1AuthRolesRoleIdPatchOptions,

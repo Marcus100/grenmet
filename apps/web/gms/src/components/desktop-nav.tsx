@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import type { RefObject } from "react";
 import { type AlertsResult, alertsSummary } from "@/lib/cap";
-import { CURRENT_CONDITIONS } from "@/lib/forecast-data";
+
 import {
   NAV_SECTIONS,
   type NavFeature,
@@ -28,11 +28,13 @@ interface DesktopNavProps {
   anchor: RefObject<HTMLElement | null>;
 }
 
+// nowrap plus a smaller step below xl: at 1024 the six labels, the logo and
+// the alerts pill need ~1237px on one line, which simply is not there.
 const TOP_LEVEL =
-  "flex items-center gap-1.5 rounded-md px-2.5 py-2 font-semibold text-gm-text-primary text-nav leading-nav underline-offset-6 outline-none hover:text-gm-blue focus-visible:ring-2 focus-visible:ring-gm-blue";
+  "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2 font-semibold text-body-base text-gm-text-primary leading-body-base underline-offset-6 outline-none hover:text-gm-blue focus-visible:ring-2 focus-visible:ring-gm-blue xl:px-2.5 xl:text-nav xl:leading-nav";
 
 const CARD =
-  "flex h-full w-64 flex-none flex-col items-start gap-5 rounded-md border border-gm-border p-6 outline-none hover:bg-gm-surface focus-visible:bg-gm-surface";
+  "flex w-64 flex-none flex-col items-start gap-5 rounded-md border border-gm-border p-6 outline-none hover:bg-gm-surface focus-visible:bg-gm-surface";
 
 function FeaturedCard({
   alerts,
@@ -73,7 +75,7 @@ function FeaturedCard({
     );
   }
 
-  const Icon = weatherIcon(CURRENT_CONDITIONS.condition);
+  const Icon = weatherIcon("partly-cloudy");
   return (
     <NavigationMenuPrimitive.Link className={CARD} render={<Link href="/" />}>
       <span className="flex size-11 items-center justify-center rounded-md bg-gm-surface">
@@ -85,12 +87,10 @@ function FeaturedCard({
       </span>
       <span className="flex flex-col gap-1">
         <span className="font-semibold text-body text-gm-text-primary leading-body">
-          {CURRENT_CONDITIONS.temperature}&deg;C &middot;{" "}
-          {CURRENT_CONDITIONS.conditionLabel}
+          Issued weather forecasts
         </span>
         <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-          Feels like {CURRENT_CONDITIONS.feelsLike}&deg; &middot;{" "}
-          {CURRENT_CONDITIONS.wind}
+          Morning, midday and evening reports from the GMS forecast desk.
         </span>
       </span>
       <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue leading-body">

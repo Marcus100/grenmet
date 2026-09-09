@@ -76,7 +76,11 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
-    sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
+    sentry_sdk.init(
+        dsn=str(settings.SENTRY_DSN),
+        environment=settings.ENVIRONMENT,
+        enable_tracing=True,
+    )
 
 # Configure app settings based on environment
 app_configs: dict[str, Any] = {

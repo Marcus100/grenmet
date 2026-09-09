@@ -354,3 +354,71 @@ The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET`
 CMS uses Payload's official Resend adapter. In `apps/web/cms/.env.local`, configure `RESEND_API_KEY` and `EMAILS_FROM_EMAIL` (an address on your verified Resend domain). `EMAILS_FROM_NAME` defaults to `GMS Content`. Keep the API key private and restart the local CMS after configuring it. With no key, local development and migrations remain usable and Payload reports email as unconfigured. A key without a sender fails configuration validation.
 
 Deployment supplies the existing environment-scoped `RESEND_API_KEY` secret and `EMAILS_FROM_EMAIL` setting to CMS. The adapter sends only when CMS calls its email API; startup and migration do not send test messages. Shared FastAPI sign-in remains responsible for account emails. Mailchimp campaigns are separate and have not been configured by this change.
+
+## Integration separation for local, staging and production
+
+Use app-specific local configuration for host-run development. Inside deployment
+containers, localhost refers to that container: CAP uses `http://api:8000`,
+GMS authored products use `http://web-admin:3001`, and email rendering uses
+`http://web-auth:3000`. Browser API requests and redirects use public HTTPS
+origins under `staging.barrels.gd` or `barrels.gd`. Local host processes use
+localhost ports from [the port map](ports.md); agent-container processes use
+`host.docker.internal` for host-published database and Redis ports.
+
+| Integration | Local | Staging | Production |
+|---|---|---|---|
+| CAP / authored products | API :8000 / admin :3001 | Private service origins above | Same private service origins, separate databases |
+| Google OAuth | Local callback registered separately | `https://auth.staging.barrels.gd/google/callback` | `https://auth.barrels.gd/google/callback` |
+| Sentry | Empty disables reporting; use a development project if enabled | `SENTRY_DSN_STAGING`; project `grenmet-staging` | `SENTRY_DSN_PRODUCTION`; project `grenmet-production` |
+| PostHog | Empty project key disables analytics | Separate staging project key and ingest host | Production project key and ingest host |
+| Stripe | Test key and local webhook forwarding | Test key, matching test price and endpoint signing secret | Live key, matching live price and endpoint signing secret |
+| Resend | Development sender or local SMTP | Environment-scoped key, verified sender, matching webhook secret | Production key, verified sender, matching webhook secret |
+| Object storage | Optional local/test configuration | Staging bucket and scoped credentials | Production bucket and scoped credentials |
+
+The renderer rejects partial Google, CAP-signing, Stripe, and storage credential
+bundles. Stripe redirects must be HTTPS outside local; its secret key must match
+the deployment mode. Provider endpoints must use HTTPS. CAP signing is optional;
+configure both certificate and key to enable it. These checks establish valid
+configuration, not provider-side connectivity or successful delivery.
+
+`NEXT_PUBLIC_*` variables are compiled into browser bundles. Configure Sentry,
+PostHog, public API origins and site origins in the build's GitHub environment,
+then rebuild the image after changes. Runtime-only changes cannot repair an
+already compiled browser value. Never put Stripe secret keys, webhook secrets,
+Sentry upload tokens, or storage credentials in public variables.
+
+The September 2026 release audit found Sentry and Resend secret names in both
+GitHub environments, but no PostHog, Stripe, Google OAuth, CAP signing, Resend
+webhook or email-render credentials. Production also lacked the new CMS and
+FastAPI runtime database credentials and core infrastructure variables. Supply
+these through GitHub environment settings before claiming those integrations
+are connected. Datadog logging hooks alone do not establish an APM connection;
+a collector/agent is not configured by this release.
+
+GMS local authored-product rendering requires `WXPRODUCTS_API_URL` in its typed
+server environment. Publication authorization is configured through the
+superuser-only grade policy API, not environment user-ID allowlists. Defaults
+permit active staff in ingested GMS senior technician, assistant manager and
+manager grades; each product can override its permitted grade IDs.
+
+### GitHub environment secret names
+
+Add credentials independently to **Settings → Environments → staging / production
+→ Secrets**. Missing optional integrations stay disabled; do not copy production
+credentials into staging.
+
+- PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, optionally `NEXT_PUBLIC_POSTHOG_HOST`.
+- Stripe: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET`,
+  `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
+  `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
+- Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
+- Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
+- Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,
+  and environment-scoped `SENTRY_AUTH_TOKEN` for source-map upload.
+- Storage: `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`,
+  `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
+  and `STORAGE_PUBLIC_BASE_URL`.
+
+Stripe price/return URL and PostHog host inputs accept environment secrets first,
+with environment variables retained as a compatibility fallback.

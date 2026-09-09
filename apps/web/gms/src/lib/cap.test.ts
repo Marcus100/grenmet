@@ -6,6 +6,7 @@
 // for the wrong reason — they would have passed with the fetch logic removed.
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  alertsLevel,
   alertsSummary,
   exerciseStatuses,
   fetchActiveAlerts,
@@ -244,5 +245,47 @@ describe("exerciseStatuses", () => {
 
   it("is empty when the feed is unavailable", () => {
     expect(exerciseStatuses({ status: "unavailable" })).toEqual([]);
+  });
+});
+
+describe("alertsLevel", () => {
+  const ok = (alerts: PublicAlert[]) => ({
+    activeCount: alerts.length,
+    groups: groupAlerts(alerts),
+    status: "ok" as const,
+  });
+
+  it("is 'none' when nothing is in effect", () => {
+    expect(alertsLevel(ok([]))).toBe("none");
+  });
+
+  it("maps each CAP severity onto its response level", () => {
+    expect(alertsLevel(ok([alert({ severity: "Minor" })]))).toBe("be-aware");
+    expect(alertsLevel(ok([alert({ severity: "Moderate" })]))).toBe(
+      "be-prepared"
+    );
+    expect(alertsLevel(ok([alert({ severity: "Severe" })]))).toBe(
+      "take-action"
+    );
+    expect(alertsLevel(ok([alert({ severity: "Extreme" })]))).toBe(
+      "take-action"
+    );
+  });
+
+  it("takes the most severe alert, never an average", () => {
+    const mixed = ok([
+      alert({ identifier: "a", severity: "Minor" }),
+      alert({ identifier: "b", severity: "Extreme" }),
+      alert({ identifier: "c", severity: "Moderate" }),
+    ]);
+    expect(alertsLevel(mixed)).toBe("take-action");
+  });
+
+  it("treats an unknown severity as worth being aware of, not as clear", () => {
+    expect(alertsLevel(ok([alert({ severity: "Unknown" })]))).toBe("be-aware");
+  });
+
+  it("never reports an outage as 'none'", () => {
+    expect(alertsLevel({ status: "unavailable" })).toBe("unknown");
   });
 });

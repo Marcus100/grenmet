@@ -57,6 +57,7 @@ export interface ForecastValues {
   location: string;
   lowTide: string;
   marineImpact: string;
+  marineResponse?: string;
   marineWarning: string;
   maxTemperature: string;
   minTemperature: string;
@@ -68,9 +69,11 @@ export interface ForecastValues {
   validity: string;
   weatherImpact1: string;
   weatherImpact2: string;
+  weatherResponse?: string;
   windDirection: string;
   windImpact1: string;
   windImpact2: string;
+  windResponse?: string;
   windSpeed: string;
   windWarning: string;
   wxWarning: string;
@@ -203,6 +206,9 @@ export function ForecastDocument({
         </div>
         <Line label="Impact 1" value={values.weatherImpact1} />
         <Line label="Impact 2" value={values.weatherImpact2} />
+        {values.weatherResponse ? (
+          <Line label="Response" value={values.weatherResponse} />
+        ) : null}
       </section>
 
       <section className="mt-5 flex flex-col gap-1.5">
@@ -220,6 +226,9 @@ export function ForecastDocument({
         ) : null}
         <Line label="Impact 1" value={values.windImpact1} />
         <Line label="Impact 2" value={values.windImpact2} />
+        {values.windResponse ? (
+          <Line label="Response" value={values.windResponse} />
+        ) : null}
       </section>
 
       <section className="mt-5 flex flex-col gap-1.5">
@@ -229,6 +238,9 @@ export function ForecastDocument({
           <Line label="Warning" value={values.marineWarning} />
         ) : null}
         <Line label="Impact" value={values.marineImpact} />
+        {values.marineResponse ? (
+          <Line label="Response" value={values.marineResponse} />
+        ) : null}
       </section>
 
       <section className="mt-5 flex flex-col gap-1.5">

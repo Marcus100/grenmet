@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 
 from src.auth.models import User
-from src.baseline import service
+from src.baseline import product_access, service
 from src.baseline.models import ApprovalPolicy
 from src.baseline.schemas import (
     BalanceInput,
@@ -12,6 +12,9 @@ from src.baseline.schemas import (
     GradeSetup,
     PolicyInput,
     PolicyPublic,
+    ProductAccessCurrent,
+    ProductAccessInput,
+    ProductAccessPublic,
     RoleConfiguration,
     RolePermissionsInput,
     StaffCard,
@@ -213,3 +216,50 @@ async def approve_staff_registration(
 ) -> Message:
     await service.approve_registration(session, current_user, user_id)
     return Message(message="Staff registration approved")
+
+
+@router.get(
+    "/product-access/me",
+    response_model=ProductAccessCurrent,
+    status_code=200,
+    summary="Read current authored product access",
+    description="Evaluate current GMS employment grade and per-product policies. CAP permissions are independent.",
+)
+async def read_product_access(
+    *, session: SessionDep, current_user: CurrentUser
+) -> ProductAccessCurrent:
+    return ProductAccessCurrent(
+        allowed_kinds=await product_access.allowed_kinds(session, current_user)
+    )
+
+
+@router.get(
+    "/setup/product-access",
+    response_model=list[ProductAccessPublic],
+    status_code=200,
+    summary="Review authored product grade policies",
+    description="List the allowed GMS grades for each authored product. Administrators only.",
+)
+async def read_product_policies(
+    *, session: SessionDep, current_user: AdminUser
+) -> list[ProductAccessPublic]:
+    service.require_admin(current_user)
+    return await product_access.policies(session)
+
+
+@router.put(
+    "/setup/product-access/{kind}",
+    response_model=ProductAccessPublic,
+    status_code=200,
+    responses={
+        400: {"description": "Unknown product kind or inactive/non-GMS grade"},
+        401: {"description": "Authentication required"},
+        403: {"description": "Administrator access required"},
+    },
+    summary="Configure authored product grade access",
+    description="Replace one product's allowed GMS grades and record an audit event. An empty list permits only superusers. CAP is unchanged.",
+)
+async def update_product_policy(
+    *, session: SessionDep, current_user: AdminUser, kind: str, body: ProductAccessInput
+) -> ProductAccessPublic:
+    return await product_access.save_policy(session, current_user, kind, body)

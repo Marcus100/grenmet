@@ -93,13 +93,13 @@ export function MarineBulletinEditor() {
                             id={field.name}
                             onChange={(e) => field.handleChange(e.target.value)}
                             rows={4}
-                            value={field.state.value}
+                            value={field.state.value ?? ""}
                           />
                         ) : null}
                         {f.type === "select" ? (
                           <Select
                             onValueChange={(v) => field.handleChange(v ?? "")}
-                            value={field.state.value}
+                            value={field.state.value ?? ""}
                           >
                             <SelectTrigger id={field.name}>
                               <SelectValue />
@@ -117,7 +117,7 @@ export function MarineBulletinEditor() {
                           <DatePicker
                             id={field.name}
                             onChange={field.handleChange}
-                            value={field.state.value}
+                            value={field.state.value ?? ""}
                           />
                         ) : null}
                         {f.type === "text" || f.type === "time" ? (
@@ -125,7 +125,7 @@ export function MarineBulletinEditor() {
                             id={field.name}
                             onChange={(e) => field.handleChange(e.target.value)}
                             type={f.type === "time" ? "time" : "text"}
-                            value={field.state.value}
+                            value={field.state.value ?? ""}
                           />
                         ) : null}
                       </Field>

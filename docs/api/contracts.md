@@ -82,6 +82,10 @@ Implemented examples:
 | FastAPI `HTTPException` | `{"detail": ...}` |
 | Rate limit exceeded | SlowAPI's 429 response |
 
+The generated FastAPI `ValidationError` schema includes optional `input` and
+`ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
+those optional fields; they do not change application route definitions.
+
 Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
 
 ## Pagination
@@ -263,3 +267,13 @@ Creating a leave request, absentee report, daily status report, shift swap, or t
 ### Private weather images
 
 `GET /api/v1/wxwatch/images/{storage_path}` requires an active authenticated user and returns a private, non-cacheable 307 redirect to a 60-second signed GET URL. Keys are restricted to raster images within the environment-specific bucket’s `wxwatch/` prefix. It never reads or writes another application’s tables. Invalid paths return 400; unconfigured object storage returns 503. The admin’s existing authenticated proxy exchanges the session cookie for a bearer token.
+
+### Authored product grade policies
+
+Under /api/v1/hr, GET /product-access/me returns the current user's allowed
+product kinds. Superusers can GET /setup/product-access and PUT
+/setup/product-access/{kind} with a grade_ids array. Unknown kinds and inactive
+or non-GMS grades return 400; policy writes require administrator access.
+An empty policy permits only superusers. Policies use ingested employment grades,
+are evaluated on each request and are audited. CAP permissions remain independent.
+See [GMS authored products](../operations/gms-products.md) for publication behavior.
