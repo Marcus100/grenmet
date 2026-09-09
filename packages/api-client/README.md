@@ -7,7 +7,9 @@ Generated TypeScript API client for the FastAPI backend.
 This package follows a **commit generated code** workflow:
 
 - Generated output in `src/gen` is committed to git.
-- CI regenerates the client and fails when committed artifacts are stale.
+- `pnpm check:drift` and CI regenerate in a temporary directory and compare the complete file set and contents, including added and removed files. Working files are never overwritten.
+- The check uses installed dependencies and the same Kubb configuration, generation command, and Biome configuration as normal generation. Missing inputs or generation failures fail the check.
+- Backend-code-to-OpenAPI verification remains a separate API CI check.
 - Consumers can install and use the package without running code generation.
 
 ## Common commands
