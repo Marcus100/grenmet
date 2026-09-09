@@ -1,6 +1,7 @@
 import { captureException } from "@sentry/nextjs";
 import { cache } from "react";
 import { env } from "@/lib/env";
+import type { WarningLevel } from "@/lib/warning-level";
 
 /** CAP severity, ordered most to least severe. Drives colour and sort order. */
 export type CapSeverity =
@@ -138,6 +139,35 @@ export function alertsSummary(result: AlertsResult): string {
     return "No active warnings";
   }
   return `${result.activeCount} active`;
+}
+
+/**
+ * The impact-based level for the whole feed: the most severe alert in effect
+ * wins, so a red warning is never softened by the yellow ones beside it.
+ */
+export function alertsLevel(result: AlertsResult): WarningLevel {
+  if (result.status === "unavailable") {
+    return "unknown";
+  }
+
+  const severities = result.groups.flatMap((group) =>
+    group.alerts.map((alert) => alert.severity)
+  );
+  if (severities.length === 0) {
+    return "none";
+  }
+
+  const worst = severities.reduce((a, b) =>
+    SEVERITY_ORDER[a] <= SEVERITY_ORDER[b] ? a : b
+  );
+
+  if (worst === "Extreme" || worst === "Severe") {
+    return "take-action";
+  }
+  if (worst === "Moderate") {
+    return "be-prepared";
+  }
+  return "be-aware";
 }
 
 interface RawArea {

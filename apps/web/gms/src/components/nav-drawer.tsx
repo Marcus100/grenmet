@@ -4,7 +4,7 @@ import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, XIcon } from "lucide-react";
 import Image from "next/image";
 import { useEffect } from "react";
-import { NAV_SECTIONS, sectionLinks } from "@/lib/nav-sections";
+import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
 
 interface NavDrawerProps {
@@ -62,15 +62,17 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     i > 0 && "border-gm-border border-t"
                   )}
                 >
-                  <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-[open]:font-semibold group-data-[open]:text-gm-navy">
+                  {/* Base UI's Accordion.Trigger marks the open state with
+                      data-panel-open, not data-open. */}
+                  <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-navy">
                     {section.label}
                   </span>
                   <div className="flex size-11 items-center justify-center">
-                    <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-[open]:rotate-180 group-data-[open]:text-gm-navy" />
+                    <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-navy" />
                   </div>
                 </Accordion.Trigger>
               </Accordion.Header>
-              {sectionLinks(section).length > 0 && (
+              {section.groups.length > 0 && (
                 <Accordion.Panel
                   className="overflow-hidden transition-[height] duration-200 ease-out"
                   style={
@@ -79,15 +81,29 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
                     } as React.CSSProperties
                   }
                 >
-                  {sectionLinks(section).map((link) => (
-                    <a
-                      className="flex h-11 items-center pr-5 pl-10 text-gm-text-primary text-nav leading-nav hover:text-gm-navy"
-                      href={link.href}
-                      key={link.name}
-                      onClick={onClose}
-                    >
-                      {link.name}
-                    </a>
+                  {/* Group headings and descriptions mirror the desktop panel
+                      so both surfaces present the same structure. */}
+                  {section.groups.map((group) => (
+                    <div className="pb-2" key={group.heading}>
+                      <p className="px-6 pt-4 pb-1 font-semibold text-caption text-gm-text-muted uppercase leading-caption tracking-wider">
+                        {group.heading}
+                      </p>
+                      {group.links.map((link) => (
+                        <a
+                          className="flex min-h-11 flex-col justify-center gap-0.5 py-2 pr-5 pl-10 hover:bg-gm-surface"
+                          href={link.href}
+                          key={link.href}
+                          onClick={onClose}
+                        >
+                          <span className="font-medium text-body-base text-gm-text-primary leading-body-base">
+                            {link.name}
+                          </span>
+                          <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                            {link.description}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
                   ))}
                 </Accordion.Panel>
               )}

@@ -107,7 +107,7 @@ export const sidebarItems: NavGroup[] = [
     items: [
       {
         id: "eregister",
-        title: "eRegister",
+        title: "wxRegister",
         url: "/wxproducts/hourly",
         icon: NotebookPen,
       },
@@ -121,19 +121,19 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "taf-metar",
         title: "TAF/Metar Composer",
-        url: COMING_SOON_URL,
+        url: "/wxproducts/aviation",
         icon: Plane,
       },
       {
         id: "bulletin-marine",
         title: "Bulletins",
-        url: "/wxproducts/bulletins/marine",
+        url: "/wxproducts/bulletins",
         icon: Waves,
       },
       {
         id: "products-tc-outlook",
         title: "NHC Products",
-        url: COMING_SOON_URL,
+        url: "/wxproducts/nhc",
         icon: Tornado,
       },
       {

@@ -49,3 +49,12 @@ class ApprovalPolicy(SQLModel, table=True):
     key: str = Field(primary_key=True, max_length=150)
     allow_self_approval: bool = False
     require_distinct_approvers: bool = True
+
+
+class ProductAccessPolicy(SQLModel, table=True):
+    __tablename__ = "product_access_policy"
+
+    kind: str = Field(primary_key=True, max_length=50)
+    grade_ids: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=False)
+    )

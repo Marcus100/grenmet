@@ -35,6 +35,11 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "In effect",
         links: [
           {
+            name: "Bulletins",
+            href: "/products/bulletins",
+            description: "Issued bulletins for all nine hazards",
+          },
+          {
             name: "Current alerts",
             href: "/warnings",
             description: "Every warning in effect right now, by hazard",
@@ -101,12 +106,22 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Forecasts & Observations",
+    label: "Weather",
     featured: "forecast",
     groups: [
       {
         heading: "Daily",
         links: [
+          {
+            name: "Impact-Based Forecasts",
+            href: "/products/forecasts",
+            description: "Issued morning, midday and evening reports",
+          },
+          {
+            name: "NHC Products",
+            href: "/products/nhc",
+            description: "Tropical Weather Outlook",
+          },
           {
             name: "Today's Forecast",
             href: "/",
@@ -206,6 +221,81 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "School Stations",
             href: "/observations/school-stations",
             description: "Student-run stations adding density to the network",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: "Climate",
+    groups: [
+      {
+        heading: "Data",
+        links: [
+          {
+            name: "Rainfall Data",
+            href: "/climate/rainfall",
+            description: "Monthly and daily totals by station",
+          },
+          {
+            name: "Temperature Data",
+            href: "/climate/temperature",
+            description: "Highs, lows and averages by station",
+          },
+          {
+            name: "Historical Weather Data",
+            href: "/climate/historical",
+            description: "Past observations back through the record",
+          },
+          {
+            name: "Climate Normals",
+            href: "/climate/normals",
+            description: "What a typical month looks like in Grenada",
+          },
+        ],
+      },
+      {
+        heading: "Outlooks",
+        links: [
+          {
+            name: "Monthly Climate Summary",
+            href: "/climate/monthly",
+            description: "How last month compared with normal",
+          },
+          {
+            name: "Seasonal Outlook",
+            href: "/climate/seasonal",
+            description: "Rainfall and temperature for the months ahead",
+          },
+          {
+            name: "Drought Monitoring",
+            href: "/climate/drought",
+            description: "Dry-spell status across the tri-island state",
+          },
+        ],
+      },
+      {
+        heading: "Requests and publications",
+        links: [
+          {
+            name: "Data Request Form",
+            href: "/climate/data-request",
+            description: "Ask for climate data for research or business",
+          },
+          {
+            name: "Publications",
+            href: "/climate/publications",
+            description: "Reports, bulletins and climate studies",
+          },
+          {
+            name: "Climate Newsletter",
+            href: "/climate/newsletter",
+            description: "Monthly conditions, outlooks and what they mean",
+          },
+          {
+            name: "Product Archive",
+            href: "/climate/archive",
+            description: "Past forecasts, warnings and bulletins",
           },
         ],
       },
@@ -343,81 +433,6 @@ export const NAV_SECTIONS: NavSection[] = [
             name: "Marine Safety",
             href: "/marine/safety",
             description: "Staying safe on the water",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Climate & Data",
-    groups: [
-      {
-        heading: "Data",
-        links: [
-          {
-            name: "Rainfall Data",
-            href: "/climate/rainfall",
-            description: "Monthly and daily totals by station",
-          },
-          {
-            name: "Temperature Data",
-            href: "/climate/temperature",
-            description: "Highs, lows and averages by station",
-          },
-          {
-            name: "Historical Weather Data",
-            href: "/climate/historical",
-            description: "Past observations back through the record",
-          },
-          {
-            name: "Climate Normals",
-            href: "/climate/normals",
-            description: "What a typical month looks like in Grenada",
-          },
-        ],
-      },
-      {
-        heading: "Outlooks",
-        links: [
-          {
-            name: "Monthly Climate Summary",
-            href: "/climate/monthly",
-            description: "How last month compared with normal",
-          },
-          {
-            name: "Seasonal Outlook",
-            href: "/climate/seasonal",
-            description: "Rainfall and temperature for the months ahead",
-          },
-          {
-            name: "Drought Monitoring",
-            href: "/climate/drought",
-            description: "Dry-spell status across the tri-island state",
-          },
-        ],
-      },
-      {
-        heading: "Requests and publications",
-        links: [
-          {
-            name: "Data Request Form",
-            href: "/climate/data-request",
-            description: "Ask for climate data for research or business",
-          },
-          {
-            name: "Publications",
-            href: "/climate/publications",
-            description: "Reports, bulletins and climate studies",
-          },
-          {
-            name: "Climate Newsletter",
-            href: "/climate/newsletter",
-            description: "Monthly conditions, outlooks and what they mean",
-          },
-          {
-            name: "Product Archive",
-            href: "/climate/archive",
-            description: "Past forecasts, warnings and bulletins",
           },
         ],
       },

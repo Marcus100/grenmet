@@ -92,6 +92,8 @@ export { readParkingPermitsApiV1HrParkingPermitsGet } from "./readParkingPermits
 export { readPermissionApiV1AuthPermissionsPermissionIdGet } from "./readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 export { readPermissionsApiV1AuthPermissionsGet } from "./readPermissionsApiV1AuthPermissionsGet.js";
 export { readPredefinedAreasApiV1CapAreasPredefinedGet } from "./readPredefinedAreasApiV1CapAreasPredefinedGet.js";
+export { readProductAccessApiV1HrProductAccessMeGet } from "./readProductAccessApiV1HrProductAccessMeGet.js";
+export { readProductPoliciesApiV1HrSetupProductAccessGet } from "./readProductPoliciesApiV1HrSetupProductAccessGet.js";
 export { readPublicAlertApiCapAlertsIdentifierGet } from "./readPublicAlertApiCapAlertsIdentifierGet.js";
 export { readPublicAlertsApiCapAlertsGet } from "./readPublicAlertsApiCapAlertsGet.js";
 export { readPublicLatestActiveApiCapLatestActiveGet } from "./readPublicLatestActiveApiCapLatestActiveGet.js";
@@ -146,6 +148,7 @@ export { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "./updateHrEmploy
 export { updateHrProfileMeApiV1HrProfileMePatch } from "./updateHrProfileMeApiV1HrProfileMePatch.js";
 export { updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch } from "./updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch.js";
 export { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "./updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
+export { updateProductPolicyApiV1HrSetupProductAccessKindPut } from "./updateProductPolicyApiV1HrSetupProductAccessKindPut.js";
 export { updateRoleApiV1AuthRolesRoleIdPatch } from "./updateRoleApiV1AuthRolesRoleIdPatch.js";
 export { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 export { updateRoleConfigurationApiV1HrSetupRolesRoleIdPut } from "./updateRoleConfigurationApiV1HrSetupRolesRoleIdPut.js";

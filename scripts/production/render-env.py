@@ -6,7 +6,7 @@ import ipaddress
 import re
 import sys
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 
 def read_config(path):
@@ -31,7 +31,7 @@ def render(config, environment):
         values[key] = environment[key]
     if len(values["PAYLOAD_SECRET"]) < 32:
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
-    for key in ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL"]:
+    for key in ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", "WXPRODUCTS_API_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF']:
         values[key] = environment.get(key, "")
     for domain in ["WXWATCH", "WXPRODUCTS", "TRANSPORT", "JANITORIAL", "CMS"]:
         user = quote(config[f"{domain}_DB_USER"], safe="")
@@ -62,9 +62,32 @@ def render(config, environment):
     if deployment_environment not in {"staging", "production"}:
         raise ValueError("ENVIRONMENT must be staging or production")
     values.update(TAG=f"{deployment_environment}-{tag}", WEB_TAG=f"{deployment_environment}-{tag}")
+    for keys in [
+        ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+        ["CAP_SIGNING_CERT", "CAP_SIGNING_KEY"],
+        ["STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY"],
+        ["BILLING_STRIPE_SECRET_KEY", "BILLING_STRIPE_WEBHOOK_SECRET", "BILLING_STRIPE_PRICE_ID", "BILLING_CHECKOUT_SUCCESS_URL", "BILLING_CHECKOUT_CANCEL_URL"],
+    ]:
+        if any(values.get(key) for key in keys) and not all(values.get(key) for key in keys):
+            raise ValueError("Incomplete integration configuration: " + ", ".join(keys))
+    stripe_key = values.get("BILLING_STRIPE_SECRET_KEY", "")
+    if stripe_key:
+        prefix = "sk_test_" if deployment_environment == "staging" else "sk_live_"
+        if not stripe_key.startswith(prefix):
+            raise ValueError("BILLING_STRIPE_SECRET_KEY must match the deployment environment")
+        for key in ["BILLING_CHECKOUT_SUCCESS_URL", "BILLING_CHECKOUT_CANCEL_URL"]:
+            url = urlparse(values[key])
+            if url.scheme != "https" or not url.hostname or url.username or url.password:
+                raise ValueError(key + " must be an HTTPS return URL")
+    for key in ["SENTRY_DSN", "NEXT_PUBLIC_POSTHOG_HOST", "STORAGE_ENDPOINT_URL", "STORAGE_PUBLIC_BASE_URL"]:
+        if values.get(key):
+            url = urlparse(values[key])
+            if url.scheme != "https" or not url.hostname or url.hostname in {"localhost", "127.0.0.1", "::1"}:
+                raise ValueError(key + " must use a deployed HTTPS endpoint")
+    values["EMAIL_RENDER_URL"] = "http://web-auth:3000" if values["EMAIL_RENDER_SECRET"] else ""
     lines = []
     for key, value in values.items():
-        if any(char in value for char in "\r\n\x00"):
+        if any(char in value for char in ("\r\x00" if key in {"CAP_SIGNING_CERT", "CAP_SIGNING_KEY"} else "\r\n\x00")):
             raise ValueError(f"{key} must be a single line")
         # JSON string escaping matches Compose double-quoted dotenv syntax.
         # $$ prevents Compose interpolation of literal dollars in credentials.

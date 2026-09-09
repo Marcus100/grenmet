@@ -27,6 +27,12 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
     # probes only need Redis settings and must not repeat these imports.
     for module in ("src.database", "src.cap.service", "src.worker.dispatch"):
         import_module(module)
+    from src.config import settings
+
+    if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
+        import sentry_sdk
+
+        sentry_sdk.init(dsn=str(settings.SENTRY_DSN), environment=settings.ENVIRONMENT)
 
 
 async def process_cap_jobs(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx

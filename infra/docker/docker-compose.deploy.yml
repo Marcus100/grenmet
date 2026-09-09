@@ -117,6 +117,17 @@ services:
       ENVIRONMENT: ${ENVIRONMENT}
       DOMAIN: ${DOMAIN}
       SENTRY_DSN: ${SENTRY_DSN:-}
+      BILLING_STRIPE_SECRET_KEY: ${BILLING_STRIPE_SECRET_KEY:-}
+      BILLING_STRIPE_WEBHOOK_SECRET: ${BILLING_STRIPE_WEBHOOK_SECRET:-}
+      BILLING_STRIPE_PRICE_ID: ${BILLING_STRIPE_PRICE_ID:-}
+      BILLING_CHECKOUT_SUCCESS_URL: ${BILLING_CHECKOUT_SUCCESS_URL:-}
+      BILLING_CHECKOUT_CANCEL_URL: ${BILLING_CHECKOUT_CANCEL_URL:-}
+      RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
+      EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
+      EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
+      CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
+      CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
+      CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-}
       PROJECT_NAME: ${PROJECT_NAME}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -128,7 +139,7 @@ services:
       AUTH_FRONTEND_URL: https://auth.${BASE_DOMAIN}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       FRONTEND_HOST: ${FRONTEND_HOST:-}
-      REDIS_URL: ${REDIS_URL:-}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
       STORAGE_REGION: ${STORAGE_REGION:-}
       STORAGE_BUCKET: ${STORAGE_BUCKET:-}
@@ -191,6 +202,10 @@ services:
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
+      CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
+      CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-cap-signing-key}
       PROJECT_NAME: ${PROJECT_NAME}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
@@ -282,6 +297,11 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
+      EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -310,6 +330,10 @@ services:
       web-migrate:
         condition: service_completed_successfully
     environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
@@ -327,7 +351,7 @@ services:
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
-      CAP_API_URL: https://api.${BASE_DOMAIN}
+      CAP_API_URL: http://api:8000
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.rule=Host(`admin.${BASE_DOMAIN}`)"
@@ -349,6 +373,10 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -374,6 +402,12 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
+      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
+      CAP_API_URL: http://api:8000
+      WXPRODUCTS_API_URL: ${WXPRODUCTS_API_URL:-http://web-admin:3001}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -398,6 +432,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-signal${ROUTER_SUFFIX}.rule=Host(`signal.${BASE_DOMAIN}`)"
@@ -417,6 +454,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-mbia${ROUTER_SUFFIX}.rule=Host(`mbia.${BASE_DOMAIN}`)"
