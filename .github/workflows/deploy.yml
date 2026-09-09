@@ -32,6 +32,11 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
+      - name: Validate release scope
+        env:
+          WEATHER_STAGING_ENABLED: ${{ vars.WEATHER_STAGING_ENABLED }}
+          WEATHER_PRODUCTION_ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
+        run: node scripts/ci/check-release-scope.mjs
       - name: Validate trusted release reference
         env:
           DEPLOY_ENV: ${{ inputs.environment }}
@@ -70,6 +75,7 @@ jobs:
           clean: false
       - name: Run serialized core delivery
         env:
+          WXPRODUCTS_API_URL: ${{ vars.WXPRODUCTS_API_URL }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
           CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
@@ -93,13 +99,25 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}
-          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL }}
-          STORAGE_REGION: ${{ secrets.STORAGE_REGION }}
-          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET }}
-          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID }}
-          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY }}
+          SENTRY_DSN: ${{ inputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || inputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
+          STORAGE_ENDPOINT_URL: ${{ secrets.STORAGE_ENDPOINT_URL || secrets.DO_SPACES_ENDPOINT }}
+          STORAGE_REGION: ${{ secrets.STORAGE_REGION || secrets.DO_SPACES_REGION }}
+          STORAGE_BUCKET: ${{ secrets.STORAGE_BUCKET || secrets.DO_SPACES_BUCKET }}
+          STORAGE_ACCESS_KEY_ID: ${{ secrets.STORAGE_ACCESS_KEY_ID || secrets.DO_SPACES_ACCESS_KEY_ID }}
+          STORAGE_SECRET_ACCESS_KEY: ${{ secrets.STORAGE_SECRET_ACCESS_KEY || secrets.DO_SPACES_SECRET_ACCESS_KEY }}
           STORAGE_PUBLIC_BASE_URL: ${{ secrets.STORAGE_PUBLIC_BASE_URL }}
+          BILLING_STRIPE_SECRET_KEY: ${{ secrets.BILLING_STRIPE_SECRET_KEY }}
+          BILLING_STRIPE_WEBHOOK_SECRET: ${{ secrets.BILLING_STRIPE_WEBHOOK_SECRET }}
+          BILLING_STRIPE_PRICE_ID: ${{ secrets.BILLING_STRIPE_PRICE_ID || vars.BILLING_STRIPE_PRICE_ID }}
+          BILLING_CHECKOUT_SUCCESS_URL: ${{ secrets.BILLING_CHECKOUT_SUCCESS_URL || vars.BILLING_CHECKOUT_SUCCESS_URL }}
+          BILLING_CHECKOUT_CANCEL_URL: ${{ secrets.BILLING_CHECKOUT_CANCEL_URL || vars.BILLING_CHECKOUT_CANCEL_URL }}
+          RESEND_WEBHOOK_SECRET: ${{ secrets.RESEND_WEBHOOK_SECRET }}
+          EMAIL_RENDER_SECRET: ${{ secrets.EMAIL_RENDER_SECRET }}
+          NEXT_PUBLIC_POSTHOG_KEY: ${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+          NEXT_PUBLIC_POSTHOG_HOST: ${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
+          CAP_SIGNING_CERT: ${{ secrets.CAP_SIGNING_CERT }}
+          CAP_SIGNING_KEY: ${{ secrets.CAP_SIGNING_KEY }}
+          CAP_SIGNING_KEY_REF: ${{ vars.CAP_SIGNING_KEY_REF || 'cap-signing-key' }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Service state on failure

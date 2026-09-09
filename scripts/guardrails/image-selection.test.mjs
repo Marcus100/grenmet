@@ -34,11 +34,11 @@ test("shared packages and copied manifests invalidate every Node consumer", () =
   ])
     assert.deepEqual(selectImages([path]).web, webImages);
 });
-test("SURFACE source selects only SURFACE", () => {
+test("SURFACE source does not enter the release", () => {
   const selected = selectImages(["surface/api/tempestas_api/settings.py"]);
   assert.deepEqual(
     selected.weather.map((image) => image.name),
-    ["surface"]
+    []
   );
   assert.deepEqual(selected.web, []);
   assert.equal(selected.api, false);
@@ -54,7 +54,7 @@ test("unknown, lockfile and CI inputs conservatively select everything", () => {
   ]) {
     const selected = selectImages([path]);
     assert.equal(selected.web.length, 11);
-    assert.equal(selected.weather.length, 3);
+    assert.equal(selected.weather.length, 0);
     assert.equal(selected.api, true);
   }
 });
@@ -141,4 +141,13 @@ test("CLI selects all images when comparison history or event data is missing", 
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("GMS source leaves unrelated application builds cached", () => {
+  assert.deepEqual(
+    selectImages(["apps/web/gms/src/components/hero.tsx"]).web.map(
+      (image) => image.app
+    ),
+    ["gms"]
+  );
 });
