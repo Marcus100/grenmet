@@ -468,7 +468,13 @@ async def submit_alert(
     from src.baseline.models import ApprovalPolicy
 
     policy = await session.get(ApprovalPolicy, "cap")
-    alert.allow_self_approval = policy.allow_self_approval if policy else True
+    if policy is None:
+        from src.exceptions import AppException
+
+        raise AppException(
+            "Configure the CAP approval policy in HR Setup before submitting", 409
+        )
+    alert.allow_self_approval = policy.allow_self_approval
     return await _transition(
         session=session,
         current_user=current_user,

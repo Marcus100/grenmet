@@ -8,6 +8,7 @@ from sqlmodel import Session, col, select
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.utils import get_password_hash
+from src.baseline.department import GMS_DEPARTMENT_IDS
 from src.baseline.models import ApprovalPolicy, BaselineStep, StaffCredential
 from src.hr.models import Department, EmploymentRecord, Grade
 from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate, WorkflowType
@@ -57,6 +58,40 @@ def seed_baseline(
             or existing_email.is_superuser != (person["username"] == "ewhint")
         ):
             raise ValueError(f"Account conflict requires review: {person['username']}")
+    dept_id = profile["department"]["code"].lower()
+    if dept_id == "gms":
+        matches = [
+            key for key in sorted(GMS_DEPARTMENT_IDS) if session.get(Department, key)
+        ]
+        if len(matches) > 1:
+            raise ValueError(
+                "Multiple GMS departments exist; reconcile ownership before seeding"
+            )
+        if matches:
+            dept_id = matches[0]
+    for code in grade_specs:
+        gid = f"{profile['department']['code'].upper()}_{code}"
+        grade = session.get(Grade, gid)
+        if grade and (
+            grade.department_id != dept_id or grade.code != code or not grade.is_active
+        ):
+            raise ValueError(f"Grade conflict requires review: {gid}")
+    for person in people:
+        user = session.exec(
+            select(User).where(User.username == person["username"])
+        ).first()
+        if user is None or session.get(StaffCredential, user.id) is not None:
+            continue
+        employment = session.exec(
+            select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+        ).first()
+        expected_grade = f"{profile['department']['code'].upper()}_{person['grade']}"
+        if employment and (
+            employment.department_id != dept_id or employment.grade_id != expected_grade
+        ):
+            raise ValueError(
+                f"Employment conflict requires review: {person['username']}"
+            )
     if not apply:
         return {
             "status": "preview",
@@ -69,12 +104,11 @@ def seed_baseline(
                 "photos",
             ],
         }
-    dept_id = profile["department"]["code"].lower()
     if session.get(Department, dept_id) is None:
         session.add(Department(id=dept_id, name=profile["department"]["name"]))
         session.flush()
     for code, spec in grade_specs.items():
-        gid = f"{dept_id.upper()}_{code}"
+        gid = f"{profile['department']['code'].upper()}_{code}"
         if session.get(Grade, gid) is None:
             session.add(
                 Grade(
@@ -121,7 +155,7 @@ def seed_baseline(
             StaffCredential(
                 user_id=user.id,
                 department_id=dept_id,
-                grade_id=f"{dept_id.upper()}_{person['grade']}",
+                grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
             )
         )
         employment = session.exec(
@@ -132,7 +166,7 @@ def seed_baseline(
                 EmploymentRecord(
                     user_id=user.id,
                     department_id=dept_id,
-                    grade_id=f"{dept_id.upper()}_{person['grade']}",
+                    grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
                     position=grade_specs[person["grade"]]["label"],
                     roster_name=person.get("roster_name"),
                     employee_number=None,

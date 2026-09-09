@@ -34,6 +34,7 @@ from src.hr.workflow.service import (
 from tests.factories import (
     assign_role,
     make_department,
+    make_ready_staff,
     make_role_with_permission,
     make_user,
 )
@@ -91,6 +92,7 @@ async def test_self_submit_does_not_require_approver_permission(
     user = await make_user(db_async)
     role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
     await assign_role(db_async, user=user, role=role)
+    await make_ready_staff(db_async, user, dept.id)
 
     leave_request = await create_leave_request(
         session=db_async, current_user=user, payload=_leave_payload(dept.id)
@@ -112,6 +114,7 @@ async def test_workflow_start_failure_rolls_back_entity(
     user_id = user.id  # capture before rollback expires the instance
     role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
     await assign_role(db_async, user=user, role=role)
+    await make_ready_staff(db_async, user, dept.id)
 
     async def _boom(**_kwargs: object) -> None:
         raise RuntimeError("workflow kickoff failed")
@@ -218,6 +221,14 @@ async def test_workflow_transition_submit_to_approve(
         workflow_template_id=template.id,
         step_in=WorkflowStepTemplateCreate(step_order=1, required_role_id=role.id),
     )
+    await make_ready_staff(db_async, user, "dept_workflow")
+    from src.baseline.models import ApprovalPolicy
+
+    policy = await db_async.get(ApprovalPolicy, "hr:dept_workflow:LEAVE_REQUEST")
+    policy.allow_self_approval = (
+        True  # This test explicitly exercises a single-person policy.
+    )
+    await db_async.commit()
     instance = await create_workflow_instance(
         session=db_async,
         current_user=user,
@@ -283,6 +294,7 @@ async def test_named_coapprovers_all_must_approve(db_async: AsyncSession) -> Non
     sup_role = await _setup_coapproval(db_async, dept.id)
 
     requester = await _make_requester(db_async)
+    await make_ready_staff(db_async, requester, dept.id)
     peer_a = await _make_peer(db_async)
     peer_b = await _make_peer(db_async)
     supervisor = await make_user(db_async)
@@ -339,6 +351,7 @@ async def test_coapprover_rejection_rejects_instance(db_async: AsyncSession) -> 
     dept = await make_department(db_async, "dept_coapprove_reject")
     await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
+    await make_ready_staff(db_async, requester, dept.id)
     peer_a = await _make_peer(db_async)
     peer_b = await _make_peer(db_async)
 
@@ -404,6 +417,7 @@ async def test_inbox_shows_instances_only_to_current_actor(
     dept = await make_department(db_async, "dept_inbox")
     sup_role = await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
+    await make_ready_staff(db_async, requester, dept.id)
     peer = await _make_peer(db_async)
     other = await _make_peer(db_async)  # has action/view but not on this instance
     supervisor = await make_user(db_async)
@@ -448,6 +462,7 @@ async def test_draft_can_be_edited_and_deleted(db_async: AsyncSession) -> None:
     dept = await make_department(db_async, "dept_draft_edit")
     await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
+    await make_ready_staff(db_async, requester, dept.id)
 
     draft_payload = _leave_payload(dept.id)
     draft_payload.as_draft = True
@@ -488,6 +503,7 @@ async def test_save_draft_then_submit(db_async: AsyncSession) -> None:
     dept = await make_department(db_async, "dept_draft")
     await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
+    await make_ready_staff(db_async, requester, dept.id)
     peer = await _make_peer(db_async)
 
     draft_payload = _leave_payload(dept.id)
@@ -515,3 +531,96 @@ async def test_save_draft_then_submit(db_async: AsyncSession) -> None:
     )
     assert instance.status == WorkflowStatus.PENDING
     assert any(s.required_user_id == peer.id for s in steps)
+
+
+@pytest.mark.parametrize("workflow_type", list(WorkflowType))
+async def test_missing_template_blocks_submission_but_allows_draft(
+    db_async, workflow_type
+):
+    import uuid
+
+    from src.exceptions import AppException
+    from src.hr.workflow.service import start_workflow_for_entity
+
+    user = await make_user(db_async, superuser=True)
+    dept = await make_department(db_async, "missing_template")
+    args = {
+        "session": db_async,
+        "current_user": user,
+        "department_id": dept.id,
+        "workflow_type": workflow_type,
+        "entity_type": "test",
+        "entity_id": uuid.uuid4(),
+    }
+    assert await start_workflow_for_entity(**args, submit=False) is None
+    with pytest.raises(AppException, match="active approval workflow"):
+        await start_workflow_for_entity(**args, submit=True)
+
+
+async def test_missing_template_preserves_saved_leave_draft(db_async):
+    from src.exceptions import AppException
+
+    user = await make_user(db_async, superuser=True)
+    dept = await make_department(db_async, "missing_leave_template")
+    await make_ready_staff(db_async, user, dept.id)
+    draft = await create_leave_request(
+        session=db_async,
+        current_user=user,
+        payload=_leave_payload(dept.id).model_copy(update={"as_draft": True}),
+    )
+    with pytest.raises(AppException, match="active approval workflow"):
+        await submit_leave_request(
+            session=db_async,
+            current_user=user,
+            leave_request_id=draft.id,
+            payload=LeaveRequestSubmit(),
+        )
+    await db_async.refresh(draft)
+    assert draft.status == RequestStatus.DRAFT
+    assert draft.workflow_instance_id is None
+
+
+async def test_missing_policy_allows_draft_but_blocks_submission(db_async):
+    from src.baseline.models import ApprovalPolicy
+    from src.exceptions import AppException
+
+    user = await make_user(db_async, superuser=True)
+    dept = await make_department(db_async, "missing_policy")
+    await make_ready_staff(db_async, user, dept.id)
+    await _setup_leave_template(db_async, dept.id)
+    policy = await db_async.get(ApprovalPolicy, f"hr:{dept.id}:LEAVE_REQUEST")
+    await db_async.delete(policy)
+    await db_async.commit()
+    draft = await create_leave_request(
+        session=db_async,
+        current_user=user,
+        payload=_leave_payload(dept.id).model_copy(update={"as_draft": True}),
+    )
+    with pytest.raises(AppException, match="approval policy"):
+        await submit_leave_request(
+            session=db_async,
+            current_user=user,
+            leave_request_id=draft.id,
+            payload=LeaveRequestSubmit(),
+        )
+    await db_async.refresh(draft)
+    assert draft.status == RequestStatus.DRAFT
+
+
+@pytest.mark.parametrize("order,required", [(1, False), (2, True)])
+async def test_invalid_required_chain_blocks_submission(db_async, order, required):
+    from src.hr.exceptions import HRValidationError
+    from src.hr.workflow.models import WorkflowStepTemplate
+
+    user = await make_user(db_async, superuser=True)
+    dept = await make_department(db_async, "invalid_chain")
+    await make_ready_staff(db_async, user, dept.id)
+    await _setup_leave_template(db_async, dept.id)
+    step = (await db_async.execute(select(WorkflowStepTemplate))).scalars().one()
+    step.step_order = order
+    step.is_required = required
+    await db_async.commit()
+    with pytest.raises(HRValidationError, match="consecutive required stages"):
+        await create_leave_request(
+            session=db_async, current_user=user, payload=_leave_payload(dept.id)
+        )

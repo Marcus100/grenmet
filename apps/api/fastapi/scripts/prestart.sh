@@ -66,4 +66,8 @@ else
     echo "Account/staff baseline is an explicit operator action"
 fi
 
+# Report business setup separately from schema readiness; keep admin accessible
+# so a superuser can preview and import missing catalogue data after fresh install.
+python scripts/check_onboarding.py
+
 echo "Prestart completed successfully"

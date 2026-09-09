@@ -7,6 +7,7 @@ from sqlmodel import select
 
 from src.auth.models import User
 from src.baseline import service
+from src.baseline.department import is_gms_department
 from src.baseline.models import BaselineAudit, ProductAccessPolicy, StaffCredential
 from src.baseline.schemas import ProductAccessInput, ProductAccessPublic
 from src.exceptions import AppException
@@ -63,7 +64,11 @@ async def save_policy(
     grade_ids = sorted(set(body.grade_ids))
     for grade_id in grade_ids:
         grade = await session.get(Grade, grade_id)
-        if not grade or not grade.is_active or grade.department_id != "gms":
+        if (
+            not grade
+            or not grade.is_active
+            or not is_gms_department(grade.department_id)
+        ):
             raise ProductPolicyError("Choose active GMS grades")
     policy = await session.get(ProductAccessPolicy, kind)
     if policy is None:
@@ -97,11 +102,16 @@ async def allowed_kinds(session: AsyncSession, user: User) -> list[str]:
         or credential.revoked_at is not None
         or employment is None
         or employment.status != EmploymentStatus.ACTIVE
-        or employment.department_id != "gms"
+        or not is_gms_department(employment.department_id)
         or not employment.grade_id
     ):
         return []
     grade = await session.get(Grade, employment.grade_id)
-    if grade is None or not grade.is_active or grade.department_id != "gms":
+    if (
+        grade is None
+        or not grade.is_active
+        or grade.department_id != employment.department_id
+        or not is_gms_department(grade.department_id)
+    ):
         return []
     return [p.kind for p in await policies(session) if grade.id in p.grade_ids]
