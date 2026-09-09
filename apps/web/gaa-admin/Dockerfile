@@ -17,24 +17,25 @@ FROM build-base AS dependencies
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
-COPY packages/tsconfig/package.json packages/tsconfig/
-COPY packages/admin-migrations/package.json packages/admin-migrations/
-COPY packages/ui/package.json packages/ui/
-COPY packages/auth/package.json packages/auth/
-COPY packages/api-client/package.json packages/api-client/
-COPY packages/theme/package.json packages/theme/
-COPY packages/gms/package.json packages/gms/
 COPY apps/api/honoapi/package.json apps/api/honoapi/
-COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/auth/package.json apps/web/auth/
-COPY apps/web/docs/package.json apps/web/docs/
-COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/cms/package.json apps/web/cms/
+COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/events/package.json apps/web/events/
+COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
+COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
+COPY packages/admin-migrations/package.json packages/admin-migrations/
+COPY packages/api-client/package.json packages/api-client/
+COPY packages/auth/package.json packages/auth/
+COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
+COPY packages/gms/package.json packages/gms/
 COPY packages/mdx/package.json packages/mdx/
+COPY packages/theme/package.json packages/theme/
+COPY packages/tsconfig/package.json packages/tsconfig/
+COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
 FROM dependencies AS source
@@ -44,15 +45,29 @@ ARG NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE="true"
 ENV NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE=$NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE
 ARG NEXT_PUBLIC_API_URL="https://api.barrels.gd"
 ARG NEXT_PUBLIC_ENVIRONMENT=""
+ARG SENTRY_PROJECT=""
+ARG NEXT_PUBLIC_POSTHOG_KEY=""
+ARG NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_ENVIRONMENT=$NEXT_PUBLIC_ENVIRONMENT
+ENV SENTRY_PROJECT=$SENTRY_PROJECT
+ENV NEXT_PUBLIC_POSTHOG_KEY=$NEXT_PUBLIC_POSTHOG_KEY
+ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
 ENV NEXT_TELEMETRY_DISABLED=1
 
-COPY . .
+# Explicit application sources and workspace dependency closure.
+COPY packages/admin-migrations/ packages/admin-migrations/
+COPY packages/api-client/ packages/api-client/
+COPY packages/auth/ packages/auth/
+COPY packages/gms/ packages/gms/
+COPY packages/theme/ packages/theme/
+COPY packages/tsconfig/ packages/tsconfig/
+COPY packages/ui/ packages/ui/
+COPY apps/web/gaa-admin/ apps/web/gaa-admin/
 
 FROM source AS builder
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin

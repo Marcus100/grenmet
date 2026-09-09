@@ -17,23 +17,27 @@ WORKDIR /app
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
 COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/auth/package.json apps/web/auth/
+COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
 COPY apps/web/events/package.json apps/web/events/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
+COPY packages/admin-migrations/package.json packages/admin-migrations/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
+COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/
 COPY packages/mdx/package.json packages/mdx/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
-COPY apps/web/cms/package.json apps/web/cms/
 RUN HUSKY=0 pnpm install --frozen-lockfile
-COPY . .
+# Explicit application sources and workspace dependency closure.
+COPY packages/tsconfig/ packages/tsconfig/
+COPY apps/api/honoapi/ apps/api/honoapi/
 RUN pnpm --filter @barrelsgd/api-hono build
 RUN pnpm --filter @barrelsgd/api-hono deploy --legacy --prod /runtime
 
