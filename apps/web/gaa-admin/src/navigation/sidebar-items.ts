@@ -4,10 +4,12 @@ import {
   Bus,
   Calendar,
   CalendarDays,
+  ClipboardCheck,
   CloudSun,
   Contact,
+  FileText,
+  Gauge,
   House,
-  LayoutGrid,
   type LucideIcon,
   NotebookPen,
   Package,
@@ -62,12 +64,11 @@ export interface NavGroup {
 // Placeholder destination for target-IA sections that have no page yet.
 // Keeps the "still beta" nav honest: every item lands somewhere real (no 404s)
 // while keeping unfinished sections reachable.
-const COMING_SOON_URL = "/coming-soon";
 
 // Group order is deliberate: daily coordination and HR (the actively built
 // surface) sit ungrouped up top, then "Products" (every forecaster-facing
 // product and composer), then "Services" (Climate & Data), then station
-// "Operations". Human Resources groups its dashboard, duty roster and setup.
+// "Operations".
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
@@ -75,22 +76,32 @@ export const sidebarItems: NavGroup[] = [
       { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       {
+        // Ordered by daily rhythm: the dashboard people land on, the forms they
+        // file, then the supervisory surfaces. HR Setup is deliberately absent
+        // — it is configuration, reached from the dashboard's HR Setup card,
+        // not a daily destination.
         id: "hr",
         title: "Human Resources",
         icon: Contact,
         subItems: [
-          { id: "hr-overview", title: "Overview", url: "/hr" },
+          { id: "hr-dashboard", title: "Dashboard", url: "/hr", icon: Gauge },
+          {
+            id: "hr-forms",
+            title: "Forms",
+            url: "/hr/forms",
+            icon: FileText,
+          },
+          {
+            id: "hr-approvals",
+            title: "Approvals",
+            url: "/hr/approvals",
+            icon: ClipboardCheck,
+          },
           {
             id: "roster",
             title: "Duty Roster",
             url: "/roster",
             icon: CalendarDays,
-          },
-          {
-            id: "hr-setup",
-            title: "HR Setup",
-            url: "/hr-setup",
-            icon: LayoutGrid,
           },
         ],
       },
@@ -151,7 +162,7 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "climate-data",
         title: "Climate & Data",
-        url: COMING_SOON_URL,
+        url: "/climate",
         icon: Thermometer,
       },
     ],
@@ -192,13 +203,13 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "it-tickets",
         title: "IT Tickets",
-        url: COMING_SOON_URL,
+        url: "/it-tickets",
         icon: Ticket,
       },
       {
         id: "resources",
         title: "Resources",
-        url: COMING_SOON_URL,
+        url: "/resources",
         icon: BookOpen,
       },
     ],

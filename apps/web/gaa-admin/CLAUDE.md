@@ -38,7 +38,7 @@ Consumes FastAPI HR + Auth endpoints via `@barrelsgd/api-client`. Initialised in
 ```
 src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
-    page.tsx         ← GMS operations dashboard (HomeMetricCards + RainfallChart)
+    page.tsx         ← GMS operations dashboard (live panels in `_components/`)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
     (others-pages)/  ← calendar (department calendar: events + roster + holidays), profile
     coming-soon/     ← placeholder page for target-IA nav items with no page yet

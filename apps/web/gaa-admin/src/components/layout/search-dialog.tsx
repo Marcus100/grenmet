@@ -11,7 +11,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@barrelsgd/ui/components/ui/command";
-import { Search } from "lucide-react";
+import { FileBarChart, LayoutGrid, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { type NavMainItem, sidebarItems } from "@/navigation/sidebar-items";
@@ -36,7 +36,27 @@ function getSubItemGroup(groupLabel: string | undefined, itemTitle: string) {
     : itemTitle;
 }
 
-const searchItems: SearchItem[] = sidebarItems.flatMap((group) =>
+// Reachable pages that are deliberately not in the sidebar — configuration and
+// exports, launched from the HR dashboard. They stay findable here so leaving
+// the nav does not mean leaving the product.
+const offNavItems: SearchItem[] = [
+  {
+    group: "Human Resources",
+    icon: LayoutGrid,
+    id: "hr-setup",
+    label: "HR Setup",
+    url: "/hr-setup",
+  },
+  {
+    group: "Human Resources",
+    icon: FileBarChart,
+    id: "hr-reports",
+    label: "Reports",
+    url: "/hr/reports",
+  },
+];
+
+const navItems: SearchItem[] = sidebarItems.flatMap((group) =>
   group.items.flatMap((item) => {
     if (item.subItems) {
       return item.subItems.map((sub) => ({
@@ -62,6 +82,8 @@ const searchItems: SearchItem[] = sidebarItems.flatMap((group) =>
     ];
   })
 );
+
+const searchItems: SearchItem[] = [...navItems, ...offNavItems];
 
 function getAvailableItems(items: SearchItem[]) {
   return items.filter(
