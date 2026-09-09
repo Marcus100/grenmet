@@ -2,13 +2,20 @@
 
 import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
+import Link from "next/link";
+import { bulletinHref } from "@/lib/bulletins";
 import {
   type AlertsResult,
+  alertsLevel,
   alertsSummary,
   type CapSeverity,
   type PublicAlert,
 } from "@/lib/cap";
 import { cn } from "@/lib/utils";
+import {
+  WARNING_LEVEL_LABEL,
+  WARNING_LEVEL_SURFACE,
+} from "@/lib/warning-level";
 
 interface CurrentAlertsAccordionProps {
   className?: string;
@@ -84,22 +91,47 @@ export function CurrentAlertsAccordion({
 }: CurrentAlertsAccordionProps) {
   const unavailable = result.status === "unavailable";
   const groups = result.status === "ok" ? result.groups : [];
+  const level = alertsLevel(result);
   const summary = alertsSummary(result);
+  // The summary already says "No active warnings"; naming the level too would
+  // just repeat it, so it appears only when something is in effect.
+  const responseLevel =
+    level === "none" || level === "unknown" ? null : WARNING_LEVEL_LABEL[level];
 
   return (
     <Accordion.Root className={cn("mb-4 flex flex-col", className)}>
       <Accordion.Item value="alerts">
         <Accordion.Header className="flex">
-          <Accordion.Trigger className="group flex h-11 w-full shrink-0 items-center justify-between rounded-tl-md rounded-tr-md border-2 border-gm-navy bg-gm-risk-yellow px-5">
-            <span className="flex items-center gap-3.5 font-bold text-base text-gm-text-primary">
-              <TriangleAlertIcon className="size-7 shrink-0" />
-              Current alerts
+          <Accordion.Trigger
+            className={cn(
+              "group flex min-h-11 w-full shrink-0 items-center justify-between gap-3 rounded-tl-md rounded-tr-md border-2 border-gm-navy px-4 py-2 sm:px-5",
+              WARNING_LEVEL_SURFACE[level]
+            )}
+          >
+            <span className="flex flex-col items-start">
+              <span className="flex items-center gap-2.5 whitespace-nowrap font-bold text-body-base leading-body-base">
+                <TriangleAlertIcon
+                  aria-hidden="true"
+                  className="size-5 shrink-0"
+                />
+                Current alerts
+              </span>
+              {/* Colour is never the only signal — the level is named here
+                  when one is in effect, per the Warning Pattern Checklist. */}
+              {responseLevel && (
+                <span className="font-semibold text-caption leading-caption">
+                  {responseLevel}
+                </span>
+              )}
             </span>
             <span className="flex items-center gap-3">
-              <span className="font-semibold text-caption text-gm-text-primary">
+              <span className="font-semibold text-caption leading-caption">
                 {summary}
               </span>
-              <ChevronDownIcon className="size-7 text-gm-text-primary transition-transform duration-200 group-data-[open]:rotate-180" />
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="size-6 shrink-0 transition-transform duration-200 group-data-panel-open:rotate-180"
+              />
             </span>
           </Accordion.Trigger>
         </Accordion.Header>
@@ -113,7 +145,7 @@ export function CurrentAlertsAccordion({
         >
           <div className="w-full rounded-br-md rounded-bl-md border border-gm-navy bg-gm-navy px-6 pt-5 pb-6">
             {unavailable ? (
-              <p className="text-base text-gm-text-inverse">
+              <p className="text-body-base text-gm-text-inverse leading-body-base">
                 Warning information cannot be retrieved right now. This does not
                 mean there are no warnings in effect — check the Grenada
                 Meteorological Service directly.
@@ -123,28 +155,25 @@ export function CurrentAlertsAccordion({
                 {groups.map((group) => {
                   const count = group.alerts.length;
                   return (
-                    <Accordion.Item
-                      disabled={count === 0}
-                      key={group.name}
-                      value={group.name}
-                    >
-                      <Accordion.Header className="flex">
-                        <Accordion.Trigger
-                          className={cn(
-                            "group/row flex h-8 w-full items-center gap-4 text-base",
-                            count === 0 && "opacity-35"
-                          )}
+                    <Accordion.Item key={group.name} value={group.name}>
+                      <Accordion.Header className="flex items-center gap-3">
+                        <Link
+                          className="flex min-h-10 flex-1 items-center gap-4 text-gm-text-inverse hover:underline"
+                          href={bulletinHref(group.name)}
                         >
-                          <span className="w-9 shrink-0 text-left font-semibold text-gm-risk-yellow">
+                          <span className="w-9 shrink-0 font-semibold">
                             {count}
                           </span>
-                          <span className="flex-1 text-left text-gm-text-inverse">
-                            {group.name}
-                          </span>
-                          {count > 0 && (
-                            <ChevronDownIcon className="size-5 shrink-0 text-gm-text-inverse transition-transform duration-200 group-data-[open]/row:rotate-180" />
-                          )}
-                        </Accordion.Trigger>
+                          <span>{group.name}</span>
+                        </Link>
+                        {count > 0 ? (
+                          <Accordion.Trigger
+                            aria-label={`Show CAP alerts: ${group.name}`}
+                            className="p-2 text-gm-text-inverse"
+                          >
+                            <ChevronDownIcon className="size-5" />
+                          </Accordion.Trigger>
+                        ) : null}
                       </Accordion.Header>
                       <Accordion.Panel
                         className="overflow-hidden transition-[height] duration-200 ease-out"

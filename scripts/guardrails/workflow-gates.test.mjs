@@ -96,7 +96,10 @@ test("publishing follows successful smoke verification on the same builder", () 
       "- name: Publish verified image from builder cache"
     );
     assert.ok(verify > 0 && smoke > verify && publish > smoke);
-    const steps = source.slice(verify, source.indexOf("- name: Scan", publish));
+    const steps = source.slice(
+      verify,
+      source.indexOf("- name: Upload", publish)
+    );
     assert.ok(!steps.includes("continue-on-error:"));
     assert.ok(!steps.includes("if:"));
     assert.ok(!steps.includes("setup-buildx-action"));
@@ -113,19 +116,11 @@ test("deployment waits for code checks and verified core builds without cancella
       .split("\n  deploy-weather:")[0];
     assert.ok(
       deploy.includes(
-        "needs: [ci-api, ci-web, api-client, build-api, build-web]"
+        "needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]"
       )
     );
     assert.ok(source.includes("cancel-in-progress: false"));
-    const weather = source
-      .split("\n  build-weather:\n")[1]
-      .split("\n  deploy:")[0];
-    assert.ok(
-      weather.includes(
-        workflow.includes("staging")
-          ? "WEATHER_STAGING_ENABLED == 'true'"
-          : "WEATHER_PRODUCTION_ENABLED == 'true'"
-      )
-    );
+    assert.equal(source.includes("build-weather-images.yml"), false);
+    assert.equal(source.includes("deploy-weather.yml"), false);
   }
 });

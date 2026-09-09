@@ -3,6 +3,7 @@ import { Paper } from "@/components/document/paper";
 export interface MarineBulletinValues {
   date: string;
   forecasterName: string;
+  notice?: string;
   seaState: string;
   sunrise: string;
   sunset: string;
@@ -82,7 +83,7 @@ export function MarineBulletinDocument({
         <div
           className={`rounded-md border px-3 py-1.5 text-center font-semibold text-sm ${tone}`}
         >
-          {values.warningLevel} Warning
+          {values.warningLevel} {values.notice ?? "Warning"}
         </div>
       </header>
 

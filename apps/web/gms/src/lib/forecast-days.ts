@@ -1,25 +1,32 @@
-import { DAY_FORECASTS } from "@/lib/forecast-data";
+import {
+  DAY_FORECASTS,
+  type DayForecast,
+  REFERENCE_DATE,
+} from "@/lib/forecast-data";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
 export interface ForecastDay {
   condition: WeatherCondition;
   date: number;
   dayName: string;
-  high: number;
+  high: number | null;
   isToday: boolean;
-  low: number;
+  low: number | null;
   month: string;
   /** `/forecasts/YYYY/MM/DD` — the dated forecast route for this day. */
   path: string;
   slug: string; // YYYY-MM-DD, the key used to look up the day's component
 }
 
-export function getForecastDays(): ForecastDay[] {
-  const today = new Date();
+export function getForecastDays(
+  baseDate = REFERENCE_DATE,
+  forecasts: DayForecast[] = DAY_FORECASTS
+): ForecastDay[] {
+  const today = new Date(`${baseDate}T12:00:00Z`);
   return Array.from({ length: 5 }, (_, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
-    const forecast = DAY_FORECASTS[i];
+    const forecast = forecasts[i];
     const slug = d.toISOString().slice(0, 10);
     return {
       condition: forecast.condition,

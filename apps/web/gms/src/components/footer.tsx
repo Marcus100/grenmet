@@ -3,11 +3,11 @@ import Image from "next/image";
 const LINK_ROWS = [
   [
     { label: "About GMS", href: "/about" },
-    { label: "Contact", href: "/contact" },
+    { label: "Contact", href: "/about/contact" },
   ],
   [
-    { label: "GMS Weather app", href: "/weather-app" },
-    { label: "Glossary", href: "/glossary" },
+    { label: "GMS Weather app", href: "/app-guide" },
+    { label: "Glossary", href: "/resources/glossary" },
   ],
   [
     { label: "Events", href: "/events" },
@@ -47,6 +47,12 @@ const SOCIAL = [
     href: "https://linkedin.com",
     size: "text-body-sm",
   },
+  {
+    label: "WhatsApp",
+    abbr: "wa",
+    href: "https://whatsapp.com",
+    size: "text-caption",
+  },
 ];
 
 const LEGAL_LINKS = [
@@ -80,7 +86,7 @@ export function Footer() {
           >
             {row.map((link) => (
               <a
-                className="flex-1 text-gm-text-primary text-heading-sm underline"
+                className="flex-1 text-body-base text-gm-text-primary leading-body-base underline"
                 href={link.href}
                 key={link.label}
               >
@@ -93,7 +99,7 @@ export function Footer() {
 
       {/* Links — desktop: description + 3-col grid */}
       <div className="hidden gap-20 pt-14 pb-14 lg:flex">
-        <div className="flex w-155 flex-none flex-col gap-6">
+        <div className="flex w-155 min-w-0 flex-col gap-6">
           <p className="text-body-base text-gm-text-primary leading-body-base">
             {ABOUT_SERVICES_COPY}
           </p>
@@ -104,7 +110,7 @@ export function Footer() {
             About our services
           </a>
         </div>
-        <div className="grid flex-1 grid-cols-3 content-start gap-x-8 gap-y-6">
+        <div className="grid min-w-96 flex-1 grid-cols-2 content-start gap-x-8 gap-y-6 xl:grid-cols-3">
           {FLAT_LINKS.map((link) => (
             <a
               className="text-body-base text-gm-text-primary leading-body-base"

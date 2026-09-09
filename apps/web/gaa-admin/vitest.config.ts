@@ -6,7 +6,8 @@ export default defineConfig({
     environment: "jsdom",
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
     globals: true,
-    maxWorkers: 4,
+    // Bound jsdom rendering alongside the other Turbo test task.
+    maxWorkers: 2,
     setupFiles: ["./src/test/setup.ts"],
     coverage: {
       provider: "v8",

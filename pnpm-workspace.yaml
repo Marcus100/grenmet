@@ -161,3 +161,15 @@ catalog:
   jsdom: "^30.0.1"
   "@playwright/test": "^1.63.0"
   "@faker-js/faker": "^10.2.0"
+
+
+# Preserve Drizzle's tooling APIs while replacing esbuild binaries built with old Go.
+overrides:
+  "@esbuild-kit/core-utils@3.3.2>esbuild": "0.28.2"
+  "drizzle-kit@0.31.7>esbuild": "0.28.2"
+
+# Payload migration tooling expects the JavaScript compiler API. Keep the
+# application build/type-check catalog on TypeScript 7.
+catalogs:
+  cms-migrations:
+    typescript: "6.0.3"

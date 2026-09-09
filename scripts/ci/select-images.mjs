@@ -1,3 +1,4 @@
+const deferredPath = /^(surface|wis2box|geonetcast|wxwatch|gms-ingest)\//;
 const zeroSha = /^0+$/;
 const workspaceManifest = /^(apps\/[^/]+\/[^/]+\/package\.json)$/;
 const rootMarkdown = /^[^/]+\.md$/;
@@ -8,36 +9,13 @@ import { execFileSync } from "node:child_process";
 import { appendFileSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-export const webImages = [
-  { app: "auth", path: "apps/web/auth", port: 3000 },
-  { app: "admin", path: "apps/web/gaa-admin", port: 3001 },
-  { app: "docs", path: "apps/web/docs", port: 3002 },
-  { app: "gms", path: "apps/web/gms", port: 3003 },
-  { app: "cms", path: "apps/web/cms", port: 3006 },
-  { app: "cms-migrate", path: "apps/web/cms", target: "migrate" },
-  { app: "admin-migrate", path: "apps/web/gaa-admin", target: "migrate" },
-  { app: "signal", path: "apps/web/signal", port: 3004 },
-  { app: "mbia", path: "apps/web/mbia", port: 3005 },
-  { app: "events", path: "apps/web/events", port: 3009 },
-  { app: "hono", path: "apps/api/honoapi", port: 4000 },
-];
-export const weatherImages = [
-  { name: "surface", dockerfile: "surface/Dockerfile.deploy", target: "" },
-  {
-    name: "wxwatch",
-    dockerfile: "infra/weather/Dockerfile.collectors",
-    target: "wxwatch",
-  },
-  {
-    name: "gms-ingest",
-    dockerfile: "infra/weather/Dockerfile.collectors",
-    target: "gms-ingest",
-  },
-];
+import { releaseScope, weatherImages, webImages } from "./release-scope.mjs";
+
+export { weatherImages, webImages } from "./release-scope.mjs";
 
 // Unknown inputs invalidate every image. Shared packages conservatively
 // invalidate all Node consumers, including indirect dependencies.
-const allImages = { web: webImages, weather: weatherImages, api: true };
+const allImages = releaseScope;
 const noImages = { web: [], weather: [], api: false };
 function imagesForPath(path) {
   // Python workspace metadata is copied by both API and collector builds.
@@ -45,8 +23,7 @@ function imagesForPath(path) {
   if (path === "pyproject.toml" || path.endsWith("/pyproject.toml"))
     return allImages;
   if (nonImagePath.test(path) || rootMarkdown.test(path)) return noImages;
-  if (path.startsWith("surface/"))
-    return { ...noImages, weather: [weatherImages[0]] };
+  if (deferredPath.test(path)) return noImages;
   if (path.startsWith("packages/") || workspaceManifest.test(path))
     return { ...noImages, web: webImages };
   if (path.startsWith("apps/api/fastapi/")) return { ...noImages, api: true };

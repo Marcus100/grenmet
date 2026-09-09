@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { getForecastDays } from "@/lib/forecast-days";
+import type { ForecastDay } from "@/lib/forecast-days";
 import { cn } from "@/lib/utils";
 import { weatherIcon } from "@/lib/weather-icons";
 
-export function WeatherDateNav() {
+export function WeatherDateNav({ days }: { days: ForecastDay[] }) {
   const pathname = usePathname();
-  const days = getForecastDays();
 
   return (
     <div className="flex bg-gm-surface lg:w-32 lg:flex-none lg:flex-col lg:border-gm-border lg:border-r">
@@ -34,19 +33,14 @@ export function WeatherDateNav() {
             href={href}
             key={day.slug}
           >
-            <span className="text-micro leading-micro">
-              {day.isToday ? "12:00 PM" : day.dayName}
-            </span>
+            {/* "Today" rather than an observation time: every other cell
+                names a day, and the time now sits with Right now. */}
+            <span className="text-caption leading-caption">{day.dayName}</span>
 
-            {/* Date and month sit on one line — stacking them made the strip
-                tall enough to crowd the forecast panel on small screens. */}
-            <span className="flex items-baseline gap-1">
-              <span className="font-bold text-heading-sm leading-heading-sm">
-                {day.date}
-              </span>
-              <span className="text-body-sm uppercase leading-body-sm">
-                {day.month}
-              </span>
+            {/* The month is dropped — a five-day strip never spans enough to
+                need it, and the date carries the emphasis instead. */}
+            <span className="font-bold text-heading-base leading-heading-base">
+              {day.date}
             </span>
 
             {/* Icon beside the temperatures rather than above them. */}
@@ -58,6 +52,7 @@ export function WeatherDateNav() {
                   isSunny ? "text-gm-sun" : "text-gm-text-muted"
                 )}
                 strokeWidth={1.6}
+                style={{ visibility: day.high === null ? "hidden" : "visible" }}
               />
               <span className="text-caption leading-caption">
                 <span
@@ -66,9 +61,11 @@ export function WeatherDateNav() {
                     isActive ? "text-gm-navy" : "text-gm-text-primary"
                   )}
                 >
-                  {day.high}&deg;
+                  {day.high === null ? "—" : `${day.high}°`}
                 </span>{" "}
-                <span className="text-gm-text-muted">{day.low}&deg;</span>
+                <span className="text-gm-text-muted">
+                  {day.low === null ? "—" : `${day.low}°`}
+                </span>
               </span>
             </span>
           </Link>

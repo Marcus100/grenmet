@@ -12,6 +12,7 @@
     "@t3-oss/env-nextjs": "catalog:",
     "zod": "catalog:",
     "pg": "catalog:",
-    "@barrelsgd/api-client": "workspace:*"
+    "@barrelsgd/api-client": "workspace:*",
+    "typescript": "catalog:cms-migrations"
   }
 }

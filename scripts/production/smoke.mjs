@@ -25,6 +25,8 @@ export async function checkDeployment(domain, fetcher = fetch) {
   await check(`https://cms.${domain}/api/content?limit=1`, '"docs":', fetcher);
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
+    ["api", "/api/cap/latest-active", '"data":'],
+    ["admin", "/api/public/products", '"products":'],
     ["admin", "/api/ready", '"ready"'],
     ["cms", "/api/ready", '"ready"'],
     ["auth", "/", "<form"],

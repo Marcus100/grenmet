@@ -39,16 +39,13 @@ export function DatePicker({
             data-empty={!date}
             id={id}
             variant="outline"
-          />
+          >
+            {date ? format(date, "PPP") : <span>Pick a date</span>}
+            <CalendarIcon className="text-muted-foreground" />
+          </Button>
         }
-      >
-        {date ? format(date, "PPP") : <span>Pick a date</span>}
-        <CalendarIcon className="text-muted-foreground" />
-      </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-(--radix-popover-trigger-width) p-0"
-      >
+      />
+      <PopoverContent align="start" className="w-(--anchor-width) p-0">
         <Calendar
           className="w-full"
           defaultMonth={date}

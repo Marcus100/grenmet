@@ -1,0 +1,51 @@
+name: Verify image vulnerability policy
+description: Scan the local image and block fixable high/critical vulnerabilities.
+inputs:
+  image:
+    description: Exact locally built image reference
+    required: true
+  scope:
+    description: Dockerfile path and target identifying the exception scope
+    required: true
+  name:
+    description: Unique artifact suffix within the calling job
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Scan image with current vulnerability database
+      id: scan
+      uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      env:
+        TRIVY_IMAGE_SRC: docker
+        TRIVY_IGNOREFILE: /dev/null
+        TRIVY_IGNORE_UNFIXED: "false"
+        TRIVY_SKIP_DB_UPDATE: "false"
+        TRIVY_SKIP_JAVA_DB_UPDATE: "false"
+      with:
+        version: v0.70.0
+        image-ref: ${{ inputs.image }}
+        scanners: vuln
+        format: json
+        output: trivy-results.json
+        severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+        exit-code: "0"
+        timeout: 10m
+    - name: Convert report for GitHub Security
+      if: steps.scan.outcome == 'success'
+      shell: bash
+      run: trivy convert --format sarif --output trivy-results.sarif trivy-results.json
+    - name: Retain scan evidence
+      if: always() && steps.scan.outcome == 'success'
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: vulnerabilities-${{ github.job }}-${{ inputs.name }}
+        path: |
+          trivy-results.json
+          trivy-results.sarif
+        if-no-files-found: error
+    - name: Enforce fixable high/critical policy
+      shell: bash
+      env:
+        IMAGE_SCOPE: ${{ inputs.scope }}
+      run: node scripts/ci/check-vulnerabilities.mjs trivy-results.json "$IMAGE_SCOPE"
