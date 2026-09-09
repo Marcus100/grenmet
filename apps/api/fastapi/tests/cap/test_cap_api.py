@@ -3,16 +3,21 @@ from typing import Any
 
 import httpx
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.baseline.models import ApprovalPolicy
 
 pytestmark = pytest.mark.asyncio
 
 
 async def test_cap_workflow_publish_public_outputs_and_jobs(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    _ = db_async
+    # Explicit single-actor policy for publication/feed tests.
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
     payload = _alert_payload()
 
     create_response = await async_client.post(

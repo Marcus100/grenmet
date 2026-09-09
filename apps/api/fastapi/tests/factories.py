@@ -207,3 +207,103 @@ async def make_supervised_pair(
     )
 
     return supervisor, employee, dept, role
+
+
+async def make_ready_staff(
+    session: AsyncSession, user: User, department_id: str
+) -> None:
+    """Explicit complete personnel and opening balances for workflow success tests."""
+    from datetime import date
+    from decimal import Decimal
+
+    from src.baseline.models import ApprovalPolicy, StaffCredential
+    from src.hr.leave.models import LeaveBalanceEvent, LeaveType
+    from src.hr.models import EmploymentType, Grade
+    from src.hr.workflow.models import WorkflowType
+
+    grade_id = f"{department_id}_TEST"
+    if await session.get(Grade, grade_id) is None:
+        session.add(
+            Grade(
+                id=grade_id,
+                department_id=department_id,
+                code="TEST",
+                label="Test grade",
+                rank=1,
+            )
+        )
+        await session.flush()
+    employment = (
+        (
+            await session.execute(
+                select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+            )
+        )
+        .scalars()
+        .first()
+    )
+    if employment is None:
+        employment = EmploymentRecord(user_id=user.id, department_id=department_id)
+    employment.grade_id = grade_id
+    employment.employee_number = (
+        employment.employee_number or f"TEST-{user.id.hex[:12]}"
+    )
+    employment.employment_type = EmploymentType.FULL_TIME
+    employment.start_date = date(2020, 1, 1)
+    session.add(employment)
+    if await session.get(StaffCredential, user.id) is None:
+        session.add(
+            StaffCredential(
+                user_id=user.id, department_id=department_id, grade_id=grade_id
+            )
+        )
+    for kind in WorkflowType:
+        key = f"hr:{department_id}:{kind.value}"
+        if await session.get(ApprovalPolicy, key) is None:
+            session.add(ApprovalPolicy(key=key))
+    for kind in (LeaveType.VACATION, LeaveType.SICK):
+        existing = (
+            (
+                await session.execute(
+                    select(LeaveBalanceEvent).where(
+                        LeaveBalanceEvent.user_id == user.id,
+                        LeaveBalanceEvent.leave_type == kind.value,
+                    )
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if existing is None:
+            session.add(
+                LeaveBalanceEvent(
+                    user_id=user.id,
+                    leave_type=kind.value,
+                    delta_days=Decimal("30"),
+                    balance_after_days=Decimal("30"),
+                    reason="Verified test opening balance",
+                    created_by_user_id=user.id,
+                )
+            )
+    await session.commit()
+
+
+async def make_submission_setup(session, user, department_id, workflow_type):
+    """Explicit reference data for tests that submit a new HR form."""
+    from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate
+
+    await make_ready_staff(session, user, department_id)
+    role, _ = await make_role_with_permission(session, "workflow.instance.action")
+    template = WorkflowTemplate(
+        department_id=department_id,
+        workflow_type=workflow_type,
+        name="Test approval workflow",
+    )
+    session.add(template)
+    await session.flush()
+    session.add(
+        WorkflowStepTemplate(
+            workflow_template_id=template.id, step_order=1, required_role_id=role.id
+        )
+    )
+    await session.commit()

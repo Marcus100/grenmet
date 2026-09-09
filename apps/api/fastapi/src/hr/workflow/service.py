@@ -130,6 +130,13 @@ async def _create_step_instances_for_workflow(
         .order_by(col(WorkflowStepTemplate.step_order))
     )
     steps = list(result.scalars().all())
+    required_orders = sorted({step.step_order for step in steps if step.is_required})
+    if not required_orders or required_orders != list(
+        range(1, len(required_orders) + 1)
+    ):
+        raise HRValidationError(
+            "Approval workflow requires consecutive required stages starting at 1"
+        )
     for step in steps:
         step_instance = WorkflowStepInstance(
             workflow_instance_id=workflow_instance_id,
@@ -183,6 +190,13 @@ async def create_workflow_instance(
         ApprovalPolicy,
         f"hr:{workflow_template.department_id}:{workflow_template.workflow_type.value}",
     )
+    if policy is None and build_steps:
+        from src.exceptions import AppException
+
+        raise AppException(
+            "Configure this department approval policy in HR Setup before submitting",
+            409,
+        )
     db_instance = WorkflowInstance(
         workflow_template_id=workflow_template.id,
         department_id=workflow_template.department_id,
@@ -190,10 +204,10 @@ async def create_workflow_instance(
         entity_type=instance_in.entity_type,
         entity_id=instance_in.entity_id,
         requested_by_user_id=current_user.id,
-        allow_self_approval=policy.allow_self_approval if policy else True,
+        allow_self_approval=policy.allow_self_approval if policy else False,
         require_distinct_approvers=policy.require_distinct_approvers
         if policy
-        else False,
+        else True,
     )
     # Flush (not commit) so step creation and any calling entity-create share one
     # transaction; when commit=False the caller owns the terminal commit.
@@ -326,11 +340,17 @@ async def apply_workflow_action(
                 await require_leave_ready(
                     session, leave.user_id, leave.department_id, leave.leave_type.value
                 )
-        policy = await session.get(
-            ApprovalPolicy,
-            f"hr:{workflow_instance.department_id}:{workflow_instance.workflow_type.value}",
-        )
-        if workflow_instance.status == WorkflowStatus.DRAFT and policy:
+        if workflow_instance.status == WorkflowStatus.DRAFT:
+            policy = await session.get(
+                ApprovalPolicy,
+                f"hr:{workflow_instance.department_id}:{workflow_instance.workflow_type.value}",
+            )
+            if policy is None:
+                from src.exceptions import AppException
+
+                raise AppException(
+                    "Configure the department approval policy before submitting", 409
+                )
             workflow_instance.allow_self_approval = policy.allow_self_approval
             workflow_instance.require_distinct_approvers = (
                 policy.require_distinct_approvers
@@ -578,8 +598,8 @@ async def start_workflow_for_entity(
 ) -> uuid.UUID | None:
     """Look up an active workflow template and create an instance for an entity.
 
-    Requires a configured template for the department + workflow type (returns
-    None otherwise). With ``submit=True`` the named co-approvers are attached as
+    Submission requires an active template for the department and workflow type.
+    Drafts may be saved without a template. With ``submit=True`` co-approvers attach as
     a parallel first step and the instance is submitted (DRAFT → PENDING). With
     ``submit=False`` the instance is created at DRAFT with no steps yet — steps
     (and co-approvers) are built later by :func:`submit_draft_workflow`.
@@ -593,6 +613,13 @@ async def start_workflow_for_entity(
     )
     template = result.scalars().first()
     if not template:
+        if submit:
+            from src.exceptions import AppException
+
+            raise AppException(
+                "Configure an active approval workflow in HR Setup before submitting",
+                409,
+            )
         return None
     # commit=False: the calling entity-create owns the terminal commit, so the
     # entity row and its workflow instance/steps land in one atomic transaction.

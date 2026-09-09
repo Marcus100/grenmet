@@ -259,6 +259,11 @@ export {
   useImportAlertApiV1CapAlertsImportPost,
 } from "./useImportAlertApiV1CapAlertsImportPost.js";
 export {
+  importCatalogueApiV1HrSetupCataloguePostMutationKey,
+  importCatalogueApiV1HrSetupCataloguePostMutationOptions,
+  useImportCatalogueApiV1HrSetupCataloguePost,
+} from "./useImportCatalogueApiV1HrSetupCataloguePost.js";
+export {
   importCsvApiV1HrRostersImportCsvPostMutationKey,
   importCsvApiV1HrRostersImportCsvPostMutationOptions,
   useImportCsvApiV1HrRostersImportCsvPost,
@@ -338,6 +343,11 @@ export {
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions,
   useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost,
 } from "./useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export {
+  previewCatalogueApiV1HrSetupCatalogueGetQueryKey,
+  previewCatalogueApiV1HrSetupCatalogueGetQueryOptions,
+  usePreviewCatalogueApiV1HrSetupCatalogueGet,
+} from "./usePreviewCatalogueApiV1HrSetupCatalogueGet.js";
 export {
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey,
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions,

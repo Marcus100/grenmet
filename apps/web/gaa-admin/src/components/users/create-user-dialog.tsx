@@ -97,6 +97,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
 
   async function submit() {
     if (!canSubmit) return;
+    let accountCreated = false;
     try {
       const user = await createUserMutation.mutateAsync({
         body: {
@@ -108,6 +109,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
         },
       });
 
+      accountCreated = true;
       const roleIdsByName = new Map(roles.map((r) => [r.name, r.id]));
       for (const roleName of rolesToAssign(form.role)) {
         const roleId = roleIdsByName.get(roleName);
@@ -129,14 +131,25 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
 
       await invalidateAfterUserOnboard(queryClient, { departmentId });
       toast.success(
-        `${form.first_name} ${form.last_name} onboarded as ${form.position}`
+        `${form.first_name} ${form.last_name}: account created. Complete verified staff details in HR Setup.`
       );
       setForm(INITIAL_FORM);
       setOpen(false);
     } catch (error) {
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
-      toast.error(`Onboarding failed: ${detail}`);
+      if (accountCreated) {
+        setForm(INITIAL_FORM);
+        setOpen(false);
+        toast.error(
+          `Account created, but setup is incomplete: ${detail}. Open the existing account in Staff to finish; do not create it again.`
+        );
+        await invalidateAfterUserOnboard(queryClient, { departmentId }).catch(
+          () => {
+            toast.error("Refresh Staff to load the created account.");
+          }
+        );
+      } else toast.error(`Account creation failed: ${detail}`);
     }
   }
 

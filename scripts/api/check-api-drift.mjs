@@ -1,47 +1,113 @@
 #!/usr/bin/env node
-/**
- * Checks whether packages/api-client/src/gen/ is out of sync with
- * apps/api/fastapi/openapi.json by comparing last-modified times.
- *
- * Exits 1 if openapi.json is newer than the generated client, meaning
- * `pnpm generate:api-client` needs to be run.
- */
+import { spawnSync } from "node:child_process";
+import {
+  copyFileSync,
+  existsSync,
+  lstatSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  symlinkSync,
+} from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { statSync } from "node:fs";
-import { resolve } from "node:path";
+const packagePath = "packages/api-client";
+const generatedPath = `${packagePath}/src/gen`;
+const inputs = [
+  "apps/api/fastapi/openapi.json",
+  "biome.jsonc",
+  ".gitignore",
+  `${packagePath}/package.json`,
+  `${packagePath}/kubb.config.ts`,
+];
 
-const root = resolve(import.meta.dirname, "../..");
-
-const openapiPath = resolve(root, "apps/api/fastapi/openapi.json");
-const genCanaryPath = resolve(root, "packages/api-client/src/gen/index.ts");
-
-let openapiMtime;
-let genMtime;
-
-try {
-  openapiMtime = statSync(openapiPath).mtimeMs;
-} catch {
-  console.log("check:drift — openapi.json not found, skipping.");
-  process.exit(0);
+function files(directory, prefix = "") {
+  const result = new Map();
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const relative = join(prefix, entry.name);
+    const absolute = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      for (const [name, content] of files(absolute, relative))
+        result.set(name, content);
+    } else if (entry.isFile()) {
+      result.set(relative, readFileSync(absolute));
+    } else {
+      throw new Error(`Unsupported generated entry: ${relative}`);
+    }
+  }
+  return result;
 }
 
-try {
-  genMtime = statSync(genCanaryPath).mtimeMs;
-} catch {
-  console.error(
-    "✗ packages/api-client/src/gen/index.ts not found.\n" +
-      "  Run: pnpm generate:api-client"
-  );
-  process.exit(1);
+function generate(directory) {
+  const result = spawnSync("pnpm", ["run", "generate"], {
+    cwd: join(directory, packagePath),
+    stdio: "inherit",
+    timeout: 600_000,
+  });
+  if (result.error || result.status !== 0) {
+    throw new Error(
+      `API client generation failed: ${result.error?.message ?? result.signal ?? result.status}`
+    );
+  }
 }
 
-if (openapiMtime > genMtime) {
-  console.error(
-    "✗ openapi.json has been modified but api-client/src/gen/ has not been regenerated.\n" +
-      "  Run: pnpm generate:api-client\n" +
-      "  Then commit the updated src/gen/ files."
-  );
-  process.exit(1);
+export function checkDrift(root, generateClient = generate) {
+  for (const input of inputs) {
+    if (!lstatSync(join(root, input)).isFile())
+      throw new Error(`Missing input file: ${input}`);
+  }
+  const committed = files(join(root, generatedPath));
+  if (committed.size === 0) throw new Error("Generated client is empty");
+  const temporary = mkdtempSync(join(tmpdir(), "grenmet-api-drift-"));
+  try {
+    for (const input of inputs) {
+      const destination = join(temporary, input);
+      mkdirSync(dirname(destination), { recursive: true });
+      copyFileSync(join(root, input), destination);
+    }
+    // Reuse installed tools; source, output, and formatter paths stay isolated.
+    for (const modules of ["node_modules", `${packagePath}/node_modules`]) {
+      const source = join(root, modules);
+      if (existsSync(source))
+        symlinkSync(source, join(temporary, modules), "dir");
+    }
+    generateClient(temporary);
+    const generated = files(join(temporary, generatedPath));
+    if (generated.size === 0)
+      throw new Error("Generator produced no client files");
+    const differences = [];
+    for (const name of [
+      ...new Set([...committed.keys(), ...generated.keys()]),
+    ].sort()) {
+      if (!committed.has(name)) differences.push(`Missing: ${name}`);
+      else if (!generated.has(name)) differences.push(`Extra: ${name}`);
+      else if (!committed.get(name).equals(generated.get(name)))
+        differences.push(`Changed: ${name}`);
+    }
+    return differences;
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
 }
 
-console.log("✓ api-client/src/gen/ is in sync with openapi.json.");
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(resolve(process.argv[1])).href
+) {
+  try {
+    const differences = checkDrift(resolve(import.meta.dirname, "../.."));
+    if (differences.length) {
+      console.error(
+        `API client drift detected:\n${differences.join("\n")}\nRun pnpm generate:api-client and commit the complete generated file set.`
+      );
+      process.exitCode = 1;
+    } else console.log("✓ Generated API client content matches openapi.json.");
+  } catch (error) {
+    console.error(`API client drift check failed: ${error.message}`);
+    process.exitCode = 1;
+  }
+}
