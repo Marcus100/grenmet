@@ -607,7 +607,7 @@ export function HrDashboard({ data }: { data: HrDashboardPublic }) {
           {isAdminView ? (
             <Link
               className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
-              href="/coming-soon"
+              href="/hr/reports"
             >
               <FileBarChart />
               Reports

@@ -45,10 +45,7 @@ export function DatePicker({
           </Button>
         }
       />
-      <PopoverContent
-        align="start"
-        className="w-(--radix-popover-trigger-width) p-0"
-      >
+      <PopoverContent align="start" className="w-(--anchor-width) p-0">
         <Calendar
           className="w-full"
           defaultMonth={date}
