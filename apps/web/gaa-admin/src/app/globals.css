@@ -356,11 +356,11 @@
 }
 
 @layer utilities {
-  /* For Remove Date Icon */
+  /* Drop the spinner arrows only. The calendar/clock picker indicator stays:
+     Chromium opens the native picker from that button alone, so hiding it
+     leaves a date input that can be typed into but never picked from. */
   input[type="date"]::-webkit-inner-spin-button,
-  input[type="time"]::-webkit-inner-spin-button,
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
+  input[type="time"]::-webkit-inner-spin-button {
     display: none;
     -webkit-appearance: none;
   }
