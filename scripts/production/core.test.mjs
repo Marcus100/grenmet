@@ -67,7 +67,7 @@ exit 0
         );
         writeFileSync(
           join(root, "bin/node"),
-          '#!/bin/bash\necho smoke >> "$TEST_LOG"\n',
+          '#!/bin/bash\n[[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"\n',
           { mode: 0o700 }
         );
         const result = spawnSync(

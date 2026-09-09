@@ -14,6 +14,16 @@ permissions:
   contents: read
 
 jobs:
+  release-scope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Validate and report release scope
+        env:
+          WEATHER_STAGING_ENABLED: ${{ vars.WEATHER_STAGING_ENABLED }}
+          WEATHER_PRODUCTION_ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
+        run: node scripts/ci/check-release-scope.mjs
+
   ci-api:
     name: CI (API)
     uses: ./.github/workflows/ci-api.yml
@@ -62,20 +72,14 @@ jobs:
       packages: write
       security-events: write
 
-  build-weather:
-    if: ${{ vars.WEATHER_STAGING_ENABLED == 'true' }}
-    uses: ./.github/workflows/build-weather-images.yml
-    permissions:
-      contents: read
-      packages: write
-
   deploy:
     name: Deploy
-    needs: [ci-api, ci-web, api-client, build-api, build-web]
+    needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]
     # CI and every matching artifact must succeed.
     if: >-
       ${{
         !cancelled() &&
+        needs.release-scope.result == 'success' &&
         needs.ci-api.result == 'success' &&
         needs.ci-web.result == 'success' &&
         needs.api-client.result == 'success' &&
@@ -90,25 +94,3 @@ jobs:
     permissions:
       contents: read
       packages: read
-
-  deploy-weather:
-    needs: [build-weather, deploy]
-    if: ${{ vars.WEATHER_STAGING_ENABLED == 'true' }}
-    uses: ./.github/workflows/deploy-weather.yml
-    with:
-      environment: staging
-    secrets: inherit
-    permissions:
-      contents: read
-      packages: read
-
-  weather-configuration-status:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Report integration state
-        env:
-          ENABLED: ${{ vars.WEATHER_STAGING_ENABLED }}
-        run: |
-          if [[ "$ENABLED" != true ]]; then
-            echo "Weather integration UNCONFIGURED: provision and validate its dedicated host before enabling delivery." >> "$GITHUB_STEP_SUMMARY"
-          fi
