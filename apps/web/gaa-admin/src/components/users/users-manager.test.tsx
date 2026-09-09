@@ -313,3 +313,47 @@ describe("toUserRows", () => {
     expect(statusFilterOptions).toEqual(["All", "Active", "Deactivated"]);
   });
 });
+
+it("closes creation after an account is saved but its role assignment fails", async () => {
+  let accountsCreated = 0;
+  let assignmentsAttempted = 0;
+  server.use(
+    http.post(`${BASE}/api/v1/auth/users`, () => {
+      accountsCreated += 1;
+      return HttpResponse.json(
+        { ...USERS.data[0], id: "u-partial" },
+        { status: 201 }
+      );
+    }),
+    http.post(`${BASE}/api/v1/auth/role-assignments`, () => {
+      assignmentsAttempted += 1;
+      return HttpResponse.json(
+        { detail: "Role service unavailable" },
+        { status: 503 }
+      );
+    })
+  );
+  renderUsers();
+  await screen.findByText("Gerard Tamar");
+  fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
+  await screen.findByLabelText("First name");
+  for (const [label, value] of [
+    ["First name", "Test"],
+    ["Last name", "Person"],
+    ["Username", "testperson"],
+    ["Email", "testperson@example.com"],
+    ["Temporary password", "test-password-123"],
+    ["Employee number", "MET-TEST"],
+  ]) {
+    fireEvent.change(screen.getByLabelText(label), { target: { value } });
+  }
+  fireEvent.click(screen.getByRole("button", { name: "Create user" }));
+  await waitFor(() =>
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+  );
+  expect(accountsCreated).toBe(1);
+  expect(assignmentsAttempted).toBe(1);
+  fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
+  expect(await screen.findByLabelText("Username")).toHaveValue("");
+  expect(screen.getByRole("button", { name: "Create user" })).toBeDisabled();
+}, 20_000);
