@@ -17,7 +17,9 @@ test("deployment probes the real sign-in route and requires its form", async () 
       );
     }
     return Promise.resolve(
-      new Response('<main>{"docs":[],"ready":true}</main>')
+      new Response(
+        '<main>{"docs":[],"ready":true,"data":[],"products":[]}</main>'
+      )
     );
   };
   await checkDeployment("staging.example.test", fetcher);
@@ -63,4 +65,21 @@ test("propagates network failures", async () => {
       Promise.reject(new Error("network unavailable"))
     )
   );
+});
+
+test("CAP and product storage failures block release rather than reading as empty feeds", async () => {
+  for (const failedPath of ["/api/cap/latest-active", "/api/public/products"]) {
+    await assert.rejects(
+      checkDeployment("staging.example.test", (url) =>
+        Promise.resolve(
+          new Response(
+            new URL(url).pathname === failedPath
+              ? "Unavailable"
+              : '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>',
+            { status: new URL(url).pathname === failedPath ? 503 : 200 }
+          )
+        )
+      )
+    );
+  }
 });

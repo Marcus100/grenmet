@@ -248,16 +248,12 @@ jobs:
       - name: Smoke test production imports
         run: bash scripts/production/smoke-image.sh test-image:latest api
 
-      - name: Scan Docker image for vulnerabilities
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      - name: Enforce image vulnerability policy
+        uses: ./.github/actions/scan-image
         with:
-          image-ref: "test-image:latest"
-          format: "sarif"
-          output: "trivy-results.sarif"
-          severity: "CRITICAL,HIGH"
-          exit-code: "1"
-          scanners: "vuln"
+          image: test-image:latest
+          scope: apps/api/fastapi/Dockerfile.prod#runtime
+          name: api
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5

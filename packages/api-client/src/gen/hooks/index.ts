@@ -469,6 +469,16 @@ export {
   useReadPredefinedAreasApiV1CapAreasPredefinedGet,
 } from "./useReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
 export {
+  readProductAccessApiV1HrProductAccessMeGetQueryKey,
+  readProductAccessApiV1HrProductAccessMeGetQueryOptions,
+  useReadProductAccessApiV1HrProductAccessMeGet,
+} from "./useReadProductAccessApiV1HrProductAccessMeGet.js";
+export {
+  readProductPoliciesApiV1HrSetupProductAccessGetQueryKey,
+  readProductPoliciesApiV1HrSetupProductAccessGetQueryOptions,
+  useReadProductPoliciesApiV1HrSetupProductAccessGet,
+} from "./useReadProductPoliciesApiV1HrSetupProductAccessGet.js";
+export {
   readPublicAlertApiCapAlertsIdentifierGetQueryKey,
   readPublicAlertApiCapAlertsIdentifierGetQueryOptions,
   useReadPublicAlertApiCapAlertsIdentifierGet,
@@ -738,6 +748,11 @@ export {
   updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions,
   useUpdatePasswordMeApiV1AuthUsersMePasswordPatch,
 } from "./useUpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
+export {
+  updateProductPolicyApiV1HrSetupProductAccessKindPutMutationKey,
+  updateProductPolicyApiV1HrSetupProductAccessKindPutMutationOptions,
+  useUpdateProductPolicyApiV1HrSetupProductAccessKindPut,
+} from "./useUpdateProductPolicyApiV1HrSetupProductAccessKindPut.js";
 export {
   updateRoleApiV1AuthRolesRoleIdPatchMutationKey,
   updateRoleApiV1AuthRolesRoleIdPatchMutationOptions,

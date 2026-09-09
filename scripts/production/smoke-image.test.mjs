@@ -85,3 +85,14 @@ test("auth requires the server-rendered form after health succeeds and cleans up
   }
   assert.ok(!run("auth", true).calls.includes("page-check"));
 });
+
+test("Node image tooling failure blocks startup and migration execution", () => {
+  for (const kind of ["web", "auth", "cms-migrate", "admin-migrate"]) {
+    const failed = run(kind, false, true);
+    assert.equal(failed.status, 1);
+    assert.ok(failed.calls.includes("Unexpected runtime package manager"));
+    assert.ok(!failed.calls.includes("run -d"));
+    assert.ok(!failed.calls.includes("node_modules/payload/bin.js"));
+    assert.ok(!failed.calls.includes("--test apps/web/gaa-admin"));
+  }
+});

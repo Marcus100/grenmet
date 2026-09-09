@@ -87,3 +87,15 @@ class RoleConfiguration(BaseModel):
 
 class RolePermissionsInput(BaseModel):
     permission_keys: list[str] = Field(max_length=100)
+
+
+class ProductAccessInput(BaseModel):
+    grade_ids: list[str] = Field(max_length=50)
+
+
+class ProductAccessPublic(ProductAccessInput):
+    kind: str
+
+
+class ProductAccessCurrent(BaseModel):
+    allowed_kinds: list[str]

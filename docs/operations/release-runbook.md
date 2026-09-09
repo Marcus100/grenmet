@@ -83,7 +83,7 @@ A comparable cold-cache/warm-cache pair is still required before claiming
 performance improvement or consistent ten-minute feedback.
 Portable runtime configuration, verified release manifests, authenticated
 synthetic-account tests, vulnerability baseline review/enforcement, and retained
-manifest rollback remain later work. Existing vulnerability scans still report
+manifest rollback remain later work. At that acceptance point, vulnerability scans still reported
 findings without blocking publication; they do not yet enforce the planned
 high/critical policy.
 
@@ -340,3 +340,118 @@ reviewed vulnerability enforcement, runtime environment portability, attested
 release manifests, authenticated staging flows and a schema-compatible rollback
 exercise remain explicit acceptance items. Confirm the CMS image build, actual
 migrations and end-to-end staging checks before the next release behavior change.
+
+
+#### Vulnerability enforcement candidate
+
+The next candidate adds a shared pre-publish image policy gate. See
+[the security baseline](../security.md#image-vulnerability-policy) for coverage,
+exception requirements and the reviewed findings. It intentionally starts with
+no exceptions. The September 8 staging baseline contains fixable high/critical
+findings, so remediation is required before a passing promotion. This source
+change is not evidence of completed security acceptance. Preserve production
+approval and all existing migration and readiness checks while resolving it.
+
+
+### Next architecture phases
+
+Advance each release-behavior change only after its predecessor passes staging.
+
+| Order | Scope | Acceptance |
+| --- | --- | --- |
+| 1A | [Legacy service retirement](../deployment.md#legacy-service-retirement): inspect ownership, traffic, mounts and recovery images; stop only reviewed containers | Current routes remain healthy; retired routers disappear; volumes preserved; repeat inventory |
+| 1B | Fix the reviewed vulnerability baseline and scan exact runtime/migration images | Fixable HIGH/CRITICAL policy passes; exceptions explicitly owned and limited to 14 days; real migrations pass |
+| 2 | Consolidate service inventory and gate all required enabled images, including weather | Missing selection, unexpected skips, failed scans/builds and cancellations block deployment; six required check names preserved |
+| 3 | Narrow Docker build inputs and separate builder tools from runtimes | Shared dependencies invalidate correctly; unrelated changes reuse compilation; real container checks and cache measurements pass |
+| 4 | Typed runtime public configuration and shared browser loader | Same image digest works with two isolated environment configurations; no secrets or configuration leakage; SSR preserved |
+| 5 | Complete release manifests, fingerprints, staging evidence and attestations | Production verifies matching Git tree and fresh security results, then promotes identical digests without compilation |
+| 6 | Authenticated synthetic staging tests, retained-manifest rollback and timing comparison | Schema-compatible rollback succeeds; comparable cold/warm runs separate queue, compile, export, pull, migration, startup and external checks |
+
+Current service inventory implementation is read-only and does not change the
+deployment sequence. Production interruption tolerance remains an open decision
+before choosing overlapping old/new containers. No host resource increase is
+assumed. Initial feedback targets ten minutes; report deployment duration
+separately and do not treat different commits/cache conditions as a controlled
+benchmark.
+
+
+### Security remediation checkpoint — September 8, 2026
+
+The pending candidate removes package-manager tooling from final Node runtime
+and migration stages and adds a fail-closed filesystem check to the shared image
+smoke command. The shared Python lockfile updates only cryptography to 50.0.1
+and PyOpenSSL to 26.4.0. Isolated CAP signing tests (2) and scraper tests (38)
+passed. See [security remediation evidence](../security.md#cryptography-remediation-candidate).
+
+Real image build/scan acceptance is pending; FastAPI/Starlette and CMS embedded
+tool vulnerabilities are still unresolved. Keep the security policy enforced;
+this checkpoint is not approval to promote a passing release. The legacy staging
+containers are stopped with restart disabled, with removal deferred through the
+next successful staging deployment.
+
+
+### Hono runtime image verification — September 8, 2026
+
+The operator built the Hono `runner` target on the development workstation and
+ran the shared image smoke command successfully. The final image passed the
+package-manager absence check, reported Node v24.18.0, and served `/health` with
+HTTP 200 and `status: ok`. Image config ID:
+`sha256:480d7e41b9be925c41d083fbe02b2ae4a388d0aabfd291ee917dbc8975cb7a8f`.
+The exported image index was
+`sha256:6dd74b65f8e556e80c3f7b9046d3f2635825836faf85091d1ba11dd6fad83d84`.
+
+| Observed step | Duration / size |
+| --- | --- |
+| Entire local build | 273.8 seconds |
+| Context transfer | 22.4 seconds / 261.09 MB |
+| Workspace dependency installation | 126.3 seconds |
+| Source copy | 30.6 seconds |
+| Hono build command | 20.9 seconds |
+| Production dependency packaging | 7.0 seconds |
+| Image export | 6.3 seconds |
+
+Steps overlap; do not sum them as elapsed time. This is one local build, not a
+controlled warm/cold comparison or CI benchmark. Broad workspace installation
+and context transfer remain measured optimization targets. The operator's Trivy
+0.70.0 archive scan with a fresh database passed the repository policy with
+`reported: 0`, `blocked: []`, `excepted: []`. Other images remain pending.
+
+### CMS migration security verification — September 8, 2026
+
+The initial workstation build passed the offline Payload configuration, adapter
+and migration-module smoke check. It took 549.7 seconds: dependency installation
+123.3s, API-client compilation 54.0s, production packaging 142.3s, node_modules
+copy 33.0s and export 64.4s (including 35.3s unpacking). Steps overlap. The
+690.39 kB context transfer was incremental, not evidence of a pruned build context.
+Image config ID: `sha256:119e24468fcd95b2099b9c9e99d83f1ae00e363fea7cee82883b57fcefb892ac`.
+
+Its Trivy 0.70.0 scan reported 133 findings and failed policy with no exceptions.
+Blocking findings came from two esbuild binaries (0.18.20 and 0.25.12) and the
+native TypeScript 7.0.2 compiler. The follow-up dependency candidate replaces
+Drizzle's esbuild dependencies with 0.28.2 and supplies JavaScript TypeScript
+6.0.3 only to the migration package. Isolated production packaging excludes all
+three flagged binaries and passes the extended offline smoke check, including
+compiler transpilation and an unchanged-schema Drizzle migration diff. A rebuilt
+image scan and real database migration tests are still required.
+
+
+### CMS follow-up acceptance — September 8, 2026
+
+Operator rebuild: 376.3 seconds total, dependency installation 137.5s, API-client
+build 25.3s, production packaging 106.8s, node_modules copy 20.4s and export
+38.3s. Caches differ from the previous run, so this is not a controlled speedup.
+Extended offline migration smoke passed. Trivy policy then reported one MEDIUM
+Payload finding, zero blockers and zero exceptions. See [security review](../security.md#september-8-verification-update).
+Database migration execution still requires CI/staging acceptance.
+
+The [dependency audit](dependency-audit-2026-09-08.md) tracks remaining Python,
+JavaScript and uv image/CI alignment work. Live OAuth is not configured fully;
+synthetic OAuth unit tests do not establish provider integration acceptance.
+
+
+### API framework host regression — September 8, 2026
+
+MARCUS100 ran `uv run --frozen --package fast-back pytest -x -q` with localhost
+PostgreSQL/Redis and the test database bootstrap: 306 passed, 68 warnings in
+297.14 seconds. FastAPI 0.141.1 / Starlette 1.6.0 host regression acceptance is
+complete. Production image smoke/scan and CI/staging deployment remain pending.

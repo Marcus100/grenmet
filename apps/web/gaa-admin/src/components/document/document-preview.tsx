@@ -19,8 +19,12 @@ export function DocumentPreview({
   onDownloadPdf,
   children,
   showDownloadPdf = true,
+  printContent,
+  continuous = false,
 }: {
   title?: string;
+  continuous?: boolean;
+  printContent?: ReactNode;
   onDownloadPdf?: () => void;
   children: ReactNode;
   /** Hide the Download-PDF button when a surrounding action bar already offers it. */
@@ -37,7 +41,7 @@ export function DocumentPreview({
 
   return (
     <>
-      <PrintDocument>{children}</PrintDocument>
+      <PrintDocument>{printContent ?? children}</PrintDocument>
       <div className="flex flex-col rounded-xl border bg-card">
         <div className="flex items-center justify-between px-4 py-4">
           <h2 className="font-medium text-lg">{title}</h2>
@@ -59,34 +63,46 @@ export function DocumentPreview({
           </ButtonGroup>
         </div>
 
-        <div
-          className="relative min-h-[calc(100svh-15rem)] flex-1 rounded-b-xl bg-stone-200 p-4 dark:bg-stone-800"
-          ref={bodyRef}
-        >
-          {layout === null ? (
-            <div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm">
-              Loading preview
-            </div>
-          ) : null}
+        {continuous ? (
+          <div className="overflow-auto rounded-b-xl bg-stone-200 p-4 dark:bg-stone-800">
+            <p className="mb-3 text-sm">
+              Continuous preview. Print or Download PDF applies paper
+              pagination.
+            </p>
+            <div style={{ width: PAPER_WIDTH }}>{children}</div>
+          </div>
+        ) : (
           <div
-            className="absolute left-1/2 opacity-0 data-[ready=true]:opacity-100"
-            data-ready={layout !== null}
-            style={{
-              height: PAPER_HEIGHT * scale,
-              top: layout?.top ?? "50%",
-              transform:
-                layout === null ? "translate(-50%, -50%)" : "translateX(-50%)",
-              width: PAPER_WIDTH * scale,
-            }}
+            className="relative min-h-[calc(100svh-15rem)] flex-1 rounded-b-xl bg-stone-200 p-4 dark:bg-stone-800"
+            ref={bodyRef}
           >
+            {layout === null ? (
+              <div className="absolute inset-0 grid place-items-center text-muted-foreground text-sm">
+                Loading preview
+              </div>
+            ) : null}
             <div
-              className="origin-top-left"
-              style={{ transform: `scale(${scale})` }}
+              className="absolute left-1/2 opacity-0 data-[ready=true]:opacity-100"
+              data-ready={layout !== null}
+              style={{
+                height: PAPER_HEIGHT * scale,
+                top: layout?.top ?? "50%",
+                transform:
+                  layout === null
+                    ? "translate(-50%, -50%)"
+                    : "translateX(-50%)",
+                width: PAPER_WIDTH * scale,
+              }}
             >
-              {children}
+              <div
+                className="origin-top-left"
+                style={{ transform: `scale(${scale})` }}
+              >
+                {children}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );

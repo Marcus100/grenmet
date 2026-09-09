@@ -31,6 +31,7 @@ set -euo pipefail
 umask 077
 python3 ../../scripts/production/render-env.py "$DEPLOY_ENV.env" runtime/.env.local
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --quiet
+docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --format json | node ../../scripts/ci/check-release-scope.mjs --compose
 
 printf "%s\n" "Authenticate with GHCR"
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin

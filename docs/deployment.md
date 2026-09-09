@@ -425,7 +425,9 @@ Traefik obtains host certificates through the existing ACME challenge.
 
 Roll out staging first and verify every app health endpoint, login return URLs,
 and API CORS. Promote through main and a new release after staging succeeds.
-The old host routes are removed when Compose replaces the old web services.
+Renamed prototype containers can remain running as Compose orphans. Current
+delivery does not automatically remove them; follow the retirement procedure
+below to remove their old host routes after verifying ownership.
 Database and uploaded-data volumes retain their existing names and contents.
 Rollback uses the previous release's committed workflow and Compose definition:
 select the previous release tag as both the workflow ref and image tag.
@@ -433,3 +435,68 @@ select the previous release tag as both the workflow ref and image tag.
 Signal subscriptions and MBIA contact delivery remain prototypes; MBIA flights
 and Events records remain demo data. Hono exposes its health stub, not a completed
 weather API. Hosting these apps does not complete those product workflows.
+
+
+## Legacy service retirement
+
+`docker-compose.prod.yml` and `docker-compose.staging.yml` are retired prototype
+layouts. Current releases use `docker-compose.deploy.yml`. Do not add retired
+hurricane/spice domains to CORS merely because an old container still exists.
+
+Run this read-only inventory from a checkout containing the inventory command
+on the staging Docker host:
+
+```bash
+bash scripts/production/inventory.sh --services-only --project grenmet-staging
+```
+
+For production, use `--project grenmet`. The command compares container service
+labels with the current Compose service inventory, includes stopped containers,
+and reports unexpected services for review. It includes image IDs and available
+registry digests, restart policy, selected routing labels, networks, and mounts with writable
+flags. It excludes environment values and middleware credentials and performs
+no database queries or Docker mutations. Missing registry digests remain empty;
+a mutable tag is not a substitute for a retained recovery image.
+
+An empty project report is not proof that another project or host is clean.
+The report cannot establish traffic usage or whether container writable layers
+contain unique data. Inspect those separately before retirement. Unknown
+services are review findings, not automatic deletion candidates; tools and
+one-off containers need their own ownership check.
+
+Retirement sequence, staging before production:
+
+1. Record host, project, container IDs, routing labels, image digests, mounts,
+   and current external application checks. Confirm replacement routes work.
+2. Review traffic and writable data for `web-hurricaneplan` and `web-spicewx`.
+   Preserve any unique data and retain recovery images before stopping them.
+3. Prepare an explicit list of container IDs and have the operator stop only
+   those verified legacy containers. Record their restart policies and set
+   `--restart=no` on only these containers so a Docker restart cannot revive
+   them. Keep stopped containers through the next successful staging deployment
+   so they can be restarted if retirement causes a problem.
+4. Verify replacement routes and authentication, and confirm the old routers
+   are gone. If checks fail, restore the recorded restart policies, restart the
+   retained containers, and investigate.
+5. Remove the verified stopped containers after acceptance. Preserve volumes
+   and recovery records. Repeat the inventory to confirm no unintended changes.
+
+Do not use blanket `--remove-orphans` as the initial cleanup: it removes services
+absent from the supplied Compose definition, including ones not reviewed for
+retirement. Historical releases retain their own committed Compose definitions.
+
+On September 8, 2026, operator-provided staging output showed both legacy
+containers running alongside healthy current applications at commit
+`979522b4e18eb8dba5b355a03d830b4d7098c677`. The operator confirmed project/service ownership, Traefik enabled and no
+mounts for either legacy container. Filesystem diffs showed changes confined to
+Next.js generated output and image caches. Both were stopped; external
+readiness/page-content smoke passed afterward and both legacy staging hosts
+returned HTTP 404 with `404 page not found`. The operator then confirmed both containers were `exited` with restart policy
+`no`. Final container removal remains pending until the next successful
+staging deployment. This is staging
+evidence, not production state.
+
+Retained recovery images:
+
+- Hurricane: `ghcr.io/marcus100/grenmet-web-hurricaneplan@sha256:eba1e7732f398df4ba99168f288302863f1552cd16cb2b5620391169d1e2fada`
+- Spice: `ghcr.io/marcus100/grenmet-web-spicewx@sha256:30b7e4c7ab7d36482cb6c673558963e5798fc94ee897816152ffb3f7a0d94a66`

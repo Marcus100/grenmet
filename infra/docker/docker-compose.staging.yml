@@ -1,5 +1,6 @@
 # GrenMet — Staging Stack
-# Used by: .github/workflows/deploy-staging.yml
+# RETIRED prototype layout; current workflows use docker-compose.deploy.yml.
+# Historical releases retain their own definitions. Do not use this for new deployments.
 #
 # Required secrets (set in GitHub Environment "staging"):
 #   POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD
