@@ -141,6 +141,8 @@ export { capStatus } from "./CapStatus.js";
 export type { CapUrgency } from "./CapUrgency.js";
 export { capUrgency } from "./CapUrgency.js";
 export type { CapValidationResult } from "./CapValidationResult.js";
+export type { CatalogueApply } from "./CatalogueApply.js";
+export type { CataloguePreview } from "./CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 export type {
   ClosePeriodApiV1HrRostersPeriodsPeriodIdClosePatchOptions,
@@ -603,6 +605,17 @@ export type {
   ImportAlertApiV1CapAlertsImportPostStatus422,
 } from "./ImportAlertApiV1CapAlertsImportPost.js";
 export type {
+  ImportCatalogueApiV1HrSetupCataloguePostBody,
+  ImportCatalogueApiV1HrSetupCataloguePostOptions,
+  ImportCatalogueApiV1HrSetupCataloguePostResponse,
+  ImportCatalogueApiV1HrSetupCataloguePostResponses,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus200,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus403,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus404,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus409,
+  ImportCatalogueApiV1HrSetupCataloguePostStatus422,
+} from "./ImportCatalogueApiV1HrSetupCataloguePost.js";
+export type {
   ImportCsvApiV1HrRostersImportCsvPostBody,
   ImportCsvApiV1HrRostersImportCsvPostOptions,
   ImportCsvApiV1HrRostersImportCsvPostResponse,
@@ -786,6 +799,17 @@ export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
+export type {
+  PreviewCatalogueApiV1HrSetupCatalogueGetOptions,
+  PreviewCatalogueApiV1HrSetupCatalogueGetQuery,
+  PreviewCatalogueApiV1HrSetupCatalogueGetResponse,
+  PreviewCatalogueApiV1HrSetupCatalogueGetResponses,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus200,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus403,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus404,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus409,
+  PreviewCatalogueApiV1HrSetupCatalogueGetStatus422,
+} from "./PreviewCatalogueApiV1HrSetupCatalogueGet.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";

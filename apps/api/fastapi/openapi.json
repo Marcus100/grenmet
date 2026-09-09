@@ -8595,6 +8595,117 @@
         }
       }
     },
+    "/api/v1/hr/setup/catalogue": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Preview missing GMS reference data",
+        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records.",
+        "operationId": "preview_catalogue_api_v1_hr_setup_catalogue_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguePreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Import missing GMS reference data",
+        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+        "operationId": "import_catalogue_api_v1_hr_setup_catalogue_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogueApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguePreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/dashboard": {
       "get": {
         "tags": [
@@ -11943,6 +12054,64 @@
           "is_valid"
         ],
         "title": "CapValidationResult"
+      },
+      "CatalogueApply": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id"
+        ],
+        "title": "CatalogueApply"
+      },
+      "CataloguePreview": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "missing_grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Grade Ids"
+          },
+          "missing_policy_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Policy Keys"
+          },
+          "missing_workflow_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Workflow Types"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "missing_grade_ids",
+          "missing_policy_keys",
+          "missing_workflow_types",
+          "conflicts"
+        ],
+        "title": "CataloguePreview"
       },
       "CheckoutSessionPublic": {
         "properties": {

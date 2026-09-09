@@ -17,12 +17,14 @@ from src.hr.exceptions import HRPermissionDeniedError, WorkflowTemplateNotFoundE
 from src.hr.models import Department, EmploymentRecord
 from src.hr.parking.schemas import ParkingPermitCreate
 from src.hr.parking.service import create_parking_permit
+from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.schemas import WorkflowInstanceCreate
 from src.hr.workflow.service import create_workflow_instance
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_supervised_pair,
     make_user,
 )
@@ -135,6 +137,8 @@ async def test_absentee_self_file_succeeds(db_async: AsyncSession) -> None:
     role, _ = await make_role_with_permission(db_async, "absentee.report.create")
     await assign_role(db_async, user=user, role=role)
 
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.ABSENTEE_REPORT)
+
     report = await create_absentee_report(
         session=db_async,
         current_user=user,
@@ -177,6 +181,10 @@ async def test_absentee_supervisor_proxy_file_succeeds(
         db_async, "absentee.report.create"
     )
 
+    await make_submission_setup(
+        db_async, supervisor, dept.id, WorkflowType.ABSENTEE_REPORT
+    )
+
     report = await create_absentee_report(
         session=db_async,
         current_user=supervisor,
@@ -214,6 +222,10 @@ async def test_parking_file_for_other_without_scope_denied(
 async def test_parking_supervisor_proxy_file_succeeds(db_async: AsyncSession) -> None:
     supervisor, employee, dept, _ = await make_supervised_pair(
         db_async, "parking.permit.create"
+    )
+
+    await make_submission_setup(
+        db_async, supervisor, dept.id, WorkflowType.PARKING_PERMIT
     )
 
     permit = await create_parking_permit(

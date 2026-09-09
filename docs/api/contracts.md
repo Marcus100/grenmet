@@ -277,3 +277,19 @@ or non-GMS grades return 400; policy writes require administrator access.
 An empty policy permits only superusers. Policies use ingested employment grades,
 are evaluated on each request and are audited. CAP permissions remain independent.
 See [GMS authored products](../operations/gms-products.md) for publication behavior.
+
+
+## GMS onboarding reference data
+
+`GET /api/v1/hr/setup/catalogue?department_id=<id>` previews missing ingested
+GMS grades, safe-default approval policies and standard two-stage HR workflow
+templates. `POST /api/v1/hr/setup/catalogue` accepts `{"department_id":"<id>"}`
+and adds missing records atomically. Both endpoints require an active superuser.
+Recognized existing department IDs are `gms` and `meteorological_department`;
+identity is not inferred from editable names. Conflicting grade identities block
+import with 409. Existing records, disabled grades, staff, role assignments and
+operational data remain unchanged. Repeated imports are no-ops.
+
+New HR/CAP submissions require their approval policy; missing policies return
+409. Staff setup can save partial verified personnel details, but HR workflow
+readiness still requires a staff credential and complete active employment.

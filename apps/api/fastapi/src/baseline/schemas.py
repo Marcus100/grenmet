@@ -99,3 +99,15 @@ class ProductAccessPublic(ProductAccessInput):
 
 class ProductAccessCurrent(BaseModel):
     allowed_kinds: list[str]
+
+
+class CataloguePreview(BaseModel):
+    department_id: str
+    missing_grade_ids: list[str]
+    missing_policy_keys: list[str]
+    missing_workflow_types: list[str]
+    conflicts: list[str]
+
+
+class CatalogueApply(BaseModel):
+    department_id: str

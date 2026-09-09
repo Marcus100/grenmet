@@ -1,5 +1,6 @@
 """Leave service tests — permission requirements and state transitions."""
 
+from datetime import date
 from decimal import Decimal
 
 import pytest
@@ -9,7 +10,8 @@ from src.exceptions import AuthorizationError
 from src.hr.leave.schemas import LeaveRequestAction, LeaveRequestCreate
 from src.hr.leave.service import action_leave_request, create_leave_request
 from src.hr.models import RequestStatus
-from tests.factories import make_supervised_pair, make_user
+from tests.factories import make_ready_staff, make_supervised_pair, make_user
+from tests.hr.test_workflow import _setup_leave_template
 
 
 async def test_create_leave_request_requires_permission(db_async: AsyncSession) -> None:
@@ -39,6 +41,9 @@ async def test_create_leave_request_with_permission(db_async: AsyncSession) -> N
     role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
     await assign_role(db_async, user=user, role=role)
 
+    await make_ready_staff(db_async, user, dept.id)
+    await _setup_leave_template(db_async, dept.id)
+
     leave_request = await create_leave_request(
         session=db_async,
         current_user=user,
@@ -67,6 +72,9 @@ async def test_action_leave_request_requires_permission(db_async: AsyncSession) 
         db_async, "leave.request.create.self"
     )
     await assign_role(db_async, user=creator, role=creator_role)
+
+    await make_ready_staff(db_async, creator, dept.id)
+    await _setup_leave_template(db_async, dept.id)
 
     leave_request = await create_leave_request(
         session=db_async,
@@ -110,17 +118,22 @@ async def test_action_leave_request_approved_writes_balance_event(
     emp_role, _ = await make_role_with_permission(db_async, "leave.request.create.self")
     await assign_role(db_async, user=employee, role=emp_role)
 
-    leave_request = await create_leave_request(
-        session=db_async,
-        current_user=employee,
-        payload=LeaveRequestCreate(
-            department_id=dept.id,
-            leave_type="VACATION",
-            start_date="2026-09-01",
-            end_date="2026-09-03",
-            days_requested=Decimal("3.0"),
-        ),
+    await make_ready_staff(db_async, employee, dept.id)
+
+    from src.hr.leave.models import LeaveRequest, LeaveType
+
+    # Existing pre-workflow records must remain actionable after deployment.
+    leave_request = LeaveRequest(
+        user_id=employee.id,
+        department_id=dept.id,
+        leave_type=LeaveType.VACATION,
+        start_date=date(2026, 9, 1),
+        end_date=date(2026, 9, 3),
+        days_requested=Decimal("3.0"),
+        status=RequestStatus.SUBMITTED,
     )
+    db_async.add(leave_request)
+    await db_async.commit()
 
     await action_leave_request(
         session=db_async,

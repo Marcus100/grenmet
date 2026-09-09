@@ -16,10 +16,12 @@ from src.hr.parking.service import (
     issue_decal,
     list_parking_permits,
 )
+from src.hr.workflow.models import WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_user,
 )
 
@@ -52,6 +54,8 @@ async def test_create_parking_permit_with_permission(db_async: AsyncSession) -> 
     dept = await make_department(db_async, "dept_parking_create")
     role, _ = await make_role_with_permission(db_async, "parking.permit.create")
     await assign_role(db_async, user=user, role=role)
+
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.PARKING_PERMIT)
 
     permit = await create_parking_permit(
         session=db_async,
@@ -88,6 +92,10 @@ async def test_issue_decal_sets_fields(db_async: AsyncSession) -> None:
     dept = await make_department(db_async, "dept_parking_issue")
     create_role, _ = await make_role_with_permission(db_async, "parking.permit.create")
     await assign_role(db_async, user=applicant, role=create_role)
+
+    await make_submission_setup(
+        db_async, applicant, dept.id, WorkflowType.PARKING_PERMIT
+    )
 
     permit = await create_parking_permit(
         session=db_async,

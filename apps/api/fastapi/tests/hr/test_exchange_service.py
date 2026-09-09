@@ -9,10 +9,12 @@ from src.exceptions import AuthorizationError
 from src.hr.exchange.schemas import ShiftSwapRequestCreate
 from src.hr.exchange.service import create_shift_swap_request
 from src.hr.models import RequestStatus
+from src.hr.workflow.models import WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_user,
 )
 
@@ -49,6 +51,8 @@ async def test_create_shift_swap_with_permission(db_async: AsyncSession) -> None
         db_async, "shift_swap.request.create.self"
     )
     await assign_role(db_async, user=user, role=role)
+
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.SHIFT_SWAP)
 
     request = await create_shift_swap_request(
         session=db_async,

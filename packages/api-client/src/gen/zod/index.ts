@@ -118,6 +118,8 @@ export { capSnapshotPublicSchema } from "./capSnapshotPublicSchema.js";
 export { capStatusSchema } from "./capStatusSchema.js";
 export { capUrgencySchema } from "./capUrgencySchema.js";
 export { capValidationResultSchema } from "./capValidationResultSchema.js";
+export { catalogueApplySchema } from "./catalogueApplySchema.js";
+export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
 export {
   closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchErrorSchema,
@@ -531,6 +533,16 @@ export {
   importAlertApiV1CapAlertsImportPostStatus422Schema,
 } from "./importAlertApiV1CapAlertsImportPostSchema.js";
 export {
+  importCatalogueApiV1HrSetupCataloguePostBodySchema,
+  importCatalogueApiV1HrSetupCataloguePostErrorSchema,
+  importCatalogueApiV1HrSetupCataloguePostResponseSchema,
+  importCatalogueApiV1HrSetupCataloguePostStatus200Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus403Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus404Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus409Schema,
+  importCatalogueApiV1HrSetupCataloguePostStatus422Schema,
+} from "./importCatalogueApiV1HrSetupCataloguePostSchema.js";
+export {
   importCsvApiV1HrRostersImportCsvPostBodySchema,
   importCsvApiV1HrRostersImportCsvPostErrorSchema,
   importCsvApiV1HrRostersImportCsvPostResponseSchema,
@@ -699,6 +711,16 @@ export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";
 export { policyInputSchema } from "./policyInputSchema.js";
 export { policyPublicSchema } from "./policyPublicSchema.js";
+export {
+  previewCatalogueApiV1HrSetupCatalogueGetErrorSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetQueryDepartmentIdSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetResponseSchema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus200Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus403Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus404Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus409Schema,
+  previewCatalogueApiV1HrSetupCatalogueGetStatus422Schema,
+} from "./previewCatalogueApiV1HrSetupCatalogueGetSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";

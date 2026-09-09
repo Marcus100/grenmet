@@ -209,14 +209,11 @@ async def save_staff(
     employment.position = grade.label
     employment.supervisor_id = body.supervisor_id
     employment.updated_at = utc_now()
-    if body.employee_number is not None:
-        if not body.employment_type or not body.start_date:
-            raise AppException(
-                "Verified employment type and start date are required", 400
-            )
-        employment.employee_number = body.employee_number
-        employment.employment_type = body.employment_type
-        employment.start_date = body.start_date
+    # Save verified fields independently; workflow readiness still requires all three.
+    for field in ("employee_number", "employment_type", "start_date"):
+        value = getattr(body, field)
+        if value is not None:
+            setattr(employment, field, value)
     session.add(employment)
     if body.mailbox_ready and not user.is_active:
         user.email_verification_required = True
@@ -358,10 +355,18 @@ async def require_ready(
 ) -> None:
     credential = await session.get(StaffCredential, user_id)
     if credential is None:
-        return  # Legacy/non-staff users retain existing workflow authorization.
+        raise AppException("Complete staff onboarding before using HR workflows", 409)
     employment = await employment_for(session, user_id)
+    grade = (
+        await session.get(Grade, employment.grade_id)
+        if employment and employment.grade_id
+        else None
+    )
     if (
-        credential.revoked_at
+        grade is None
+        or not grade.is_active
+        or grade.department_id != department_id
+        or credential.revoked_at
         or not employment
         or not employment_complete(employment)
         or employment.status != EmploymentStatus.ACTIVE
@@ -528,8 +533,16 @@ async def approve_registration(
         raise AppException(
             "The account must be active and its email verified before approval", 409
         )
+    grade = (
+        await session.get(Grade, employment.grade_id)
+        if employment and employment.grade_id
+        else None
+    )
     if (
-        not employment
+        grade is None
+        or not grade.is_active
+        or not employment
+        or grade.department_id != employment.department_id
         or employment.status != EmploymentStatus.ACTIVE
         or not credential
         or credential.revoked_at
