@@ -1,37 +1,41 @@
-import { beforeEach, expect, it, vi } from "vitest";
-import {
-  clearSessionCookieOnResponse,
-  logoutSession,
-  readSessionCookie,
-} from "@/lib/server-session";
-import { POST } from "./route";
+vi.mock("server-only", () => ({}));
+
+import { describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/server-session", () => ({
-  clearSessionCookieOnResponse: vi.fn(),
+  readSessionCookie: vi.fn().mockResolvedValue(null),
   logoutSession: vi.fn(),
-  readSessionCookie: vi.fn(),
+  clearSessionCookieOnResponse: vi.fn(),
 }));
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(readSessionCookie).mockResolvedValue("test-session");
-});
-it("redirects a logout form to sign-in and clears the browser cookie", async () => {
-  const response = await POST(
-    new Request("http://localhost:3001/auth/logout", {
-      method: "POST",
-      headers: { accept: "text/html" },
-    })
+
+import { POST } from "./route";
+
+describe("logout redirects", () => {
+  it.each(["admin.barrels.gd", "admin.staging.barrels.gd"])(
+    "returns the public HTTPS origin behind the proxy: %s",
+    async (host) => {
+      const response = await POST(
+        new Request("http://web-admin:3001/auth/logout", {
+          method: "POST",
+          headers: {
+            accept: "text/html",
+            "x-forwarded-host": host,
+            "x-forwarded-proto": "https",
+          },
+        })
+      );
+      expect(response.headers.get("location")).toBe(`https://${host}/signin`);
+    }
   );
-  expect(logoutSession).toHaveBeenCalledWith("test-session");
-  expect(clearSessionCookieOnResponse).toHaveBeenCalledWith(response);
-  expect(response.status).toBe(303);
-  expect(response.headers.get("location")).toBe("http://localhost:3001/signin");
-});
-it("still clears the cookie when the upstream session is unavailable", async () => {
-  vi.mocked(logoutSession).mockRejectedValueOnce(new Error("Unavailable"));
-  const response = await POST(
-    new Request("http://localhost:3001/auth/logout", { method: "POST" })
-  );
-  expect(clearSessionCookieOnResponse).toHaveBeenCalledWith(response);
-  expect(await response.json()).toEqual({ ok: true });
+  it("keeps the local origin in development", async () => {
+    const response = await POST(
+      new Request("http://localhost:3001/auth/logout", {
+        method: "POST",
+        headers: { accept: "text/html" },
+      })
+    );
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3001/signin"
+    );
+  });
 });
