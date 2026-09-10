@@ -7,6 +7,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 const cliPath = fileURLToPath(new URL("./check-links.mjs", import.meta.url));
+const missingFilePattern = /missing\.md/;
 
 const write = (root, file, contents) => {
   const destination = join(root, file);
@@ -99,4 +100,43 @@ test("Setext headings and headings with inline markup use rendered anchors", (t)
   const result = run(root);
 
   assert.equal(result.status, 0, result.stderr);
+});
+
+test("footnote definitions are prose, not reference links", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "grenmet-doc-links-"));
+  t.after(() => rmSync(root, { force: true, recursive: true }));
+
+  write(
+    root,
+    "docs/index.md",
+    [
+      "# Index",
+      "",
+      "Guidance follows the framework.[^1]",
+      "",
+      "[^1]: WMO. [Early Warnings for All](https://wmo.int/ewfa). Programme framework.",
+      "[^note]: Parliament of Grenada. Airports Authority Act, Cap. 12.",
+      "",
+    ].join("\n")
+  );
+
+  const result = run(root);
+
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("reference link definitions are still resolved", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "grenmet-doc-links-"));
+  t.after(() => rmSync(root, { force: true, recursive: true }));
+
+  write(
+    root,
+    "docs/index.md",
+    "# Index\n\nSee the [guide][guide].\n\n[guide]: missing.md\n"
+  );
+
+  const result = run(root);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, missingFilePattern);
 });

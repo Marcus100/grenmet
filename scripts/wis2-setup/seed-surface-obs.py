@@ -12,10 +12,21 @@ Run (devcontainer):  MINIO unused; DB via host.docker.internal:5433
 Run (host): same, with SURFACE_DB_HOST=localhost
 """
 
+import argparse
 import datetime as dt
 import os
 
 import psycopg
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--apply", action="store_true")
+args = parser.parse_args()
+database = os.environ.get("SURFACE_TEST_DB_NAME", "")
+if os.environ.get("ENVIRONMENT") != "local" or not database.endswith("_test"):
+    parser.error("Synthetic observations require ENVIRONMENT=local and a dedicated SURFACE_TEST_DB_NAME ending in _test")
+if not args.apply:
+    print("Preview only: synthetic test observations; use --apply in an isolated test database")
+    raise SystemExit(0)
 
 STATION_ID = int(os.environ.get("STATION_ID", "1"))
 HOST = os.environ.get("SURFACE_DB_HOST", "host.docker.internal")
@@ -33,7 +44,7 @@ RAW_VALUES = {
 
 now_hour = dt.datetime.now(dt.timezone.utc).replace(minute=0, second=0, microsecond=0)
 
-conn = psycopg.connect(host=HOST, port=5433, dbname="surface_db", user="dba",
+conn = psycopg.connect(host=HOST, port=5433, dbname=database, user="dba",
                        password=os.environ["DBPW"], autocommit=True)
 cur = conn.cursor()
 
@@ -42,7 +53,7 @@ for var_id, measured in RAW_VALUES.items():
         """INSERT INTO raw_data (datetime, station_id, variable_id, measured, quality_flag)
            VALUES (%s, %s, %s, %s, 1)
            ON CONFLICT (datetime, station_id, variable_id)
-           DO UPDATE SET measured = EXCLUDED.measured""",
+           DO NOTHING""",
         (now_hour, STATION_ID, var_id, measured),
     )
 
@@ -55,7 +66,7 @@ for hours_back in range(0, 4):
               sum_value, num_records, created_at, updated_at)
            VALUES (%s, %s, 0, 0, 0.2, 0.05, 0.2, 60, now(), now())
            ON CONFLICT (datetime, station_id, variable_id)
-           DO UPDATE SET sum_value = EXCLUDED.sum_value, updated_at = now()""",
+           DO NOTHING""",
         (ts, STATION_ID),
     )
 
