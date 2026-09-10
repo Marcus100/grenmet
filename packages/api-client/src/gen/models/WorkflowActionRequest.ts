@@ -6,6 +6,7 @@
 import type { WorkflowAction } from "./WorkflowAction.js";
 
 export type WorkflowActionRequest = {
+  step_id?: string | null;
   action: WorkflowAction;
   comments?: string | null;
 };

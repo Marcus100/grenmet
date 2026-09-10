@@ -4,6 +4,7 @@ export type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 export type { AbsenteeReportListPublic } from "./AbsenteeReportListPublic.js";
 export type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
+export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type {
   ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBody,
@@ -70,8 +71,19 @@ export type {
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404,
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422,
 } from "./ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+export type {
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostOptions,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostPath,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostResponse,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostResponses,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus200,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus403,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404,
+  ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422,
+} from "./ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
+export type { BodyUploadDocumentApiV1HrDocumentsPost } from "./BodyUploadDocumentApiV1HrDocumentsPost.js";
 export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
@@ -509,6 +521,23 @@ export type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
 export type { DepartmentPublic } from "./DepartmentPublic.js";
 export type { DepartmentsPublic } from "./DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./DepartmentUpdate.js";
+export type { DocumentCategory } from "./DocumentCategory.js";
+export { documentCategory } from "./DocumentCategory.js";
+export type { DocumentEmployeeListPublic } from "./DocumentEmployeeListPublic.js";
+export type { DocumentEmployeePublic } from "./DocumentEmployeePublic.js";
+export type { DocumentSensitivity } from "./DocumentSensitivity.js";
+export { documentSensitivity } from "./DocumentSensitivity.js";
+export type {
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetOptions,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetPath,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetResponse,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetResponses,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus307,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus403,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus404,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus422,
+  DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus503,
+} from "./DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGet.js";
 export type {
   DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBody,
   DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostOptions,
@@ -526,6 +555,7 @@ export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422,
 } from "./DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { EffectiveAccess } from "./EffectiveAccess.js";
 export type { EmailConfirm } from "./EmailConfirm.js";
 export type {
   EmailConfirmApiV1AuthModernEmailConfirmPostBody,
@@ -550,6 +580,9 @@ export type {
 } from "./EmailRequestApiV1AuthModernEmailRequestPost.js";
 export type { EmergencyContactPublic } from "./EmergencyContactPublic.js";
 export type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
+export type { EmployeeDocumentListPublic } from "./EmployeeDocumentListPublic.js";
+export type { EmployeeDocumentPublic } from "./EmployeeDocumentPublic.js";
+export type { EmployeeDocumentUpdate } from "./EmployeeDocumentUpdate.js";
 export type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 export type { EmploymentCreate } from "./EmploymentCreate.js";
 export type { EmploymentPublic } from "./EmploymentPublic.js";
@@ -684,6 +717,15 @@ export type {
   ImportGridApiV1HrRostersImportGridPostStatus404,
   ImportGridApiV1HrRostersImportGridPostStatus422,
 } from "./ImportGridApiV1HrRostersImportGridPost.js";
+export type {
+  ImportOrganisationApiV1HrSetupOrganisationPostOptions,
+  ImportOrganisationApiV1HrSetupOrganisationPostResponse,
+  ImportOrganisationApiV1HrSetupOrganisationPostResponses,
+  ImportOrganisationApiV1HrSetupOrganisationPostStatus200,
+  ImportOrganisationApiV1HrSetupOrganisationPostStatus401,
+  ImportOrganisationApiV1HrSetupOrganisationPostStatus403,
+  ImportOrganisationApiV1HrSetupOrganisationPostStatus409,
+} from "./ImportOrganisationApiV1HrSetupOrganisationPost.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
 export type {
@@ -741,10 +783,12 @@ export type {
 } from "./ListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet.js";
 export type {
   ListDepartmentsEndpointApiV1HrDepartmentsGetOptions,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetQuery,
   ListDepartmentsEndpointApiV1HrDepartmentsGetResponse,
   ListDepartmentsEndpointApiV1HrDepartmentsGetResponses,
   ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
   ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422,
 } from "./ListDepartmentsEndpointApiV1HrDepartmentsGet.js";
 export type {
   ListHolidaysApiV1HrRostersPublicHolidaysGetOptions,
@@ -830,6 +874,9 @@ export type {
   OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409,
   OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422,
 } from "./OffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
+export type { OrganisationPreview } from "./OrganisationPreview.js";
+export type { OrganisationPublic } from "./OrganisationPublic.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
@@ -841,12 +888,25 @@ export type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
+export type {
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchBody,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchOptions,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchPath,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchResponse,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchResponses,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchStatus200,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchStatus400,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchStatus403,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchStatus404,
+  PatchDocumentApiV1HrDocumentsDocumentIdPatchStatus422,
+} from "./PatchDocumentApiV1HrDocumentsDocumentIdPatch.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonnelStatus } from "./PersonnelStatus.js";
 export { personnelStatus } from "./PersonnelStatus.js";
 export type { PolicyInput } from "./PolicyInput.js";
 export type { PolicyPublic } from "./PolicyPublic.js";
+export type { PositionSpec } from "./PositionSpec.js";
 export type {
   PreviewCatalogueApiV1HrSetupCatalogueGetOptions,
   PreviewCatalogueApiV1HrSetupCatalogueGetQuery,
@@ -858,6 +918,15 @@ export type {
   PreviewCatalogueApiV1HrSetupCatalogueGetStatus409,
   PreviewCatalogueApiV1HrSetupCatalogueGetStatus422,
 } from "./PreviewCatalogueApiV1HrSetupCatalogueGet.js";
+export type {
+  PreviewOrganisationApiV1HrSetupOrganisationGetOptions,
+  PreviewOrganisationApiV1HrSetupOrganisationGetResponse,
+  PreviewOrganisationApiV1HrSetupOrganisationGetResponses,
+  PreviewOrganisationApiV1HrSetupOrganisationGetStatus200,
+  PreviewOrganisationApiV1HrSetupOrganisationGetStatus401,
+  PreviewOrganisationApiV1HrSetupOrganisationGetStatus403,
+  PreviewOrganisationApiV1HrSetupOrganisationGetStatus409,
+} from "./PreviewOrganisationApiV1HrSetupOrganisationGet.js";
 export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
@@ -899,6 +968,15 @@ export type {
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403,
   ReadAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422,
 } from "./ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
+export type {
+  ReadAccessReviewsApiV1AuthAccessReviewsGetOptions,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetResponse,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetResponses,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetStatus200,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetStatus401,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetStatus403,
+  ReadAccessReviewsApiV1AuthAccessReviewsGetStatus409,
+} from "./ReadAccessReviewsApiV1AuthAccessReviewsGet.js";
 export type {
   ReadAccountSecurityApiV1AuthModernSecurityGetOptions,
   ReadAccountSecurityApiV1AuthModernSecurityGetResponse,
@@ -972,6 +1050,42 @@ export type {
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403,
   ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422,
 } from "./ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export type {
+  ReadDocumentApiV1HrDocumentsDocumentIdGetOptions,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetPath,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetResponse,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetResponses,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetStatus200,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetStatus403,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetStatus404,
+  ReadDocumentApiV1HrDocumentsDocumentIdGetStatus422,
+} from "./ReadDocumentApiV1HrDocumentsDocumentIdGet.js";
+export type {
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetOptions,
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetQuery,
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetResponse,
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetResponses,
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetStatus200,
+  ReadDocumentEmployeesApiV1HrDocumentEmployeesGetStatus422,
+} from "./ReadDocumentEmployeesApiV1HrDocumentEmployeesGet.js";
+export type {
+  ReadDocumentsApiV1HrDocumentsGetOptions,
+  ReadDocumentsApiV1HrDocumentsGetQuery,
+  ReadDocumentsApiV1HrDocumentsGetResponse,
+  ReadDocumentsApiV1HrDocumentsGetResponses,
+  ReadDocumentsApiV1HrDocumentsGetStatus200,
+  ReadDocumentsApiV1HrDocumentsGetStatus403,
+  ReadDocumentsApiV1HrDocumentsGetStatus422,
+} from "./ReadDocumentsApiV1HrDocumentsGet.js";
+export type {
+  ReadEffectiveAccessApiV1AuthAccessMeGetOptions,
+  ReadEffectiveAccessApiV1AuthAccessMeGetResponse,
+  ReadEffectiveAccessApiV1AuthAccessMeGetResponses,
+  ReadEffectiveAccessApiV1AuthAccessMeGetStatus200,
+  ReadEffectiveAccessApiV1AuthAccessMeGetStatus401,
+  ReadEffectiveAccessApiV1AuthAccessMeGetStatus403,
+  ReadEffectiveAccessApiV1AuthAccessMeGetStatus409,
+} from "./ReadEffectiveAccessApiV1AuthAccessMeGet.js";
 export type {
   ReadFeedsApiV1CapFeedsGetOptions,
   ReadFeedsApiV1CapFeedsGetResponse,
@@ -1048,6 +1162,21 @@ export type {
   ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus200,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus422,
 } from "./ReadMyTimesheetsApiV1HrTimesheetsMeGet.js";
+export type {
+  ReadOrganisationCatalogueApiV1HrOrganisationGetOptions,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetResponse,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetResponses,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetStatus200,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetStatus401,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetStatus403,
+  ReadOrganisationCatalogueApiV1HrOrganisationGetStatus409,
+} from "./ReadOrganisationCatalogueApiV1HrOrganisationGet.js";
+export type {
+  ReadOrganisationsApiV1HrOrganisationsGetOptions,
+  ReadOrganisationsApiV1HrOrganisationsGetResponse,
+  ReadOrganisationsApiV1HrOrganisationsGetResponses,
+  ReadOrganisationsApiV1HrOrganisationsGetStatus200,
+} from "./ReadOrganisationsApiV1HrOrganisationsGet.js";
 export type {
   ReadParkingPermitsApiV1HrParkingPermitsGetOptions,
   ReadParkingPermitsApiV1HrParkingPermitsGetQuery,
@@ -1281,12 +1410,33 @@ export type {
   ReadUsersApiV1AuthUsersGetStatus422,
 } from "./ReadUsersApiV1AuthUsersGet.js";
 export type {
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetOptions,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetResponse,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetResponses,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus200,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus401,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus403,
+  ReadWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus409,
+} from "./ReadWorkflowConfigurationApiV1HrSetupWorkflowsGet.js";
+export type {
   ReadyApiV1UtilsReadyGetOptions,
   ReadyApiV1UtilsReadyGetResponse,
   ReadyApiV1UtilsReadyGetResponses,
   ReadyApiV1UtilsReadyGetStatus200,
   ReadyApiV1UtilsReadyGetStatus503,
 } from "./ReadyApiV1UtilsReadyGet.js";
+export type {
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostBody,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostOptions,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostPath,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostResponse,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostResponses,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus201,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus401,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus403,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus409,
+  RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus422,
+} from "./RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost.js";
 export type {
   RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
   RecoverPasswordApiV1PasswordRecoveryEmailPostPath,
@@ -1352,6 +1502,10 @@ export type {
   ResetPasswordApiV1ResetPasswordPostStatus422,
   ResetPasswordApiV1ResetPasswordPostStatus429,
 } from "./ResetPasswordApiV1ResetPasswordPost.js";
+export type { ReviewAssignment } from "./ReviewAssignment.js";
+export type { ReviewInput, ReviewInputDecisionEnum } from "./ReviewInput.js";
+export { reviewInputDecisionEnum } from "./ReviewInput.js";
+export type { ReviewPublic } from "./ReviewPublic.js";
 export type {
   RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
   RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePath,
@@ -1400,6 +1554,18 @@ export type {
   SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus201,
   SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422,
 } from "./SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
+export type {
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBody,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutOptions,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutPath,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutResponse,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutResponses,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus200,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus401,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus403,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus409,
+  SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus422,
+} from "./SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
@@ -1581,6 +1747,7 @@ export type {
   TwofaStatusApiV12FaStatusGetResponses,
   TwofaStatusApiV12FaStatusGetStatus200,
 } from "./TwofaStatusApiV12FaStatusGet.js";
+export type { UnitSpec } from "./UnitSpec.js";
 export type {
   UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBody,
   UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
@@ -1835,6 +2002,17 @@ export type {
   UpdateUserMeApiV1AuthUsersMePatchStatus409,
   UpdateUserMeApiV1AuthUsersMePatchStatus422,
 } from "./UpdateUserMeApiV1AuthUsersMePatch.js";
+export type {
+  UploadDocumentApiV1HrDocumentsPostBody,
+  UploadDocumentApiV1HrDocumentsPostOptions,
+  UploadDocumentApiV1HrDocumentsPostResponse,
+  UploadDocumentApiV1HrDocumentsPostResponses,
+  UploadDocumentApiV1HrDocumentsPostStatus201,
+  UploadDocumentApiV1HrDocumentsPostStatus400,
+  UploadDocumentApiV1HrDocumentsPostStatus403,
+  UploadDocumentApiV1HrDocumentsPostStatus422,
+  UploadDocumentApiV1HrDocumentsPostStatus503,
+} from "./UploadDocumentApiV1HrDocumentsPost.js";
 export type { UserCreate } from "./UserCreate.js";
 export type { UserProfilePublic } from "./UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
@@ -1888,6 +2066,8 @@ export type {
 export type { WorkflowAction } from "./WorkflowAction.js";
 export { workflowAction } from "./WorkflowAction.js";
 export type { WorkflowActionRequest } from "./WorkflowActionRequest.js";
+export type { WorkflowConfigurationInput } from "./WorkflowConfigurationInput.js";
+export type { WorkflowConfigurationPublic } from "./WorkflowConfigurationPublic.js";
 export type { WorkflowInboxItem } from "./WorkflowInboxItem.js";
 export type { WorkflowInboxList } from "./WorkflowInboxList.js";
 export type { WorkflowInstanceCreate } from "./WorkflowInstanceCreate.js";
@@ -1895,9 +2075,21 @@ export type { WorkflowInstanceDetails } from "./WorkflowInstanceDetails.js";
 export type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
 export type { WorkflowStatus } from "./WorkflowStatus.js";
 export { workflowStatus } from "./WorkflowStatus.js";
-export type { WorkflowStepInstancePublic } from "./WorkflowStepInstancePublic.js";
-export type { WorkflowStepTemplateCreate } from "./WorkflowStepTemplateCreate.js";
-export type { WorkflowStepTemplatePublic } from "./WorkflowStepTemplatePublic.js";
+export type {
+  WorkflowStepInstancePublic,
+  WorkflowStepInstancePublicPurposeEnum,
+} from "./WorkflowStepInstancePublic.js";
+export { workflowStepInstancePublicPurposeEnum } from "./WorkflowStepInstancePublic.js";
+export type {
+  WorkflowStepTemplateCreate,
+  WorkflowStepTemplateCreatePurposeEnum,
+} from "./WorkflowStepTemplateCreate.js";
+export { workflowStepTemplateCreatePurposeEnum } from "./WorkflowStepTemplateCreate.js";
+export type {
+  WorkflowStepTemplatePublic,
+  WorkflowStepTemplatePublicPurposeEnum,
+} from "./WorkflowStepTemplatePublic.js";
+export { workflowStepTemplatePublicPurposeEnum } from "./WorkflowStepTemplatePublic.js";
 export type { WorkflowTemplateCreate } from "./WorkflowTemplateCreate.js";
 export type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 export type { WorkflowTemplatesPublic } from "./WorkflowTemplatesPublic.js";

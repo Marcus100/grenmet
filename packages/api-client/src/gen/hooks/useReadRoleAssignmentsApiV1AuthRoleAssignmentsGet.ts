@@ -61,7 +61,7 @@ export function readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryOptions(
 }
 
 /**
- * @description Return role assignments, optionally filtered by user_id (superuser only).
+ * @description Return role assignments, optionally filtered by user_id (within active user.manage scope).
  * @summary List role assignments
  * {@link /api/v1/auth/role-assignments}
  */

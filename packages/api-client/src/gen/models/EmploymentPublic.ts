@@ -9,6 +9,7 @@ import type { EmploymentType } from "./EmploymentType.js";
 import type { GradePublic } from "./GradePublic.js";
 
 export type EmploymentPublic = {
+  organisation_id?: string | null;
   grade?: GradePublic | null;
   supervisor_name?: string | null;
   /**

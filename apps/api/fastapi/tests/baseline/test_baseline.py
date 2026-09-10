@@ -139,7 +139,12 @@ async def test_seed_reuses_existing_department_identity(db_async):
 
     await seed_permissions_and_roles_async(db_async)
     db_async.add(
-        Department(id="meteorological_department", name="Meteorological Department")
+        Department(
+            organisation_id="gaa",
+            code="meteorological_department",
+            id="meteorological_department",
+            name="Meteorological Department",
+        )
     )
     await db_async.commit()
     await run_in_threadpool(seed, True)
@@ -153,7 +158,14 @@ async def test_seed_rejects_conflicting_existing_employment_before_writes(db_asy
     from src.hr.models import Department, EmploymentRecord
 
     await seed_permissions_and_roles_async(db_async)
-    db_async.add(Department(id="gms", name="Meteorological Department"))
+    db_async.add(
+        Department(
+            organisation_id="gaa",
+            code="gms",
+            id="gms",
+            name="Meteorological Department",
+        )
+    )
     user = User(
         username="ewhint",
         email="ewhint@weather.gd",
@@ -164,7 +176,11 @@ async def test_seed_rejects_conflicting_existing_employment_before_writes(db_asy
     )
     db_async.add(user)
     await db_async.flush()
-    db_async.add(EmploymentRecord(user_id=user.id, department_id="gms", grade_id=None))
+    db_async.add(
+        EmploymentRecord(
+            organisation_id="gaa", user_id=user.id, department_id="gms", grade_id=None
+        )
+    )
     await db_async.commit()
     for apply in (False, True):
         with pytest.raises(ValueError, match="Employment conflict"):

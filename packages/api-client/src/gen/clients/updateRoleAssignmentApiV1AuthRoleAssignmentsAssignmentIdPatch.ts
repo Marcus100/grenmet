@@ -11,7 +11,7 @@ import type {
 } from "../models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 
 /**
- * @description Update a user-role assignment (superuser only).
+ * @description Update a user-role assignment (within active user.manage scope).
  * @summary Update role assignment
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */

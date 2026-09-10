@@ -124,18 +124,28 @@ async def test_supervisor_cannot_update_other_department(
         db_async.add(supervisor)
 
     if not await db_async.get(Department, "dept_one"):
-        db_async.add(Department(id="dept_one", name="Dept One"))
+        db_async.add(
+            Department(
+                organisation_id="gaa", code="dept_one", id="dept_one", name="Dept One"
+            )
+        )
     if not await db_async.get(Department, "dept_two"):
-        db_async.add(Department(id="dept_two", name="Dept Two"))
+        db_async.add(
+            Department(
+                organisation_id="gaa", code="dept_two", id="dept_two", name="Dept Two"
+            )
+        )
     await db_async.commit()
 
     supervisor_employment = EmploymentRecord(
+        organisation_id="gaa",
         user_id=supervisor.id,
         employee_number=f"SUP-{random_lower_string()}",
         department_id="dept_one",
         position="Supervisor",
     )
     target_employment = EmploymentRecord(
+        organisation_id="gaa",
         user_id=target_user.id,
         employee_number=f"EMP-{random_lower_string()}",
         department_id="dept_two",
@@ -185,10 +195,18 @@ async def test_read_employment_admin(
     assert missing.status_code == 404
 
     if not await db_async.get(Department, "dept_read"):
-        db_async.add(Department(id="dept_read", name="Dept Read"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_read",
+                id="dept_read",
+                name="Dept Read",
+            )
+        )
         await db_async.commit()
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=staff.id,
             employee_number=f"RD-{random_lower_string()}",
             department_id="dept_read",

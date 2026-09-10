@@ -31,4 +31,20 @@ export type WorkflowInboxItem = {
   submitted_at?: string | null;
   current_step_order: number;
   step_is_named: boolean;
+  step_id?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  is_required?: boolean;
+  /**
+   * @default 'APPROVAL'
+   * @type string | undefined
+   */
+  purpose?: string;
+  /**
+   * @default 'Approval'
+   * @type string | undefined
+   */
+  label?: string;
 };

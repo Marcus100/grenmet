@@ -23,6 +23,7 @@ from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
+from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
 from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
@@ -38,6 +39,7 @@ from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.dashboard.router import router as hr_dashboard_router
+from src.hr.documents.router import router as hr_documents_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
@@ -162,6 +164,7 @@ app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
 app.include_router(hr_parking_router, prefix="/api/v1")
+app.include_router(hr_documents_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")
 app.include_router(cap_public_router)
 
@@ -202,3 +205,6 @@ app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 
 
 app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
+
+
+app.include_router(governance_router, prefix=settings.API_V1_STR)

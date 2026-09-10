@@ -104,16 +104,15 @@ async def preview(
             required_orders = sorted(
                 {step.step_order for step in steps if step.is_required}
             )
-            if not required_orders or required_orders != list(
-                range(1, len(required_orders) + 1)
-            ):
+            all_orders = sorted(step.step_order for step in steps)
+            if not required_orders or all_orders != list(range(1, len(all_orders) + 1)):
                 result.conflicts.append(
-                    f"{kind.value} requires consecutive required approval stages starting at 1"
+                    f"{kind.value} requires consecutive stages starting at 1 and a required approval stage"
                 )
     if not await session.get(ApprovalPolicy, "cap"):
         result.missing_policy_keys.append("cap")
     if result.missing_workflow_types:
-        for name in ("hr-supervisor", "management"):
+        for name in ("hr-supervisor", "management", "hr-recorder"):
             role = (
                 (await session.execute(select(Role).where(Role.name == name)))
                 .scalars()
@@ -154,7 +153,7 @@ async def apply(
         )
         session.add(template)
         await session.flush()
-        for order, name in enumerate(("hr-supervisor", "management"), 1):
+        for order, name in enumerate(("hr-supervisor", "management", "hr-recorder"), 1):
             role = (
                 (await session.execute(select(Role).where(Role.name == name)))
                 .scalars()
@@ -165,7 +164,15 @@ async def apply(
                     workflow_template_id=template.id,
                     step_order=order,
                     required_role_id=role.id,
-                    required_scope=RoleAssignmentScope.DEPARTMENT,
+                    label=("Supervisor approval", "Manager review", "HR recording")[
+                        order - 1
+                    ],
+                    purpose=("APPROVAL", "REVIEW", "RECORDING")[order - 1],
+                    is_required=order != 3,
+                    scope_enforced=True,
+                    required_scope=RoleAssignmentScope.ALL
+                    if order == 3
+                    else RoleAssignmentScope.DEPARTMENT,
                 )
             )
     if (

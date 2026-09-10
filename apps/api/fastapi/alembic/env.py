@@ -39,6 +39,7 @@ from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.calendar.models import CalendarEvent  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
+from src.hr.documents.models import EmployeeDocument  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
 from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.models import (  # noqa: F401

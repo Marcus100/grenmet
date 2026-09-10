@@ -4,6 +4,8 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr.organisations import organisation_choices
+from src.hr.schemas import OrganisationPublic
 
 from .. import service
 from ..schemas import (
@@ -25,6 +27,20 @@ router = APIRouter(prefix="/hr", tags=["hr"])
 
 
 @router.get(
+    "/organisations",
+    response_model=list[OrganisationPublic],
+    summary="List accessible organisations",
+)
+async def read_organisations(
+    session: SessionDep, current_user: CurrentUser
+) -> list[OrganisationPublic]:
+    return [
+        OrganisationPublic.model_validate(org, from_attributes=True)
+        for org in await organisation_choices(session, current_user)
+    ]
+
+
+@router.get(
     "/departments",
     response_model=DepartmentsPublic,
     summary="List departments",
@@ -35,10 +51,10 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     },
 )
 async def list_departments_endpoint(
-    session: SessionDep, current_user: CurrentUser
+    session: SessionDep, current_user: CurrentUser, organisation_id: str | None = None
 ) -> Any:
     departments = await service.list_departments(
-        session=session, current_user=current_user
+        session=session, current_user=current_user, organisation_id=organisation_id
     )
     return DepartmentsPublic(
         data=[

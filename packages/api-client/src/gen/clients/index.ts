@@ -4,6 +4,7 @@ export { approveAlertApiV1CapAlertsAlertIdApprovePost } from "./approveAlertApiV
 export { approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost } from "./approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
 export { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "./approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "./approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+export { archiveDocumentApiV1HrDocumentsDocumentIdArchivePost } from "./archiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
 export { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "./bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
 export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./cancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "./closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
@@ -39,6 +40,7 @@ export { deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete } from "./deleteShift
 export { deleteStatusReportApiV1HrStatusReportsReportIdDelete } from "./deleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
 export { deleteUserApiV1AuthUsersUserIdDelete } from "./deleteUserApiV1AuthUsersUserIdDelete.js";
 export { deleteUserMeApiV1AuthUsersMeDelete } from "./deleteUserMeApiV1AuthUsersMeDelete.js";
+export { downloadDocumentApiV1HrDocumentsDocumentIdDownloadGet } from "./downloadDocumentApiV1HrDocumentsDocumentIdDownloadGet.js";
 export { draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost } from "./draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "./duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 export { emailConfirmApiV1AuthModernEmailConfirmPost } from "./emailConfirmApiV1AuthModernEmailConfirmPost.js";
@@ -55,6 +57,7 @@ export { importAlertApiV1CapAlertsImportPost } from "./importAlertApiV1CapAlerts
 export { importCatalogueApiV1HrSetupCataloguePost } from "./importCatalogueApiV1HrSetupCataloguePost.js";
 export { importCsvApiV1HrRostersImportCsvPost } from "./importCsvApiV1HrRostersImportCsvPost.js";
 export { importGridApiV1HrRostersImportGridPost } from "./importGridApiV1HrRostersImportGridPost.js";
+export { importOrganisationApiV1HrSetupOrganisationPost } from "./importOrganisationApiV1HrSetupOrganisationPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listAssignmentsApiV1HrRostersAssignmentsGet } from "./listAssignmentsApiV1HrRostersAssignmentsGet.js";
 export { listCalendarEventsApiV1HrCalendarEventsGet } from "./listCalendarEventsApiV1HrCalendarEventsGet.js";
@@ -69,10 +72,13 @@ export { loginSessionApiV1LoginSessionPost } from "./loginSessionApiV1LoginSessi
 export { logoutAllSessionsApiV1LoginSessionLogoutAllPost } from "./logoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
 export { logoutSessionApiV1LoginSessionLogoutPost } from "./logoutSessionApiV1LoginSessionLogoutPost.js";
 export { offboardStaffApiV1HrSetupStaffUserIdOffboardPost } from "./offboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
+export { patchDocumentApiV1HrDocumentsDocumentIdPatch } from "./patchDocumentApiV1HrDocumentsDocumentIdPatch.js";
 export { previewCatalogueApiV1HrSetupCatalogueGet } from "./previewCatalogueApiV1HrSetupCatalogueGet.js";
+export { previewOrganisationApiV1HrSetupOrganisationGet } from "./previewOrganisationApiV1HrSetupOrganisationGet.js";
 export { publishAlertApiV1CapAlertsAlertIdPublishPost } from "./publishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "./publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "./readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
+export { readAccessReviewsApiV1AuthAccessReviewsGet } from "./readAccessReviewsApiV1AuthAccessReviewsGet.js";
 export { readAccountSecurityApiV1AuthModernSecurityGet } from "./readAccountSecurityApiV1AuthModernSecurityGet.js";
 export { readActiveMapApiCapActiveMapGet } from "./readActiveMapApiCapActiveMapGet.js";
 export { readAlertApiV1CapAlertsAlertIdGet } from "./readAlertApiV1CapAlertsAlertIdGet.js";
@@ -83,6 +89,10 @@ export { readCapSettingsApiV1CapSettingsGet } from "./readCapSettingsApiV1CapSet
 export { readCapXmlApiCapIdentifierXmlGet } from "./readCapXmlApiCapIdentifierXmlGet.js";
 export { readCatalogsApiV1CapCatalogsGet } from "./readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
+export { readDocumentApiV1HrDocumentsDocumentIdGet } from "./readDocumentApiV1HrDocumentsDocumentIdGet.js";
+export { readDocumentEmployeesApiV1HrDocumentEmployeesGet } from "./readDocumentEmployeesApiV1HrDocumentEmployeesGet.js";
+export { readDocumentsApiV1HrDocumentsGet } from "./readDocumentsApiV1HrDocumentsGet.js";
+export { readEffectiveAccessApiV1AuthAccessMeGet } from "./readEffectiveAccessApiV1AuthAccessMeGet.js";
 export { readFeedsApiV1CapFeedsGet } from "./readFeedsApiV1CapFeedsGet.js";
 export { readHazardProfilesApiV1CapHazardProfilesGet } from "./readHazardProfilesApiV1CapHazardProfilesGet.js";
 export { readHrDashboardApiV1HrDashboardGet } from "./readHrDashboardApiV1HrDashboardGet.js";
@@ -93,6 +103,8 @@ export { readInstanceApiV1HrWorkflowsInstancesInstanceIdGet } from "./readInstan
 export { readIntegrationsApiV1CapIntegrationsGet } from "./readIntegrationsApiV1CapIntegrationsGet.js";
 export { readMyLeaveRequestsApiV1HrLeaveRequestsMeGet } from "./readMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export { readMyTimesheetsApiV1HrTimesheetsMeGet } from "./readMyTimesheetsApiV1HrTimesheetsMeGet.js";
+export { readOrganisationCatalogueApiV1HrOrganisationGet } from "./readOrganisationCatalogueApiV1HrOrganisationGet.js";
+export { readOrganisationsApiV1HrOrganisationsGet } from "./readOrganisationsApiV1HrOrganisationsGet.js";
 export { readParkingPermitsApiV1HrParkingPermitsGet } from "./readParkingPermitsApiV1HrParkingPermitsGet.js";
 export { readPermissionApiV1AuthPermissionsPermissionIdGet } from "./readPermissionApiV1AuthPermissionsPermissionIdGet.js";
 export { readPermissionsApiV1AuthPermissionsGet } from "./readPermissionsApiV1AuthPermissionsGet.js";
@@ -121,7 +133,9 @@ export { readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet } from "./re
 export { readUserByIdApiV1AuthUsersUserIdGet } from "./readUserByIdApiV1AuthUsersUserIdGet.js";
 export { readUserMeApiV1AuthUsersMeGet } from "./readUserMeApiV1AuthUsersMeGet.js";
 export { readUsersApiV1AuthUsersGet } from "./readUsersApiV1AuthUsersGet.js";
+export { readWorkflowConfigurationApiV1HrSetupWorkflowsGet } from "./readWorkflowConfigurationApiV1HrSetupWorkflowsGet.js";
 export { readyApiV1UtilsReadyGet } from "./readyApiV1UtilsReadyGet.js";
+export { recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost } from "./recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost.js";
 export { recoverPasswordApiV1PasswordRecoveryEmailPost } from "./recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 export { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } from "./recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 export { refreshSessionApiV1LoginSessionRefreshPost } from "./refreshSessionApiV1LoginSessionRefreshPost.js";
@@ -131,6 +145,7 @@ export { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "./
 export { resetPasswordApiV1ResetPasswordPost } from "./resetPasswordApiV1ResetPasswordPost.js";
 export { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "./revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
 export { saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost } from "./saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
+export { saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut } from "./saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
@@ -167,6 +182,7 @@ export { updateStaffSetupApiV1HrSetupStaffUserIdPut } from "./updateStaffSetupAp
 export { updateStatusReportApiV1HrStatusReportsReportIdPatch } from "./updateStatusReportApiV1HrStatusReportsReportIdPatch.js";
 export { updateUserApiV1AuthUsersUserIdPatch } from "./updateUserApiV1AuthUsersUserIdPatch.js";
 export { updateUserMeApiV1AuthUsersMePatch } from "./updateUserMeApiV1AuthUsersMePatch.js";
+export { uploadDocumentApiV1HrDocumentsPost } from "./uploadDocumentApiV1HrDocumentsPost.js";
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./validateCsvApiV1HrRostersImportCsvValidatePost.js";
 export { validateGridApiV1HrRostersImportGridValidatePost } from "./validateGridApiV1HrRostersImportGridValidatePost.js";

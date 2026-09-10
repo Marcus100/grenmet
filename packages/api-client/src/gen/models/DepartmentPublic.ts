@@ -4,6 +4,8 @@
  */
 
 export type DepartmentPublic = {
+  organisation_id: string;
+  code: string;
   id: string;
   name: string;
 };
