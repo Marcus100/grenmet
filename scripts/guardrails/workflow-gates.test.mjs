@@ -124,3 +124,27 @@ test("deployment waits for code checks and verified core builds without cancella
     assert.equal(source.includes("deploy-weather.yml"), false);
   }
 });
+
+const NEXT_JOB = /\n {2}[a-z][a-z-]*:/;
+const REGISTRY_READ = /\n {6}packages: read\n/;
+const REGISTRY_WRITE = /packages: write/;
+
+test("release callers grant registry read permission required by reusable CI", () => {
+  for (const pipeline of ["pipeline-staging.yml", "pipeline-prod.yml"]) {
+    const source = readWorkflow(pipeline);
+    for (const job of ["ci-api", "ci-web"]) {
+      const block = source.split(`  ${job}:\n`)[1]?.split(NEXT_JOB)[0];
+      assert.ok(block, `${pipeline}: missing ${job}`);
+      assert.match(
+        block,
+        REGISTRY_READ,
+        `${pipeline}: ${job} must allow registry reads`
+      );
+      assert.doesNotMatch(
+        block,
+        REGISTRY_WRITE,
+        `${pipeline}: CI must not publish`
+      );
+    }
+  }
+});
