@@ -30,7 +30,7 @@ export function AlertList({
         const info = primaryInfo(alert);
         return (
           <article
-            className="border border-gm-border bg-white p-4 shadow-card"
+            className="border border-gm-border bg-card p-4 shadow-card"
             key={alert.id}
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">

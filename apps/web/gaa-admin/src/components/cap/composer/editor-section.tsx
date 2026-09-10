@@ -44,7 +44,7 @@ export async function EditorSection() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {FILTERS.map((state) => (
           <div
-            className="border border-gm-border bg-white p-4 shadow-card"
+            className="border border-gm-border bg-card p-4 shadow-card"
             key={state}
           >
             <div className="flex items-center justify-between gap-3">
@@ -70,7 +70,7 @@ export async function EditorSection() {
         ))}
       </div>
 
-      <div className="overflow-hidden border border-gm-border bg-white shadow-card">
+      <div className="overflow-hidden border border-gm-border bg-card shadow-card">
         <div className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b bg-gm-surface px-4 py-3 text-gm-text-muted text-label uppercase leading-label">
           <span>Alert</span>
           <span>State</span>

@@ -56,7 +56,7 @@ function SectionHeading({ title }: { title: string }) {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="border border-gm-border bg-white p-4 shadow-card">
+    <div className="border border-gm-border bg-card p-4 shadow-card">
       <div className="text-gm-text-muted text-label uppercase leading-label">
         {label}
       </div>
