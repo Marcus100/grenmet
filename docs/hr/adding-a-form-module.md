@@ -113,11 +113,13 @@ docker compose exec api uv run --frozen --package fast-back alembic upgrade head
 - **NOT NULL columns on a populated table** need `server_default=...` on add, then
   `op.alter_column(..., server_default=None, ...)` to match the model.
 
-## 8. Permissions are data, not code
+## 8. Register the permission keys
 
-Permission keys (`"<form>.<entity>.create"`) are checked as plain strings against
-role grants — there is no catalog file. Grant them to real roles via the roles API,
-and in tests via `make_role_with_permission(db_async, "<form>.<entity>.create")`
+Every `permission_key="..."` used in `src/` MUST appear in the catalog at
+`src/auth/permissions.py` (`PERMISSIONS`), or `tests/auth/test_permission_registry.py`
+fails. Add a `PermissionDef` per key, then add the key to whichever `DEFAULT_ROLES`
+bundles should hold it. Grant to real roles via the roles API, and in tests via
+`make_role_with_permission(db_async, "<form>.<entity>.create")`.
 (`tests/factories.py`). Superusers bypass all checks.
 
 ## 9. Approval template is data, too
