@@ -38,6 +38,7 @@ jobs:
       deployment-builds: true
     secrets: inherit
     permissions:
+      packages: read
       contents: read
       security-events: write
   ci-web:
@@ -45,6 +46,10 @@ jobs:
     with:
       deployment-builds: true
     secrets: inherit
+    permissions:
+      contents: read
+      packages: read
+
   api-client:
     uses: ./.github/workflows/ci-api-client.yml
     secrets: inherit
