@@ -97,12 +97,16 @@ jobs:
         with:
           context: .
           file: apps/api/fastapi/Dockerfile.prod
-          pull: true
+          # No `pull:` — every FROM in Dockerfile.prod is digest-pinned, so a
+          # forced re-pull only costs registry round-trips.
           push: false
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=api
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api
+          # Exported here, not on the publish step, so a build that fails the
+          # smoke test or vulnerability gate still leaves its layers cached.
+          cache-to: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api,mode=max,image-manifest=true,oci-mediatypes=true,ignore-error=true
           provenance: false
           platforms: linux/amd64
 
@@ -129,8 +133,7 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,scope=api,mode=max,ignore-error=true
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api
           provenance: true
           platforms: linux/amd64
 

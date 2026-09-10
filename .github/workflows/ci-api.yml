@@ -190,11 +190,16 @@ jobs:
         run: uv run --frozen --package fast-back alembic upgrade head
 
       - name: Run tests with coverage
+        # pytest-cov rather than `coverage run -m pytest`: it is xdist-aware and
+        # combines the per-worker data files. --dist loadfile keeps every test in
+        # a file on one worker, so module-scoped fixtures (client,
+        # superuser_token_headers) are still built once per module. Each worker
+        # gets its own database — see the bootstrap in tests/conftest.py.
         run: |
-          uv run --frozen --package fast-back coverage run --source=src -m pytest -v --tb=short --durations=20 --durations-min=0.1
-          uv run --frozen --package fast-back coverage report --show-missing
-          uv run --frozen --package fast-back coverage xml
-          uv run --frozen --package fast-back coverage html
+          uv run --frozen --package fast-back pytest \
+            -n auto --dist loadfile \
+            --cov=src --cov-report=term-missing --cov-report=xml --cov-report=html \
+            --tb=short --durations=20 --durations-min=0.1
 
       - name: Upload coverage HTML
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -216,8 +221,11 @@ jobs:
     name: Docker Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # packages: read only — see the matching note in ci-web.yml: this job builds
+    # untrusted pull-request code and must not be able to write the shared cache.
     permissions:
       contents: read
+      packages: read
       security-events: write
 
     steps:
@@ -227,6 +235,19 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
+      - name: Resolve registry owner
+        id: ctx
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+      - name: Log in to GitHub Container Registry (build cache is read-only here)
+        # Best-effort: without credentials the build simply runs cache-cold
+        # rather than failing the check.
+        continue-on-error: true
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image (test)
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
 
@@ -235,8 +256,7 @@ jobs:
           file: apps/api/fastapi/Dockerfile.prod
           push: false
           tags: test-image:latest
-          cache-from: type=gha,scope=api
-          cache-to: type=gha,scope=api,mode=max,ignore-error=true
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api
           outputs: type=docker,dest=/tmp/test-image.tar
 
       - name: Load Docker image for scanning
