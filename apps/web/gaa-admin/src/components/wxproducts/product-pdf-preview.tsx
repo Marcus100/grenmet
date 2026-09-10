@@ -1,9 +1,5 @@
 "use client";
-import {
-  type ProductContent,
-  productFields,
-  productTitle,
-} from "@barrelsgd/gms/products";
+import { type ProductContent, productTitle } from "@barrelsgd/gms/products";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { Paper } from "@/components/document/paper";
 import {
@@ -13,6 +9,7 @@ import {
   type IbfLevel,
 } from "@/components/wxproducts/forecast-document";
 import { MarineBulletinDocument } from "@/components/wxproducts/marine-bulletin-document";
+import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 
 function impactLevel(value: string): IbfLevel {
   return IBF_LEVELS.find((level) => level === value) ?? "Minimal";
@@ -107,7 +104,7 @@ export function ProductPdfPreview({ content }: { content: ProductContent }) {
           <p>{content.values.issuedAt?.replace("T", " ") || "Draft"}</p>
         </header>
         <dl className="space-y-5">
-          {productFields(content.kind).map((field) => (
+          {visibleProductFields(content.kind).map((field) => (
             <div key={field.key}>
               <dt className="break-after-avoid font-semibold">
                 {field.section} · {field.label}
