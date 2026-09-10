@@ -1,5 +1,6 @@
 import type { CollectionConfig } from "payload";
 import { editorsOnly, staffOnly } from "../access";
+import { mediaDirectory } from "../env";
 
 export const Media: CollectionConfig = {
   slug: "media",
@@ -15,7 +16,7 @@ export const Media: CollectionConfig = {
     delete: editorsOnly,
   },
   upload: {
-    staticDir: "media",
+    staticDir: mediaDirectory,
     mimeTypes: ["image/*"],
   },
   fields: [

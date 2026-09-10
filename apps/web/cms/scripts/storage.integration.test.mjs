@@ -70,7 +70,7 @@ test("CMS fresh and repeated migrations preserve data and reject schema-push his
             "SELECT count(*)::int AS count FROM payload_migrations"
           )
         ).rows[0].count,
-        1
+        2
       );
       await client.query(
         "INSERT INTO payload_migrations(name, batch) VALUES ('dev', -1)"

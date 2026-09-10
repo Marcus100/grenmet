@@ -39,7 +39,6 @@ export async function up({ db }: MigrateUpArgs): Promise<void> {
 export async function down({ db }: MigrateDownArgs): Promise<void> {
   await db.execute(sql`
    ALTER TABLE "media" DISABLE ROW LEVEL SECURITY;
-  DROP TABLE "media" CASCADE;
   ALTER TABLE "content" DROP CONSTRAINT "content_image_id_media_id_fk";
   
   ALTER TABLE "_content_v" DROP CONSTRAINT "_content_v_version_image_id_media_id_fk";
@@ -51,5 +50,6 @@ export async function down({ db }: MigrateDownArgs): Promise<void> {
   DROP INDEX "payload_locked_documents_rels_media_id_idx";
   ALTER TABLE "content" DROP COLUMN "image_id";
   ALTER TABLE "_content_v" DROP COLUMN "version_image_id";
-  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "media_id";`);
+  ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "media_id";
+  DROP TABLE "media";`);
 }

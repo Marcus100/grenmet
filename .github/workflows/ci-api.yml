@@ -189,6 +189,11 @@ jobs:
       - name: Run migrations
         run: uv run --frozen --package fast-back alembic upgrade head
 
+      - name: Verify CMS media migration rollback
+        env:
+          CMS_MIGRATION_TEST_DSN: postgresql://app:changethis@localhost:5432/app
+        run: uv run --frozen --package fast-back python -m unittest discover -s ../../../scripts/production -p test_cms_migrations.py
+
       - name: Run tests with coverage
         # pytest-cov rather than `coverage run -m pytest`: it is xdist-aware and
         # combines the per-worker data files. --dist loadfile keeps every test in
