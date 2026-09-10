@@ -25,6 +25,7 @@ export type UserRoleAssignmentPublic = {
   scope?: RoleAssignmentScope;
   department_id?: string | null;
   effective_to?: string | null;
+  organisation_id: string;
   /**
    * @description
    * Format: `uuid`

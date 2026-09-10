@@ -5,7 +5,7 @@ from sqlalchemy import or_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import col, select
 
-from src.auth.models import Role, User, UserRoleAssignment
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user_for_role, require_permission
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
@@ -73,7 +73,8 @@ async def create_workflow_step_template(
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
     db_step = WorkflowStepTemplate.model_validate(
-        step_in, update={"workflow_template_id": workflow_template_id}
+        step_in,
+        update={"workflow_template_id": workflow_template_id, "scope_enforced": True},
     )
     session.add(db_step)
     await session.commit()
@@ -130,9 +131,9 @@ async def _create_step_instances_for_workflow(
         .order_by(col(WorkflowStepTemplate.step_order))
     )
     steps = list(result.scalars().all())
-    required_orders = sorted({step.step_order for step in steps if step.is_required})
-    if not required_orders or required_orders != list(
-        range(1, len(required_orders) + 1)
+    orders = sorted({step.step_order for step in steps})
+    if not any(step.is_required for step in steps) or orders != list(
+        range(1, len(orders) + 1)
     ):
         raise HRValidationError(
             "Approval workflow requires consecutive required stages starting at 1"
@@ -142,6 +143,10 @@ async def _create_step_instances_for_workflow(
             workflow_instance_id=workflow_instance_id,
             step_order=step.step_order + order_offset,
             required_role_id=step.required_role_id,
+            required_user_id=step.required_user_id,
+            scope_enforced=step.scope_enforced,
+            purpose=step.purpose,
+            label=step.label,
             required_scope=step.required_scope,
             is_required=step.is_required,
         )
@@ -263,16 +268,43 @@ async def _is_actor_allowed_for_step(
         and current_user.id == workflow_instance.requested_by_user_id
     ):
         return False
-    if workflow_instance.require_distinct_approvers:
+    if (
+        workflow_instance.require_distinct_approvers
+        and workflow_step.purpose != "RECORDING"
+    ):
         previous = await session.execute(
             select(WorkflowStepInstance).where(
                 WorkflowStepInstance.workflow_instance_id == workflow_instance.id,
                 WorkflowStepInstance.approver_user_id == current_user.id,
-                WorkflowStepInstance.action == WorkflowAction.APPROVE,
+                col(WorkflowStepInstance.action) == WorkflowAction.APPROVE,
+                WorkflowStepInstance.purpose != "RECORDING",
             )
         )
         if previous.scalars().first() is not None:
             return False
+    if workflow_step.scope_enforced and not current_user.is_superuser:
+        from src.auth.models import RoleAssignmentScope
+        from src.hr.models import EmploymentRecord
+
+        if (
+            workflow_step.required_scope == RoleAssignmentScope.SELF
+            and current_user.id != workflow_instance.requested_by_user_id
+        ):
+            return False
+        if workflow_step.required_scope == RoleAssignmentScope.DEPARTMENT:
+            actor_department = (
+                (
+                    await session.execute(
+                        select(EmploymentRecord.department_id).where(
+                            EmploymentRecord.user_id == current_user.id
+                        )
+                    )
+                )
+                .scalars()
+                .first()
+            )
+            if actor_department != workflow_instance.department_id:
+                return False
     # A named-user step is satisfied only by that specific person; a role step
     # falls back to the role + scope check against the requester.
     if workflow_step.required_user_id is not None:
@@ -355,9 +387,17 @@ async def apply_workflow_action(
             workflow_instance.require_distinct_approvers = (
                 policy.require_distinct_approvers
             )
+        if workflow_instance.status == WorkflowStatus.RETURNED:
+            for step in steps:
+                step.action = None
+                step.approver_user_id = None
+                step.acted_at = None
+                step.comments = None
         workflow_instance.status = WorkflowStatus.PENDING
         workflow_instance.submitted_at = utc_now()
-        workflow_instance.current_step_order = 1
+        workflow_instance.current_step_order = min(
+            (step.step_order for step in steps if step.is_required), default=1
+        )
         session.add(
             ApprovalActionLog(
                 workflow_instance_id=workflow_instance.id,
@@ -374,21 +414,45 @@ async def apply_workflow_action(
             await session.flush()
         return workflow_instance
 
-    if workflow_instance.status != WorkflowStatus.PENDING:
+    if workflow_instance.status not in {
+        WorkflowStatus.PENDING,
+        WorkflowStatus.APPROVED,
+    }:
         raise HRValidationError(ERROR_WORKFLOW_NOT_PENDING)
 
     current_order = workflow_instance.current_step_order
     order_steps = [
         step for step in steps if step.step_order == current_order and step.is_required
     ]
-    if not order_steps:
+    candidates = [
+        step
+        for step in steps
+        if step.action is None
+        and (action_in.step_id is None or step.id == action_in.step_id)
+        and (
+            (
+                workflow_instance.status == WorkflowStatus.PENDING
+                and step.is_required
+                and step.step_order == current_order
+            )
+            or (
+                not step.is_required
+                and all(
+                    prior.action == WorkflowAction.APPROVE
+                    for prior in steps
+                    if prior.is_required and prior.step_order < step.step_order
+                )
+            )
+        )
+    ]
+    if not candidates:
         raise WorkflowStepNotFoundError()
 
     # A step_order may hold several required steps (parallel co-approval). The
     # actor acts on the first still-pending step at this order they are allowed
     # for; each required step must be satisfied before the order completes.
     target_step: WorkflowStepInstance | None = None
-    for step in order_steps:
+    for step in candidates:
         if step.action is not None:
             continue
         if await _is_actor_allowed_for_step(
@@ -402,6 +466,20 @@ async def apply_workflow_action(
     if target_step is None:
         raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
 
+    if (
+        target_step.purpose == "RECORDING" or not target_step.is_required
+    ) and action_in.action != WorkflowAction.APPROVE:
+        raise HRValidationError(
+            "Recording and non-blocking stages can only be marked complete"
+        )
+    if action_in.action not in {
+        WorkflowAction.APPROVE,
+        WorkflowAction.REJECT,
+        WorkflowAction.RETURN,
+        WorkflowAction.CANCEL,
+    }:
+        raise HRValidationError("Invalid stage action")
+    previous_status = workflow_instance.status
     target_step.approver_user_id = current_user.id
     target_step.action = action_in.action
     target_step.comments = action_in.comments
@@ -418,7 +496,9 @@ async def apply_workflow_action(
         )
     )
 
-    if action_in.action == WorkflowAction.REJECT:
+    if not target_step.is_required:
+        pass  # Non-blocking completion never changes the request decision.
+    elif action_in.action == WorkflowAction.REJECT:
         workflow_instance.status = WorkflowStatus.REJECTED
         workflow_instance.resolved_at = utc_now()
     elif action_in.action == WorkflowAction.CANCEL:
@@ -435,7 +515,9 @@ async def apply_workflow_action(
         )
         if order_complete:
             next_orders = [
-                step.step_order for step in steps if step.step_order > current_order
+                step.step_order
+                for step in steps
+                if step.step_order > current_order and step.is_required
             ]
             if next_orders:
                 workflow_instance.current_step_order = min(next_orders)
@@ -443,7 +525,10 @@ async def apply_workflow_action(
                 workflow_instance.status = WorkflowStatus.APPROVED
                 workflow_instance.resolved_at = utc_now()
 
-    if workflow_instance.status in {WorkflowStatus.APPROVED, WorkflowStatus.REJECTED}:
+    if workflow_instance.status != previous_status and workflow_instance.status in {
+        WorkflowStatus.APPROVED,
+        WorkflowStatus.REJECTED,
+    }:
         from src.hr.workflow.finalize import finalize_entity
 
         await finalize_entity(session, workflow_instance, current_user.id)
@@ -476,8 +561,12 @@ WORKFLOW_TYPE_LABELS: dict[WorkflowType, str] = {
 }
 
 
-async def _hr_admin_emails(*, session: AsyncSession) -> list[str]:
+async def _hr_admin_emails(*, session: AsyncSession, department_id: str) -> list[str]:
     """Email addresses of everyone holding the hr-admin role."""
+    from src.hr.organisations import department_for
+
+    department = await department_for(session, department_id)
+    now = utc_now()
     role_result = await session.execute(select(Role).where(Role.name == "hr-admin"))
     role = role_result.scalars().first()
     if not role:
@@ -485,7 +574,19 @@ async def _hr_admin_emails(*, session: AsyncSession) -> list[str]:
     user_result = await session.execute(
         select(User)
         .join(UserRoleAssignment, col(UserRoleAssignment.user_id) == col(User.id))
-        .where(col(UserRoleAssignment.role_id) == role.id)
+        .where(
+            col(UserRoleAssignment.role_id) == role.id,
+            UserRoleAssignment.organisation_id == department.organisation_id,
+            col(UserRoleAssignment.effective_from) <= now,
+            col(UserRoleAssignment.effective_to).is_(None)
+            | (col(UserRoleAssignment.effective_to) > now),
+            (UserRoleAssignment.scope == RoleAssignmentScope.ALL)
+            | (
+                (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
+                & (UserRoleAssignment.department_id == department_id)
+            ),
+            col(User.is_active).is_(True),
+        )
     )
     return [user.email for user in user_result.scalars().unique().all() if user.email]
 
@@ -497,7 +598,9 @@ async def build_approval_notification(
 
     Returns None when there is nobody to notify (no hr-admin users).
     """
-    recipients = await _hr_admin_emails(session=session)
+    recipients = await _hr_admin_emails(
+        session=session, department_id=instance.department_id
+    )
     if not recipients:
         return None
     requester = await session.get(User, instance.requested_by_user_id)
@@ -534,7 +637,9 @@ async def list_actionable_instances(
     require_permission(
         current_user=current_user, permission_key="workflow.instance.view"
     )
-    my_role_ids = {role.id for role in current_user.roles}
+    my_role_ids = (
+        set() if current_user.is_superuser else {role.id for role in current_user.roles}
+    )
     match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
     if current_user.is_superuser:
         match_conditions.append(col(WorkflowStepInstance.required_role_id).is_not(None))
@@ -550,11 +655,10 @@ async def list_actionable_instances(
             col(WorkflowStepInstance.workflow_instance_id) == col(WorkflowInstance.id),
         )
         .where(
-            col(WorkflowInstance.status) == WorkflowStatus.PENDING,
-            col(WorkflowStepInstance.step_order)
-            == col(WorkflowInstance.current_step_order),
+            col(WorkflowInstance.status).in_(
+                [WorkflowStatus.PENDING, WorkflowStatus.APPROVED]
+            ),
             col(WorkflowStepInstance.action).is_(None),
-            col(WorkflowStepInstance.is_required) == True,  # noqa: E712
             or_(*match_conditions),
         )
         .order_by(col(WorkflowInstance.submitted_at))
@@ -563,6 +667,28 @@ async def list_actionable_instances(
     actionable: list[tuple[WorkflowInstance, WorkflowStepInstance]] = []
     requester_ids: set[uuid.UUID] = set()
     for instance, step in result.all():
+        if step.is_required:
+            if (
+                instance.status != WorkflowStatus.PENDING
+                or step.step_order != instance.current_step_order
+            ):
+                continue
+        else:
+            pending_prior = (
+                await session.execute(
+                    select(WorkflowStepInstance.id).where(
+                        WorkflowStepInstance.workflow_instance_id == instance.id,
+                        col(WorkflowStepInstance.is_required).is_(True),
+                        WorkflowStepInstance.step_order < step.step_order,
+                        or_(
+                            col(WorkflowStepInstance.action).is_(None),
+                            col(WorkflowStepInstance.action) != WorkflowAction.APPROVE,
+                        ),
+                    )
+                )
+            ).first()
+            if pending_prior:
+                continue
         if await _is_actor_allowed_for_step(
             session=session,
             current_user=current_user,

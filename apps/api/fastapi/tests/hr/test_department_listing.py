@@ -45,7 +45,9 @@ async def test_list_departments_ordered_by_name(db_async: AsyncSession) -> None:
     admin = await _superuser(db_async)
     for dept_id, name in (("dept_zz_test", "ZZ Test"), ("dept_aa_test", "AA Test")):
         if not await db_async.get(Department, dept_id):
-            db_async.add(Department(id=dept_id, name=name))
+            db_async.add(
+                Department(organisation_id="gaa", code=dept_id, id=dept_id, name=name)
+            )
     await db_async.commit()
 
     departments = await hr_service.list_departments(
@@ -61,9 +63,23 @@ async def test_list_department_members_active_only_sorted(
 ) -> None:
     admin = await _superuser(db_async)
     if not await db_async.get(Department, "dept_members"):
-        db_async.add(Department(id="dept_members", name="Dept Members"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_members",
+                id="dept_members",
+                name="Dept Members",
+            )
+        )
     if not await db_async.get(Department, "dept_other"):
-        db_async.add(Department(id="dept_other", name="Dept Other"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_other",
+                id="dept_other",
+                name="Dept Other",
+            )
+        )
 
     zeb = await _member(db_async, "Zeb", "Barry")
     ann = await _member(db_async, "Ann", "Charles")
@@ -71,6 +87,7 @@ async def test_list_department_members_active_only_sorted(
     outsider = await _member(db_async, "Out", "Sider")
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=zeb.id,
             employee_number=f"E{random_lower_string()[:8]}",
             department_id="dept_members",
@@ -79,6 +96,7 @@ async def test_list_department_members_active_only_sorted(
     )
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=ann.id,
             employee_number=f"E{random_lower_string()[:8]}",
             department_id="dept_members",
@@ -86,6 +104,7 @@ async def test_list_department_members_active_only_sorted(
     )
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=gone.id,
             employee_number=f"E{random_lower_string()[:8]}",
             department_id="dept_members",
@@ -94,6 +113,7 @@ async def test_list_department_members_active_only_sorted(
     )
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=outsider.id,
             employee_number=f"E{random_lower_string()[:8]}",
             department_id="dept_other",
@@ -128,7 +148,14 @@ async def test_list_roster_periods_filters_by_department_and_status(
     admin = await _superuser(db_async)
     for dept_id in ("dept_lp_a", "dept_lp_b"):
         if not await db_async.get(Department, dept_id):
-            db_async.add(Department(id=dept_id, name=f"Dept {dept_id}"))
+            db_async.add(
+                Department(
+                    organisation_id="gaa",
+                    code=dept_id,
+                    id=dept_id,
+                    name=f"Dept {dept_id}",
+                )
+            )
     await db_async.commit()
 
     july = await roster_service.create_roster_period(

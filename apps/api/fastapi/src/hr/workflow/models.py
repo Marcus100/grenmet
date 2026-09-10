@@ -57,9 +57,17 @@ class WorkflowStepTemplate(SQLModel, table=True):
         foreign_key="hr.workflow_template.id", index=True
     )
     step_order: int = Field(ge=1)
-    required_role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
+    required_role_id: uuid.UUID | None = Field(
+        default=None, foreign_key="role.id", index=True
+    )
+    required_user_id: uuid.UUID | None = Field(
+        default=None, foreign_key="user.id", index=True
+    )
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     is_required: bool = True
+    scope_enforced: bool = False
+    purpose: str = Field(default="APPROVAL", max_length=20)
+    label: str = Field(default="Approval", max_length=150)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -108,6 +116,9 @@ class WorkflowStepInstance(SQLModel, table=True):
     )
     required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
     is_required: bool = True
+    scope_enforced: bool = False
+    purpose: str = Field(default="APPROVAL", max_length=20)
+    label: str = Field(default="Approval", max_length=150)
     approver_user_id: uuid.UUID | None = Field(
         default=None, foreign_key="user.id", index=True
     )

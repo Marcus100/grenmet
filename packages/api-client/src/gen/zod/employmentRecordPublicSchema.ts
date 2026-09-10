@@ -8,6 +8,7 @@ import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const employmentRecordPublicSchema = z.object({
+  organisation_id: z.string(),
   id: z.uuid(),
   user_id: z.uuid(),
   employee_number: z.union([z.string(), z.null()]).optional(),

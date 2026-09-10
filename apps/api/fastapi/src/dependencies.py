@@ -123,6 +123,11 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         raise HTTPException(
             status_code=403, detail="Verify your email before using the staff portal"
         )
+    from sqlalchemy.orm.attributes import set_committed_value
+
+    from src.auth.access import effective_roles
+
+    set_committed_value(user, "roles", await effective_roles(session, user))
     return user
 
 
@@ -164,3 +169,6 @@ async def get_current_user_manager(current_user: CurrentUser) -> User:
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
     return current_user
+
+
+AdminUser = Annotated[User, Depends(get_current_active_superuser)]

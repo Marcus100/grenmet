@@ -8,7 +8,13 @@ from sqlmodel import Session as SQLModelSession
 from sqlmodel import col, func, select
 
 from src.auth.config import auth_settings
-from src.auth.models import Permission, Role, User, UserRoleAssignment
+from src.auth.models import (
+    Permission,
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+)
 from src.auth.models import Session as AuthSession
 from src.auth.schemas import (
     PermissionCreate,
@@ -161,7 +167,7 @@ async def get_user_by_email(*, session: AsyncSession, email: str) -> User | None
 
 async def get_user_by_id(*, session: AsyncSession, user_id: uuid.UUID) -> User | None:
     """Get user by ID."""
-    statement = select(User).where(User.id == user_id)
+    statement = select(User).where(col(User.id) == user_id)
     result = await session.execute(statement)
     return result.scalars().first()
 
@@ -450,7 +456,7 @@ async def create_role(*, session: AsyncSession, role_in: RoleCreate) -> Role:
 
 async def get_role(*, session: AsyncSession, role_id: uuid.UUID) -> Role | None:
     """Get a role by ID."""
-    statement = select(Role).where(Role.id == role_id)
+    statement = select(Role).where(col(Role.id) == role_id)
     result = await session.execute(statement)
     return result.scalars().first()
 
@@ -487,7 +493,7 @@ async def count_role_assignments_for_role(
     count_stmt = (
         select(func.count())
         .select_from(UserRoleAssignment)
-        .where(UserRoleAssignment.role_id == role_id)
+        .where(col(UserRoleAssignment.role_id) == role_id)
     )
     result = await session.execute(count_stmt)
     return result.scalar() or 0
@@ -507,8 +513,28 @@ async def delete_role(*, session: AsyncSession, db_role: Role) -> None:
 async def delete_user_role_assignment(
     *, session: AsyncSession, db_assignment: UserRoleAssignment
 ) -> None:
-    """Revoke a user-role assignment."""
+    """Revoke the assignment and remove legacy fallback when the last grant ends."""
+    from sqlalchemy import delete
+
+    from src.auth.models import UserRoleLink
+
     await session.delete(db_assignment)
+    await session.flush()
+    remaining = (
+        await session.execute(
+            select(UserRoleAssignment.id).where(
+                col(UserRoleAssignment.user_id) == db_assignment.user_id,
+                col(UserRoleAssignment.role_id) == db_assignment.role_id,
+            )
+        )
+    ).first()
+    if remaining is None:
+        await session.execute(
+            delete(UserRoleLink).where(
+                col(UserRoleLink.user_id) == db_assignment.user_id,
+                col(UserRoleLink.role_id) == db_assignment.role_id,
+            )
+        )
     await session.commit()
 
 
@@ -571,9 +597,51 @@ async def get_permissions_with_count(
 
 
 async def create_user_role_assignment(
-    *, session: AsyncSession, assignment_in: UserRoleAssignmentCreate
+    *,
+    session: AsyncSession,
+    assignment_in: UserRoleAssignmentCreate,
+    current_user: User | None = None,
 ) -> UserRoleAssignment:
-    db_assignment = UserRoleAssignment.model_validate(assignment_in)
+    from src.hr.models import EmploymentRecord, Organisation
+    from src.hr.organisations import department_for
+
+    data = assignment_in.model_dump()
+    employment = await session.scalar(
+        select(EmploymentRecord).where(
+            EmploymentRecord.user_id == assignment_in.user_id
+        )
+    )
+    department = (
+        await department_for(session, assignment_in.department_id)
+        if assignment_in.department_id
+        else None
+    )
+    organisation_id = assignment_in.organisation_id or (
+        department.organisation_id
+        if department
+        else employment.organisation_id
+        if employment
+        else None
+    )
+    if organisation_id is None:
+        choices = list((await session.execute(select(Organisation.id))).scalars().all())
+        if len(choices) != 1:
+            raise AppException(
+                "Select an organisation; assignment ownership is ambiguous", 400
+            )
+        organisation_id = choices[0]
+    if await session.get(Organisation, organisation_id) is None:
+        raise AppException("Organisation not found", 404)
+    if department and department.organisation_id != organisation_id:
+        raise AppException("Department belongs to another organisation", 400)
+    if assignment_in.scope == RoleAssignmentScope.DEPARTMENT and department is None:
+        if not employment or employment.organisation_id != organisation_id:
+            raise AppException("Department scope requires an explicit department", 400)
+        data["department_id"] = employment.department_id
+    data["organisation_id"] = organisation_id
+    db_assignment = UserRoleAssignment.model_validate(data)
+    if current_user is not None:
+        await require_assignment_management(session, current_user, db_assignment)
     session.add(db_assignment)
     await session.commit()
     await session.refresh(db_assignment)
@@ -585,8 +653,29 @@ async def update_user_role_assignment(
     session: AsyncSession,
     db_assignment: UserRoleAssignment,
     assignment_in: UserRoleAssignmentUpdate,
+    current_user: User | None = None,
 ) -> UserRoleAssignment:
+    if current_user is not None:
+        await require_assignment_management(session, current_user, db_assignment)
     assignment_data = assignment_in.model_dump(exclude_unset=True)
+    if "scope" in assignment_data and assignment_data["scope"] is None:
+        raise AppException("Scope cannot be null", 400)
+    from src.hr.organisations import department_for
+
+    destination_id = assignment_data.get("department_id", db_assignment.department_id)
+    if destination_id:
+        destination = await department_for(session, destination_id)
+        if destination.organisation_id != db_assignment.organisation_id:
+            raise AppException("Department belongs to another organisation", 400)
+    if (
+        assignment_data.get("scope", db_assignment.scope)
+        == RoleAssignmentScope.DEPARTMENT
+        and not destination_id
+    ):
+        raise AppException("Department scope requires an explicit department", 400)
+    candidate = UserRoleAssignment.model_validate(db_assignment, update=assignment_data)
+    if current_user is not None:
+        await require_assignment_management(session, current_user, candidate)
     db_assignment.sqlmodel_update(assignment_data)
     session.add(db_assignment)
     await session.commit()
@@ -603,13 +692,50 @@ async def get_user_role_assignment(
 
 
 async def get_user_role_assignments(
-    *, session: AsyncSession, user_id: uuid.UUID | None = None
+    *,
+    session: AsyncSession,
+    user_id: uuid.UUID | None = None,
+    current_user: User | None = None,
 ) -> list[UserRoleAssignment]:
     statement = select(UserRoleAssignment)
     if user_id:
-        statement = statement.where(UserRoleAssignment.user_id == user_id)
-    result = await session.execute(statement.limit(100))
-    return list(result.scalars().all())
+        statement = statement.where(col(UserRoleAssignment.user_id) == user_id)
+    result = await session.execute(statement)
+    assignments = list(result.scalars().all())
+    if current_user is None or current_user.is_superuser:
+        return assignments
+    allowed = []
+    for assignment in assignments:
+        try:
+            await require_assignment_management(session, current_user, assignment)
+        except AppException:
+            continue
+        allowed.append(assignment)
+    return allowed
+
+
+async def require_assignment_management(
+    session: AsyncSession, actor: User, assignment: UserRoleAssignment
+) -> None:
+    from src.hr.models import EmploymentRecord
+    from src.hr.organisations import require_organisation_permission
+
+    department_id = (
+        assignment.department_id
+        if assignment.scope == RoleAssignmentScope.DEPARTMENT
+        else None
+    )
+    if assignment.scope == RoleAssignmentScope.SELF:
+        employment = await session.scalar(
+            select(EmploymentRecord).where(
+                EmploymentRecord.user_id == assignment.user_id,
+                EmploymentRecord.organisation_id == assignment.organisation_id,
+            )
+        )
+        department_id = employment.department_id if employment else None
+    await require_organisation_permission(
+        session, actor, assignment.organisation_id, "user.manage", department_id
+    )
 
 
 def require_approved_account(user: User) -> None:

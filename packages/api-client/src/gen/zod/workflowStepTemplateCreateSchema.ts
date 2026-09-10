@@ -8,7 +8,14 @@ import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const workflowStepTemplateCreateSchema = z.object({
   step_order: z.int().min(1),
-  required_role_id: z.uuid(),
+  required_role_id: z.union([z.uuid(), z.null()]).optional(),
+  required_user_id: z.union([z.uuid(), z.null()]).optional(),
   required_scope: roleAssignmentScopeSchema.optional().default("SELF"),
   is_required: z.boolean().optional().default(true),
+  scope_enforced: z.boolean().optional().default(true),
+  purpose: z
+    .enum(["APPROVAL", "REVIEW", "RECORDING"])
+    .optional()
+    .default("APPROVAL"),
+  label: z.string().min(1).max(150).optional().default("Approval"),
 });

@@ -12,4 +12,5 @@ export const userRoleAssignmentCreateSchema = z.object({
   scope: roleAssignmentScopeSchema.optional().default("SELF"),
   department_id: z.union([z.string(), z.null()]).optional(),
   effective_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
 });

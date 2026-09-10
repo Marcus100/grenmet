@@ -23,9 +23,14 @@ async def setup(session):
     )
     session.add(actor)
     session.add(
-        Department(id="meteorological_department", name="Meteorological Department")
+        Department(
+            organisation_id="gaa",
+            code="meteorological_department",
+            id="meteorological_department",
+            name="Meteorological Department",
+        )
     )
-    for name in ("management", "hr-supervisor"):
+    for name in ("management", "hr-supervisor", "hr-recorder"):
         if (
             not (await session.execute(select(Role).where(Role.name == name)))
             .scalars()
@@ -82,7 +87,14 @@ async def test_preview_apply_repeat_preserves_online_records(db_async):
 @pytest.mark.asyncio
 async def test_conflicting_department_prevents_partial_import(db_async):
     actor = await setup(db_async)
-    db_async.add(Department(id="gms", name="Other existing GMS identity"))
+    db_async.add(
+        Department(
+            organisation_id="gaa",
+            code="gms",
+            id="gms",
+            name="Other existing GMS identity",
+        )
+    )
     await db_async.flush()
     db_async.add(
         Grade(
@@ -180,6 +192,24 @@ async def test_malformed_required_chain_is_reported(db_async, order, required):
     steps[0].step_order = order + 10 if order == 2 else order
     await db_async.commit()
     preview = await catalogue.preview(db_async, actor, "meteorological_department")
-    assert any("consecutive required" in message for message in preview.conflicts)
+    assert any("consecutive stages" in message for message in preview.conflicts)
     with pytest.raises(AppException):
         await catalogue.apply(db_async, actor, "meteorological_department")
+
+
+@pytest.mark.asyncio
+async def test_optional_stage_between_required_stages_is_valid(db_async):
+    from src.hr.workflow.models import WorkflowStepTemplate
+
+    actor = await setup(db_async)
+    await catalogue.apply(db_async, actor, "meteorological_department")
+    steps = (await db_async.execute(select(WorkflowStepTemplate))).scalars().all()
+    for step in steps:
+        if step.step_order == 2:
+            step.is_required = False
+        elif step.step_order == 3:
+            step.is_required = True
+            step.purpose = "REVIEW"
+    await db_async.commit()
+    result = await catalogue.preview(db_async, actor, "meteorological_department")
+    assert not result.conflicts

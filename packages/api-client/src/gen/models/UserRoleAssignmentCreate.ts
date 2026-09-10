@@ -25,4 +25,5 @@ export type UserRoleAssignmentCreate = {
   scope?: RoleAssignmentScope;
   department_id?: string | null;
   effective_to?: string | null;
+  organisation_id?: string | null;
 };

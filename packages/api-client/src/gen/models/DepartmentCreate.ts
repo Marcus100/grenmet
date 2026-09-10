@@ -4,6 +4,8 @@
  */
 
 export type DepartmentCreate = {
+  organisation_id?: string | null;
+  code?: string | null;
   /**
    * @maxLength 100
    * @pattern ^[a-z0-9_-]+$

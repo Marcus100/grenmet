@@ -17,4 +17,8 @@ export const workflowInboxItemSchema = z.object({
   submitted_at: z.union([z.string(), z.null()]).optional(),
   current_step_order: z.int(),
   step_is_named: z.boolean(),
+  step_id: z.union([z.uuid(), z.null()]).optional(),
+  is_required: z.boolean().optional().default(true),
+  purpose: z.string().optional().default("APPROVAL"),
+  label: z.string().optional().default("Approval"),
 });

@@ -65,7 +65,7 @@ export function readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetQueryOp
 }
 
 /**
- * @description Return a role assignment by ID (superuser only).
+ * @description Return a role assignment by ID (within active user.manage scope).
  * @summary Get role assignment by ID
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
