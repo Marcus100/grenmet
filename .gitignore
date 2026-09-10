@@ -213,3 +213,7 @@ acme.json
 /scripts/sutron-collector/data/
 /scripts/scrapy-wxwatch/data/
 /scripts/scrapy-wxwatch/images/
+
+# Vendored upstream notebook sources (630MB, fetched not authored).
+# Excluded from git and from the documentation link checker.
+notebooks/metpy/sources/
