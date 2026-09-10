@@ -32,7 +32,7 @@ export function FeedsSection() {
       <div className="mt-6 grid gap-3">
         {FEEDS.map((feed) => (
           <article
-            className="flex flex-col gap-4 border border-gm-border bg-white p-4 shadow-card sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-4 border border-gm-border bg-card p-4 shadow-card sm:flex-row sm:items-center sm:justify-between"
             key={feed.href}
           >
             <div className="flex min-w-0 items-center gap-3">
