@@ -104,7 +104,6 @@ keep-runtime-typing = true
 
 [tool.coverage.run]
 source = ["src"]
-dynamic_context = "test_function"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
