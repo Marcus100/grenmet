@@ -15,6 +15,11 @@ export const env = createEnv({
     CAP_API_URL: z.string().url().optional().default("http://localhost:8000"),
   },
   client: {
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: z
+      .string()
+      .regex(/^(G-[A-Z0-9]+)?$/)
+      .optional()
+      .default(""),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -27,6 +32,7 @@ export const env = createEnv({
       .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     WXPRODUCTS_API_URL: process.env.WXPRODUCTS_API_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,

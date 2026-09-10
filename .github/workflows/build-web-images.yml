@@ -127,6 +127,7 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
             NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
             NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
           secrets: |
@@ -167,6 +168,7 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
             NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
             NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
           secrets: |
