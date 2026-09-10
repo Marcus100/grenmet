@@ -107,6 +107,9 @@ jobs:
       - name: Check Docker workspace dependencies
         run: node scripts/guardrails/check-docker-workspaces.mjs
 
+      - name: Test verification entry points
+        run: node --test scripts/verification/*.test.mjs
+
       - name: Test repository guardrails
         run: pnpm test:guardrails
 
@@ -281,7 +284,7 @@ jobs:
         env:
           STORAGE_TEST_POSTGRES_URL: postgresql://storage_test:test-only-password@localhost:5432/postgres
           RUNTIME_ROLE_TEST_REQUIRED: "true"
-        run: node --test apps/web/gaa-admin/scripts/storage.integration.test.mjs apps/web/cms/scripts/storage.integration.test.mjs scripts/production/runtime-role.integration.test.mjs
+        run: bash scripts/verification/storage.sh
 
   weather-images:
     needs: [image-selection]
