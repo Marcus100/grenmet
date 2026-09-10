@@ -65,7 +65,15 @@ describe("NavDrawer", () => {
     render(<NavDrawer onClose={onClose} open />);
 
     await user.click(screen.getByText(FIRST_SECTION.label));
-    await user.click(screen.getByText(FIRST_SECTION.groups[0].links[0].name));
+    const link = screen.getByRole("link", {
+      name: new RegExp(FIRST_SECTION.groups[0].links[0].name, "i"),
+    });
+    expect(link).toHaveAttribute("href", FIRST_SECTION.groups[0].links[0].href);
+    // Verify the close callback without asking jsdom to navigate documents.
+    link.addEventListener("click", (event) => event.preventDefault(), {
+      once: true,
+    });
+    await user.click(link);
 
     expect(onClose).toHaveBeenCalled();
   });

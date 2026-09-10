@@ -88,6 +88,25 @@ export const Content: CollectionConfig = {
         { label: "General page", value: "page" },
       ],
     },
+    {
+      name: "placement",
+      type: "select",
+      required: true,
+      defaultValue: "news",
+      options: [
+        {
+          label: "Latest from us — short conversational update",
+          value: "latest",
+        },
+        { label: "Weather news — long-form article or report", value: "news" },
+        { label: "Both sections", value: "both" },
+      ],
+      admin: {
+        condition: (data) => data.kind === "article",
+        description:
+          "Choose where this published article appears on the GMS website.",
+      },
+    },
     { name: "summary", type: "textarea" },
     {
       name: "image",

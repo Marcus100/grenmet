@@ -1,4 +1,10 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const actions = vi.hoisted(() => ({
@@ -48,7 +54,10 @@ describe("product desk", () => {
       screen.queryByRole("heading", { name: "Day 5" })
     ).not.toBeInTheDocument();
     const date = screen.getByLabelText("Forecast / issue date");
-    fireEvent.change(date, { target: { value: "2026-09-08" } });
+    await act(async () => {
+      fireEvent.change(date, { target: { value: "2026-09-08" } });
+      await actions.load.mock.results.at(-1)?.value;
+    });
     expect(
       screen.getByLabelText("Issue date and time (Grenada) *")
     ).toHaveValue("2026-09-08T18:00");
