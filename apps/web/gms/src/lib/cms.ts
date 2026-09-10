@@ -20,11 +20,13 @@ export type ContentResult =
 async function getContent(params: {
   kind?: "article" | "page";
   slug?: string;
+  placement?: "latest" | "news";
 }): Promise<ContentResult> {
   if (!env.CMS_API_URL) return { status: "unavailable", articles: [] };
   try {
     const url = new URL("/api/public/content", env.CMS_API_URL);
     if (params.kind) url.searchParams.set("kind", params.kind);
+    if (params.placement) url.searchParams.set("placement", params.placement);
     if (params.slug) url.searchParams.set("slug", params.slug);
     const response = await fetch(url, {
       cache: "no-store",
@@ -42,9 +44,10 @@ async function getContent(params: {
 }
 
 export function fetchPublishedContent(
-  kind?: "article" | "page"
+  kind?: "article" | "page",
+  placement?: "latest" | "news"
 ): Promise<ContentResult> {
-  return getContent({ kind });
+  return getContent({ kind, placement });
 }
 
 export async function fetchContentBySlug(

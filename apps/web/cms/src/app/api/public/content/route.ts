@@ -3,12 +3,16 @@ import config from "../../../../payload.config";
 
 export const dynamic = "force-dynamic";
 
+const PLACEMENTS = new Set(["latest", "news"]);
 const KINDS = new Set(["article", "page"]);
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const kind = url.searchParams.get("kind");
   const slug = url.searchParams.get("slug");
+  const placement = url.searchParams.get("placement");
+  if (placement && !PLACEMENTS.has(placement))
+    return Response.json({ error: "Unknown placement" }, { status: 400 });
   if (kind && !KINDS.has(kind))
     return Response.json({ error: "Unknown content kind" }, { status: 400 });
   try {
@@ -21,6 +25,7 @@ export async function GET(request: Request) {
       sort: "-updatedAt",
       where: {
         status: { equals: "published" },
+        ...(placement ? { placement: { in: [placement, "both"] } } : {}),
         ...(kind ? { kind: { equals: kind } } : {}),
         ...(slug ? { slug: { equals: slug } } : {}),
       },

@@ -1,7 +1,7 @@
 """Rehearse ownership backfill inside a rolled-back test-DB transaction."""
 
 import importlib.util
-import re
+import os
 from pathlib import Path
 
 import pytest
@@ -11,12 +11,13 @@ from sqlalchemy import text
 
 from src.config import settings
 from src.database import engine
+from tests.database_target import require_owned_database
 
 
 @pytest.fixture
 def old_schema(db_async):
     _ = db_async
-    assert re.fullmatch(r".+_test(_gw\d+)?", settings.POSTGRES_DB)
+    require_owned_database(settings.POSTGRES_DB, os.environ)
     path = Path("alembic/versions/2026-09-10_hr_organisation_boundary.py")
     spec = importlib.util.spec_from_file_location("organisation_migration", path)
     assert spec and spec.loader
