@@ -77,3 +77,15 @@ describe("published content feed", () => {
     );
   });
 });
+
+it("passes the section filter to CMS", async () => {
+  const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
+  vi.stubGlobal("fetch", fetcher);
+  await fetchPublishedContent("article", "latest");
+  expect(fetcher).toHaveBeenCalledWith(
+    new URL(
+      "http://cms.example.test/api/public/content?kind=article&placement=latest"
+    ),
+    expect.anything()
+  );
+});

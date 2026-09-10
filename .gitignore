@@ -217,3 +217,6 @@ acme.json
 # Vendored upstream notebook sources (630MB, fetched not authored).
 # Excluded from git and from the documentation link checker.
 notebooks/metpy/sources/
+
+# Local/CI verification reports
+/apps/api/fastapi/reports/

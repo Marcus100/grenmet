@@ -72,3 +72,31 @@ describe("public content feed", () => {
     expect(response.status).toBe(503);
   });
 });
+
+for (const placement of ["latest", "news"]) {
+  it(`filters published ${placement} content and includes both`, async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [] });
+    vi.mocked(getPayload).mockResolvedValue({ find } as never);
+    const response = await GET(
+      request(
+        `http://localhost/api/public/content?kind=article&placement=${placement}`
+      )
+    );
+    expect(response.status).toBe(200);
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: {
+          status: { equals: "published" },
+          kind: { equals: "article" },
+          placement: { in: [placement, "both"] },
+        },
+      })
+    );
+  });
+}
+it("rejects unknown placement", async () => {
+  const response = await GET(
+    request("http://localhost/api/public/content?placement=bogus")
+  );
+  expect(response.status).toBe(400);
+});

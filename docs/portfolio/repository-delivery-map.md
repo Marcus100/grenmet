@@ -90,6 +90,7 @@ away from GMS.
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
 | `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
+| `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
 
 ## Infrastructure and operations
