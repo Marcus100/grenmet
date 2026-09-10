@@ -50,6 +50,7 @@ from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
+from src.telemetry import sentry_options
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
 
@@ -79,7 +80,7 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(
         dsn=str(settings.SENTRY_DSN),
         environment=settings.ENVIRONMENT,
-        enable_tracing=True,
+        **sentry_options(),
     )
 
 # Configure app settings based on environment

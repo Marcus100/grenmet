@@ -17,6 +17,7 @@ from arq import cron
 from arq.connections import RedisSettings
 
 from src.logging_config import configure_logging
+from src.telemetry import sentry_options
 from src.worker.config import worker_settings
 
 configure_logging()
@@ -32,7 +33,11 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
     if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
         import sentry_sdk
 
-        sentry_sdk.init(dsn=str(settings.SENTRY_DSN), environment=settings.ENVIRONMENT)
+        sentry_sdk.init(
+            dsn=str(settings.SENTRY_DSN),
+            environment=settings.ENVIRONMENT,
+            **sentry_options(),
+        )
 
 
 async def process_cap_jobs(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
