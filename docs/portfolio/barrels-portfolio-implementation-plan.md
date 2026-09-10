@@ -122,7 +122,10 @@ this plan to implementation surfaces.
 
 - Streaming, unified media subscriptions, advanced offline delivery, and
   creator payouts.
-- Loyalty, commerce, bookings, transport, and regional expansion.
+- Loyalty, commerce, bookings, transport, and regional expansion. Loyalty
+  reference products and the merchant-funded/platform-funded decision are
+  surveyed in the
+  [Loyalty and Gamification Reference Study](../strategy/loyalty-reference-study.md).
 - A production weather-data proxy beyond the Hono health stub.
 - Native applications and deeper multi-tenant product infrastructure.
 - Research and training assets until an explicit adoption decision gives them

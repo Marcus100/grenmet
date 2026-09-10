@@ -1,0 +1,179 @@
+{
+  "recorded_at": "2026-09-10",
+  "publisher": "Caribbean Meteorological Organization",
+  "source_pages": [
+    "https://www.cmo.org.tt/cmc69.html",
+    "https://www.cmo.org.tt/cmc70.html"
+  ],
+  "extracted_documents": 17,
+  "extracted_pdf_pages": 189,
+  "extraction_method": "pypdf; PDF page boundaries preserved",
+  "limitations": [
+    "Selected passages reviewed; not a complete technical audit.",
+    "Recoverable PDF object-offset warnings; tables need visual verification before structured import.",
+    "2026 documents are preparatory agendas and notes, not meeting outcomes.",
+    "Original PDFs and extracted text remain in temporary storage; durable approved file storage is pending."
+  ],
+  "documents": [
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/DMS/DMS2025_Doc_1a_Rev1.pdf",
+      "file": "DMS2025_Doc_1a_Rev1.pdf",
+      "status": "extracted with pypdf",
+      "pages": 1,
+      "sha256": "32fa406e91cbc4ca3150d6724a9736024dcf9e0ef9642e7f28afb4b8a1965571",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/DMS/DMS2025_Doc_1b.pdf",
+      "file": "DMS2025_Doc_1b.pdf",
+      "status": "extracted with pypdf",
+      "pages": 2,
+      "sha256": "c8fc9e8fc49723877e0a95ac06e0163801480c2545fc4b5bb1177116d20d33b1",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/DMS/DMS2025_Doc_2.pdf",
+      "file": "DMS2025_Doc_2.pdf",
+      "status": "HTTP Error 404: Not Found",
+      "report_year": 2025,
+      "review_status": "unavailable"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/DMS/DMS2025_Doc_4.pdf",
+      "file": "DMS2025_Doc_4.pdf",
+      "status": "extracted with pypdf",
+      "pages": 19,
+      "sha256": "b1a4aa15b51bdd615c532b52f9766e1a4d155d286805c744c4164f6038e9356c",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/DMS/DMS2025_Doc_5.pdf",
+      "file": "DMS2025_Doc_5.pdf",
+      "status": "extracted with pypdf",
+      "pages": 9,
+      "sha256": "b2df5079d2e3e2279eb29d70f65bfd7974a9a141fd729fa3beee5172e86b9fc2",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_1.pdf",
+      "file": "CMC69_Doc_1.pdf",
+      "status": "extracted with pypdf",
+      "pages": 2,
+      "sha256": "077beaa35d73391b9be42566a89ea213f8f29fea87b518f68b2a4fea58655de9",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_2_Rev1.pdf",
+      "file": "CMC69_Doc_2_Rev1.pdf",
+      "status": "extracted with pypdf",
+      "pages": 6,
+      "sha256": "de1d7dcb72dbd07e5eb7ca605bfe27aa0983ae038e5b1709f8b2b1a966095780",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_3a_rev1.pdf",
+      "file": "CMC69_Doc_3a_rev1.pdf",
+      "status": "extracted with pypdf",
+      "pages": 24,
+      "sha256": "111858061ae8703cebe5e2e754f3b3c5b615b3c1e1c16eeb50a4acede782a5a2",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_4_Status_of_Actions.pdf",
+      "file": "CMC69_Doc_4_Status_of_Actions.pdf",
+      "status": "extracted with pypdf",
+      "pages": 3,
+      "sha256": "f804ca0041bc139b4a8540c8365530c5dcac3917ddb77d4a9dd6fa28a377346c",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_5.pdf",
+      "file": "CMC69_Doc_5.pdf",
+      "status": "extracted with pypdf",
+      "pages": 15,
+      "sha256": "6e766425af86486eeb966a59bdf591bda938d69bf608589321ef6148c180dfe9",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_7.pdf",
+      "file": "CMC69_Doc_7.pdf",
+      "status": "extracted with pypdf",
+      "pages": 34,
+      "sha256": "e8ca072ff8f1a2528b501c3a43a8ce1b6f41ece340bb231705756afb1888060b",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_10.pdf",
+      "file": "CMC69_Doc_10.pdf",
+      "status": "extracted with pypdf",
+      "pages": 18,
+      "sha256": "5d51e0d72351e4c1aa37c626c165f8cd0fb752161e323ac72c4bb26b84fb5d88",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC69/CMC/CMC69_Doc_11.pdf",
+      "file": "CMC69_Doc_11.pdf",
+      "status": "extracted with pypdf",
+      "pages": 14,
+      "sha256": "24285efd0fc345073ad6f732e40817279d28cff64ff2f00dbf79d55be7734131",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC70/DMS/DMS2026_Doc_1a.pdf",
+      "file": "DMS2026_Doc_1a.pdf",
+      "status": "extracted with pypdf",
+      "pages": 1,
+      "sha256": "365b9f9a4a7bddedab57ed34e1435bfa80b40dfe42eb74c35de5c2326ed775cb",
+      "report_year": 2026,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC70/DMS/DMS2026_Doc_1b.pdf",
+      "file": "DMS2026_Doc_1b.pdf",
+      "status": "extracted with pypdf",
+      "pages": 2,
+      "sha256": "6e3c8ea574ecc7663bb4199ad085af3e90bf6627ec95415ccc50aa07bd1e5101",
+      "report_year": 2026,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC70/CMC/CMC70_Doc_1.pdf",
+      "file": "CMC70_Doc_1.pdf",
+      "status": "extracted with pypdf",
+      "pages": 2,
+      "sha256": "ffa60d73ef7f07e43736df4d3c0c283cb685c2e9a31c374295cb46f68c574fee",
+      "report_year": 2026,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC70/CMC/CMC70_Doc_2.pdf",
+      "file": "CMC70_Doc_2.pdf",
+      "status": "extracted with pypdf",
+      "pages": 5,
+      "sha256": "d67d68121dd20f1df3ae5ca10ae7bfa58c145b9c761e17fd031328c9389cbc34",
+      "report_year": 2026,
+      "review_status": "extracted; selected passages reviewed"
+    },
+    {
+      "url": "https://www.cmo.org.tt/docs/CMC70/DMS2025_Final_Report.pdf",
+      "file": "DMS2025_Final_Report.pdf",
+      "status": "extracted with pypdf",
+      "pages": 32,
+      "sha256": "c3366a9c929613d75cd155e4369f5cfb6009dc104e3d2ffc5b67fc20de825c18",
+      "report_year": 2025,
+      "review_status": "extracted; selected passages reviewed"
+    }
+  ]
+}

@@ -401,6 +401,12 @@ superuser-only grade policy API, not environment user-ID allowlists. Defaults
 permit active staff in ingested GMS senior technician, assistant manager and
 manager grades; each product can override its permitted grade IDs.
 
+GMS's news pages read published editorial content from the CMS via
+`CMS_API_URL` (optional; pointed at the `apps/web/cms` deployment's base URL).
+With it unset, GMS falls back to its static reference articles. The CMS itself
+exposes this feed unauthenticated at `/api/public/content`, filtered to
+`status: published` content by the `content` collection's own access control.
+
 ### GitHub environment secret names
 
 Add credentials independently to **Settings → Environments → staging / production
