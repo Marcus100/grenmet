@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     users: User;
     content: Content;
+    media: Media;
     "payload-kv": PayloadKv;
     "payload-locked-documents": PayloadLockedDocument;
     "payload-preferences": PayloadPreference;
@@ -79,6 +80,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     content: ContentSelect<false> | ContentSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
     "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>;
     "payload-locked-documents":
       | PayloadLockedDocumentsSelect<false>
@@ -155,6 +157,10 @@ export interface Content {
   body: string;
   createdAt: string;
   id: number;
+  /**
+   * Shown on news cards and the article header.
+   */
+  image?: (number | null) | Media;
   kind: "article" | "page";
   /**
    * A URL name such as hurricane-season-preparation.
@@ -167,6 +173,30 @@ export interface Content {
   summary?: string | null;
   title: string;
   updatedAt: string;
+}
+/**
+ * Images for GMS website articles and pages.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  /**
+   * Alt text shown to screen readers.
+   */
+  alt: string;
+  createdAt: string;
+  filename?: string | null;
+  filesize?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+  height?: number | null;
+  id: number;
+  mimeType?: string | null;
+  thumbnailURL?: string | null;
+  updatedAt: string;
+  url?: string | null;
+  width?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -199,6 +229,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: "content";
         value: number | Content;
+      } | null)
+    | ({
+        relationTo: "media";
+        value: number | Media;
       } | null);
   globalSlug?: string | null;
   id: number;
@@ -263,12 +297,31 @@ export interface ContentSelect<T extends boolean = true> {
   author?: T;
   body?: T;
   createdAt?: T;
+  image?: T;
   kind?: T;
   slug?: T;
   status?: T;
   summary?: T;
   title?: T;
   updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media_select".
+ */
+export interface MediaSelect<T extends boolean = true> {
+  alt?: T;
+  createdAt?: T;
+  filename?: T;
+  filesize?: T;
+  focalX?: T;
+  focalY?: T;
+  height?: T;
+  mimeType?: T;
+  thumbnailURL?: T;
+  updatedAt?: T;
+  url?: T;
+  width?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

@@ -4,6 +4,7 @@ import { sql } from "@payloadcms/db-postgres/drizzle";
 import { buildConfig, getPayload, type Payload } from "payload";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Content } from "./collections/content";
+import { Media } from "./collections/media";
 import { Users } from "./collections/users";
 import { testDatabaseUrl } from "./env";
 import { readFastApiIdentity } from "./lib/fastapi-identity";
@@ -32,7 +33,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           schemaName: schema,
           push: true,
         }),
-        collections: [Users, Content],
+        collections: [Users, Content, Media],
         admin: { user: "users", importMap: { autoGenerate: false } },
         graphQL: { disable: true },
         typescript: { autoGenerate: false },
