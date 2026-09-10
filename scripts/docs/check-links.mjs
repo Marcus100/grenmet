@@ -19,6 +19,8 @@ const ignoredDirectories = new Set([
   "node_modules",
   "surface",
 ]);
+// Downloaded upstream snapshots are git-ignored and contain their own site links.
+const ignoredPaths = new Set(["notebooks/metpy/sources"]);
 const externalSchemePattern = /^[a-z][a-z0-9+.-]*:/i;
 const fencedCodePattern = /^\s{0,3}(`{3,}|~{3,})(.*)$/;
 const headingPattern = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/;
@@ -42,7 +44,12 @@ const collectMarkdownFiles = (root, directory = root) => {
 
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!ignoredDirectories.has(entry.name)) {
+      const entryPath = relative(root, join(directory, entry.name))
+        .split(sep)
+        .join("/");
+      if (
+        !(ignoredDirectories.has(entry.name) || ignoredPaths.has(entryPath))
+      ) {
         files.push(...collectMarkdownFiles(root, join(directory, entry.name)));
       }
       continue;
