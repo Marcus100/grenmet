@@ -51,6 +51,12 @@ publisher does not activate the grenmet CAP `publish.wis2box` job; that job stil
 requires a worker implementation before CAP alerts can be described as published
 to WIS 2.0.
 
+## September 2026 CMO evidence refinement
+
+The [CMO extraction review](./gms-product-strategy-and-roadmap.md#extracted-20252026-evidence-and-implementation-consequences) reinforces Gate 3 consumption and F18 acceptance. Publication success cannot stand in for forecaster retrieval. Gate 3 may begin as a bounded read-only pilot while publication work continues, subject to owner capacity.
+
+Before choosing the CAP integration in Gate 4, reconcile the regional portal reported in 2025 with the current local issuing path, sender authority and duplicate/cancellation handling. Keep the SURFACE observation publisher separate; approve the integration choice before implementing it. The [feature brief](../products/gms-evidence-library-implementation.md) tracks this as an operational acceptance refinement, not evidence that a regional integration already works here.
+
 ## Workshop recommendations reconciled with project evidence
 
 | Workshop recommendation | Evidence as of 2026-08-16 | Reconciled status | Next proof point |
@@ -129,6 +135,10 @@ proof, WDQMS baseline, and named operational support owner.
 - Install or validate WIS2Downloader on an approved, supportable host.
 - Start with one low-risk subscription selected by forecasters.
 - Validate filtering, format decoding, storage, retention, and freshness.
+- Exercise unavailable, stale and duplicate notifications plus reconnect/retrieval
+  recovery; retain source timestamps and make missing data visible to forecasters.
+- Record the selected dataset, discovery identifier, subscription filters,
+  decoded sample and reviewer so a substitute can reproduce the workflow.
 - Integrate the feed into one forecasting workstation workflow before adding
   NWP, SYNOP, satellite, or other subscriptions.
 - Monitor persistent outbound connections and grant only required network

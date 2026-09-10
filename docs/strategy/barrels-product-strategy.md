@@ -239,6 +239,11 @@ trust, regulatory obligations, and their effect on marketplace fairness.
 Loyalty should reward completed real-world actions, not attention or screen
 time. It should have three separate concepts.
 
+Reference products, small-market constraints, and open questions against the
+positions below are recorded in the
+[Loyalty and Gamification Reference Study](loyalty-reference-study.md). That
+study is research and does not change this section.
+
 ### Merchant rewards
 
 Businesses fund and control their own offers while Barrels provides the
