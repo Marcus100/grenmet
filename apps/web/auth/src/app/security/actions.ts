@@ -9,6 +9,7 @@ import {
   twofaSetupApiV12FaSetupPost,
   updatePasswordMeApiV1AuthUsersMePasswordPatch,
 } from "@barrelsgd/api-client";
+import { getEffectiveAccess } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "@/lib/auth-config";
 import {
   clearSessionCookie,
@@ -86,4 +87,11 @@ export async function revokeSecuritySession(id: string) {
     path: { session_id: id },
     client: await securityClient(),
   }).unwrap();
+}
+
+export async function loadAccess() {
+  const token = await readSessionCookie();
+  if (!token) throw new Error("Sign in to view access");
+  const session = await exchangeSessionForAccessToken(token);
+  return getEffectiveAccess(getAuthConfig(), session.access_token);
 }
