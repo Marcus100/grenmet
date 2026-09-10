@@ -42,6 +42,7 @@ from src.hr.models import (  # noqa: F401
     EmploymentRecord,
     LeaveBalance,
     LeaveCarryOver,
+    Organisation,
     RosterPreference,
     RosterPreferredShift,
     RosterRestrictedShift,
@@ -116,6 +117,9 @@ async_session_factory = async_sessionmaker(
 
 
 def init_db(session: Session) -> None:
+    from src.baseline.organisation_root import seed_organisation
+
+    seed_organisation(session)
     # Tables should be created with Alembic migrations
     # But if you don't want to use migrations, create
     # the tables un-commenting the next lines
@@ -146,7 +150,9 @@ async def init_db_async(session: AsyncSession) -> None:
     """Ensure initial data exists (e.g. first superuser). For use with async session."""
     from src.auth import service
     from src.auth.schemas import UserCreate
+    from src.baseline.organisation_root import seed_organisation_async
 
+    await seed_organisation_async(session)
     result = await session.execute(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
     )

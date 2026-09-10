@@ -5,7 +5,7 @@
 | **Version** | 1.0 |
 | **Status** | Draft — planning reference |
 | **Owner** | Digital Transformation Officer |
-| **Last reviewed** | June 2026 |
+| **Last reviewed** | September 2026 evidence/reporting extension; original v1 status remains a June snapshot |
 
 > **Purpose:** Defines the metadata schema for every GMS product, and identifies the v1 priority set. The [Service Catalogue](./service-catalogue.md) lists the full universe of possible products by service area. This document defines the metadata standard and commits to a specific v1 build order.
 
@@ -138,6 +138,18 @@ Products marked `Partial` exist in the codebase but are not fully operational. P
 | `GMS-DATA-OBS` | Observation Dashboard | Planned | AWS data; gaa-admin target |
 
 ---
+
+## Evidence and reporting products — proposed extensions
+
+These proposed outputs support the Data and Digital Weather Service and quality work. They are planned extensions, not new runtime product kinds or additions to the v1 commitment. Delivery is governed by the [client programme plan](../portfolio/gaa-gms-client-programme-plan.md) and specified in the [feature implementation brief](../products/gms-evidence-library-implementation.md).
+
+| Proposed code | Product and decision | Trigger / audience | Feature slice and acceptance |
+| --- | --- | --- | --- |
+| `GMS-DATA-GNDBRIEF` | Grenada evidence briefing: what has been reported and what needs follow-up? | On request or reviewed source update; internal leadership/forecasters | CMO-03; reviewed findings with source revision, locator, report date and unresolved limitations. |
+| `GMS-DATA-GAPREVIEW` | Roadmap gap review: which local requirement or action needs assessment? | Programme review or material source change; DTO/service owners | CMO-03; distinguish regional recommendation from approved local requirement; action owner and existing work-package reference. |
+| `GMS-DATA-IMPACTREP` | Annual weather-impact report: what happened, what was affected and what should improve? | Annual or requested reporting period; GMS and authorized partners | CMO-05; reviewed events, impacts, missing data, operational lessons and reproducible source references; submission receipt recorded separately. |
+
+All three begin with `digitalStatus: Planned`, `v1Priority: false`, `productType: Report` and `capCompatible: false`. Proposed owner is GMS leadership with a designated reporting reviewer. The searchable evidence library and event register are supporting features, not issued forecasts. Approval, access, retention and any external distribution must be set by the owner before release; do not inherit forecast validity windows or automatically apply the example ten-year retention above. Each export preserves its covered/as-of period, source/finding revisions, reviewer and report revision.
 
 ## Product Numbering Convention
 

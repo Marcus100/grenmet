@@ -111,6 +111,18 @@ const DEPARTMENTS = {
 };
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/organisation`, () =>
+    HttpResponse.json({
+      units: [],
+      positions: [
+        {
+          id: "GMS_SENIOR_TECH",
+          unit_id: "dept_met",
+          title: "Forecaster (Senior Supervisor)",
+        },
+      ],
+    })
+  ),
   http.get(`${BASE}/api/v1/auth/users`, () => HttpResponse.json(USERS)),
   http.get(`${BASE}/api/v1/auth/roles`, () => HttpResponse.json(ROLES)),
   http.get(`${BASE}/api/v1/auth/role-assignments`, () =>
@@ -231,6 +243,9 @@ describe("UsersManager", () => {
     fireEvent.change(screen.getByLabelText("Employee number"), {
       target: { value: "GMD-100" },
     });
+    await screen.findByRole("option", {
+      name: "Forecaster (Senior Supervisor)",
+    });
     fireEvent.change(screen.getByLabelText("Position"), {
       target: { value: "Forecaster (Senior Supervisor)" },
     });
@@ -241,10 +256,14 @@ describe("UsersManager", () => {
       expect(posted.employment).toHaveLength(1);
     });
     expect(posted.users).toHaveLength(1);
-    // Forecaster suggests hr-supervisor; baseline staff is always assigned too.
+    // Job titles never grant approval authority; onboarding defaults to self-service.
     expect(posted.assignments).toEqual([
-      { user_id: "u-new", role_id: "r-staff" },
-      { user_id: "u-new", role_id: "r-sup" },
+      {
+        user_id: "u-new",
+        role_id: "r-staff",
+        scope: "SELF",
+        department_id: null,
+      },
     ]);
     expect(posted.employment[0]).toEqual({
       employee_number: "GMD-100",
@@ -337,6 +356,7 @@ it("closes creation after an account is saved but its role assignment fails", as
   await screen.findByText("Gerard Tamar");
   fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
   await screen.findByLabelText("First name");
+  await screen.findByRole("option", { name: "Forecaster (Senior Supervisor)" });
   for (const [label, value] of [
     ["First name", "Test"],
     ["Last name", "Person"],
@@ -344,6 +364,7 @@ it("closes creation after an account is saved but its role assignment fails", as
     ["Email", "testperson@example.com"],
     ["Temporary password", "test-password-123"],
     ["Employee number", "MET-TEST"],
+    ["Position", "Forecaster (Senior Supervisor)"],
   ]) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   }

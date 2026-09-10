@@ -3,6 +3,7 @@
 import {
   type CapAlertCreate,
   type CapAreaCreate,
+  type CapCategory,
   type CapCertainty,
   type CapMessageType,
   type CapScope,
@@ -27,82 +28,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { HazardClassification } from "@/components/cap/hazard-classification";
+
 interface AreaRow {
   desc: string;
   id: string;
 }
-
-/**
- * Standard event names, grouped by the hazard the public site files them under.
- *
- * CAP `event` is free text and stays free text here — forecasters must be able
- * to describe something the list does not cover. But the public site groups
- * warnings by matching this string, so an off-list wording ("Sea Wave
- * Advisory") lands in the catch-all instead of its hazard. These presets keep
- * the common cases on the wording that groups correctly.
- */
-const EVENT_PRESETS: readonly { hazard: string; names: readonly string[] }[] = [
-  {
-    hazard: "Tropical cyclone",
-    names: [
-      "Tropical Cyclone Watch",
-      "Tropical Cyclone Warning",
-      "Hurricane Watch",
-      "Hurricane Warning",
-      "Tropical Storm Watch",
-      "Tropical Storm Warning",
-    ],
-  },
-  {
-    hazard: "Marine",
-    names: [
-      "Small Craft Advisory",
-      "High Surf Advisory",
-      "Gale Warning",
-      "Storm Warning",
-      "High Swell Advisory",
-    ],
-  },
-  {
-    hazard: "Flood and rain",
-    names: [
-      "Heavy Rainfall Advisory",
-      "Heavy Rainfall Watch",
-      "Heavy Rainfall Warning",
-      "Flash Flood Watch",
-      "Flash Flood Warning",
-    ],
-  },
-  {
-    hazard: "Thunderstorm",
-    names: ["Severe Thunderstorm Watch", "Severe Thunderstorm Warning"],
-  },
-  {
-    hazard: "Wind",
-    names: ["High Wind Advisory", "High Wind Warning"],
-  },
-  {
-    hazard: "Heat",
-    names: ["Heat Advisory", "Excessive Heat Warning"],
-  },
-  {
-    hazard: "Dust and haze",
-    names: ["Saharan Dust Advisory", "Saharan Dust Warning"],
-  },
-  {
-    hazard: "Coastal",
-    names: ["Coastal Inundation Advisory", "Rip Current Statement"],
-  },
-  {
-    hazard: "Tsunami",
-    names: [
-      "Tsunami Information Statement",
-      "Tsunami Watch",
-      "Tsunami Advisory",
-      "Tsunami Warning",
-    ],
-  },
-];
 
 const INITIAL_FORM = {
   headline: "",
@@ -110,9 +41,9 @@ const INITIAL_FORM = {
   msgType: "Alert",
   status: "Actual",
   scope: "Public",
-  severity: "",
-  urgency: "",
-  certainty: "",
+  severity: "Unknown",
+  urgency: "Unknown",
+  certainty: "Unknown",
   language: "en",
   description: "",
   instruction: "",
@@ -120,8 +51,8 @@ const INITIAL_FORM = {
   effective: "",
   onset: "",
   expires: "",
-  senderName: "",
-  contact: "",
+  senderName: "Grenada Meteorological Service",
+  contact: "meteorology@gaa.gd; 1-473-444-4142",
   web: "",
 };
 
@@ -167,6 +98,7 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 export default function NewAlertPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [categories, setCategories] = useState<CapCategory[]>([]);
   const [areas, setAreas] = useState<AreaRow[]>([{ id: "1", desc: "" }]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -194,6 +126,16 @@ export default function NewAlertPage() {
       setError("Headline, event, and description are required.");
       return;
     }
+    if (!categories.length) {
+      setError("Select at least one CAP category.");
+      return;
+    }
+    if (!(form.severity && form.urgency && form.certainty)) {
+      setError(
+        "Select severity, urgency, and certainty. Use Unknown when not assessed."
+      );
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
@@ -210,14 +152,13 @@ export default function NewAlertPage() {
         {
           language: form.language.trim() || "en",
           event: form.event.trim(),
+          categories,
           headline: form.headline.trim(),
           description: form.description.trim(),
           instruction: form.instruction.trim() || null,
-          ...(form.severity ? { severity: form.severity as CapSeverity } : {}),
-          ...(form.urgency ? { urgency: form.urgency as CapUrgency } : {}),
-          ...(form.certainty
-            ? { certainty: form.certainty as CapCertainty }
-            : {}),
+          severity: form.severity as CapSeverity,
+          urgency: form.urgency as CapUrgency,
+          certainty: form.certainty as CapCertainty,
           effective: toIsoOrNull(form.effective),
           onset: toIsoOrNull(form.onset),
           expires: toIsoOrNull(form.expires),
@@ -254,7 +195,7 @@ export default function NewAlertPage() {
             Alert Dashboard
           </Link>
           <h1 className="mt-2 text-gm-text-primary text-heading-md leading-heading-md">
-            New Alert
+            New National CAP Alert
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -312,22 +253,6 @@ export default function NewAlertPage() {
               />
             </Field>
 
-            <Field label="Event" required>
-              <Input
-                list="cap-event-presets"
-                onChange={(e) => update("event", e.target.value)}
-                placeholder="e.g. Tropical Storm"
-                value={form.event}
-              />
-              <datalist id="cap-event-presets">
-                {EVENT_PRESETS.flatMap((group) =>
-                  group.names.map((name) => (
-                    <option key={name} label={group.hazard} value={name} />
-                  ))
-                )}
-              </datalist>
-            </Field>
-
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Message type" required>
                 <Select
@@ -383,9 +308,25 @@ export default function NewAlertPage() {
             </div>
           </section>
 
-          {/* Classification */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
-            <SectionHeading>Classification</SectionHeading>
+          <section className="space-y-4 border border-gm-border bg-card p-6 shadow-card">
+            <SectionHeading>Hazard identification</SectionHeading>
+            <HazardClassification
+              categories={categories}
+              event={form.event}
+              onCategoriesChange={setCategories}
+              onEventChange={(event, nextCategories) => {
+                update("event", event);
+                setCategories(nextCategories);
+              }}
+            />
+          </section>
+
+          <section className="space-y-4 border border-gm-border bg-card p-6 shadow-card">
+            <SectionHeading>Risk assessment</SectionHeading>
+            <p className="text-body-sm text-gm-text-muted">
+              Review the assessment and sender for the responsible authority.
+              Unknown means not assessed; it does not mean low risk.
+            </p>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Severity">
@@ -393,7 +334,7 @@ export default function NewAlertPage() {
                   onValueChange={(v) => update("severity", v ?? "")}
                   value={form.severity}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Severity">
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -411,7 +352,7 @@ export default function NewAlertPage() {
                   onValueChange={(v) => update("urgency", v ?? "")}
                   value={form.urgency}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Urgency">
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -429,7 +370,7 @@ export default function NewAlertPage() {
                   onValueChange={(v) => update("certainty", v ?? "")}
                   value={form.certainty}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger aria-label="Certainty">
                     <SelectValue>{(value) => value || "Select…"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -571,7 +512,7 @@ export default function NewAlertPage() {
               <Field label="Contact">
                 <Input
                   onChange={(e) => update("contact", e.target.value)}
-                  placeholder="e.g. alerts@met.gd"
+                  placeholder="Email and telephone"
                   value={form.contact}
                 />
               </Field>

@@ -149,7 +149,14 @@ async def test_workflow_transition_submit_to_approve(
         ),
     )
     if not await db_async.get(Department, "dept_workflow"):
-        db_async.add(Department(id="dept_workflow", name="Dept Workflow"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_workflow",
+                id="dept_workflow",
+                name="Dept Workflow",
+            )
+        )
         await db_async.commit()
     result = await db_async.execute(select(Role).where(Role.name == "SUPERVISOR"))
     role = result.scalars().first()
@@ -266,7 +273,11 @@ async def _setup_coapproval(db: AsyncSession, department_id: str):
         session=db,
         current_user=admin,
         workflow_template_id=template.id,
-        step_in=WorkflowStepTemplateCreate(step_order=1, required_role_id=sup_role.id),
+        step_in=WorkflowStepTemplateCreate(
+            step_order=1,
+            required_role_id=sup_role.id,
+            required_scope=RoleAssignmentScope.ALL,
+        ),
     )
     return sup_role
 
@@ -390,7 +401,9 @@ async def test_approval_notification_targets_hr_admins(
         admin_role, _ = await make_role_with_permission(
             db_async, "workflow.instance.view", role_name="hr-admin"
         )
-    await assign_role(db_async, user=admin, role=admin_role)
+    await assign_role(
+        db_async, user=admin, role=admin_role, scope=RoleAssignmentScope.ALL
+    )
     requester = await make_user(db_async)
 
     # An in-memory instance is enough — the builder does not re-fetch it.

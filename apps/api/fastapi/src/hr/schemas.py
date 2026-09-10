@@ -50,7 +50,15 @@ class EmergencyContactPublic(BaseModel):
     relationship: str | None = None
 
 
+class OrganisationPublic(BaseModel):
+    id: str
+    code: str
+    name: str
+
+
 class DepartmentPublic(BaseModel):
+    organisation_id: str
+    code: str
     id: str
     name: str
 
@@ -61,6 +69,8 @@ class DepartmentsPublic(BaseModel):
 
 
 class DepartmentCreate(BaseModel):
+    organisation_id: str | None = None
+    code: str | None = Field(default=None, min_length=1, max_length=100)
     id: str = Field(max_length=100, pattern=r"^[a-z0-9_-]+$")
     name: str = Field(max_length=255)
 
@@ -80,6 +90,7 @@ class EmploymentCreate(BaseModel):
 
 
 class EmploymentRecordPublic(BaseModel):
+    organisation_id: str
     id: uuid.UUID
     user_id: uuid.UUID
     employee_number: str | None = None
@@ -121,6 +132,7 @@ class DepartmentMembersPublic(BaseModel):
 
 
 class EmploymentPublic(BaseModel):
+    organisation_id: str | None = None
     grade: GradePublic | None = None
     supervisor_name: str | None = None
     details_complete: bool = False

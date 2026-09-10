@@ -15,6 +15,12 @@ export const workflowStepInstancePublicSchema = z.object({
   required_user_id: z.union([z.uuid(), z.null()]).optional(),
   required_scope: roleAssignmentScopeSchema,
   is_required: z.boolean(),
+  scope_enforced: z.boolean().optional().default(true),
+  purpose: z
+    .enum(["APPROVAL", "REVIEW", "RECORDING"])
+    .optional()
+    .default("APPROVAL"),
+  label: z.string().optional().default("Approval"),
   approver_user_id: z.union([z.uuid(), z.null()]).optional(),
   action: z.union([workflowActionSchema, z.null()]).optional(),
   comments: z.union([z.string(), z.null()]).optional(),

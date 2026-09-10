@@ -30,6 +30,7 @@ from datetime import date, timedelta
 from sqlmodel import col, select
 
 from src.auth.models import User
+from src.config import settings
 from src.database import async_session_factory
 from src.hr.roster.models import PublicHoliday
 
@@ -92,7 +93,7 @@ async def run(year: int, actor_username: str, dry_run: bool) -> int:
             select(User).where(col(User.username) == actor_username)
         )
         actor = result.scalars().first()
-        if actor is None:
+        if actor is None or not actor.is_active or not actor.is_superuser:
             logger.error(
                 "ABORT: no user account %r to attribute the seed to", actor_username
             )
@@ -154,9 +155,25 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--year", type=int, required=True)
     parser.add_argument("--actor", default="admin")
-    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--environment", required=True, choices=("local", "staging", "production")
+    )
+    parser.add_argument(
+        "--reviewed",
+        action="store_true",
+        help="Dates checked against the official calendar",
+    )
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--dry-run", action="store_true")
+    mode.add_argument("--apply", action="store_true")
     args = parser.parse_args()
-    return asyncio.run(run(args.year, args.actor, args.dry_run))
+    if args.environment != settings.ENVIRONMENT:
+        parser.error("Requested environment does not match configured environment")
+    if args.apply and settings.ENVIRONMENT != "local" and not args.reviewed:
+        parser.error(
+            "Check these dates against the official calendar and use --reviewed"
+        )
+    return asyncio.run(run(args.year, args.actor, not args.apply))
 
 
 if __name__ == "__main__":

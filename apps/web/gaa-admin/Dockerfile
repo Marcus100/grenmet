@@ -88,7 +88,7 @@ COPY --from=source /app/apps/web/gaa-admin/drizzle ./apps/web/gaa-admin/drizzle
 COPY --from=source /app/apps/web/gaa-admin/seed ./apps/web/gaa-admin/seed
 COPY --from=source /app/apps/web/gaa-admin/src/db ./apps/web/gaa-admin/src/db
 USER node
-CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs && node apps/web/gaa-admin/scripts/seed-transport.mjs && node apps/web/gaa-admin/scripts/seed-janitorial.mjs && node apps/web/gaa-admin/scripts/verify-databases.mjs"]
+CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-wxwatch.mjs && node apps/web/gaa-admin/scripts/migrate-wxproducts.mjs && node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs && node apps/web/gaa-admin/scripts/seed-transport.mjs --apply && node apps/web/gaa-admin/scripts/seed-janitorial.mjs --apply && node apps/web/gaa-admin/scripts/verify-databases.mjs"]
 
 FROM runtime-base AS runner
 WORKDIR /app

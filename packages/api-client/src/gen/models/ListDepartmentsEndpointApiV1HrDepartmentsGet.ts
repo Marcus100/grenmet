@@ -4,22 +4,31 @@
  */
 
 import type { DepartmentsPublic } from "./DepartmentsPublic.js";
+import type { HTTPValidationError } from "./HTTPValidationError.js";
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetQuery = {
+  organisation_id?: string | null;
+};
 
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200 =
   DepartmentsPublic;
 
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403 = unknown;
 
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422 =
+  HTTPValidationError;
+
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetOptions = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: ListDepartmentsEndpointApiV1HrDepartmentsGetQuery;
   headers?: never;
 };
 
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponses = {
   "200": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200;
   "403": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403;
+  "422": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422;
 };
 
 /**
@@ -27,4 +36,5 @@ export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponses = {
  */
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponse =
   | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200
-  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403;
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422;

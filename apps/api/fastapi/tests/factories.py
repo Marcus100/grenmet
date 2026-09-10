@@ -112,14 +112,22 @@ async def make_role_with_permission(
 
 
 async def make_department(
-    session: AsyncSession, department_id: str | None = None
+    session: AsyncSession,
+    department_id: str | None = None,
+    *,
+    organisation_id: str = "gaa",
 ) -> Department:
     """Find or create a department."""
     dept_id = department_id or f"dept_{uuid.uuid4().hex[:8]}"
     existing = await session.get(Department, dept_id)
     if existing:
         return existing
-    dept = Department(id=dept_id, name=f"Dept {dept_id}")
+    dept = Department(
+        organisation_id=organisation_id,
+        code=dept_id,
+        id=dept_id,
+        name=f"Dept {dept_id}",
+    )
     session.add(dept)
     await session.commit()
     await session.refresh(dept)
@@ -134,7 +142,10 @@ async def make_employee(
     position: str = "Officer",
 ) -> EmploymentRecord:
     """Create an employment record linking a user to a department."""
+    department = await session.get(Department, department_id)
+    assert department is not None
     record = EmploymentRecord(
+        organisation_id=department.organisation_id,
         user_id=user.id,
         employee_number=f"EMP-{random_lower_string()[:8].upper()}",
         department_id=department_id,
@@ -153,9 +164,11 @@ async def assign_role(
     role: Role,
     scope: RoleAssignmentScope = RoleAssignmentScope.SELF,
     department_id: str | None = None,
+    organisation_id: str = "gaa",
 ) -> UserRoleAssignment:
     """Assign a role to a user and load it onto user.roles."""
     assignment = UserRoleAssignment(
+        organisation_id=organisation_id,
         user_id=user.id,
         role_id=role.id,
         scope=scope,
@@ -243,7 +256,9 @@ async def make_ready_staff(
         .first()
     )
     if employment is None:
-        employment = EmploymentRecord(user_id=user.id, department_id=department_id)
+        employment = EmploymentRecord(
+            organisation_id="gaa", user_id=user.id, department_id=department_id
+        )
     employment.grade_id = grade_id
     employment.employee_number = (
         employment.employee_number or f"TEST-{user.id.hex[:12]}"

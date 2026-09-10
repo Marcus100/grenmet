@@ -148,7 +148,7 @@ All HR routes are under `/api/v1/hr`, require an authenticated session, and are 
 by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
-`absentee-reports`, `status-reports`, `parking-permits`, `workflows`.
+`absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
 ### Department calendar
 
@@ -167,6 +167,44 @@ important; the author may edit or cancel their own entry, and changing anyone el
 requires `calendar.manage`. Entries are **cancelled, never deleted** — the calendar is
 a record of what was planned as well as what happened, so cancelled entries are
 omitted from reads unless `include_cancelled=true`.
+
+### Employee documents
+
+The initial release supports contracts, identification, certificates, licences,
+qualifications and signed forms. Medical, disciplinary, appraisal and `OTHER`
+records remain stored but are unavailable through these endpoints, including by
+ID. New uploads in those categories are rejected. Generic form attachment fields
+are retained for compatibility but non-null values are rejected until the
+attachment consumer and its access policy are implemented.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/hr/document-employees` | Paginated, name-searchable employee choices filtered by active document assignments before counting |
+| `POST /api/v1/hr/documents` | `hr.document.create` for self; filing for another employee also requires scoped `hr.document.manage` |
+| `GET /api/v1/hr/documents` | Own documents by default; explicit employee/department filters can only narrow access |
+| `GET /api/v1/hr/documents/{document_id}` | Same category and scope policy as listing |
+| `GET /api/v1/hr/documents/{document_id}/download` | Rechecks access; private, no-store 307 redirect to a 120-second signed URL |
+| `PATCH /api/v1/hr/documents/{document_id}` | Subject who uploaded it, or scoped document manager; metadata only |
+| `POST /api/v1/hr/documents/{document_id}/archive` | Same management check; retains both metadata and stored file |
+
+Department readers see only certification, licence and qualification records of
+other staff. Scoped document managers see all six launch categories. An employee
+can read their own launch-category documents, but can only edit/archive those
+they uploaded. Revoked or expired assignments confer no authority over others;
+flat role membership is insufficient for cross-employee access. An explicit
+department grant can cover a department other than the manager's own.
+
+Lists include `can_upload`; document rows include `can_manage` for UI controls.
+Mutations independently recheck permissions. Uploads use multipart/form-data,
+accept the existing PDF/image/Word/Excel allowlist, cap file bytes at 25 MiB and
+reject empty files or expiry before issue. Titles cannot be blank or null on
+update. Category and file bytes cannot be replaced through PATCH.
+
+These checks enforce the current GAA department model, not organisation
+isolation. See [organisation boundary](../hr/organisation-boundary.md) for the
+separately approved migration prerequisite. Do not enable another organisation
+on the strength of these document checks alone.
+
 
 ### Roster calendar feed
 
@@ -293,3 +331,51 @@ operational data remain unchanged. Repeated imports are no-ops.
 New HR/CAP submissions require their approval policy; missing policies return
 409. Staff setup can save partial verified personnel details, but HR workflow
 readiness still requires a staff credential and complete active employment.
+
+
+## GAA governance
+
+Authenticated `GET /api/v1/auth/access/me` returns effective role names, permission keys and the independent superuser flag. `GET /api/v1/hr/organisation` returns the source organisation catalogue without employee identities.
+
+Superuser-only endpoints: `GET`/`POST /api/v1/hr/setup/organisation` preview/apply an additive import; `GET /api/v1/hr/setup/workflows` and `PUT /api/v1/hr/setup/workflows/{template_id}` read/save future workflow configurations; `GET /api/v1/auth/access-reviews` lists scoped and legacy grants plus review history; `POST /api/v1/auth/access-reviews/{assignment_id}` records RETAIN or REVOKE with a reason. Self-review is forbidden. Workflow inbox items expose purpose, label, blocking status and step ID; action requests may identify the exact step so nonblocking recording remains addressable after final approval.
+
+See the [GAA governance launch procedure](../operations/gaa-governance-launch.md) for scope semantics, source uncertainties and preservation guarantees.
+
+
+### HR organisation ownership
+
+`GET /api/v1/hr/organisations` lists the authenticated user's available organisation
+contexts. Employment, department, document and role-assignment responses include
+`organisation_id`; departments also expose their organisation-scoped `code`.
+
+Department lists, employee-document lists and document employee choices accept
+`organisation_id`; document uploads accept it as a multipart field. Omitting it is
+supported only when the caller's context is unique. Explicit inaccessible context
+returns 403; ambiguous omitted context returns 400. Document detail, download,
+metadata correction and archive validate the stored filing organisation.
+
+Role assignment creation accepts an organisation ID or derives ownership from its
+department/employment when unambiguous. Management and listing use active scoped
+`user.manage` grants. `ALL` is organisation-wide; platform superusers remain global.
+An assignment's organisation is immutable, department/org mismatches are rejected,
+and explicit null scope returns 400. Employment derives organisation from its
+department; transfers and supervisors across organisations are rejected.
+
+
+### CAP hazard profiles
+
+Authenticated `/api/v1/cap/hazard-profiles` provides version history (GET),
+`/{key}/versions` creates an immutable DRAFT version (POST, optimistic
+`base_version`), `/{profile_id}/approve` records independent approval (POST),
+and `/{profile_id}/draft` starts an alert draft from an approved subtype/template
+(POST). Reads require `cap.alert.read`; saves require `cap.settings.manage`;
+approval also requires `cap.alert.approve` and a different actor from the author;
+draft creation requires `cap.alert.create`. Conflicting versions return 409.
+
+Profiles contain subtypes, CAP category mappings, per-message-level assessment
+rules, impacts, affected groups, responses, templates, authority names and intended
+channels. Incomplete profiles are savable drafts but cannot be approved. Approved
+versions remain immutable when a newer draft is created. The selected profile
+version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
+Threshold evaluation and transport/channel enforcement are not performed here.
+Creating a draft never publishes it; its assessment remains Unknown.

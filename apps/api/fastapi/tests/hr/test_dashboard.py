@@ -36,14 +36,15 @@ async def test_dashboard_uses_ledger_and_own_requests_with_department_published_
         db_async.add(user)
     db_async.add_all(
         [
-            Department(id="a", name="Department A"),
-            Department(id="b", name="Department B"),
+            Department(organisation_id="gaa", code="a", id="a", name="Department A"),
+            Department(organisation_id="gaa", code="b", id="b", name="Department B"),
         ]
     )
     await db_async.flush()
     for index, user in enumerate(people):
         db_async.add(
             EmploymentRecord(
+                organisation_id="gaa",
                 user_id=user.id,
                 department_id="a" if index < 2 else "b",
                 employee_number=f"TEST-{index}",

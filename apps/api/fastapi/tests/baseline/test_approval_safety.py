@@ -35,7 +35,14 @@ async def test_two_distinct_approvers_and_single_leave_debit(db_async):
         for name in ("owner", "supervisor", "manager")
     ]
     db_async.add_all(users)
-    db_async.add(Department(id="approval-test", name="Approval test"))
+    db_async.add(
+        Department(
+            organisation_id="gaa",
+            code="approval-test",
+            id="approval-test",
+            name="Approval test",
+        )
+    )
     role = Role(name="test-approver")
     db_async.add(role)
     await db_async.flush()

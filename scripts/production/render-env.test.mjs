@@ -187,6 +187,17 @@ test("staging and production pass integrations to the intended services", () => 
           }
         )
       );
+      const cms = model.services["web-cms"];
+      assert.equal(cms.environment.CMS_MEDIA_DIR, "/app/media");
+      assert.ok(
+        cms.volumes.some(
+          (volume) =>
+            volume.type === "volume" &&
+            volume.source === "cms-media" &&
+            volume.target === "/app/media"
+        )
+      );
+      assert.ok(model.volumes["cms-media"]);
       const api = model.services.api.environment;
       assert.equal(api.CAP_SIGNING_CERT, env.CAP_SIGNING_CERT);
       assert.equal(

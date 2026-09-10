@@ -252,6 +252,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY is required}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL:?EMAILS_FROM_EMAIL is required}
       EMAILS_FROM_NAME: ${EMAILS_FROM_NAME:-GMS Content}
+      CMS_MEDIA_DIR: /app/media
       CMS_URL: https://cms.${BASE_DOMAIN}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
@@ -267,6 +268,8 @@ services:
     image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms:${WEB_TAG}
     restart: always
     environment: *cms-environment
+    volumes:
+      - cms-media:/app/media
     depends_on:
       cms-migrate:
         condition: service_completed_successfully
@@ -594,6 +597,8 @@ networks:
     driver: bridge
 
 volumes:
+  # Persistent CMS uploads; distinct for each Compose project/environment.
+  cms-media:
   # DATA-CRITICAL: external + name pins the exact existing volumes on each
   # droplet, bypassing compose's created-by-me label check — and if a volume is
   # missing (fresh droplet), the deploy FAILS instead of silently starting an

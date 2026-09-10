@@ -333,7 +333,8 @@
 
 /* Font switcher — the `data-font` attribute (set by @barrelsgd/theme's preferences
    system) selects the active UI font from the registry loaded in layout.tsx.
-   Printed documents are unaffected — they use --gm-font-document (Noto Sans). */
+   Printed documents are unaffected — the <Paper> component pins them to
+   font-document / --brand-font-document (Noto Sans). */
 @layer base {
   html[data-font="inter"] body {
     --font-sans: var(--font-inter);

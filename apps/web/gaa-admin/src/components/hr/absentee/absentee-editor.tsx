@@ -243,7 +243,7 @@ export function AbsenteeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-3">
               <FormActionBar

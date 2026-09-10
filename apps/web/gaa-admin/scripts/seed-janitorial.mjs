@@ -22,6 +22,7 @@ import {
   taskBundleItems,
   taskBundles,
 } from "../src/db/janitorial/schema.ts";
+import { catalogueState, seedMode } from "./baseline-state.mjs";
 import { databaseConfig } from "./database-config.mjs";
 
 const { Pool } = pg;
@@ -30,30 +31,34 @@ const here = dirname(fileURLToPath(import.meta.url));
 const csvPath = join(here, "..", "seed", "janitorial-spec.csv");
 const spec = parseSpec(readFileSync(csvPath, "utf8"));
 
+const apply = seedMode();
 const pool = new Pool(databaseConfig("janitorial"));
 const client = await pool.connect();
 const db = drizzle(client, { casing: "snake_case" });
 try {
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(73190506)");
-  await client.query(
-    "CREATE TABLE IF NOT EXISTS baseline_step (key text PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now())"
-  );
-  const seeded = await client.query(
-    "SELECT 1 FROM baseline_step WHERE key = $1",
-    ["janitorial-v1"]
-  );
-  if (seeded.rowCount) {
-    console.log("janitorial already initialised; online edits preserved");
-  } else {
-    const existing = await client.query(
-      'SELECT 1 FROM "buildings" UNION ALL SELECT 1 FROM "sections" UNION ALL SELECT 1 FROM "areas" UNION ALL SELECT 1 FROM "activities" UNION ALL SELECT 1 FROM "task_bundles" UNION ALL SELECT 1 FROM "task_bundle_items" UNION ALL SELECT 1 FROM "area_tasks" UNION ALL SELECT 1 FROM "area_bundle_refs" LIMIT 1'
+  const state = await catalogueState(client, "janitorial-v1", [
+    "buildings",
+    "sections",
+    "areas",
+    "activities",
+    "task_bundles",
+    "task_bundle_items",
+    "area_tasks",
+    "area_bundle_refs",
+  ]);
+  if (state === "conflict") {
+    throw new Error(
+      "Existing janitorial data requires review; refusing to overwrite it"
     );
-    if (existing.rowCount) {
-      throw new Error(
-        "Existing janitorial data requires review; refusing to overwrite it"
-      );
-    }
+  }
+  if (state === "initialised") {
+    console.log("janitorial already initialised; online edits preserved");
+  } else if (apply) {
+    await client.query(
+      "CREATE TABLE IF NOT EXISTS baseline_step (key text PRIMARY KEY, completed_at timestamptz NOT NULL DEFAULT now())"
+    );
 
     const buildingRows = await db
       .insert(buildings)
@@ -165,6 +170,17 @@ try {
     await client.query("INSERT INTO baseline_step(key) VALUES ($1)", [
       "janitorial-v1",
     ]);
+  } else {
+    console.log(
+      "janitorial: empty catalogue; preview only. Use --apply to initialise."
+    );
+    console.log(
+      JSON.stringify(
+        Object.fromEntries(
+          Object.entries(spec).map(([key, rows]) => [key, rows.length])
+        )
+      )
+    );
   }
   await client.query("COMMIT");
 } catch (error) {

@@ -13,26 +13,36 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listDepartmentsEndpointApiV1HrDepartmentsGet } from "../clients/listDepartmentsEndpointApiV1HrDepartmentsGet.js";
 import type {
+  ListDepartmentsEndpointApiV1HrDepartmentsGetOptions,
   ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
   ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403,
+  ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422,
 } from "../models/ListDepartmentsEndpointApiV1HrDepartmentsGet.js";
 
-export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey = () =>
-  [{ url: "/api/v1/hr/departments" }] as const;
+export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey = ({
+  query,
+}: Omit<ListDepartmentsEndpointApiV1HrDepartmentsGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/departments" }, ...(query ? [query] : [])] as const;
 
 type ListDepartmentsEndpointApiV1HrDepartmentsGetQueryKey = ReturnType<
   typeof listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey
 >;
 
 export function listDepartmentsEndpointApiV1HrDepartmentsGetQueryOptions(
+  { query }: ListDepartmentsEndpointApiV1HrDepartmentsGetOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
 ) {
-  const queryKey = listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey();
+  const queryKey = listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey({
+    query,
+  });
   return queryOptions<
     ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
-    ResponseErrorConfig<ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403>,
+    ResponseErrorConfig<
+      | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403
+      | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422
+    >,
     ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
     typeof queryKey
   >({
@@ -40,6 +50,7 @@ export function listDepartmentsEndpointApiV1HrDepartmentsGetQueryOptions(
     queryFn: async ({ signal }) => {
       return listDepartmentsEndpointApiV1HrDepartmentsGet({
         ...config,
+        query,
         signal: config.signal ?? signal,
         throwOnError: true,
       }).unwrap();
@@ -58,11 +69,21 @@ export function useListDepartmentsEndpointApiV1HrDepartmentsGet<
   TQueryKey extends
     QueryKey = ListDepartmentsEndpointApiV1HrDepartmentsGetQueryKey,
 >(
+  {
+    query,
+  }: {
+    query?:
+      | ListDepartmentsEndpointApiV1HrDepartmentsGetOptions["query"]
+      | (() => ListDepartmentsEndpointApiV1HrDepartmentsGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
         ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200,
-        ResponseErrorConfig<ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403>,
+        ResponseErrorConfig<
+          | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403
+          | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -75,20 +96,29 @@ export function useListDepartmentsEndpointApiV1HrDepartmentsGet<
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
     resolvedOptions?.queryKey ??
-    listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey();
+    listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey(resolvedParams);
 
   const queryResult = useQuery(
     {
-      ...listDepartmentsEndpointApiV1HrDepartmentsGetQueryOptions(config),
+      ...listDepartmentsEndpointApiV1HrDepartmentsGetQueryOptions(
+        resolvedParams,
+        config
+      ),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403>
+    ResponseErrorConfig<
+      | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403
+      | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

@@ -349,6 +349,16 @@ CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `P
 
 The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
 
+### CMS uploaded media
+
+`CMS_MEDIA_DIR` selects the server-side upload directory (default `media` locally).
+Deployment uses `/app/media` backed by the project-specific `cms-media` Docker
+volume. The image creates that directory with the non-root runtime user's
+ownership. Local uploads are excluded from the Docker build context.
+Include this volume with the CMS database in backup and restore procedures;
+a persistent volume alone is not an off-host backup. Existing container-local
+uploads need explicit copying into the volume before replacing that container.
+
 ### CMS email
 
 CMS uses Payload's official Resend adapter. In `apps/web/cms/.env.local`, configure `RESEND_API_KEY` and `EMAILS_FROM_EMAIL` (an address on your verified Resend domain). `EMAILS_FROM_NAME` defaults to `GMS Content`. Keep the API key private and restart the local CMS after configuring it. With no key, local development and migrations remain usable and Payload reports email as unconfigured. A key without a sender fails configuration validation.
@@ -400,6 +410,12 @@ server environment. Publication authorization is configured through the
 superuser-only grade policy API, not environment user-ID allowlists. Defaults
 permit active staff in ingested GMS senior technician, assistant manager and
 manager grades; each product can override its permitted grade IDs.
+
+GMS's news pages read published editorial content from the CMS via
+`CMS_API_URL` (optional; pointed at the `apps/web/cms` deployment's base URL).
+With it unset, GMS falls back to its static reference articles. The CMS itself
+exposes this feed unauthenticated at `/api/public/content`, filtered to
+`status: published` content by the `content` collection's own access control.
 
 ### GitHub environment secret names
 

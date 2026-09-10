@@ -13,7 +13,7 @@ from src.auth.schemas import (
     UserRoleAssignmentsPublic,
     UserRoleAssignmentUpdate,
 )
-from src.dependencies import SessionDep, get_current_user_manager
+from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
 
 # user.manage holders (hr-admins) assign and revoke domain roles during
 # onboarding/offboarding. Superuser status is a User flag, not a role, so
@@ -29,14 +29,14 @@ router = APIRouter(
     "",
     response_model=UserRoleAssignmentsPublic,
     summary="List role assignments",
-    description="Return role assignments, optionally filtered by user_id (superuser only).",
+    description="Return role assignments, optionally filtered by user_id (within active user.manage scope).",
     responses={status.HTTP_200_OK: {"description": "Role assignments returned"}},
 )
 async def read_role_assignments(
-    session: SessionDep, user_id: uuid.UUID | None = None
+    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID | None = None
 ) -> Any:
     assignments = await service.get_user_role_assignments(
-        session=session, user_id=user_id
+        session=session, user_id=user_id, current_user=current_user
     )
     return UserRoleAssignmentsPublic(
         data=[
@@ -51,18 +51,21 @@ async def read_role_assignments(
     "/{assignment_id}",
     response_model=UserRoleAssignmentPublic,
     summary="Get role assignment by ID",
-    description="Return a role assignment by ID (superuser only).",
+    description="Return a role assignment by ID (within active user.manage scope).",
     responses={
         status.HTTP_200_OK: {"description": "Role assignment returned"},
         status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
     },
 )
-async def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) -> Any:
+async def read_role_assignment(
+    session: SessionDep, current_user: CurrentUser, assignment_id: uuid.UUID
+) -> Any:
     assignment = await service.get_user_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not assignment:
         raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+    await service.require_assignment_management(session, current_user, assignment)
     return assignment
 
 
@@ -71,14 +74,17 @@ async def read_role_assignment(session: SessionDep, assignment_id: uuid.UUID) ->
     response_model=UserRoleAssignmentPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create role assignment",
-    description="Create a user-role assignment (superuser only).",
+    description="Create a user-role assignment (within active user.manage scope).",
     responses={status.HTTP_201_CREATED: {"description": "Role assignment created"}},
 )
 async def create_role_assignment(
-    *, session: SessionDep, assignment_in: UserRoleAssignmentCreate
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    assignment_in: UserRoleAssignmentCreate,
 ) -> Any:
     return await service.create_user_role_assignment(
-        session=session, assignment_in=assignment_in
+        session=session, assignment_in=assignment_in, current_user=current_user
     )
 
 
@@ -86,7 +92,7 @@ async def create_role_assignment(
     "/{assignment_id}",
     response_model=UserRoleAssignmentPublic,
     summary="Update role assignment",
-    description="Update a user-role assignment (superuser only).",
+    description="Update a user-role assignment (within active user.manage scope).",
     responses={
         status.HTTP_200_OK: {"description": "Role assignment updated"},
         status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},
@@ -96,6 +102,7 @@ async def update_role_assignment(
     *,
     session: SessionDep,
     assignment_id: uuid.UUID,
+    current_user: CurrentUser,
     assignment_in: UserRoleAssignmentUpdate,
 ) -> Any:
     db_assignment = await service.get_user_role_assignment(
@@ -107,6 +114,7 @@ async def update_role_assignment(
         session=session,
         db_assignment=db_assignment,
         assignment_in=assignment_in,
+        current_user=current_user,
     )
 
 
@@ -121,13 +129,14 @@ async def update_role_assignment(
     },
 )
 async def delete_role_assignment(
-    *, session: SessionDep, assignment_id: uuid.UUID
+    *, session: SessionDep, current_user: CurrentUser, assignment_id: uuid.UUID
 ) -> None:
     db_assignment = await service.get_user_role_assignment(
         session=session, assignment_id=assignment_id
     )
     if not db_assignment:
         raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
+    await service.require_assignment_management(session, current_user, db_assignment)
     await service.delete_user_role_assignment(
         session=session, db_assignment=db_assignment
     )

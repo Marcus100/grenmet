@@ -74,6 +74,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/cms/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/cms/.next/static ./apps/web/cms/.next/static
+RUN mkdir -p /app/media && chown nextjs:nodejs /app/media
 USER nextjs
 EXPOSE 3006
 ENV PORT=3006

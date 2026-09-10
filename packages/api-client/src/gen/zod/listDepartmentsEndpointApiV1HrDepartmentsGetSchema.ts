@@ -5,6 +5,10 @@
 
 import * as z from "zod";
 import { departmentsPublicSchema } from "./departmentsPublicSchema.js";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
+
+export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryOrganisationIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
 export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema =
   departmentsPublicSchema;
@@ -12,8 +16,13 @@ export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema =
 export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema =
   z.unknown();
 
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
 export const listDepartmentsEndpointApiV1HrDepartmentsGetResponseSchema =
   listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema;
 
-export const listDepartmentsEndpointApiV1HrDepartmentsGetErrorSchema =
-  listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema;
+export const listDepartmentsEndpointApiV1HrDepartmentsGetErrorSchema = z.union([
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema,
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus422Schema,
+]);

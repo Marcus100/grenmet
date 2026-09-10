@@ -77,6 +77,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef(
         "parking.permit.read.department", "Read parking permits across a department"
     ),
+    # HR — employee documents
+    PermissionDef("hr.document.create", "Upload employee documents"),
+    PermissionDef(
+        "hr.document.read.department", "Read employee documents across a department"
+    ),
+    PermissionDef(
+        "hr.document.read.restricted",
+        "Read restricted employee documents (medical, disciplinary, appraisal)",
+    ),
+    PermissionDef("hr.document.manage", "Correct or archive any employee document"),
     # HR — workflow engine
     PermissionDef("workflow.template.manage", "Manage workflow templates"),
     PermissionDef("workflow.template.view", "View workflow templates"),
@@ -103,6 +113,10 @@ ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
 # (``User.is_superuser``) bypass all checks and need no role.
 
 DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
+    "hr-recorder": (
+        "Record approved HR requests; no approval authority unless separately configured",
+        ("workflow.instance.view", "workflow.instance.action"),
+    ),
     "staff": (
         "General staff self-service",
         (
@@ -112,6 +126,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "shift_swap.request.create.self",
             "status.report.create",
             "parking.permit.create",
+            "hr.document.create",
             "calendar.view",
             "calendar.event.create",
             "roster.view",
@@ -134,6 +149,8 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "status.report.read",
             "parking.permit.issue",
             "parking.permit.read.department",
+            "hr.document.create",
+            "hr.document.read.department",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",
@@ -153,6 +170,8 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "status.report.read",
             "parking.permit.issue",
             "parking.permit.read.department",
+            "hr.document.create",
+            "hr.document.read.department",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",
@@ -166,6 +185,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         (
             "user.manage",
             "hr.employment.manage",
+            "hr.document.create",
+            "hr.document.read.department",
+            "hr.document.read.restricted",
+            "hr.document.manage",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",

@@ -7,6 +7,7 @@ import type { EmploymentStatus } from "./EmploymentStatus.js";
 import type { EmploymentType } from "./EmploymentType.js";
 
 export type EmploymentRecordPublic = {
+  organisation_id: string;
   /**
    * @description
    * Format: `uuid`
