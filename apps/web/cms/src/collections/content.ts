@@ -90,6 +90,14 @@ export const Content: CollectionConfig = {
     },
     { name: "summary", type: "textarea" },
     {
+      name: "image",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        description: "Shown on news cards and the article header.",
+      },
+    },
+    {
       name: "body",
       label: "Markdown",
       type: "textarea",
