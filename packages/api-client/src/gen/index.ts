@@ -4,6 +4,7 @@ export * from "./.kubb/standardSchema.js";
 export { actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch } from "./clients/actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 export { actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch } from "./clients/actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatch.js";
 export { approveAlertApiV1CapAlertsAlertIdApprovePost } from "./clients/approveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export { approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost } from "./clients/approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
 export { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "./clients/approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "./clients/approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "./clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
@@ -41,6 +42,7 @@ export { deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete } from "./clients/del
 export { deleteStatusReportApiV1HrStatusReportsReportIdDelete } from "./clients/deleteStatusReportApiV1HrStatusReportsReportIdDelete.js";
 export { deleteUserApiV1AuthUsersUserIdDelete } from "./clients/deleteUserApiV1AuthUsersUserIdDelete.js";
 export { deleteUserMeApiV1AuthUsersMeDelete } from "./clients/deleteUserMeApiV1AuthUsersMeDelete.js";
+export { draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost } from "./clients/draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "./clients/duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 export { emailConfirmApiV1AuthModernEmailConfirmPost } from "./clients/emailConfirmApiV1AuthModernEmailConfirmPost.js";
 export { emailRequestApiV1AuthModernEmailRequestPost } from "./clients/emailRequestApiV1AuthModernEmailRequestPost.js";
@@ -85,6 +87,7 @@ export { readCapXmlApiCapIdentifierXmlGet } from "./clients/readCapXmlApiCapIden
 export { readCatalogsApiV1CapCatalogsGet } from "./clients/readCatalogsApiV1CapCatalogsGet.js";
 export { readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet } from "./clients/readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
 export { readFeedsApiV1CapFeedsGet } from "./clients/readFeedsApiV1CapFeedsGet.js";
+export { readHazardProfilesApiV1CapHazardProfilesGet } from "./clients/readHazardProfilesApiV1CapHazardProfilesGet.js";
 export { readHrDashboardApiV1HrDashboardGet } from "./clients/readHrDashboardApiV1HrDashboardGet.js";
 export { readHrEmploymentApiV1HrEmploymentUserIdGet } from "./clients/readHrEmploymentApiV1HrEmploymentUserIdGet.js";
 export { readHrProfileMeApiV1HrProfileMeGet } from "./clients/readHrProfileMeApiV1HrProfileMeGet.js";
@@ -130,6 +133,7 @@ export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./clie
 export { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "./clients/replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./clients/resetPasswordApiV1ResetPasswordPost.js";
 export { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "./clients/revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export { saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost } from "./clients/saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./clients/submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./clients/submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./clients/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
@@ -185,6 +189,11 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostMutationOptions,
   useApproveAlertApiV1CapAlertsAlertIdApprovePost,
 } from "./hooks/useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
+export {
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostMutationKey,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostMutationOptions,
+  useApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost,
+} from "./hooks/useApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
 export {
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey,
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions,
@@ -370,6 +379,11 @@ export {
   deleteUserMeApiV1AuthUsersMeDeleteMutationOptions,
   useDeleteUserMeApiV1AuthUsersMeDelete,
 } from "./hooks/useDeleteUserMeApiV1AuthUsersMeDelete.js";
+export {
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationKey,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationOptions,
+  useDraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost,
+} from "./hooks/useDraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions,
@@ -590,6 +604,11 @@ export {
   readFeedsApiV1CapFeedsGetQueryOptions,
   useReadFeedsApiV1CapFeedsGet,
 } from "./hooks/useReadFeedsApiV1CapFeedsGet.js";
+export {
+  readHazardProfilesApiV1CapHazardProfilesGetQueryKey,
+  readHazardProfilesApiV1CapHazardProfilesGetQueryOptions,
+  useReadHazardProfilesApiV1CapHazardProfilesGet,
+} from "./hooks/useReadHazardProfilesApiV1CapHazardProfilesGet.js";
 export {
   readHrDashboardApiV1HrDashboardGetQueryKey,
   readHrDashboardApiV1HrDashboardGetQueryOptions,
@@ -815,6 +834,11 @@ export {
   revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions,
   useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
 } from "./hooks/useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export {
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationKey,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationOptions,
+  useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost,
+} from "./hooks/useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions,
@@ -1058,6 +1082,14 @@ export type {
   ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422,
 } from "./models/ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export type {
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostOptions,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostPath,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponse,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponses,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus200,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus422,
+} from "./models/ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
+export type {
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPath,
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponse,
@@ -1141,6 +1173,37 @@ export { capMessageType } from "./models/CapMessageType.js";
 export type { CapNameValue } from "./models/CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./models/CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./models/CapPredefinedAreaPublic.js";
+export type {
+  CapProfileDefinition,
+  CapProfileDefinitionChannelsEnum,
+} from "./models/CapProfileDefinition.js";
+export { capProfileDefinitionChannelsEnum } from "./models/CapProfileDefinition.js";
+export type {
+  CapProfileDraftRequest,
+  CapProfileDraftRequestLevelEnum,
+} from "./models/CapProfileDraftRequest.js";
+export { capProfileDraftRequestLevelEnum } from "./models/CapProfileDraftRequest.js";
+export type {
+  CapProfilePublic,
+  CapProfilePublicStateEnum,
+} from "./models/CapProfilePublic.js";
+export { capProfilePublicStateEnum } from "./models/CapProfilePublic.js";
+export type {
+  CapProfileRule,
+  CapProfileRuleLevelEnum,
+  CapProfileRuleOperatorEnum,
+} from "./models/CapProfileRule.js";
+export {
+  capProfileRuleLevelEnum,
+  capProfileRuleOperatorEnum,
+} from "./models/CapProfileRule.js";
+export type { CapProfileSave } from "./models/CapProfileSave.js";
+export type { CapProfileSubtype } from "./models/CapProfileSubtype.js";
+export type {
+  CapProfileTemplate,
+  CapProfileTemplateLevelEnum,
+} from "./models/CapProfileTemplate.js";
+export { capProfileTemplateLevelEnum } from "./models/CapProfileTemplate.js";
 export type { CapPublishPublic } from "./models/CapPublishPublic.js";
 export type { CapReferenceCreate } from "./models/CapReferenceCreate.js";
 export type { CapReferencePublic } from "./models/CapReferencePublic.js";
@@ -1487,6 +1550,15 @@ export type { DepartmentMembersPublic } from "./models/DepartmentMembersPublic.j
 export type { DepartmentPublic } from "./models/DepartmentPublic.js";
 export type { DepartmentsPublic } from "./models/DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./models/DepartmentUpdate.js";
+export type {
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBody,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostOptions,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostPath,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponse,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponses,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus201,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus422,
+} from "./models/DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPath,
@@ -1948,6 +2020,12 @@ export type {
   ReadFeedsApiV1CapFeedsGetStatus200,
 } from "./models/ReadFeedsApiV1CapFeedsGet.js";
 export type {
+  ReadHazardProfilesApiV1CapHazardProfilesGetOptions,
+  ReadHazardProfilesApiV1CapHazardProfilesGetResponse,
+  ReadHazardProfilesApiV1CapHazardProfilesGetResponses,
+  ReadHazardProfilesApiV1CapHazardProfilesGetStatus200,
+} from "./models/ReadHazardProfilesApiV1CapHazardProfilesGet.js";
+export type {
   ReadHrDashboardApiV1HrDashboardGetOptions,
   ReadHrDashboardApiV1HrDashboardGetResponse,
   ReadHrDashboardApiV1HrDashboardGetResponses,
@@ -2354,6 +2432,15 @@ export type { RosterRevisionAction } from "./models/RosterRevisionAction.js";
 export { rosterRevisionAction } from "./models/RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./models/RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./models/RosterRevisionsPublic.js";
+export type {
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBody,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostOptions,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostPath,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponse,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponses,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus201,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422,
+} from "./models/SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export type { SecurityProof } from "./models/SecurityProof.js";
 export type { SecuritySessionPublic } from "./models/SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./models/SessionAccessTokenResponse.js";
@@ -2896,6 +2983,13 @@ export {
   approveAlertApiV1CapAlertsAlertIdApprovePostStatus422Schema,
 } from "./zod/approveAlertApiV1CapAlertsAlertIdApprovePostSchema.js";
 export {
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostErrorSchema,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostPathProfileIdSchema,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponseSchema,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus200Schema,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus422Schema,
+} from "./zod/approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostSchema.js";
+export {
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostErrorSchema,
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathUserIdSchema,
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponseSchema,
@@ -2964,6 +3058,13 @@ export { capMessageTypeSchema } from "./zod/capMessageTypeSchema.js";
 export { capNameValueSchema } from "./zod/capNameValueSchema.js";
 export { capPredefinedAreaCreateSchema } from "./zod/capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./zod/capPredefinedAreaPublicSchema.js";
+export { capProfileDefinitionSchema } from "./zod/capProfileDefinitionSchema.js";
+export { capProfileDraftRequestSchema } from "./zod/capProfileDraftRequestSchema.js";
+export { capProfilePublicSchema } from "./zod/capProfilePublicSchema.js";
+export { capProfileRuleSchema } from "./zod/capProfileRuleSchema.js";
+export { capProfileSaveSchema } from "./zod/capProfileSaveSchema.js";
+export { capProfileSubtypeSchema } from "./zod/capProfileSubtypeSchema.js";
+export { capProfileTemplateSchema } from "./zod/capProfileTemplateSchema.js";
 export { capPublishPublicSchema } from "./zod/capPublishPublicSchema.js";
 export { capReferenceCreateSchema } from "./zod/capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./zod/capReferencePublicSchema.js";
@@ -3273,6 +3374,14 @@ export { departmentMembersPublicSchema } from "./zod/departmentMembersPublicSche
 export { departmentPublicSchema } from "./zod/departmentPublicSchema.js";
 export { departmentsPublicSchema } from "./zod/departmentsPublicSchema.js";
 export { departmentUpdateSchema } from "./zod/departmentUpdateSchema.js";
+export {
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBodySchema,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostErrorSchema,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostPathProfileIdSchema,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponseSchema,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus201Schema,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus422Schema,
+} from "./zod/draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostSchema.js";
 export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostErrorSchema,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathAlertIdSchema,
@@ -3689,6 +3798,10 @@ export {
   readFeedsApiV1CapFeedsGetStatus200Schema,
 } from "./zod/readFeedsApiV1CapFeedsGetSchema.js";
 export {
+  readHazardProfilesApiV1CapHazardProfilesGetResponseSchema,
+  readHazardProfilesApiV1CapHazardProfilesGetStatus200Schema,
+} from "./zod/readHazardProfilesApiV1CapHazardProfilesGetSchema.js";
+export {
   readHrDashboardApiV1HrDashboardGetErrorSchema,
   readHrDashboardApiV1HrDashboardGetResponseSchema,
   readHrDashboardApiV1HrDashboardGetStatus200Schema,
@@ -4048,6 +4161,14 @@ export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSche
 export { rosterRevisionActionSchema } from "./zod/rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./zod/rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./zod/rosterRevisionsPublicSchema.js";
+export {
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBodySchema,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostErrorSchema,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostPathKeySchema,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponseSchema,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus201Schema,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422Schema,
+} from "./zod/saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostSchema.js";
 export { securityProofSchema } from "./zod/securityProofSchema.js";
 export { securitySessionPublicSchema } from "./zod/securitySessionPublicSchema.js";
 export { sessionAccessTokenResponseSchema } from "./zod/sessionAccessTokenResponseSchema.js";

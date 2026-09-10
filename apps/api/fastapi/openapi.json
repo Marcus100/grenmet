@@ -5953,6 +5953,204 @@
         }
       }
     },
+    "/api/v1/cap/hazard-profiles": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Read Hazard Profiles",
+        "operationId": "read_hazard_profiles_api_v1_cap_hazard_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapProfilePublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Hazard Profiles Api V1 Cap Hazard Profiles Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{key}/versions": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Save Hazard Profile",
+        "operationId": "save_hazard_profile_api_v1_cap_hazard_profiles__key__versions_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,99}$",
+              "title": "Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapProfileSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{profile_id}/approve": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Approve Hazard Profile",
+        "operationId": "approve_hazard_profile_api_v1_cap_hazard_profiles__profile_id__approve_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{profile_id}/draft": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Draft From Hazard Profile",
+        "operationId": "draft_from_hazard_profile_api_v1_cap_hazard_profiles__profile_id__draft_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapProfileDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/cap/alerts": {
       "get": {
         "tags": [
@@ -11505,6 +11703,382 @@
           "updated_at"
         ],
         "title": "CapPredefinedAreaPublic"
+      },
+      "CapProfileDefinition": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "family": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Family"
+          },
+          "subtypes": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileSubtype"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Subtypes"
+          },
+          "templates": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileTemplate"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Templates"
+          },
+          "issuing_authority": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Issuing Authority",
+            "default": ""
+          },
+          "reviewing_authority": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reviewing Authority",
+            "default": ""
+          },
+          "contact": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Contact",
+            "default": "meteorology@gaa.gd; 1-473-444-4142"
+          },
+          "channels": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAP feed",
+                "Email / EDIS",
+                "WIS2",
+                "GMS website",
+                "Agency channels"
+              ]
+            },
+            "type": "array",
+            "title": "Channels"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "family",
+          "subtypes"
+        ],
+        "title": "CapProfileDefinition"
+      },
+      "CapProfileDraftRequest": {
+        "properties": {
+          "subtype": {
+            "type": "string",
+            "title": "Subtype"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subtype",
+          "level"
+        ],
+        "title": "CapProfileDraftRequest"
+      },
+      "CapProfilePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/CapProfileDefinition"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "APPROVED"
+            ],
+            "title": "State"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approval_errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Approval Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "version",
+          "definition",
+          "state",
+          "created_by",
+          "created_at",
+          "approved_by",
+          "approved_at",
+          "approval_errors"
+        ],
+        "title": "CapProfilePublic"
+      },
+      "CapProfileRule": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level",
+            "default": "Warning"
+          },
+          "metric": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Metric",
+            "default": ""
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              ">=",
+              ">",
+              "<=",
+              "<",
+              "observed"
+            ],
+            "title": "Operator",
+            "default": ">="
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Unit",
+            "default": ""
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "area": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Area",
+            "default": ""
+          },
+          "evidence": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Evidence",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "CapProfileRule"
+      },
+      "CapProfileSave": {
+        "properties": {
+          "base_version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Version",
+            "default": 0
+          },
+          "definition": {
+            "$ref": "#/components/schemas/CapProfileDefinition"
+          }
+        },
+        "type": "object",
+        "required": [
+          "definition"
+        ],
+        "title": "CapProfileSave"
+      },
+      "CapProfileSubtype": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Categories"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileRule"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Rules"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "responses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Responses"
+          },
+          "affected_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Affected Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CapProfileSubtype"
+      },
+      "CapProfileTemplate": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Headline",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Description",
+            "default": ""
+          },
+          "instruction": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Instruction",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "level"
+        ],
+        "title": "CapProfileTemplate"
       },
       "CapPublishPublic": {
         "properties": {
