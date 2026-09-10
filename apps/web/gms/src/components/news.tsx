@@ -1,9 +1,12 @@
 import Image from "next/image";
-import { WEATHER_ARTICLES } from "@/lib/editorial";
+import { fetchPublishedContent } from "@/lib/cms";
+import {
+  contentToArticle,
+  WEATHER_ARTICLES,
+  type WeatherArticle,
+} from "@/lib/editorial";
 
-const posts = WEATHER_ARTICLES;
-
-function NewsCard({ post }: { post: (typeof posts)[number] }) {
+function NewsCard({ post }: { post: WeatherArticle }) {
   return (
     <a
       className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-card"
@@ -33,7 +36,7 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-function LeadNewsCard({ post }: { post: (typeof posts)[number] }) {
+function LeadNewsCard({ post }: { post: WeatherArticle }) {
   return (
     <a className="flex w-175 min-w-0 flex-col" href={post.href}>
       <div className="relative h-80 w-full overflow-hidden rounded-md bg-gm-surface">
@@ -60,7 +63,7 @@ function LeadNewsCard({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-function ListNewsRow({ post }: { post: (typeof posts)[number] }) {
+function ListNewsRow({ post }: { post: WeatherArticle }) {
   return (
     <a
       className="flex items-start gap-6 border-gm-border border-t py-6 first:pt-0"
@@ -92,7 +95,12 @@ function ListNewsRow({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-export function News() {
+export async function News() {
+  const result = await fetchPublishedContent("article");
+  const posts =
+    result.status === "ok" && result.articles.length
+      ? result.articles.map(contentToArticle)
+      : WEATHER_ARTICLES;
   const [lead, ...rest] = posts;
 
   return (
