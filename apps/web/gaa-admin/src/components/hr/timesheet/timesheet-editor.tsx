@@ -125,7 +125,7 @@ export function TimesheetEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-lg">Official Time Sheet</h2>
