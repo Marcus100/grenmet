@@ -2,6 +2,7 @@
 # the file (env must be set before any `src` import), so E402 is disabled here.
 # ruff: noqa: E402
 import os
+import re
 from collections.abc import AsyncGenerator, Generator
 
 # --- Test database isolation -------------------------------------------------
@@ -11,9 +12,23 @@ from collections.abc import AsyncGenerator, Generator
 # create and migrate it on demand. This makes it impossible for a stray
 # `POSTGRES_SERVER=localhost` run to wipe dev data.
 os.environ.setdefault("POSTGRES_SERVER", "localhost")
+
+# --- Password hashing cost ---------------------------------------------------
+# Fixtures create and authenticate users on almost every test, so the suite runs
+# several bcrypt hash/verify pairs per test. At the production cost factor (12)
+# each pair costs ~440ms, which was ~90% of total suite runtime. Cost 4 is
+# ~1.8ms and exercises identical code paths. AuthConfig refuses a cost below 12
+# outside ENVIRONMENT=local, so this can never weaken a deployed environment.
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
+# Each pytest-xdist worker gets a private database. Every test truncates all
+# application tables, so workers sharing one database would clear each other's
+# rows mid-test. Serial runs (no PYTEST_XDIST_WORKER) keep the plain name.
 _base_db = os.environ.get("POSTGRES_DB") or "app"
 if not _base_db.endswith("_test"):
-    os.environ["POSTGRES_DB"] = f"{_base_db}_test"
+    _base_db = f"{_base_db}_test"
+_worker = os.environ.get("PYTEST_XDIST_WORKER", "")
+os.environ["POSTGRES_DB"] = f"{_base_db}_{_worker}" if _worker else _base_db
 
 
 def _bootstrap_test_database() -> None:
@@ -22,7 +37,9 @@ def _bootstrap_test_database() -> None:
     from src.config import settings
 
     target = settings.POSTGRES_DB
-    if not target.endswith("_test"):  # hard safety net — never migrate a dev DB
+    # Hard safety net — never migrate a dev DB. Accepts both the serial name
+    # ("app_test") and the per-worker names ("app_test_gw0").
+    if not re.fullmatch(r".+_test(_gw\d+)?", target):
         raise RuntimeError(
             f"Refusing to run tests against non-test database {target!r}"
         )

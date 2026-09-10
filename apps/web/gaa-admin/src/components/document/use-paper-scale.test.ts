@@ -1,6 +1,6 @@
 import { renderHook } from "@testing-library/react";
 import type { RefObject } from "react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { usePaperScale } from "./use-paper-scale";
 
 const PAGE = { height: 1056, width: 816, maxScale: 0.6 };
@@ -23,5 +23,36 @@ describe("usePaperScale", () => {
     const { result } = renderHook(() => usePaperScale(ref, PAGE));
 
     expect(result.current).toBeNull();
+  });
+
+  describe("with ResizeObserver available", () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it("observes the container so a sidebar collapse reflows the paper", () => {
+      const observe = vi.fn();
+      const disconnect = vi.fn();
+      vi.stubGlobal(
+        "ResizeObserver",
+        class {
+          observe = observe;
+          disconnect = disconnect;
+          unobserve = vi.fn();
+        }
+      );
+
+      const ref = {
+        current: document.createElement("div"),
+      } as RefObject<HTMLElement | null>;
+      const { unmount } = renderHook(() => usePaperScale(ref, PAGE));
+
+      // The sidebar changes container width without a window resize, so the
+      // container itself must be observed.
+      expect(observe).toHaveBeenCalledWith(ref.current);
+
+      unmount();
+      expect(disconnect).toHaveBeenCalled();
+    });
   });
 });

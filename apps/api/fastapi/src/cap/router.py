@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query, Request, Response, status
 from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import CapLifecycleState
+from src.cap.profile_router import router as profile_router
 from src.cap.schemas import (
     CapAlertAction,
     CapAlertCreate,
@@ -31,6 +32,7 @@ from src.pagination import PaginationDep
 from src.rate_limit import limiter
 
 router = APIRouter(prefix="/cap", tags=["cap"])
+router.include_router(profile_router)
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
 
 

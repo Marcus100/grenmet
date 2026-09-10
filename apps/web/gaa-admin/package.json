@@ -26,7 +26,9 @@
     "db:transport:generate": "drizzle-kit generate --config=drizzle.transport.config.ts",
     "db:transport:migrate": "node --env-file-if-exists=.env.local scripts/migrate-transport.mjs",
     "db:transport:seed": "node --env-file-if-exists=.env.local scripts/seed-transport.mjs",
-    "pdf:wxproducts:morning": "node scripts/wxproducts-export-pdf.mjs /wxproducts/pdf/morning artifacts/wxproducts/pdf/morning.pdf"
+    "pdf:wxproducts:morning": "node scripts/wxproducts-export-pdf.mjs /wxproducts/pdf/morning artifacts/wxproducts/pdf/morning.pdf",
+    "db:transport:seed:apply": "node --env-file-if-exists=.env.local scripts/seed-transport.mjs --apply",
+    "db:janitorial:seed:apply": "node --env-file-if-exists=.env.local scripts/seed-janitorial.mjs --apply"
   },
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
@@ -59,7 +61,14 @@
     "sonner": "catalog:",
     "spin-delay": "^2.0.1",
     "zod": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "maplibre-gl": "catalog:",
+    "react-map-gl": "catalog:",
+    "pmtiles": "catalog:",
+    "@turf/helpers": "catalog:",
+    "@turf/buffer": "catalog:",
+    "@turf/distance": "catalog:",
+    "@turf/boolean-point-in-polygon": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

@@ -7,7 +7,12 @@ describe("employee details", () => {
     render(
       <EmployeeDetailsCard
         employment={{
-          department: { id: "gms", name: "Meteorological Department" },
+          department: {
+            organisation_id: "gaa",
+            code: "gms",
+            id: "gms",
+            name: "Meteorological Department",
+          },
           position: "Senior Technician",
           status: "ACTIVE",
           details_complete: false,

@@ -10,6 +10,9 @@ export const PAPER_SCALE = 0.6;
 /**
  * A fixed-size document "page" — both the live preview surface and the print
  * target (`data-print-paper`). Wrap each document's content in this.
+ *
+ * `font-document` (Noto Sans, via --brand-font-document) is set here rather than
+ * per-document so printed output never inherits the user's chosen UI font.
  */
 export function Paper({
   className,
@@ -20,7 +23,10 @@ export function Paper({
 }) {
   return (
     <div
-      className={cn("bg-white text-zinc-900 shadow-sm", className)}
+      className={cn(
+        "bg-white font-document text-zinc-900 shadow-sm",
+        className
+      )}
       data-print-paper
       style={{ width: PAPER_WIDTH, height: PAPER_HEIGHT }}
     >

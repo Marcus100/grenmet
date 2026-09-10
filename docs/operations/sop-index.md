@@ -23,6 +23,16 @@
 
 ---
 
+## Institutional masterlist reconciliation
+
+The [masterlist adoption brief](gms-masterlist-adoption.md) and its
+[85-entry source inventory](gms-document-masterlist.csv) identify institutional
+MET procedures, forms and manuals supplied on 2026-09-10. The register below
+tracks digital-workflow documentation: `Gap` or `Stub` does not establish that
+GMS lacks an existing institutional procedure. Retrieve and compare the MET
+source documents before drafting replacements. Candidate mappings, duplicate
+codes/titles and retention discrepancies remain unresolved in the brief.
+
 ## SOP Register
 
 ### Public Weather

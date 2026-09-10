@@ -20,12 +20,16 @@ import pg from "pg";
 const adminUrl = process.env.STORAGE_TEST_POSTGRES_URL;
 const scripts = fileURLToPath(new URL("./", import.meta.url));
 
-function run(script, environment) {
+function run(script, environment, args = []) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [`${scripts}${script}.mjs`], {
-      env: { ...process.env, ...environment },
-      stdio: ["ignore", "pipe", "pipe"],
-    });
+    const child = spawn(
+      process.execPath,
+      [`${scripts}${script}.mjs`, ...args],
+      {
+        env: { ...process.env, ...environment },
+        stdio: ["ignore", "pipe", "pipe"],
+      }
+    );
     // Database errors can include user data; report only the script and exit code.
     child.stdout.resume();
     child.stderr.resume();
@@ -71,7 +75,7 @@ test("fresh/repeat initialization, concurrent migrations, conflicting data and w
             `INSERT INTO "${orphan}" (slug, name) VALUES ('existing', 'Existing verified entry')`
           );
           assert.notEqual(
-            await run(`seed-${domain}`, environment),
+            await run(`seed-${domain}`, environment, ["--apply"]),
             0,
             "unmarked data must fail closed"
           );
@@ -85,7 +89,7 @@ test("fresh/repeat initialization, concurrent migrations, conflicting data and w
           );
           await client.query(`DELETE FROM "${orphan}"`);
           assert.equal(
-            await run(`seed-${domain}`, environment),
+            await run(`seed-${domain}`, environment, ["--apply"]),
             0,
             `${domain}: initial catalogue`
           );
@@ -93,7 +97,10 @@ test("fresh/repeat initialization, concurrent migrations, conflicting data and w
           await client.query(
             `UPDATE "${root}" SET name = 'Verified online edit' WHERE id = (SELECT min(id) FROM "${root}")`
           );
-          assert.equal(await run(`seed-${domain}`, environment), 0);
+          assert.equal(
+            await run(`seed-${domain}`, environment, ["--apply"]),
+            0
+          );
           assert.equal(
             (
               await client.query(

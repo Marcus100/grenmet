@@ -47,7 +47,7 @@ export function createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions<
 }
 
 /**
- * @description Create a user-role assignment (superuser only).
+ * @description Create a user-role assignment (within active user.manage scope).
  * @summary Create role assignment
  * {@link /api/v1/auth/role-assignments}
  */

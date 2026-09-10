@@ -89,6 +89,7 @@ logs/
 infra/docker/runtime/
 data/
 scripts/sutron-collector/data/
+apps/web/cms/media/
 
 # Keep local caches, secrets and runtime artifacts out of every build.
 **/.cache/

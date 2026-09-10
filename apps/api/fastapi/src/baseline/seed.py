@@ -35,6 +35,7 @@ def seed_baseline(
     required = {
         "staff",
         "hr-supervisor",
+        "hr-recorder",
         "management",
         "cap-author",
         "cap-approver",
@@ -69,6 +70,9 @@ def seed_baseline(
             )
         if matches:
             dept_id = matches[0]
+    existing_department = session.get(Department, dept_id)
+    if existing_department and existing_department.organisation_id != "gaa":
+        raise ValueError("GAA department belongs to another organisation")
     for code in grade_specs:
         gid = f"{profile['department']['code'].upper()}_{code}"
         grade = session.get(Grade, gid)
@@ -105,7 +109,14 @@ def seed_baseline(
             ],
         }
     if session.get(Department, dept_id) is None:
-        session.add(Department(id=dept_id, name=profile["department"]["name"]))
+        session.add(
+            Department(
+                organisation_id="gaa",
+                code=dept_id,
+                id=dept_id,
+                name=profile["department"]["name"],
+            )
+        )
         session.flush()
     for code, spec in grade_specs.items():
         gid = f"{profile['department']['code'].upper()}_{code}"
@@ -164,6 +175,7 @@ def seed_baseline(
         if employment is None:
             session.add(
                 EmploymentRecord(
+                    organisation_id="gaa",
                     user_id=user.id,
                     department_id=dept_id,
                     grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
@@ -175,10 +187,7 @@ def seed_baseline(
                 )
             )
         names = ["staff"]
-        if person["grade"] in {"MANAGER", "ASSISTANT_MANAGER", "SENIOR_TECH"}:
-            names += ["hr-supervisor", "cap-author", "cap-approver", "cap-publisher"]
-        if person["grade"] in {"MANAGER", "ASSISTANT_MANAGER"}:
-            names.append("management")
+        # Elevated access is an explicit administrator decision, never inferred from grade.
         for name in names:
             role = roles[name]
             if role.id not in {r.id for r in user.roles}:
@@ -187,6 +196,8 @@ def seed_baseline(
                 select(UserRoleAssignment).where(
                     UserRoleAssignment.user_id == user.id,
                     UserRoleAssignment.role_id == role.id,
+                    UserRoleAssignment.organisation_id == "gaa",
+                    UserRoleAssignment.scope == RoleAssignmentScope.SELF,
                 )
             ).first()
             if exists is None:
@@ -197,6 +208,7 @@ def seed_baseline(
                 )
                 session.add(
                     UserRoleAssignment(
+                        organisation_id="gaa",
                         user_id=user.id,
                         role_id=role.id,
                         scope=scope,
@@ -221,13 +233,23 @@ def seed_baseline(
             )
             session.add(template)
             session.flush()
-            for order, name in enumerate(("hr-supervisor", "management"), 1):
+            for order, name in enumerate(
+                ("hr-supervisor", "management", "hr-recorder"), 1
+            ):
                 session.add(
                     WorkflowStepTemplate(
                         workflow_template_id=template.id,
                         step_order=order,
                         required_role_id=roles[name].id,
-                        required_scope=RoleAssignmentScope.DEPARTMENT,
+                        label=("Supervisor approval", "Manager review", "HR recording")[
+                            order - 1
+                        ],
+                        purpose=("APPROVAL", "REVIEW", "RECORDING")[order - 1],
+                        is_required=order != 3,
+                        scope_enforced=True,
+                        required_scope=RoleAssignmentScope.ALL
+                        if order == 3
+                        else RoleAssignmentScope.DEPARTMENT,
                     )
                 )
         policy_key = f"hr:{dept_id}:{kind.value}"

@@ -8,6 +8,13 @@ from sqlmodel import col, delete, select
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.organisations import (
+    department_for,
+    permitted_departments,
+    require_organisation_permission,
+    resolve_organisation,
+    validate_supervisor,
+)
 from src.utils.datetime import utc_now
 
 from . import constants as hr_constants
@@ -61,7 +68,18 @@ async def create_department(
     existing = await session.get(Department, payload.id)
     if existing:
         raise HRValidationError(hr_constants.ERROR_DEPARTMENT_ALREADY_EXISTS)
-    department = Department(id=payload.id, name=payload.name)
+    organisation_id = await resolve_organisation(
+        session, current_user, payload.organisation_id
+    )
+    await require_organisation_permission(
+        session, current_user, organisation_id, "user.manage"
+    )
+    department = Department(
+        id=payload.id,
+        name=payload.name,
+        code=payload.code or payload.id,
+        organisation_id=organisation_id,
+    )
     session.add(department)
     try:
         await session.commit()
@@ -83,6 +101,9 @@ async def update_department(
     department = await session.get(Department, department_id)
     if not department:
         raise DepartmentNotFoundError()
+    await require_organisation_permission(
+        session, current_user, department.organisation_id, "user.manage", department.id
+    )
     department.name = payload.name
     department.updated_at = utc_now()
     session.add(department)
@@ -105,18 +126,27 @@ async def create_employment_for_user(
     target_user = await session.get(User, target_user_id)
     if not target_user:
         raise HRProfileNotFoundError()
-    if not await _can_manage_employment(
-        session=session, current_user=current_user, target_user_id=target_user_id
-    ):
-        raise HRPermissionDeniedError(hr_constants.ERROR_ONLY_SUPERVISOR_OR_ADMIN)
+    destination = await department_for(session, payload.department_id)
+    await require_organisation_permission(
+        session,
+        current_user,
+        destination.organisation_id,
+        "hr.employment.manage",
+        destination.id,
+    )
     existing = await _get_employment_record(session=session, user_id=target_user_id)
     if existing:
         raise HRValidationError(hr_constants.ERROR_EMPLOYMENT_ALREADY_EXISTS)
     department = await session.get(Department, payload.department_id)
     if not department:
         raise DepartmentNotFoundError()
+    await validate_supervisor(
+        session, payload.supervisor_id, department.organisation_id
+    )
     record = EmploymentRecord(
-        user_id=target_user_id, **payload.model_dump(exclude_unset=True)
+        user_id=target_user_id,
+        organisation_id=department.organisation_id,
+        **payload.model_dump(exclude_unset=True),
     )
     session.add(record)
     try:
@@ -154,11 +184,18 @@ async def get_employment_for_user(
 
 
 async def list_departments(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[Department]:
     require_permission(current_user=current_user, permission_key="roster.view")
+    organisation_id = await resolve_organisation(session, current_user, organisation_id)
+    allowed = await permitted_departments(
+        session, current_user, organisation_id, "roster.view"
+    )
     result = await session.execute(
-        select(Department).order_by(col(Department.name)).limit(200)
+        select(Department)
+        .where(col(Department.id).in_(allowed))
+        .order_by(col(Department.name))
+        .limit(200)
     )
     return list(result.scalars().all())
 
@@ -176,6 +213,11 @@ async def list_department_members(
     department = await session.get(Department, department_id)
     if not department:
         raise DepartmentNotFoundError()
+    await resolve_organisation(session, current_user, department.organisation_id)
+    if department_id not in await permitted_departments(
+        session, current_user, department.organisation_id, "roster.view"
+    ):
+        raise HRPermissionDeniedError("Department access denied")
     result = await session.execute(
         select(EmploymentRecord, User, Grade)
         .join(User, col(EmploymentRecord.user_id) == col(User.id))
@@ -402,6 +444,9 @@ async def _build_profile_response(
     from src.hr.schemas import GradePublic
 
     employment = EmploymentPublic(
+        organisation_id=employment_record.organisation_id
+        if employment_record
+        else None,
         grade=GradePublic.model_validate(grade, from_attributes=True)
         if grade
         else None,
@@ -411,7 +456,7 @@ async def _build_profile_response(
             employment_record.employee_number if employment_record else None
         ),
         department=(
-            DepartmentPublic(id=department.id, name=department.name)
+            DepartmentPublic.model_validate(department, from_attributes=True)
             if department
             else None
         ),
@@ -713,6 +758,22 @@ async def update_employment_for_user(
         raise EmploymentNotFoundError()
 
     if employment_update:
+        await validate_supervisor(
+            session, employment_update.supervisor_id, employment.organisation_id
+        )
+        if employment_update.department_id:
+            destination = await department_for(session, employment_update.department_id)
+            if destination.organisation_id != employment.organisation_id:
+                raise HRValidationError(
+                    "Cross-organisation employment transfers are not supported"
+                )
+            await require_organisation_permission(
+                session,
+                current_user,
+                destination.organisation_id,
+                "hr.employment.manage",
+                destination.id,
+            )
         _apply_employment_update(employment, employment_update)
         session.add(employment)
 

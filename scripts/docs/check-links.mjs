@@ -19,12 +19,16 @@ const ignoredDirectories = new Set([
   "node_modules",
   "surface",
 ]);
+// Downloaded upstream snapshots are git-ignored and contain their own site links.
+const ignoredPaths = new Set(["notebooks/metpy/sources"]);
 const externalSchemePattern = /^[a-z][a-z0-9+.-]*:/i;
 const fencedCodePattern = /^\s{0,3}(`{3,}|~{3,})(.*)$/;
 const headingPattern = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/;
 const setextHeadingPattern = /^\s{0,3}(?:=+|-+)\s*$/;
 const inlineLinkPattern = /!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))/g;
-const referenceLinkPattern = /^\s*\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm;
+// Footnote definitions ([^1]: text) are not reference links: the text after
+// the colon is prose, not a destination. Excluding "^" labels keeps it that way.
+const referenceLinkPattern = /^\s*\[(?!\^)[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm;
 
 const parseArguments = (args) => {
   if (args.length === 0) {
@@ -40,7 +44,12 @@ const collectMarkdownFiles = (root, directory = root) => {
 
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!ignoredDirectories.has(entry.name)) {
+      const entryPath = relative(root, join(directory, entry.name))
+        .split(sep)
+        .join("/");
+      if (
+        !(ignoredDirectories.has(entry.name) || ignoredPaths.has(entryPath))
+      ) {
         files.push(...collectMarkdownFiles(root, join(directory, entry.name)));
       }
       continue;

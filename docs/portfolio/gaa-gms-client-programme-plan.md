@@ -45,7 +45,7 @@ acceptance gate pass.
 
 ### Outcomes
 
-- Official warnings move through a controlled, auditable, CAP-aware lifecycle.
+- National all-hazards warnings move through a controlled, auditable CAP-aware lifecycle; GMS is the user-confirmed national CAP focal point, with hazard-specific authorities and channel policies to be established.
 - Observations are collected, quality-controlled, archived, and exchanged using
   approved WMO pathways.
 - Forecasters have reliable operational tools and continuity procedures.
@@ -56,24 +56,59 @@ acceptance gate pass.
 
 ### Workstream register
 
+The [GMS operating baseline](../operations/gms-operating-baseline.md) records
+user-confirmed practice as of 2026-09-10 and the ordered acceptance checklist.
+It distinguishes operational practice from repository implementation and
+unverified deployment. DigitalOcean is the interim hosting choice until an AWS
+account is available; migration remains planned. This clarification covers
+Programme A only.
+The baseline also records the user-confirmed tropical source-review/customer
+preparation workflow and a proposed linked-product update/recovery exercise.
+Existing product/IBF/CAP relationship schemas are design evidence to reconcile;
+they do not establish a working bridge to the current CAP publication service.
+The baseline's email-evidence review adds regional CAP drafts and a METLAB
+capability/transmission assessment. Draft phrases require local approval; dated
+vendor reports and proposed upgrades are not proof of current operation. Retain
+manual EDIS while evaluating any replacement route. METLAB discovery may reduce
+duplicated work but does not commit the programme to retaining the product.
+Current user-directed delivery focus is national CAP. METLAB discovery is
+deferred and does not block CAP catalogue/authority/phrase review. The baseline
+now contains a draft twelve-category coverage checklist and an acceptance slice
+covering one weather-linked and one non-weather message, with independent
+national distribution and GMS website selection. These remain proposed rules,
+not activated runtime configuration or institutional acceptance.
+The WMO page for the February 2025 Grenada CAP workshop is now registered in
+the baseline, with linked-material retrieval gaps explicit. Review available
+training outputs before replacing prior national decisions; attendance is not
+operational acceptance.
+
 | Workstream | Current evidence | Horizon | Next gate | Institutional acceptance |
 | --- | --- | --- | --- | --- |
-| CAP and impact-based warnings | FastAPI domain, admin UI, public feeds, tests, warning framework; operational gaps remain | Now | Exercise author → review → approve → publish → disseminate → archive → verify | GMS warning authority approves policy, roles, content, and exercise result |
-| Observation collection | Sutron parser/collector with active spool, export, and deployment work | Now | Prove exclusive serial access, durable store, SURFACE export, monitoring, and recovery on approved hardware | GMS observations owner accepts data fidelity and operating procedure |
-| SURFACE CDMS | Vendored operational stack with its own database and lifecycle | Now | Confirm station metadata, ingestion, QC, backup, restore, and staff workflow | GMS data owner accepts CDMS operation |
-| WIS2 publication | Sandbox artifacts, ADR, runbook, workshop implementation roadmap, and verified local mapping | Now | Pass local publication soak, then documented global registration/validation gates | GMS/GAA authorizes metadata, contacts, credentials, and operational cutover |
+| National all-hazards CAP and weather-linked IBF | User confirms GMS is Grenada CAP focal point; weather operations link CAP, IBF, bulletins and NHC products; linking application and reviewed schema remain pending | Now | Define all-hazards catalogue, issuing authorities and channel policies; reconcile weather links without requiring IBF for non-weather alerts; exercise publication, delivery, update/cancellation and archive | GMS focal-point and relevant hazard authorities accept responsibilities, workflows and exercise results |
+| Observation collection | One user-confirmed Sutron automatic weather station; collector, spool and export work exist; inherited hydromet inventory is unverified | Now | Prove exclusive serial access, durable store, export, monitoring and recovery; identify hydromet interfaces separately | GMS observations owner accepts data fidelity and operating procedure |
+| SURFACE CDMS | User confirms experimental status; vendored stack has its own database and lifecycle | Now | Evaluate station metadata, ingestion, QC, backup, restore and workflow while preserving current operations | GMS data owner accepts CDMS operation |
+| WIS2 publication and consumption | User reports CMO-operated SYNOP-to-BUFR distribution; own-platform sandbox, ADR and roadmap exist | Now | Prove own conversion/validation, publication and external receipt; independently prove inbound retrieval, freshness and recovery before replacing the current route | GMS/GAA authorizes metadata, contacts, credentials, and operational cutover |
 | WxWatch imagery | Scheduled one-shot crawler with database/object-storage behavior and tests | Now → Next | Deploy per-source schedules, freshness alerts, storage access, and recovery | GMS forecasting owner accepts availability and freshness |
 | Forecast/product production | WxProducts schemas and document workflows integrated into the staff portal | Next | Reconcile catalogue to runtime workflows and complete approval/archive paths | GMS product owners approve each official workflow |
 | Public weather service | SpiceWX foundation plus GMS design and product catalogues | Next | Rename/separate the public GMS surface, connect approved observations/warnings, and pass accessibility/performance review | GMS communications and leadership accept content and release |
 | Documentation and SOPs | Hurricane-plan/MDX application plus operations documents | Next | Establish the dedicated GMS documentation surface and approved publishing workflow | Named GMS document owners approve published material |
-| Aviation meteorology | Catalogue, compliance plan, METAR/SPECI/TAF models, and MBIA context | Later | Close evidence gaps in the aviation compliance plan and validate operational displays | GMS aviation authority and relevant GAA stakeholders |
+| Aviation meteorology | User confirms 24-hour TAFs issued at 00/06/12/18 Grenada time, hourly METAR and SPECI as required; manual TAC email via EDIS and ADDS availability checks | Protect now; expand after review | Preserve TAC operations; confirm coded validity and applicable requirements, then prove IWXXM validation and receiving-system exchange | GMS aviation authority and relevant GAA stakeholders |
 | Marine, climate, agriculture, hydromet, and partner services | Strategic catalogue; limited implementation | Later | Approve one service at a time with user decision, owner, data, workflow, and measure | Relevant GMS/GAA and sector owner |
 | Continuity, security, and quality | Baselines, runbooks, backups, audit and quality framework; exercises incomplete | Continuous | Execute restore, access, dissemination fallback, and incident exercises | GAA/GMS risk owner accepts results and remediation |
+
+### National CAP authoring implementation
+
+The user-authorized draft composer now offers 182 national event suggestions
+across 29 families, editable category selections, custom events and explicit
+assessment defaults. Contact defaults are meteorology@gaa.gd and
+1-473-444-4142. This uses the existing API and is not deployment or operational
+acceptance. Authority governance, approved rules and channel-specific public
+website selection remain outstanding; see the operating baseline for limits.
 
 ### Programme A sequencing
 
 1. Protect current warning, observation, aviation, and continuity operations.
-2. Prove station → SURFACE → WIS2 data flow and its recovery path.
+2. Prove station → SURFACE → WIS2 data flow and its recovery path; prove incoming WIS2 consumption separately through the existing roadmap gates.
 3. Prove the complete warning lifecycle and dissemination fallback.
 4. Connect accepted data and products to staff and public presentation layers.
 5. Expand service areas only after core operational measures are stable.
@@ -85,6 +120,32 @@ Detailed requirements remain in the GMS
 [WIS2 implementation roadmap](../internal/wis2-implementation-roadmap-2026.md),
 [compliance traceability matrix](../internal/compliance-traceability.md), and
 [operations documentation](../operations/sop-index.md).
+
+### Masterlist evidence for existing workstreams
+
+The [GMS masterlist adoption brief](../operations/gms-masterlist-adoption.md)
+provides an extracted 85-entry institutional document inventory, candidate
+procedure crosswalk and bounded delivery slices for document control,
+product traceability, handover and corrective actions. Use it to refine the
+Documentation and SOPs, Forecast/product production, Aviation meteorology,
+and Continuity/security/quality gates above. Retrieval, reconciliation and
+GMS approval of the underlying documents remain outstanding; the inventory
+does not change programme sequencing or establish operational acceptance.
+Instrument records should first map to the existing SURFACE capabilities.
+
+### CMO evidence and reporting delivery
+
+The [feature implementation brief](../products/gms-evidence-library-implementation.md) turns the [2025–2026 PDF review](../internal/gms-product-strategy-and-roadmap.md#extracted-20252026-evidence-and-implementation-consequences) into bounded features within existing workstreams. These are specified additions awaiting implementation and institutional acceptance.
+
+| Horizon | Workstream and deliverable | Acceptance gate |
+| --- | --- | --- |
+| Now, within current evidence review | CMO-01 manual source inventory; CMO-02 source/applicability review; confirm CAP portal and WIS2 starting state | Assign GMS document/meteorological owners, select ten extracted documents for deeper review, preserve approved source references and record unresolved facts. |
+| Next, Documentation and SOPs | CMO-01–03 controlled evidence search, Grenada briefing and roadmap gap review; share document-control foundations with the masterlist pilot | Independent reviewer reproduces exports; source revisions, access restrictions, conflicting facts and local approval remain explicit. |
+| Next, existing operational gates | CAP interoperability; WIS2 publication and consumption; guidance freshness/coverage; competency evidence | Exercise the relevant operational scenario, including stale data, outage, correction and recovery; software availability alone does not pass. |
+| Later, impact/partner reporting | CMO-04–05 event evidence and annual impact-report export under F33/E09; manually reviewed reporting may begin earlier | Meteorological/partner owners validate a sample event and report before automation; preserve source claims and actual submission evidence. |
+| After accepted library pilot | CMO-06 source refresh and review queue | New/changed PDFs enter review, previous revisions remain traceable, and recurring review/support capacity is assigned. |
+
+These additions retain Programme A sequencing and reuse the staff portal, SURFACE and existing publication systems. The 2026 CMO reporting dates inform preparation, not software release promises. No external submission is scheduled or authorized by this plan. The historical May roadmap remains a snapshot; current delivery is recorded here.
 
 ## Programme B — GAA Staff and Operations Platform
 

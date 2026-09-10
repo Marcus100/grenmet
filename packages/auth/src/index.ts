@@ -6,6 +6,7 @@ export {
 } from "./client/index";
 export type {
   AuthConfig,
+  EffectiveAccess,
   MessageResponse,
   SessionAccessTokenResponse,
   SessionLoginResponse,

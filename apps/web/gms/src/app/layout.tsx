@@ -2,6 +2,7 @@ import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { Inter, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { Header } from "@/components/header";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { env } from "@/lib/env";
@@ -48,6 +49,10 @@ export default async function RootLayout({
           <Header alerts={alerts} />
           <main className="flex-1">{children}</main>
           <Footer />
+          <GoogleAnalytics
+            environment={env.NEXT_PUBLIC_SENTRY_ENVIRONMENT}
+            measurementId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
+          />
         </PostHogProvider>
       </body>
     </html>

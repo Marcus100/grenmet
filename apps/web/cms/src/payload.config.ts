@@ -4,6 +4,7 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { buildConfig } from "payload";
 import { Content } from "./collections/content";
+import { Media } from "./collections/media";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
 
@@ -32,7 +33,7 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [Users, Content],
+  collections: [Users, Content, Media],
   graphQL: { disable: true },
   typescript: {
     postProcess: [

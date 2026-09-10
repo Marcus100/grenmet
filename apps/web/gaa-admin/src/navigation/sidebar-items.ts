@@ -15,6 +15,7 @@ import {
   Package,
   Plane,
   Radar,
+  ShieldCheck,
   SprayCan,
   Thermometer,
   Ticket,
@@ -86,6 +87,12 @@ export const sidebarItems: NavGroup[] = [
         subItems: [
           { id: "hr-dashboard", title: "Dashboard", url: "/hr", icon: Gauge },
           {
+            id: "hr-documents",
+            title: "Documents",
+            url: "/hr/documents",
+            icon: FileText,
+          },
+          {
             id: "hr-forms",
             title: "Forms",
             url: "/hr/forms",
@@ -106,6 +113,7 @@ export const sidebarItems: NavGroup[] = [
         ],
       },
       { id: "staff", title: "Staff", url: "/users", icon: Users },
+      { id: "roles", title: "Roles", url: "/roles", icon: ShieldCheck },
     ],
   },
   {

@@ -1,6 +1,7 @@
 import uuid
+from typing import Literal, Self
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from src.auth.models import RoleAssignmentScope
 from src.models import BaseModel, UtcDateTime
@@ -31,18 +32,32 @@ class WorkflowTemplatesPublic(BaseModel):
 
 class WorkflowStepTemplateCreate(BaseModel):
     step_order: int = Field(ge=1)
-    required_role_id: uuid.UUID
+    required_role_id: uuid.UUID | None = None
+    required_user_id: uuid.UUID | None = None
     required_scope: RoleAssignmentScope = RoleAssignmentScope.SELF
     is_required: bool = True
+    scope_enforced: bool = True
+    purpose: Literal["APPROVAL", "REVIEW", "RECORDING"] = "APPROVAL"
+    label: str = Field(default="Approval", min_length=1, max_length=150)
+
+    @model_validator(mode="after")
+    def validate_assignee(self) -> Self:
+        if (self.required_role_id is None) == (self.required_user_id is None):
+            raise ValueError("Choose exactly one role or named person")
+        return self
 
 
 class WorkflowStepTemplatePublic(BaseModel):
     id: uuid.UUID
     workflow_template_id: uuid.UUID
     step_order: int
-    required_role_id: uuid.UUID
+    required_role_id: uuid.UUID | None = None
+    required_user_id: uuid.UUID | None = None
     required_scope: RoleAssignmentScope
     is_required: bool
+    scope_enforced: bool = True
+    purpose: Literal["APPROVAL", "REVIEW", "RECORDING"] = "APPROVAL"
+    label: str = "Approval"
     created_at: UtcDateTime
     updated_at: UtcDateTime
 
@@ -77,6 +92,9 @@ class WorkflowStepInstancePublic(BaseModel):
     required_user_id: uuid.UUID | None = None
     required_scope: RoleAssignmentScope
     is_required: bool
+    scope_enforced: bool = True
+    purpose: Literal["APPROVAL", "REVIEW", "RECORDING"] = "APPROVAL"
+    label: str = "Approval"
     approver_user_id: uuid.UUID | None = None
     action: WorkflowAction | None = None
     comments: str | None = None
@@ -86,6 +104,7 @@ class WorkflowStepInstancePublic(BaseModel):
 
 
 class WorkflowActionRequest(BaseModel):
+    step_id: uuid.UUID | None = None
     action: WorkflowAction
     comments: str | None = Field(default=None, max_length=1000)
 
@@ -108,8 +127,39 @@ class WorkflowInboxItem(BaseModel):
     # True when the current user is a named co-approver; False when they qualify
     # through a role (supervisor/management tier).
     step_is_named: bool
+    step_id: uuid.UUID | None = None
+    is_required: bool = True
+    purpose: str = "APPROVAL"
+    label: str = "Approval"
 
 
 class WorkflowInboxList(BaseModel):
     data: list[WorkflowInboxItem]
     count: int
+
+
+class WorkflowConfigurationInput(BaseModel):
+    name: str = Field(min_length=2, max_length=150)
+    allow_self_approval: bool = False
+    require_distinct_approvers: bool = True
+    steps: list[WorkflowStepTemplateCreate] = Field(min_length=1, max_length=30)
+
+    @model_validator(mode="after")
+    def validate_steps(self) -> Self:
+        orders = [step.step_order for step in self.steps]
+        if sorted(orders) != list(range(1, len(orders) + 1)):
+            raise ValueError(
+                "Stages must have unique consecutive order numbers starting at 1"
+            )
+        if not any(
+            step.is_required and step.purpose != "RECORDING" for step in self.steps
+        ):
+            raise ValueError("At least one blocking approval or review is required")
+        return self
+
+
+class WorkflowConfigurationPublic(BaseModel):
+    template: WorkflowTemplatePublic
+    allow_self_approval: bool
+    require_distinct_approvers: bool
+    steps: list[WorkflowStepTemplatePublic]

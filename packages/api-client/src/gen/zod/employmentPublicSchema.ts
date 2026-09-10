@@ -10,6 +10,7 @@ import { employmentTypeSchema } from "./employmentTypeSchema.js";
 import { gradePublicSchema } from "./gradePublicSchema.js";
 
 export const employmentPublicSchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
   grade: z.union([gradePublicSchema, z.null()]).optional(),
   supervisor_name: z.union([z.string(), z.null()]).optional(),
   details_complete: z.boolean().optional().default(false),

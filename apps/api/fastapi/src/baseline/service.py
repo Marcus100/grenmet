@@ -21,6 +21,7 @@ from src.baseline.schemas import (
 from src.exceptions import AppException
 from src.hr.leave.models import LeaveBalanceEvent
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
+from src.hr.organisations import department_for
 from src.utils.datetime import utc_now
 
 
@@ -191,8 +192,17 @@ async def save_staff(
     credential.department_id, credential.grade_id = body.department_id, body.grade_id
     session.add(credential)
     employment = await employment_for(session, user_id)
+    department = await department_for(session, body.department_id)
+    if employment and employment.organisation_id != department.organisation_id:
+        raise AppException(
+            "Cross-organisation employment transfers are not supported", 400
+        )
     if employment is None:
-        employment = EmploymentRecord(user_id=user_id, department_id=body.department_id)
+        employment = EmploymentRecord(
+            user_id=user_id,
+            department_id=body.department_id,
+            organisation_id=department.organisation_id,
+        )
     if body.supervisor_id:
         supervisor = await employment_for(session, body.supervisor_id)
         if (
@@ -567,6 +577,8 @@ async def approve_registration(
                 select(UserRoleAssignment).where(
                     UserRoleAssignment.user_id == user_id,
                     UserRoleAssignment.role_id == role.id,
+                    UserRoleAssignment.organisation_id == employment.organisation_id,
+                    UserRoleAssignment.scope == RoleAssignmentScope.SELF,
                 )
             )
         )
@@ -576,7 +588,10 @@ async def approve_registration(
     if assignment is None:
         session.add(
             UserRoleAssignment(
-                user_id=user_id, role_id=role.id, scope=RoleAssignmentScope.SELF
+                user_id=user_id,
+                role_id=role.id,
+                scope=RoleAssignmentScope.SELF,
+                organisation_id=employment.organisation_id,
             )
         )
     user.registration_pending = False

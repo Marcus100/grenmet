@@ -88,3 +88,10 @@ export class AuthApiError extends Error {
 export function isAuthApiError(error: unknown): error is AuthApiError {
   return error instanceof AuthApiError;
 }
+
+/** Live permissions are a display snapshot; the API authorizes each request. */
+export interface EffectiveAccess {
+  is_superuser: boolean;
+  permission_keys: string[];
+  role_names: string[];
+}

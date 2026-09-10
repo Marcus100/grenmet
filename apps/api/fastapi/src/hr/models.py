@@ -60,12 +60,34 @@ class ShiftPattern(str, Enum):
     FLEX = "FLEX"
 
 
-class Department(SQLModel, table=True):
-    __tablename__ = "department"
+class Organisation(SQLModel, table=True):
+    __tablename__ = "organisation"
     __table_args__ = {"schema": "hr"}
 
     id: str = Field(primary_key=True, max_length=100)
-    name: str = Field(max_length=255, unique=True, index=True)
+    code: str = Field(max_length=100, unique=True)
+    name: str = Field(max_length=255)
+
+
+class Department(SQLModel, table=True):
+    __tablename__ = "department"
+    __table_args__ = (
+        sa.UniqueConstraint("id", "organisation_id", name="uq_hr_department_id_org"),
+        sa.UniqueConstraint(
+            "organisation_id", "code", name="uq_hr_department_org_code"
+        ),
+        sa.UniqueConstraint(
+            "organisation_id", "name", name="uq_hr_department_org_name"
+        ),
+        {"schema": "hr"},
+    )
+
+    id: str = Field(primary_key=True, max_length=100)
+    organisation_id: str = Field(
+        foreign_key="hr.organisation.id", index=True, max_length=100
+    )
+    code: str = Field(max_length=100)
+    name: str = Field(max_length=255)
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 
@@ -146,6 +168,14 @@ class EmploymentRecord(SQLModel, table=True):
     __tablename__ = "employment_record"
     __table_args__ = (
         sa.Index("ix_hr_employment_record_department_id", "department_id"),
+        sa.ForeignKeyConstraint(
+            ["department_id", "organisation_id"],
+            ["hr.department.id", "hr.department.organisation_id"],
+            name="fk_hr_employment_department_org",
+        ),
+        sa.UniqueConstraint(
+            "organisation_id", "employee_number", name="uq_hr_employment_org_number"
+        ),
         sa.Index("ix_hr_employment_record_supervisor_id", "supervisor_id"),
         sa.Index("ix_hr_employment_record_status", "status"),
         sa.Index("ix_hr_employment_record_grade_id", "grade_id"),
@@ -156,8 +186,9 @@ class EmploymentRecord(SQLModel, table=True):
     user_id: uuid.UUID = Field(
         foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
     )
-    employee_number: str | None = Field(
-        default=None, max_length=50, unique=True, index=True
+    employee_number: str | None = Field(default=None, max_length=50, index=True)
+    organisation_id: str = Field(
+        foreign_key="hr.organisation.id", index=True, max_length=100
     )
     department_id: str = Field(foreign_key="hr.department.id")
     grade_id: str | None = Field(

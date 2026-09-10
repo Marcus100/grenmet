@@ -38,7 +38,14 @@ async def test_publish_snapshots_full_assignments(db_async: AsyncSession) -> Non
         ),
     )
     if not await db_async.get(Department, "dept_pub"):
-        db_async.add(Department(id="dept_pub", name="Dept Publish"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_pub",
+                id="dept_pub",
+                name="Dept Publish",
+            )
+        )
     for code, start, end, ends_next_day in (
         ("M", "05:30", "14:00", False),
         ("N", "22:30", "06:00", True),

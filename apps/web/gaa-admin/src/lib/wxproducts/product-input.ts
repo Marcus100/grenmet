@@ -5,6 +5,7 @@ import {
   validateProduct,
 } from "@barrelsgd/gms/products";
 import { z } from "zod";
+import { hiddenRequiredErrors } from "@/lib/wxproducts/visible-fields";
 export const productInputSchema = z.object({
   id: z.string().uuid(),
   expectedRevision: z.number().int().min(0),
@@ -35,7 +36,10 @@ export function validateProductInput(
     return input.changeSummary
       ? []
       : ["Explain why this product is being withdrawn"];
-  const errors = validateProduct(input, input.action === "publish");
+  const hidden = hiddenRequiredErrors(input.kind);
+  const errors = validateProduct(input, input.action === "publish").filter(
+    (error) => !hidden.has(error)
+  );
   if (input.action === "publish") {
     if (
       Object.values(input.values).some((value) =>

@@ -1,3 +1,5 @@
+import { scrubSentryEvent } from "@barrelsgd/ui/lib/sentry-privacy";
+
 // Sentry is only loaded when a DSN is configured — the client SDK stays out
 // of the compile graph (and the browser bundle) when running without Sentry.
 // NEXT_PUBLIC_ vars are inlined at build time, so the dynamic imports below
@@ -10,6 +12,8 @@ if (SENTRY_ENABLED) {
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
       environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
       tracesSampleRate: 0,
+      sendDefaultPii: false,
+      beforeSend: scrubSentryEvent,
       debug: false,
       ignoreErrors: ["ResizeObserver loop limit exceeded"],
     });

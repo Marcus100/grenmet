@@ -127,13 +127,19 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
             NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
             NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }}
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
+          # Exported here, not on the publish step: a build that then fails the
+          # smoke test or vulnerability gate still leaves its layers cached, so
+          # the retry is warm. Registry-backed because the Actions cache is
+          # branch-scoped (dev never warms staging) and capped at 10GB.
+          cache-to: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }},mode=max,image-manifest=true,oci-mediatypes=true,ignore-error=true
           platforms: linux/amd64
 
       - name: Smoke-test image before publishing
@@ -167,14 +173,14 @@ jobs:
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
             NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
             NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
           secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }}
-          cache-to: type=gha,scope=node-${{ matrix.path }}-${{ matrix.target || 'runner' }},mode=max,ignore-error=true
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
           platforms: linux/amd64
 
 

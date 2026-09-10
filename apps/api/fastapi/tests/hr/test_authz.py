@@ -82,13 +82,28 @@ async def test_department_scope_assignment_enforced(
     db_async.add(supervisor)
 
     if not await db_async.get(Department, "dept_scope_a"):
-        db_async.add(Department(id="dept_scope_a", name="Dept Scope A"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_scope_a",
+                id="dept_scope_a",
+                name="Dept Scope A",
+            )
+        )
     if not await db_async.get(Department, "dept_scope_b"):
-        db_async.add(Department(id="dept_scope_b", name="Dept Scope B"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_scope_b",
+                id="dept_scope_b",
+                name="Dept Scope B",
+            )
+        )
     await db_async.commit()
 
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=supervisor.id,
             employee_number=f"SUP-{random_lower_string()}",
             department_id="dept_scope_a",
@@ -97,6 +112,7 @@ async def test_department_scope_assignment_enforced(
     )
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=target.id,
             employee_number=f"TGT-{random_lower_string()}",
             department_id="dept_scope_b",
@@ -105,6 +121,7 @@ async def test_department_scope_assignment_enforced(
     )
     db_async.add(
         UserRoleAssignment(
+            organisation_id="gaa",
             user_id=supervisor.id,
             role_id=role.id,
             scope=RoleAssignmentScope.DEPARTMENT,
