@@ -26,7 +26,15 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zod": "catalog:"
+    "react-markdown": "catalog:",
+    "zod": "catalog:",
+    "maplibre-gl": "catalog:",
+    "react-map-gl": "catalog:",
+    "pmtiles": "catalog:",
+    "@turf/helpers": "catalog:",
+    "@turf/buffer": "catalog:",
+    "@turf/distance": "catalog:",
+    "@turf/boolean-point-in-polygon": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

@@ -1,4 +1,5 @@
 import { type PublishedProduct, productTitle } from "@barrelsgd/gms/products";
+import type { PublishedContent } from "@/lib/cms";
 export interface ProductPost {
   href: string;
   id: string;
@@ -127,11 +128,12 @@ export function productPost(product: PublishedProduct): ProductPost {
   };
 }
 export interface WeatherArticle {
+  body?: string;
   href: string;
-  id: number;
+  id: number | string;
   imageUrl: string;
   published: string;
-  sections: { heading: string; paragraphs: string[] }[];
+  sections?: { heading: string; paragraphs: string[] }[];
   slug: string;
   sources?: { title: string; url: string }[];
   summary: string;
@@ -253,3 +255,20 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
     ],
   },
 ];
+const PLACEHOLDER_ARTICLE_IMAGE = REFERENCE_POSTS[0].imageUrl;
+export function contentToArticle(content: PublishedContent): WeatherArticle {
+  return {
+    id: content.id,
+    slug: content.slug,
+    title: content.title,
+    summary: content.summary ?? "",
+    imageUrl: content.imageUrl ?? PLACEHOLDER_ARTICLE_IMAGE,
+    published: new Date(content.updatedAt).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }),
+    href: `/news/${content.slug}`,
+    body: content.body,
+  };
+}

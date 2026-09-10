@@ -4,6 +4,7 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     WXPRODUCTS_API_URL: z.string().url().optional(),
+    CMS_API_URL: z.string().url().optional(),
     // Auth-delegating — redirects to web-auth for login
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
@@ -34,6 +35,7 @@ export const env = createEnv({
   runtimeEnv: {
     NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
     WXPRODUCTS_API_URL: process.env.WXPRODUCTS_API_URL,
+    CMS_API_URL: process.env.CMS_API_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
