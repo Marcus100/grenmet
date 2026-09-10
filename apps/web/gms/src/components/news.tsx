@@ -1,10 +1,6 @@
 import Image from "next/image";
 import { fetchPublishedContent } from "@/lib/cms";
-import {
-  contentToArticle,
-  WEATHER_ARTICLES,
-  type WeatherArticle,
-} from "@/lib/editorial";
+import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 
 function NewsCard({ post }: { post: WeatherArticle }) {
   return (
@@ -96,11 +92,8 @@ function ListNewsRow({ post }: { post: WeatherArticle }) {
 }
 
 export async function News() {
-  const result = await fetchPublishedContent("article");
-  const posts =
-    result.status === "ok" && result.articles.length
-      ? result.articles.map(contentToArticle)
-      : WEATHER_ARTICLES;
+  const result = await fetchPublishedContent("article", "news");
+  const posts = result.articles.map(contentToArticle);
   const [lead, ...rest] = posts;
 
   return (
@@ -117,6 +110,12 @@ export async function News() {
         </a>
       </div>
 
+      {result.status === "unavailable" && (
+        <p role="status">News cannot be retrieved right now.</p>
+      )}
+      {result.status === "ok" && posts.length === 0 && (
+        <p>No published articles are available.</p>
+      )}
       {/* Mobile: stacked equal cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden [&>*:first-child]:md:col-span-2">
         {posts.map((post) => (

@@ -29,7 +29,7 @@ export function ProductUpdateFeed({
   }
   return (
     <div className="space-y-4">
-      {mobileCarousel ? <DesktopUpdates posts={posts} /> : null}
+      {mobileCarousel ? <DesktopUpdates onShare={share} posts={posts} /> : null}
       {status ? (
         <p className="text-sm" role="status">
           {status}
@@ -126,7 +126,13 @@ export function ProductUpdateFeed({
   );
 }
 
-function DesktopUpdates({ posts }: { posts: ProductPost[] }) {
+function DesktopUpdates({
+  posts,
+  onShare,
+}: {
+  posts: ProductPost[];
+  onShare: (post: ProductPost) => Promise<void>;
+}) {
   return (
     <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
       {posts.map((post, index) => (
@@ -176,6 +182,13 @@ function DesktopUpdates({ posts }: { posts: ProductPost[] }) {
             >
               {post.summary}
             </Link>
+            <Button
+              onClick={() => onShare(post)}
+              type="button"
+              variant="outline"
+            >
+              Share update
+            </Button>
             {index === 0 ? (
               <Link
                 className="mt-auto pt-6 font-semibold text-gm-blue"
