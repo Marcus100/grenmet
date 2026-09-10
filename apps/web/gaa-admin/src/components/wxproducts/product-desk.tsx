@@ -8,7 +8,6 @@ import {
   isBulletin,
   type ProductKind,
   type ProductValues,
-  productFields,
   productTitle,
   type StoredProduct,
   validateProduct,
@@ -42,6 +41,7 @@ import {
 } from "@/app/(admin)/wxproducts/product-actions";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
+import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 
 interface HistoryItem {
   action: string;
@@ -87,7 +87,7 @@ function ProductEditor({
   const form = useForm({
     defaultValues: initial?.values ?? emptyProduct(kind, issueDate, issueTime),
   });
-  const fields = productFields(kind);
+  const fields = visibleProductFields(kind);
   const sections = [...new Set(fields.map((f) => f.section))];
   async function save(
     values: ProductValues,
@@ -156,254 +156,259 @@ function ProductEditor({
           preview !== null &&
           JSON.stringify(preview) === JSON.stringify(values);
         return (
-          <div className="grid items-start gap-5 xl:grid-cols-2">
-            <div className="space-y-5">
-              <DirtyState dirty={dirty} onDirty={onDirty} />
-              <AlertDialog onOpenChange={setWithdrawOpen} open={withdrawOpen}>
-                <AlertDialogContent>
-                  <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This removes the published product from GMS. Its revision
-                    history remains.
-                  </AlertDialogDescription>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      disabled={pending}
-                      onClick={() => {
-                        setWithdrawOpen(false);
-                        submit(values, "withdraw");
-                      }}
-                    >
-                      Confirm withdrawal
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-              {isBulletin(kind) && revision === 0 ? (
-                <Button
-                  onClick={() => {
-                    form.reset(bulletinExample(kind, issueDate));
-                    setMessage(
-                      "Illustrative draft loaded. Replace the example wording and review before issuing."
-                    );
-                  }}
-                  type="button"
-                  variant="outline"
-                >
-                  Load example draft
-                </Button>
-              ) : null}
-              <p className="text-muted-foreground text-sm">
-                {revision ? `Saved revision ${revision}` : "New draft"}
-                {publishedRevision
-                  ? ` · Published revision ${publishedRevision}`
-                  : " · Not published"}
-              </p>
-              {message ? (
-                <p
-                  className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
-                  role="status"
-                >
-                  {message}
-                </p>
-              ) : null}
-              <form
-                className="space-y-4"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  submit(values, "draft");
-                }}
-              >
-                <fieldset className="space-y-4" disabled={pending || disabled}>
-                  {sections.map((section) => (
-                    <section
-                      className="space-y-4 rounded-xl border bg-card p-4"
-                      key={section}
-                    >
-                      <h2 className="font-semibold">{section}</h2>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        {fields
-                          .filter((f) => f.section === section)
-                          .map((f) => (
-                            <form.Field key={f.key} name={f.key}>
-                              {(input) => {
-                                const inputId = `${kind}-${f.key}`;
-                                return (
-                                  <Field
-                                    className={
-                                      f.type === "textarea"
-                                        ? "md:col-span-2"
-                                        : undefined
-                                    }
-                                  >
-                                    <FieldLabel htmlFor={inputId}>
-                                      {f.label}
-                                      {f.required ? " *" : ""}
-                                    </FieldLabel>
-                                    {f.options ? (
-                                      <Select
-                                        onValueChange={(value) =>
-                                          input.handleChange(value ?? "")
-                                        }
-                                        value={input.state.value}
-                                      >
-                                        <SelectTrigger id={inputId}>
-                                          <SelectValue placeholder="Select…" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {f.options.map((option) => (
-                                            <SelectItem
-                                              key={option}
-                                              value={option}
-                                            >
-                                              {option}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
-                                    ) : f.type === "textarea" ? (
-                                      <Textarea
-                                        id={inputId}
-                                        maxLength={12_000}
-                                        onChange={(e) =>
-                                          input.handleChange(e.target.value)
-                                        }
-                                        rows={4}
-                                        value={input.state.value ?? ""}
-                                      />
-                                    ) : (
-                                      <Input
-                                        id={inputId}
-                                        maxLength={12_000}
-                                        onChange={(e) =>
-                                          input.handleChange(e.target.value)
-                                        }
-                                        step={
-                                          f.type === "number"
-                                            ? "any"
-                                            : undefined
-                                        }
-                                        type={f.type ?? "text"}
-                                        value={input.state.value ?? ""}
-                                      />
-                                    )}
-                                  </Field>
-                                );
-                              }}
-                            </form.Field>
-                          ))}
-                      </div>
-                    </section>
-                  ))}
-                  <p className="text-muted-foreground text-sm">
-                    * Required to publish. All issue and validity times use
-                    Grenada time (UTC−04:00).
-                  </p>
-                  <Field>
-                    <FieldLabel htmlFor="change-summary">
-                      Issue / revision note
-                    </FieldLabel>
-                    <Textarea
-                      id="change-summary"
-                      maxLength={1000}
-                      onChange={(e) => setChangeSummary(e.target.value)}
-                      value={changeSummary}
-                    />
-                  </Field>
-                  <div className="flex flex-wrap gap-3">
-                    <Button type="submit">Save draft</Button>
-                    <Button
-                      onClick={() => review(values)}
-                      type="button"
-                      variant="outline"
-                    >
-                      Validate and preview
-                    </Button>
-                    {publishedRevision ? (
-                      <Button
+          <div className="@container">
+            <div className="grid @4xl:grid-cols-2 items-start gap-5">
+              <div className="space-y-5">
+                <DirtyState dirty={dirty} onDirty={onDirty} />
+                <AlertDialog onOpenChange={setWithdrawOpen} open={withdrawOpen}>
+                  <AlertDialogContent>
+                    <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This removes the published product from GMS. Its revision
+                      history remains.
+                    </AlertDialogDescription>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        disabled={pending}
                         onClick={() => {
-                          if (!changeSummary.trim()) {
-                            setMessage(
-                              "Explain the withdrawal in the revision note."
-                            );
-                            return;
-                          }
-                          setWithdrawOpen(true);
+                          setWithdrawOpen(false);
+                          submit(values, "withdraw");
                         }}
-                        type="button"
-                        variant="outline"
                       >
-                        Withdraw publication
-                      </Button>
-                    ) : null}
-                  </div>
-                </fieldset>
-              </form>
-              {previewCurrent && preview ? (
-                <section
-                  aria-label="Publication preview"
-                  className="space-y-5 rounded-xl border bg-card p-5"
-                >
-                  <p className="font-semibold text-sm">
-                    Review before publication
-                  </p>
-                  <ProductContentView content={{ kind, values: preview }} />
-                  <label className="flex items-start gap-3 text-sm">
-                    <input
-                      checked={reviewed}
-                      disabled={pending}
-                      onChange={(e) => setReviewed(e.target.checked)}
-                      type="checkbox"
-                    />
-                    I have checked the content, affected areas and validity
-                    times and authorize publication.
-                  </label>
+                        Confirm withdrawal
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                {isBulletin(kind) && revision === 0 ? (
                   <Button
-                    disabled={!reviewed || pending}
-                    onClick={() => submit(preview, "publish")}
-                    type="button"
-                  >
-                    Publish to GMS
-                  </Button>
-                </section>
-              ) : null}
-              {revision ? (
-                <section className="space-y-3">
-                  <Button
-                    disabled={pending}
-                    onClick={() =>
-                      startTransition(async () => {
-                        const result = await loadProductHistoryAction(id);
-                        if (result.ok) setHistory(result.history);
-                        else setMessage(result.error);
-                      })
-                    }
+                    onClick={() => {
+                      form.reset(bulletinExample(kind, issueDate));
+                      setMessage(
+                        "Illustrative draft loaded. Replace the example wording and review before issuing."
+                      );
+                    }}
                     type="button"
                     variant="outline"
                   >
-                    View revision history
+                    Load example draft
                   </Button>
-                  <ul className="space-y-2">
-                    {history.map((item) => (
-                      <li
-                        className="rounded-lg border p-3 text-sm"
-                        key={item.revision}
+                ) : null}
+                <p className="text-muted-foreground text-sm">
+                  {revision ? `Saved revision ${revision}` : "New draft"}
+                  {publishedRevision
+                    ? ` · Published revision ${publishedRevision}`
+                    : " · Not published"}
+                </p>
+                {message ? (
+                  <p
+                    className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
+                    role="status"
+                  >
+                    {message}
+                  </p>
+                ) : null}
+                <form
+                  className="space-y-4"
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    submit(values, "draft");
+                  }}
+                >
+                  <fieldset
+                    className="space-y-4"
+                    disabled={pending || disabled}
+                  >
+                    {sections.map((section) => (
+                      <section
+                        className="space-y-4 rounded-xl border bg-card p-4"
+                        key={section}
                       >
-                        Revision {item.revision} · {item.action} ·{" "}
-                        {item.actorName} · {item.createdAt}
-                        {item.changeSummary ? (
-                          <p>{item.changeSummary}</p>
-                        ) : null}
-                      </li>
+                        <h2 className="font-semibold">{section}</h2>
+                        <div className="grid gap-4 md:grid-cols-2">
+                          {fields
+                            .filter((f) => f.section === section)
+                            .map((f) => (
+                              <form.Field key={f.key} name={f.key}>
+                                {(input) => {
+                                  const inputId = `${kind}-${f.key}`;
+                                  return (
+                                    <Field
+                                      className={
+                                        f.type === "textarea"
+                                          ? "md:col-span-2"
+                                          : undefined
+                                      }
+                                    >
+                                      <FieldLabel htmlFor={inputId}>
+                                        {f.label}
+                                        {f.required ? " *" : ""}
+                                      </FieldLabel>
+                                      {f.options ? (
+                                        <Select
+                                          onValueChange={(value) =>
+                                            input.handleChange(value ?? "")
+                                          }
+                                          value={input.state.value}
+                                        >
+                                          <SelectTrigger id={inputId}>
+                                            <SelectValue placeholder="Select…" />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            {f.options.map((option) => (
+                                              <SelectItem
+                                                key={option}
+                                                value={option}
+                                              >
+                                                {option}
+                                              </SelectItem>
+                                            ))}
+                                          </SelectContent>
+                                        </Select>
+                                      ) : f.type === "textarea" ? (
+                                        <Textarea
+                                          id={inputId}
+                                          maxLength={12_000}
+                                          onChange={(e) =>
+                                            input.handleChange(e.target.value)
+                                          }
+                                          rows={4}
+                                          value={input.state.value ?? ""}
+                                        />
+                                      ) : (
+                                        <Input
+                                          id={inputId}
+                                          maxLength={12_000}
+                                          onChange={(e) =>
+                                            input.handleChange(e.target.value)
+                                          }
+                                          step={
+                                            f.type === "number"
+                                              ? "any"
+                                              : undefined
+                                          }
+                                          type={f.type ?? "text"}
+                                          value={input.state.value ?? ""}
+                                        />
+                                      )}
+                                    </Field>
+                                  );
+                                }}
+                              </form.Field>
+                            ))}
+                        </div>
+                      </section>
                     ))}
-                  </ul>
-                </section>
-              ) : null}
+                    <p className="text-muted-foreground text-sm">
+                      * Required to publish. All issue and validity times use
+                      Grenada time (UTC−04:00).
+                    </p>
+                    <Field>
+                      <FieldLabel htmlFor="change-summary">
+                        Issue / revision note
+                      </FieldLabel>
+                      <Textarea
+                        id="change-summary"
+                        maxLength={1000}
+                        onChange={(e) => setChangeSummary(e.target.value)}
+                        value={changeSummary}
+                      />
+                    </Field>
+                    <div className="flex flex-wrap gap-3">
+                      <Button type="submit">Save draft</Button>
+                      <Button
+                        onClick={() => review(values)}
+                        type="button"
+                        variant="outline"
+                      >
+                        Validate and preview
+                      </Button>
+                      {publishedRevision ? (
+                        <Button
+                          onClick={() => {
+                            if (!changeSummary.trim()) {
+                              setMessage(
+                                "Explain the withdrawal in the revision note."
+                              );
+                              return;
+                            }
+                            setWithdrawOpen(true);
+                          }}
+                          type="button"
+                          variant="outline"
+                        >
+                          Withdraw publication
+                        </Button>
+                      ) : null}
+                    </div>
+                  </fieldset>
+                </form>
+                {previewCurrent && preview ? (
+                  <section
+                    aria-label="Publication preview"
+                    className="space-y-5 rounded-xl border bg-card p-5"
+                  >
+                    <p className="font-semibold text-sm">
+                      Review before publication
+                    </p>
+                    <ProductContentView content={{ kind, values: preview }} />
+                    <label className="flex items-start gap-3 text-sm">
+                      <input
+                        checked={reviewed}
+                        disabled={pending}
+                        onChange={(e) => setReviewed(e.target.checked)}
+                        type="checkbox"
+                      />
+                      I have checked the content, affected areas and validity
+                      times and authorize publication.
+                    </label>
+                    <Button
+                      disabled={!reviewed || pending}
+                      onClick={() => submit(preview, "publish")}
+                      type="button"
+                    >
+                      Publish to GMS
+                    </Button>
+                  </section>
+                ) : null}
+                {revision ? (
+                  <section className="space-y-3">
+                    <Button
+                      disabled={pending}
+                      onClick={() =>
+                        startTransition(async () => {
+                          const result = await loadProductHistoryAction(id);
+                          if (result.ok) setHistory(result.history);
+                          else setMessage(result.error);
+                        })
+                      }
+                      type="button"
+                      variant="outline"
+                    >
+                      View revision history
+                    </Button>
+                    <ul className="space-y-2">
+                      {history.map((item) => (
+                        <li
+                          className="rounded-lg border p-3 text-sm"
+                          key={item.revision}
+                        >
+                          Revision {item.revision} · {item.action} ·{" "}
+                          {item.actorName} · {item.createdAt}
+                          {item.changeSummary ? (
+                            <p>{item.changeSummary}</p>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </div>
+              <aside className="@4xl:sticky @4xl:top-4 min-w-0">
+                <ProductPdfPreview content={{ kind, values }} />
+              </aside>
             </div>
-            <aside className="min-w-0 xl:sticky xl:top-4">
-              <ProductPdfPreview content={{ kind, values }} />
-            </aside>
           </div>
         );
       }}
