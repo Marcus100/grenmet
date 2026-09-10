@@ -1,5 +1,9 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
+export const mediaDirectory = z
+  .string()
+  .min(1)
+  .parse(process.env.CMS_MEDIA_DIR || "media");
 export const testDatabaseUrl = process.env.CMS_TEST_DATABASE_URL;
 export function getEnv() {
   const env = createEnv({
