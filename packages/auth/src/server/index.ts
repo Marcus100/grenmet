@@ -15,6 +15,7 @@ export {
 export {
   createSession,
   exchangeSessionForAccessToken,
+  getEffectiveAccess,
   loginWithPassword,
   logoutAllSessions,
   logoutSession,
