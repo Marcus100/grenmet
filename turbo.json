@@ -15,7 +15,7 @@
       "persistent": true
     },
     "lint": {
-      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint:fix": {
       "cache": false
@@ -24,31 +24,27 @@
       "cache": false
     },
     "check": {
-      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "check:fix": {
       "cache": false
     },
     "check:ci": {
-      "inputs": ["**/*.{ts,tsx,js,jsx,mjs,cjs}", "biome.jsonc", "biome.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "type-check": {
       "dependsOn": ["^build"],
-      "inputs": ["**/*.{ts,tsx}", "**/tsconfig*.json"]
+      "inputs": ["$TURBO_DEFAULT$"]
     },
     "generate": {
       "cache": false
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
-      "inputs": [
-        "src/**",
-        "tests/**",
-        "vitest.config.*",
-        "**/*.test.{ts,tsx}",
-        "**/*.spec.{ts,tsx}"
-      ]
+      "outputs": [],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputLogs": "new-only"
     }
-  }
+  },
+  "globalDependencies": ["biome.jsonc"]
 }
