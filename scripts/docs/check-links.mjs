@@ -24,7 +24,9 @@ const fencedCodePattern = /^\s{0,3}(`{3,}|~{3,})(.*)$/;
 const headingPattern = /^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/;
 const setextHeadingPattern = /^\s{0,3}(?:=+|-+)\s*$/;
 const inlineLinkPattern = /!?\[[^\]]*\]\(\s*(?:<([^>]+)>|([^\s)]+))/g;
-const referenceLinkPattern = /^\s*\[[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm;
+// Footnote definitions ([^1]: text) are not reference links: the text after
+// the colon is prose, not a destination. Excluding "^" labels keeps it that way.
+const referenceLinkPattern = /^\s*\[(?!\^)[^\]]+\]:\s*(?:<([^>]+)>|(\S+))/gm;
 
 const parseArguments = (args) => {
   if (args.length === 0) {
