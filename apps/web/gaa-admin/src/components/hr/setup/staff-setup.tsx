@@ -8,6 +8,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
+import { OrganisationChart } from "@/components/hr/setup/organisation-chart";
 import { CatalogueSetup } from "./catalogue-setup";
 import {
   approveRegistration,
@@ -497,6 +498,7 @@ export function StaffSetupManager() {
         </Link>
         .
       </p>
+      <OrganisationChart staff={staff} />
       <CatalogueSetup onSaved={load} />
       {grades.length === 0 && (
         <p role="alert">
