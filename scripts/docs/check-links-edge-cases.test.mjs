@@ -140,3 +140,31 @@ test("reference link definitions are still resolved", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, missingFilePattern);
 });
+
+test("downloaded notebook source documentation is excluded", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "grenmet-doc-links-"));
+  t.after(() => rmSync(root, { force: true, recursive: true }));
+  write(root, "README.md", "# Home\n");
+  write(
+    root,
+    "notebooks/metpy/sources/upstream/README.md",
+    "[Upstream page](missing.md)\n"
+  );
+  const result = run(root);
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("the notebook exclusion does not hide authored docs or other sources directories", (t) => {
+  const root = mkdtempSync(join(tmpdir(), "grenmet-doc-links-"));
+  t.after(() => rmSync(root, { force: true, recursive: true }));
+  write(
+    root,
+    "notebooks/metpy/README.md",
+    "[Missing notebook guide](missing.md)\n"
+  );
+  write(root, "docs/sources/README.md", "[Missing source guide](missing.md)\n");
+  const result = run(root);
+  assert.equal(result.status, 1);
+  assert.ok(result.stderr.includes("notebooks/metpy/README.md"));
+  assert.ok(result.stderr.includes("docs/sources/README.md"));
+});
