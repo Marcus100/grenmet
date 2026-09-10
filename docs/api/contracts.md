@@ -293,3 +293,21 @@ operational data remain unchanged. Repeated imports are no-ops.
 New HR/CAP submissions require their approval policy; missing policies return
 409. Staff setup can save partial verified personnel details, but HR workflow
 readiness still requires a staff credential and complete active employment.
+
+### CAP hazard profiles
+
+Authenticated `/api/v1/cap/hazard-profiles` provides version history (GET),
+`/{key}/versions` creates an immutable DRAFT version (POST, optimistic
+`base_version`), `/{profile_id}/approve` records independent approval (POST),
+and `/{profile_id}/draft` starts an alert draft from an approved subtype/template
+(POST). Reads require `cap.alert.read`; saves require `cap.settings.manage`;
+approval also requires `cap.alert.approve` and a different actor from the author;
+draft creation requires `cap.alert.create`. Conflicting versions return 409.
+
+Profiles contain subtypes, CAP category mappings, per-message-level assessment
+rules, impacts, affected groups, responses, templates, authority names and intended
+channels. Incomplete profiles are savable drafts but cannot be approved. Approved
+versions remain immutable when a newer draft is created. The selected profile
+version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
+Threshold evaluation and transport/channel enforcement are not performed here.
+Creating a draft never publishes it; its assessment remains Unknown.

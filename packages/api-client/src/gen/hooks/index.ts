@@ -14,6 +14,11 @@ export {
   useApproveAlertApiV1CapAlertsAlertIdApprovePost,
 } from "./useApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export {
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostMutationKey,
+  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostMutationOptions,
+  useApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost,
+} from "./useApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
+export {
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationKey,
   approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationOptions,
   useApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
@@ -198,6 +203,11 @@ export {
   deleteUserMeApiV1AuthUsersMeDeleteMutationOptions,
   useDeleteUserMeApiV1AuthUsersMeDelete,
 } from "./useDeleteUserMeApiV1AuthUsersMeDelete.js";
+export {
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationKey,
+  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationOptions,
+  useDraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost,
+} from "./useDraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions,
@@ -418,6 +428,11 @@ export {
   readFeedsApiV1CapFeedsGetQueryOptions,
   useReadFeedsApiV1CapFeedsGet,
 } from "./useReadFeedsApiV1CapFeedsGet.js";
+export {
+  readHazardProfilesApiV1CapHazardProfilesGetQueryKey,
+  readHazardProfilesApiV1CapHazardProfilesGetQueryOptions,
+  useReadHazardProfilesApiV1CapHazardProfilesGet,
+} from "./useReadHazardProfilesApiV1CapHazardProfilesGet.js";
 export {
   readHrDashboardApiV1HrDashboardGetQueryKey,
   readHrDashboardApiV1HrDashboardGetQueryOptions,
@@ -643,6 +658,11 @@ export {
   revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions,
   useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
 } from "./useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export {
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationKey,
+  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationOptions,
+  useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost,
+} from "./useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions,

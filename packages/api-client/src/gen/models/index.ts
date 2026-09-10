@@ -41,6 +41,14 @@ export type {
   ApproveAlertApiV1CapAlertsAlertIdApprovePostStatus422,
 } from "./ApproveAlertApiV1CapAlertsAlertIdApprovePost.js";
 export type {
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostOptions,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostPath,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponse,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponses,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus200,
+  ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus422,
+} from "./ApproveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
+export type {
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostOptions,
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPath,
   ApproveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponse,
@@ -124,6 +132,37 @@ export { capMessageType } from "./CapMessageType.js";
 export type { CapNameValue } from "./CapNameValue.js";
 export type { CapPredefinedAreaCreate } from "./CapPredefinedAreaCreate.js";
 export type { CapPredefinedAreaPublic } from "./CapPredefinedAreaPublic.js";
+export type {
+  CapProfileDefinition,
+  CapProfileDefinitionChannelsEnum,
+} from "./CapProfileDefinition.js";
+export { capProfileDefinitionChannelsEnum } from "./CapProfileDefinition.js";
+export type {
+  CapProfileDraftRequest,
+  CapProfileDraftRequestLevelEnum,
+} from "./CapProfileDraftRequest.js";
+export { capProfileDraftRequestLevelEnum } from "./CapProfileDraftRequest.js";
+export type {
+  CapProfilePublic,
+  CapProfilePublicStateEnum,
+} from "./CapProfilePublic.js";
+export { capProfilePublicStateEnum } from "./CapProfilePublic.js";
+export type {
+  CapProfileRule,
+  CapProfileRuleLevelEnum,
+  CapProfileRuleOperatorEnum,
+} from "./CapProfileRule.js";
+export {
+  capProfileRuleLevelEnum,
+  capProfileRuleOperatorEnum,
+} from "./CapProfileRule.js";
+export type { CapProfileSave } from "./CapProfileSave.js";
+export type { CapProfileSubtype } from "./CapProfileSubtype.js";
+export type {
+  CapProfileTemplate,
+  CapProfileTemplateLevelEnum,
+} from "./CapProfileTemplate.js";
+export { capProfileTemplateLevelEnum } from "./CapProfileTemplate.js";
 export type { CapPublishPublic } from "./CapPublishPublic.js";
 export type { CapReferenceCreate } from "./CapReferenceCreate.js";
 export type { CapReferencePublic } from "./CapReferencePublic.js";
@@ -470,6 +509,15 @@ export type { DepartmentMembersPublic } from "./DepartmentMembersPublic.js";
 export type { DepartmentPublic } from "./DepartmentPublic.js";
 export type { DepartmentsPublic } from "./DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./DepartmentUpdate.js";
+export type {
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBody,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostOptions,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostPath,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponse,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponses,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus201,
+  DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus422,
+} from "./DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPath,
@@ -931,6 +979,12 @@ export type {
   ReadFeedsApiV1CapFeedsGetStatus200,
 } from "./ReadFeedsApiV1CapFeedsGet.js";
 export type {
+  ReadHazardProfilesApiV1CapHazardProfilesGetOptions,
+  ReadHazardProfilesApiV1CapHazardProfilesGetResponse,
+  ReadHazardProfilesApiV1CapHazardProfilesGetResponses,
+  ReadHazardProfilesApiV1CapHazardProfilesGetStatus200,
+} from "./ReadHazardProfilesApiV1CapHazardProfilesGet.js";
+export type {
   ReadHrDashboardApiV1HrDashboardGetOptions,
   ReadHrDashboardApiV1HrDashboardGetResponse,
   ReadHrDashboardApiV1HrDashboardGetResponses,
@@ -1337,6 +1391,15 @@ export type { RosterRevisionAction } from "./RosterRevisionAction.js";
 export { rosterRevisionAction } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
+export type {
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBody,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostOptions,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostPath,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponse,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponses,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus201,
+  SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422,
+} from "./SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";

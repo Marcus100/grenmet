@@ -32,9 +32,11 @@ export async function EditorSection() {
               New
             </Link>
           </Button>
-          <Button size="sm" variant="outline">
-            <Settings aria-hidden="true" />
-            Settings
+          <Button asChild size="sm" variant="outline">
+            <Link href="/cap/profiles">
+              <Settings aria-hidden="true" />
+              Hazard profiles
+            </Link>
           </Button>
         </div>
       </div>

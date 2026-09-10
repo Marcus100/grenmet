@@ -431,3 +431,21 @@ class CapAuditEvent(SQLModel, table=True):
         default_factory=dict, sa_column=sa.Column(sa.JSON)
     )
     created_at: datetime = Field(default_factory=utc_now, index=True)
+
+
+class CapHazardProfile(SQLModel, table=True):
+    __tablename__ = "hazard_profile"
+    __table_args__ = (
+        sa.UniqueConstraint("key", "version", name="uq_cap_profile_version"),
+        {"schema": "cap"},
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    key: str = Field(max_length=100, index=True)
+    version: int
+    definition: dict[str, object] = Field(sa_column=sa.Column(sa.JSON, nullable=False))
+    state: str = Field(default="DRAFT", max_length=20)
+    created_by: uuid.UUID
+    created_at: datetime = Field(default_factory=utc_now)
+    approved_by: uuid.UUID | None = None
+    approved_at: datetime | None = None
