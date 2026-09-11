@@ -140,6 +140,41 @@ export function UsersManager() {
     table.setPageIndex(0);
   }
 
+  const queries = [usersQuery, rolesQuery, assignmentsQuery];
+  const accessDenied = queries.some((query) => query.error?.status === 403);
+  const loadFailed = queries.some((query) => query.isError);
+  const loading = queries.some((query) => query.isPending);
+
+  if (accessDenied || loadFailed || loading) {
+    let message = "Loading user management…";
+    if (accessDenied) {
+      message =
+        "You do not have permission to manage users. Contact your administrator if you need access.";
+    } else if (loadFailed) {
+      message = "Unable to load user management. Please try again.";
+    }
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Users</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p role={loadFailed ? "alert" : "status"}>{message}</p>
+          {loadFailed && !accessDenied && (
+            <Button
+              onClick={async () => {
+                await Promise.all(queries.map((query) => query.refetch()));
+              }}
+              variant="outline"
+            >
+              Try again
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">

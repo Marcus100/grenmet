@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
+import { toast } from "sonner";
 import {
   afterAll,
   afterEach,
@@ -21,6 +22,7 @@ import { EMPTY_LEAVE } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
 
 const navigation = vi.hoisted(() => ({ search: "" }));
+vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
@@ -71,6 +73,7 @@ beforeAll(() => {
   server.listen({ onUnhandledRequest: "bypass" });
 });
 afterEach(() => {
+  vi.clearAllMocks();
   server.resetHandlers();
   navigation.search = "";
 });
@@ -201,3 +204,19 @@ it("requires a saved signature for signing but still permits saving a draft", as
   expect(screen.getByRole("button", { name: "Sign & submit" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
 });
+
+it("requires both dates before sending a new leave draft to the API", async () => {
+  const create = vi.fn(() => HttpResponse.json({ id: "unexpected-draft" }));
+  server.use(http.post(`${BASE}/api/v1/hr/leave-requests`, create));
+  wrap(<LeaveApplicationEditor />);
+  await waitFor(() =>
+    expect(screen.getByRole("textbox", { name: "Department" })).toHaveValue(
+      "Met"
+    )
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save" }));
+  await waitFor(() =>
+    expect(toast.error).toHaveBeenCalledWith("Start and end dates are required")
+  );
+  expect(create).not.toHaveBeenCalled();
+}, 20_000);

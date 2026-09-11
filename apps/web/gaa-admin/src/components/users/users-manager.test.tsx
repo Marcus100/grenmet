@@ -378,3 +378,47 @@ it("closes creation after an account is saved but its role assignment fails", as
   expect(await screen.findByLabelText("Username")).toHaveValue("");
   expect(screen.getByRole("button", { name: "Create user" })).toBeDisabled();
 }, 20_000);
+
+it.each(["users", "roles", "role-assignments"])(
+  "explains denied %s access and hides management controls",
+  async (resource) => {
+    server.use(
+      http.get(`${BASE}/api/v1/auth/${resource}`, () =>
+        HttpResponse.json(
+          { detail: "Insufficient permission" },
+          { status: 403 }
+        )
+      )
+    );
+    renderUsers();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "You do not have permission to manage users. Contact your administrator if you need access."
+    );
+    expect(
+      screen.queryByRole("button", { name: NEW_USER_LABEL })
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Search users")).not.toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  }
+);
+
+it("shows a recoverable error instead of an empty directory when loading fails", async () => {
+  server.use(
+    http.get(`${BASE}/api/v1/auth/users`, () =>
+      HttpResponse.json({ detail: "Unavailable" }, { status: 503 })
+    )
+  );
+  renderUsers();
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Unable to load user management. Please try again."
+  );
+  expect(
+    screen.queryByRole("button", { name: NEW_USER_LABEL })
+  ).not.toBeInTheDocument();
+  server.use(
+    http.get(`${BASE}/api/v1/auth/users`, () => HttpResponse.json(USERS))
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(await screen.findByText("Gerard Tamar")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: NEW_USER_LABEL })).toBeEnabled();
+});
