@@ -12,7 +12,7 @@ dependencies = [
     "copernicusmarine>=2.4.1",
     "dask>=2026.3.0",
     "earthaccess>=0.19.0",
-    "eccodes>=2.45.0",
+    "eccodes>=2.48.0",
     # gdal + pygrib: no pre-built wheels for Windows on PyPI; both require C system libraries.
     # Install via conda-forge: conda install -c conda-forge gdal pygrib
     "ecmwf-opendata>=0.3.26",
