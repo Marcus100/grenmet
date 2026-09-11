@@ -56,7 +56,7 @@
     "verify:backend": "node scripts/verification/run.mjs backend",
     "verify:storage": "node scripts/verification/run.mjs storage",
     "verify:release": "node scripts/verification/run.mjs release",
-    "test:verification": "node --test scripts/verification/*.test.mjs && uv run --frozen --package fast-back python -m unittest tests.test_database_target"
+    "test:verification": "node --test scripts/verification/*.test.mjs scripts/perf/*.test.mjs && uv run --frozen --package fast-back python -m unittest tests.test_database_target"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",
