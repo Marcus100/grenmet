@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadStatusReportApiV1HrStatusReportsReportIdGet403,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet404,
-  ReadStatusReportApiV1HrStatusReportsReportIdGet422,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams,
-  ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetOptions,
+  ReadStatusReportApiV1HrStatusReportsReportIdGetResponses,
 } from "../models/ReadStatusReportApiV1HrStatusReportsReportIdGet.js";
-
-function getReadStatusReportApiV1HrStatusReportsReportIdGetUrl(
-  report_id: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams["report_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/status-reports/${report_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a status report with its personnel entries. Requires status.report.read permission.
  * @summary Get status report details
  * {@link /api/v1/hr/status-reports/:report_id}
  */
-export async function readStatusReportApiV1HrStatusReportsReportIdGet(
-  report_id: ReadStatusReportApiV1HrStatusReportsReportIdGetPathParams["report_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readStatusReportApiV1HrStatusReportsReportIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadStatusReportApiV1HrStatusReportsReportIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadStatusReportApiV1HrStatusReportsReportIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadStatusReportApiV1HrStatusReportsReportIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet403
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet404
-      | ReadStatusReportApiV1HrStatusReportsReportIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadStatusReportApiV1HrStatusReportsReportIdGetUrl(
-      report_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/status-reports/{report_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadStatusReportApiV1HrStatusReportsReportIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "cn";
 import Link from "next/link";
 
 function ArrowIcon(props: React.ComponentPropsWithoutRef<"svg">) {

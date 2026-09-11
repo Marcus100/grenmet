@@ -6,32 +6,36 @@
 import type { CapValidationResult } from "./CapValidationResult.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams = {
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapValidationResult
- * @description Successful Response
- */
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePost200 =
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200 =
   CapValidationResult;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePost422 =
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422 =
   HTTPValidationError;
 
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse =
-  ValidateAlertApiV1CapAlertsAlertIdValidatePost200;
-
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePostMutation = {
-  Response: ValidateAlertApiV1CapAlertsAlertIdValidatePost200;
-  PathParams: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams;
-  Errors: ValidateAlertApiV1CapAlertsAlertIdValidatePost422;
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions = {
+  body?: never;
+  path: ValidateAlertApiV1CapAlertsAlertIdValidatePostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostResponses = {
+  "200": ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200;
+  "422": ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ValidateAlertApiV1CapAlertsAlertIdValidatePostResponse =
+  | ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200
+  | ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422;

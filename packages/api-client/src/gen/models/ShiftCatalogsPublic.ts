@@ -5,16 +5,7 @@
 
 import type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 
-/**
- * ShiftCatalogsPublic
- */
 export type ShiftCatalogsPublic = {
-  /**
-   * @type array
-   */
   data: ShiftCatalogPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

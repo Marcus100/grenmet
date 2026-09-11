@@ -7,49 +7,47 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 import type { UserRoleAssignmentUpdate } from "./UserRoleAssignmentUpdate.js";
 
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams =
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     assignment_id: string;
   };
 
-/**
- * UserRoleAssignmentPublic
- * @description Role assignment updated
- */
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200 =
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200 =
   UserRoleAssignmentPublic;
 
-/**
- * @description Role assignment not found
- */
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404 =
-  any;
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422 =
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * UserRoleAssignmentUpdate
- */
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest =
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchBody =
   UserRoleAssignmentUpdate;
 
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse =
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200;
-
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutation =
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions =
   {
-    Response: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200;
-    Request: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-    PathParams: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams;
-    Errors:
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422;
+    body: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchBody;
+    path: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPath;
+    query?: never;
+    headers?: never;
   };
+
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponses =
+  {
+    "200": UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200;
+    "404": UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404;
+    "422": UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponse =
+  | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200
+  | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+  | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422;

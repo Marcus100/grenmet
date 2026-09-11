@@ -9,43 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "../clients/duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 import type {
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+  DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422,
 } from "../models/DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 
 export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/duplicate" }] as const;
 
-export type DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey =
-  ReturnType<
-    typeof duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey
-  >;
-
 export function duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationKey();
   return mutationOptions<
-    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-    {
-      alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"];
-    },
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422>,
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id }) => {
-      return duplicateAlertApiV1CapAlertsAlertIdDuplicatePost(alert_id, config);
+    mutationFn: async ({ path }) => {
+      return duplicateAlertApiV1CapAlertsAlertIdDuplicatePost({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,14 +53,14 @@ export function duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions<
 export function useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-      ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-      {
-        alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"];
-      },
+      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+      ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422>,
+      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -77,20 +73,16 @@ export function useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost<TContext>(
     duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationOptions(
       config
     ) as UseMutationOptions<
-      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-      ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-      {
-        alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"];
-      },
+      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+      ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422>,
+      DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
       TContext
     >;
 
   return useMutation<
-    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-    {
-      alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"];
-    },
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422>,
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
     TContext
   >(
     {
@@ -100,11 +92,9 @@ export function useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponse,
-    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost422>,
-    {
-      alert_id: DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParams["alert_id"];
-    },
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
+    ResponseErrorConfig<DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422>,
+    DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostOptions,
     TContext
   >;
 }

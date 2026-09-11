@@ -5,49 +5,51 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams = {
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   shift_swap_id: string;
 };
 
-/**
- * @description Shift swap request deleted
- */
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204 = any;
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204 =
+  unknown;
 
-/**
- * @description Shift swap request is not a draft
- */
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400 = any;
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to delete this shift swap request
- */
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403 = any;
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403 =
+  unknown;
 
-/**
- * @description Shift swap request not found
- */
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404 = any;
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422 =
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422 =
   HTTPValidationError;
 
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse =
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204;
-
-export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutation = {
-  Response: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete204;
-  PathParams: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams;
-  Errors:
-    | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-    | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-    | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-    | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422;
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions = {
+  body?: never;
+  path: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePath;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponses = {
+  "204": DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204;
+  "400": DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400;
+  "403": DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403;
+  "404": DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404;
+  "422": DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponse =
+  | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204
+  | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400
+  | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403
+  | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404
+  | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422;

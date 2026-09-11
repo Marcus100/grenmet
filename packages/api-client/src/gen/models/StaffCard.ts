@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * StaffCard
- */
 export type StaffCard = {
   /**
    * @default false
@@ -24,28 +21,15 @@ export type StaffCard = {
   employment_ready?: boolean;
   issued_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
-  /**
-   * @type string
-   */
   number: string;
-  /**
-   * @type string
-   */
   name: string;
-  /**
-   * @type string
-   */
   department: string;
-  /**
-   * @type string
-   */
   grade: string;
   photo?: string | null;
-  /**
-   * @type string
-   */
   status: string;
 };

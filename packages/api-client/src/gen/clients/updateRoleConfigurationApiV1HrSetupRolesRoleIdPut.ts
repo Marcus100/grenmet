@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
-  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
+  UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponses,
 } from "../models/UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut.js";
-
-function getUpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutUrl(
-  role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"]
-) {
-  const res = {
-    method: "PUT",
-    url: `/api/v1/hr/setup/roles/${role_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Edit a role permission bundle.
  * @summary Edit a role permission bundle
  * {@link /api/v1/hr/setup/roles/:role_id}
  */
-export async function updateRoleConfigurationApiV1HrSetupRolesRoleIdPut(
-  role_id: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathParams["role_id"],
-  data: UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateRoleConfigurationApiV1HrSetupRolesRoleIdPut<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationResponse,
-    ResponseErrorConfig<
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut403
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut404
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut409
-      | UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPut422
-    >,
-    UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutMutationRequest
-  >({
-    method: "PUT",
-    url: getUpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutUrl(
-      role_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PUT",
+      url: "/api/v1/hr/setup/roles/{role_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const rosterGridImportResultSchema = z.object({
-  roster_period_id: z.string().uuid(),
-  total_assignments: z.number().int(),
+  roster_period_id: z.uuid(),
+  total_assignments: z.int(),
   published: z.boolean(),
 });

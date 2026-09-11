@@ -8,42 +8,33 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { policyInputSchema } from "./policyInputSchema.js";
 import { policyPublicSchema } from "./policyPublicSchema.js";
 
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParamsSchema =
-  z.object({
-    key: z.string(),
-  });
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutPathKeySchema =
+  z.string();
 
-/**
- * @description Successful Response
- */
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPut200Schema = z.lazy(
-  () => policyPublicSchema
-);
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200Schema =
+  policyPublicSchema;
 
-/**
- * @description Administrator access required
- */
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPut403Schema = z.any();
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPut404Schema = z.any();
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPut409Schema = z.any();
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPut422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequestSchema =
-  z.lazy(() => policyInputSchema);
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutResponseSchema =
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200Schema;
 
-export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponseSchema =
-  z.lazy(() => updateSetupPolicyApiV1HrSetupPoliciesKeyPut200Schema);
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutErrorSchema = z.union([
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409Schema,
+  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422Schema,
+]);
+
+export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutBodySchema =
+  policyInputSchema;

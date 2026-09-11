@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import EmailStr
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, ForeignKeyConstraint
 from sqlmodel import Field, Relationship, SQLModel
 
 from src.utils.datetime import utc_now
@@ -173,6 +173,17 @@ class RolePermissionLink(SQLModel, table=True):
 
 class UserRoleAssignment(SQLModel, table=True):
     __tablename__ = "user_role_assignment"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["department_id", "organisation_id"],
+            ["hr.department.id", "hr.department.organisation_id"],
+            name="fk_role_assignment_department_org",
+        ),
+    )
+
+    organisation_id: str = Field(
+        foreign_key="hr.organisation.id", index=True, max_length=100
+    )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id", index=True)

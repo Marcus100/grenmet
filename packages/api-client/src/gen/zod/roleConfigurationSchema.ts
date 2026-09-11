@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const roleConfigurationSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   name: z.string(),
   permission_keys: z.array(z.string()),
 });

@@ -6,13 +6,9 @@
 import * as z from "zod";
 import { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readFeedsApiV1CapFeedsGet200Schema = z.array(
-  z.lazy(() => capFeedImportPublicSchema)
+export const readFeedsApiV1CapFeedsGetStatus200Schema = z.array(
+  capFeedImportPublicSchema
 );
 
-export const readFeedsApiV1CapFeedsGetQueryResponseSchema = z.lazy(
-  () => readFeedsApiV1CapFeedsGet200Schema
-);
+export const readFeedsApiV1CapFeedsGetResponseSchema =
+  readFeedsApiV1CapFeedsGetStatus200Schema;

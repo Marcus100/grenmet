@@ -9,50 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { publishAlertApiV1CapAlertsAlertIdPublishPost } from "../clients/publishAlertApiV1CapAlertsAlertIdPublishPost.js";
 import type {
-  PublishAlertApiV1CapAlertsAlertIdPublishPost422,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-  PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+  PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422,
 } from "../models/PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
 
 export const publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/publish" }] as const;
 
-export type PublishAlertApiV1CapAlertsAlertIdPublishPostMutationKey =
-  ReturnType<typeof publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey>;
-
 export function publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey();
   return mutationOptions<
-    PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-    {
-      alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"];
-      data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-    },
+    PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422>,
+    PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return publishAlertApiV1CapAlertsAlertIdPublishPost(
-        alert_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return publishAlertApiV1CapAlertsAlertIdPublishPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,17 +53,14 @@ export function publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions<
 export function usePublishAlertApiV1CapAlertsAlertIdPublishPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-      ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-      {
-        alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"];
-        data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-      },
+      PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+      ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422>,
+      PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,22 +73,16 @@ export function usePublishAlertApiV1CapAlertsAlertIdPublishPost<TContext>(
     publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions(
       config
     ) as UseMutationOptions<
-      PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-      ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-      {
-        alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"];
-        data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-      },
+      PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+      ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422>,
+      PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
       TContext
     >;
 
   return useMutation<
-    PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-    {
-      alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"];
-      data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-    },
+    PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422>,
+    PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
     TContext
   >(
     {
@@ -112,12 +92,9 @@ export function usePublishAlertApiV1CapAlertsAlertIdPublishPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse,
-    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPost422>,
-    {
-      alert_id: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams["alert_id"];
-      data: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-    },
+    PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
+    ResponseErrorConfig<PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422>,
+    PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
     TContext
   >;
 }

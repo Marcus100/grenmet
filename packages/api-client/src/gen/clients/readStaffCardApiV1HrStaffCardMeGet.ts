@@ -3,46 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadStaffCardApiV1HrStaffCardMeGet403,
-  ReadStaffCardApiV1HrStaffCardMeGet404,
-  ReadStaffCardApiV1HrStaffCardMeGet409,
-  ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+  ReadStaffCardApiV1HrStaffCardMeGetOptions,
+  ReadStaffCardApiV1HrStaffCardMeGetResponses,
 } from "../models/ReadStaffCardApiV1HrStaffCardMeGet.js";
-
-function getReadStaffCardApiV1HrStaffCardMeGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/staff-card/me` as const };
-  return res;
-}
 
 /**
  * @description View your GAA staff credential.
  * @summary View your GAA staff credential
  * {@link /api/v1/hr/staff-card/me}
  */
-export async function readStaffCardApiV1HrStaffCardMeGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readStaffCardApiV1HrStaffCardMeGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadStaffCardApiV1HrStaffCardMeGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadStaffCardApiV1HrStaffCardMeGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadStaffCardApiV1HrStaffCardMeGet403
-      | ReadStaffCardApiV1HrStaffCardMeGet404
-      | ReadStaffCardApiV1HrStaffCardMeGet409
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadStaffCardApiV1HrStaffCardMeGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/staff-card/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadStaffCardApiV1HrStaffCardMeGetResponses, ThrowOnError>
+    >
+  );
 }

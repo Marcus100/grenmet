@@ -9,7 +9,7 @@ import { userStatusSchema } from "./userStatusSchema.js";
 export const profileIdentityPublicSchema = z.object({
   username: z.string(),
   email: z.string(),
-  phone: z.optional(z.union([z.string(), z.null()])),
-  avatar_url: z.optional(z.union([z.string(), z.null()])),
-  status: z.lazy(() => userStatusSchema),
+  phone: z.union([z.string(), z.null()]).optional(),
+  avatar_url: z.union([z.string(), z.null()]).optional(),
+  status: userStatusSchema,
 });

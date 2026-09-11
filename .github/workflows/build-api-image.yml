@@ -35,6 +35,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -55,19 +56,25 @@ jobs:
 
       - name: Resolve effective branch
         id: ctx
+        env:
+          BUILD_TAG: ${{ inputs.tag }}
         run: |
-          EVENT="${{ github.event_name }}"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          echo "repository=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          EVENT="$GITHUB_EVENT_NAME"
           # inputs.tag covers both workflow_dispatch and workflow_call callers.
-          if [ -n "${{ inputs.tag }}" ]; then
-            BRANCH="${{ inputs.tag }}"
+          if [ -n "$BUILD_TAG" ]; then
+            BRANCH="$BUILD_TAG"
           elif [ "$EVENT" == "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            BRANCH="$GITHUB_REF_NAME"
           else
-            BRANCH="${{ github.ref_name }}"
+            BRANCH="$GITHUB_REF_NAME"
           fi
           if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
+            echo "environment=staging" >> "$GITHUB_OUTPUT"
             echo "is_staging=true" >> $GITHUB_OUTPUT
           else
+            echo "environment=production" >> "$GITHUB_OUTPUT"
             echo "is_staging=false" >> $GITHUB_OUTPUT
           fi
 
@@ -75,27 +82,72 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ steps.ctx.outputs.repository }}
+          labels: |
+            gd.barrels.environment=${{ steps.ctx.outputs.environment }}
           tags: |
+            type=raw,value=${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
             type=raw,value=staging,enable=${{ steps.ctx.outputs.is_staging == 'true' }}
             type=raw,value=latest,enable=${{ steps.ctx.outputs.is_staging == 'false' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
-      - name: Build and push Docker image
+      - name: Build image for verification
+        id: verify
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: apps/api/fastapi/Dockerfile.prod
-          pull: true
+          # No `pull:` — every FROM in Dockerfile.prod is digest-pinned, so a
+          # forced re-pull only costs registry round-trips.
+          push: false
+          load: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api
+          # Exported here, not on the publish step, so a build that fails the
+          # smoke test or vulnerability gate still leaves its layers cached.
+          cache-to: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api,mode=max,image-manifest=true,oci-mediatypes=true,ignore-error=true
+          provenance: false
+          platforms: linux/amd64
+
+      - name: Smoke-test image before publishing
+        env:
+          IMAGE: ghcr.io/${{ steps.ctx.outputs.repository }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+        run: |
+          bash scripts/production/smoke-image.sh "$IMAGE" api
+
+      - name: Enforce image vulnerability policy before publishing
+        uses: ./.github/actions/scan-image
+        with:
+          image: ghcr.io/${{ steps.ctx.outputs.repository }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          scope: apps/api/fastapi/Dockerfile.prod#runtime
+          name: api
+
+      - name: Publish verified image from builder cache
+        id: build
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: apps/api/fastapi/Dockerfile.prod
+          pull: false
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max,ignore-error=true
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:api
           provenance: true
           platforms: linux/amd64
+
+
+      - name: Upload image security findings
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-api
 
       - name: Image digest summary
         run: |
           echo "✅ grenmet-api image built and pushed successfully"
           echo "Tags: ${{ steps.meta.outputs.tags }}"
+          echo "Image: ghcr.io/${{ steps.ctx.outputs.repository }}@${{ steps.build.outputs.digest }}"

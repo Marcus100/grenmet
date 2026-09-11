@@ -6,43 +6,42 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type DeleteUserApiV1AuthUsersUserIdDeletePathParams = {
+export type DeleteUserApiV1AuthUsersUserIdDeletePath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * Message
- * @description User deleted
- */
-export type DeleteUserApiV1AuthUsersUserIdDelete200 = Message;
+export type DeleteUserApiV1AuthUsersUserIdDeleteStatus200 = Message;
 
-/**
- * @description Insufficient privileges or self-deletion
- */
-export type DeleteUserApiV1AuthUsersUserIdDelete403 = any;
+export type DeleteUserApiV1AuthUsersUserIdDeleteStatus403 = unknown;
 
-/**
- * @description User not found
- */
-export type DeleteUserApiV1AuthUsersUserIdDelete404 = any;
+export type DeleteUserApiV1AuthUsersUserIdDeleteStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteUserApiV1AuthUsersUserIdDelete422 = HTTPValidationError;
+export type DeleteUserApiV1AuthUsersUserIdDeleteStatus422 = HTTPValidationError;
 
-export type DeleteUserApiV1AuthUsersUserIdDeleteMutationResponse =
-  DeleteUserApiV1AuthUsersUserIdDelete200;
-
-export type DeleteUserApiV1AuthUsersUserIdDeleteMutation = {
-  Response: DeleteUserApiV1AuthUsersUserIdDelete200;
-  PathParams: DeleteUserApiV1AuthUsersUserIdDeletePathParams;
-  Errors:
-    | DeleteUserApiV1AuthUsersUserIdDelete403
-    | DeleteUserApiV1AuthUsersUserIdDelete404
-    | DeleteUserApiV1AuthUsersUserIdDelete422;
+export type DeleteUserApiV1AuthUsersUserIdDeleteOptions = {
+  body?: never;
+  path: DeleteUserApiV1AuthUsersUserIdDeletePath;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteUserApiV1AuthUsersUserIdDeleteResponses = {
+  "200": DeleteUserApiV1AuthUsersUserIdDeleteStatus200;
+  "403": DeleteUserApiV1AuthUsersUserIdDeleteStatus403;
+  "404": DeleteUserApiV1AuthUsersUserIdDeleteStatus404;
+  "422": DeleteUserApiV1AuthUsersUserIdDeleteStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteUserApiV1AuthUsersUserIdDeleteResponse =
+  | DeleteUserApiV1AuthUsersUserIdDeleteStatus200
+  | DeleteUserApiV1AuthUsersUserIdDeleteStatus403
+  | DeleteUserApiV1AuthUsersUserIdDeleteStatus404
+  | DeleteUserApiV1AuthUsersUserIdDeleteStatus422;

@@ -3,53 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
-  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
+  RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponses,
 } from "../models/RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
-
-function getRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteUrl(
-  session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/auth/modern/security/sessions/${session_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Revokes only a session owned by the authenticated user.
  * @summary Revoke one of your sessions
  * {@link /api/v1/auth/modern/security/sessions/:session_id}
  */
-export async function revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete(
-  session_id: RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathParams["session_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete404
-      | RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteUrl(
-      session_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/auth/modern/security/sessions/{session_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        RevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

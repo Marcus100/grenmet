@@ -7,13 +7,25 @@ import {
   useReadHrProfileMeApiV1HrProfileMeGet,
   useUpdateHrProfileMeApiV1HrProfileMePatch,
 } from "@barrelsgd/api-client";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@barrelsgd/ui/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
+import { EmployeeDocuments } from "@/components/hr/documents/employee-documents";
+import { SignatureSettings } from "@/components/hr/signatures/signature-settings";
 import { EmployeeDetailsCard } from "@/components/user-profile/EmployeeDetailsCard";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
 
-export default function UserProfileContent() {
+export default function UserProfileContent({
+  initialTab = "overview",
+}: {
+  initialTab?: "overview" | "signature";
+}) {
   const queryClient = useQueryClient();
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const updateProfileMutation = useUpdateHrProfileMeApiV1HrProfileMePatch({
@@ -32,7 +44,7 @@ export default function UserProfileContent() {
   });
 
   const handleSave = async (payload: UserProfileUpdateMe) => {
-    await updateProfileMutation.mutateAsync({ data: payload });
+    await updateProfileMutation.mutateAsync({ body: payload });
   };
 
   if (profileQuery.isLoading) {
@@ -52,19 +64,49 @@ export default function UserProfileContent() {
   }
 
   return (
-    <div className="space-y-6">
-      <UserMetaCard profile={profileQuery.data} />
-      <EmployeeDetailsCard employment={profileQuery.data.employment} />
-      <UserInfoCard
-        isSaving={updateProfileMutation.isPending}
-        onSave={handleSave}
-        profile={profileQuery.data}
-      />
-      <UserAddressCard
-        isSaving={updateProfileMutation.isPending}
-        onSave={handleSave}
-        profile={profileQuery.data}
-      />
-    </div>
+    <Tabs className="gap-4" defaultValue={initialTab}>
+      <TabsList className="w-full">
+        <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsTrigger value="personal">Personal</TabsTrigger>
+        <TabsTrigger value="employment">Employment</TabsTrigger>
+        <TabsTrigger value="documents">Documents</TabsTrigger>
+        <TabsTrigger value="signature">Signature</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="overview">
+        <UserMetaCard profile={profileQuery.data} />
+      </TabsContent>
+
+      <TabsContent value="personal">
+        <div className="flex flex-col gap-6">
+          <UserInfoCard
+            isSaving={updateProfileMutation.isPending}
+            onSave={handleSave}
+            profile={profileQuery.data}
+          />
+          <UserAddressCard
+            isSaving={updateProfileMutation.isPending}
+            onSave={handleSave}
+            profile={profileQuery.data}
+          />
+        </div>
+      </TabsContent>
+
+      <TabsContent value="signature">
+        <SignatureSettings />
+      </TabsContent>
+      <TabsContent value="documents">
+        <EmployeeDocuments
+          organisationId={
+            profileQuery.data.employment.organisation_id ?? undefined
+          }
+          userId={profileQuery.data.id}
+        />
+      </TabsContent>
+
+      <TabsContent value="employment">
+        <EmployeeDetailsCard employment={profileQuery.data.employment} />
+      </TabsContent>
+    </Tabs>
   );
 }

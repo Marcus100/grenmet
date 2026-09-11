@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capLifecycleStateCapLifecycleStateEnum = {
+export const capLifecycleState = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",
   APPROVED: "APPROVED",
@@ -12,10 +12,5 @@ export const capLifecycleStateCapLifecycleStateEnum = {
   CANCELLED: "CANCELLED",
 } as const;
 
-export type CapLifecycleStateCapLifecycleStateEnumKey =
-  (typeof capLifecycleStateCapLifecycleStateEnum)[keyof typeof capLifecycleStateCapLifecycleStateEnum];
-
-/**
- * CapLifecycleState
- */
-export type CapLifecycleState = CapLifecycleStateCapLifecycleStateEnumKey;
+export type CapLifecycleState =
+  (typeof capLifecycleState)[keyof typeof capLifecycleState];

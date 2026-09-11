@@ -1,12 +1,12 @@
-import { Facebook, Instagram, MessageCircle, Youtube } from "lucide-react";
 import Link from "next/link";
+import { siFacebook, siInstagram, siWhatsapp, siYoutube } from "simple-icons";
 import { NAV_LINKS } from "@/lib/nav";
 
 const SOCIALS = [
-  { label: "WhatsApp", href: "#", Icon: MessageCircle },
-  { label: "Facebook", href: "#", Icon: Facebook },
-  { label: "Instagram", href: "#", Icon: Instagram },
-  { label: "YouTube", href: "#", Icon: Youtube },
+  { label: "WhatsApp", href: "#", icon: siWhatsapp },
+  { label: "Facebook", href: "#", icon: siFacebook },
+  { label: "Instagram", href: "#", icon: siInstagram },
+  { label: "YouTube", href: "#", icon: siYoutube },
 ];
 
 export function SiteFooter() {
@@ -39,14 +39,21 @@ export function SiteFooter() {
           </nav>
 
           <div className="flex gap-3">
-            {SOCIALS.map(({ label, href, Icon }) => (
+            {SOCIALS.map(({ label, href, icon }) => (
               <a
-                aria-label={label}
                 className="inline-flex size-9 items-center justify-center rounded-full border border-signal-rule text-foreground/70 hover:border-signal-green hover:text-signal-green"
                 href={href}
                 key={label}
               >
-                <Icon className="size-4" />
+                <span className="sr-only">{label}</span>
+                <svg
+                  aria-hidden="true"
+                  className="size-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d={icon.path} />
+                </svg>
               </a>
             ))}
           </div>

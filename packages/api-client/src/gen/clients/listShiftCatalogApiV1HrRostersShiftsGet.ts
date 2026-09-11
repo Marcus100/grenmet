@@ -3,47 +3,41 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListShiftCatalogApiV1HrRostersShiftsGet403,
-  ListShiftCatalogApiV1HrRostersShiftsGet422,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
-  ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
+  ListShiftCatalogApiV1HrRostersShiftsGetOptions,
+  ListShiftCatalogApiV1HrRostersShiftsGetResponses,
 } from "../models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
-
-function getListShiftCatalogApiV1HrRostersShiftsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/rosters/shifts` as const };
-  return res;
-}
 
 /**
  * @description Return the shift catalog for roster assignment. Pass include_inactive=true (requires roster.manage) to include deactivated shift types for management screens.
  * @summary List shift catalog
  * {@link /api/v1/hr/rosters/shifts}
  */
-export async function listShiftCatalogApiV1HrRostersShiftsGet(
-  params?: ListShiftCatalogApiV1HrRostersShiftsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listShiftCatalogApiV1HrRostersShiftsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListShiftCatalogApiV1HrRostersShiftsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<ListShiftCatalogApiV1HrRostersShiftsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListShiftCatalogApiV1HrRostersShiftsGetQueryResponse,
-    ResponseErrorConfig<
-      | ListShiftCatalogApiV1HrRostersShiftsGet403
-      | ListShiftCatalogApiV1HrRostersShiftsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListShiftCatalogApiV1HrRostersShiftsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/shifts",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListShiftCatalogApiV1HrRostersShiftsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

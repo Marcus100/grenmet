@@ -3,15 +3,9 @@
  * Do not edit manually.
  */
 
-export const swapTypeSwapTypeEnum = {
+export const swapType = {
   TEMPORARY: "TEMPORARY",
   PERMANENT: "PERMANENT",
 } as const;
 
-export type SwapTypeSwapTypeEnumKey =
-  (typeof swapTypeSwapTypeEnum)[keyof typeof swapTypeSwapTypeEnum];
-
-/**
- * SwapType
- */
-export type SwapType = SwapTypeSwapTypeEnumKey;
+export type SwapType = (typeof swapType)[keyof typeof swapType];

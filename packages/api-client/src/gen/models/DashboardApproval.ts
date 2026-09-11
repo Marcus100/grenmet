@@ -3,21 +3,9 @@
  * Do not edit manually.
  */
 
-/**
- * DashboardApproval
- */
 export type DashboardApproval = {
-  /**
-   * @type string
-   */
   id: string;
-  /**
-   * @type string
-   */
   name: string;
-  /**
-   * @type string
-   */
   kind: string;
   submitted_at?: string | null;
 };

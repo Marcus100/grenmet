@@ -9,49 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createInstanceApiV1HrWorkflowsInstancesPost } from "../clients/createInstanceApiV1HrWorkflowsInstancesPost.js";
 import type {
-  CreateInstanceApiV1HrWorkflowsInstancesPost403,
-  CreateInstanceApiV1HrWorkflowsInstancesPost404,
-  CreateInstanceApiV1HrWorkflowsInstancesPost422,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest,
-  CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+  CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus200,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus403,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus404,
+  CreateInstanceApiV1HrWorkflowsInstancesPostStatus422,
 } from "../models/CreateInstanceApiV1HrWorkflowsInstancesPost.js";
 
 export const createInstanceApiV1HrWorkflowsInstancesPostMutationKey = () =>
   [{ url: "/api/v1/hr/workflows/instances" }] as const;
 
-export type CreateInstanceApiV1HrWorkflowsInstancesPostMutationKey = ReturnType<
-  typeof createInstanceApiV1HrWorkflowsInstancesPostMutationKey
->;
-
 export function createInstanceApiV1HrWorkflowsInstancesPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createInstanceApiV1HrWorkflowsInstancesPostMutationKey();
   return mutationOptions<
-    CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
     ResponseErrorConfig<
-      | CreateInstanceApiV1HrWorkflowsInstancesPost403
-      | CreateInstanceApiV1HrWorkflowsInstancesPost404
-      | CreateInstanceApiV1HrWorkflowsInstancesPost422
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422
     >,
-    { data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest },
+    CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createInstanceApiV1HrWorkflowsInstancesPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createInstanceApiV1HrWorkflowsInstancesPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +61,19 @@ export function createInstanceApiV1HrWorkflowsInstancesPostMutationOptions<
 export function useCreateInstanceApiV1HrWorkflowsInstancesPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
       ResponseErrorConfig<
-        | CreateInstanceApiV1HrWorkflowsInstancesPost403
-        | CreateInstanceApiV1HrWorkflowsInstancesPost404
-        | CreateInstanceApiV1HrWorkflowsInstancesPost422
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422
       >,
-      { data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest },
+      CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +86,26 @@ export function useCreateInstanceApiV1HrWorkflowsInstancesPost<TContext>(
     createInstanceApiV1HrWorkflowsInstancesPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
       ResponseErrorConfig<
-        | CreateInstanceApiV1HrWorkflowsInstancesPost403
-        | CreateInstanceApiV1HrWorkflowsInstancesPost404
-        | CreateInstanceApiV1HrWorkflowsInstancesPost422
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+        | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422
       >,
-      { data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest },
+      CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
     ResponseErrorConfig<
-      | CreateInstanceApiV1HrWorkflowsInstancesPost403
-      | CreateInstanceApiV1HrWorkflowsInstancesPost404
-      | CreateInstanceApiV1HrWorkflowsInstancesPost422
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422
     >,
-    { data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest },
+    CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
     TContext
   >(
     {
@@ -115,13 +115,14 @@ export function useCreateInstanceApiV1HrWorkflowsInstancesPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse,
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+    | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201,
     ResponseErrorConfig<
-      | CreateInstanceApiV1HrWorkflowsInstancesPost403
-      | CreateInstanceApiV1HrWorkflowsInstancesPost404
-      | CreateInstanceApiV1HrWorkflowsInstancesPost422
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+      | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422
     >,
-    { data: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest },
+    CreateInstanceApiV1HrWorkflowsInstancesPostOptions,
     TContext
   >;
 }

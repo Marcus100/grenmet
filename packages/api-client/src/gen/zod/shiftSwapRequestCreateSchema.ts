@@ -7,16 +7,17 @@ import * as z from "zod";
 import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestCreateSchema = z.object({
-  counterpart_user_id: z.string().uuid(),
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
+  counterpart_user_id: z.uuid(),
   department_id: z.string(),
-  swap_type: z.optional(z.lazy(() => swapTypeSchema)),
-  source_date: z.string().date(),
+  swap_type: swapTypeSchema.optional().default("TEMPORARY"),
+  source_date: z.iso.date(),
   source_shift_code: z.string(),
-  target_date: z.string().date(),
+  target_date: z.iso.date(),
   target_shift_code: z.string(),
-  effective_date: z.optional(z.union([z.string().date(), z.null()])),
-  restoration_date: z.optional(z.union([z.string().date(), z.null()])),
-  reason: z.optional(z.union([z.string(), z.null()])),
-  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
-  as_draft: z.optional(z.boolean().default(false)),
+  effective_date: z.union([z.iso.date(), z.null()]).optional(),
+  restoration_date: z.union([z.iso.date(), z.null()]).optional(),
+  reason: z.union([z.string(), z.null()]).optional(),
+  co_approver_user_ids: z.array(z.uuid()).optional(),
+  as_draft: z.boolean().optional().default(false),
 });

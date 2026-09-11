@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const workflowStatusWorkflowStatusEnum = {
+export const workflowStatus = {
   DRAFT: "DRAFT",
   PENDING: "PENDING",
   RETURNED: "RETURNED",
@@ -12,10 +12,5 @@ export const workflowStatusWorkflowStatusEnum = {
   CANCELLED: "CANCELLED",
 } as const;
 
-export type WorkflowStatusWorkflowStatusEnumKey =
-  (typeof workflowStatusWorkflowStatusEnum)[keyof typeof workflowStatusWorkflowStatusEnum];
-
-/**
- * WorkflowStatus
- */
-export type WorkflowStatus = WorkflowStatusWorkflowStatusEnumKey;
+export type WorkflowStatus =
+  (typeof workflowStatus)[keyof typeof workflowStatus];

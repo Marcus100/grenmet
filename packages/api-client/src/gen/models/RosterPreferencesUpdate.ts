@@ -5,9 +5,6 @@
 
 import type { ShiftPattern } from "./ShiftPattern.js";
 
-/**
- * RosterPreferencesUpdate
- */
 export type RosterPreferencesUpdate = {
   default_shift_pattern?: ShiftPattern | null;
   preferred_shifts?: string[] | null;

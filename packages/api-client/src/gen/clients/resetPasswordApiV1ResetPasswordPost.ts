@@ -3,51 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ResetPasswordApiV1ResetPasswordPost422,
-  ResetPasswordApiV1ResetPasswordPost429,
-  ResetPasswordApiV1ResetPasswordPostMutationRequest,
-  ResetPasswordApiV1ResetPasswordPostMutationResponse,
+  ResetPasswordApiV1ResetPasswordPostOptions,
+  ResetPasswordApiV1ResetPasswordPostResponses,
 } from "../models/ResetPasswordApiV1ResetPasswordPost.js";
-
-function getResetPasswordApiV1ResetPasswordPostUrl() {
-  const res = { method: "POST", url: `/api/v1/reset-password/` as const };
-  return res;
-}
 
 /**
  * @description Reset password.
  * @summary Reset Password
  * {@link /api/v1/reset-password/}
  */
-export async function resetPasswordApiV1ResetPasswordPost(
-  data: ResetPasswordApiV1ResetPasswordPostMutationRequest,
-  config: Partial<
-    RequestConfig<ResetPasswordApiV1ResetPasswordPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function resetPasswordApiV1ResetPasswordPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ResetPasswordApiV1ResetPasswordPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ResetPasswordApiV1ResetPasswordPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ResetPasswordApiV1ResetPasswordPostMutationResponse,
-    ResponseErrorConfig<
-      | ResetPasswordApiV1ResetPasswordPost422
-      | ResetPasswordApiV1ResetPasswordPost429
-    >,
-    ResetPasswordApiV1ResetPasswordPostMutationRequest
-  >({
-    method: "POST",
-    url: getResetPasswordApiV1ResetPasswordPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/reset-password/",
+      ...config,
+    }) as Promise<
+      RequestResult<ResetPasswordApiV1ResetPasswordPostResponses, ThrowOnError>
+    >
+  );
 }

@@ -3,29 +3,31 @@
  * Do not edit manually.
  */
 
-/**
- * RosterAssignmentPublic
- */
 export type RosterAssignmentPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   roster_period_id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
   /**
-   * @type string, date
-   */
-  assignment_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  assignment_date: string;
   shift_code: string;
   remarks?: string | null;
 };

@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       less \
       ripgrep \
       procps \
+      sudo \
+      util-linux \
       python3 \
       python3-venv \
     && rm -rf /var/lib/apt/lists/*
@@ -26,10 +28,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
+COPY --from=ghcr.io/astral-sh/uv:0.11.26@sha256:3d868e555f8f1dbc324afa005066cd11e1053fc4743b9808ca8025283e65efa5 /uv /uvx /usr/local/bin/
 
-# pnpm v10 via corepack (matches the monorepo's package manager)
-RUN corepack enable && corepack prepare pnpm@10 --activate
+# Keep the Python interpreter in the image, outside mutable login/cache volumes.
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
+ENV UV_PYTHON=3.13
+RUN uv python install 3.13
+
+# pnpm v12 via corepack (matches the monorepo's package manager)
+RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # The coding agents themselves
 RUN npm install -g @anthropic-ai/claude-code @openai/codex
@@ -52,6 +59,14 @@ RUN mkdir -p /home/node/.claude /home/node/.codex /home/node/.config /home/node/
 # rebuilds once the gh token is present (persisted via the ~/.config volume).
 RUN git config --system credential."https://github.com".helper "!gh auth git-credential" \
     && git config --system credential."https://gist.github.com".helper "!gh auth git-credential"
+
+# Permit only ownership setup of the declared, isolated volume roots.
+COPY prepare-dependencies.sh /usr/local/bin/prepare-agent-dependencies
+COPY dependency-volumes.txt /usr/local/share/grenmet-dependency-volumes.txt
+RUN chmod 755 /usr/local/bin/prepare-agent-dependencies \
+    && echo 'node ALL=(root) NOPASSWD: /usr/local/bin/prepare-agent-dependencies' > /etc/sudoers.d/grenmet-dependencies \
+    && chmod 440 /etc/sudoers.d/grenmet-dependencies \
+    && visudo -cf /etc/sudoers.d/grenmet-dependencies
 
 # Run as the unprivileged 'node' user, not root
 USER node

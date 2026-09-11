@@ -3,60 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponses,
 } from "../models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 
-function getUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchUrl(
-  assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/auth/role-assignments/${assignment_id}` as const,
-  };
-  return res;
-}
-
 /**
- * @description Update a user-role assignment (superuser only).
+ * @description Update a user-role assignment (within active user.manage scope).
  * @summary Update role assignment
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
-export async function updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
-  assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"],
-  data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
-    >,
-    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchUrl(
-      assignment_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/auth/role-assignments/{assignment_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

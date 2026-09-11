@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
+  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponses,
 } from "../models/SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
-
-function getSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostUrl(
-  absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/absentee-reports/${absentee_report_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit a previously-saved DRAFT absentee report, attaching named co-approvers. Requires absentee.report.create permission and ownership of the report.
  * @summary Submit a draft absentee report
  * {@link /api/v1/hr/absentee-reports/:absentee_report_id/submit}
  */
-export async function submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost(
-  absentee_report_id: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams["absentee_report_id"],
-  data: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse,
-    ResponseErrorConfig<
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422
-    >,
-    SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest
-  >({
-    method: "POST",
-    url: getSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostUrl(
-      absentee_report_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/absentee-reports/{absentee_report_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

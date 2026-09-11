@@ -5,9 +5,6 @@
 
 import type { ShiftCategory } from "./ShiftCategory.js";
 
-/**
- * ShiftCatalogUpdate
- */
 export type ShiftCatalogUpdate = {
   label?: string | null;
   category?: ShiftCategory | null;

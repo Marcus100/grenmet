@@ -3,16 +3,9 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { userPublicSchema } from "./userPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const testTokenApiV1LoginTestTokenPost200Schema = z.lazy(
-  () => userPublicSchema
-);
+export const testTokenApiV1LoginTestTokenPostStatus200Schema = userPublicSchema;
 
-export const testTokenApiV1LoginTestTokenPostMutationResponseSchema = z.lazy(
-  () => testTokenApiV1LoginTestTokenPost200Schema
-);
+export const testTokenApiV1LoginTestTokenPostResponseSchema =
+  testTokenApiV1LoginTestTokenPostStatus200Schema;

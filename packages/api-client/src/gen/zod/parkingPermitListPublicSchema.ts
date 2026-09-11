@@ -7,8 +7,8 @@ import * as z from "zod";
 import { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
 
 export const parkingPermitListPublicSchema = z.object({
-  data: z.array(z.lazy(() => parkingPermitPublicSchema)),
-  count: z.number().int(),
-  page: z.optional(z.number().int().default(1)),
-  size: z.optional(z.number().int().default(100)),
+  data: z.array(parkingPermitPublicSchema),
+  count: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
 });

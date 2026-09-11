@@ -7,28 +7,27 @@ import type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
 import type { CapFeedImportPublic } from "./CapFeedImportPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * CapFeedImportPublic
- * @description Successful Response
- */
-export type CreateFeedApiV1CapFeedsPost201 = CapFeedImportPublic;
+export type CreateFeedApiV1CapFeedsPostStatus201 = CapFeedImportPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateFeedApiV1CapFeedsPost422 = HTTPValidationError;
+export type CreateFeedApiV1CapFeedsPostStatus422 = HTTPValidationError;
 
-/**
- * CapFeedImportCreate
- */
-export type CreateFeedApiV1CapFeedsPostMutationRequest = CapFeedImportCreate;
+export type CreateFeedApiV1CapFeedsPostBody = CapFeedImportCreate;
 
-export type CreateFeedApiV1CapFeedsPostMutationResponse =
-  CreateFeedApiV1CapFeedsPost201;
-
-export type CreateFeedApiV1CapFeedsPostMutation = {
-  Response: CreateFeedApiV1CapFeedsPost201;
-  Request: CreateFeedApiV1CapFeedsPostMutationRequest;
-  Errors: CreateFeedApiV1CapFeedsPost422;
+export type CreateFeedApiV1CapFeedsPostOptions = {
+  body: CreateFeedApiV1CapFeedsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateFeedApiV1CapFeedsPostResponses = {
+  "201": CreateFeedApiV1CapFeedsPostStatus201;
+  "422": CreateFeedApiV1CapFeedsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateFeedApiV1CapFeedsPostResponse =
+  | CreateFeedApiV1CapFeedsPostStatus201
+  | CreateFeedApiV1CapFeedsPostStatus422;

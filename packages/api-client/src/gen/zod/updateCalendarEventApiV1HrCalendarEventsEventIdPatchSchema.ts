@@ -8,46 +8,36 @@ import { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
 import { calendarEventUpdateSchema } from "./calendarEventUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchPathParamsSchema =
-  z.object({
-    event_id: z.string().uuid(),
-  });
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchPathEventIdSchema =
+  z.uuid();
 
-/**
- * @description Calendar event updated
- */
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatch200Schema = z
-  .lazy(() => calendarEventPublicSchema)
-  .describe(
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200Schema =
+  calendarEventPublicSchema.describe(
     "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."
   );
 
-/**
- * @description Invalid event
- */
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatch400Schema =
-  z.any();
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not the author
- */
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatch403Schema =
-  z.any();
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Calendar event not found
- */
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatch404Schema =
-  z.any();
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationRequestSchema =
-  z.lazy(() => calendarEventUpdateSchema);
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchResponseSchema =
+  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200Schema;
 
-export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchMutationResponseSchema =
-  z.lazy(() => updateCalendarEventApiV1HrCalendarEventsEventIdPatch200Schema);
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchErrorSchema =
+  z.union([
+    updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400Schema,
+    updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403Schema,
+    updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404Schema,
+    updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422Schema,
+  ]);
+
+export const updateCalendarEventApiV1HrCalendarEventsEventIdPatchBodySchema =
+  calendarEventUpdateSchema;

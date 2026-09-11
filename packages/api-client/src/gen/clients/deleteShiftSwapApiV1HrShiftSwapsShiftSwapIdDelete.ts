@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
-  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
+  DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponses,
 } from "../models/DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete.js";
-
-function getDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteUrl(
-  shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"]
-) {
-  const res = {
-    method: "DELETE",
-    url: `/api/v1/hr/shift-swaps/${shift_swap_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Delete an own DRAFT shift swap request. Requires shift_swap.request.create.self permission and ownership.
  * @summary Delete a draft shift swap request
  * {@link /api/v1/hr/shift-swaps/:shift_swap_id}
  */
-export async function deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete(
-  shift_swap_id: DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathParams["shift_swap_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteMutationResponse,
-    ResponseErrorConfig<
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete400
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete403
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete404
-      | DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete422
-    >,
-    unknown
-  >({
-    method: "DELETE",
-    url: getDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteUrl(
-      shift_swap_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "DELETE",
+      url: "/api/v1/hr/shift-swaps/{shift_swap_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        DeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

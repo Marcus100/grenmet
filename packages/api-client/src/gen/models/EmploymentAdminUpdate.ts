@@ -6,9 +6,6 @@
 import type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 import type { EmploymentUpdate } from "./EmploymentUpdate.js";
 
-/**
- * EmploymentAdminUpdate
- */
 export type EmploymentAdminUpdate = {
   employment?: EmploymentUpdate | null;
   approval_authority?: ApprovalAuthorityUpdate | null;

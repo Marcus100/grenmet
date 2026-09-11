@@ -5,16 +5,7 @@
 
 import type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
 
-/**
- * UserRoleAssignmentsPublic
- */
 export type UserRoleAssignmentsPublic = {
-  /**
-   * @type array
-   */
   data: UserRoleAssignmentPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

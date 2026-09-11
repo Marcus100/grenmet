@@ -4,22 +4,37 @@
  */
 
 import type { DepartmentsPublic } from "./DepartmentsPublic.js";
-
-/**
- * DepartmentsPublic
- * @description Departments returned
- */
-export type ListDepartmentsEndpointApiV1HrDepartmentsGet200 = DepartmentsPublic;
-
-/**
- * @description Insufficient permission
- */
-export type ListDepartmentsEndpointApiV1HrDepartmentsGet403 = any;
-
-export type ListDepartmentsEndpointApiV1HrDepartmentsGetQueryResponse =
-  ListDepartmentsEndpointApiV1HrDepartmentsGet200;
+import type { HTTPValidationError } from "./HTTPValidationError.js";
 
 export type ListDepartmentsEndpointApiV1HrDepartmentsGetQuery = {
-  Response: ListDepartmentsEndpointApiV1HrDepartmentsGet200;
-  Errors: ListDepartmentsEndpointApiV1HrDepartmentsGet403;
+  organisation_id?: string | null;
 };
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200 =
+  DepartmentsPublic;
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403 = unknown;
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422 =
+  HTTPValidationError;
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ListDepartmentsEndpointApiV1HrDepartmentsGetQuery;
+  headers?: never;
+};
+
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponses = {
+  "200": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200;
+  "403": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403;
+  "422": ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListDepartmentsEndpointApiV1HrDepartmentsGetResponse =
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus200
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus403
+  | ListDepartmentsEndpointApiV1HrDepartmentsGetStatus422;

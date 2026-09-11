@@ -1,0 +1,30 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "OSHE",
+    "name": "Occupational Safety, Health & Environment Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 18 (Occupational Safety, Health & Environment). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Occupational Safety, Health & Environment Manager",
+      "rank": 1,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "OFFICER",
+      "label": "Occupational Safety, Health & Environment Officer",
+      "rank": 2,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

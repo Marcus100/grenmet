@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { refreshSessionApiV1LoginSessionRefreshPost } from "../clients/refreshSessionApiV1LoginSessionRefreshPost.js";
 import type {
-  RefreshSessionApiV1LoginSessionRefreshPost422,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationRequest,
-  RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
+  RefreshSessionApiV1LoginSessionRefreshPostOptions,
+  RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+  RefreshSessionApiV1LoginSessionRefreshPostStatus422,
 } from "../models/RefreshSessionApiV1LoginSessionRefreshPost.js";
 
 export const refreshSessionApiV1LoginSessionRefreshPostMutationKey = () =>
   [{ url: "/api/v1/login/session/refresh" }] as const;
 
-export type RefreshSessionApiV1LoginSessionRefreshPostMutationKey = ReturnType<
-  typeof refreshSessionApiV1LoginSessionRefreshPostMutationKey
->;
-
 export function refreshSessionApiV1LoginSessionRefreshPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<RefreshSessionApiV1LoginSessionRefreshPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = refreshSessionApiV1LoginSessionRefreshPostMutationKey();
   return mutationOptions<
-    RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-    { data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest },
+    RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPostStatus422>,
+    RefreshSessionApiV1LoginSessionRefreshPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return refreshSessionApiV1LoginSessionRefreshPost(data, config);
+    mutationFn: async ({ body }) => {
+      return refreshSessionApiV1LoginSessionRefreshPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -58,14 +53,14 @@ export function refreshSessionApiV1LoginSessionRefreshPostMutationOptions<
 export function useRefreshSessionApiV1LoginSessionRefreshPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-      ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-      { data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest },
+      RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+      ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPostStatus422>,
+      RefreshSessionApiV1LoginSessionRefreshPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<RefreshSessionApiV1LoginSessionRefreshPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -77,16 +72,16 @@ export function useRefreshSessionApiV1LoginSessionRefreshPost<TContext>(
   const baseOptions = refreshSessionApiV1LoginSessionRefreshPostMutationOptions(
     config
   ) as UseMutationOptions<
-    RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-    { data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest },
+    RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPostStatus422>,
+    RefreshSessionApiV1LoginSessionRefreshPostOptions,
     TContext
   >;
 
   return useMutation<
-    RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-    { data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest },
+    RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPostStatus422>,
+    RefreshSessionApiV1LoginSessionRefreshPostOptions,
     TContext
   >(
     {
@@ -96,9 +91,9 @@ export function useRefreshSessionApiV1LoginSessionRefreshPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    RefreshSessionApiV1LoginSessionRefreshPostMutationResponse,
-    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPost422>,
-    { data: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest },
+    RefreshSessionApiV1LoginSessionRefreshPostStatus200,
+    ResponseErrorConfig<RefreshSessionApiV1LoginSessionRefreshPostStatus422>,
+    RefreshSessionApiV1LoginSessionRefreshPostOptions,
     TContext
   >;
 }

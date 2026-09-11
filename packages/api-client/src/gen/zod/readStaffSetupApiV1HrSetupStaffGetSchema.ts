@@ -6,28 +6,20 @@
 import * as z from "zod";
 import { staffSetupSchema } from "./staffSetupSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readStaffSetupApiV1HrSetupStaffGet200Schema = z.array(
-  z.lazy(() => staffSetupSchema)
-);
+export const readStaffSetupApiV1HrSetupStaffGetStatus200Schema =
+  z.array(staffSetupSchema);
 
-/**
- * @description Administrator access required
- */
-export const readStaffSetupApiV1HrSetupStaffGet403Schema = z.any();
+export const readStaffSetupApiV1HrSetupStaffGetStatus403Schema = z.unknown();
 
-/**
- * @description Record not found
- */
-export const readStaffSetupApiV1HrSetupStaffGet404Schema = z.any();
+export const readStaffSetupApiV1HrSetupStaffGetStatus404Schema = z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const readStaffSetupApiV1HrSetupStaffGet409Schema = z.any();
+export const readStaffSetupApiV1HrSetupStaffGetStatus409Schema = z.unknown();
 
-export const readStaffSetupApiV1HrSetupStaffGetQueryResponseSchema = z.lazy(
-  () => readStaffSetupApiV1HrSetupStaffGet200Schema
-);
+export const readStaffSetupApiV1HrSetupStaffGetResponseSchema =
+  readStaffSetupApiV1HrSetupStaffGetStatus200Schema;
+
+export const readStaffSetupApiV1HrSetupStaffGetErrorSchema = z.union([
+  readStaffSetupApiV1HrSetupStaffGetStatus403Schema,
+  readStaffSetupApiV1HrSetupStaffGetStatus404Schema,
+  readStaffSetupApiV1HrSetupStaffGetStatus409Schema,
+]);

@@ -7,16 +7,17 @@ import * as z from "zod";
 import { timesheetStatusSchema } from "./timesheetStatusSchema.js";
 
 export const timesheetPublicSchema = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
+  signed_document_id: z.union([z.uuid(), z.null()]).optional(),
+  id: z.uuid(),
+  user_id: z.uuid(),
   department_id: z.string(),
-  period_start: z.string().date(),
-  period_end: z.string().date(),
-  status: z.lazy(() => timesheetStatusSchema),
-  submitted_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  approved_by_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  submitted_at: z.optional(z.union([z.string(), z.null()])),
-  approved_at: z.optional(z.union([z.string(), z.null()])),
+  period_start: z.iso.date(),
+  period_end: z.iso.date(),
+  status: timesheetStatusSchema,
+  submitted_by_user_id: z.union([z.uuid(), z.null()]).optional(),
+  approved_by_user_id: z.union([z.uuid(), z.null()]).optional(),
+  submitted_at: z.union([z.string(), z.null()]).optional(),
+  approved_at: z.union([z.string(), z.null()]).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

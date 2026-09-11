@@ -6,7 +6,7 @@
 import type { CapAuditEventListPublic } from "./CapAuditEventListPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadAuditApiV1CapAuditGetQueryParams = {
+export type ReadAuditApiV1CapAuditGetQuery = {
   alert_id?: string | null;
   /**
    * @description Page number (1-indexed)
@@ -25,23 +25,25 @@ export type ReadAuditApiV1CapAuditGetQueryParams = {
   size?: number;
 };
 
-/**
- * CapAuditEventListPublic
- * @description Successful Response
- */
-export type ReadAuditApiV1CapAuditGet200 = CapAuditEventListPublic;
+export type ReadAuditApiV1CapAuditGetStatus200 = CapAuditEventListPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadAuditApiV1CapAuditGet422 = HTTPValidationError;
+export type ReadAuditApiV1CapAuditGetStatus422 = HTTPValidationError;
 
-export type ReadAuditApiV1CapAuditGetQueryResponse =
-  ReadAuditApiV1CapAuditGet200;
-
-export type ReadAuditApiV1CapAuditGetQuery = {
-  Response: ReadAuditApiV1CapAuditGet200;
-  QueryParams: ReadAuditApiV1CapAuditGetQueryParams;
-  Errors: ReadAuditApiV1CapAuditGet422;
+export type ReadAuditApiV1CapAuditGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadAuditApiV1CapAuditGetQuery;
+  headers?: never;
 };
+
+export type ReadAuditApiV1CapAuditGetResponses = {
+  "200": ReadAuditApiV1CapAuditGetStatus200;
+  "422": ReadAuditApiV1CapAuditGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAuditApiV1CapAuditGetResponse =
+  | ReadAuditApiV1CapAuditGetStatus200
+  | ReadAuditApiV1CapAuditGetStatus422;

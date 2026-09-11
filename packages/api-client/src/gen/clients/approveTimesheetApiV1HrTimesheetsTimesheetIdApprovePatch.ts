@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
+  ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponses,
 } from "../models/ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
-
-function getApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchUrl(
-  timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/timesheets/${timesheet_id}/approve` as const,
-  };
-  return res;
-}
 
 /**
  * @description Approve a submitted timesheet. Requires timesheet.approve and scope over the user.
  * @summary Approve timesheet
  * {@link /api/v1/hr/timesheets/:timesheet_id/approve}
  */
-export async function approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch(
-  timesheet_id: ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathParams["timesheet_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchMutationResponse,
-    ResponseErrorConfig<
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch400
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch403
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch404
-      | ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch422
-    >,
-    unknown
-  >({
-    method: "PATCH",
-    url: getApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchUrl(
-      timesheet_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/timesheets/{timesheet_id}/approve",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

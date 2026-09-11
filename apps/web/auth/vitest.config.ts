@@ -9,6 +9,8 @@ export default defineConfig({
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
   },
   resolve: {
+    // Shared auth and app imports must resolve the same Next instance for mocks.
+    dedupe: ["next"],
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
       // server-only is a Next.js guard that throws in non-Next environments

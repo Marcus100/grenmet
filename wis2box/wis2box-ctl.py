@@ -37,7 +37,7 @@ DOCKER_COMPOSE_ARGS = """
     --file docker-compose.yml
     --file docker-compose.override.yml
     --file docker-compose.monitoring.yml
-    --env-file wis2box.env
+    --env-file .env.local
     --project-name wis2box_project
     """
 
@@ -356,15 +356,15 @@ def make(args) -> None:
     :returns: None.
     """
 
-    if not os.path.exists('wis2box.env'):
-        print("ERROR: wis2box.env file does not exist.  Please create one manually or by running `python3 wis2box-create-config.py`")
+    if not os.path.exists('.env.local'):
+        print("ERROR: .env.local file does not exist.  Please create one manually or by running `python3 wis2box-create-config.py`")
         exit(1)
     # check if WIS2BOX_SSL_KEY and WIS2BOX_SSL_CERT are set
     ssl_key = None
     ssl_cert = None
     wis2box_url = None
     wis2box_api_url = None
-    with open('wis2box.env') as f:
+    with open('.env.local') as f:
         for line in f:
             if line.startswith('WIS2BOX_URL='):
                 wis2box_url = line.split('=', 1)[1].strip().strip('"')
@@ -390,7 +390,7 @@ def make(args) -> None:
     if use_traefik:
         # Only allow Traefik if WIS2BOX_URL starts with https://
         if not wis2box_url.lower().startswith('https://'):
-            print("ERROR: Please set WIS2BOX_URL to an https:// URL in wis2box.env when using Traefik")
+            print("ERROR: Please set WIS2BOX_URL to an https:// URL in .env.local when using Traefik")
             exit(1)
         else:
             WIS2BOX_HOST = wis2box_url.replace('https://', '').split('/')[0]
@@ -408,7 +408,7 @@ def make(args) -> None:
     if args.ssl or (ssl_key and ssl_cert):
         docker_compose_args +=" --file docker-compose.ssl.yml"
     if args.ssl and not (ssl_key and ssl_cert):
-        print("ERROR: SSL is enabled but WIS2BOX_SSL_KEY and WIS2BOX_SSL_CERT are not set in wis2box.env")
+        print("ERROR: SSL is enabled but WIS2BOX_SSL_KEY and WIS2BOX_SSL_CERT are not set in .env.local")
         exit(1)
 
     # if you selected a bunch of them, default to all

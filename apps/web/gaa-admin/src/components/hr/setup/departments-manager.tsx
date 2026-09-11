@@ -90,12 +90,12 @@ function DepartmentDialog({
     try {
       if (existing) {
         await updateMutation.mutateAsync({
-          department_id: existing.id,
-          data: { name: name.trim() },
+          path: { department_id: existing.id },
+          body: { name: name.trim() },
         });
       } else {
         await createMutation.mutateAsync({
-          data: { id: id.trim(), name: name.trim() },
+          body: { id: id.trim(), name: name.trim() },
         });
       }
       await queryClient.invalidateQueries({

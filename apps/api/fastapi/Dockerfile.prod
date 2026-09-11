@@ -22,6 +22,7 @@ COPY pyproject.toml uv.lock ./
 COPY apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
 COPY scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
 COPY scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
+COPY scripts/gms-ingest/pyproject.toml scripts/gms-ingest/pyproject.toml
 COPY notebooks/pyproject.toml notebooks/pyproject.toml
 COPY geonetcast/pyproject.toml geonetcast/pyproject.toml
 
@@ -47,9 +48,12 @@ FROM python:3.13-slim-bookworm@sha256:9d7f287598e1a5a978c015ee176d8216435aaf335e
 # the venv on PATH. Kept only as an escape hatch for ad-hoc `docker exec` ops.
 COPY --from=builder /bin/uv /bin/uv
 
-# Security: Install security updates
+# Refresh the runtime trust store and PCRE2 as well as curl. Installing curl
+# alone does not update unrelated packages inherited from the pinned base.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+    && apt-get install -y --no-install-recommends curl ca-certificates libpcre2-8-0 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' ca-certificates)" ge '20250419~deb12u1' \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libpcre2-8-0)" ge '10.42-1+deb12u1' \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -57,8 +61,8 @@ RUN apt-get update \
 # below then lands already owned by appuser, so no recursive chown is needed.
 # A `chown -R /app` after the fact rewrites the entire venv into a second layer,
 # roughly doubling image size and adding minutes to the build.
-# HOME/UV_CACHE_DIR are set explicitly because prestart.sh and the arq worker run
-# `uv sync` / `uv run` at container start and need a writable cache.
+# HOME/UV_CACHE_DIR support explicit operational commands; production startup
+# uses the installed virtual environment without resolving dependencies.
 RUN groupadd -r appuser \
     && useradd -r -g appuser -u 1000 -m appuser \
     && mkdir -p /app /home/appuser/.cache/uv \
@@ -77,7 +81,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Copy virtual environment from builder. Ownership is applied as the layer is
-# written; prestart.sh re-syncs this venv at start, so it must stay writable.
+# written, avoiding an extra recursive ownership layer.
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 
 # Copy workspace metadata used by uv-powered operational commands

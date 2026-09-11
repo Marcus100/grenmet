@@ -3,51 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateShiftSwapApiV1HrShiftSwapsPost403,
-  CreateShiftSwapApiV1HrShiftSwapsPost422,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest,
-  CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
+  CreateShiftSwapApiV1HrShiftSwapsPostOptions,
+  CreateShiftSwapApiV1HrShiftSwapsPostResponses,
 } from "../models/CreateShiftSwapApiV1HrShiftSwapsPost.js";
-
-function getCreateShiftSwapApiV1HrShiftSwapsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/shift-swaps` as const };
-  return res;
-}
 
 /**
  * @description Create a shift swap request. Requires shift_swap.request.create.self permission.
  * @summary Create shift swap request
  * {@link /api/v1/hr/shift-swaps}
  */
-export async function createShiftSwapApiV1HrShiftSwapsPost(
-  data: CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createShiftSwapApiV1HrShiftSwapsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateShiftSwapApiV1HrShiftSwapsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateShiftSwapApiV1HrShiftSwapsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateShiftSwapApiV1HrShiftSwapsPost403
-      | CreateShiftSwapApiV1HrShiftSwapsPost422
-    >,
-    CreateShiftSwapApiV1HrShiftSwapsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateShiftSwapApiV1HrShiftSwapsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/shift-swaps",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateShiftSwapApiV1HrShiftSwapsPostResponses, ThrowOnError>
+    >
+  );
 }

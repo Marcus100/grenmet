@@ -21,6 +21,7 @@ const pages = defineCollection({
   include:
     "{travel,at-the-airport,business,corporate,development,news}/**/*.mdx",
   schema: z.object({
+    content: z.string(),
     title: z.string(),
     dek: z.string(),
     section: z.enum(SECTIONS),
@@ -39,4 +40,4 @@ const pages = defineCollection({
   },
 });
 
-export default defineConfig({ collections: [pages] });
+export default defineConfig({ content: [pages] });

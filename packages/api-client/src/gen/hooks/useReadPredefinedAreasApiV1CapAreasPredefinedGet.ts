@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readPredefinedAreasApiV1CapAreasPredefinedGet } from "../clients/readPredefinedAreasApiV1CapAreasPredefinedGet.js";
-import type { ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse } from "../models/ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
+import type { ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200 } from "../models/ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
 
 export const readPredefinedAreasApiV1CapAreasPredefinedGetQueryKey = () =>
   [{ url: "/api/v1/cap/areas/predefined" }] as const;
 
-export type ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryKey = ReturnType<
+type ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryKey = ReturnType<
   typeof readPredefinedAreasApiV1CapAreasPredefinedGetQueryKey
 >;
 
 export function readPredefinedAreasApiV1CapAreasPredefinedGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readPredefinedAreasApiV1CapAreasPredefinedGetQueryKey();
   return queryOptions<
-    ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
+    ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
+    ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readPredefinedAreasApiV1CapAreasPredefinedGet(config);
+      return readPredefinedAreasApiV1CapAreasPredefinedGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,42 +49,44 @@ export function readPredefinedAreasApiV1CapAreasPredefinedGetQueryOptions(
  * {@link /api/v1/cap/areas/predefined}
  */
 export function useReadPredefinedAreasApiV1CapAreasPredefinedGet<
-  TData = ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
-  TQueryData = ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
+  TData = ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
+  TQueryData = ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
   TQueryKey extends
     QueryKey = ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
+        ReadPredefinedAreasApiV1CapAreasPredefinedGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readPredefinedAreasApiV1CapAreasPredefinedGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readPredefinedAreasApiV1CapAreasPredefinedGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

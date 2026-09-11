@@ -32,7 +32,6 @@
   "[graphql]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "emmet.showExpandedAbbreviation": "inMarkupAndStylesheetFilesOnly",
@@ -68,5 +67,19 @@
   "files.exclude": {
     "**/.venv": true,
     "apps/api/fastapi/.venv": true
+  },
+  "js/ts.experimental.useTsgo": true,
+  "js/ts.tsdk.path": "./apps/web/gaa-admin/node_modules/typescript",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.turbo/**": true,
+    "**/.venv/**": true,
+    "**/.pnpm-store/**": true,
+    "**/coverage/**": true,
+    "**/.mypy_cache/**": true,
+    "**/.pytest_cache/**": true,
+    "**/__pycache__/**": true
   }
 }

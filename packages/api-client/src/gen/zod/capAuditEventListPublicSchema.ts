@@ -7,8 +7,8 @@ import * as z from "zod";
 import { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
 
 export const capAuditEventListPublicSchema = z.object({
-  data: z.array(z.lazy(() => capAuditEventPublicSchema)),
-  count: z.number().int(),
-  page: z.optional(z.number().int().default(1)),
-  size: z.optional(z.number().int().default(100)),
+  data: z.array(capAuditEventPublicSchema),
+  count: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
 });

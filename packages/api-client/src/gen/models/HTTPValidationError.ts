@@ -5,12 +5,6 @@
 
 import type { ValidationError } from "./ValidationError.js";
 
-/**
- * HTTPValidationError
- */
 export type HTTPValidationError = {
-  /**
-   * @type array | undefined
-   */
   detail?: ValidationError[];
 };

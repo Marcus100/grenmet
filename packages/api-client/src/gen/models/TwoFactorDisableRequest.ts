@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * TwoFactorDisableRequest
- */
 export type TwoFactorDisableRequest = {
   /**
    * @minLength 6

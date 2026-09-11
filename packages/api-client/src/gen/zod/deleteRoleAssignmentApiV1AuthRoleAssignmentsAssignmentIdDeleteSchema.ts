@@ -6,31 +6,23 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathParamsSchema =
-  z.object({
-    assignment_id: z.string().uuid(),
-  });
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathAssignmentIdSchema =
+  z.uuid();
 
-/**
- * @description Role assignment revoked
- */
-export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204Schema =
-  z.any();
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Role assignment not found
- */
-export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete404Schema =
-  z.any();
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteMutationResponseSchema =
-  z.lazy(
-    () =>
-      deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete204Schema
-  );
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponseSchema =
+  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204Schema;
+
+export const deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteErrorSchema =
+  z.union([
+    deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404Schema,
+    deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422Schema,
+  ]);

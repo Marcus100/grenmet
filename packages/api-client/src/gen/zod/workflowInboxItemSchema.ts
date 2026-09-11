@@ -7,14 +7,18 @@ import * as z from "zod";
 import { workflowTypeSchema } from "./workflowTypeSchema.js";
 
 export const workflowInboxItemSchema = z.object({
-  instance_id: z.string().uuid(),
-  workflow_type: z.lazy(() => workflowTypeSchema),
+  instance_id: z.uuid(),
+  workflow_type: workflowTypeSchema,
   entity_type: z.string(),
-  entity_id: z.string().uuid(),
+  entity_id: z.uuid(),
   department_id: z.string(),
-  requested_by_user_id: z.string().uuid(),
-  requester_name: z.optional(z.union([z.string(), z.null()])),
-  submitted_at: z.optional(z.union([z.string(), z.null()])),
-  current_step_order: z.number().int(),
+  requested_by_user_id: z.uuid(),
+  requester_name: z.union([z.string(), z.null()]).optional(),
+  submitted_at: z.union([z.string(), z.null()]).optional(),
+  current_step_order: z.int(),
   step_is_named: z.boolean(),
+  step_id: z.union([z.uuid(), z.null()]).optional(),
+  is_required: z.boolean().optional().default(true),
+  purpose: z.string().optional().default("APPROVAL"),
+  label: z.string().optional().default("Approval"),
 });

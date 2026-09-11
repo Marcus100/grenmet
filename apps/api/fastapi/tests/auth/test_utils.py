@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 
+from src.auth.config import auth_settings
 from src.auth.utils import (
     DUMMY_PASSWORD_HASH,
     create_access_token,
@@ -36,7 +37,9 @@ async def test_password_hash_async_roundtrip() -> None:
 
 def test_dummy_password_hash_is_bcrypt() -> None:
     """The timing-equalizer constant is a real bcrypt hash matching no known secret."""
-    assert DUMMY_PASSWORD_HASH.startswith("$2b$12$")
+    # Cost is configurable (test runs lower it), so assert the configured cost
+    # rather than a literal — the equalizer must match what real hashes cost.
+    assert DUMMY_PASSWORD_HASH.startswith(f"$2b${auth_settings.BCRYPT_ROUNDS:02d}$")
     assert not verify_password("", DUMMY_PASSWORD_HASH)
 
 

@@ -1,0 +1,3311 @@
+{
+  "edition": 4,
+  "version": 46,
+  "effectiveDate": "2026-06-01",
+  "sources": {
+    "CCT-2026-06-01/C00.csv": "52c1293e0dd471fec8972352869f9f43359046538b2fafdb98b94ec6c05da213",
+    "BUFR4-46/notes/BUFRCREX_TableB_notes.csv": "b561d8599e4fb858f8c752a6ef23b790f169ca717825050e4f6e40606efe4dab",
+    "BUFR4-46/notes/BUFRCREX_CodeFlag_notes.csv": "2e11fd291e95974f02371de83e27f1be5de3134c24dc83b491086cc3a6942ceb",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_01.csv": "bb6ef5026b15a66d9207bd979d0bf4f60ad3b5c26ce1526a1f86c66bea6b2f45",
+    "BUFR4-46/BUFRCREX_TableB_en_01.csv": "54cdfd3f7339415704c91661e2c5022505ca94bd32a506b47863fc939cb4dc0b",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_02.csv": "de6fac04e0c3e3f86e707ada975f38d1876cf465553e83b0dfe60f7931dbc6cd",
+    "BUFR4-46/BUFRCREX_TableB_en_02.csv": "358a8c0c31f5bbcb1c16538e9ba773bd05c72a3a2049ee48102545eb3d1ab165",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_04.csv": "7df4ba6ded9c571e3b54566e0fe5505cbaa07ef10b4129ee6be259970c6401d0",
+    "BUFR4-46/BUFRCREX_TableB_en_04.csv": "f40068b77b4552c975f6682e5de3deb95c2e18991d6b0c74e52cba3a1e591889",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_05.csv": "3c8534bfd0ea335b762f1582a71c8a0cf63110844964d15cf4425de15c7afd29",
+    "BUFR4-46/BUFRCREX_TableB_en_05.csv": "1fba19a47129899627177d8b2a540b0cb47930697e436752927a44175f14ec1d",
+    "BUFR4-46/BUFRCREX_TableB_en_06.csv": "b4f0b338c05206e3e6e4b98ae11037bd21cb976415c4cbed4507b0fc3da8d02f",
+    "BUFR4-46/BUFRCREX_TableB_en_07.csv": "39594f6940d82ca0b5d2df113770cb58862148e792b7506feb6b7e71236d932f",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_08.csv": "76c7ed60d854f6cb01559ec2be16c01979c3b31b3dc7ed2c42445de0a394a881",
+    "BUFR4-46/BUFRCREX_TableB_en_08.csv": "20829585b5a897f98893e98d5bda2afd83b7fe0036586fd4c608f272173e8a92",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_10.csv": "e824ff513910529fe9059eca2ddae71f679810f0a96ed8c8da16421019af6df0",
+    "BUFR4-46/BUFRCREX_TableB_en_10.csv": "9318d78d6f85138aebbc14898fecb4fb592eb61be1e9909398adadf6d7e01f56",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_11.csv": "a841f5c7a1e8e2d29179e6cbda8171e900c05a568d5eb36ed0c095268a7e6005",
+    "BUFR4-46/BUFRCREX_TableB_en_11.csv": "0fc08c73d54e6c8d3028403649fd2f7a7765fe8d0f735fc21738868a522f3f5e",
+    "BUFR4-46/BUFRCREX_TableB_en_12.csv": "ef265b64fd94b06d9e79d712288c815acd55add2bda6f5606134b0cd235c8c90",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_13.csv": "623ccc4491f435a7ee0fcf3d6b6a32f6ecfb52e3ee4835d7de41eab48a37c48d",
+    "BUFR4-46/BUFRCREX_TableB_en_13.csv": "a55aa0b5fb7969c501806e97d810ed13e2289f09365d9f7d7b69a233d380e40d",
+    "BUFR4-46/BUFRCREX_CodeFlag_en_20.csv": "91dbb072387f166cb6f629340985846d8e6ed1de2ac2a625bdf222328f32b390",
+    "BUFR4-46/BUFRCREX_TableB_en_20.csv": "cb5d838f64e8ea3f6a9d895d6146e0b70eb1e4bca54184a3b1f1133ce5fbc033",
+    "BUFR4-46/BUFR_TableD_en_07.csv": "3cfae794a52247750be93df0c76d922c9bf62c4af1d7822a8a46ac22588a1a0b",
+    "CCT-2026-06-01/C13.csv": "ee724b77e1d5815af987380337ba14e330c88839b72c8d1dd587c7bfe0f96c1c",
+    "BUFR4-46/LICENSE.md": "1840225ada0bffce85989af423138acd09ae2d69c36c16de06fe07c9729d3714",
+    "CCT-2026-06-01/LICENSE.md": "1840225ada0bffce85989af423138acd09ae2d69c36c16de06fe07c9729d3714"
+  },
+  "licenses": {
+    "BUFR4-46": "# The MIT License (MIT)\n\nCopyright &copy; 2020-2024\n\n* * *\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n",
+    "CCT-2026-06-01": "# The MIT License (MIT)\n\nCopyright &copy; 2020-2024\n\n* * *\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+  },
+  "fields": [
+    {
+      "id": "001001",
+      "name": "WMO block number",
+      "unit": "Numeric",
+      "scale": 0,
+      "reference": 0,
+      "bits": 7,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "001002",
+      "name": "WMO station number",
+      "unit": "Numeric",
+      "scale": 0,
+      "reference": 0,
+      "bits": 10,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "001015",
+      "name": "Station or site name",
+      "unit": "CCITT IA5",
+      "scale": 0,
+      "reference": 0,
+      "bits": 160,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "001063",
+      "name": "ICAO location indicator",
+      "unit": "CCITT IA5",
+      "scale": 0,
+      "reference": 0,
+      "bits": 64,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "002001",
+      "name": "Type of station",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 2,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "Automatic",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "Manned",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "Hybrid: both manned and automatic",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "004001",
+      "name": "Year",
+      "unit": "a",
+      "scale": 0,
+      "reference": 0,
+      "bits": 12,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "004002",
+      "name": "Month",
+      "unit": "mon",
+      "scale": 0,
+      "reference": 0,
+      "bits": 4,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "004003",
+      "name": "Day",
+      "unit": "d",
+      "scale": 0,
+      "reference": 0,
+      "bits": 6,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "004004",
+      "name": "Hour",
+      "unit": "h",
+      "scale": 0,
+      "reference": 0,
+      "bits": 5,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "004005",
+      "name": "Minute",
+      "unit": "min",
+      "scale": 0,
+      "reference": 0,
+      "bits": 6,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "005001",
+      "name": "Latitude (high accuracy)",
+      "unit": "deg",
+      "scale": 5,
+      "reference": -9000000,
+      "bits": 25,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "006001",
+      "name": "Longitude (high accuracy)",
+      "unit": "deg",
+      "scale": 5,
+      "reference": -18000000,
+      "bits": 26,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "007030",
+      "name": "Height of station ground above mean sea level",
+      "unit": "m",
+      "scale": 1,
+      "reference": -4000,
+      "bits": 17,
+      "status": "Operational",
+      "notes": [
+        "(see Note 3)",
+        "Height of station ground above mean sea level is defined as the height above mean sea level of the ground on which the rain gauge stands or, if there is no rain gauge,the ground beneath the thermometer screen. If there is neither rain gauge nor screen, it is the average level of terrain in the vicinity of the station (Reference: Guide to Meteorological Instruments and Methods of Observation (WMO-No. 8), 1996)."
+      ],
+      "codes": []
+    },
+    {
+      "id": "007031",
+      "name": "Height of barometer above mean sea level",
+      "unit": "m",
+      "scale": 1,
+      "reference": -4000,
+      "bits": 17,
+      "status": "Operational",
+      "notes": [
+        "(see Note 4)",
+        "Height of barometer above mean sea level, referring to the location of barometer of a station, does not redefine the descriptor 0 07 030."
+      ],
+      "codes": []
+    },
+    {
+      "id": "007032",
+      "name": "Height of sensor above local ground (or deck of marine platform)",
+      "unit": "m",
+      "scale": 2,
+      "reference": 0,
+      "bits": 16,
+      "status": "Operational",
+      "notes": [
+        "(see Note 5)",
+        "Height of sensor above local ground (or deck of marine platform) is the actual height of sensor above ground (or deck of marine platform) at the point where the sensor is located. This descriptor does not redefine the descriptors 0 07 030 or 0 07 033. Previously defined value of 0 07 032 may be cancelled by setting 0 07 032 to a\"missing value\"."
+      ],
+      "codes": []
+    },
+    {
+      "id": "008016",
+      "name": "Change qualifier of a trend-type forecast or an aerodrome forecast",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 3,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "NOSIG",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "BECMG",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "TEMPO",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "FM",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "4-6",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "7",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "008017",
+      "name": "Qualifier of the time when the forecast change is expected",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 2,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "FM",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "TL",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "AT",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "010004",
+      "name": "Pressure",
+      "unit": "Pa",
+      "scale": -1,
+      "reference": 0,
+      "bits": 14,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "010051",
+      "name": "Pressure reduced to mean sea level",
+      "unit": "Pa",
+      "scale": -1,
+      "reference": 0,
+      "bits": 14,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "010063",
+      "name": "Characteristic of pressure tendency",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 4,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "Increasing, then decreasing; atmospheric pressure the same or higher than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "Increasing, then steady; or increasing, then increasing more slowly · Atmospheric pressure now higher than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "Increasing (steadily or unsteadily) · Atmospheric pressure now higher than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "Decreasing or steady, then increasing; or increasing, then increasing more rapidly · Atmospheric pressure now higher than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "4",
+          "meaning": "Steady; atmospheric pressure the same as three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "5",
+          "meaning": "Decreasing, then increasing; atmospheric pressure the same or lower than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "6",
+          "meaning": "Decreasing, then steady; or decreasing, then decreasing more slowly · Atmospheric pressure now lower than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "7",
+          "meaning": "Decreasing (steadily or unsteadily) · Atmospheric pressure now lower than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "8",
+          "meaning": "Steady or increasing, then decreasing; or decreasing, then decreasing more rapidly · Atmospheric pressure now lower than three hours ago",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "9-14",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "15",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "011001",
+      "name": "Wind direction",
+      "unit": "degree true",
+      "scale": 0,
+      "reference": 0,
+      "bits": 9,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "011002",
+      "name": "Wind speed",
+      "unit": "m/s",
+      "scale": 1,
+      "reference": 0,
+      "bits": 12,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "011041",
+      "name": "Maximum wind gust speed",
+      "unit": "m/s",
+      "scale": 1,
+      "reference": 0,
+      "bits": 12,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "012101",
+      "name": "Temperature/air temperature",
+      "unit": "K",
+      "scale": 2,
+      "reference": 0,
+      "bits": 16,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "012103",
+      "name": "Dewpoint temperature",
+      "unit": "K",
+      "scale": 2,
+      "reference": 0,
+      "bits": 16,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "013003",
+      "name": "Relative humidity",
+      "unit": "%",
+      "scale": 0,
+      "reference": 0,
+      "bits": 7,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "013011",
+      "name": "Total precipitation/total water equivalent",
+      "unit": "kg m-2",
+      "scale": 1,
+      "reference": -1,
+      "bits": 14,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "020001",
+      "name": "Horizontal visibility",
+      "unit": "m",
+      "scale": -1,
+      "reference": 0,
+      "bits": 13,
+      "status": "Operational",
+      "notes": [],
+      "codes": []
+    },
+    {
+      "id": "020003",
+      "name": "Present weather",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 9,
+      "status": "Operational",
+      "notes": [
+        "(see Note 1)",
+        "When encoding present weather reported from an automatic weather station, the appropriate combination of descriptors 0 20 021, 0 20 022, 0 20 023, 0 20 024,0 20 025, 0 20 026 and 0 20 027 should be used and preferred. Descriptor 0 20 003 should be used only when descriptors mentioned above are not applicable."
+      ],
+      "codes": [
+        {
+          "code": "",
+          "meaning": "00-49     No precipitation at the station at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "00-19     No precipitation, fog, ice fog (except for 11 and 12), duststorm, sandstorm, drifting or blowing snow at the station at the time of observation or, except for 09 and 17, during the preceding hour",
+          "status": "Operational",
+          "notes": [
+            "(see Note 4)",
+            "The expression 'at the station' refers to a land station or a ship."
+          ]
+        },
+        {
+          "code": "",
+          "meaning": "00-03     No meteors except photometeors",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "00",
+          "meaning": "Cloud development not observed or not observable · Characteristic change of the state of sky during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "01",
+          "meaning": "Clouds generally dissolving or becoming less developed · Characteristic change of the state of sky during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "02",
+          "meaning": "State of sky on the whole unchanged · Characteristic change of the state of sky during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "03",
+          "meaning": "Clouds generally forming or developing · Characteristic change of the state of sky during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "04-09     Haze, dust, sand or smoke",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "04",
+          "meaning": "Visibility reduced by smoke, e.g. veldt or forest fires, industrial smoke or volcanic ashes",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "05",
+          "meaning": "Haze",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "06",
+          "meaning": "Widespread dust in suspension in the air, not raised by wind at or near the station at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "07",
+          "meaning": "Dust or sand raised by wind at or near the station at the time of observation, but no well-developed dust whirl(s) or sand whirl(s), and no duststorm or sandstorm seen; or, in the case of sea stations and coastal stations, blowing spray at the station",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "08",
+          "meaning": "Well-developed dust whirl(s) or sand whirl(s) seen at or near the station during the preceding hour or at the same time of observation, but no duststorm or sandstorm",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "09",
+          "meaning": "Duststorm or sandstorm within sight at the time of observation, or at the station during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "10",
+          "meaning": "Mist",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "11",
+          "meaning": "Patches · shallow fog or ice fog at the station, whether on land or sea, not deeper than about 2 metres on land or 10 metres at sea",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "12",
+          "meaning": "More or less continuous · shallow fog or ice fog at the station, whether on land or sea, not deeper than about 2 metres on land or 10 metres at sea",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "13",
+          "meaning": "Lightning visible, no thunder heard",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "14",
+          "meaning": "Precipitation within sight, not reaching the ground or the surface of the sea",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "15",
+          "meaning": "Precipitation within sight, reaching the ground or the surface of the sea, but distant, i.e. estimated to be more than 5 km from the station",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "16",
+          "meaning": "Precipitation within sight, reaching the ground or the surface of the sea, near to, but not at the station",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "17",
+          "meaning": "Thunderstorm, but no precipitation at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "18",
+          "meaning": "Squalls · at or within sight of the station during the preceding hour or at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "19",
+          "meaning": "Funnel cloud(s) · at or within sight of the station during the preceding hour or at the time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 5)",
+            "'Funnel cloud(s)' refer to tornado clouds or waterspouts."
+          ]
+        },
+        {
+          "code": "",
+          "meaning": "20-29     Precipitation, fog, ice fog or thunderstorm at the station during the preceding hour but not at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "20",
+          "meaning": "Drizzle (not freezing) or snow grains · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "21",
+          "meaning": "Rain (not freezing) · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "22",
+          "meaning": "Snow · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "23",
+          "meaning": "Rain and snow or ice pellets · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "24",
+          "meaning": "Freezing drizzle or freezing rain · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "25",
+          "meaning": "Shower(s) of rain · not falling as shower(s)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "26",
+          "meaning": "Shower(s) of snow, or of rain and snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "27",
+          "meaning": "Shower(s) of hail, or of rain and hail",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "28",
+          "meaning": "Fog or ice fog",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "29",
+          "meaning": "Thunderstorm (with or without precipitation)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "30-39     Duststorm, sandstorm, drifting or blowing snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "30",
+          "meaning": "Slight or moderate duststorm or sandstorm · has decreased during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "31",
+          "meaning": "Slight or moderate duststorm or sandstorm · no appreciable change during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "32",
+          "meaning": "Slight or moderate duststorm or sandstorm · has begun or has increased during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "33",
+          "meaning": "Severe duststorm or sandstorm · has decreased during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "34",
+          "meaning": "Severe duststorm or sandstorm · no appreciable change during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "35",
+          "meaning": "Severe duststorm or sandstorm · has begun or has increased during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "36",
+          "meaning": "Slight or moderate drifting snow · generally low (below eye level)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "37",
+          "meaning": "Heavy drifting snow · generally low (below eye level)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "38",
+          "meaning": "Slight or moderate blowing snow · generally high (above eye level)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "39",
+          "meaning": "Heavy blowing snow · generally high (above eye level)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "40-49     Fog or ice fog at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "40",
+          "meaning": "Fog or ice fog at a distance at the time of observation, but not at the station during the preceding hour, the fog or ice fog extending to a level above that of the observer",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "41",
+          "meaning": "Fog or ice fog in patches",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "42",
+          "meaning": "Fog or ice fog, sky visible · has become thinner during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "43",
+          "meaning": "Fog or ice fog, sky invisible · has become thinner during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "44",
+          "meaning": "Fog or ice fog, sky visible · no appreciable change during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "45",
+          "meaning": "Fog or ice fog, sky invisible · no appreciable change during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "46",
+          "meaning": "Fog or ice fog, sky visible · has begun or has become thicker during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "47",
+          "meaning": "Fog or ice fog, sky invisible · has begun or has become thicker during the preceding hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "48",
+          "meaning": "Fog, depositing rime, sky visible",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "49",
+          "meaning": "Fog, depositing rime, sky invisible",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "50-99     Precipitation at the station at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "50-59     Drizzle",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "50",
+          "meaning": "Drizzle, not freezing, intermittent · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "51",
+          "meaning": "Drizzle, not freezing, continuous · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "52",
+          "meaning": "Drizzle, not freezing, intermittent · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "53",
+          "meaning": "Drizzle, not freezing, continuous · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "54",
+          "meaning": "Drizzle, not freezing, intermittent · heavy (dense) at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "55",
+          "meaning": "Drizzle, not freezing, continuous · heavy (dense) at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "56",
+          "meaning": "Drizzle, freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "57",
+          "meaning": "Drizzle, freezing, moderate or heavy (dense)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "58",
+          "meaning": "Drizzle and rain, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "59",
+          "meaning": "Drizzle and rain, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "60-69     Rain",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "60",
+          "meaning": "Rain, not freezing, intermittent · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "61",
+          "meaning": "Rain, not freezing, continuous · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "62",
+          "meaning": "Rain, not freezing, intermittent · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "63",
+          "meaning": "Rain, not freezing, continuous · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "64",
+          "meaning": "Rain, not freezing, intermittent · heavy at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "65",
+          "meaning": "Rain, not freezing, continuous · heavy at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "66",
+          "meaning": "Rain, freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "67",
+          "meaning": "Rain, freezing, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "68",
+          "meaning": "Rain or drizzle and snow, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "69",
+          "meaning": "Rain or drizzle and snow, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "70-79     Solid precipitation not in showers",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "70",
+          "meaning": "Intermittent fall of snowflakes · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "71",
+          "meaning": "Continuous fall of snowflakes · slight at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "72",
+          "meaning": "Intermittent fall of snowflakes · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "73",
+          "meaning": "Continuous fall of snowflakes · moderate at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "74",
+          "meaning": "Intermittent fall of snowflakes · heavy at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "75",
+          "meaning": "Continuous fall of snowflakes · heavy at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "76",
+          "meaning": "Diamond dust (with or without fog)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "77",
+          "meaning": "Snow grains (with or without fog)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "78",
+          "meaning": "Isolated star-like snow crystals (with or without fog)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "79",
+          "meaning": "Ice pellets",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "80-99     Showery precipitation, or precipitation with current or recent thunderstorm",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "80",
+          "meaning": "Rain shower(s), slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "81",
+          "meaning": "Rain shower(s), moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "82",
+          "meaning": "Rain shower(s), violent",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "83",
+          "meaning": "Shower(s) of rain and snow mixed, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "84",
+          "meaning": "Shower(s) of rain and snow mixed, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "85",
+          "meaning": "Snow shower(s), slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "86",
+          "meaning": "Snow shower(s), moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "87",
+          "meaning": "Shower(s) of snow pellets or small hail, with or without rain or rain and snow mixed · slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "88",
+          "meaning": "Shower(s) of snow pellets or small hail, with or without rain or rain and snow mixed · moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "89",
+          "meaning": "Shower(s) of hail, with or without rain or rain and snow mixed, not associated with thunder · slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "90",
+          "meaning": "Shower(s) of hail, with or without rain or rain and snow mixed, not associated with thunder · moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "91",
+          "meaning": "Slight rain at time of observation · Thunderstorm during the preceding hour but not at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "92",
+          "meaning": "Moderate or heavy rain at time of observation · Thunderstorm during the preceding hour but not at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "93",
+          "meaning": "Slight snow, or rain and snow mixed or hail at time of observation · Thunderstorm during the preceding hour but not at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "94",
+          "meaning": "Moderate or heavy snow, or rain and snow mixed or hail at time of observation · Thunderstorm during the preceding hour but not at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "95",
+          "meaning": "Thunderstorm, slight or moderate, without hail, but with rain and/or snow at time of observation · Thunderstorm at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "96",
+          "meaning": "Thunderstorm, slight or moderate, with hail at time of observation · Thunderstorm at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "97",
+          "meaning": "Thunderstorm, heavy, without hail, but with rain and/or snow at time of observation · Thunderstorm at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "98",
+          "meaning": "Thunderstorm combined with duststorm or sandstorm at time of observation · Thunderstorm at time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "99",
+          "meaning": "Thunderstorm, heavy, with hail at time of observation · Thunderstorm at time of observation",
+          "status": "Operational",
+          "notes": [
+            "(see Note 6)",
+            "'Hail' refers to hail, small hail or snow pellets."
+          ]
+        },
+        {
+          "code": "",
+          "meaning": "Present weather reported from an automatic weather station",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "100",
+          "meaning": "No significant weather observed",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "101",
+          "meaning": "Clouds generally dissolving or becoming less developed during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "102",
+          "meaning": "State of sky on the whole unchanged during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "103",
+          "meaning": "Clouds generally forming or developing during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "104",
+          "meaning": "Haze or smoke, or dust in suspension in the air, visibility equal to, or greater than, 1 km",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "105",
+          "meaning": "Haze or smoke, or dust in suspension in the air, visibility less than 1 km",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "106-109",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "110",
+          "meaning": "Mist",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "111",
+          "meaning": "Diamond dust",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "112",
+          "meaning": "Distant lightning",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "113-117",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "118",
+          "meaning": "Squalls",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "119",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Code figures 120-126 are used to report precipitation, fog (or ice fog) or thunderstorm at the station during the preceding hour but not at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "120",
+          "meaning": "Fog",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "121",
+          "meaning": "PRECIPITATION",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "122",
+          "meaning": "Drizzle (not freezing) or snow grains",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "123",
+          "meaning": "Rain (not freezing)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "124",
+          "meaning": "Snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "125",
+          "meaning": "Freezing drizzle or freezing rain",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "126",
+          "meaning": "Thunderstorm (with or without precipitation)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "127",
+          "meaning": "BLOWING OR DRIFTING SNOW OR SAND",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "128",
+          "meaning": "Blowing or drifting snow or sand, visibility equal to, or greater than, 1 km",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "129",
+          "meaning": "Blowing or drifting snow or sand, visibility less than 1 km",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "130",
+          "meaning": "FOG",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "131",
+          "meaning": "Fog or ice fog in patches",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "132",
+          "meaning": "Fog or ice fog, has become thinner during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "133",
+          "meaning": "Fog or ice fog, no appreciable change during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "134",
+          "meaning": "Fog or ice fog, has begun or become thicker during the past hour",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "135",
+          "meaning": "Fog, depositing rime",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "136-139",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "140",
+          "meaning": "PRECIPITATION",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "141",
+          "meaning": "Precipitation, slight or moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "142",
+          "meaning": "Precipitation, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "143",
+          "meaning": "Liquid precipitation, slight or moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "144",
+          "meaning": "Liquid precipitation, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "145",
+          "meaning": "Solid precipitation, slight or moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "146",
+          "meaning": "Solid precipitation, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "147",
+          "meaning": "Freezing precipitation, slight or moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "148",
+          "meaning": "Freezing precipitation, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "149",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "150",
+          "meaning": "DRIZZLE",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "151",
+          "meaning": "Drizzle, not freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "152",
+          "meaning": "Drizzle, not freezing, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "153",
+          "meaning": "Drizzle, not freezing, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "154",
+          "meaning": "Drizzle, freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "155",
+          "meaning": "Drizzle, freezing, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "156",
+          "meaning": "Drizzle, freezing, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "157",
+          "meaning": "Drizzle and rain, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "158",
+          "meaning": "Drizzle and rain, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "159",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "160",
+          "meaning": "RAIN",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "161",
+          "meaning": "Rain, not freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "162",
+          "meaning": "Rain, not freezing, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "163",
+          "meaning": "Rain, not freezing, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "164",
+          "meaning": "Rain, freezing, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "165",
+          "meaning": "Rain, freezing, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "166",
+          "meaning": "Rain, freezing, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "167",
+          "meaning": "Rain (or drizzle) and snow, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "168",
+          "meaning": "Rain (or drizzle) and snow, moderate or heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "169",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "170",
+          "meaning": "SNOW",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "171",
+          "meaning": "Snow, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "172",
+          "meaning": "Snow, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "173",
+          "meaning": "Snow, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "174",
+          "meaning": "Ice pellets, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "175",
+          "meaning": "Ice pellets, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "176",
+          "meaning": "Ice pellets, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "177",
+          "meaning": "Snow grains",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "178",
+          "meaning": "Ice crystals",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "179",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "180",
+          "meaning": "SHOWER(S) OR INTERMITTENT PRECIPITATION",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "181",
+          "meaning": "Rain shower(s) or intermittent rain, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "182",
+          "meaning": "Rain shower(s) or intermittent rain, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "183",
+          "meaning": "Rain shower(s) or intermittent rain, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "184",
+          "meaning": "Rain shower(s) or intermittent rain, violent",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "185",
+          "meaning": "Snow shower(s) or intermittent snow, slight",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "186",
+          "meaning": "Snow shower(s) or intermittent snow, moderate",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "187",
+          "meaning": "Snow shower(s) or intermittent snow, heavy",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "188",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "189",
+          "meaning": "Hail",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "190",
+          "meaning": "THUNDERSTORM",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "191",
+          "meaning": "Thunderstorm, slight or moderate, with no precipitation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "192",
+          "meaning": "Thunderstorm, slight or moderate, with rain showers and/or snow showers",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "193",
+          "meaning": "Thunderstorm, slight or moderate, with hail",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "194",
+          "meaning": "Thunderstorm, heavy, with no precipitation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "195",
+          "meaning": "Thunderstorm, heavy, with rain showers and/or snow showers",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "196",
+          "meaning": "Thunderstorm, heavy, with hail",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "197-198",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "199",
+          "meaning": "Tornado",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Present weather (in addition to present weather report from either a manned or an automatic station)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 200-209",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "200-203",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "204",
+          "meaning": "Volcanic ash suspended in the air aloft",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "205",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "206",
+          "meaning": "Thick dust haze, visibility less than 1 km",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "207",
+          "meaning": "Blowing spray at the station",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "208",
+          "meaning": "Drifting dust (sand)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "209",
+          "meaning": "Wall of dust or sand in distance (like haboob)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 210-219",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "210",
+          "meaning": "Snow haze",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "211",
+          "meaning": "Whiteout",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "212",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "213",
+          "meaning": "Lightning, cloud to surface",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "214-216",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "217",
+          "meaning": "Dry thunderstorm",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "218",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "219",
+          "meaning": "Tornado cloud (destructive) at or within sight of the station during preceding hour or at the time of observation",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 220-229",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "220",
+          "meaning": "Deposition of volcanic ash",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "221",
+          "meaning": "Deposition of dust or sand",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "222",
+          "meaning": "Deposition of dew",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "223",
+          "meaning": "Deposition of wet snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "224",
+          "meaning": "Deposition of soft rime",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "225",
+          "meaning": "Deposition of hard rime",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "226",
+          "meaning": "Deposition of hoar frost",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "227",
+          "meaning": "Deposition of glaze",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "228",
+          "meaning": "Deposition of ice crust (ice slick)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "229",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 230-239",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "230",
+          "meaning": "Duststorm or sandstorm with temperature below 0 deg C",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "231-238",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "239",
+          "meaning": "Blowing snow, impossible to determine whether snow is falling or not",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 240-249",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "240",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "241",
+          "meaning": "Fog on sea",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "242",
+          "meaning": "Fog in valleys",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "243",
+          "meaning": "Arctic or Antarctic sea smoke",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "244",
+          "meaning": "Steam fog (sea, lake or river)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "245",
+          "meaning": "Steam log (land)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "246",
+          "meaning": "Fog over ice or snow cover",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "247",
+          "meaning": "Dense fog, visibility 60-90 m",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "248",
+          "meaning": "Dense fog, visibility 30-60 m",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "249",
+          "meaning": "Dense fog, visibility less than 30 m",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 250-259",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "250",
+          "meaning": "Drizzle, rate of fall - less than 0.10 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "251",
+          "meaning": "Drizzle, rate of fall - 0.10-0.19 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "252",
+          "meaning": "Drizzle, rate of fall - 0.20-0.39 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "253",
+          "meaning": "Drizzle, rate of fall - 0.40-0.79 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "254",
+          "meaning": "Drizzle, rate of fall - 0.80-1.59 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "255",
+          "meaning": "Drizzle, rate of fall - 1.60-3.19 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "256",
+          "meaning": "Drizzle, rate of fall - 3.20-6.39 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "257",
+          "meaning": "Drizzle, rate of fall - 6.4 mm h-1 or more",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "258",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "259",
+          "meaning": "Drizzle and snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 260-269",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "260",
+          "meaning": "Rain, rate of fall - less than 1.0 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "261",
+          "meaning": "Rain, rate of fall - 1.0-1.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "262",
+          "meaning": "Rain, rate of fall - 2.0-3.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "263",
+          "meaning": "Rain, rate of fall - 4.0-7.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "264",
+          "meaning": "Rain, rate of fall - 8.0-15.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "265",
+          "meaning": "Rain, rate of fall - 16.0-31.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "266",
+          "meaning": "Rain, rate of fall - 32.0-63.9 mm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "267",
+          "meaning": "Rain, rate of fall - 64.0 mm h-1 or more",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "268-269",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 270-279",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "270",
+          "meaning": "Snow, rate of fall - less than 1.0 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "271",
+          "meaning": "Snow, rate of fall - 1.0-1.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "272",
+          "meaning": "Snow, rate of fall - 2.0-3.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "273",
+          "meaning": "Snow, rate of fall - 4.0-7.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "274",
+          "meaning": "Snow, rate of fall - 8.0-15.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "275",
+          "meaning": "Snow, rate of fall - 16.0-31.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "276",
+          "meaning": "Snow, rate of fall - 32.0-63.9 cm h-1",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "277",
+          "meaning": "Snow, rate of fall - 64.0 cm h-1 or more",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "278",
+          "meaning": "Snow or ice crystal precipitation from a clear sky",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "279",
+          "meaning": "Wet snow, freezing on contact",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "",
+          "meaning": "Deciles 280-299",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "280",
+          "meaning": "Precipitation of rain",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "281",
+          "meaning": "Precipitation of rain, freezing",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "282",
+          "meaning": "Precipitation of rain and snow mixed",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "283",
+          "meaning": "Precipitation of snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "284",
+          "meaning": "Precipitation of snow pellets or small hall",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "285",
+          "meaning": "Precipitation of snow pellets or small hail, with rain",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "286",
+          "meaning": "Precipitation of snow pellets or small hail, with rain and snow mixed",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "287",
+          "meaning": "Precipitation of snow pellets or small hail, with snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "288",
+          "meaning": "Precipitation of hail",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "289",
+          "meaning": "Precipitation of hail, with rain",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "290",
+          "meaning": "Precipitation of hall, with rain and snow mixed",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "291",
+          "meaning": "Precipitation of hail, with snow",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "292",
+          "meaning": "Shower(s) or thunderstorm over sea",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "293",
+          "meaning": "Shower(s) or thunderstorm over mountains",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "294-299",
+          "meaning": "Not used",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "300-507",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "508",
+          "meaning": "No significant phenomenon to report, present and past weather omitted",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "509",
+          "meaning": "No observation, data not available, present and past weather omitted",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "510",
+          "meaning": "Present and past weather missing, but expected",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "511",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "020009",
+      "name": "General weather indicator (TAF/METAR)",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 4,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "NSC Nil Significant Cloud",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "CAVOK",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "SKC Sky Clear",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "4",
+          "meaning": "NSW Nil Significant Weather",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "5",
+          "meaning": "NCD No clouds detected",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "6-14",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "15",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "020010",
+      "name": "Cloud cover (total)",
+      "unit": "%",
+      "scale": 0,
+      "reference": 0,
+      "bits": 7,
+      "status": "Operational",
+      "notes": [
+        "(see Note 5)",
+        "A cloud cover (total) value 113 shall indicate \"Sky obscured by fog and/or other meteorological phenomena\"."
+      ],
+      "codes": []
+    },
+    {
+      "id": "020011",
+      "name": "Cloud amount",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 4,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "0 · 0",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "1 okta or less, but not zero · 1/10 or less, but not zero",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "2 oktas · 2/10 - 3/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "3 oktas · 4/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "4",
+          "meaning": "4 oktas · 5/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "5",
+          "meaning": "5 oktas · 6/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "6",
+          "meaning": "6 oktas · 7/10 - 8/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "7",
+          "meaning": "7 oktas or more, but not 8 oktas · 9/10 or more, but not 10/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "8",
+          "meaning": "8 oktas · 10/10",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "9",
+          "meaning": "Sky obscured by fog and/or other meteorological phenomena",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "10",
+          "meaning": "Sky partially obscured by fog and/or other meteorological phenomena",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "11",
+          "meaning": "Scattered",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "12",
+          "meaning": "Broken",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "13",
+          "meaning": "Few",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "14",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "15",
+          "meaning": "Cloud cover is indiscernible for reasons other than fog or other meteorological phenomena, or observation is not made",
+          "status": "Operational",
+          "notes": [
+            " (see Note 1)",
+            "For use of code figure 15, see Regulation 12.1.4."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "020012",
+      "name": "Cloud type",
+      "unit": "Code table",
+      "scale": 0,
+      "reference": 0,
+      "bits": 6,
+      "status": "Operational",
+      "notes": [],
+      "codes": [
+        {
+          "code": "0",
+          "meaning": "Cirrus (Ci)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "1",
+          "meaning": "Cirrocumulus (Cc)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "2",
+          "meaning": "Cirrostratus (Cs)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "3",
+          "meaning": "Altocumulus (Ac)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "4",
+          "meaning": "Altostratus (As)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "5",
+          "meaning": "Nimbostratus (Ns)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "6",
+          "meaning": "Stratocumulus (Sc)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "7",
+          "meaning": "Stratus (St)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "8",
+          "meaning": "Cumulus (Cu)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "9",
+          "meaning": "Cumulonimbus (Cb)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "10",
+          "meaning": "No CH clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "11",
+          "meaning": "Cirrus fibratus, sometimes uncinus, not progressively invading the sky",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "12",
+          "meaning": "Cirrus spissatus, in patches or entangled sheaves, which usually do not increase and sometimes seem to be the remains of the upper part of a cumulonimbus; or cirrus castellanus or floccus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "13",
+          "meaning": "Cirrus spissatus cumulonimbogenitus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "14",
+          "meaning": "Cirrus uncinus or fibratus, or both, progressively invading the sky; they generally thicken as a whole",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "15",
+          "meaning": "Cirrus (often in bands) and cirrostratus, or cirrostratus alone, progressively invading the sky; they generally thicken as a whole, but the continuous veil does not reach 45 degrees above the horizon",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "16",
+          "meaning": "Cirrus (often in bands) and cirrostratus, or cirrostratus alone, progressively Invading the sky; they generally thicken as a whole; the continuous veil extends more than 45 degrees above the horizon, without the sky being totally covered",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "17",
+          "meaning": "Cirrostratus covering the whole sky",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "18",
+          "meaning": "Cirrostratus not progressively invading the sky and not entirely covering it",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "19",
+          "meaning": "Cirrocumulus alone, or cirrocumulus predominant among the CH clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "20",
+          "meaning": "No CM clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "21",
+          "meaning": "Altostratus translucidus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "22",
+          "meaning": "Altostratus opacus or nimbostratus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "23",
+          "meaning": "Altocumulus translucidus at a single level",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "24",
+          "meaning": "Patches (often lenticular) of altocumulus translucidus, continually changing and occurring at one or more levels",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "25",
+          "meaning": "Altocumulus translucidus in bands, or one or more layers of altocumulus translucidus or opacus, progressively invading the sky; these altocumulus clouds generally thicken as a whole",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "26",
+          "meaning": "Altocumulus cumulogenitus (or cumulonimbogenitus)",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "27",
+          "meaning": "Altocumulus translucidus or opacus in two or more layers, or altocumulus opacus in a single layer, not progressively invading the sky, or altocumulus with altostratus or nimbostratus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "28",
+          "meaning": "Altocumulus castellanus or floccus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "29",
+          "meaning": "Altocumulus of a chaotic sky, generally at several levels",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "30",
+          "meaning": "No CL clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "31",
+          "meaning": "Cumulus humilis or cumulus fractus other than of bad weather, or both",
+          "status": "Operational",
+          "notes": [
+            "(see Note)",
+            "'Bad weather' denotes the conditions which generally exist during precipitation and a short time before and after."
+          ]
+        },
+        {
+          "code": "32",
+          "meaning": "Cumulus mediocris or congestus, towering cumulus (TCU), with or without cumulus of species fractus or humilis or stratocumulus, all having their bases at the same level",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "33",
+          "meaning": "Cumulonimbus calvus, with or without cumulus, stratocumulus or stratus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "34",
+          "meaning": "Stratocumulus cumulogenitus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "35",
+          "meaning": "Stratocumulus other than stratocumulus cumulogenitus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "36",
+          "meaning": "Stratus nebulosus or stratus fractus other than of bad weather, or both",
+          "status": "Operational",
+          "notes": [
+            "(see Note)",
+            "'Bad weather' denotes the conditions which generally exist during precipitation and a short time before and after."
+          ]
+        },
+        {
+          "code": "37",
+          "meaning": "Stratus fractus or cumulus fractus of bad weather, or both (pannus), usually below altostratus or nimbostratus",
+          "status": "Operational",
+          "notes": [
+            "(see Note)",
+            "'Bad weather' denotes the conditions which generally exist during precipitation and a short time before and after."
+          ]
+        },
+        {
+          "code": "38",
+          "meaning": "Cumulus and stratocumulus other than stratocumulus cumulogenitus, with bases at different levels",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "39",
+          "meaning": "Cumulonimbus capillatus (often with an anvil), with or without cumulonimbus calvus, cumulus, stratocumulus, stratus or pannus",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "40",
+          "meaning": "CH",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "41",
+          "meaning": "CM",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "42",
+          "meaning": "CL",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "43",
+          "meaning": "Clear",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "44",
+          "meaning": "Liquid water",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "45",
+          "meaning": "Supercooled liquid water",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "46",
+          "meaning": "Mixed phase",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "47",
+          "meaning": "Optically thick ice",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "48",
+          "meaning": "Optically thin ice",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "49",
+          "meaning": "Multilayered ice",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "50-58",
+          "meaning": "Reserved",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "59",
+          "meaning": "Cloud not visible owing to darkness, fog, duststorm, sandstorm, or other analogous phenomena",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "60",
+          "meaning": "CH clouds invisible owing to darkness, fog, blowing dust or sand, or other similar phenomena, or because of a continuous layer of lower clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "61",
+          "meaning": "CM clouds invisible owing to darkness, fog, blowing dust or sand, or other similar phenomena, or because of continuous layer of lower clouds",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "62",
+          "meaning": "CL clouds invisible owing to darkness, fog, blowing dust or sand, or other similar phenomena",
+          "status": "Operational",
+          "notes": []
+        },
+        {
+          "code": "63",
+          "meaning": "Missing value",
+          "status": "Operational",
+          "notes": []
+        }
+      ]
+    },
+    {
+      "id": "020013",
+      "name": "Height of base of cloud",
+      "unit": "m",
+      "scale": -1,
+      "reference": -40,
+      "bits": 11,
+      "status": "Operational",
+      "notes": [
+        "(see Note 6)",
+        "When encoding height of cloud base between 20 050 and 21 000 m, 0 20 013 shall be set to 20 050; when encoding height of cloud base above 21 000 m, 0 20 013 shall be set to 20 060."
+      ],
+      "codes": []
+    }
+  ],
+  "sequences": [
+    {
+      "id": "307011",
+      "name": "Main part of data for representation of METAR/SPECI code in BUFR",
+      "members": [
+        {
+          "position": 1,
+          "id": "001063",
+          "name": "ICAO location indicator",
+          "description": ""
+        },
+        {
+          "position": 2,
+          "id": "002001",
+          "name": "Type of station",
+          "description": ""
+        },
+        {
+          "position": 3,
+          "id": "301011",
+          "name": "Year, month, day",
+          "description": "YY"
+        },
+        {
+          "position": 4,
+          "id": "301012",
+          "name": "Hour, minute",
+          "description": "GG, gg"
+        },
+        {
+          "position": 5,
+          "id": "301024",
+          "name": "Latitude/longitude (coarse accuracy), height of station",
+          "description": ""
+        },
+        {
+          "position": 6,
+          "id": "007006",
+          "name": "Height above station",
+          "description": "Height of an anemometer"
+        },
+        {
+          "position": 7,
+          "id": "011001",
+          "name": "Wind direction",
+          "description": ""
+        },
+        {
+          "position": 8,
+          "id": "011016",
+          "name": "Extreme counterclockwise wind direction of a variable wind",
+          "description": ""
+        },
+        {
+          "position": 9,
+          "id": "011017",
+          "name": "Extreme clockwise wind direction of a variable wind",
+          "description": ""
+        },
+        {
+          "position": 10,
+          "id": "011002",
+          "name": "Wind speed",
+          "description": ""
+        },
+        {
+          "position": 11,
+          "id": "011041",
+          "name": "Maximum wind gust speed",
+          "description": ""
+        },
+        {
+          "position": 12,
+          "id": "007006",
+          "name": "Height above station",
+          "description": "Height of a thermometer"
+        },
+        {
+          "position": 13,
+          "id": "012001",
+          "name": "Temperature/air temperature",
+          "description": ""
+        },
+        {
+          "position": 14,
+          "id": "012003",
+          "name": "Dewpoint temperature",
+          "description": ""
+        },
+        {
+          "position": 15,
+          "id": "010052",
+          "name": "Altimeter setting (QNH)",
+          "description": ""
+        },
+        {
+          "position": 16,
+          "id": "020009",
+          "name": "General weather indicator (TAF/METAR)",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "307018",
+      "name": "Trend-type landing forecast",
+      "members": [
+        {
+          "position": 1,
+          "id": "008016",
+          "name": "Change qualifier of a trend-type forecast or an aerodrome forecast",
+          "description": ""
+        },
+        {
+          "position": 2,
+          "id": "102000",
+          "name": "Delayed replication of 2 descriptors",
+          "description": ""
+        },
+        {
+          "position": 3,
+          "id": "031001",
+          "name": "Delayed descriptor replication factor",
+          "description": "Up to 2"
+        },
+        {
+          "position": 4,
+          "id": "008017",
+          "name": "Qualifier of the time when the forecast change is expected",
+          "description": "FM, TL, AT"
+        },
+        {
+          "position": 5,
+          "id": "301012",
+          "name": "Hour, minute",
+          "description": "GG, gg"
+        },
+        {
+          "position": 6,
+          "id": "104000",
+          "name": "Delayed replication of 4 descriptors",
+          "description": ""
+        },
+        {
+          "position": 7,
+          "id": "031001",
+          "name": "Delayed descriptor replication factor",
+          "description": "Up to 1"
+        },
+        {
+          "position": 8,
+          "id": "007006",
+          "name": "Height above station",
+          "description": ""
+        },
+        {
+          "position": 9,
+          "id": "011001",
+          "name": "Wind direction",
+          "description": ""
+        },
+        {
+          "position": 10,
+          "id": "011002",
+          "name": "Wind speed",
+          "description": ""
+        },
+        {
+          "position": 11,
+          "id": "011041",
+          "name": "Maximum wind gust speed",
+          "description": ""
+        },
+        {
+          "position": 12,
+          "id": "020009",
+          "name": "General weather indicator (TAF/METAR)",
+          "description": ""
+        },
+        {
+          "position": 13,
+          "id": "101000",
+          "name": "Delayed replication of 1 descriptor",
+          "description": ""
+        },
+        {
+          "position": 14,
+          "id": "031001",
+          "name": "Delayed descriptor replication factor",
+          "description": "Up to 1"
+        },
+        {
+          "position": 15,
+          "id": "020001",
+          "name": "Horizontal visibility",
+          "description": ""
+        },
+        {
+          "position": 16,
+          "id": "307014",
+          "name": "Significant present or forecast weather",
+          "description": "w´w´"
+        }
+      ]
+    },
+    {
+      "id": "307020",
+      "name": "Short METAR/SPECI",
+      "members": [
+        {
+          "position": 1,
+          "id": "307011",
+          "name": "Main part of data for representation of METAR/SPECI code in BUFR",
+          "description": ""
+        },
+        {
+          "position": 2,
+          "id": "307014",
+          "name": "Significant present or forecast weather",
+          "description": "w´w´"
+        },
+        {
+          "position": 3,
+          "id": "307016",
+          "name": "Significant recent weather phenomena",
+          "description": "REw´w´"
+        }
+      ]
+    },
+    {
+      "id": "307021",
+      "name": "Total sequence for representation of METAR/SPECI code in BUFR",
+      "members": [
+        {
+          "position": 1,
+          "id": "307011",
+          "name": "Main part of data for representation of METAR/SPECI code in BUFR",
+          "description": ""
+        },
+        {
+          "position": 2,
+          "id": "307012",
+          "name": "Horizontal visibility",
+          "description": "DvVVVV"
+        },
+        {
+          "position": 3,
+          "id": "307013",
+          "name": "Runway visual range",
+          "description": "DRDR/VRVRVRVR"
+        },
+        {
+          "position": 4,
+          "id": "307014",
+          "name": "Significant present or forecast weather",
+          "description": "w´w´"
+        },
+        {
+          "position": 5,
+          "id": "307015",
+          "name": "Clouds group(s)",
+          "description": ""
+        },
+        {
+          "position": 6,
+          "id": "307016",
+          "name": "Significant recent weather phenomena",
+          "description": "REw´w´"
+        },
+        {
+          "position": 7,
+          "id": "307017",
+          "name": "Wind shear on runway(s)",
+          "description": ""
+        },
+        {
+          "position": 8,
+          "id": "307018",
+          "name": "Trend-type landing forecast",
+          "description": ""
+        },
+        {
+          "position": 9,
+          "id": "307015",
+          "name": "Clouds group(s)",
+          "description": ""
+        }
+      ]
+    },
+    {
+      "id": "307080",
+      "name": "Sequence for representation of synoptic reports from a fixed land station suitable for SYNOP data",
+      "members": [
+        {
+          "position": 1,
+          "id": "301090",
+          "name": "Surface station identification; time, horizontal and vertical coordinates",
+          "description": ""
+        },
+        {
+          "position": 2,
+          "id": "302031",
+          "name": "Pressure information",
+          "description": ""
+        },
+        {
+          "position": 3,
+          "id": "302035",
+          "name": "Basic synoptic \"instantaneous\" data",
+          "description": ""
+        },
+        {
+          "position": 4,
+          "id": "302036",
+          "name": "Clouds with bases below station level",
+          "description": ""
+        },
+        {
+          "position": 5,
+          "id": "302047",
+          "name": "Direction of cloud drift",
+          "description": ""
+        },
+        {
+          "position": 6,
+          "id": "008002",
+          "name": "Vertical significance (surface observations)",
+          "description": ""
+        },
+        {
+          "position": 7,
+          "id": "302048",
+          "name": "Direction and elevation of cloud",
+          "description": ""
+        },
+        {
+          "position": 8,
+          "id": "302037",
+          "name": "State of ground, snow depth, ground minimum temperature",
+          "description": ""
+        },
+        {
+          "position": 9,
+          "id": "302043",
+          "name": "Basic synoptic \"period\" data",
+          "description": ""
+        },
+        {
+          "position": 10,
+          "id": "302044",
+          "name": "Evaporation data",
+          "description": ""
+        },
+        {
+          "position": 11,
+          "id": "101002",
+          "name": "Replicate 1 descriptor 2 times",
+          "description": ""
+        },
+        {
+          "position": 12,
+          "id": "302045",
+          "name": "Radiation data (from 1 hour and 24-hour period)",
+          "description": ""
+        },
+        {
+          "position": 13,
+          "id": "302046",
+          "name": "Temperature change",
+          "description": ""
+        }
+      ]
+    }
+  ],
+  "categories": [
+    {
+      "category": "0",
+      "subcategory": "0",
+      "name": "Hourly synoptic observations from fixed land stations (SYNOP)"
+    },
+    {
+      "category": "0",
+      "subcategory": "1",
+      "name": "Intermediate synoptic observations from fixed land stations (SYNOP)"
+    },
+    {
+      "category": "0",
+      "subcategory": "2",
+      "name": "Main synoptic observations from fixed land stations (SYNOP)"
+    },
+    {
+      "category": "0",
+      "subcategory": "10",
+      "name": "Routine aeronautical observations (METAR)"
+    },
+    {
+      "category": "0",
+      "subcategory": "11",
+      "name": "Special aeronautical observations (SPECI)"
+    }
+  ]
+}

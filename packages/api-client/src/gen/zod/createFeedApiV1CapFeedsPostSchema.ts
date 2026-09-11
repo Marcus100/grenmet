@@ -3,29 +3,20 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capFeedImportCreateSchema } from "./capFeedImportCreateSchema.js";
 import { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const createFeedApiV1CapFeedsPost201Schema = z.lazy(
-  () => capFeedImportPublicSchema
-);
+export const createFeedApiV1CapFeedsPostStatus201Schema =
+  capFeedImportPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const createFeedApiV1CapFeedsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createFeedApiV1CapFeedsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createFeedApiV1CapFeedsPostMutationRequestSchema = z.lazy(
-  () => capFeedImportCreateSchema
-);
+export const createFeedApiV1CapFeedsPostResponseSchema =
+  createFeedApiV1CapFeedsPostStatus201Schema;
 
-export const createFeedApiV1CapFeedsPostMutationResponseSchema = z.lazy(
-  () => createFeedApiV1CapFeedsPost201Schema
-);
+export const createFeedApiV1CapFeedsPostErrorSchema =
+  createFeedApiV1CapFeedsPostStatus422Schema;
+
+export const createFeedApiV1CapFeedsPostBodySchema = capFeedImportCreateSchema;

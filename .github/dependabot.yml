@@ -71,6 +71,7 @@ updates:
   - package-ecosystem: docker
     directories:
       - /apps/web/*
+      - /apps/api/honoapi
     target-branch: dev
     schedule:
       interval: weekly

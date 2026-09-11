@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const emergencyContactUpdateSchema = z.object({
-  name: z.optional(z.union([z.string(), z.null()])),
-  phone: z.optional(z.union([z.string(), z.null()])),
-  relationship: z.optional(z.union([z.string(), z.null()])),
+  name: z.union([z.string().max(255), z.null()]).optional(),
+  phone: z.union([z.string().max(30), z.null()]).optional(),
+  relationship: z.union([z.string().max(100), z.null()]).optional(),
 });

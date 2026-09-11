@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GradeSetup
- */
 export type GradeSetup = {
   /**
    * @minLength 1
@@ -37,8 +34,5 @@ export type GradeSetup = {
    * @type boolean | undefined
    */
   is_active?: boolean;
-  /**
-   * @type string
-   */
   id: string;
 };

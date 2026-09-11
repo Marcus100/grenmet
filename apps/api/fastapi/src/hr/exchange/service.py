@@ -16,6 +16,7 @@ from src.hr.exceptions import (
     HRValidationError,
 )
 from src.hr.models import RequestStatus
+from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -76,6 +77,14 @@ async def create_shift_swap_request(
         submit=not payload.as_draft,
     )
     session.add(request)
+    if not payload.as_draft:
+        await signature_service.capture(
+            session=session,
+            actor=current_user,
+            entity=request,
+            entity_type="shift_swap",
+            signature_version=payload.signature_version,
+        )
     await session.commit()
     await session.refresh(request)
     return request
@@ -126,6 +135,13 @@ async def submit_shift_swap_request(
     request.status = RequestStatus.SUBMITTED
     request.updated_at = utc_now()
     session.add(request)
+    await signature_service.capture(
+        session=session,
+        actor=current_user,
+        entity=request,
+        entity_type="shift_swap",
+        signature_version=payload.signature_version,
+    )
     await session.commit()
     await session.refresh(request)
     logger.info(

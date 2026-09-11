@@ -8,33 +8,24 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterCsvImportResponseSchema } from "./rosterCsvImportResponseSchema.js";
 import { rosterCsvValidationRequestSchema } from "./rosterCsvValidationRequestSchema.js";
 
-/**
- * @description Import job created
- */
-export const importCsvApiV1HrRostersImportCsvPost200Schema = z.lazy(
-  () => rosterCsvImportResponseSchema
-);
+export const importCsvApiV1HrRostersImportCsvPostStatus200Schema =
+  rosterCsvImportResponseSchema;
 
-/**
- * @description Invalid CSV
- */
-export const importCsvApiV1HrRostersImportCsvPost400Schema = z.any();
+export const importCsvApiV1HrRostersImportCsvPostStatus400Schema = z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const importCsvApiV1HrRostersImportCsvPost403Schema = z.any();
+export const importCsvApiV1HrRostersImportCsvPostStatus403Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const importCsvApiV1HrRostersImportCsvPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const importCsvApiV1HrRostersImportCsvPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const importCsvApiV1HrRostersImportCsvPostMutationRequestSchema = z.lazy(
-  () => rosterCsvValidationRequestSchema
-);
+export const importCsvApiV1HrRostersImportCsvPostResponseSchema =
+  importCsvApiV1HrRostersImportCsvPostStatus200Schema;
 
-export const importCsvApiV1HrRostersImportCsvPostMutationResponseSchema =
-  z.lazy(() => importCsvApiV1HrRostersImportCsvPost200Schema);
+export const importCsvApiV1HrRostersImportCsvPostErrorSchema = z.union([
+  importCsvApiV1HrRostersImportCsvPostStatus400Schema,
+  importCsvApiV1HrRostersImportCsvPostStatus403Schema,
+  importCsvApiV1HrRostersImportCsvPostStatus422Schema,
+]);
+
+export const importCsvApiV1HrRostersImportCsvPostBodySchema =
+  rosterCsvValidationRequestSchema;

@@ -3,36 +3,29 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadPublicAlertsApiCapAlertsGetQueryResponse } from "../models/ReadPublicAlertsApiCapAlertsGet.js";
-
-function getReadPublicAlertsApiCapAlertsGetUrl() {
-  const res = { method: "GET", url: `/api/cap/alerts` as const };
-  return res;
-}
+  ReadPublicAlertsApiCapAlertsGetOptions,
+  ReadPublicAlertsApiCapAlertsGetResponses,
+} from "../models/ReadPublicAlertsApiCapAlertsGet.js";
 
 /**
  * @summary Read Public Alerts
  * {@link /api/cap/alerts}
  */
-export async function readPublicAlertsApiCapAlertsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPublicAlertsApiCapAlertsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadPublicAlertsApiCapAlertsGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadPublicAlertsApiCapAlertsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPublicAlertsApiCapAlertsGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPublicAlertsApiCapAlertsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({ method: "GET", url: "/api/cap/alerts", ...config }) as Promise<
+      RequestResult<ReadPublicAlertsApiCapAlertsGetResponses, ThrowOnError>
+    >
+  );
 }

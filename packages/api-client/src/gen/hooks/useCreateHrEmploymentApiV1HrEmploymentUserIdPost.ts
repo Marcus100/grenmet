@@ -9,59 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createHrEmploymentApiV1HrEmploymentUserIdPost } from "../clients/createHrEmploymentApiV1HrEmploymentUserIdPost.js";
 import type {
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost400,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost403,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost404,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPost422,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
-  CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404,
+  CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422,
 } from "../models/CreateHrEmploymentApiV1HrEmploymentUserIdPost.js";
 
 export const createHrEmploymentApiV1HrEmploymentUserIdPostMutationKey = () =>
   [{ url: "/api/v1/hr/employment/:user_id" }] as const;
 
-export type CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationKey =
-  ReturnType<typeof createHrEmploymentApiV1HrEmploymentUserIdPostMutationKey>;
-
 export function createHrEmploymentApiV1HrEmploymentUserIdPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createHrEmploymentApiV1HrEmploymentUserIdPostMutationKey();
   return mutationOptions<
-    CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
     ResponseErrorConfig<
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422
     >,
-    {
-      user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"];
-      data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-    },
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return createHrEmploymentApiV1HrEmploymentUserIdPost(
-        user_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return createHrEmploymentApiV1HrEmploymentUserIdPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -74,22 +63,19 @@ export function createHrEmploymentApiV1HrEmploymentUserIdPostMutationOptions<
 export function useCreateHrEmploymentApiV1HrEmploymentUserIdPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+      CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
       ResponseErrorConfig<
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422
       >,
-      {
-        user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"];
-        data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-      },
+      CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -102,32 +88,26 @@ export function useCreateHrEmploymentApiV1HrEmploymentUserIdPost<TContext>(
     createHrEmploymentApiV1HrEmploymentUserIdPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+      CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
       ResponseErrorConfig<
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-        | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+        | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422
       >,
-      {
-        user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"];
-        data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-      },
+      CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
     ResponseErrorConfig<
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422
     >,
-    {
-      user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"];
-      data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-    },
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
     TContext
   >(
     {
@@ -137,17 +117,14 @@ export function useCreateHrEmploymentApiV1HrEmploymentUserIdPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationResponse,
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus201,
     ResponseErrorConfig<
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost400
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost403
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost404
-      | CreateHrEmploymentApiV1HrEmploymentUserIdPost422
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus400
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus403
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus404
+      | CreateHrEmploymentApiV1HrEmploymentUserIdPostStatus422
     >,
-    {
-      user_id: CreateHrEmploymentApiV1HrEmploymentUserIdPostPathParams["user_id"];
-      data: CreateHrEmploymentApiV1HrEmploymentUserIdPostMutationRequest;
-    },
+    CreateHrEmploymentApiV1HrEmploymentUserIdPostOptions,
     TContext
   >;
 }

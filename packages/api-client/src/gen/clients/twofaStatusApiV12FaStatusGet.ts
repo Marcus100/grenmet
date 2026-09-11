@@ -3,36 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { TwofaStatusApiV12FaStatusGetQueryResponse } from "../models/TwofaStatusApiV12FaStatusGet.js";
-
-function getTwofaStatusApiV12FaStatusGetUrl() {
-  const res = { method: "GET", url: `/api/v1/2fa/status` as const };
-  return res;
-}
+  TwofaStatusApiV12FaStatusGetOptions,
+  TwofaStatusApiV12FaStatusGetResponses,
+} from "../models/TwofaStatusApiV12FaStatusGet.js";
 
 /**
  * @summary Get 2FA status
  * {@link /api/v1/2fa/status}
  */
-export async function twofaStatusApiV12FaStatusGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function twofaStatusApiV12FaStatusGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TwofaStatusApiV12FaStatusGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<TwofaStatusApiV12FaStatusGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    TwofaStatusApiV12FaStatusGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getTwofaStatusApiV12FaStatusGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/2fa/status",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TwofaStatusApiV12FaStatusGetResponses, ThrowOnError>
+    >
+  );
 }

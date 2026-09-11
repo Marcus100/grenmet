@@ -6,42 +6,38 @@
 import * as z from "zod";
 
 export const timesheetEntryInputSchema = z.object({
-  entry_date: z.string().date(),
-  shift_code: z.optional(z.union([z.string(), z.null()])),
-  roster_hours: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  actual_hours: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  total_hours: z.optional(
-    z.union([
+  entry_date: z.iso.date(),
+  shift_code: z.union([z.string(), z.null()]).optional(),
+  roster_hours: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  actual_hours: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  total_hours: z
+    .union([
       z.number(),
       z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
       z.null(),
     ])
-  ),
-  overtime_hours: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  break_hours: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  hours_worked: z.optional(
-    z.union([
+    .optional(),
+  overtime_hours: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  break_hours: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  hours_worked: z
+    .union([
       z.number(),
       z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
       z.null(),
     ])
-  ),
-  medical_certificate_attached: z.optional(z.boolean().default(false)),
-  comments: z.optional(z.union([z.string(), z.null()])),
+    .optional(),
+  medical_certificate_attached: z.boolean().optional().default(false),
+  comments: z.union([z.string(), z.null()]).optional(),
 });

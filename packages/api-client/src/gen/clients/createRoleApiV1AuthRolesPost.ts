@@ -3,47 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateRoleApiV1AuthRolesPost422,
-  CreateRoleApiV1AuthRolesPostMutationRequest,
-  CreateRoleApiV1AuthRolesPostMutationResponse,
+  CreateRoleApiV1AuthRolesPostOptions,
+  CreateRoleApiV1AuthRolesPostResponses,
 } from "../models/CreateRoleApiV1AuthRolesPost.js";
-
-function getCreateRoleApiV1AuthRolesPostUrl() {
-  const res = { method: "POST", url: `/api/v1/auth/roles` as const };
-  return res;
-}
 
 /**
  * @description Create a role (superuser only).
  * @summary Create role
  * {@link /api/v1/auth/roles}
  */
-export async function createRoleApiV1AuthRolesPost(
-  data: CreateRoleApiV1AuthRolesPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateRoleApiV1AuthRolesPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createRoleApiV1AuthRolesPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateRoleApiV1AuthRolesPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateRoleApiV1AuthRolesPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateRoleApiV1AuthRolesPostMutationResponse,
-    ResponseErrorConfig<CreateRoleApiV1AuthRolesPost422>,
-    CreateRoleApiV1AuthRolesPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateRoleApiV1AuthRolesPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/roles",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateRoleApiV1AuthRolesPostResponses, ThrowOnError>
+    >
+  );
 }

@@ -10,8 +10,10 @@ from fastapi.concurrency import run_in_threadpool
 from src.auth.config import auth_settings
 
 ALGORITHM = "HS256"
-# bcrypt cost factor — 12 is the modern recommended minimum
-_BCRYPT_ROUNDS = 12
+# bcrypt cost factor — 12 is the modern recommended minimum, enforced as a
+# floor outside local by AuthConfig. Bound at import so DUMMY_PASSWORD_HASH
+# below and every issued hash share one cost.
+_BCRYPT_ROUNDS = auth_settings.BCRYPT_ROUNDS
 
 
 def create_session_token() -> str:

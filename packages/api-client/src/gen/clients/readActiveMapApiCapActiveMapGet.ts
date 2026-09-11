@@ -3,36 +3,33 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadActiveMapApiCapActiveMapGetQueryResponse } from "../models/ReadActiveMapApiCapActiveMapGet.js";
-
-function getReadActiveMapApiCapActiveMapGetUrl() {
-  const res = { method: "GET", url: `/api/cap/active-map` as const };
-  return res;
-}
+  ReadActiveMapApiCapActiveMapGetOptions,
+  ReadActiveMapApiCapActiveMapGetResponses,
+} from "../models/ReadActiveMapApiCapActiveMapGet.js";
 
 /**
  * @summary Read Active Map
  * {@link /api/cap/active-map}
  */
-export async function readActiveMapApiCapActiveMapGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readActiveMapApiCapActiveMapGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadActiveMapApiCapActiveMapGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadActiveMapApiCapActiveMapGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadActiveMapApiCapActiveMapGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadActiveMapApiCapActiveMapGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/cap/active-map",
+      ...config,
+    }) as Promise<
+      RequestResult<ReadActiveMapApiCapActiveMapGetResponses, ThrowOnError>
+    >
+  );
 }

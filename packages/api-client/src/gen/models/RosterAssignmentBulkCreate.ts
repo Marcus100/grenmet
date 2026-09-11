@@ -5,16 +5,12 @@
 
 import type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 
-/**
- * RosterAssignmentBulkCreate
- */
 export type RosterAssignmentBulkCreate = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   roster_period_id: string;
-  /**
-   * @type array | undefined
-   */
   assignments?: RosterAssignmentInput[];
 };

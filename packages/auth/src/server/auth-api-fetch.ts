@@ -192,18 +192,23 @@ export async function authApiFormFetch<T>(
   return (await response.json()) as T;
 }
 
-export async function authApiFetch<T>(
+export async function authApiFetchResponse(
   config: AuthConfig,
   path: string,
-  init: Omit<RequestInit, "body" | "headers"> & { body?: unknown } = {}
-): Promise<T> {
+  init: Omit<RequestInit, "body" | "headers"> & {
+    body?: unknown;
+    accessToken?: string;
+  } = {}
+): Promise<Response> {
   const requestHeaders = await getForwardHeaders();
+  const { accessToken, ...requestInit } = init;
+  if (accessToken) requestHeaders.set("authorization", `Bearer ${accessToken}`);
   const hasBody = init.body !== undefined;
   const response = await fetchAuthApi(
     config,
     `${config.authApiBaseUrl}${config.authApiPrefix}${path}`,
     {
-      ...init,
+      ...requestInit,
       body: hasBody ? JSON.stringify(init.body) : undefined,
       headers: buildRequestHeaders(requestHeaders, hasBody),
     }
@@ -215,5 +220,17 @@ export async function authApiFetch<T>(
     throw new AuthApiError(response.status, detail);
   }
 
+  return response;
+}
+
+export async function authApiFetch<T>(
+  config: AuthConfig,
+  path: string,
+  init: Omit<RequestInit, "body" | "headers"> & {
+    body?: unknown;
+    accessToken?: string;
+  } = {}
+): Promise<T> {
+  const response = await authApiFetchResponse(config, path, init);
   return (await response.json()) as T;
 }

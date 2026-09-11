@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
-  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
+  SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponses,
 } from "../models/SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost.js";
-
-function getSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostUrl(
-  report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/status-reports/${report_id}/submit` as const,
-  };
-  return res;
-}
 
 /**
  * @description Submit a previously-saved DRAFT status report, attaching named co-approvers. Requires status.report.create permission and ownership of the report.
  * @summary Submit a draft status report
  * {@link /api/v1/hr/status-reports/:report_id/submit}
  */
-export async function submitStatusReportApiV1HrStatusReportsReportIdSubmitPost(
-  report_id: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathParams["report_id"],
-  data: SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest,
-  config: Partial<
-    RequestConfig<SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function submitStatusReportApiV1HrStatusReportsReportIdSubmitPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationResponse,
-    ResponseErrorConfig<
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost400
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost403
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost404
-      | SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost422
-    >,
-    SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostMutationRequest
-  >({
-    method: "POST",
-    url: getSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostUrl(
-      report_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/status-reports/{report_id}/submit",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        SubmitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

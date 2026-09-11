@@ -5,17 +5,13 @@
 
 import type { PersonnelStatus } from "./PersonnelStatus.js";
 
-/**
- * StatusReportEntryInput
- */
 export type StatusReportEntryInput = {
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   personnel_status: PersonnelStatus;
   arrival_time?: string | null;
   departure_time?: string | null;

@@ -7,6 +7,6 @@ import * as z from "zod";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const leaveRequestActionSchema = z.object({
-  status: z.lazy(() => requestStatusSchema),
-  head_of_dept_comments: z.optional(z.union([z.string(), z.null()])),
+  status: requestStatusSchema,
+  head_of_dept_comments: z.union([z.string(), z.null()]).optional(),
 });

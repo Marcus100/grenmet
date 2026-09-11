@@ -1,7 +1,12 @@
-import { ChevronRightIcon, TriangleAlertIcon } from "lucide-react";
+import { TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
-import { type AlertsResult, alertsSummary } from "@/lib/cap";
+import { bulletinHref } from "@/lib/bulletins";
+import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import { cn } from "@/lib/utils";
+import {
+  WARNING_LEVEL_LABEL,
+  WARNING_LEVEL_SURFACE,
+} from "@/lib/warning-level";
 
 interface AlertsPanelProps {
   className?: string;
@@ -11,31 +16,35 @@ interface AlertsPanelProps {
 /**
  * Desktop counterpart to CurrentAlertsAccordion: always-open sidebar rather
  * than a collapsible panel, since the wide layout has room to show every
- * hazard count at a glance.
+ * hazard count at a glance. The header takes the colour of the most severe
+ * alert in effect, and states the level in words beside it.
  */
 export function AlertsPanel({ className, result }: AlertsPanelProps) {
   const groups = result.status === "ok" ? result.groups : [];
   const summary = alertsSummary(result);
+  const level = alertsLevel(result);
+  // "No warnings in effect" would only repeat the summary line below, so the
+  // response level is stated at the bottom, and only when one is in effect.
+  const responseLevel =
+    level === "none" || level === "unknown" ? null : WARNING_LEVEL_LABEL[level];
 
   return (
     <div className={cn("flex flex-col", className)}>
       <Link
-        className="flex h-22 shrink-0 items-center gap-3.5 bg-gm-risk-yellow px-6"
+        className={cn(
+          "flex shrink-0 items-center px-6 py-3",
+          WARNING_LEVEL_SURFACE[level]
+        )}
         href="/warnings"
       >
-        <TriangleAlertIcon
-          aria-hidden="true"
-          className="size-7 shrink-0 text-gm-text-primary"
-        />
-        <span className="flex-1 font-bold text-gm-text-primary text-heading-sm leading-heading-sm">
-          Current alerts
+        <span className="flex items-center gap-2.5">
+          <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
+          <span className="font-bold text-body-base leading-body-base">
+            Current alerts
+          </span>
         </span>
-        <ChevronRightIcon
-          aria-hidden="true"
-          className="size-6 text-gm-text-primary"
-        />
       </Link>
-      <div className="flex flex-1 flex-col gap-0.5 bg-gm-navy px-6 pt-5 pb-5">
+      <div className="flex flex-1 flex-col bg-gm-navy px-6 py-4">
         {result.status === "unavailable" ? (
           <p className="text-body-sm text-gm-text-inverse">
             Warning information cannot be retrieved right now. This does not
@@ -43,22 +52,49 @@ export function AlertsPanel({ className, result }: AlertsPanelProps) {
             Meteorological Service directly.
           </p>
         ) : (
-          groups.map((group) => (
-            <span
-              className="flex items-baseline gap-3.5 py-1.5"
-              key={group.name}
-            >
-              <span className="w-4 text-right font-bold text-body text-gm-risk-yellow">
-                {group.alerts.length}
-              </span>
-              <span className="text-body text-gm-text-inverse">
-                {group.name}
-              </span>
-            </span>
-          ))
+          groups.map((group) => {
+            const count = group.alerts.length;
+            return (
+              <Link
+                className="flex items-baseline gap-3 py-0.5 hover:underline focus-visible:outline"
+                href={bulletinHref(group.name)}
+                key={group.name}
+              >
+                {/* Empty hazards stay readable but stop competing with the
+                    ones actually in effect. */}
+                <span
+                  className={cn(
+                    "w-4 text-right font-bold text-body-sm",
+                    count > 0
+                      ? "text-gm-risk-yellow"
+                      : "text-gm-text-inverse/50"
+                  )}
+                >
+                  {count}
+                </span>
+                <span
+                  className={cn(
+                    "text-body-sm leading-body-sm",
+                    count > 0
+                      ? "text-gm-text-inverse"
+                      : "text-gm-text-inverse/50"
+                  )}
+                >
+                  {group.name}
+                </span>
+              </Link>
+            );
+          })
         )}
-        <span className="mt-auto flex items-center border-gm-text-inverse/20 border-t pt-4 font-semibold text-body-sm text-gm-text-inverse">
-          {summary}
+        <span className="mt-3 flex flex-col gap-0.5 border-gm-text-inverse/30 border-t pt-3 text-gm-text-inverse">
+          {responseLevel && (
+            <span className="font-bold text-body-base leading-body-base">
+              {responseLevel}
+            </span>
+          )}
+          <span className="font-semibold text-body-sm leading-body-sm">
+            {summary}
+          </span>
         </span>
       </div>
     </div>

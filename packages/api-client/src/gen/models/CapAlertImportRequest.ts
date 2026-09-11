@@ -8,18 +8,15 @@ export const capAlertImportRequestSourceEnum = {
   xml: "xml",
 } as const;
 
-export type CapAlertImportRequestSourceEnumKey =
+export type CapAlertImportRequestSourceEnum =
   (typeof capAlertImportRequestSourceEnum)[keyof typeof capAlertImportRequestSourceEnum];
 
-/**
- * CapAlertImportRequest
- */
 export type CapAlertImportRequest = {
   /**
-   * @default "xml"
+   * @default 'xml'
    * @type string | undefined
    */
-  source?: CapAlertImportRequestSourceEnumKey;
+  source?: CapAlertImportRequestSourceEnum;
   /**
    * @minLength 1
    * @type string

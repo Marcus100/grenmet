@@ -21,6 +21,9 @@ export const env = createEnv({
     TRANSPORT_DATABASE_URL: z.string().min(1).optional(),
   },
   client: {
+    NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE: z
+      .enum(["true", "false"])
+      .default("false"),
     NEXT_PUBLIC_API_URL: z.string().optional().default(""),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
@@ -45,6 +48,8 @@ export const env = createEnv({
     WXPRODUCTS_DATABASE_URL: process.env.WXPRODUCTS_DATABASE_URL,
     JANITORIAL_DATABASE_URL: process.env.JANITORIAL_DATABASE_URL,
     TRANSPORT_DATABASE_URL: process.env.TRANSPORT_DATABASE_URL,
+    NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:
+      process.env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,

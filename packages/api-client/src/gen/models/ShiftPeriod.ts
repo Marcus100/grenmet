@@ -3,15 +3,9 @@
  * Do not edit manually.
  */
 
-export const shiftPeriodShiftPeriodEnum = {
+export const shiftPeriod = {
   AM: "AM",
   PM: "PM",
 } as const;
 
-export type ShiftPeriodShiftPeriodEnumKey =
-  (typeof shiftPeriodShiftPeriodEnum)[keyof typeof shiftPeriodShiftPeriodEnum];
-
-/**
- * ShiftPeriod
- */
-export type ShiftPeriod = ShiftPeriodShiftPeriodEnumKey;
+export type ShiftPeriod = (typeof shiftPeriod)[keyof typeof shiftPeriod];

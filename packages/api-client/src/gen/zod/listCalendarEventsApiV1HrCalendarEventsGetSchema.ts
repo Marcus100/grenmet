@@ -7,42 +7,39 @@ import * as z from "zod";
 import { calendarEventsPublicSchema } from "./calendarEventsPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const listCalendarEventsApiV1HrCalendarEventsGetQueryParamsSchema =
-  z.object({
-    start: z.string().date(),
-    end: z.string().date(),
-    department_id: z.optional(z.union([z.string(), z.null()])),
-    include_cancelled: z.optional(z.boolean().default(false)),
-  });
+export const listCalendarEventsApiV1HrCalendarEventsGetQueryStartSchema =
+  z.iso.date();
 
-/**
- * @description Calendar events returned
- */
-export const listCalendarEventsApiV1HrCalendarEventsGet200Schema = z.lazy(
-  () => calendarEventsPublicSchema
-);
+export const listCalendarEventsApiV1HrCalendarEventsGetQueryEndSchema =
+  z.iso.date();
 
-/**
- * @description Invalid date range
- */
-export const listCalendarEventsApiV1HrCalendarEventsGet400Schema = z.any();
+export const listCalendarEventsApiV1HrCalendarEventsGetQueryDepartmentIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Insufficient permission
- */
-export const listCalendarEventsApiV1HrCalendarEventsGet403Schema = z.any();
+export const listCalendarEventsApiV1HrCalendarEventsGetQueryIncludeCancelledSchema =
+  z.boolean().optional().default(false);
 
-/**
- * @description Department not found
- */
-export const listCalendarEventsApiV1HrCalendarEventsGet404Schema = z.any();
+export const listCalendarEventsApiV1HrCalendarEventsGetStatus200Schema =
+  calendarEventsPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const listCalendarEventsApiV1HrCalendarEventsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const listCalendarEventsApiV1HrCalendarEventsGetStatus400Schema =
+  z.unknown();
 
-export const listCalendarEventsApiV1HrCalendarEventsGetQueryResponseSchema =
-  z.lazy(() => listCalendarEventsApiV1HrCalendarEventsGet200Schema);
+export const listCalendarEventsApiV1HrCalendarEventsGetStatus403Schema =
+  z.unknown();
+
+export const listCalendarEventsApiV1HrCalendarEventsGetStatus404Schema =
+  z.unknown();
+
+export const listCalendarEventsApiV1HrCalendarEventsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const listCalendarEventsApiV1HrCalendarEventsGetResponseSchema =
+  listCalendarEventsApiV1HrCalendarEventsGetStatus200Schema;
+
+export const listCalendarEventsApiV1HrCalendarEventsGetErrorSchema = z.union([
+  listCalendarEventsApiV1HrCalendarEventsGetStatus400Schema,
+  listCalendarEventsApiV1HrCalendarEventsGetStatus403Schema,
+  listCalendarEventsApiV1HrCalendarEventsGetStatus404Schema,
+  listCalendarEventsApiV1HrCalendarEventsGetStatus422Schema,
+]);

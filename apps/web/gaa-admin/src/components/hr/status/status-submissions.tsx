@@ -33,7 +33,7 @@ function yesNo(value: boolean | null | undefined) {
 /** Department status reports. The list endpoint needs the `status.report.read`
  *  permission, so it 403s for plain staff — render nothing in that case. */
 export function StatusSubmissions() {
-  const query = useReadStatusReportsApiV1HrStatusReportsGet();
+  const query = useReadStatusReportsApiV1HrStatusReportsGet({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
   const deleteMutation =
@@ -44,9 +44,9 @@ export function StatusSubmissions() {
   async function remove(id: string) {
     setPendingId(id);
     try {
-      await deleteMutation.mutateAsync({ report_id: id });
+      await deleteMutation.mutateAsync({ path: { report_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey(),
+        queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

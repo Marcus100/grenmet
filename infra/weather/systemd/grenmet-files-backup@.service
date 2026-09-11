@@ -1,0 +1,12 @@
+[Unit]
+Description=Off-host %i backup
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+EnvironmentFile=/etc/grenmet/%i/.env.local
+ExecStart=/usr/bin/flock -n /var/lock/grenmet/%i-backup.lock /usr/bin/python3 /opt/grenmet/scripts/production/backup-files.py /etc/grenmet/%i.json
+TimeoutStartSec=3h
+UMask=0077

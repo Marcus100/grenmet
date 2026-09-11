@@ -4,15 +4,18 @@ import {
   Bus,
   Calendar,
   CalendarDays,
+  ClipboardCheck,
   CloudSun,
   Contact,
+  FileText,
+  Gauge,
   House,
-  LayoutGrid,
   type LucideIcon,
   NotebookPen,
   Package,
   Plane,
   Radar,
+  ShieldCheck,
   SprayCan,
   Thermometer,
   Ticket,
@@ -61,15 +64,12 @@ export interface NavGroup {
 
 // Placeholder destination for target-IA sections that have no page yet.
 // Keeps the "still beta" nav honest: every item lands somewhere real (no 404s)
-// while advertising the intended structure via a "soon" badge.
-const COMING_SOON_URL = "/coming-soon";
+// while keeping unfinished sections reachable.
 
 // Group order is deliberate: daily coordination and HR (the actively built
 // surface) sit ungrouped up top, then "Products" (every forecaster-facing
 // product and composer), then "Services" (Climate & Data), then station
-// "Operations". The HR dashboard (/hr) still links to every form and module;
-// the duty roster and HR Setup are also listed here because they are the two
-// surfaces staff reach for directly rather than by way of the dashboard.
+// "Operations".
 export const sidebarItems: NavGroup[] = [
   {
     id: 1,
@@ -77,24 +77,43 @@ export const sidebarItems: NavGroup[] = [
       { id: "home", title: "Home", url: "/", icon: House },
       { id: "calendar", title: "Calendar", url: "/calendar", icon: Calendar },
       {
+        // Ordered by daily rhythm: the dashboard people land on, the forms they
+        // file, then the supervisory surfaces. HR Setup is deliberately absent
+        // — it is configuration, reached from the dashboard's HR Setup card,
+        // not a daily destination.
         id: "hr",
         title: "Human Resources",
-        url: "/hr",
         icon: Contact,
-      },
-      {
-        id: "roster",
-        title: "Duty Roster",
-        url: "/roster",
-        icon: CalendarDays,
+        subItems: [
+          { id: "hr-dashboard", title: "Dashboard", url: "/hr", icon: Gauge },
+          {
+            id: "hr-documents",
+            title: "Documents",
+            url: "/hr/documents",
+            icon: FileText,
+          },
+          {
+            id: "hr-forms",
+            title: "Forms",
+            url: "/hr/forms",
+            icon: FileText,
+          },
+          {
+            id: "hr-approvals",
+            title: "Approvals",
+            url: "/hr/approvals",
+            icon: ClipboardCheck,
+          },
+          {
+            id: "roster",
+            title: "Duty Roster",
+            url: "/roster",
+            icon: CalendarDays,
+          },
+        ],
       },
       { id: "staff", title: "Staff", url: "/users", icon: Users },
-      {
-        id: "hr-setup",
-        title: "HR Setup",
-        url: "/hr-setup",
-        icon: LayoutGrid,
-      },
+      { id: "roles", title: "Roles", url: "/roles", icon: ShieldCheck },
     ],
   },
   {
@@ -107,36 +126,34 @@ export const sidebarItems: NavGroup[] = [
     items: [
       {
         id: "eregister",
-        title: "eRegister (Hourly)",
+        title: "wxRegister",
         url: "/wxproducts/hourly",
         icon: NotebookPen,
       },
       { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
         id: "forecasts",
-        title: "Impact Based Forecasts",
+        title: "Impact-Based Forecasts",
         url: "/wxproducts/fcsts",
         icon: CloudSun,
       },
       {
         id: "taf-metar",
         title: "TAF/Metar Composer",
-        url: COMING_SOON_URL,
+        url: "/wxproducts/aviation",
         icon: Plane,
-        badge: "soon",
       },
       {
         id: "bulletin-marine",
-        title: "Marine Bulletin",
-        url: "/wxproducts/bulletins/marine",
+        title: "Bulletins",
+        url: "/wxproducts/bulletins",
         icon: Waves,
       },
       {
         id: "products-tc-outlook",
-        title: "Tropical Weather Outlook",
-        url: COMING_SOON_URL,
+        title: "NHC Products",
+        url: "/wxproducts/nhc",
         icon: Tornado,
-        badge: "soon",
       },
       {
         id: "cap-composer",
@@ -153,9 +170,8 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "climate-data",
         title: "Climate & Data",
-        url: COMING_SOON_URL,
+        url: "/climate",
         icon: Thermometer,
-        badge: "soon",
       },
     ],
   },
@@ -195,16 +211,14 @@ export const sidebarItems: NavGroup[] = [
       {
         id: "it-tickets",
         title: "IT Tickets",
-        url: COMING_SOON_URL,
+        url: "/it-tickets",
         icon: Ticket,
-        badge: "soon",
       },
       {
         id: "resources",
         title: "Resources",
-        url: COMING_SOON_URL,
+        url: "/resources",
         icon: BookOpen,
-        badge: "soon",
       },
     ],
   },

@@ -7,28 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
 
-export const readPermissionApiV1AuthPermissionsPermissionIdGetPathParamsSchema =
-  z.object({
-    permission_id: z.string().uuid(),
-  });
+export const readPermissionApiV1AuthPermissionsPermissionIdGetPathPermissionIdSchema =
+  z.uuid();
 
-/**
- * @description Permission returned
- */
-export const readPermissionApiV1AuthPermissionsPermissionIdGet200Schema =
-  z.lazy(() => permissionPublicSchema);
+export const readPermissionApiV1AuthPermissionsPermissionIdGetStatus200Schema =
+  permissionPublicSchema;
 
-/**
- * @description Permission not found
- */
-export const readPermissionApiV1AuthPermissionsPermissionIdGet404Schema =
-  z.any();
+export const readPermissionApiV1AuthPermissionsPermissionIdGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readPermissionApiV1AuthPermissionsPermissionIdGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const readPermissionApiV1AuthPermissionsPermissionIdGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readPermissionApiV1AuthPermissionsPermissionIdGetQueryResponseSchema =
-  z.lazy(() => readPermissionApiV1AuthPermissionsPermissionIdGet200Schema);
+export const readPermissionApiV1AuthPermissionsPermissionIdGetResponseSchema =
+  readPermissionApiV1AuthPermissionsPermissionIdGetStatus200Schema;
+
+export const readPermissionApiV1AuthPermissionsPermissionIdGetErrorSchema =
+  z.union([
+    readPermissionApiV1AuthPermissionsPermissionIdGetStatus404Schema,
+    readPermissionApiV1AuthPermissionsPermissionIdGetStatus422Schema,
+  ]);

@@ -10,47 +10,45 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readStaffCardApiV1HrStaffCardMeGet } from "../clients/readStaffCardApiV1HrStaffCardMeGet.js";
 import type {
-  ReadStaffCardApiV1HrStaffCardMeGet403,
-  ReadStaffCardApiV1HrStaffCardMeGet404,
-  ReadStaffCardApiV1HrStaffCardMeGet409,
-  ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus200,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus403,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus404,
+  ReadStaffCardApiV1HrStaffCardMeGetStatus409,
 } from "../models/ReadStaffCardApiV1HrStaffCardMeGet.js";
 
 export const readStaffCardApiV1HrStaffCardMeGetQueryKey = () =>
   [{ url: "/api/v1/hr/staff-card/me" }] as const;
 
-export type ReadStaffCardApiV1HrStaffCardMeGetQueryKey = ReturnType<
+type ReadStaffCardApiV1HrStaffCardMeGetQueryKey = ReturnType<
   typeof readStaffCardApiV1HrStaffCardMeGetQueryKey
 >;
 
 export function readStaffCardApiV1HrStaffCardMeGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readStaffCardApiV1HrStaffCardMeGetQueryKey();
   return queryOptions<
-    ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+    ReadStaffCardApiV1HrStaffCardMeGetStatus200,
     ResponseErrorConfig<
-      | ReadStaffCardApiV1HrStaffCardMeGet403
-      | ReadStaffCardApiV1HrStaffCardMeGet404
-      | ReadStaffCardApiV1HrStaffCardMeGet409
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus403
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus404
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus409
     >,
-    ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+    ReadStaffCardApiV1HrStaffCardMeGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readStaffCardApiV1HrStaffCardMeGet(config);
+      return readStaffCardApiV1HrStaffCardMeGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,49 +59,51 @@ export function readStaffCardApiV1HrStaffCardMeGetQueryOptions(
  * {@link /api/v1/hr/staff-card/me}
  */
 export function useReadStaffCardApiV1HrStaffCardMeGet<
-  TData = ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
-  TQueryData = ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+  TData = ReadStaffCardApiV1HrStaffCardMeGetStatus200,
+  TQueryData = ReadStaffCardApiV1HrStaffCardMeGetStatus200,
   TQueryKey extends QueryKey = ReadStaffCardApiV1HrStaffCardMeGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadStaffCardApiV1HrStaffCardMeGetQueryResponse,
+        ReadStaffCardApiV1HrStaffCardMeGetStatus200,
         ResponseErrorConfig<
-          | ReadStaffCardApiV1HrStaffCardMeGet403
-          | ReadStaffCardApiV1HrStaffCardMeGet404
-          | ReadStaffCardApiV1HrStaffCardMeGet409
+          | ReadStaffCardApiV1HrStaffCardMeGetStatus403
+          | ReadStaffCardApiV1HrStaffCardMeGetStatus404
+          | ReadStaffCardApiV1HrStaffCardMeGetStatus409
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readStaffCardApiV1HrStaffCardMeGetQueryKey();
+    resolvedOptions?.queryKey ?? readStaffCardApiV1HrStaffCardMeGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readStaffCardApiV1HrStaffCardMeGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadStaffCardApiV1HrStaffCardMeGet403
-      | ReadStaffCardApiV1HrStaffCardMeGet404
-      | ReadStaffCardApiV1HrStaffCardMeGet409
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus403
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus404
+      | ReadStaffCardApiV1HrStaffCardMeGetStatus409
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

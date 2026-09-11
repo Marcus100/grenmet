@@ -70,9 +70,21 @@ export function usePaperScale(
     window.addEventListener("scroll", updateLayout, { passive: true });
     window.addEventListener("resize", updateLayout);
 
+    // The sidebar collapses and the split-pane reflows without any window
+    // resize, so watch the container itself — otherwise the paper keeps a
+    // stale scale until the next scroll or window resize.
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(updateLayout);
+    if (observer && parentRef.current) {
+      observer.observe(parentRef.current);
+    }
+
     return () => {
       window.removeEventListener("scroll", updateLayout);
       window.removeEventListener("resize", updateLayout);
+      observer?.disconnect();
     };
   }, [height, maxScale, padding, parentRef, width]);
 

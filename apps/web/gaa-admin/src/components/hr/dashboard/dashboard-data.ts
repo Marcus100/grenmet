@@ -170,7 +170,7 @@ export const adminModules: Module[] = [
     id: "reports",
     title: "Reports",
     description: "Attendance & leave exports",
-    href: "/coming-soon",
+    href: "/hr/reports",
     icon: FileBarChart,
   },
 ];

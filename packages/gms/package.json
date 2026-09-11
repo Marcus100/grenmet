@@ -11,7 +11,8 @@
       "types": "./src/components/*.tsx",
       "import": "./src/components/*.tsx"
     },
-    "./styles/*": "./src/styles/*.css"
+    "./styles/*": "./src/styles/*.css",
+    "./products": "./src/products.ts"
   },
   "scripts": {
     "type-check": "tsc --noEmit",

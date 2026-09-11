@@ -5,9 +5,6 @@
 
 import * as z from "zod";
 
-/**
- * @description Honorific prefix for a person\'s name (used on official bylines).
- */
 export const titleSchema = z
   .enum(["MR", "MRS", "MS", "MISS", "DR"])
   .describe("Honorific prefix for a person's name (used on official bylines).");

@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost } from "../clients/updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost.js";
 import type {
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422,
 } from "../models/UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost.js";
 
 export const updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationKey =
   () => [{ url: "/api/v1/hr/setup/staff/:user_id/balance" }] as const;
 
-export type UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationKey =
-  ReturnType<
-    typeof updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationKey
-  >;
-
 export function updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationKey();
   return mutationOptions<
-    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
     ResponseErrorConfig<
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422
     >,
-    {
-      user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"];
-      data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-    },
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost(
-        user_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost<
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
+      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
       ResponseErrorConfig<
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422
       >,
-      {
-        user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"];
-        data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-      },
+      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost<
     updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
+      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
       ResponseErrorConfig<
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+        | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422
       >,
-      {
-        user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"];
-        data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-      },
+      UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
     ResponseErrorConfig<
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422
     >,
-    {
-      user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"];
-      data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-    },
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost<
     },
     queryClient
   ) as UseMutationResult<
-    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200,
     ResponseErrorConfig<
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409
+      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422
     >,
-    {
-      user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"];
-      data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest;
-    },
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
     TContext
   >;
 }

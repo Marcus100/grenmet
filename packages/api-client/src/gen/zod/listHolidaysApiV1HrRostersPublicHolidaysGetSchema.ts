@@ -7,30 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 
-export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryParamsSchema = z
-  .object({
-    year: z.optional(z.union([z.coerce.number().int(), z.null()])),
-  })
+export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryYearSchema = z
+  .union([z.int(), z.null()])
   .optional();
 
-/**
- * @description Public holidays returned
- */
-export const listHolidaysApiV1HrRostersPublicHolidaysGet200Schema = z.lazy(
-  () => publicHolidaysPublicSchema
-);
+export const listHolidaysApiV1HrRostersPublicHolidaysGetStatus200Schema =
+  publicHolidaysPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const listHolidaysApiV1HrRostersPublicHolidaysGet403Schema = z.any();
+export const listHolidaysApiV1HrRostersPublicHolidaysGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const listHolidaysApiV1HrRostersPublicHolidaysGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const listHolidaysApiV1HrRostersPublicHolidaysGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const listHolidaysApiV1HrRostersPublicHolidaysGetQueryResponseSchema =
-  z.lazy(() => listHolidaysApiV1HrRostersPublicHolidaysGet200Schema);
+export const listHolidaysApiV1HrRostersPublicHolidaysGetResponseSchema =
+  listHolidaysApiV1HrRostersPublicHolidaysGetStatus200Schema;
+
+export const listHolidaysApiV1HrRostersPublicHolidaysGetErrorSchema = z.union([
+  listHolidaysApiV1HrRostersPublicHolidaysGetStatus403Schema,
+  listHolidaysApiV1HrRostersPublicHolidaysGetStatus422Schema,
+]);

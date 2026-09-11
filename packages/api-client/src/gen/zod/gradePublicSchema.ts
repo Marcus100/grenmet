@@ -8,6 +8,6 @@ import * as z from "zod";
 export const gradePublicSchema = z.object({
   code: z.string(),
   label: z.string(),
-  rank: z.number().int(),
-  establishment_band: z.optional(z.union([z.string(), z.null()])),
+  rank: z.int(),
+  establishment_band: z.union([z.string(), z.null()]).optional(),
 });

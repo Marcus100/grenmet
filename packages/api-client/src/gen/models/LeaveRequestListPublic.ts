@@ -5,17 +5,8 @@
 
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 
-/**
- * LeaveRequestListPublic
- */
 export type LeaveRequestListPublic = {
-  /**
-   * @type array
-   */
   data: LeaveRequestPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

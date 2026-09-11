@@ -3,55 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CancelAlertApiV1CapAlertsAlertIdCancelPost422,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-  CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
+  CancelAlertApiV1CapAlertsAlertIdCancelPostResponses,
 } from "../models/CancelAlertApiV1CapAlertsAlertIdCancelPost.js";
-
-function getCancelAlertApiV1CapAlertsAlertIdCancelPostUrl(
-  alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/cancel` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Cancel Alert
  * {@link /api/v1/cap/alerts/:alert_id/cancel}
  */
-export async function cancelAlertApiV1CapAlertsAlertIdCancelPost(
-  alert_id: CancelAlertApiV1CapAlertsAlertIdCancelPostPathParams["alert_id"],
-  data: CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest,
-  config: Partial<
-    RequestConfig<CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function cancelAlertApiV1CapAlertsAlertIdCancelPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CancelAlertApiV1CapAlertsAlertIdCancelPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CancelAlertApiV1CapAlertsAlertIdCancelPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationResponse,
-    ResponseErrorConfig<CancelAlertApiV1CapAlertsAlertIdCancelPost422>,
-    CancelAlertApiV1CapAlertsAlertIdCancelPostMutationRequest
-  >({
-    method: "POST",
-    url: getCancelAlertApiV1CapAlertsAlertIdCancelPostUrl(
-      alert_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/cancel",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CancelAlertApiV1CapAlertsAlertIdCancelPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

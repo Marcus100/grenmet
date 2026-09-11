@@ -7,43 +7,36 @@ import type { EmailConfirm } from "./EmailConfirm.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-/**
- * Message
- * @description Successful Response
- */
-export type EmailConfirmApiV1AuthModernEmailConfirmPost200 = Message;
+export type EmailConfirmApiV1AuthModernEmailConfirmPostStatus200 = Message;
 
-/**
- * @description Invalid or expired proof
- */
-export type EmailConfirmApiV1AuthModernEmailConfirmPost400 = any;
+export type EmailConfirmApiV1AuthModernEmailConfirmPostStatus400 = unknown;
 
-/**
- * @description Account is not eligible
- */
-export type EmailConfirmApiV1AuthModernEmailConfirmPost403 = any;
+export type EmailConfirmApiV1AuthModernEmailConfirmPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type EmailConfirmApiV1AuthModernEmailConfirmPost422 =
+export type EmailConfirmApiV1AuthModernEmailConfirmPostStatus422 =
   HTTPValidationError;
 
-/**
- * EmailConfirm
- */
-export type EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest =
-  EmailConfirm;
+export type EmailConfirmApiV1AuthModernEmailConfirmPostBody = EmailConfirm;
 
-export type EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse =
-  EmailConfirmApiV1AuthModernEmailConfirmPost200;
-
-export type EmailConfirmApiV1AuthModernEmailConfirmPostMutation = {
-  Response: EmailConfirmApiV1AuthModernEmailConfirmPost200;
-  Request: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest;
-  Errors:
-    | EmailConfirmApiV1AuthModernEmailConfirmPost400
-    | EmailConfirmApiV1AuthModernEmailConfirmPost403
-    | EmailConfirmApiV1AuthModernEmailConfirmPost422;
+export type EmailConfirmApiV1AuthModernEmailConfirmPostOptions = {
+  body: EmailConfirmApiV1AuthModernEmailConfirmPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type EmailConfirmApiV1AuthModernEmailConfirmPostResponses = {
+  "200": EmailConfirmApiV1AuthModernEmailConfirmPostStatus200;
+  "400": EmailConfirmApiV1AuthModernEmailConfirmPostStatus400;
+  "403": EmailConfirmApiV1AuthModernEmailConfirmPostStatus403;
+  "422": EmailConfirmApiV1AuthModernEmailConfirmPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type EmailConfirmApiV1AuthModernEmailConfirmPostResponse =
+  | EmailConfirmApiV1AuthModernEmailConfirmPostStatus200
+  | EmailConfirmApiV1AuthModernEmailConfirmPostStatus400
+  | EmailConfirmApiV1AuthModernEmailConfirmPostStatus403
+  | EmailConfirmApiV1AuthModernEmailConfirmPostStatus422;

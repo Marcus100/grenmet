@@ -7,9 +7,10 @@ import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const userRoleAssignmentCreateSchema = z.object({
-  user_id: z.string().uuid(),
-  role_id: z.string().uuid(),
-  scope: z.optional(z.lazy(() => roleAssignmentScopeSchema)),
-  department_id: z.optional(z.union([z.string(), z.null()])),
-  effective_to: z.optional(z.union([z.string().datetime(), z.null()])),
+  user_id: z.uuid(),
+  role_id: z.uuid(),
+  scope: roleAssignmentScopeSchema.optional().default("SELF"),
+  department_id: z.union([z.string(), z.null()]).optional(),
+  effective_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
 });

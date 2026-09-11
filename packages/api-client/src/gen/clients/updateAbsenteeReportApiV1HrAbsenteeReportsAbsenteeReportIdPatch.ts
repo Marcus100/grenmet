@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponses,
 } from "../models/UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
-
-function getUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchUrl(
-  absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/absentee-reports/${absentee_report_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a still-DRAFT absentee report in place. Requires absentee.report.create permission and ownership.
  * @summary Edit a draft absentee report
  * {@link /api/v1/hr/absentee-reports/:absentee_report_id}
  */
-export async function updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch(
-  absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"],
-  data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
-    >,
-    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchUrl(
-      absentee_report_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/absentee-reports/{absentee_report_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

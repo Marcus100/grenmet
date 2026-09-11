@@ -5,44 +5,38 @@
 
 import type { TimesheetStatus } from "./TimesheetStatus.js";
 
-/**
- * TimesheetPublic
- */
 export type TimesheetPublic = {
+  signed_document_id?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_start: string;
   /**
-   * @type string, date
-   */
-  period_end: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  period_end: string;
   status: TimesheetStatus;
   submitted_by_user_id?: string | null;
   approved_by_user_id?: string | null;
   submitted_at?: string | null;
   approved_at?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

@@ -7,38 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
 
-export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryParamsSchema = z.object(
-  {
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  }
-);
+export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Timesheets returned
- */
-export const readMyTimesheetsApiV1HrTimesheetsMeGet200Schema = z.lazy(
-  () => timesheetListPublicSchema
-);
+export const readMyTimesheetsApiV1HrTimesheetsMeGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readMyTimesheetsApiV1HrTimesheetsMeGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readMyTimesheetsApiV1HrTimesheetsMeGetStatus200Schema =
+  timesheetListPublicSchema;
 
-export const readMyTimesheetsApiV1HrTimesheetsMeGetQueryResponseSchema = z.lazy(
-  () => readMyTimesheetsApiV1HrTimesheetsMeGet200Schema
-);
+export const readMyTimesheetsApiV1HrTimesheetsMeGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readMyTimesheetsApiV1HrTimesheetsMeGetResponseSchema =
+  readMyTimesheetsApiV1HrTimesheetsMeGetStatus200Schema;
+
+export const readMyTimesheetsApiV1HrTimesheetsMeGetErrorSchema =
+  readMyTimesheetsApiV1HrTimesheetsMeGetStatus422Schema;

@@ -23,6 +23,7 @@ from src.auth.routers.role_assignments import router as role_assignments_router
 from src.auth.routers.roles import router as roles_router
 from src.auth.routers.twofa import router as twofa_router
 from src.auth.routers.users import router as users_router
+from src.baseline.governance_router import router as governance_router
 from src.baseline.router import router as staff_setup_router
 from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
@@ -38,17 +39,22 @@ from src.hr.absentee.router import router as hr_absentee_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.dashboard.router import router as hr_dashboard_router
+from src.hr.documents.router import router as hr_documents_router
 from src.hr.exchange.router import router as hr_exchange_router
 from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
+from src.hr.signatures.router import router as hr_signatures_router
 from src.hr.timesheet.router import router as hr_timesheet_router
+from src.hr.training.router import router as hr_training_router
 from src.hr.workflow.router import router as hr_workflow_router
 from src.logging_config import configure_logging
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
+from src.storage.router import router as weather_images_router
+from src.telemetry import sentry_options
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
 
@@ -75,7 +81,11 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
-    sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
+    sentry_sdk.init(
+        dsn=str(settings.SENTRY_DSN),
+        environment=settings.ENVIRONMENT,
+        **sentry_options(),
+    )
 
 # Configure app settings based on environment
 app_configs: dict[str, Any] = {
@@ -151,16 +161,20 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_training_router, prefix="/api/v1")
+app.include_router(hr_signatures_router, prefix="/api/v1")
 app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
 app.include_router(hr_parking_router, prefix="/api/v1")
+app.include_router(hr_documents_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")
 app.include_router(cap_public_router)
 
 # Other routers
 app.include_router(utils_router, prefix="/api/v1")
+app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
 
 # Register exception handlers
@@ -195,3 +209,6 @@ app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 
 
 app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
+
+
+app.include_router(governance_router, prefix=settings.API_V1_STR)

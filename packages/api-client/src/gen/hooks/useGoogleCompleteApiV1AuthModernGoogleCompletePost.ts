@@ -9,49 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { googleCompleteApiV1AuthModernGoogleCompletePost } from "../clients/googleCompleteApiV1AuthModernGoogleCompletePost.js";
 import type {
-  GoogleCompleteApiV1AuthModernGoogleCompletePost400,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost403,
-  GoogleCompleteApiV1AuthModernGoogleCompletePost422,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest,
-  GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403,
+  GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422,
 } from "../models/GoogleCompleteApiV1AuthModernGoogleCompletePost.js";
 
 export const googleCompleteApiV1AuthModernGoogleCompletePostMutationKey = () =>
   [{ url: "/api/v1/auth/modern/google/complete" }] as const;
 
-export type GoogleCompleteApiV1AuthModernGoogleCompletePostMutationKey =
-  ReturnType<typeof googleCompleteApiV1AuthModernGoogleCompletePostMutationKey>;
-
 export function googleCompleteApiV1AuthModernGoogleCompletePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     googleCompleteApiV1AuthModernGoogleCompletePostMutationKey();
   return mutationOptions<
-    GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+    GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
     ResponseErrorConfig<
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost422
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422
     >,
-    { data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest },
+    GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return googleCompleteApiV1AuthModernGoogleCompletePost(data, config);
+    mutationFn: async ({ body }) => {
+      return googleCompleteApiV1AuthModernGoogleCompletePost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +60,18 @@ export function googleCompleteApiV1AuthModernGoogleCompletePostMutationOptions<
 export function useGoogleCompleteApiV1AuthModernGoogleCompletePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+      GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
       ResponseErrorConfig<
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost422
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422
       >,
-      { data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest },
+      GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +84,24 @@ export function useGoogleCompleteApiV1AuthModernGoogleCompletePost<TContext>(
     googleCompleteApiV1AuthModernGoogleCompletePostMutationOptions(
       config
     ) as UseMutationOptions<
-      GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+      GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
       ResponseErrorConfig<
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-        | GoogleCompleteApiV1AuthModernGoogleCompletePost422
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+        | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422
       >,
-      { data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest },
+      GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
       TContext
     >;
 
   return useMutation<
-    GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+    GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
     ResponseErrorConfig<
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost422
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422
     >,
-    { data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest },
+    GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
     TContext
   >(
     {
@@ -115,13 +111,13 @@ export function useGoogleCompleteApiV1AuthModernGoogleCompletePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    GoogleCompleteApiV1AuthModernGoogleCompletePostMutationResponse,
+    GoogleCompleteApiV1AuthModernGoogleCompletePostStatus200,
     ResponseErrorConfig<
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost400
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost403
-      | GoogleCompleteApiV1AuthModernGoogleCompletePost422
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus400
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus403
+      | GoogleCompleteApiV1AuthModernGoogleCompletePostStatus422
     >,
-    { data: GoogleCompleteApiV1AuthModernGoogleCompletePostMutationRequest },
+    GoogleCompleteApiV1AuthModernGoogleCompletePostOptions,
     TContext
   >;
 }

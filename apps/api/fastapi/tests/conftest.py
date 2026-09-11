@@ -6,36 +6,51 @@ from collections.abc import AsyncGenerator, Generator
 
 # --- Test database isolation -------------------------------------------------
 # Every test truncates all application tables between runs, so the suite MUST
-# NOT point at the development database. Force a dedicated "<db>_test" database
+# NOT point at the development database. Force a dedicated database per run and worker
 # BEFORE any `src` module is imported (settings are read at import time), then
 # create and migrate it on demand. This makes it impossible for a stray
 # `POSTGRES_SERVER=localhost` run to wipe dev data.
 os.environ.setdefault("POSTGRES_SERVER", "localhost")
-_base_db = os.environ.get("POSTGRES_DB") or "app"
-if not _base_db.endswith("_test"):
-    os.environ["POSTGRES_DB"] = f"{_base_db}_test"
+
+# --- Password hashing cost ---------------------------------------------------
+# Fixtures create and authenticate users on almost every test, so the suite runs
+# several bcrypt hash/verify pairs per test. At the production cost factor (12)
+# each pair costs ~440ms, which was ~90% of total suite runtime. Cost 4 is
+# ~1.8ms and exercises identical code paths. AuthConfig refuses a cost below 12
+# outside ENVIRONMENT=local, so this can never weaken a deployed environment.
+os.environ.setdefault("BCRYPT_ROUNDS", "4")
+
+# Set the run ID before xdist launches workers; workers inherit it and the base.
+from tests.database_target import configure_database, require_owned_database
+
+configure_database(os.environ)
 
 
 def _bootstrap_test_database() -> None:
     import psycopg
+    from psycopg.conninfo import make_conninfo
 
     from src.config import settings
 
     target = settings.POSTGRES_DB
-    if not target.endswith("_test"):  # hard safety net — never migrate a dev DB
-        raise RuntimeError(
-            f"Refusing to run tests against non-test database {target!r}"
-        )
-    admin_dsn = (
-        f"postgresql://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}"
-        f"@{settings.POSTGRES_SERVER}:{settings.POSTGRES_PORT}/postgres"
+    require_owned_database(target, os.environ)
+    admin_dsn = make_conninfo(
+        host=settings.POSTGRES_SERVER,
+        port=settings.POSTGRES_PORT,
+        user=settings.POSTGRES_USER,
+        password=settings.POSTGRES_PASSWORD,
+        dbname="postgres",
     )
     with psycopg.connect(admin_dsn, autocommit=True) as conn:
         exists = conn.execute(
             "SELECT 1 FROM pg_database WHERE datname = %s", (target,)
         ).fetchone()
         if not exists:
-            conn.execute(f'CREATE DATABASE "{target}"')
+            conn.execute(
+                psycopg.sql.SQL("CREATE DATABASE {}").format(
+                    psycopg.sql.Identifier(target)
+                )
+            )
 
     from alembic.config import Config
 
@@ -166,3 +181,28 @@ async def normal_user_token_headers_async(
         email=email_settings.EMAIL_TEST_USER,
         db=db_async,
     )
+
+
+def pytest_sessionfinish():
+    """Remove only this invocation's database after fixture teardown."""
+    import psycopg
+    from psycopg.conninfo import make_conninfo
+
+    from src.config import settings
+
+    target = settings.POSTGRES_DB
+    require_owned_database(target, os.environ)
+    engine.dispose()
+    dsn = make_conninfo(
+        host=settings.POSTGRES_SERVER,
+        port=settings.POSTGRES_PORT,
+        user=settings.POSTGRES_USER,
+        password=settings.POSTGRES_PASSWORD,
+        dbname="postgres",
+    )
+    with psycopg.connect(dsn, autocommit=True) as connection:
+        connection.execute(
+            psycopg.sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(
+                psycopg.sql.Identifier(target)
+            )
+        )

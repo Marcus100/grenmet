@@ -3,15 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readPublicLatestActiveApiCapLatestActiveGet200Schema = z.lazy(
-  () => capAlertListPublicSchema
-);
+export const readPublicLatestActiveApiCapLatestActiveGetStatus200Schema =
+  capAlertListPublicSchema;
 
-export const readPublicLatestActiveApiCapLatestActiveGetQueryResponseSchema =
-  z.lazy(() => readPublicLatestActiveApiCapLatestActiveGet200Schema);
+export const readPublicLatestActiveApiCapLatestActiveGetResponseSchema =
+  readPublicLatestActiveApiCapLatestActiveGetStatus200Schema;

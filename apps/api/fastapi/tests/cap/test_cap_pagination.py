@@ -9,13 +9,16 @@ from typing import Any
 
 import httpx
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.baseline.models import ApprovalPolicy
 
 pytestmark = pytest.mark.asyncio
 
 
 async def test_list_alerts_pagination(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     _ = db_async
@@ -52,7 +55,7 @@ async def test_list_alerts_pagination(
 
 async def test_list_alerts_pagination_respects_lifecycle_filter(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
     _ = db_async
@@ -82,10 +85,12 @@ async def test_list_alerts_pagination_respects_lifecycle_filter(
 
 async def test_list_audit_events_pagination(
     async_client: httpx.AsyncClient,
-    db_async: object,
+    db_async: AsyncSession,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    _ = db_async
+    # Explicit single-actor policy for publication/feed tests.
+    db_async.add(ApprovalPolicy(key="cap", allow_self_approval=True))
+    await db_async.commit()
     create = await async_client.post(
         "/api/v1/cap/alerts",
         headers=superuser_token_headers_async,

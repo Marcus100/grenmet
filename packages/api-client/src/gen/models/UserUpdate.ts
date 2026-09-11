@@ -5,9 +5,6 @@
 
 import type { Title } from "./Title.js";
 
-/**
- * UserUpdate
- */
 export type UserUpdate = {
   email?: string | null;
   username?: string | null;

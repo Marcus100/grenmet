@@ -9,61 +9,48 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch } from "../clients/updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
 import type {
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
-  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404,
+  UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422,
 } from "../models/UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch.js";
 
 export const updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey =
   () => [{ url: "/api/v1/hr/absentee-reports/:absentee_report_id" }] as const;
 
-export type UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey =
-  ReturnType<
-    typeof updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey
-  >;
-
 export function updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationKey();
   return mutationOptions<
-    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422
     >,
-    {
-      absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"];
-      data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-    },
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ absentee_report_id, data }) => {
-      return updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch(
-        absentee_report_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -78,22 +65,19 @@ export function useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPat
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
+      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422
       >,
-      {
-        absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"];
-        data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-      },
+      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -106,32 +90,26 @@ export function useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPat
     updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
+      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+        | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422
       >,
-      {
-        absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"];
-        data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-      },
+      UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422
     >,
-    {
-      absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"];
-      data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-    },
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
     TContext
   >(
     {
@@ -141,17 +119,14 @@ export function useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPat
     },
     queryClient
   ) as UseMutationResult<
-    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationResponse,
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch400
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch403
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch404
-      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch422
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404
+      | UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422
     >,
-    {
-      absentee_report_id: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathParams["absentee_report_id"];
-      data: UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchMutationRequest;
-    },
+    UpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchOptions,
     TContext
   >;
 }

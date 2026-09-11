@@ -7,63 +7,57 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { LeaveRequestPublic } from "./LeaveRequestPublic.js";
 import type { LeaveRequestSubmit } from "./LeaveRequestSubmit.js";
 
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams =
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     leave_request_id: string;
   };
 
-/**
- * LeaveRequestPublic
- * @description Leave request submitted
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200 =
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200 =
   LeaveRequestPublic;
 
-/**
- * @description Leave request is not a draft
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400 =
-  any;
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to submit this leave request
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403 =
-  any;
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403 =
+  unknown;
 
-/**
- * @description Leave request not found
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404 =
-  any;
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422 =
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422 =
   HTTPValidationError;
 
-/**
- * LeaveRequestSubmit
- */
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest =
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostBody =
   LeaveRequestSubmit;
 
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse =
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200;
-
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutation =
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions =
   {
-    Response: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost200;
-    Request: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-    PathParams: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams;
-    Errors:
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422;
+    body: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostBody;
+    path: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPath;
+    query?: never;
+    headers?: never;
   };
+
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponses =
+  {
+    "200": SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200;
+    "400": SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400;
+    "403": SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403;
+    "404": SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404;
+    "422": SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponse =
+  | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200
+  | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+  | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+  | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+  | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422;

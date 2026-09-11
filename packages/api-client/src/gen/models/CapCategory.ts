@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capCategoryCapCategoryEnum = {
+export const capCategory = {
   Geo: "Geo",
   Met: "Met",
   Safety: "Safety",
@@ -18,10 +18,4 @@ export const capCategoryCapCategoryEnum = {
   Other: "Other",
 } as const;
 
-export type CapCategoryCapCategoryEnumKey =
-  (typeof capCategoryCapCategoryEnum)[keyof typeof capCategoryCapCategoryEnum];
-
-/**
- * CapCategory
- */
-export type CapCategory = CapCategoryCapCategoryEnumKey;
+export type CapCategory = (typeof capCategory)[keyof typeof capCategory];

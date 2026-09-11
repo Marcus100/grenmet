@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readPublicAlertsApiCapAlertsGet } from "../clients/readPublicAlertsApiCapAlertsGet.js";
-import type { ReadPublicAlertsApiCapAlertsGetQueryResponse } from "../models/ReadPublicAlertsApiCapAlertsGet.js";
+import type { ReadPublicAlertsApiCapAlertsGetStatus200 } from "../models/ReadPublicAlertsApiCapAlertsGet.js";
 
 export const readPublicAlertsApiCapAlertsGetQueryKey = () =>
   [{ url: "/api/cap/alerts" }] as const;
 
-export type ReadPublicAlertsApiCapAlertsGetQueryKey = ReturnType<
+type ReadPublicAlertsApiCapAlertsGetQueryKey = ReturnType<
   typeof readPublicAlertsApiCapAlertsGetQueryKey
 >;
 
 export function readPublicAlertsApiCapAlertsGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readPublicAlertsApiCapAlertsGetQueryKey();
   return queryOptions<
-    ReadPublicAlertsApiCapAlertsGetQueryResponse,
+    ReadPublicAlertsApiCapAlertsGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadPublicAlertsApiCapAlertsGetQueryResponse,
+    ReadPublicAlertsApiCapAlertsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readPublicAlertsApiCapAlertsGet(config);
+      return readPublicAlertsApiCapAlertsGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function readPublicAlertsApiCapAlertsGetQueryOptions(
  * {@link /api/cap/alerts}
  */
 export function useReadPublicAlertsApiCapAlertsGet<
-  TData = ReadPublicAlertsApiCapAlertsGetQueryResponse,
-  TQueryData = ReadPublicAlertsApiCapAlertsGetQueryResponse,
+  TData = ReadPublicAlertsApiCapAlertsGetStatus200,
+  TQueryData = ReadPublicAlertsApiCapAlertsGetStatus200,
   TQueryKey extends QueryKey = ReadPublicAlertsApiCapAlertsGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadPublicAlertsApiCapAlertsGetQueryResponse,
+        ReadPublicAlertsApiCapAlertsGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readPublicAlertsApiCapAlertsGetQueryKey();
+    resolvedOptions?.queryKey ?? readPublicAlertsApiCapAlertsGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readPublicAlertsApiCapAlertsGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

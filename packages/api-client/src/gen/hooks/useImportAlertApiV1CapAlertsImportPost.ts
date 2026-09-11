@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { importAlertApiV1CapAlertsImportPost } from "../clients/importAlertApiV1CapAlertsImportPost.js";
 import type {
-  ImportAlertApiV1CapAlertsImportPost422,
-  ImportAlertApiV1CapAlertsImportPostMutationRequest,
-  ImportAlertApiV1CapAlertsImportPostMutationResponse,
+  ImportAlertApiV1CapAlertsImportPostOptions,
+  ImportAlertApiV1CapAlertsImportPostStatus201,
+  ImportAlertApiV1CapAlertsImportPostStatus422,
 } from "../models/ImportAlertApiV1CapAlertsImportPost.js";
 
 export const importAlertApiV1CapAlertsImportPostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/import" }] as const;
 
-export type ImportAlertApiV1CapAlertsImportPostMutationKey = ReturnType<
-  typeof importAlertApiV1CapAlertsImportPostMutationKey
->;
-
 export function importAlertApiV1CapAlertsImportPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ImportAlertApiV1CapAlertsImportPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = importAlertApiV1CapAlertsImportPostMutationKey();
   return mutationOptions<
-    ImportAlertApiV1CapAlertsImportPostMutationResponse,
-    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-    { data: ImportAlertApiV1CapAlertsImportPostMutationRequest },
+    ImportAlertApiV1CapAlertsImportPostStatus201,
+    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPostStatus422>,
+    ImportAlertApiV1CapAlertsImportPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return importAlertApiV1CapAlertsImportPost(data, config);
+    mutationFn: async ({ body }) => {
+      return importAlertApiV1CapAlertsImportPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,14 +52,14 @@ export function importAlertApiV1CapAlertsImportPostMutationOptions<
 export function useImportAlertApiV1CapAlertsImportPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ImportAlertApiV1CapAlertsImportPostMutationResponse,
-      ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-      { data: ImportAlertApiV1CapAlertsImportPostMutationRequest },
+      ImportAlertApiV1CapAlertsImportPostStatus201,
+      ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPostStatus422>,
+      ImportAlertApiV1CapAlertsImportPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ImportAlertApiV1CapAlertsImportPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -76,16 +71,16 @@ export function useImportAlertApiV1CapAlertsImportPost<TContext>(
   const baseOptions = importAlertApiV1CapAlertsImportPostMutationOptions(
     config
   ) as UseMutationOptions<
-    ImportAlertApiV1CapAlertsImportPostMutationResponse,
-    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-    { data: ImportAlertApiV1CapAlertsImportPostMutationRequest },
+    ImportAlertApiV1CapAlertsImportPostStatus201,
+    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPostStatus422>,
+    ImportAlertApiV1CapAlertsImportPostOptions,
     TContext
   >;
 
   return useMutation<
-    ImportAlertApiV1CapAlertsImportPostMutationResponse,
-    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-    { data: ImportAlertApiV1CapAlertsImportPostMutationRequest },
+    ImportAlertApiV1CapAlertsImportPostStatus201,
+    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPostStatus422>,
+    ImportAlertApiV1CapAlertsImportPostOptions,
     TContext
   >(
     {
@@ -95,9 +90,9 @@ export function useImportAlertApiV1CapAlertsImportPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ImportAlertApiV1CapAlertsImportPostMutationResponse,
-    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-    { data: ImportAlertApiV1CapAlertsImportPostMutationRequest },
+    ImportAlertApiV1CapAlertsImportPostStatus201,
+    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPostStatus422>,
+    ImportAlertApiV1CapAlertsImportPostOptions,
     TContext
   >;
 }

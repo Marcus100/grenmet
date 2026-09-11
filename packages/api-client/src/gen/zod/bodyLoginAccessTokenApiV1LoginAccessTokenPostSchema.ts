@@ -6,10 +6,10 @@
 import * as z from "zod";
 
 export const bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema = z.object({
-  grant_type: z.optional(z.union([z.string().regex(/^password$/), z.null()])),
+  grant_type: z.union([z.string().regex(/^password$/), z.null()]).optional(),
   username: z.string(),
   password: z.string(),
-  scope: z.optional(z.string().default("")),
-  client_id: z.optional(z.union([z.string(), z.null()])),
-  client_secret: z.optional(z.union([z.string(), z.null()])),
+  scope: z.string().optional().default(""),
+  client_id: z.union([z.string(), z.null()]).optional(),
+  client_secret: z.union([z.string(), z.null()]).optional(),
 });

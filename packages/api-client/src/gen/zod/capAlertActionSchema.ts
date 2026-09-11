@@ -6,5 +6,5 @@
 import * as z from "zod";
 
 export const capAlertActionSchema = z.object({
-  note: z.optional(z.union([z.string(), z.null()])),
+  note: z.union([z.string().max(2000), z.null()]).optional(),
 });

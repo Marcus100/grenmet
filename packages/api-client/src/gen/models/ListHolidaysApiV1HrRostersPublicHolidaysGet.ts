@@ -6,36 +6,35 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 
-export type ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams = {
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetQuery = {
   year?: number | null;
 };
 
-/**
- * PublicHolidaysPublic
- * @description Public holidays returned
- */
-export type ListHolidaysApiV1HrRostersPublicHolidaysGet200 =
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200 =
   PublicHolidaysPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ListHolidaysApiV1HrRostersPublicHolidaysGet403 = any;
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ListHolidaysApiV1HrRostersPublicHolidaysGet422 =
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422 =
   HTTPValidationError;
 
-export type ListHolidaysApiV1HrRostersPublicHolidaysGetQueryResponse =
-  ListHolidaysApiV1HrRostersPublicHolidaysGet200;
-
-export type ListHolidaysApiV1HrRostersPublicHolidaysGetQuery = {
-  Response: ListHolidaysApiV1HrRostersPublicHolidaysGet200;
-  QueryParams: ListHolidaysApiV1HrRostersPublicHolidaysGetQueryParams;
-  Errors:
-    | ListHolidaysApiV1HrRostersPublicHolidaysGet403
-    | ListHolidaysApiV1HrRostersPublicHolidaysGet422;
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ListHolidaysApiV1HrRostersPublicHolidaysGetQuery;
+  headers?: never;
 };
+
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetResponses = {
+  "200": ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200;
+  "403": ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403;
+  "422": ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ListHolidaysApiV1HrRostersPublicHolidaysGetResponse =
+  | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus200
+  | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus403
+  | ListHolidaysApiV1HrRostersPublicHolidaysGetStatus422;

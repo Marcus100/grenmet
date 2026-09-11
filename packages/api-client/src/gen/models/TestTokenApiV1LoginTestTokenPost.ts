@@ -5,16 +5,21 @@
 
 import type { UserPublic } from "./UserPublic.js";
 
-/**
- * UserPublic
- * @description Successful Response
- */
-export type TestTokenApiV1LoginTestTokenPost200 = UserPublic;
+export type TestTokenApiV1LoginTestTokenPostStatus200 = UserPublic;
 
-export type TestTokenApiV1LoginTestTokenPostMutationResponse =
-  TestTokenApiV1LoginTestTokenPost200;
-
-export type TestTokenApiV1LoginTestTokenPostMutation = {
-  Response: TestTokenApiV1LoginTestTokenPost200;
-  Errors: any;
+export type TestTokenApiV1LoginTestTokenPostOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type TestTokenApiV1LoginTestTokenPostResponses = {
+  "200": TestTokenApiV1LoginTestTokenPostStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TestTokenApiV1LoginTestTokenPostResponse =
+  TestTokenApiV1LoginTestTokenPostStatus200;

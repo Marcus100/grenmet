@@ -5,21 +5,25 @@
 
 import type { UserProfilePublic } from "./UserProfilePublic.js";
 
-/**
- * UserProfilePublic
- * @description HR profile returned
- */
-export type ReadHrProfileMeApiV1HrProfileMeGet200 = UserProfilePublic;
+export type ReadHrProfileMeApiV1HrProfileMeGetStatus200 = UserProfilePublic;
 
-/**
- * @description HR profile not found for this user
- */
-export type ReadHrProfileMeApiV1HrProfileMeGet404 = any;
+export type ReadHrProfileMeApiV1HrProfileMeGetStatus404 = unknown;
 
-export type ReadHrProfileMeApiV1HrProfileMeGetQueryResponse =
-  ReadHrProfileMeApiV1HrProfileMeGet200;
-
-export type ReadHrProfileMeApiV1HrProfileMeGetQuery = {
-  Response: ReadHrProfileMeApiV1HrProfileMeGet200;
-  Errors: ReadHrProfileMeApiV1HrProfileMeGet404;
+export type ReadHrProfileMeApiV1HrProfileMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadHrProfileMeApiV1HrProfileMeGetResponses = {
+  "200": ReadHrProfileMeApiV1HrProfileMeGetStatus200;
+  "404": ReadHrProfileMeApiV1HrProfileMeGetStatus404;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadHrProfileMeApiV1HrProfileMeGetResponse =
+  | ReadHrProfileMeApiV1HrProfileMeGetStatus200
+  | ReadHrProfileMeApiV1HrProfileMeGetStatus404;

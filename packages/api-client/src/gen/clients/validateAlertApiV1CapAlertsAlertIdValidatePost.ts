@@ -3,48 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ValidateAlertApiV1CapAlertsAlertIdValidatePost422,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostResponses,
 } from "../models/ValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
-
-function getValidateAlertApiV1CapAlertsAlertIdValidatePostUrl(
-  alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/cap/alerts/${alert_id}/validate` as const,
-  };
-  return res;
-}
 
 /**
  * @summary Validate Alert
  * {@link /api/v1/cap/alerts/:alert_id/validate}
  */
-export async function validateAlertApiV1CapAlertsAlertIdValidatePost(
-  alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function validateAlertApiV1CapAlertsAlertIdValidatePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-    unknown
-  >({
-    method: "POST",
-    url: getValidateAlertApiV1CapAlertsAlertIdValidatePostUrl(
-      alert_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/{alert_id}/validate",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ValidateAlertApiV1CapAlertsAlertIdValidatePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

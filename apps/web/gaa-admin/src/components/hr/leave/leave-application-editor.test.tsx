@@ -30,6 +30,13 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () =>
     HttpResponse.json({
       employment: { department: { id: "dept_met", name: "Met" } },
@@ -169,16 +176,28 @@ it("keeps a submitted draft printable with the server date and resets cleanly", 
   await screen.findByText("Editing saved draft");
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
   await waitFor(() =>
-    expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled()
+    expect(screen.getByRole("button", { name: "Sign & submit" })).toBeEnabled()
   );
-  fireEvent.click(screen.getByRole("button", { name: "Submit" }));
+  fireEvent.click(screen.getByRole("button", { name: "Sign & submit" }));
   expect((await screen.findAllByText("06 Sept 2026")).length).toBeGreaterThan(
     0
   );
   expect(
-    screen.queryByRole("button", { name: "Submit" })
+    screen.queryByRole("button", { name: "Sign & submit" })
   ).not.toBeInTheDocument();
   expect(screen.getAllByText("2026-08-14").length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
+});
+
+it("requires a saved signature for signing but still permits saving a draft", async () => {
+  server.use(
+    http.get(`${BASE}/api/v1/hr/signature/me`, () => HttpResponse.json(null))
+  );
+  wrap(<LeaveApplicationEditor />);
+  expect(
+    await screen.findByText("Save your signature in your profile")
+  ).toBeVisible();
+  expect(screen.getByRole("button", { name: "Sign & submit" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
 });

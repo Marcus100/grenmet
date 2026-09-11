@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * ProfileAuditPublic
- */
 export type ProfileAuditPublic = {
   created_at?: string | null;
   created_by?: string | null;

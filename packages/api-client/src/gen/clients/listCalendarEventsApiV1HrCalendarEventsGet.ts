@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListCalendarEventsApiV1HrCalendarEventsGet400,
-  ListCalendarEventsApiV1HrCalendarEventsGet403,
-  ListCalendarEventsApiV1HrCalendarEventsGet404,
-  ListCalendarEventsApiV1HrCalendarEventsGet422,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
-  ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
+  ListCalendarEventsApiV1HrCalendarEventsGetOptions,
+  ListCalendarEventsApiV1HrCalendarEventsGetResponses,
 } from "../models/ListCalendarEventsApiV1HrCalendarEventsGet.js";
-
-function getListCalendarEventsApiV1HrCalendarEventsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/calendar/events` as const };
-  return res;
-}
 
 /**
  * @description Return the department's calendar entries overlapping the date range — meetings, training, inspections, visits, maintenance and anything else staff have recorded. The duty roster is a separate layer, read from /hr/rosters/assignments. Requires calendar.view; the range is capped at 92 days. Cancelled entries are omitted unless include_cancelled is set.
  * @summary List department calendar events
  * {@link /api/v1/hr/calendar/events}
  */
-export async function listCalendarEventsApiV1HrCalendarEventsGet(
-  params: ListCalendarEventsApiV1HrCalendarEventsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listCalendarEventsApiV1HrCalendarEventsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ListCalendarEventsApiV1HrCalendarEventsGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ListCalendarEventsApiV1HrCalendarEventsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListCalendarEventsApiV1HrCalendarEventsGetQueryResponse,
-    ResponseErrorConfig<
-      | ListCalendarEventsApiV1HrCalendarEventsGet400
-      | ListCalendarEventsApiV1HrCalendarEventsGet403
-      | ListCalendarEventsApiV1HrCalendarEventsGet404
-      | ListCalendarEventsApiV1HrCalendarEventsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListCalendarEventsApiV1HrCalendarEventsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/calendar/events",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ListCalendarEventsApiV1HrCalendarEventsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

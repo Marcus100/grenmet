@@ -17,12 +17,14 @@ from src.hr.exceptions import HRPermissionDeniedError, WorkflowTemplateNotFoundE
 from src.hr.models import Department, EmploymentRecord
 from src.hr.parking.schemas import ParkingPermitCreate
 from src.hr.parking.service import create_parking_permit
+from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.schemas import WorkflowInstanceCreate
 from src.hr.workflow.service import create_workflow_instance
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_supervised_pair,
     make_user,
 )
@@ -80,13 +82,28 @@ async def test_department_scope_assignment_enforced(
     db_async.add(supervisor)
 
     if not await db_async.get(Department, "dept_scope_a"):
-        db_async.add(Department(id="dept_scope_a", name="Dept Scope A"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_scope_a",
+                id="dept_scope_a",
+                name="Dept Scope A",
+            )
+        )
     if not await db_async.get(Department, "dept_scope_b"):
-        db_async.add(Department(id="dept_scope_b", name="Dept Scope B"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_scope_b",
+                id="dept_scope_b",
+                name="Dept Scope B",
+            )
+        )
     await db_async.commit()
 
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=supervisor.id,
             employee_number=f"SUP-{random_lower_string()}",
             department_id="dept_scope_a",
@@ -95,6 +112,7 @@ async def test_department_scope_assignment_enforced(
     )
     db_async.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=target.id,
             employee_number=f"TGT-{random_lower_string()}",
             department_id="dept_scope_b",
@@ -103,6 +121,7 @@ async def test_department_scope_assignment_enforced(
     )
     db_async.add(
         UserRoleAssignment(
+            organisation_id="gaa",
             user_id=supervisor.id,
             role_id=role.id,
             scope=RoleAssignmentScope.DEPARTMENT,
@@ -134,6 +153,8 @@ async def test_absentee_self_file_succeeds(db_async: AsyncSession) -> None:
     dept = await make_department(db_async, "dept_abs_self")
     role, _ = await make_role_with_permission(db_async, "absentee.report.create")
     await assign_role(db_async, user=user, role=role)
+
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.ABSENTEE_REPORT)
 
     report = await create_absentee_report(
         session=db_async,
@@ -177,6 +198,10 @@ async def test_absentee_supervisor_proxy_file_succeeds(
         db_async, "absentee.report.create"
     )
 
+    await make_submission_setup(
+        db_async, supervisor, dept.id, WorkflowType.ABSENTEE_REPORT
+    )
+
     report = await create_absentee_report(
         session=db_async,
         current_user=supervisor,
@@ -214,6 +239,10 @@ async def test_parking_file_for_other_without_scope_denied(
 async def test_parking_supervisor_proxy_file_succeeds(db_async: AsyncSession) -> None:
     supervisor, employee, dept, _ = await make_supervised_pair(
         db_async, "parking.permit.create"
+    )
+
+    await make_submission_setup(
+        db_async, supervisor, dept.id, WorkflowType.PARKING_PERMIT
     )
 
     permit = await create_parking_permit(

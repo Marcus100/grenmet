@@ -8,37 +8,35 @@ import { leaveTypeSchema } from "./leaveTypeSchema.js";
 import { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 
 export const leaveRequestCreateSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   department_id: z.string(),
-  leave_type: z.lazy(() => leaveTypeSchema),
-  start_date: z.string().date(),
-  end_date: z.string().date(),
-  days_requested: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  days_with_pay: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  days_without_pay: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("0.0")
-  ),
-  professional_appointment_subtype: z.optional(
-    z.union([z.lazy(() => profAppointmentTypeSchema), z.null()])
-  ),
-  reason: z.optional(z.union([z.string(), z.null()])),
-  contact_phone: z.optional(z.union([z.string(), z.null()])),
-  leave_address: z.optional(z.union([z.string(), z.null()])),
-  travel_from_date: z.optional(z.union([z.string().date(), z.null()])),
-  travel_to_date: z.optional(z.union([z.string().date(), z.null()])),
-  salary_in_advance: z.optional(z.boolean().default(false)),
-  requires_acting_appointment: z.optional(z.boolean().default(false)),
-  acting_officer_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  expected_return_date: z.optional(z.union([z.string().date(), z.null()])),
-  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
-  as_draft: z.optional(z.boolean().default(false)),
+  leave_type: leaveTypeSchema,
+  start_date: z.iso.date(),
+  end_date: z.iso.date(),
+  days_requested: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  days_with_pay: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  days_without_pay: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("0.0"),
+  professional_appointment_subtype: z
+    .union([profAppointmentTypeSchema, z.null()])
+    .optional(),
+  reason: z.union([z.string(), z.null()]).optional(),
+  contact_phone: z.union([z.string(), z.null()]).optional(),
+  leave_address: z.union([z.string(), z.null()]).optional(),
+  travel_from_date: z.union([z.iso.date(), z.null()]).optional(),
+  travel_to_date: z.union([z.iso.date(), z.null()]).optional(),
+  salary_in_advance: z.boolean().optional().default(false),
+  requires_acting_appointment: z.boolean().optional().default(false),
+  acting_officer_id: z.union([z.uuid(), z.null()]).optional(),
+  expected_return_date: z.union([z.iso.date(), z.null()]).optional(),
+  co_approver_user_ids: z.array(z.uuid()).optional(),
+  as_draft: z.boolean().optional().default(false),
 });

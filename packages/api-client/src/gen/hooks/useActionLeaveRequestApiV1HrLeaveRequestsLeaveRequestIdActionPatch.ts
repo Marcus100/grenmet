@@ -9,60 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch } from "../clients/actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 import type {
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
-  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404,
+  ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422,
 } from "../models/ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch.js";
 
 export const actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey =
   () =>
     [{ url: "/api/v1/hr/leave-requests/:leave_request_id/action" }] as const;
 
-export type ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey =
-  ReturnType<
-    typeof actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey
-  >;
-
 export function actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey();
   return mutationOptions<
-    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422
     >,
-    {
-      leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"];
-      data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-    },
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id, data }) => {
-      return actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch(
-        leave_request_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -77,21 +64,18 @@ export function useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPat
 >(
   options: {
     mutation?: UseMutationOptions<
-      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
       ResponseErrorConfig<
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422
       >,
-      {
-        leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"];
-        data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-      },
+      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -104,30 +88,24 @@ export function useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPat
     actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
       ResponseErrorConfig<
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+        | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422
       >,
-      {
-        leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"];
-        data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-      },
+      ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
       TContext
     >;
 
   return useMutation<
-    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422
     >,
-    {
-      leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"];
-      data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-    },
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
     TContext
   >(
     {
@@ -137,16 +115,13 @@ export function useActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPat
     },
     queryClient
   ) as UseMutationResult<
-    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationResponse,
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200,
     ResponseErrorConfig<
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch403
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch404
-      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatch422
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404
+      | ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422
     >,
-    {
-      leave_request_id: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathParams["leave_request_id"];
-      data: ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationRequest;
-    },
+    ActionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchOptions,
     TContext
   >;
 }

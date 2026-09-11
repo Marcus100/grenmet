@@ -6,30 +6,34 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type TestEmailApiV1UtilsTestEmailPostQueryParams = {
+export type TestEmailApiV1UtilsTestEmailPostQuery = {
   /**
-   * @type string, email
+   * @description
+   * Format: `email`
+   * @type string
    */
   email_to: string;
 };
 
-/**
- * Message
- * @description Successful Response
- */
-export type TestEmailApiV1UtilsTestEmailPost201 = Message;
+export type TestEmailApiV1UtilsTestEmailPostStatus201 = Message;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type TestEmailApiV1UtilsTestEmailPost422 = HTTPValidationError;
+export type TestEmailApiV1UtilsTestEmailPostStatus422 = HTTPValidationError;
 
-export type TestEmailApiV1UtilsTestEmailPostMutationResponse =
-  TestEmailApiV1UtilsTestEmailPost201;
-
-export type TestEmailApiV1UtilsTestEmailPostMutation = {
-  Response: TestEmailApiV1UtilsTestEmailPost201;
-  QueryParams: TestEmailApiV1UtilsTestEmailPostQueryParams;
-  Errors: TestEmailApiV1UtilsTestEmailPost422;
+export type TestEmailApiV1UtilsTestEmailPostOptions = {
+  body?: never;
+  path?: never;
+  query: TestEmailApiV1UtilsTestEmailPostQuery;
+  headers?: never;
 };
+
+export type TestEmailApiV1UtilsTestEmailPostResponses = {
+  "201": TestEmailApiV1UtilsTestEmailPostStatus201;
+  "422": TestEmailApiV1UtilsTestEmailPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TestEmailApiV1UtilsTestEmailPostResponse =
+  | TestEmailApiV1UtilsTestEmailPostStatus201
+  | TestEmailApiV1UtilsTestEmailPostStatus422;

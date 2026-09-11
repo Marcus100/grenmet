@@ -9,49 +9,45 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { validateCsvApiV1HrRostersImportCsvValidatePost } from "../clients/validateCsvApiV1HrRostersImportCsvValidatePost.js";
 import type {
-  ValidateCsvApiV1HrRostersImportCsvValidatePost400,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost403,
-  ValidateCsvApiV1HrRostersImportCsvValidatePost422,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest,
-  ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403,
+  ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422,
 } from "../models/ValidateCsvApiV1HrRostersImportCsvValidatePost.js";
 
 export const validateCsvApiV1HrRostersImportCsvValidatePostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/import-csv/validate" }] as const;
 
-export type ValidateCsvApiV1HrRostersImportCsvValidatePostMutationKey =
-  ReturnType<typeof validateCsvApiV1HrRostersImportCsvValidatePostMutationKey>;
-
 export function validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     validateCsvApiV1HrRostersImportCsvValidatePostMutationKey();
   return mutationOptions<
-    ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+    ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost422
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422
     >,
-    { data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest },
+    ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return validateCsvApiV1HrRostersImportCsvValidatePost(data, config);
+    mutationFn: async ({ body }) => {
+      return validateCsvApiV1HrRostersImportCsvValidatePost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +60,18 @@ export function validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions<
 export function useValidateCsvApiV1HrRostersImportCsvValidatePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+      ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
       ResponseErrorConfig<
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost422
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422
       >,
-      { data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest },
+      ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -88,24 +84,24 @@ export function useValidateCsvApiV1HrRostersImportCsvValidatePost<TContext>(
     validateCsvApiV1HrRostersImportCsvValidatePostMutationOptions(
       config
     ) as UseMutationOptions<
-      ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+      ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
       ResponseErrorConfig<
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-        | ValidateCsvApiV1HrRostersImportCsvValidatePost422
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+        | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422
       >,
-      { data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest },
+      ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
       TContext
     >;
 
   return useMutation<
-    ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+    ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost422
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422
     >,
-    { data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest },
+    ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
     TContext
   >(
     {
@@ -115,13 +111,13 @@ export function useValidateCsvApiV1HrRostersImportCsvValidatePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ValidateCsvApiV1HrRostersImportCsvValidatePostMutationResponse,
+    ValidateCsvApiV1HrRostersImportCsvValidatePostStatus200,
     ResponseErrorConfig<
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost400
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost403
-      | ValidateCsvApiV1HrRostersImportCsvValidatePost422
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus400
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus403
+      | ValidateCsvApiV1HrRostersImportCsvValidatePostStatus422
     >,
-    { data: ValidateCsvApiV1HrRostersImportCsvValidatePostMutationRequest },
+    ValidateCsvApiV1HrRostersImportCsvValidatePostOptions,
     TContext
   >;
 }

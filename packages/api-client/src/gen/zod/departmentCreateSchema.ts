@@ -6,6 +6,8 @@
 import * as z from "zod";
 
 export const departmentCreateSchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  code: z.union([z.string().min(1).max(100), z.null()]).optional(),
   id: z
     .string()
     .max(100)

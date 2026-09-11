@@ -8,40 +8,32 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowInstanceCreateSchema } from "./workflowInstanceCreateSchema.js";
 import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
 
-/**
- * @description Instance created
- */
-export const createInstanceApiV1HrWorkflowsInstancesPost200Schema = z.any();
+export const createInstanceApiV1HrWorkflowsInstancesPostStatus200Schema =
+  z.unknown();
 
-/**
- * @description Successful Response
- */
-export const createInstanceApiV1HrWorkflowsInstancesPost201Schema = z.lazy(
-  () => workflowInstancePublicSchema
-);
+export const createInstanceApiV1HrWorkflowsInstancesPostStatus201Schema =
+  workflowInstancePublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const createInstanceApiV1HrWorkflowsInstancesPost403Schema = z.any();
+export const createInstanceApiV1HrWorkflowsInstancesPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Workflow template not found
- */
-export const createInstanceApiV1HrWorkflowsInstancesPost404Schema = z.any();
+export const createInstanceApiV1HrWorkflowsInstancesPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createInstanceApiV1HrWorkflowsInstancesPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createInstanceApiV1HrWorkflowsInstancesPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createInstanceApiV1HrWorkflowsInstancesPostMutationRequestSchema =
-  z.lazy(() => workflowInstanceCreateSchema);
-
-export const createInstanceApiV1HrWorkflowsInstancesPostMutationResponseSchema =
+export const createInstanceApiV1HrWorkflowsInstancesPostResponseSchema =
   z.union([
-    z.lazy(() => createInstanceApiV1HrWorkflowsInstancesPost200Schema),
-    z.lazy(() => createInstanceApiV1HrWorkflowsInstancesPost201Schema),
+    createInstanceApiV1HrWorkflowsInstancesPostStatus200Schema,
+    createInstanceApiV1HrWorkflowsInstancesPostStatus201Schema,
   ]);
+
+export const createInstanceApiV1HrWorkflowsInstancesPostErrorSchema = z.union([
+  createInstanceApiV1HrWorkflowsInstancesPostStatus403Schema,
+  createInstanceApiV1HrWorkflowsInstancesPostStatus404Schema,
+  createInstanceApiV1HrWorkflowsInstancesPostStatus422Schema,
+]);
+
+export const createInstanceApiV1HrWorkflowsInstancesPostBodySchema =
+  workflowInstanceCreateSchema;

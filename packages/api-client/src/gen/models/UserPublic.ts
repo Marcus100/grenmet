@@ -5,13 +5,12 @@
 
 import type { Title } from "./Title.js";
 
-/**
- * UserPublic
- */
 export type UserPublic = {
   /**
+   * @description
+   * Format: `email`
    * @maxLength 255
-   * @type string, email
+   * @type string
    */
   email: string;
   /**
@@ -47,20 +46,13 @@ export type UserPublic = {
    */
   registration_pending?: boolean;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
   last_login_at?: string | null;
-  /**
-   * @type string
-   */
   full_name: string;
 };

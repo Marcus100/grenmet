@@ -8,6 +8,6 @@ import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { capSnapshotPublicSchema } from "./capSnapshotPublicSchema.js";
 
 export const capPublishPublicSchema = z.object({
-  alert: z.lazy(() => capAlertPublicSchema),
-  snapshot: z.lazy(() => capSnapshotPublicSchema),
+  alert: capAlertPublicSchema,
+  snapshot: capSnapshotPublicSchema,
 });

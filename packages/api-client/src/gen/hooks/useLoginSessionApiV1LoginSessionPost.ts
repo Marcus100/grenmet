@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { loginSessionApiV1LoginSessionPost } from "../clients/loginSessionApiV1LoginSessionPost.js";
 import type {
-  LoginSessionApiV1LoginSessionPost400,
-  LoginSessionApiV1LoginSessionPost422,
-  LoginSessionApiV1LoginSessionPost429,
-  LoginSessionApiV1LoginSessionPostMutationRequest,
-  LoginSessionApiV1LoginSessionPostMutationResponse,
+  LoginSessionApiV1LoginSessionPostOptions,
+  LoginSessionApiV1LoginSessionPostStatus200,
+  LoginSessionApiV1LoginSessionPostStatus400,
+  LoginSessionApiV1LoginSessionPostStatus422,
+  LoginSessionApiV1LoginSessionPostStatus429,
 } from "../models/LoginSessionApiV1LoginSessionPost.js";
 
 export const loginSessionApiV1LoginSessionPostMutationKey = () =>
   [{ url: "/api/v1/login/session" }] as const;
 
-export type LoginSessionApiV1LoginSessionPostMutationKey = ReturnType<
-  typeof loginSessionApiV1LoginSessionPostMutationKey
->;
-
 export function loginSessionApiV1LoginSessionPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<LoginSessionApiV1LoginSessionPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = loginSessionApiV1LoginSessionPostMutationKey();
   return mutationOptions<
-    LoginSessionApiV1LoginSessionPostMutationResponse,
+    LoginSessionApiV1LoginSessionPostStatus200,
     ResponseErrorConfig<
-      | LoginSessionApiV1LoginSessionPost400
-      | LoginSessionApiV1LoginSessionPost422
-      | LoginSessionApiV1LoginSessionPost429
+      | LoginSessionApiV1LoginSessionPostStatus400
+      | LoginSessionApiV1LoginSessionPostStatus422
+      | LoginSessionApiV1LoginSessionPostStatus429
     >,
-    { data: LoginSessionApiV1LoginSessionPostMutationRequest },
+    LoginSessionApiV1LoginSessionPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return loginSessionApiV1LoginSessionPost(data, config);
+    mutationFn: async ({ body }) => {
+      return loginSessionApiV1LoginSessionPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function loginSessionApiV1LoginSessionPostMutationOptions<
 export function useLoginSessionApiV1LoginSessionPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      LoginSessionApiV1LoginSessionPostMutationResponse,
+      LoginSessionApiV1LoginSessionPostStatus200,
       ResponseErrorConfig<
-        | LoginSessionApiV1LoginSessionPost400
-        | LoginSessionApiV1LoginSessionPost422
-        | LoginSessionApiV1LoginSessionPost429
+        | LoginSessionApiV1LoginSessionPostStatus400
+        | LoginSessionApiV1LoginSessionPostStatus422
+        | LoginSessionApiV1LoginSessionPostStatus429
       >,
-      { data: LoginSessionApiV1LoginSessionPostMutationRequest },
+      LoginSessionApiV1LoginSessionPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<LoginSessionApiV1LoginSessionPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useLoginSessionApiV1LoginSessionPost<TContext>(
   const baseOptions = loginSessionApiV1LoginSessionPostMutationOptions(
     config
   ) as UseMutationOptions<
-    LoginSessionApiV1LoginSessionPostMutationResponse,
+    LoginSessionApiV1LoginSessionPostStatus200,
     ResponseErrorConfig<
-      | LoginSessionApiV1LoginSessionPost400
-      | LoginSessionApiV1LoginSessionPost422
-      | LoginSessionApiV1LoginSessionPost429
+      | LoginSessionApiV1LoginSessionPostStatus400
+      | LoginSessionApiV1LoginSessionPostStatus422
+      | LoginSessionApiV1LoginSessionPostStatus429
     >,
-    { data: LoginSessionApiV1LoginSessionPostMutationRequest },
+    LoginSessionApiV1LoginSessionPostOptions,
     TContext
   >;
 
   return useMutation<
-    LoginSessionApiV1LoginSessionPostMutationResponse,
+    LoginSessionApiV1LoginSessionPostStatus200,
     ResponseErrorConfig<
-      | LoginSessionApiV1LoginSessionPost400
-      | LoginSessionApiV1LoginSessionPost422
-      | LoginSessionApiV1LoginSessionPost429
+      | LoginSessionApiV1LoginSessionPostStatus400
+      | LoginSessionApiV1LoginSessionPostStatus422
+      | LoginSessionApiV1LoginSessionPostStatus429
     >,
-    { data: LoginSessionApiV1LoginSessionPostMutationRequest },
+    LoginSessionApiV1LoginSessionPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useLoginSessionApiV1LoginSessionPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    LoginSessionApiV1LoginSessionPostMutationResponse,
+    LoginSessionApiV1LoginSessionPostStatus200,
     ResponseErrorConfig<
-      | LoginSessionApiV1LoginSessionPost400
-      | LoginSessionApiV1LoginSessionPost422
-      | LoginSessionApiV1LoginSessionPost429
+      | LoginSessionApiV1LoginSessionPostStatus400
+      | LoginSessionApiV1LoginSessionPostStatus422
+      | LoginSessionApiV1LoginSessionPostStatus429
     >,
-    { data: LoginSessionApiV1LoginSessionPostMutationRequest },
+    LoginSessionApiV1LoginSessionPostOptions,
     TContext
   >;
 }

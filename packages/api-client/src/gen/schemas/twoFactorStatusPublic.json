@@ -1,7 +1,0 @@
-{
-  "properties": { "enabled": { "type": "boolean", "title": "Enabled" } },
-  "type": "object",
-  "required": ["enabled"],
-  "title": "TwoFactorStatusPublic",
-  "x-readme-ref-name": "TwoFactorStatusPublic"
-}

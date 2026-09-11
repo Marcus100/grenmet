@@ -3,46 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateAlertApiV1CapAlertsPost422,
-  CreateAlertApiV1CapAlertsPostMutationRequest,
-  CreateAlertApiV1CapAlertsPostMutationResponse,
+  CreateAlertApiV1CapAlertsPostOptions,
+  CreateAlertApiV1CapAlertsPostResponses,
 } from "../models/CreateAlertApiV1CapAlertsPost.js";
-
-function getCreateAlertApiV1CapAlertsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/cap/alerts` as const };
-  return res;
-}
 
 /**
  * @summary Create Alert
  * {@link /api/v1/cap/alerts}
  */
-export async function createAlertApiV1CapAlertsPost(
-  data: CreateAlertApiV1CapAlertsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateAlertApiV1CapAlertsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createAlertApiV1CapAlertsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateAlertApiV1CapAlertsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateAlertApiV1CapAlertsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateAlertApiV1CapAlertsPostMutationResponse,
-    ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-    CreateAlertApiV1CapAlertsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateAlertApiV1CapAlertsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateAlertApiV1CapAlertsPostResponses, ThrowOnError>
+    >
+  );
 }

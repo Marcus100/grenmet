@@ -7,37 +7,27 @@ import * as z from "zod";
 import { departmentMembersPublicSchema } from "./departmentMembersPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathParamsSchema =
-  z.object({
-    department_id: z.string(),
-  });
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathDepartmentIdSchema =
+  z.string();
 
-/**
- * @description Department members returned
- */
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200Schema =
-  z.lazy(() => departmentMembersPublicSchema);
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200Schema =
+  departmentMembersPublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet403Schema =
-  z.any();
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Department not found
- */
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet404Schema =
-  z.any();
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryResponseSchema =
-  z.lazy(
-    () =>
-      listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet200Schema
-  );
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponseSchema =
+  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200Schema;
+
+export const listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetErrorSchema =
+  z.union([
+    listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403Schema,
+    listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404Schema,
+    listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422Schema,
+  ]);

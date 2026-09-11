@@ -58,7 +58,7 @@ export function AlertMapPreview({
           />
         ))}
       </svg>
-      <div className="absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 bg-white/90 px-3 py-2 text-body-sm text-gm-text-secondary shadow-card backdrop-blur">
+      <div className="absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 bg-card/90 px-3 py-2 text-body-sm text-gm-text-secondary shadow-card backdrop-blur">
         <span>{featureCollection.features.length} active map features</span>
         <span>GeoJSON / CAP 1.2</span>
       </div>

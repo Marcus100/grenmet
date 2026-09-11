@@ -9,11 +9,11 @@ import { shiftCategorySchema } from "./shiftCategorySchema.js";
 export const shiftCatalogCreateSchema = z.object({
   code: z.string().max(10),
   label: z.string().max(120),
-  category: z.lazy(() => shiftCategorySchema),
-  start_time: z.optional(z.union([z.string(), z.null()])),
-  end_time: z.optional(z.union([z.string(), z.null()])),
-  ends_next_day: z.optional(z.boolean().default(false)),
-  counts_as_work_hours: z.optional(z.union([z.boolean(), z.null()])),
-  needs_reason: z.optional(z.union([z.boolean(), z.null()])),
-  needs_approval: z.optional(z.union([z.boolean(), z.null()])),
+  category: shiftCategorySchema,
+  start_time: z.union([z.string().max(5), z.null()]).optional(),
+  end_time: z.union([z.string().max(5), z.null()]).optional(),
+  ends_next_day: z.boolean().optional().default(false),
+  counts_as_work_hours: z.union([z.boolean(), z.null()]).optional(),
+  needs_reason: z.union([z.boolean(), z.null()]).optional(),
+  needs_approval: z.union([z.boolean(), z.null()]).optional(),
 });

@@ -7,12 +7,19 @@ import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 
 export const workflowStepTemplatePublicSchema = z.object({
-  id: z.string().uuid(),
-  workflow_template_id: z.string().uuid(),
-  step_order: z.number().int(),
-  required_role_id: z.string().uuid(),
-  required_scope: z.lazy(() => roleAssignmentScopeSchema),
+  id: z.uuid(),
+  workflow_template_id: z.uuid(),
+  step_order: z.int(),
+  required_role_id: z.union([z.uuid(), z.null()]).optional(),
+  required_user_id: z.union([z.uuid(), z.null()]).optional(),
+  required_scope: roleAssignmentScopeSchema,
   is_required: z.boolean(),
+  scope_enforced: z.boolean().optional().default(true),
+  purpose: z
+    .enum(["APPROVAL", "REVIEW", "RECORDING"])
+    .optional()
+    .default("APPROVAL"),
+  label: z.string().optional().default("Approval"),
   created_at: z.string(),
   updated_at: z.string(),
 });

@@ -5,9 +5,6 @@
 
 import * as z from "zod";
 
-/**
- * @description Grenada\'s six parishes plus its two island dependencies.
- */
 export const parishSchema = z
   .enum([
     "SAINT_GEORGE",

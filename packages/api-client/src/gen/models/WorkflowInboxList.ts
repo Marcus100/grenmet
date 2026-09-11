@@ -5,16 +5,7 @@
 
 import type { WorkflowInboxItem } from "./WorkflowInboxItem.js";
 
-/**
- * WorkflowInboxList
- */
 export type WorkflowInboxList = {
-  /**
-   * @type array
-   */
   data: WorkflowInboxItem[];
-  /**
-   * @type integer
-   */
   count: number;
 };

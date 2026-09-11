@@ -7,8 +7,8 @@ import * as z from "zod";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const staffSetupSchema = z.object({
-  registration_pending: z.optional(z.boolean().default(false)),
-  user_id: z.string().uuid(),
+  registration_pending: z.boolean().optional().default(false),
+  user_id: z.uuid(),
   email: z.string(),
   name: z.string(),
   number: z.string(),
@@ -17,11 +17,9 @@ export const staffSetupSchema = z.object({
   mailbox_ready: z.boolean(),
   email_verified: z.boolean(),
   employment_ready: z.boolean(),
-  employee_number: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(
-    z.union([z.lazy(() => employmentTypeSchema), z.null()])
-  ),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
+  employee_number: z.union([z.string(), z.null()]).optional(),
+  employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
   status: z.string(),
 });

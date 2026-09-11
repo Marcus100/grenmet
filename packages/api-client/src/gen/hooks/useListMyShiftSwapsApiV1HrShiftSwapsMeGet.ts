@@ -10,45 +10,44 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { listMyShiftSwapsApiV1HrShiftSwapsMeGet } from "../clients/listMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 import type {
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGet422,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
-  ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
+  ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422,
 } from "../models/ListMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 
-export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey = (
-  params: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams = {}
-) =>
-  [{ url: "/api/v1/hr/shift-swaps/me" }, ...(params ? [params] : [])] as const;
+export const listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey = ({
+  query,
+}: Omit<ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/shift-swaps/me" }, ...(query ? [query] : [])] as const;
 
-export type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey = ReturnType<
+type ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey = ReturnType<
   typeof listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey
 >;
 
 export function listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions(
-  params?: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { query }: ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions = {},
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(params);
+  const queryKey = listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({ query });
   return queryOptions<
-    ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
-    ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGet422>,
-    ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+    ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
+    ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422>,
+    ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return listMyShiftSwapsApiV1HrShiftSwapsMeGet(params, config);
+      return listMyShiftSwapsApiV1HrShiftSwapsMeGet({
+        ...config,
+        query,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -59,43 +58,57 @@ export function listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions(
  * {@link /api/v1/hr/shift-swaps/me}
  */
 export function useListMyShiftSwapsApiV1HrShiftSwapsMeGet<
-  TData = ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
-  TQueryData = ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
+  TData = ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
+  TQueryData = ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
   TQueryKey extends QueryKey = ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
 >(
-  params?: ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryParams,
+  {
+    query,
+  }: {
+    query?:
+      | ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions["query"]
+      | (() => ListMyShiftSwapsApiV1HrShiftSwapsMeGetOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ListMyShiftSwapsApiV1HrShiftSwapsMeGetQueryResponse,
-        ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGet422>,
+        ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200,
+        ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
   const queryKey =
-    queryOptions?.queryKey ??
-    listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(params);
+    resolvedOptions?.queryKey ??
+    listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions(params, config),
+      ...listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGet422>
+    ResponseErrorConfig<ListMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422>
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

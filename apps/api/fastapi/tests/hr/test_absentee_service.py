@@ -10,10 +10,12 @@ from src.hr.absentee.schemas import AbsenteeReportCreate
 from src.hr.absentee.service import create_absentee_report
 from src.hr.exceptions import HRValidationError
 from src.hr.models import RequestStatus
+from src.hr.workflow.models import WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
     make_role_with_permission,
+    make_submission_setup,
     make_user,
 )
 
@@ -51,6 +53,8 @@ async def test_uncertified_sick_with_notes_succeeds(db_async: AsyncSession) -> N
     user = await _user_with_create_perm(db_async)
     dept = await make_department(db_async, "dept_abs_ok")
 
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.ABSENTEE_REPORT)
+
     report = await create_absentee_report(
         session=db_async,
         current_user=user,
@@ -65,6 +69,8 @@ async def test_uncertified_sick_with_notes_succeeds(db_async: AsyncSession) -> N
 async def test_time_off_does_not_require_notes(db_async: AsyncSession) -> None:
     user = await _user_with_create_perm(db_async)
     dept = await make_department(db_async, "dept_abs_timeoff")
+
+    await make_submission_setup(db_async, user, dept.id, WorkflowType.ABSENTEE_REPORT)
 
     report = await create_absentee_report(
         session=db_async,

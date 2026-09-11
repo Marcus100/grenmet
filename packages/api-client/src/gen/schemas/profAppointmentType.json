@@ -1,6 +1,0 @@
-{
-  "type": "string",
-  "enum": ["BANK", "MEDICAL", "LEGAL", "DENTAL"],
-  "title": "ProfAppointmentType",
-  "x-readme-ref-name": "ProfAppointmentType"
-}

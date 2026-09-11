@@ -3,16 +3,9 @@
  * Do not edit manually.
  */
 
-/**
- * DepartmentPublic
- */
 export type DepartmentPublic = {
-  /**
-   * @type string
-   */
+  organisation_id: string;
+  code: string;
   id: string;
-  /**
-   * @type string
-   */
   name: string;
 };

@@ -3,46 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ImportAlertApiV1CapAlertsImportPost422,
-  ImportAlertApiV1CapAlertsImportPostMutationRequest,
-  ImportAlertApiV1CapAlertsImportPostMutationResponse,
+  ImportAlertApiV1CapAlertsImportPostOptions,
+  ImportAlertApiV1CapAlertsImportPostResponses,
 } from "../models/ImportAlertApiV1CapAlertsImportPost.js";
-
-function getImportAlertApiV1CapAlertsImportPostUrl() {
-  const res = { method: "POST", url: `/api/v1/cap/alerts/import` as const };
-  return res;
-}
 
 /**
  * @summary Import a CAP alert from a URL or pasted XML
  * {@link /api/v1/cap/alerts/import}
  */
-export async function importAlertApiV1CapAlertsImportPost(
-  data: ImportAlertApiV1CapAlertsImportPostMutationRequest,
-  config: Partial<
-    RequestConfig<ImportAlertApiV1CapAlertsImportPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function importAlertApiV1CapAlertsImportPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ImportAlertApiV1CapAlertsImportPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ImportAlertApiV1CapAlertsImportPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ImportAlertApiV1CapAlertsImportPostMutationResponse,
-    ResponseErrorConfig<ImportAlertApiV1CapAlertsImportPost422>,
-    ImportAlertApiV1CapAlertsImportPostMutationRequest
-  >({
-    method: "POST",
-    url: getImportAlertApiV1CapAlertsImportPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/cap/alerts/import",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ImportAlertApiV1CapAlertsImportPostResponses, ThrowOnError>
+    >
+  );
 }

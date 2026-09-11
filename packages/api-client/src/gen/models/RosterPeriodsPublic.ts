@@ -5,16 +5,7 @@
 
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
-/**
- * RosterPeriodsPublic
- */
 export type RosterPeriodsPublic = {
-  /**
-   * @type array
-   */
   data: RosterPeriodPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

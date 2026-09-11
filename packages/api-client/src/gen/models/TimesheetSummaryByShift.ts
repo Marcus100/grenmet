@@ -5,17 +5,13 @@
 
 import type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
 
-/**
- * TimesheetSummaryByShift
- */
 export type TimesheetSummaryByShift = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   timesheet_id: string;
-  /**
-   * @type array
-   */
   shifts: ShiftHoursSummary[];
   /**
    * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$

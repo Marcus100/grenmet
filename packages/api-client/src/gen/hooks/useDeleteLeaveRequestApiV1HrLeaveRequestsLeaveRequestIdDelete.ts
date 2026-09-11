@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete } from "../clients/deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
 import type {
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
-  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404,
+  DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422,
 } from "../models/DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
 
 export const deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey =
   () => [{ url: "/api/v1/hr/leave-requests/:leave_request_id" }] as const;
 
-export type DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey =
-  ReturnType<
-    typeof deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey
-  >;
-
 export function deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationKey();
   return mutationOptions<
-    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422
     >,
-    {
-      leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"];
-    },
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id }) => {
-      return deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete(
-        leave_request_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,19 +64,19 @@ export function useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete<
 >(
   options: {
     mutation?: UseMutationOptions<
-      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
+      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422
       >,
-      {
-        leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"];
-      },
+      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -96,30 +89,26 @@ export function useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete<
     deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationOptions(
       config
     ) as UseMutationOptions<
-      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
+      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
       ResponseErrorConfig<
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+        | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422
       >,
-      {
-        leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"];
-      },
+      DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
       TContext
     >;
 
   return useMutation<
-    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422
     >,
-    {
-      leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"];
-    },
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
     TContext
   >(
     {
@@ -129,16 +118,14 @@ export function useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete<
     },
     queryClient
   ) as UseMutationResult<
-    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationResponse,
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204,
     ResponseErrorConfig<
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete400
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete403
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete404
-      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete422
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404
+      | DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422
     >,
-    {
-      leave_request_id: DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathParams["leave_request_id"];
-    },
+    DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteOptions,
     TContext
   >;
 }

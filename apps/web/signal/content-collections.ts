@@ -19,6 +19,7 @@ const articles = defineCollection({
   // All section folders; the briefs folder is handled by its own collection.
   include: "{weather-ready,check-d-ting,opportunity}/**/*.mdx",
   schema: z.object({
+    content: z.string(),
     title: z.string(),
     dek: z.string(),
     section: z.enum(SECTIONS),
@@ -46,6 +47,7 @@ const briefs = defineCollection({
   directory: "content/briefs",
   include: "**/*.mdx",
   schema: z.object({
+    content: z.string(),
     date: z.string(), // ISO date, doubles as the [date] route param
     title: z.string(),
     presenter: z.string(),
@@ -59,4 +61,4 @@ const briefs = defineCollection({
   },
 });
 
-export default defineConfig({ collections: [articles, briefs] });
+export default defineConfig({ content: [articles, briefs] });

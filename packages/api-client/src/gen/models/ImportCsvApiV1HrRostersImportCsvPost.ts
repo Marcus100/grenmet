@@ -7,42 +7,37 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
 import type { RosterCsvValidationRequest } from "./RosterCsvValidationRequest.js";
 
-/**
- * RosterCsvImportResponse
- * @description Import job created
- */
-export type ImportCsvApiV1HrRostersImportCsvPost200 = RosterCsvImportResponse;
+export type ImportCsvApiV1HrRostersImportCsvPostStatus200 =
+  RosterCsvImportResponse;
 
-/**
- * @description Invalid CSV
- */
-export type ImportCsvApiV1HrRostersImportCsvPost400 = any;
+export type ImportCsvApiV1HrRostersImportCsvPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type ImportCsvApiV1HrRostersImportCsvPost403 = any;
+export type ImportCsvApiV1HrRostersImportCsvPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ImportCsvApiV1HrRostersImportCsvPost422 = HTTPValidationError;
+export type ImportCsvApiV1HrRostersImportCsvPostStatus422 = HTTPValidationError;
 
-/**
- * RosterCsvValidationRequest
- */
-export type ImportCsvApiV1HrRostersImportCsvPostMutationRequest =
+export type ImportCsvApiV1HrRostersImportCsvPostBody =
   RosterCsvValidationRequest;
 
-export type ImportCsvApiV1HrRostersImportCsvPostMutationResponse =
-  ImportCsvApiV1HrRostersImportCsvPost200;
-
-export type ImportCsvApiV1HrRostersImportCsvPostMutation = {
-  Response: ImportCsvApiV1HrRostersImportCsvPost200;
-  Request: ImportCsvApiV1HrRostersImportCsvPostMutationRequest;
-  Errors:
-    | ImportCsvApiV1HrRostersImportCsvPost400
-    | ImportCsvApiV1HrRostersImportCsvPost403
-    | ImportCsvApiV1HrRostersImportCsvPost422;
+export type ImportCsvApiV1HrRostersImportCsvPostOptions = {
+  body: ImportCsvApiV1HrRostersImportCsvPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ImportCsvApiV1HrRostersImportCsvPostResponses = {
+  "200": ImportCsvApiV1HrRostersImportCsvPostStatus200;
+  "400": ImportCsvApiV1HrRostersImportCsvPostStatus400;
+  "403": ImportCsvApiV1HrRostersImportCsvPostStatus403;
+  "422": ImportCsvApiV1HrRostersImportCsvPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ImportCsvApiV1HrRostersImportCsvPostResponse =
+  | ImportCsvApiV1HrRostersImportCsvPostStatus200
+  | ImportCsvApiV1HrRostersImportCsvPostStatus400
+  | ImportCsvApiV1HrRostersImportCsvPostStatus403
+  | ImportCsvApiV1HrRostersImportCsvPostStatus422;

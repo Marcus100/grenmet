@@ -8,10 +8,10 @@ import * as z from "zod";
 export const capResourcePublicSchema = z.object({
   resource_desc: z.string().min(1).max(255),
   mime_type: z.string().min(1).max(120),
-  size: z.optional(z.union([z.number().int(), z.null()])),
-  uri: z.optional(z.union([z.string(), z.null()])),
-  deref_uri: z.optional(z.union([z.string(), z.null()])),
-  digest: z.optional(z.union([z.string(), z.null()])),
-  id: z.string().uuid(),
-  sequence: z.number().int(),
+  size: z.union([z.int().min(0), z.null()]).optional(),
+  uri: z.union([z.string().max(1000), z.null()]).optional(),
+  deref_uri: z.union([z.string(), z.null()]).optional(),
+  digest: z.union([z.string().max(255), z.null()]).optional(),
+  id: z.uuid(),
+  sequence: z.int(),
 });

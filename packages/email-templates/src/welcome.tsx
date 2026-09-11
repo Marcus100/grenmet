@@ -7,7 +7,7 @@ import {
   Preview,
   Section,
   Text,
-} from "@react-email/components";
+} from "react-email";
 
 export interface WelcomeEmailProps {
   email: string;
@@ -80,7 +80,7 @@ export default WelcomeEmail;
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const body: React.CSSProperties = {
-  backgroundColor: "#fafbfc",
+  backgroundColor: "#f3f8fc",
   fontFamily: "Arial, Helvetica, sans-serif",
   margin: 0,
   padding: 0,
@@ -95,7 +95,7 @@ const container: React.CSSProperties = {
 };
 
 const header: React.CSSProperties = {
-  backgroundColor: "#009688",
+  backgroundColor: "#0b132b",
   padding: "32px 40px",
   textAlign: "center",
 };
@@ -113,14 +113,14 @@ const content: React.CSSProperties = {
 };
 
 const paragraph: React.CSSProperties = {
-  color: "#555555",
+  color: "#4b5563",
   fontSize: "16px",
   lineHeight: "1.6",
   margin: "12px 0",
 };
 
 const detailsBox: React.CSSProperties = {
-  backgroundColor: "#f5f5f5",
+  backgroundColor: "#eaf3fb",
   borderRadius: "6px",
   margin: "20px 0",
   padding: "16px 20px",
@@ -133,13 +133,13 @@ const detailRow: React.CSSProperties = {
 };
 
 const detailLabel: React.CSSProperties = {
-  color: "#888888",
+  color: "#6b7280",
   display: "inline-block",
   minWidth: "80px",
 };
 
 const detailValue: React.CSSProperties = {
-  color: "#333333",
+  color: "#111827",
   fontWeight: "600",
 };
 
@@ -149,7 +149,7 @@ const buttonSection: React.CSSProperties = {
 };
 
 const button: React.CSSProperties = {
-  backgroundColor: "#009688",
+  backgroundColor: "#0b63ee",
   borderRadius: "8px",
   color: "#ffffff",
   display: "inline-block",
@@ -160,7 +160,7 @@ const button: React.CSSProperties = {
 };
 
 const footer: React.CSSProperties = {
-  color: "#888888",
+  color: "#6b7280",
   fontSize: "14px",
   lineHeight: "1.5",
   marginTop: "24px",

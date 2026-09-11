@@ -9,54 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "../clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 import type {
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404,
+  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422,
 } from "../models/PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 
 export const publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey =
   () => [{ url: "/api/v1/hr/rosters/periods/:period_id/publish" }] as const;
 
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey =
-  ReturnType<
-    typeof publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey
-  >;
-
 export function publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationKey();
   return mutationOptions<
-    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
     ResponseErrorConfig<
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422
     >,
-    {
-      period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"];
-    },
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ period_id }) => {
-      return publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch(
-        period_id,
-        config
-      );
+    mutationFn: async ({ path }) => {
+      return publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -71,19 +64,19 @@ export function usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch<
 >(
   options: {
     mutation?: UseMutationOptions<
-      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
       ResponseErrorConfig<
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422
       >,
-      {
-        period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"];
-      },
+      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -96,30 +89,26 @@ export function usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch<
     publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
       ResponseErrorConfig<
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+        | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422
       >,
-      {
-        period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"];
-      },
+      PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
       TContext
     >;
 
   return useMutation<
-    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
     ResponseErrorConfig<
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422
     >,
-    {
-      period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"];
-    },
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
     TContext
   >(
     {
@@ -129,16 +118,14 @@ export function usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch<
     },
     queryClient
   ) as UseMutationResult<
-    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse,
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200,
     ResponseErrorConfig<
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+      | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422
     >,
-    {
-      period_id: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams["period_id"];
-    },
+    PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
     TContext
   >;
 }

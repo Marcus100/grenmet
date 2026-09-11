@@ -9,47 +9,42 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createStatusReportApiV1HrStatusReportsPost } from "../clients/createStatusReportApiV1HrStatusReportsPost.js";
 import type {
-  CreateStatusReportApiV1HrStatusReportsPost403,
-  CreateStatusReportApiV1HrStatusReportsPost422,
-  CreateStatusReportApiV1HrStatusReportsPostMutationRequest,
-  CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+  CreateStatusReportApiV1HrStatusReportsPostOptions,
+  CreateStatusReportApiV1HrStatusReportsPostStatus201,
+  CreateStatusReportApiV1HrStatusReportsPostStatus403,
+  CreateStatusReportApiV1HrStatusReportsPostStatus422,
 } from "../models/CreateStatusReportApiV1HrStatusReportsPost.js";
 
 export const createStatusReportApiV1HrStatusReportsPostMutationKey = () =>
   [{ url: "/api/v1/hr/status-reports" }] as const;
 
-export type CreateStatusReportApiV1HrStatusReportsPostMutationKey = ReturnType<
-  typeof createStatusReportApiV1HrStatusReportsPostMutationKey
->;
-
 export function createStatusReportApiV1HrStatusReportsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateStatusReportApiV1HrStatusReportsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createStatusReportApiV1HrStatusReportsPostMutationKey();
   return mutationOptions<
-    CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+    CreateStatusReportApiV1HrStatusReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateStatusReportApiV1HrStatusReportsPost403
-      | CreateStatusReportApiV1HrStatusReportsPost422
+      | CreateStatusReportApiV1HrStatusReportsPostStatus403
+      | CreateStatusReportApiV1HrStatusReportsPostStatus422
     >,
-    { data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest },
+    CreateStatusReportApiV1HrStatusReportsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createStatusReportApiV1HrStatusReportsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createStatusReportApiV1HrStatusReportsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +57,17 @@ export function createStatusReportApiV1HrStatusReportsPostMutationOptions<
 export function useCreateStatusReportApiV1HrStatusReportsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+      CreateStatusReportApiV1HrStatusReportsPostStatus201,
       ResponseErrorConfig<
-        | CreateStatusReportApiV1HrStatusReportsPost403
-        | CreateStatusReportApiV1HrStatusReportsPost422
+        | CreateStatusReportApiV1HrStatusReportsPostStatus403
+        | CreateStatusReportApiV1HrStatusReportsPostStatus422
       >,
-      { data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest },
+      CreateStatusReportApiV1HrStatusReportsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateStatusReportApiV1HrStatusReportsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -84,22 +79,22 @@ export function useCreateStatusReportApiV1HrStatusReportsPost<TContext>(
   const baseOptions = createStatusReportApiV1HrStatusReportsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+    CreateStatusReportApiV1HrStatusReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateStatusReportApiV1HrStatusReportsPost403
-      | CreateStatusReportApiV1HrStatusReportsPost422
+      | CreateStatusReportApiV1HrStatusReportsPostStatus403
+      | CreateStatusReportApiV1HrStatusReportsPostStatus422
     >,
-    { data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest },
+    CreateStatusReportApiV1HrStatusReportsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+    CreateStatusReportApiV1HrStatusReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateStatusReportApiV1HrStatusReportsPost403
-      | CreateStatusReportApiV1HrStatusReportsPost422
+      | CreateStatusReportApiV1HrStatusReportsPostStatus403
+      | CreateStatusReportApiV1HrStatusReportsPostStatus422
     >,
-    { data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest },
+    CreateStatusReportApiV1HrStatusReportsPostOptions,
     TContext
   >(
     {
@@ -109,12 +104,12 @@ export function useCreateStatusReportApiV1HrStatusReportsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateStatusReportApiV1HrStatusReportsPostMutationResponse,
+    CreateStatusReportApiV1HrStatusReportsPostStatus201,
     ResponseErrorConfig<
-      | CreateStatusReportApiV1HrStatusReportsPost403
-      | CreateStatusReportApiV1HrStatusReportsPost422
+      | CreateStatusReportApiV1HrStatusReportsPostStatus403
+      | CreateStatusReportApiV1HrStatusReportsPostStatus422
     >,
-    { data: CreateStatusReportApiV1HrStatusReportsPostMutationRequest },
+    CreateStatusReportApiV1HrStatusReportsPostOptions,
     TContext
   >;
 }

@@ -1,8 +1,14 @@
 import type { Metadata } from "next";
-import { Inter, Manrope } from "next/font/google";
+import { Inter, Manrope, Noto_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+
+const notoSans = Noto_Sans({
+  subsets: ["latin"],
+  variable: "--font-noto-sans",
+  display: "swap",
+});
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,7 +38,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
-      className={`${inter.variable} ${manrope.variable}`}
+      className={`${inter.variable} ${manrope.variable} ${notoSans.variable}`}
       lang="en"
       style={{ colorScheme: "light" }}
     >

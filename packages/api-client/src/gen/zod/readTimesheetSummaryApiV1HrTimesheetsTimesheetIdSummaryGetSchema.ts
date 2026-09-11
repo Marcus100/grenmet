@@ -7,36 +7,27 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetSummaryByShiftSchema } from "./timesheetSummaryByShiftSchema.js";
 
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathParamsSchema =
-  z.object({
-    timesheet_id: z.string().uuid(),
-  });
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathTimesheetIdSchema =
+  z.uuid();
 
-/**
- * @description Summary returned
- */
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200Schema =
-  z.lazy(() => timesheetSummaryByShiftSchema);
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200Schema =
+  timesheetSummaryByShiftSchema;
 
-/**
- * @description Not allowed to read this timesheet
- */
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet403Schema =
-  z.any();
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403Schema =
+  z.unknown();
 
-/**
- * @description Timesheet not found
- */
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet404Schema =
-  z.any();
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetQueryResponseSchema =
-  z.lazy(
-    () => readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet200Schema
-  );
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponseSchema =
+  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200Schema;
+
+export const readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetErrorSchema =
+  z.union([
+    readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403Schema,
+    readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404Schema,
+    readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422Schema,
+  ]);

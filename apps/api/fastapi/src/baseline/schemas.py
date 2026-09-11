@@ -87,3 +87,66 @@ class RoleConfiguration(BaseModel):
 
 class RolePermissionsInput(BaseModel):
     permission_keys: list[str] = Field(max_length=100)
+
+
+class ProductAccessInput(BaseModel):
+    grade_ids: list[str] = Field(max_length=50)
+
+
+class ProductAccessPublic(ProductAccessInput):
+    kind: str
+
+
+class ProductAccessCurrent(BaseModel):
+    allowed_kinds: list[str]
+
+
+class CataloguePreview(BaseModel):
+    department_id: str
+    missing_grade_ids: list[str]
+    missing_policy_keys: list[str]
+    missing_workflow_types: list[str]
+    conflicts: list[str]
+
+
+class CatalogueApply(BaseModel):
+    department_id: str
+
+
+class UnitSpec(BaseModel):
+    id: str
+    name: str
+    parent_id: str | None
+    source_slide: int
+
+
+class PositionSpec(BaseModel):
+    id: str
+    unit_id: str
+    reports_to_position_id: str | None = None
+    additional_connection_id: str | None = None
+    grade_code: str
+    title: str
+    authorised_posts: int | None = Field(ge=0)
+    reported_vacancies: int | None = Field(ge=0)
+    source_slide: int
+    notes: str
+
+
+class OrganisationCatalogue(BaseModel):
+    version: str
+    source: str
+    source_date: str
+    units: list[UnitSpec]
+    positions: list[PositionSpec]
+    notes: list[str]
+
+
+class OrganisationPreview(BaseModel):
+    catalogue: OrganisationCatalogue
+    missing_departments: list[str] = Field(default_factory=list)
+    missing_units: list[str] = Field(default_factory=list)
+    missing_positions: list[str] = Field(default_factory=list)
+    conflicts: list[str] = Field(default_factory=list)
+    gms_staff_by_grade: dict[str, int] = Field(default_factory=dict)
+    gms_differences: list[str] = Field(default_factory=list)

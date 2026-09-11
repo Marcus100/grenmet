@@ -1,0 +1,65 @@
+name: Deploy Weather
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        required: true
+        options: [staging, production]
+permissions:
+  contents: read
+jobs:
+  validate-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Validate trusted reference
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/production/validate-ref.sh
+  deploy:
+    if: >-
+      ${{ (inputs.environment == 'staging' && github.ref == 'refs/heads/staging' ||
+           inputs.environment == 'production' && startsWith(github.ref, 'refs/tags/v')) &&
+          github.event_name != 'pull_request' && github.event_name != 'pull_request_target' }}
+    needs: validate-ref
+    runs-on: [self-hosted, "${{ inputs.environment }}", weather]
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: weather-${{ inputs.environment }}
+      cancel-in-progress: false
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          clean: false
+      - name: Authenticate artifact pulls
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+        run: printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+      - name: Deploy reviewed weather configuration
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
+          AWS_EC2_METADATA_DISABLED: "true"
+          DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+          DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+          MINIO_BACKUP_ACCESS_KEY_ID: ${{ secrets.MINIO_BACKUP_ACCESS_KEY_ID }}
+          MINIO_BACKUP_SECRET_ACCESS_KEY: ${{ secrets.MINIO_BACKUP_SECRET_ACCESS_KEY }}
+        run: python3 scripts/production/weather.py /etc/grenmet/weather.json
+      - name: Remove registry credentials
+        if: always()
+        run: docker logout ghcr.io

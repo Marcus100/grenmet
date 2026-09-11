@@ -5,42 +5,46 @@
 
 import type { WorkflowType } from "./WorkflowType.js";
 
-/**
- * WorkflowInboxItem
- */
 export type WorkflowInboxItem = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   instance_id: string;
-  /**
-   * @type string
-   */
   workflow_type: WorkflowType;
-  /**
-   * @type string
-   */
   entity_type: string;
   /**
-   * @type string, uuid
-   */
-  entity_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  entity_id: string;
   department_id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   requested_by_user_id: string;
   requester_name?: string | null;
   submitted_at?: string | null;
-  /**
-   * @type integer
-   */
   current_step_order: number;
-  /**
-   * @type boolean
-   */
   step_is_named: boolean;
+  step_id?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  is_required?: boolean;
+  /**
+   * @default 'APPROVAL'
+   * @type string | undefined
+   */
+  purpose?: string;
+  /**
+   * @default 'Approval'
+   * @type string | undefined
+   */
+  label?: string;
 };

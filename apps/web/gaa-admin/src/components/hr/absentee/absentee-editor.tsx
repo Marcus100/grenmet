@@ -36,6 +36,11 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import {
+  signedDocumentsKey,
+  useSigning,
+} from "@/components/hr/signatures/signature-api";
+import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
@@ -91,6 +96,7 @@ function draftToFormValues(
 export function AbsenteeEditor() {
   const form = useForm({ defaultValues: EMPTY_ABSENTEE });
   const queryClient = useQueryClient();
+  const signature = useSigning();
   const sessionUser = useSessionUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -98,7 +104,7 @@ export function AbsenteeEditor() {
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const userId = profileQuery.data?.id;
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myReportsQuery = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet();
+  const myReportsQuery = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet({});
   const createMutation = useCreateAbsenteeReportApiV1HrAbsenteeReportsPost();
   const updateMutation =
     useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch();
@@ -165,16 +171,26 @@ export function AbsenteeEditor() {
   }
 
   function handleDownloadPdf() {
+    if (submission?.signed_document_id) {
+      window.location.assign(
+        `/api/v1/hr/signed-documents/${submission.signed_document_id}/pdf`
+      );
+      return;
+    }
     window.print();
   }
 
   async function refreshMyReports() {
     await queryClient.invalidateQueries({
-      queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey(),
+      queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({}),
     });
   }
 
   async function persist(values: typeof EMPTY_ABSENTEE, asDraft: boolean) {
+    if (!(asDraft || signature.data)) {
+      toast.error("Save your signature in your profile before signing");
+      return;
+    }
     if (!(asDraft || values.date)) {
       toast.error("Date of absence is required");
       return;
@@ -188,14 +204,14 @@ export function AbsenteeEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: buildAbsenteeReportPayload(values, userId, departmentId),
+            path: { absentee_report_id: draftId },
+            body: buildAbsenteeReportPayload(values, userId, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildAbsenteeReportPayload(values, userId, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -209,23 +225,29 @@ export function AbsenteeEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: buildAbsenteeReportPayload(values, userId, departmentId),
+            path: { absentee_report_id: draftId },
+            body: buildAbsenteeReportPayload(values, userId, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            absentee_report_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
-          });
-          setSubmission(submitted);
-        } else {
-          const submitted = await createMutation.mutateAsync({
-            data: {
-              ...buildAbsenteeReportPayload(values, userId, departmentId),
-              as_draft: false,
+            path: { absentee_report_id: draftId },
+            body: {
+              signature_version: signature.data?.version,
               co_approver_user_ids: coApprovers,
             },
           });
           setSubmission(submitted);
+          await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
+        } else {
+          const submitted = await createMutation.mutateAsync({
+            body: {
+              ...buildAbsenteeReportPayload(values, userId, departmentId),
+              as_draft: false,
+              signature_version: signature.data?.version,
+              co_approver_user_ids: coApprovers,
+            },
+          });
+          setSubmission(submitted);
+          await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
         }
         toast.success("Absentee report submitted");
         setStatusHint("Submitted copy — Reset to start a new form");
@@ -243,9 +265,10 @@ export function AbsenteeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-3">
+              <SigningPanel submission={submission} />
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
@@ -255,6 +278,7 @@ export function AbsenteeEditor() {
                 onSubmit={submission ? undefined : () => persist(values, false)}
                 statusHint={statusHint}
                 submitDisabled={!(userId && departmentId)}
+                submitLabel="Sign & submit"
               />
             </div>
 

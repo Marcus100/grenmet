@@ -7,22 +7,18 @@ import * as z from "zod";
 import { parkingActionSchema } from "./parkingActionSchema.js";
 
 export const parkingPermitCreateSchema = z.object({
-  user_id: z.string().uuid(),
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
+  user_id: z.uuid(),
   department_id: z.string(),
-  company_name: z.optional(z.union([z.string(), z.null()])),
-  phone: z.optional(z.union([z.string(), z.null()])),
+  company_name: z.union([z.string(), z.null()]).optional(),
+  phone: z.union([z.string(), z.null()]).optional(),
   vehicle_registration_no: z.string(),
-  vehicle_insurance_issue_date: z.optional(
-    z.union([z.string().date(), z.null()])
-  ),
-  vehicle_insurance_expiry_date: z.optional(
-    z.union([z.string().date(), z.null()])
-  ),
-  action_requested: z.optional(z.lazy(() => parkingActionSchema)),
-  action_other_detail: z.optional(z.union([z.string(), z.null()])),
-  fee_amount: z.optional(
-    z
-      .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
-      .default("40.00")
-  ),
+  vehicle_insurance_issue_date: z.union([z.iso.date(), z.null()]).optional(),
+  vehicle_insurance_expiry_date: z.union([z.iso.date(), z.null()]).optional(),
+  action_requested: parkingActionSchema.optional().default("NEW_PERMIT"),
+  action_other_detail: z.union([z.string(), z.null()]).optional(),
+  fee_amount: z
+    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .optional()
+    .default("40.00"),
 });

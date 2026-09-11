@@ -22,6 +22,38 @@ permissions:
   contents: read
 
 jobs:
+  release-scope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - name: Validate and report release scope
+        env:
+          WEATHER_STAGING_ENABLED: ${{ vars.WEATHER_STAGING_ENABLED }}
+          WEATHER_PRODUCTION_ENABLED: ${{ vars.WEATHER_PRODUCTION_ENABLED }}
+        run: node scripts/ci/check-release-scope.mjs
+
+  ci-api:
+    uses: ./.github/workflows/ci-api.yml
+    with:
+      deployment-builds: true
+    secrets: inherit
+    permissions:
+      packages: read
+      contents: read
+      security-events: write
+  ci-web:
+    uses: ./.github/workflows/ci-web.yml
+    with:
+      deployment-builds: true
+    secrets: inherit
+    permissions:
+      contents: read
+      packages: read
+
+  api-client:
+    uses: ./.github/workflows/ci-api-client.yml
+    secrets: inherit
+
   build-api:
     name: Build API image
     uses: ./.github/workflows/build-api-image.yml
@@ -31,6 +63,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      security-events: write
 
   build-web:
     name: Build web images
@@ -45,13 +78,12 @@ jobs:
 
   deploy:
     name: Deploy
-    # Default needs semantics: runs only when BOTH builds succeeded — a release
-    # always builds everything, so no skip-arm is needed here.
-    needs: [build-api, build-web]
+    # Checks and smoke-tested artifacts must all succeed before deployment.
+    needs: [release-scope, ci-api, ci-web, api-client, build-api, build-web]
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production
-      image_tag: ${{ github.event.release.tag_name }}
+      image_tag: sha-${{ github.sha }}
     secrets: inherit
     permissions:
       contents: read

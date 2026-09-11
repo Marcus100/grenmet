@@ -3,51 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateTimesheetApiV1HrTimesheetsPost403,
-  CreateTimesheetApiV1HrTimesheetsPost422,
-  CreateTimesheetApiV1HrTimesheetsPostMutationRequest,
-  CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
+  CreateTimesheetApiV1HrTimesheetsPostOptions,
+  CreateTimesheetApiV1HrTimesheetsPostResponses,
 } from "../models/CreateTimesheetApiV1HrTimesheetsPost.js";
-
-function getCreateTimesheetApiV1HrTimesheetsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/timesheets` as const };
-  return res;
-}
 
 /**
  * @description Create a new timesheet (self or proxy). Policy controls self/proxy submission.
  * @summary Create timesheet
  * {@link /api/v1/hr/timesheets}
  */
-export async function createTimesheetApiV1HrTimesheetsPost(
-  data: CreateTimesheetApiV1HrTimesheetsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateTimesheetApiV1HrTimesheetsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createTimesheetApiV1HrTimesheetsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<CreateTimesheetApiV1HrTimesheetsPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<CreateTimesheetApiV1HrTimesheetsPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateTimesheetApiV1HrTimesheetsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateTimesheetApiV1HrTimesheetsPost403
-      | CreateTimesheetApiV1HrTimesheetsPost422
-    >,
-    CreateTimesheetApiV1HrTimesheetsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateTimesheetApiV1HrTimesheetsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/timesheets",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<CreateTimesheetApiV1HrTimesheetsPostResponses, ThrowOnError>
+    >
+  );
 }

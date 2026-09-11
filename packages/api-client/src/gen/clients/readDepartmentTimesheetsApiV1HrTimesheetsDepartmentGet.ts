@@ -3,50 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
-  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
+  ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponses,
 } from "../models/ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet.js";
-
-function getReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetUrl() {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/timesheets/department` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return timesheets for a department. Requires timesheet.read.department permission.
  * @summary List department timesheets
  * {@link /api/v1/hr/timesheets/department}
  */
-export async function readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet(
-  params: ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403
-      | ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/timesheets/department",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

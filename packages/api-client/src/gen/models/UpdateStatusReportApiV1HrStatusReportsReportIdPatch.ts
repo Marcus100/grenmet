@@ -7,58 +7,54 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { StatusReportCreate } from "./StatusReportCreate.js";
 import type { StatusReportPublic } from "./StatusReportPublic.js";
 
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams = {
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   report_id: string;
 };
 
-/**
- * StatusReportPublic
- * @description Status report updated
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatch200 =
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200 =
   StatusReportPublic;
 
-/**
- * @description Status report is not a draft
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatch400 = any;
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to edit this status report
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatch403 = any;
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403 =
+  unknown;
 
-/**
- * @description Status report not found
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatch404 = any;
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatch422 =
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * StatusReportCreate
- */
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest =
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchBody =
   StatusReportCreate;
 
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponse =
-  UpdateStatusReportApiV1HrStatusReportsReportIdPatch200;
-
-export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutation = {
-  Response: UpdateStatusReportApiV1HrStatusReportsReportIdPatch200;
-  Request: UpdateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequest;
-  PathParams: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPathParams;
-  Errors:
-    | UpdateStatusReportApiV1HrStatusReportsReportIdPatch400
-    | UpdateStatusReportApiV1HrStatusReportsReportIdPatch403
-    | UpdateStatusReportApiV1HrStatusReportsReportIdPatch404
-    | UpdateStatusReportApiV1HrStatusReportsReportIdPatch422;
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchOptions = {
+  body: UpdateStatusReportApiV1HrStatusReportsReportIdPatchBody;
+  path: UpdateStatusReportApiV1HrStatusReportsReportIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchResponses = {
+  "200": UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200;
+  "400": UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400;
+  "403": UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403;
+  "404": UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404;
+  "422": UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateStatusReportApiV1HrStatusReportsReportIdPatchResponse =
+  | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus200
+  | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus400
+  | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus403
+  | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus404
+  | UpdateStatusReportApiV1HrStatusReportsReportIdPatchStatus422;

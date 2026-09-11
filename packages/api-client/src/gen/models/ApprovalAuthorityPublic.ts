@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * ApprovalAuthorityPublic
- */
 export type ApprovalAuthorityPublic = {
   /**
    * @default false

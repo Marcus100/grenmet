@@ -8,6 +8,7 @@ from sqlmodel import Session, col, select
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.utils import get_password_hash
+from src.baseline.department import GMS_DEPARTMENT_IDS
 from src.baseline.models import ApprovalPolicy, BaselineStep, StaffCredential
 from src.hr.models import Department, EmploymentRecord, Grade
 from src.hr.workflow.models import WorkflowStepTemplate, WorkflowTemplate, WorkflowType
@@ -34,6 +35,7 @@ def seed_baseline(
     required = {
         "staff",
         "hr-supervisor",
+        "hr-recorder",
         "management",
         "cap-author",
         "cap-approver",
@@ -57,6 +59,43 @@ def seed_baseline(
             or existing_email.is_superuser != (person["username"] == "ewhint")
         ):
             raise ValueError(f"Account conflict requires review: {person['username']}")
+    dept_id = profile["department"]["code"].lower()
+    if dept_id == "gms":
+        matches = [
+            key for key in sorted(GMS_DEPARTMENT_IDS) if session.get(Department, key)
+        ]
+        if len(matches) > 1:
+            raise ValueError(
+                "Multiple GMS departments exist; reconcile ownership before seeding"
+            )
+        if matches:
+            dept_id = matches[0]
+    existing_department = session.get(Department, dept_id)
+    if existing_department and existing_department.organisation_id != "gaa":
+        raise ValueError("GAA department belongs to another organisation")
+    for code in grade_specs:
+        gid = f"{profile['department']['code'].upper()}_{code}"
+        grade = session.get(Grade, gid)
+        if grade and (
+            grade.department_id != dept_id or grade.code != code or not grade.is_active
+        ):
+            raise ValueError(f"Grade conflict requires review: {gid}")
+    for person in people:
+        user = session.exec(
+            select(User).where(User.username == person["username"])
+        ).first()
+        if user is None or session.get(StaffCredential, user.id) is not None:
+            continue
+        employment = session.exec(
+            select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+        ).first()
+        expected_grade = f"{profile['department']['code'].upper()}_{person['grade']}"
+        if employment and (
+            employment.department_id != dept_id or employment.grade_id != expected_grade
+        ):
+            raise ValueError(
+                f"Employment conflict requires review: {person['username']}"
+            )
     if not apply:
         return {
             "status": "preview",
@@ -69,12 +108,18 @@ def seed_baseline(
                 "photos",
             ],
         }
-    dept_id = profile["department"]["code"].lower()
     if session.get(Department, dept_id) is None:
-        session.add(Department(id=dept_id, name=profile["department"]["name"]))
+        session.add(
+            Department(
+                organisation_id="gaa",
+                code=dept_id,
+                id=dept_id,
+                name=profile["department"]["name"],
+            )
+        )
         session.flush()
     for code, spec in grade_specs.items():
-        gid = f"{dept_id.upper()}_{code}"
+        gid = f"{profile['department']['code'].upper()}_{code}"
         if session.get(Grade, gid) is None:
             session.add(
                 Grade(
@@ -121,7 +166,7 @@ def seed_baseline(
             StaffCredential(
                 user_id=user.id,
                 department_id=dept_id,
-                grade_id=f"{dept_id.upper()}_{person['grade']}",
+                grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
             )
         )
         employment = session.exec(
@@ -130,9 +175,10 @@ def seed_baseline(
         if employment is None:
             session.add(
                 EmploymentRecord(
+                    organisation_id="gaa",
                     user_id=user.id,
                     department_id=dept_id,
-                    grade_id=f"{dept_id.upper()}_{person['grade']}",
+                    grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
                     position=grade_specs[person["grade"]]["label"],
                     roster_name=person.get("roster_name"),
                     employee_number=None,
@@ -141,10 +187,7 @@ def seed_baseline(
                 )
             )
         names = ["staff"]
-        if person["grade"] in {"MANAGER", "ASSISTANT_MANAGER", "SENIOR_TECH"}:
-            names += ["hr-supervisor", "cap-author", "cap-approver", "cap-publisher"]
-        if person["grade"] in {"MANAGER", "ASSISTANT_MANAGER"}:
-            names.append("management")
+        # Elevated access is an explicit administrator decision, never inferred from grade.
         for name in names:
             role = roles[name]
             if role.id not in {r.id for r in user.roles}:
@@ -153,6 +196,8 @@ def seed_baseline(
                 select(UserRoleAssignment).where(
                     UserRoleAssignment.user_id == user.id,
                     UserRoleAssignment.role_id == role.id,
+                    UserRoleAssignment.organisation_id == "gaa",
+                    UserRoleAssignment.scope == RoleAssignmentScope.SELF,
                 )
             ).first()
             if exists is None:
@@ -163,6 +208,7 @@ def seed_baseline(
                 )
                 session.add(
                     UserRoleAssignment(
+                        organisation_id="gaa",
                         user_id=user.id,
                         role_id=role.id,
                         scope=scope,
@@ -187,13 +233,23 @@ def seed_baseline(
             )
             session.add(template)
             session.flush()
-            for order, name in enumerate(("hr-supervisor", "management"), 1):
+            for order, name in enumerate(
+                ("hr-supervisor", "management", "hr-recorder"), 1
+            ):
                 session.add(
                     WorkflowStepTemplate(
                         workflow_template_id=template.id,
                         step_order=order,
                         required_role_id=roles[name].id,
-                        required_scope=RoleAssignmentScope.DEPARTMENT,
+                        label=("Supervisor approval", "Manager review", "HR recording")[
+                            order - 1
+                        ],
+                        purpose=("APPROVAL", "REVIEW", "RECORDING")[order - 1],
+                        is_required=order != 3,
+                        scope_enforced=True,
+                        required_scope=RoleAssignmentScope.ALL
+                        if order == 3
+                        else RoleAssignmentScope.DEPARTMENT,
                     )
                 )
         policy_key = f"hr:{dept_id}:{kind.value}"

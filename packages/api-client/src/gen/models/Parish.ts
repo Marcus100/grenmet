@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const parishParishEnum = {
+export const parish = {
   SAINT_GEORGE: "SAINT_GEORGE",
   SAINT_ANDREW: "SAINT_ANDREW",
   SAINT_DAVID: "SAINT_DAVID",
@@ -14,11 +14,4 @@ export const parishParishEnum = {
   PETITE_MARTINIQUE: "PETITE_MARTINIQUE",
 } as const;
 
-export type ParishParishEnumKey =
-  (typeof parishParishEnum)[keyof typeof parishParishEnum];
-
-/**
- * Parish
- * @description Grenada\'s six parishes plus its two island dependencies.
- */
-export type Parish = ParishParishEnumKey;
+export type Parish = (typeof parish)[keyof typeof parish];

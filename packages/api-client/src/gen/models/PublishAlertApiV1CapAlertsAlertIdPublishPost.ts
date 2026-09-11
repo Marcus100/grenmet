@@ -7,38 +7,38 @@ import type { CapAlertAction } from "./CapAlertAction.js";
 import type { CapPublishPublic } from "./CapPublishPublic.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams = {
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   alert_id: string;
 };
 
-/**
- * CapPublishPublic
- * @description Successful Response
- */
-export type PublishAlertApiV1CapAlertsAlertIdPublishPost200 = CapPublishPublic;
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200 =
+  CapPublishPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type PublishAlertApiV1CapAlertsAlertIdPublishPost422 =
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422 =
   HTTPValidationError;
 
-/**
- * CapAlertAction
- */
-export type PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest =
-  CapAlertAction;
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostBody = CapAlertAction;
 
-export type PublishAlertApiV1CapAlertsAlertIdPublishPostMutationResponse =
-  PublishAlertApiV1CapAlertsAlertIdPublishPost200;
-
-export type PublishAlertApiV1CapAlertsAlertIdPublishPostMutation = {
-  Response: PublishAlertApiV1CapAlertsAlertIdPublishPost200;
-  Request: PublishAlertApiV1CapAlertsAlertIdPublishPostMutationRequest;
-  PathParams: PublishAlertApiV1CapAlertsAlertIdPublishPostPathParams;
-  Errors: PublishAlertApiV1CapAlertsAlertIdPublishPost422;
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostOptions = {
+  body: PublishAlertApiV1CapAlertsAlertIdPublishPostBody;
+  path: PublishAlertApiV1CapAlertsAlertIdPublishPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostResponses = {
+  "200": PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200;
+  "422": PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type PublishAlertApiV1CapAlertsAlertIdPublishPostResponse =
+  | PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200
+  | PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422;

@@ -7,52 +7,42 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowInstanceCreate } from "./WorkflowInstanceCreate.js";
 import type { WorkflowInstancePublic } from "./WorkflowInstancePublic.js";
 
-/**
- * @description Instance created
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost200 = any;
+export type CreateInstanceApiV1HrWorkflowsInstancesPostStatus200 = unknown;
 
-/**
- * WorkflowInstancePublic
- * @description Successful Response
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost201 =
+export type CreateInstanceApiV1HrWorkflowsInstancesPostStatus201 =
   WorkflowInstancePublic;
 
-/**
- * @description Insufficient permission
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost403 = any;
+export type CreateInstanceApiV1HrWorkflowsInstancesPostStatus403 = unknown;
 
-/**
- * @description Workflow template not found
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost404 = any;
+export type CreateInstanceApiV1HrWorkflowsInstancesPostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPost422 =
+export type CreateInstanceApiV1HrWorkflowsInstancesPostStatus422 =
   HTTPValidationError;
 
-/**
- * WorkflowInstanceCreate
- */
-export type CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest =
+export type CreateInstanceApiV1HrWorkflowsInstancesPostBody =
   WorkflowInstanceCreate;
 
-export type CreateInstanceApiV1HrWorkflowsInstancesPostMutationResponse =
-  | CreateInstanceApiV1HrWorkflowsInstancesPost200
-  | CreateInstanceApiV1HrWorkflowsInstancesPost201;
-
-export type CreateInstanceApiV1HrWorkflowsInstancesPostMutation = {
-  Response:
-    | CreateInstanceApiV1HrWorkflowsInstancesPost200
-    | CreateInstanceApiV1HrWorkflowsInstancesPost201;
-  Request: CreateInstanceApiV1HrWorkflowsInstancesPostMutationRequest;
-  Errors:
-    | CreateInstanceApiV1HrWorkflowsInstancesPost403
-    | CreateInstanceApiV1HrWorkflowsInstancesPost404
-    | CreateInstanceApiV1HrWorkflowsInstancesPost422;
+export type CreateInstanceApiV1HrWorkflowsInstancesPostOptions = {
+  body: CreateInstanceApiV1HrWorkflowsInstancesPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateInstanceApiV1HrWorkflowsInstancesPostResponses = {
+  "200": CreateInstanceApiV1HrWorkflowsInstancesPostStatus200;
+  "201": CreateInstanceApiV1HrWorkflowsInstancesPostStatus201;
+  "403": CreateInstanceApiV1HrWorkflowsInstancesPostStatus403;
+  "404": CreateInstanceApiV1HrWorkflowsInstancesPostStatus404;
+  "422": CreateInstanceApiV1HrWorkflowsInstancesPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateInstanceApiV1HrWorkflowsInstancesPostResponse =
+  | CreateInstanceApiV1HrWorkflowsInstancesPostStatus200
+  | CreateInstanceApiV1HrWorkflowsInstancesPostStatus201
+  | CreateInstanceApiV1HrWorkflowsInstancesPostStatus403
+  | CreateInstanceApiV1HrWorkflowsInstancesPostStatus404
+  | CreateInstanceApiV1HrWorkflowsInstancesPostStatus422;

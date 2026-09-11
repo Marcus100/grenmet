@@ -3,12 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * RecoveryCodesPublic
- */
 export type RecoveryCodesPublic = {
-  /**
-   * @type array
-   */
   codes: string[];
 };

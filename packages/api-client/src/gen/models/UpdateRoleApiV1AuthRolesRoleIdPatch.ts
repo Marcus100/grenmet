@@ -7,43 +7,41 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RoleUpdate } from "./RoleUpdate.js";
 import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
-export type UpdateRoleApiV1AuthRolesRoleIdPatchPathParams = {
+export type UpdateRoleApiV1AuthRolesRoleIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   role_id: string;
 };
 
-/**
- * RolePublic
- * @description Role updated
- */
-export type UpdateRoleApiV1AuthRolesRoleIdPatch200 = SrcAuthSchemasRolePublic;
+export type UpdateRoleApiV1AuthRolesRoleIdPatchStatus200 =
+  SrcAuthSchemasRolePublic;
 
-/**
- * @description Role not found
- */
-export type UpdateRoleApiV1AuthRolesRoleIdPatch404 = any;
+export type UpdateRoleApiV1AuthRolesRoleIdPatchStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateRoleApiV1AuthRolesRoleIdPatch422 = HTTPValidationError;
+export type UpdateRoleApiV1AuthRolesRoleIdPatchStatus422 = HTTPValidationError;
 
-/**
- * RoleUpdate
- */
-export type UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest = RoleUpdate;
+export type UpdateRoleApiV1AuthRolesRoleIdPatchBody = RoleUpdate;
 
-export type UpdateRoleApiV1AuthRolesRoleIdPatchMutationResponse =
-  UpdateRoleApiV1AuthRolesRoleIdPatch200;
-
-export type UpdateRoleApiV1AuthRolesRoleIdPatchMutation = {
-  Response: UpdateRoleApiV1AuthRolesRoleIdPatch200;
-  Request: UpdateRoleApiV1AuthRolesRoleIdPatchMutationRequest;
-  PathParams: UpdateRoleApiV1AuthRolesRoleIdPatchPathParams;
-  Errors:
-    | UpdateRoleApiV1AuthRolesRoleIdPatch404
-    | UpdateRoleApiV1AuthRolesRoleIdPatch422;
+export type UpdateRoleApiV1AuthRolesRoleIdPatchOptions = {
+  body: UpdateRoleApiV1AuthRolesRoleIdPatchBody;
+  path: UpdateRoleApiV1AuthRolesRoleIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateRoleApiV1AuthRolesRoleIdPatchResponses = {
+  "200": UpdateRoleApiV1AuthRolesRoleIdPatchStatus200;
+  "404": UpdateRoleApiV1AuthRolesRoleIdPatchStatus404;
+  "422": UpdateRoleApiV1AuthRolesRoleIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateRoleApiV1AuthRolesRoleIdPatchResponse =
+  | UpdateRoleApiV1AuthRolesRoleIdPatchStatus200
+  | UpdateRoleApiV1AuthRolesRoleIdPatchStatus404
+  | UpdateRoleApiV1AuthRolesRoleIdPatchStatus422;

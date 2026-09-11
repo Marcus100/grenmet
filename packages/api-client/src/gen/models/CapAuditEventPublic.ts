@@ -3,31 +3,21 @@
  * Do not edit manually.
  */
 
-/**
- * CapAuditEventPublic
- */
 export type CapAuditEventPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   alert_id?: string | null;
   actor_user_id?: string | null;
-  /**
-   * @type string
-   */
   action: string;
   previous_state?: string | null;
   next_state?: string | null;
   note?: string | null;
-  /**
-   * @type object | undefined
-   */
   payload?: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
-  /**
-   * @type string
-   */
   created_at: string;
 };

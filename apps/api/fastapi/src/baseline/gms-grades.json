@@ -1,0 +1,38 @@
+[
+  {
+    "code": "MANAGER",
+    "label": "Manager",
+    "rank": 1,
+    "establishment_band": "Manager"
+  },
+  {
+    "code": "ASSISTANT_MANAGER",
+    "label": "Assistant Manager",
+    "rank": 2,
+    "establishment_band": "Assistant Manager"
+  },
+  {
+    "code": "SENIOR_TECH",
+    "label": "Senior Level Technician",
+    "rank": 3,
+    "establishment_band": "Senior Supervisor"
+  },
+  {
+    "code": "MID_TECH",
+    "label": "Mid Level Technician",
+    "rank": 4,
+    "establishment_band": "Supervisor"
+  },
+  {
+    "code": "ENTRY_TECH",
+    "label": "Entry Level Technician",
+    "rank": 5,
+    "establishment_band": "Professional"
+  },
+  {
+    "code": "CADET",
+    "label": "Meteorological Cadet",
+    "rank": 6,
+    "establishment_band": "Junior Professional/Trainee"
+  }
+]

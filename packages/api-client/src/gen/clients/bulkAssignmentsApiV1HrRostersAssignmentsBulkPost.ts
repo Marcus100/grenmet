@@ -3,56 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
+  BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponses,
 } from "../models/BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
-
-function getBulkAssignmentsApiV1HrRostersAssignmentsBulkPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/rosters/assignments/bulk` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create or replace roster assignments for a period. Requires roster.manage permission.
  * @summary Bulk upsert roster assignments
  * {@link /api/v1/hr/rosters/assignments/bulk}
  */
-export async function bulkAssignmentsApiV1HrRostersAssignmentsBulkPost(
-  data: BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest,
-  config: Partial<
-    RequestConfig<BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function bulkAssignmentsApiV1HrRostersAssignmentsBulkPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationResponse,
-    ResponseErrorConfig<
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost403
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost404
-      | BulkAssignmentsApiV1HrRostersAssignmentsBulkPost422
-    >,
-    BulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationRequest
-  >({
-    method: "POST",
-    url: getBulkAssignmentsApiV1HrRostersAssignmentsBulkPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/assignments/bulk",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        BulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -22,7 +22,7 @@ async def _active_assignments(
             UserRoleAssignment.user_id == user_id,
             col(UserRoleAssignment.effective_from) <= now,
             col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) >= now),
+            | (col(UserRoleAssignment.effective_to) > now),
         )
     )
     return list(result.scalars().all())
@@ -135,12 +135,11 @@ async def _assignment_allows_target(
         select(EmploymentRecord).where(EmploymentRecord.user_id == target_user_id)
     )
     target_employment = target_result.scalars().first()
-    current_result = await session.execute(
-        select(EmploymentRecord).where(EmploymentRecord.user_id == current_user_id)
-    )
-    current_employment = current_result.scalars().first()
-
+    if target_employment is None:
+        return False
     for assignment in assignments:
+        if assignment.organisation_id != target_employment.organisation_id:
+            continue
         if assignment.scope == RoleAssignmentScope.ALL:
             return True
         if (
@@ -150,14 +149,7 @@ async def _assignment_allows_target(
             return True
         if (
             assignment.scope == RoleAssignmentScope.DEPARTMENT
-            and target_employment
-            and current_employment
-            and target_employment.department_id == current_employment.department_id
+            and assignment.department_id == target_employment.department_id
         ):
-            if (
-                assignment.department_id
-                and assignment.department_id != target_employment.department_id
-            ):
-                continue
             return True
     return False

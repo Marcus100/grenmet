@@ -7,58 +7,54 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 import type { ShiftSwapSubmit } from "./ShiftSwapSubmit.js";
 
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams = {
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   shift_swap_id: string;
 };
 
-/**
- * ShiftSwapRequestPublic
- * @description Shift swap request submitted
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200 =
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200 =
   ShiftSwapRequestPublic;
 
-/**
- * @description Shift swap request is not a draft
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400 = any;
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to submit this shift swap request
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403 = any;
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403 =
+  unknown;
 
-/**
- * @description Shift swap request not found
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404 = any;
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422 =
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422 =
   HTTPValidationError;
 
-/**
- * ShiftSwapSubmit
- */
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest =
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostBody =
   ShiftSwapSubmit;
 
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationResponse =
-  SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200;
-
-export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutation = {
-  Response: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost200;
-  Request: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostMutationRequest;
-  PathParams: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathParams;
-  Errors:
-    | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost400
-    | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost403
-    | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost404
-    | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost422;
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostOptions = {
+  body: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostBody;
+  path: SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponses = {
+  "200": SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200;
+  "400": SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400;
+  "403": SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403;
+  "404": SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404;
+  "422": SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponse =
+  | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200
+  | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400
+  | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403
+  | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404
+  | SubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422;

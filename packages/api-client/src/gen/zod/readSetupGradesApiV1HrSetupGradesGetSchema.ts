@@ -6,28 +6,20 @@
 import * as z from "zod";
 import { gradeSetupSchema } from "./gradeSetupSchema.js";
 
-/**
- * @description Successful Response
- */
-export const readSetupGradesApiV1HrSetupGradesGet200Schema = z.array(
-  z.lazy(() => gradeSetupSchema)
-);
+export const readSetupGradesApiV1HrSetupGradesGetStatus200Schema =
+  z.array(gradeSetupSchema);
 
-/**
- * @description Administrator access required
- */
-export const readSetupGradesApiV1HrSetupGradesGet403Schema = z.any();
+export const readSetupGradesApiV1HrSetupGradesGetStatus403Schema = z.unknown();
 
-/**
- * @description Record not found
- */
-export const readSetupGradesApiV1HrSetupGradesGet404Schema = z.any();
+export const readSetupGradesApiV1HrSetupGradesGetStatus404Schema = z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const readSetupGradesApiV1HrSetupGradesGet409Schema = z.any();
+export const readSetupGradesApiV1HrSetupGradesGetStatus409Schema = z.unknown();
 
-export const readSetupGradesApiV1HrSetupGradesGetQueryResponseSchema = z.lazy(
-  () => readSetupGradesApiV1HrSetupGradesGet200Schema
-);
+export const readSetupGradesApiV1HrSetupGradesGetResponseSchema =
+  readSetupGradesApiV1HrSetupGradesGetStatus200Schema;
+
+export const readSetupGradesApiV1HrSetupGradesGetErrorSchema = z.union([
+  readSetupGradesApiV1HrSetupGradesGetStatus403Schema,
+  readSetupGradesApiV1HrSetupGradesGetStatus404Schema,
+  readSetupGradesApiV1HrSetupGradesGetStatus409Schema,
+]);

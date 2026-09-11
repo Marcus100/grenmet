@@ -6,36 +6,27 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathParamsSchema =
-  z.object({
-    holiday_id: z.string().uuid(),
-  });
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathHolidayIdSchema =
+  z.uuid();
 
-/**
- * @description Public holiday deleted
- */
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204Schema =
-  z.any();
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete403Schema =
-  z.any();
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403Schema =
+  z.unknown();
 
-/**
- * @description Public holiday not found
- */
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete404Schema =
-  z.any();
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteMutationResponseSchema =
-  z.lazy(
-    () => removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete204Schema
-  );
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponseSchema =
+  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204Schema;
+
+export const removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteErrorSchema =
+  z.union([
+    removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403Schema,
+    removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404Schema,
+    removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422Schema,
+  ]);

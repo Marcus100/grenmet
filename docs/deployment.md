@@ -1,38 +1,34 @@
 # Barrels Grenada — Deployment Guide
 
+> Current releases use `docker-compose.deploy.yml` and the canonical domain table
+> at the end of this guide. The per-environment `docker-compose.prod.yml` and
+> `docker-compose.staging.yml` files describe the retired prototype layout.
+
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet.
 
 ## Pipeline overview
 
-Every push to `staging` triggers the staging chain automatically. Pushes to `main`
-build `latest` images, but the current production deploy workflow runs only from a
-published GitHub Release or manual workflow dispatch.
+Promotion follows `dev → staging → main → release`. Use pull requests for branch
+promotion; the user merges them and publishes the release. See the
+[release runbook](operations/release-runbook.md) for the full sequence.
 
-```
-Push to branch
-  │
-  ├─ CI (FastAPI)           lint, type-check, tests, docker build smoke test
-  └─ CI — Web Apps          Biome, type-check, build all Next.js apps
-         │
-         ├─ Build and Push Docker Images    → ghcr.io/marcus100/grenmet:<tag>
-         └─ Build Web App Images            → ghcr.io/marcus100/grenmet-web-*:<tag>
-                  │
-                  └─ Deploy to Staging
-                     (runs on the self-hosted staging runner)
-```
+- A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds,
+  then deployment with the `staging` image tag.
+- Merging to `main` does not build deployment images or deploy production.
+- Publishing a release runs `pipeline-prod.yml`: builds all images at the release
+  tag, then deploys that same tag for FastAPI, web apps, Hono, and migrations.
+- A manual **Deploy** dispatch redeploys existing images; it does not build them.
+  Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
-- `staging` branch → deploys with tag `staging` to `*.staging.barrels.gd`
-- `main` branch → builds images tagged `latest`
-- Publishing a GitHub Release → deploys to production
-- Manual production workflow dispatch → deploys to production with the workflow defaults
+Both environments use `infra/docker/docker-compose.deploy.yml`, layered with
+`staging.env` or `production.env` and a temporary `.env.secrets` generated from
+GitHub environment secrets. The workflow deletes that file during cleanup;
+containers still receive their configured runtime secrets.
 
-The deploy workflow generates a `.env` file from GitHub Secrets on the runner, runs
-`docker compose up -d`, then deletes the `.env` file. No secrets are stored on the server.
-
-Current production tag behavior: the API service uses the release tag when a release
-trigger is present; web app services use `WEB_TAG=latest` in
-`.github/workflows/deploy-prod.yml`.
+FastAPI publishes as `ghcr.io/marcus100/grenmet:<tag>`. Web apps and Hono use
+`ghcr.io/marcus100/barrelsgd-<app>:<tag>`; see the
+[image inventory](web/deployment.md#docker-images).
 
 ---
 
@@ -60,12 +56,8 @@ Infrastructure compose files used locally:
 - Shared infra: `infra/docker/docker-compose.yml`
 - FastAPI: `apps/api/fastapi/docker-compose.yml`
 
-Baseline staging and production compose files:
-
-```bash
-docker compose -f infra/docker/docker-compose.staging.yml --profile tools up -d
-docker compose -f infra/docker/docker-compose.prod.yml --profile tools up -d
-```
+Staging and production use the shared deployment Compose file, not the local
+stack. For an operational fallback, use the [manual procedure](#manual-deploy-fallback--no-ci).
 
 For API-specific steps (migrations, smoke checks), see [docs/api/deployment.md](api/deployment.md).
 
@@ -99,12 +91,19 @@ Go into each environment and add the following secrets. Staging and production u
 | `FIRST_SUPERUSER_PASSWORD` | Bootstrap admin password              | Strong random string                                           |
 | `WXWATCH_DB_PASSWORD`      | wxwatch DB user password              | Generate with the command above                                |
 | `WXPRODUCTS_DB_PASSWORD`   | wxproducts DB user password           | Generate with the command above                                |
+| `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
+| `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
 | `SESSION_COOKIE_NAME`      | Session cookie name                   | `grenmet_session` (same in both)                               |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
 | `USERNAME`                 | Traefik + Adminer dashboard login     | e.g. `admin`                                                   |
 | `HASHED_PASSWORD`          | Bcrypt hash of the dashboard password | See note below                                                 |
 | `SENTRY_DSN`               | Error tracking (optional)             | From sentry.io, or leave empty string                          |
+
+The complete runtime and build-time inventory is in [docs/env.md](env.md).
+Google login needs `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`; object storage
+needs the `STORAGE_*` inputs consumed by `deploy.yml`. Configure these when enabling
+those integrations.
 
 **Generating `HASHED_PASSWORD`:**
 
@@ -132,7 +131,7 @@ runner labels (`staging` vs `production`).
 **Recommended spec:**
 
 - OS: Ubuntu 24.04 LTS
-- Size: 4 GB RAM / 2 vCPU minimum (8 GB recommended — you're running 10 containers)
+- Size: 4 GB RAM / 2 vCPU minimum (size for the enabled services and measured workload)
 - Region: closest to your users
 - Add your SSH key at creation time
 
@@ -214,7 +213,7 @@ curl -o actions-runner-linux-x64-2.x.x.tar.gz -L https://github.com/actions/runn
 tar xzf ./actions-runner-linux-x64-2.x.x.tar.gz
 
 # Configure — when prompted for labels, enter the environment name exactly
-./config.sh --url https://github.com/mrcus100/grenmet --token YOUR_TOKEN_FROM_GITHUB
+./config.sh --url https://github.com/Marcus100/grenmet --token YOUR_TOKEN_FROM_GITHUB
 # When asked: "Enter any additional labels (comma separated)"
 # → type:  staging        (for the staging server)
 # → type:  production     (for the production server)
@@ -244,88 +243,51 @@ journalctl -u actions.runner.* -n 50
 
 ## Part 3 — First deploy to staging
 
-### 3.1 Commit and push to the staging branch
+1. Run `pnpm fix`, `pnpm type-check`, and the pre-merge checks on `dev`.
+2. Push the reviewed changes and open a PR from `dev` to `staging`.
+3. Wait for required checks, then merge the PR on GitHub.
+4. Watch **Staging Pipeline**. Its CI jobs gate the applicable API/web image
+   builds and deployment on the self-hosted `staging` runner. The web image
+   matrix contains nine targets, including the migration runner and Hono.
+5. Verify the [configured app domains](#canonical-app-domains). New routes are
+   available only after the environment has successfully deployed this configuration.
 
-Make sure your local `dev` branch is clean and passing:
+For a fresh droplet only, create the external volumes named by `PGDATA_VOLUME`,
+`REDIS_VOLUME`, and `CERTS_VOLUME` in `staging.env` before the first deployment.
+Existing droplets must retain their existing volumes. Compose deliberately fails
+if a required external volume is missing instead of silently creating an empty database.
 
-```bash
-pnpm fix && pnpm type-check
-```
+The deployment starts Postgres, ensures the configured databases exist, then
+starts the remaining services with migrations enforced through dependencies.
+It requires API liveness and the configured web/Hono container health checks to
+pass. It also logs external web-root responses; those external checks are non-fatal.
 
-Then merge to staging:
-
-```bash
-git checkout staging
-git merge dev
-git push origin staging
-```
-
-### 3.2 Watch the workflow chain on GitHub
-
-Go to **Actions** tab. The workflows run in this order:
-
-| Workflow                     | Runs on                         | Duration |
-| ---------------------------- | ------------------------------- | -------- |
-| CI (FastAPI)                 | GitHub-hosted                   | ~10 min  |
-| CI — Web Apps                | GitHub-hosted                   | ~10 min  |
-| Build and Push Docker Images | GitHub-hosted                   | ~5 min   |
-| Build Web App Images         | GitHub-hosted (8 parallel jobs) | ~15 min  |
-| Deploy to Staging            | Self-hosted `staging` runner    | ~5 min   |
-
-Total: roughly 30–45 minutes end-to-end.
-
-### 3.3 Verify
-
-Once the deploy workflow completes:
-
-```
-https://api.staging.barrels.gd/api/v1/utils/health-check/   → true
-https://api.staging.barrels.gd/api/v1/utils/ready/          → {"status":"ready"}
-https://auth.staging.barrels.gd/
-https://adminer.staging.barrels.gd/                           → prompted for USERNAME/PASSWORD
-```
-
-On the server you can also inspect:
+Check database readiness and the user flows separately:
 
 ```bash
-docker ps
-docker compose -p grenmet-staging ps
-docker compose -p grenmet-staging logs api --tail 50
+curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/
+curl -fsS https://api.staging.barrels.gd/api/v1/utils/ready/
+curl -fsS https://hapi.staging.barrels.gd/health
 ```
 
----
+Verify login, return URLs, and any data-backed pages you changed.
 
 ## Part 4 — Deploy to production
 
-### 4.1 Set up the production server
+1. Open a PR from `staging` to `main`; wait for checks and merge on GitHub.
+2. Go to **Releases → Draft a new release**.
+3. Choose a new, increasing `vN.M` tag targeting `main` and publish the release.
+4. Watch **Production Pipeline** build all images at that tag and deploy them.
+5. Verify the production domains and API readiness as above.
 
-Repeat all of Part 2 on the production droplet, using label `production` for the runner.
-Use the DNS records for `*.barrels.gd` (no `staging.` prefix).
+The production runner needs label `production`, its own GitHub environment
+secrets, and the external volumes named in `production.env`. Bootstrap those
+volumes only on a fresh droplet; preserve existing data on an established server.
 
-### 4.2 Deploy
-
-**Option A — Versioned release (recommended):**
-
-```bash
-git checkout main
-git merge staging
-git push origin main
-```
-
-Then:
-
-1. On GitHub → **Releases → Draft a new release**.
-2. Tag: `v0.1.0`, target: `main`.
-3. Click **Publish release**.
-
-This tags the API image as both `latest` and `v0.1.0`, giving you a clear version history
-and the ability to roll back the API by re-deploying a previous release tag. The current
-production compose environment still uses `WEB_TAG=latest` for web apps.
-
-**Option B — Manual workflow dispatch:**
-
-Use **Actions → Deploy to Production → Run workflow** when you need to rerun the
-production deploy workflow without publishing a new release.
+To retry an existing release, use **Actions → Deploy → Run workflow**, select
+`environment=production`, and supply the existing release image tag. Select the
+matching release as the workflow ref, especially when the Compose layout changed.
+The **Deploy to Production** wrapper delegates to this same workflow.
 
 ---
 
@@ -343,7 +305,7 @@ cd /home/github/actions-runner
 ### Deploy fails — "secret not found" or blank value
 
 Check that the secret name in **Settings → Environments → staging** exactly matches
-what the workflow expects (case-sensitive). All 13 secrets must be present.
+what the workflow expects (case-sensitive). Compare the runtime inputs in `deploy.yml` with the environment inventory in [docs/env.md](env.md). Optional integrations require their own credentials when enabled.
 
 ### Let's Encrypt / HTTPS not working
 
@@ -356,7 +318,7 @@ nslookup auth.staging.barrels.gd    # must return your droplet IP
 Then check Traefik logs:
 
 ```bash
-docker compose -p grenmet-staging logs proxy --tail 100
+docker logs grenmet-staging-proxy-1 --tail 100
 ```
 
 ### API health check fails after deploy
@@ -364,14 +326,14 @@ docker compose -p grenmet-staging logs proxy --tail 100
 Check the prestart (migrations) container first — it runs before the API:
 
 ```bash
-docker compose -p grenmet-staging logs prestart --tail 50
-docker compose -p grenmet-staging logs api --tail 50
+docker logs grenmet-staging-prestart-1 --tail 50
+docker logs grenmet-staging-api-1 --tail 50
 ```
 
 ### A web app container keeps restarting
 
 ```bash
-docker compose -p grenmet-staging logs web-auth --tail 50
+docker logs grenmet-staging-web-auth-1 --tail 50
 # Replace web-auth with the failing service name
 ```
 
@@ -379,63 +341,162 @@ Most likely cause: a required env var is missing from the compose file or GitHub
 
 ### Rollback to previous version (production)
 
-Find the previous image tag in GitHub → Packages, then trigger a manual workflow dispatch
-from **Actions → Deploy to Production → Run workflow**, or re-deploy the previous release
-by re-publishing it.
+Dispatch **Deploy** with `environment=production` and the previous release tag
+as both the workflow ref and image tag. This keeps image names, Compose layout,
+and code from the same release together. Do not republish an old release to retry it.
+See the [release runbook](operations/release-runbook.md#rollback--redeploy).
 
----
+Application rollback does not reverse database migrations or restore data.
+Assess migration compatibility before reverting application code.
 
 ## Manual deploy (fallback — no CI)
 
-If you need to deploy without GitHub Actions (e.g., runner is down), use the reference
-env files in `infra/docker/`.
+Use a checkout of the release being deployed on the target server. Authenticate
+Docker to GHCR with package-read access. In `infra/docker`, securely prepare a
+mode-600 temporary `.env.secrets` using the **Write runtime secrets env** step in
+[deploy.yml](../.github/workflows/deploy.yml) as the exact input inventory.
+Include `TAG` and `WEB_TAG` set to the same existing image tag and the derived
+module database URLs. Non-secret settings come from the committed environment file;
+do not copy the retired `.env.staging` / `.env.prod` templates.
+
+After preparing the secrets file, run this from Bash on the staging server:
 
 ```bash
-# On the server
 cd /path/to/grenmet/infra/docker
-
-# Copy the reference file and fill in real secrets
-cp .env.staging .env
-nano .env    # replace all "changethis" values
-
-# Validate the compose config
-docker compose --env-file .env -f docker-compose.staging.yml config
-
-# Deploy
-docker compose --env-file .env -f docker-compose.staging.yml -p grenmet-staging up -d
-
-# Remove the env file when done — do not leave secrets on disk
-rm .env
+set -euo pipefail
+chmod 600 .env.secrets
+trap 'rm -f .env.secrets' EXIT
+compose=(docker compose --env-file staging.env --env-file .env.secrets
+  -f docker-compose.deploy.yml -p grenmet-staging)
+"${compose[@]}" config --quiet
+"${compose[@]}" up -d --wait db
+"${compose[@]}" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
+"${compose[@]}" pull
+"${compose[@]}" up -d --pull always --remove-orphans
+"${compose[@]}" ps
+"${compose[@]}" logs --tail 50 prestart web-migrate api
 ```
 
-For production, use `.env.prod` and `docker-compose.prod.yml` with `-p grenmet`.
+For production, use `production.env` and project `grenmet`. Check API liveness,
+readiness, and every web/Hono container's health before considering the deploy
+successful, following the health-check step in `deploy.yml`. Do not delete data volumes.
+
+For routine diagnostics after workflow cleanup, use `docker ps` and
+`docker logs <container-name>`; Compose commands need the same environment files
+and project arguments as deployment.
 
 ---
 
 ## URLs
 
-### Staging (`*.staging.barrels.gd`)
+The app inventory is maintained once in the [canonical table](#canonical-app-domains).
+Additional operational routes are:
 
-| Service           | URL                                      |
-| ----------------- | ---------------------------------------- |
-| Auth (sign-in)    | `https://auth.staging.barrels.gd`        |
-| Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.staging.barrels.gd`       |
-| Hurricane Plan    | `https://hurricane.staging.barrels.gd`   |
-| Spice WX          | `https://spice.staging.barrels.gd`       |
-| FastAPI backend   | `https://api.staging.barrels.gd`         |
-| API docs          | `https://api.staging.barrels.gd/swagger` |
-| Adminer (DB UI)   | `https://adminer.staging.barrels.gd`     |
-| Traefik dashboard | `https://traefik.staging.barrels.gd`     |
+| Service | Production | Staging |
+| --- | --- | --- |
+| API documentation | Disabled | https://api.staging.barrels.gd/swagger |
+| Adminer | Disabled by profile | https://adminer.staging.barrels.gd |
+| Traefik dashboard | https://traefik.barrels.gd | https://traefik.staging.barrels.gd |
 
-### Production (`*.barrels.gd`)
+Adminer and the Traefik dashboard require the configured dashboard credentials.
 
-| Service           | URL                              |
-| ----------------- | -------------------------------- |
-| Auth (sign-in)    | `https://auth.barrels.gd`        |
-| Admin GMS (incl. CAP/HR/wxwatch/wxproducts/salesbus) | `https://admin.barrels.gd`       |
-| Hurricane Plan    | `https://hurricane.barrels.gd`   |
-| Spice WX          | `https://spice.barrels.gd`       |
-| FastAPI backend   | `https://api.barrels.gd`         |
-| API docs          | Disabled in production           |
-| Adminer (DB UI)   | Not in current production compose |
-| Traefik dashboard | `https://traefik.barrels.gd`     |
+## Canonical app domains
+
+The active release pipelines use `docker-compose.deploy.yml` with
+`production.env` or `staging.env`. This table describes repository configuration, not proof of a completed deployment.
+The following routes replace the prototype
+hurricane/spice hosts; no legacy redirects are installed.
+
+| App | Local port | Production | Staging |
+| --- | --- | --- | --- |
+| Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
+| GAA Admin | 3001 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
+| Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
+| Weather | 3003 | https://weather.barrels.gd | https://weather.staging.barrels.gd |
+| Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
+| MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
+| Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
+| Hono | 4000 | https://hapi.barrels.gd | https://hapi.staging.barrels.gd |
+| FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
+
+Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and
+`*.staging.barrels.gd` to `167.71.24.42`. The DNS configuration supplied on 2026-09-06 uses DNS-only mode;
+Traefik obtains host certificates through the existing ACME challenge.
+
+Roll out staging first and verify every app health endpoint, login return URLs,
+and API CORS. Promote through main and a new release after staging succeeds.
+Renamed prototype containers can remain running as Compose orphans. Current
+delivery does not automatically remove them; follow the retirement procedure
+below to remove their old host routes after verifying ownership.
+Database and uploaded-data volumes retain their existing names and contents.
+Rollback uses the previous release's committed workflow and Compose definition:
+select the previous release tag as both the workflow ref and image tag.
+
+Signal subscriptions and MBIA contact delivery remain prototypes; MBIA flights
+and Events records remain demo data. Hono exposes its health stub, not a completed
+weather API. Hosting these apps does not complete those product workflows.
+
+
+## Legacy service retirement
+
+`docker-compose.prod.yml` and `docker-compose.staging.yml` are retired prototype
+layouts. Current releases use `docker-compose.deploy.yml`. Do not add retired
+hurricane/spice domains to CORS merely because an old container still exists.
+
+Run this read-only inventory from a checkout containing the inventory command
+on the staging Docker host:
+
+```bash
+bash scripts/production/inventory.sh --services-only --project grenmet-staging
+```
+
+For production, use `--project grenmet`. The command compares container service
+labels with the current Compose service inventory, includes stopped containers,
+and reports unexpected services for review. It includes image IDs and available
+registry digests, restart policy, selected routing labels, networks, and mounts with writable
+flags. It excludes environment values and middleware credentials and performs
+no database queries or Docker mutations. Missing registry digests remain empty;
+a mutable tag is not a substitute for a retained recovery image.
+
+An empty project report is not proof that another project or host is clean.
+The report cannot establish traffic usage or whether container writable layers
+contain unique data. Inspect those separately before retirement. Unknown
+services are review findings, not automatic deletion candidates; tools and
+one-off containers need their own ownership check.
+
+Retirement sequence, staging before production:
+
+1. Record host, project, container IDs, routing labels, image digests, mounts,
+   and current external application checks. Confirm replacement routes work.
+2. Review traffic and writable data for `web-hurricaneplan` and `web-spicewx`.
+   Preserve any unique data and retain recovery images before stopping them.
+3. Prepare an explicit list of container IDs and have the operator stop only
+   those verified legacy containers. Record their restart policies and set
+   `--restart=no` on only these containers so a Docker restart cannot revive
+   them. Keep stopped containers through the next successful staging deployment
+   so they can be restarted if retirement causes a problem.
+4. Verify replacement routes and authentication, and confirm the old routers
+   are gone. If checks fail, restore the recorded restart policies, restart the
+   retained containers, and investigate.
+5. Remove the verified stopped containers after acceptance. Preserve volumes
+   and recovery records. Repeat the inventory to confirm no unintended changes.
+
+Do not use blanket `--remove-orphans` as the initial cleanup: it removes services
+absent from the supplied Compose definition, including ones not reviewed for
+retirement. Historical releases retain their own committed Compose definitions.
+
+On September 8, 2026, operator-provided staging output showed both legacy
+containers running alongside healthy current applications at commit
+`979522b4e18eb8dba5b355a03d830b4d7098c677`. The operator confirmed project/service ownership, Traefik enabled and no
+mounts for either legacy container. Filesystem diffs showed changes confined to
+Next.js generated output and image caches. Both were stopped; external
+readiness/page-content smoke passed afterward and both legacy staging hosts
+returned HTTP 404 with `404 page not found`. The operator then confirmed both containers were `exited` with restart policy
+`no`. Final container removal remains pending until the next successful
+staging deployment. This is staging
+evidence, not production state.
+
+Retained recovery images:
+
+- Hurricane: `ghcr.io/marcus100/grenmet-web-hurricaneplan@sha256:eba1e7732f398df4ba99168f288302863f1552cd16cb2b5620391169d1e2fada`
+- Spice: `ghcr.io/marcus100/grenmet-web-spicewx@sha256:30b7e4c7ab7d36482cb6c673558963e5798fc94ee897816152ffb3f7a0d94a66`

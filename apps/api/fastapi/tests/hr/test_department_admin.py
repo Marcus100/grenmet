@@ -73,7 +73,14 @@ async def test_create_employment_record(db_async: AsyncSession) -> None:
         ),
     )
     if not await db_async.get(Department, "dept_emp_test"):
-        db_async.add(Department(id="dept_emp_test", name="Dept Employment Test"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_emp_test",
+                id="dept_emp_test",
+                name="Dept Employment Test",
+            )
+        )
         await db_async.commit()
 
     record = await hr_service.create_employment_for_user(
@@ -161,7 +168,14 @@ async def test_get_employment_for_user(db_async: AsyncSession) -> None:
         )
 
     if not await db_async.get(Department, "dept_get_test"):
-        db_async.add(Department(id="dept_get_test", name="Dept Get Test"))
+        db_async.add(
+            Department(
+                organisation_id="gaa",
+                code="dept_get_test",
+                id="dept_get_test",
+                name="Dept Get Test",
+            )
+        )
         await db_async.commit()
     created = await hr_service.create_employment_for_user(
         session=db_async,

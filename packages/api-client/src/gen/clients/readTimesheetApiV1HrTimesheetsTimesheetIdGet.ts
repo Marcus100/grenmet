@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams,
-  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponse,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetOptions,
+  ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponses,
 } from "../models/ReadTimesheetApiV1HrTimesheetsTimesheetIdGet.js";
-
-function getReadTimesheetApiV1HrTimesheetsTimesheetIdGetUrl(
-  timesheet_id: ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams["timesheet_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/timesheets/${timesheet_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.
  * @summary Get timesheet details
  * {@link /api/v1/hr/timesheets/:timesheet_id}
  */
-export async function readTimesheetApiV1HrTimesheetsTimesheetIdGet(
-  timesheet_id: ReadTimesheetApiV1HrTimesheetsTimesheetIdGetPathParams["timesheet_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readTimesheetApiV1HrTimesheetsTimesheetIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadTimesheetApiV1HrTimesheetsTimesheetIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadTimesheetApiV1HrTimesheetsTimesheetIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet403
-      | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet404
-      | ReadTimesheetApiV1HrTimesheetsTimesheetIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadTimesheetApiV1HrTimesheetsTimesheetIdGetUrl(
-      timesheet_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/timesheets/{timesheet_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadTimesheetApiV1HrTimesheetsTimesheetIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

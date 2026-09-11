@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const publicHolidayCreateSchema = z.object({
   name: z.string(),
-  holiday_date: z.string().date(),
-  is_recurring: z.optional(z.boolean().default(false)),
-  country_code: z.optional(z.string().default("GD")),
+  holiday_date: z.iso.date(),
+  is_recurring: z.boolean().optional().default(false),
+  country_code: z.string().optional().default("GD"),
 });

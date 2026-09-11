@@ -7,44 +7,38 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterGridImportRequest } from "./RosterGridImportRequest.js";
 import type { RosterGridPreview } from "./RosterGridPreview.js";
 
-/**
- * RosterGridPreview
- * @description Preview returned
- */
-export type ValidateGridApiV1HrRostersImportGridValidatePost200 =
+export type ValidateGridApiV1HrRostersImportGridValidatePostStatus200 =
   RosterGridPreview;
 
-/**
- * @description Insufficient permission
- */
-export type ValidateGridApiV1HrRostersImportGridValidatePost403 = any;
+export type ValidateGridApiV1HrRostersImportGridValidatePostStatus403 = unknown;
 
-/**
- * @description Department not found
- */
-export type ValidateGridApiV1HrRostersImportGridValidatePost404 = any;
+export type ValidateGridApiV1HrRostersImportGridValidatePostStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ValidateGridApiV1HrRostersImportGridValidatePost422 =
+export type ValidateGridApiV1HrRostersImportGridValidatePostStatus422 =
   HTTPValidationError;
 
-/**
- * RosterGridImportRequest
- */
-export type ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest =
+export type ValidateGridApiV1HrRostersImportGridValidatePostBody =
   RosterGridImportRequest;
 
-export type ValidateGridApiV1HrRostersImportGridValidatePostMutationResponse =
-  ValidateGridApiV1HrRostersImportGridValidatePost200;
-
-export type ValidateGridApiV1HrRostersImportGridValidatePostMutation = {
-  Response: ValidateGridApiV1HrRostersImportGridValidatePost200;
-  Request: ValidateGridApiV1HrRostersImportGridValidatePostMutationRequest;
-  Errors:
-    | ValidateGridApiV1HrRostersImportGridValidatePost403
-    | ValidateGridApiV1HrRostersImportGridValidatePost404
-    | ValidateGridApiV1HrRostersImportGridValidatePost422;
+export type ValidateGridApiV1HrRostersImportGridValidatePostOptions = {
+  body: ValidateGridApiV1HrRostersImportGridValidatePostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ValidateGridApiV1HrRostersImportGridValidatePostResponses = {
+  "200": ValidateGridApiV1HrRostersImportGridValidatePostStatus200;
+  "403": ValidateGridApiV1HrRostersImportGridValidatePostStatus403;
+  "404": ValidateGridApiV1HrRostersImportGridValidatePostStatus404;
+  "422": ValidateGridApiV1HrRostersImportGridValidatePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ValidateGridApiV1HrRostersImportGridValidatePostResponse =
+  | ValidateGridApiV1HrRostersImportGridValidatePostStatus200
+  | ValidateGridApiV1HrRostersImportGridValidatePostStatus403
+  | ValidateGridApiV1HrRostersImportGridValidatePostStatus404
+  | ValidateGridApiV1HrRostersImportGridValidatePostStatus422;

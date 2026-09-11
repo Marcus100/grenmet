@@ -7,36 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { leaveRequestListPublicSchema } from "./leaveRequestListPublicSchema.js";
 
-export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryParamsSchema =
-  z.object({
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  });
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Leave requests returned
- */
-export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGet200Schema = z.lazy(
-  () => leaveRequestListPublicSchema
-);
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200Schema =
+  leaveRequestListPublicSchema;
 
-export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryResponseSchema =
-  z.lazy(() => readMyLeaveRequestsApiV1HrLeaveRequestsMeGet200Schema);
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponseSchema =
+  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200Schema;
+
+export const readMyLeaveRequestsApiV1HrLeaveRequestsMeGetErrorSchema =
+  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422Schema;

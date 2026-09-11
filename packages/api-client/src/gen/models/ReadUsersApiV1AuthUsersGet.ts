@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
 
-export type ReadUsersApiV1AuthUsersGetQueryParams = {
+export type ReadUsersApiV1AuthUsersGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,23 +24,25 @@ export type ReadUsersApiV1AuthUsersGetQueryParams = {
   size?: number;
 };
 
-/**
- * PaginatedResponse[UserPublic]
- * @description Users returned
- */
-export type ReadUsersApiV1AuthUsersGet200 = PaginatedResponseUserPublic;
+export type ReadUsersApiV1AuthUsersGetStatus200 = PaginatedResponseUserPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadUsersApiV1AuthUsersGet422 = HTTPValidationError;
+export type ReadUsersApiV1AuthUsersGetStatus422 = HTTPValidationError;
 
-export type ReadUsersApiV1AuthUsersGetQueryResponse =
-  ReadUsersApiV1AuthUsersGet200;
-
-export type ReadUsersApiV1AuthUsersGetQuery = {
-  Response: ReadUsersApiV1AuthUsersGet200;
-  QueryParams: ReadUsersApiV1AuthUsersGetQueryParams;
-  Errors: ReadUsersApiV1AuthUsersGet422;
+export type ReadUsersApiV1AuthUsersGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadUsersApiV1AuthUsersGetQuery;
+  headers?: never;
 };
+
+export type ReadUsersApiV1AuthUsersGetResponses = {
+  "200": ReadUsersApiV1AuthUsersGetStatus200;
+  "422": ReadUsersApiV1AuthUsersGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadUsersApiV1AuthUsersGetResponse =
+  | ReadUsersApiV1AuthUsersGetStatus200
+  | ReadUsersApiV1AuthUsersGetStatus422;

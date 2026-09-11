@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
 
-/**
- * @description Successful Response
- */
-export const logoutAllSessionsApiV1LoginSessionLogoutAllPost200Schema = z.lazy(
-  () => messageSchema
-);
+export const logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200Schema =
+  messageSchema;
 
-/**
- * @description Validation Error
- */
-export const logoutAllSessionsApiV1LoginSessionLogoutAllPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const logoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequestSchema =
-  z.lazy(() => sessionTokenRequestSchema);
+export const logoutAllSessionsApiV1LoginSessionLogoutAllPostResponseSchema =
+  logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200Schema;
 
-export const logoutAllSessionsApiV1LoginSessionLogoutAllPostMutationResponseSchema =
-  z.lazy(() => logoutAllSessionsApiV1LoginSessionLogoutAllPost200Schema);
+export const logoutAllSessionsApiV1LoginSessionLogoutAllPostErrorSchema =
+  logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422Schema;
+
+export const logoutAllSessionsApiV1LoginSessionLogoutAllPostBodySchema =
+  sessionTokenRequestSchema;

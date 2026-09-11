@@ -14,6 +14,7 @@ Run from apps/api/fastapi:
     uv run --frozen --package fast-back python scripts/seed_hr_leave_demo.py
 """
 
+import argparse
 import logging
 
 from sqlmodel import Session, select
@@ -22,6 +23,7 @@ from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.permissions import seed_permissions_and_roles
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user_sync
+from src.config import settings
 from src.database import engine
 from src.hr.models import Department, EmploymentRecord
 from src.hr.workflow.models import (
@@ -100,13 +102,22 @@ def _resolve_department(session: Session) -> Department:
     dept = session.get(Department, DEPARTMENT_ID)
     if dept is None:
         dept = session.exec(
-            select(Department).where(Department.name == DEPARTMENT_NAME)
+            select(Department).where(
+                Department.name == DEPARTMENT_NAME, Department.organisation_id == "gaa"
+            )
         ).first()
     if dept is None:
-        dept = Department(id=DEPARTMENT_ID, name=DEPARTMENT_NAME)
+        dept = Department(
+            organisation_id="gaa",
+            code=DEPARTMENT_ID,
+            id=DEPARTMENT_ID,
+            name=DEPARTMENT_NAME,
+        )
         session.add(dept)
         session.commit()
         session.refresh(dept)
+    if dept.organisation_id != "gaa":
+        raise ValueError("Demo department belongs to another organisation")
     logger.info("Using department %s (%s)", dept.id, dept.name)
     return dept
 
@@ -147,11 +158,16 @@ def _ensure_role_assignment(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user.id,
             UserRoleAssignment.role_id == role.id,
+            UserRoleAssignment.organisation_id == "gaa",
+            UserRoleAssignment.scope == scope,
+            UserRoleAssignment.department_id
+            == (department_id if scope == RoleAssignmentScope.DEPARTMENT else None),
         )
     ).first()
     if existing is None:
         session.add(
             UserRoleAssignment(
+                organisation_id="gaa",
                 user_id=user.id,
                 role_id=role.id,
                 scope=scope,
@@ -172,6 +188,7 @@ def _ensure_employment(
         return
     session.add(
         EmploymentRecord(
+            organisation_id="gaa",
             user_id=user.id,
             employee_number=f"DEMO-{user.username.upper()}",
             department_id=department_id,
@@ -239,6 +256,15 @@ def _ensure_template(
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--apply", action="store_true")
+    args = parser.parse_args()
+    if settings.ENVIRONMENT != "local":
+        parser.error("Demo fixtures and cleanup are restricted to local databases")
+    if not args.apply:
+        print("Preview only; use --apply explicitly in a local database")
+        return
+
     with Session(engine) as session:
         seed_permissions_and_roles(session)
         department = _resolve_department(session)

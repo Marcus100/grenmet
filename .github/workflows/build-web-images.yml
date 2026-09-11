@@ -23,8 +23,21 @@ on:
         type: string
 
 jobs:
+  image-selection:
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.select.outputs.web }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - id: select
+        env:
+          IMAGE_BUILD_MODE: full
+        run: node scripts/ci/select-images.mjs
+
   build:
-    name: Build ${{ matrix.app }}
+    needs: image-selection
+    environment: ${{ (inputs.tag == 'staging' || (inputs.tag == '' && github.ref_name == 'staging')) && github.event_name != 'release' && 'staging' || 'production' }}
+    name: Build ${{ matrix.image }}
     runs-on: ubuntu-latest
     # push = called from pipeline-staging on a staging push (caller's event).
     if: |
@@ -40,32 +53,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # `app` is the legacy image name still referenced by compose; `newapp` is
-        # the barrelsgd name. Both are published during transition boundary 15 so
-        # the old references never go stale before compose is repointed.
-        include:
-          - app: web-auth
-            newapp: web-auth
-            path: apps/web/auth
-            port: 3000
-          - app: web-admin
-            newapp: web-gaa-admin
-            path: apps/web/gaa-admin
-            port: 3001
-          # Migration runner image — folds the former wxwatch/wxproducts apps'
-          # Drizzle migrations into a one-off image driven from admin's Dockerfile.
-          - app: web-admin-migrate
-            newapp: web-gaa-admin-migrate
-            path: apps/web/gaa-admin
-            target: migrate
-          - app: web-hurricaneplan
-            newapp: web-docs
-            path: apps/web/docs
-            port: 3002
-          - app: web-spicewx
-            newapp: web-gms
-            path: apps/web/gms
-            port: 3003
+        include: ${{ fromJSON(needs.image-selection.outputs.web) }}
 
     steps:
       - name: Checkout
@@ -85,15 +73,18 @@ jobs:
 
       - name: Resolve environment context
         id: ctx
+        env:
+          BUILD_TAG: ${{ inputs.tag }}
         run: |
-          EVENT="${{ github.event_name }}"
+          echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+          EVENT="$GITHUB_EVENT_NAME"
           # inputs.tag covers both workflow_dispatch and workflow_call callers.
-          if [ -n "${{ inputs.tag }}" ]; then
-            BRANCH="${{ inputs.tag }}"
+          if [ -n "$BUILD_TAG" ]; then
+            BRANCH="$BUILD_TAG"
           elif [ "$EVENT" == "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            BRANCH="$GITHUB_REF_NAME"
           else
-            BRANCH="${{ github.ref_name }}"
+            BRANCH="$GITHUB_REF_NAME"
           fi
 
           if [ "$BRANCH" == "staging" ] && [ "$EVENT" != "release" ]; then
@@ -111,52 +102,95 @@ jobs:
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/grenmet-${{ matrix.app }}
-            ghcr.io/${{ github.repository_owner }}/barrelsgd-${{ matrix.newapp }}
+            ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}
+          labels: |
+            gd.barrels.environment=${{ steps.ctx.outputs.environment }}
           tags: |
+            type=raw,value=${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
             type=raw,value=staging,enable=${{ steps.ctx.outputs.environment == 'staging' }}
             type=raw,value=latest,enable=${{ steps.ctx.outputs.environment == 'production' }}
             type=raw,value=${{ github.event.release.tag_name }},enable=${{ github.event_name == 'release' }}
 
-      - name: Build and push
+      - name: Build image for verification
+        id: verify
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ${{ matrix.path }}/Dockerfile
+          target: ${{ matrix.target || 'runner' }}
+          push: false
+          load: true
+          build-args: |
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
+            NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
+            NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
+          secrets: |
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
+          # Exported here, not on the publish step: a build that then fails the
+          # smoke test or vulnerability gate still leaves its layers cached, so
+          # the retry is warm. Registry-backed because the Actions cache is
+          # branch-scoped (dev never warms staging) and capped at 10GB.
+          cache-to: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }},mode=max,image-manifest=true,oci-mediatypes=true,ignore-error=true
+          platforms: linux/amd64
+
+      - name: Smoke-test image before publishing
+        env:
+          IMAGE: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          KIND: ${{ matrix.image == 'web-cms-migrate' && 'cms-migrate' || matrix.image == 'web-gaa-admin-migrate' && 'admin-migrate' || matrix.image == 'web-auth' && 'auth' || 'web' }}
+          PORT: ${{ matrix.port }}
+          HEALTH: ${{ matrix.image == 'api-hono' && '/health' || '/api/health' }}
+        run: |
+          bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
+
+      - name: Enforce image vulnerability policy before publishing
+        uses: ./.github/actions/scan-image
+        with:
+          image: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
+          scope: ${{ matrix.path }}/Dockerfile#${{ matrix.target || 'runner' }}
+          name: ${{ matrix.image }}
+
+      - name: Publish verified image from builder cache
         id: build
         uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: .
           file: ${{ matrix.path }}/Dockerfile
-          target: ${{ matrix.target }}
+          target: ${{ matrix.target || 'runner' }}
           push: true
           build-args: |
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
             NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || secrets.SENTRY_DSN_PRODUCTION }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ steps.ctx.outputs.environment == 'staging' && secrets.SENTRY_DSN_STAGING || steps.ctx.outputs.environment == 'production' && secrets.SENTRY_DSN_PRODUCTION || '' }}
             NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
+            SENTRY_PROJECT=${{ steps.ctx.outputs.sentry_project }}
+            NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ matrix.image == 'web-gms' && vars.NEXT_PUBLIC_GA_MEASUREMENT_ID || '' }}
+            NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.NEXT_PUBLIC_POSTHOG_KEY }}
+            NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.NEXT_PUBLIC_POSTHOG_HOST || vars.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com' }}
+          secrets: |
             SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,scope=${{ matrix.app }},mode=max,ignore-error=true
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
           platforms: linux/amd64
 
-      # Report-only vulnerability scan (mirrors the API pipeline). continue-on-error
-      # keeps it non-blocking for now; results land in the Security tab per app.
-      - name: Scan image for vulnerabilities
-        continue-on-error: true
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          image-ref: ghcr.io/${{ github.repository_owner }}/barrelsgd-${{ matrix.newapp }}@${{ steps.build.outputs.digest }}
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "1"
-          scanners: vuln
 
       - name: Upload Trivy results to GitHub Security tab
+        if: always() && hashFiles('trivy-results.sarif') != ''
         continue-on-error: true
         uses: github/codeql-action/upload-sarif@9e0d7b8d25671d64c341c19c0152d693099fb5ba # v4.35.5
         with:
           sarif_file: trivy-results.sarif
-          category: trivy-${{ matrix.app }}
+          category: trivy-${{ matrix.image }}
 
       - name: Summary
         run: echo "Built and pushed ${{ steps.meta.outputs.tags }}"

@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams,
-  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+  ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponses,
 } from "../models/ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet.js";
-
-function getReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetUrl(
-  instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/workflows/instances/${instance_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a workflow instance and its step instances. Requires workflow.instance.view permission.
  * @summary Get workflow instance details
  * {@link /api/v1/hr/workflows/instances/:instance_id}
  */
-export async function readInstanceApiV1HrWorkflowsInstancesInstanceIdGet(
-  instance_id: ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathParams["instance_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readInstanceApiV1HrWorkflowsInstancesInstanceIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet403
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet404
-      | ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetUrl(
-      instance_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/workflows/instances/{instance_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

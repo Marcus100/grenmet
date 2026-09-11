@@ -3,18 +3,12 @@
  * Do not edit manually.
  */
 
-export const rosterRevisionActionRosterRevisionActionEnum = {
+export const rosterRevisionAction = {
   CREATED: "CREATED",
   ASSIGNMENTS_UPDATED: "ASSIGNMENTS_UPDATED",
   PUBLISHED: "PUBLISHED",
   CLOSED: "CLOSED",
 } as const;
 
-export type RosterRevisionActionRosterRevisionActionEnumKey =
-  (typeof rosterRevisionActionRosterRevisionActionEnum)[keyof typeof rosterRevisionActionRosterRevisionActionEnum];
-
-/**
- * RosterRevisionAction
- */
 export type RosterRevisionAction =
-  RosterRevisionActionRosterRevisionActionEnumKey;
+  (typeof rosterRevisionAction)[keyof typeof rosterRevisionAction];

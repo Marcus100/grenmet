@@ -7,63 +7,51 @@ import type { DepartmentPublic } from "./DepartmentPublic.js";
 import type { DepartmentUpdate } from "./DepartmentUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams =
-  {
-    /**
-     * @type string
-     */
-    department_id: string;
-  };
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPath = {
+  department_id: string;
+};
 
-/**
- * DepartmentPublic
- * @description Department updated
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200 =
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200 =
   DepartmentPublic;
 
-/**
- * @description Department name already taken
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400 =
-  any;
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400 =
+  unknown;
 
-/**
- * @description Insufficient permission
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403 =
-  any;
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403 =
+  unknown;
 
-/**
- * @description Department not found
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404 =
-  any;
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422 =
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * DepartmentUpdate
- */
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest =
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchBody =
   DepartmentUpdate;
 
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationResponse =
-  UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200;
-
-export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutation =
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchOptions =
   {
-    Response: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch200;
-    Request: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchMutationRequest;
-    PathParams: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathParams;
-    Errors:
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch400
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch403
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch404
-      | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch422;
+    body: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchBody;
+    path: UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPath;
+    query?: never;
+    headers?: never;
   };
+
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponses =
+  {
+    "200": UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200;
+    "400": UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400;
+    "403": UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403;
+    "404": UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404;
+    "422": UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponse =
+  | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200
+  | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400
+  | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403
+  | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404
+  | UpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422;

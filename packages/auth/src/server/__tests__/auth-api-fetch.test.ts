@@ -85,3 +85,20 @@ describe("authApiFetch timeout", () => {
     expect((error as AuthApiError).status).toBe(401);
   });
 });
+
+it("sends a live access token in the header without caching or leaking it into fetch options", async () => {
+  const fetchMock = vi
+    .spyOn(globalThis, "fetch")
+    .mockResolvedValue(
+      jsonResponse({ role_names: [], permission_keys: [], is_superuser: false })
+    );
+  await authApiFetch(config, "/auth/access/me", {
+    accessToken: "test-access-token",
+  });
+  const init = fetchMock.mock.calls[0]?.[1];
+  expect(new Headers(init?.headers).get("authorization")).toBe(
+    "Bearer test-access-token"
+  );
+  expect(init?.cache).toBe("no-store");
+  expect(init).not.toHaveProperty("accessToken");
+});

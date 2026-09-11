@@ -3,51 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateParkingPermitApiV1HrParkingPermitsPost403,
-  CreateParkingPermitApiV1HrParkingPermitsPost422,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest,
-  CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
+  CreateParkingPermitApiV1HrParkingPermitsPostOptions,
+  CreateParkingPermitApiV1HrParkingPermitsPostResponses,
 } from "../models/CreateParkingPermitApiV1HrParkingPermitsPost.js";
-
-function getCreateParkingPermitApiV1HrParkingPermitsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/parking-permits` as const };
-  return res;
-}
 
 /**
  * @description Create an airport security parking access application. Requires parking.permit.create permission.
  * @summary Create parking permit application
  * {@link /api/v1/hr/parking-permits}
  */
-export async function createParkingPermitApiV1HrParkingPermitsPost(
-  data: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createParkingPermitApiV1HrParkingPermitsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateParkingPermitApiV1HrParkingPermitsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateParkingPermitApiV1HrParkingPermitsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateParkingPermitApiV1HrParkingPermitsPost403
-      | CreateParkingPermitApiV1HrParkingPermitsPost422
-    >,
-    CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateParkingPermitApiV1HrParkingPermitsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/parking-permits",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateParkingPermitApiV1HrParkingPermitsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

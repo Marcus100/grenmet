@@ -6,23 +6,32 @@ This document covers web-app-specific details only.
 
 ## Docker images
 
-Each web app builds its own Docker image. Image names follow this pattern:
+The build workflow publishes these images under `ghcr.io/marcus100/`:
 
-```
-ghcr.io/marcus100/grenmet-web-<app>:<tag>
-```
+| Target | Image name |
+| --- | --- |
+| Auth | `barrelsgd-web-auth` |
+| GAA Admin | `barrelsgd-web-gaa-admin` |
+| Admin migrations | `barrelsgd-web-gaa-admin-migrate` |
+| Docs | `barrelsgd-web-docs` |
+| Weather (gms) | `barrelsgd-web-gms` |
+| Signal | `barrelsgd-web-signal` |
+| MBIA | `barrelsgd-web-mbia` |
+| Events | `barrelsgd-web-events` |
+| Hono | `barrelsgd-api-hono` |
 
-| App | Image name |
-|---|---|
-| gaa-admin | `grenmet-web-admin` |
-| gaa-admin migrations (wxwatch + wxproducts Drizzle) | `grenmet-web-admin-migrate` |
-| auth | `grenmet-web-auth` |
-| docs | `grenmet-web-hurricaneplan` |
-| gms | `grenmet-web-spicewx` |
+FastAPI is built separately as `ghcr.io/marcus100/grenmet`. Staging uses tag
+`staging`; production releases use the same release tag for every image,
+including migrations. Both environments consume `docker-compose.deploy.yml`.
 
-Image names must be **lowercase** — CI will fail otherwise.
+Signal, MBIA, Events, and Hono have Dockerfiles and container startup checks in
+web CI. Their product features may still be prototypes; deployment support does
+not imply live data or a completed integration. See the
+[domain inventory and limitations](../deployment.md#canonical-app-domains).
 
-> The consolidated CAP/HR/wxwatch/wxproducts/salesbus modules ship inside the **gaa-admin** image (path-prefixed routes); they no longer build separate images. `signal` is not yet deployed (no Dockerfile).
+The consolidated CAP/HR/wxwatch/wxproducts/salesbus modules ship inside the
+GAA Admin image as path-prefixed routes, not separate images. Image names must
+be lowercase.
 
 ## Environment variables at deploy time
 

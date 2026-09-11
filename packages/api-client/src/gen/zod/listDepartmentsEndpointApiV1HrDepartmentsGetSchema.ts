@@ -5,18 +5,24 @@
 
 import * as z from "zod";
 import { departmentsPublicSchema } from "./departmentsPublicSchema.js";
+import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Departments returned
- */
-export const listDepartmentsEndpointApiV1HrDepartmentsGet200Schema = z.lazy(
-  () => departmentsPublicSchema
-);
+export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryOrganisationIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Insufficient permission
- */
-export const listDepartmentsEndpointApiV1HrDepartmentsGet403Schema = z.any();
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema =
+  departmentsPublicSchema;
 
-export const listDepartmentsEndpointApiV1HrDepartmentsGetQueryResponseSchema =
-  z.lazy(() => listDepartmentsEndpointApiV1HrDepartmentsGet200Schema);
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema =
+  z.unknown();
+
+export const listDepartmentsEndpointApiV1HrDepartmentsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const listDepartmentsEndpointApiV1HrDepartmentsGetResponseSchema =
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema;
+
+export const listDepartmentsEndpointApiV1HrDepartmentsGetErrorSchema = z.union([
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema,
+  listDepartmentsEndpointApiV1HrDepartmentsGetStatus422Schema,
+]);

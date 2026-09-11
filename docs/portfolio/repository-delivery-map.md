@@ -24,6 +24,7 @@ acceptance.
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
+| `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
 | `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
@@ -46,6 +47,8 @@ transition:
 
 | Repository surface | Primary classification and owner | Lifecycle | Dependency rule |
 | --- | --- | --- | --- |
+| `packages/cms-migrations` | Barrels delivery tooling for GMS content | Active | Dependency-only package for the canonical CMS migration config; excludes web UI dependencies |
+| `packages/admin-migrations` | Barrels delivery tooling for GAA | Active | Dependency-only package for admin migrations and baselines; no web runtime dependencies |
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
@@ -77,6 +80,8 @@ away from GMS.
 | `scripts/bishop-weather` | GMS tide research and collection tooling | Research | Validate source coverage and provenance before operational adoption; downloaded datasets remain local |
 | `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
 | `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
+| `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
+| `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
@@ -84,7 +89,9 @@ away from GMS.
 | `scripts/wxregister` | GMS data migration/extraction utility | Reference utility | Retain until migration need is resolved; promote or retire explicitly |
 | `scripts/docs` | Barrels engineering documentation guardrails | Active | Enforce links, portfolio coverage, and document-system integrity |
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
+| `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
+| `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
 
 ## Infrastructure and operations
@@ -92,8 +99,10 @@ away from GMS.
 | Repository surface | Classification and owner | Lifecycle | Boundary |
 | --- | --- | --- | --- |
 | `infra/docker` | Barrels platform infrastructure | Active; legacy naming remains during transition | Shared app/API databases and local/staging/production composition |
+| `infra/weather` | GMS weather delivery operated by Barrels | Active development | Separate SURFACE/WIS2 lifecycles, collector schedules, durable storage and recovery; GeoNetCast remains local |
 | `infra/postgres` | Barrels database bootstrap and compatibility assets | Active | Keep roles/extensions aligned with application migrations and independently managed stacks |
 | `.github/workflows` | Barrels engineering delivery automation | Active | CI, images, deployment orchestration, backups, and database preparation |
+| `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
@@ -109,7 +118,7 @@ away from GMS.
 | `docs/architecture.md`, `docs/data-architecture.md`, and `docs/technical-overview.md` | Architecture system of record | Active | Describe current boundaries and approved direction |
 | `docs/deployment.md`, `docs/infrastructure.md`, `docs/staging-prep.md`, and `docs/weather-gd-golive.md` | Delivery and cutover references | Active | Require environment owner and release authorization |
 | `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
-| `docs/audit-2026-06.md`, `docs/fastapi-cap-audit.md`, `docs/quality-score.md`, and `docs/security.md` | Audit and quality evidence | Snapshot/active by document | Refresh claims explicitly; never treat a score as acceptance |
+| `docs/audit-2026-06.md`, `docs/audit-2026-09-documentation.md`, `docs/fastapi-cap-audit.md`, `docs/quality-score.md`, and `docs/security.md` | Audit and quality evidence | Snapshot/active by document | Refresh claims explicitly; never treat a score as acceptance |
 | `docs/grenada-streaming-events-brief.md`, `docs/ports.md`, and `docs/troubleshooting.md` | Product option and engineering references | Mixed Explore/active reference | Follow the authority and lifecycle stated in each document |
 
 The fourteen current workflow files under `.github/workflows` are one delivery
@@ -125,7 +134,7 @@ references rather than duplicated here.
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
-| `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
+| `.claude/hooks`, `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
 | `scripts/sutron-collector/capture` | Sutron field-capture procedure and scripts | Governed | Promoted from the former `.capture-tools` scratch directory after field validation; that scratch copy is retired |

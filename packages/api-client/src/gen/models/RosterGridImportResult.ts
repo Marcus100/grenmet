@@ -3,20 +3,13 @@
  * Do not edit manually.
  */
 
-/**
- * RosterGridImportResult
- */
 export type RosterGridImportResult = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   roster_period_id: string;
-  /**
-   * @type integer
-   */
   total_assignments: number;
-  /**
-   * @type boolean
-   */
   published: boolean;
 };

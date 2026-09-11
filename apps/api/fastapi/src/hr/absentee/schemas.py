@@ -5,11 +5,12 @@ from pydantic import Field
 
 from src.hr.absentee.models import AbsenceReason
 from src.hr.models import RequestStatus
+from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 
-class AbsenteeReportCreate(BaseModel):
+class AbsenteeReportCreate(SignatureConsent):
     user_id: uuid.UUID
     department_id: str
     report_date: date
@@ -29,7 +30,7 @@ class AbsenteeReportCreate(BaseModel):
     as_draft: bool = False
 
 
-class AbsenteeReportSubmit(BaseModel):
+class AbsenteeReportSubmit(SignatureConsent):
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 

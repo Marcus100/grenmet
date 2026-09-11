@@ -7,29 +7,28 @@ import type { CapSettingsPublic } from "./CapSettingsPublic.js";
 import type { CapSettingsUpdate } from "./CapSettingsUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-/**
- * CapSettingsPublic
- * @description Successful Response
- */
-export type UpdateCapSettingsApiV1CapSettingsPatch200 = CapSettingsPublic;
+export type UpdateCapSettingsApiV1CapSettingsPatchStatus200 = CapSettingsPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateCapSettingsApiV1CapSettingsPatch422 = HTTPValidationError;
+export type UpdateCapSettingsApiV1CapSettingsPatchStatus422 =
+  HTTPValidationError;
 
-/**
- * CapSettingsUpdate
- */
-export type UpdateCapSettingsApiV1CapSettingsPatchMutationRequest =
-  CapSettingsUpdate;
+export type UpdateCapSettingsApiV1CapSettingsPatchBody = CapSettingsUpdate;
 
-export type UpdateCapSettingsApiV1CapSettingsPatchMutationResponse =
-  UpdateCapSettingsApiV1CapSettingsPatch200;
-
-export type UpdateCapSettingsApiV1CapSettingsPatchMutation = {
-  Response: UpdateCapSettingsApiV1CapSettingsPatch200;
-  Request: UpdateCapSettingsApiV1CapSettingsPatchMutationRequest;
-  Errors: UpdateCapSettingsApiV1CapSettingsPatch422;
+export type UpdateCapSettingsApiV1CapSettingsPatchOptions = {
+  body: UpdateCapSettingsApiV1CapSettingsPatchBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateCapSettingsApiV1CapSettingsPatchResponses = {
+  "200": UpdateCapSettingsApiV1CapSettingsPatchStatus200;
+  "422": UpdateCapSettingsApiV1CapSettingsPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateCapSettingsApiV1CapSettingsPatchResponse =
+  | UpdateCapSettingsApiV1CapSettingsPatchStatus200
+  | UpdateCapSettingsApiV1CapSettingsPatchStatus422;

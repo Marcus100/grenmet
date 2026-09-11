@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-/**
- * Token
- */
 export type Token = {
-  /**
-   * @type string
-   */
   access_token: string;
   /**
-   * @default "bearer"
+   * @default 'bearer'
    * @type string | undefined
    */
   token_type?: string;

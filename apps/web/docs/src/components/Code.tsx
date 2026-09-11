@@ -1,7 +1,7 @@
 "use client";
 
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import clsx from "clsx";
+import { clsx } from "cn";
 import {
   Children,
   createContext,

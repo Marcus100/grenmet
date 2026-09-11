@@ -5,16 +5,7 @@
 
 import type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 
-/**
- * WorkflowTemplatesPublic
- */
 export type WorkflowTemplatesPublic = {
-  /**
-   * @type array
-   */
   data: WorkflowTemplatePublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

@@ -9,47 +9,43 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updatePasswordMeApiV1AuthUsersMePasswordPatch } from "../clients/updatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 import type {
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch400,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatch422,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest,
-  UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400,
+  UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422,
 } from "../models/UpdatePasswordMeApiV1AuthUsersMePasswordPatch.js";
 
 export const updatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey = () =>
   [{ url: "/api/v1/auth/users/me/password" }] as const;
 
-export type UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey =
-  ReturnType<typeof updatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey>;
-
 export function updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updatePasswordMeApiV1AuthUsersMePasswordPatchMutationKey();
   return mutationOptions<
-    UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
     ResponseErrorConfig<
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422
     >,
-    { data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest },
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return updatePasswordMeApiV1AuthUsersMePasswordPatch(data, config);
+    mutationFn: async ({ body }) => {
+      return updatePasswordMeApiV1AuthUsersMePasswordPatch({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -62,17 +58,17 @@ export function updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions<
 export function useUpdatePasswordMeApiV1AuthUsersMePasswordPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+      UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
       ResponseErrorConfig<
-        | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-        | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+        | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+        | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422
       >,
-      { data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest },
+      UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -85,22 +81,22 @@ export function useUpdatePasswordMeApiV1AuthUsersMePasswordPatch<TContext>(
     updatePasswordMeApiV1AuthUsersMePasswordPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+      UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
       ResponseErrorConfig<
-        | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-        | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+        | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+        | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422
       >,
-      { data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest },
+      UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
     ResponseErrorConfig<
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422
     >,
-    { data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest },
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
     TContext
   >(
     {
@@ -110,12 +106,12 @@ export function useUpdatePasswordMeApiV1AuthUsersMePasswordPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationResponse,
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus200,
     ResponseErrorConfig<
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch400
-      | UpdatePasswordMeApiV1AuthUsersMePasswordPatch422
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus400
+      | UpdatePasswordMeApiV1AuthUsersMePasswordPatchStatus422
     >,
-    { data: UpdatePasswordMeApiV1AuthUsersMePasswordPatchMutationRequest },
+    UpdatePasswordMeApiV1AuthUsersMePasswordPatchOptions,
     TContext
   >;
 }

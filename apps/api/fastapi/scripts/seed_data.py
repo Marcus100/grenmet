@@ -297,11 +297,14 @@ def _ensure_staff_role(session: Session, user: User) -> None:
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user.id,
             UserRoleAssignment.role_id == role.id,
+            UserRoleAssignment.organisation_id == "gaa",
+            UserRoleAssignment.scope == RoleAssignmentScope.SELF,
         )
     ).first()
     if existing_assignment is None:
         session.add(
             UserRoleAssignment(
+                organisation_id="gaa",
                 user_id=user.id,
                 role_id=role.id,
                 scope=RoleAssignmentScope.SELF,

@@ -3,20 +3,23 @@
  * Do not edit manually.
  */
 
-/**
- * TimesheetEntryPublic
- */
 export type TimesheetEntryPublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   timesheet_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   entry_date: string;
   shift_code?: string | null;
@@ -51,9 +54,6 @@ export type TimesheetEntryPublic = {
    * @type string
    */
   hours_worked: string;
-  /**
-   * @type boolean
-   */
   medical_certificate_attached: boolean;
   comments?: string | null;
 };

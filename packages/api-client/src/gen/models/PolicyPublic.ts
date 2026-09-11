@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * PolicyPublic
- */
 export type PolicyPublic = {
   /**
    * @default false
@@ -17,8 +14,5 @@ export type PolicyPublic = {
    * @type boolean | undefined
    */
   require_distinct_approvers?: boolean;
-  /**
-   * @type string
-   */
   key: string;
 };

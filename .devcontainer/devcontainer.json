@@ -26,6 +26,7 @@
         "tamasfe.even-better-toml",
         "unifiedjs.vscode-mdx",
         "vitest.explorer",
+        "TypeScriptTeam.native-preview",
         "yoavbls.pretty-ts-errors"
       ]
     }
@@ -33,6 +34,11 @@
 
   // Mount your repo into the container at /workspace. Files edited by the
   // agent inside the container are the same files on your host copy.
+  // Create missing mountpoint directories as the host user before Docker mounts them.
+  "initializeCommand": [
+    "node",
+    "${localWorkspaceFolder}/.devcontainer/prepare-host-mountpoints.mjs"
+  ],
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
@@ -50,6 +56,69 @@
   // daemon needs paths that exist on the host. Run all `docker compose`
   // commands from ${localWorkspaceFolder}/<app>, never /workspace/<app>.
   "mounts": [
+    // Container-only Python environment; never reuse the host interpreter or native wheels.
+    "source=grenmet-${devcontainerId}-venv,target=/workspace/.venv,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-venv,target=${localWorkspaceFolder}/.venv,type=volume,volume-nocopy",
+    // Container-only dependencies and caches, including the mirrored repo path.
+    // Keep dependency-volumes.txt and the guardrail test in sync when adding apps.
+    "source=grenmet-${devcontainerId}-node_modules,target=/workspace/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-node_modules,target=${localWorkspaceFolder}/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=/workspace/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=${localWorkspaceFolder}/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=/workspace/apps/web/auth/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=${localWorkspaceFolder}/apps/web/auth/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-cms-node_modules,target=/workspace/apps/web/cms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-cms-node_modules,target=${localWorkspaceFolder}/apps/web/cms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-docs-node_modules,target=/workspace/apps/web/docs/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-docs-node_modules,target=${localWorkspaceFolder}/apps/web/docs/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-events-node_modules,target=/workspace/apps/web/events/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-events-node_modules,target=${localWorkspaceFolder}/apps/web/events/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gaa-admin-node_modules,target=/workspace/apps/web/gaa-admin/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gaa-admin-node_modules,target=${localWorkspaceFolder}/apps/web/gaa-admin/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gms-node_modules,target=/workspace/apps/web/gms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gms-node_modules,target=${localWorkspaceFolder}/apps/web/gms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-mbia-node_modules,target=/workspace/apps/web/mbia/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-mbia-node_modules,target=${localWorkspaceFolder}/apps/web/mbia/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=/workspace/apps/web/signal/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=${localWorkspaceFolder}/apps/web/signal/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=/workspace/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=${localWorkspaceFolder}/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-cms-migrations-node_modules,target=/workspace/packages/cms-migrations/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-cms-migrations-node_modules,target=${localWorkspaceFolder}/packages/cms-migrations/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=/workspace/packages/api-client/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=${localWorkspaceFolder}/packages/api-client/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-auth-node_modules,target=/workspace/packages/auth/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-auth-node_modules,target=${localWorkspaceFolder}/packages/auth/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=/workspace/packages/email-templates/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=${localWorkspaceFolder}/packages/email-templates/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=/workspace/packages/gms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=${localWorkspaceFolder}/packages/gms/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=/workspace/packages/mdx/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=${localWorkspaceFolder}/packages/mdx/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=/workspace/packages/theme/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=${localWorkspaceFolder}/packages/theme/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-tsconfig-node_modules,target=/workspace/packages/tsconfig/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-tsconfig-node_modules,target=${localWorkspaceFolder}/packages/tsconfig/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-ui-node_modules,target=/workspace/packages/ui/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-packages-ui-node_modules,target=${localWorkspaceFolder}/packages/ui/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-turbo,target=/workspace/.turbo,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-turbo,target=${localWorkspaceFolder}/.turbo,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-auth-next,target=/workspace/apps/web/auth/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-auth-next,target=${localWorkspaceFolder}/apps/web/auth/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-cms-next,target=/workspace/apps/web/cms/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-cms-next,target=${localWorkspaceFolder}/apps/web/cms/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-docs-next,target=/workspace/apps/web/docs/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-docs-next,target=${localWorkspaceFolder}/apps/web/docs/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-events-next,target=/workspace/apps/web/events/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-events-next,target=${localWorkspaceFolder}/apps/web/events/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gaa-admin-next,target=/workspace/apps/web/gaa-admin/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gaa-admin-next,target=${localWorkspaceFolder}/apps/web/gaa-admin/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gms-next,target=/workspace/apps/web/gms/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-gms-next,target=${localWorkspaceFolder}/apps/web/gms/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-mbia-next,target=/workspace/apps/web/mbia/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-mbia-next,target=${localWorkspaceFolder}/apps/web/mbia/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-signal-next,target=/workspace/apps/web/signal/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-signal-next,target=${localWorkspaceFolder}/apps/web/signal/.next,type=volume,volume-nocopy",
     "source=grenmet-claude-config,target=/home/node/.claude,type=volume",
     "source=grenmet-codex-config,target=/home/node/.codex,type=volume",
     "source=grenmet-config,target=/home/node/.config,type=volume",
@@ -72,15 +141,19 @@
   // tests), so publishing those ports here would collide with the host stack.
 
   "remoteUser": "node",
+  "init": true,
+  "waitFor": "postCreateCommand",
 
   // Claude's login/trust state lives in .claude.json. By default that file sits
   // in the home root (outside any volume) and is wiped on every rebuild, forcing
   // re-login. Pointing CLAUDE_CONFIG_DIR at the persisted .claude volume keeps
   // .claude.json next to .credentials.json inside that volume, so logins stick.
   "containerEnv": {
-    "CLAUDE_CONFIG_DIR": "/home/node/.claude"
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "GRENMET_HOST_WORKSPACE": "${localWorkspaceFolder}"
   },
 
   // On create: install workspace deps, then print every tool's version.
-  "postCreateCommand": "pnpm install && node -v && pnpm -v && uv --version && claude --version && codex --version"
+  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version",
+  "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs"
 }
