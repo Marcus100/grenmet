@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { CurrentAlertsAccordion } from "@/components/current-alerts-accordion";
 import { ExploringWebsite } from "@/components/exploring-website";
@@ -68,9 +69,34 @@ export default async function WeatherLayout({
         </div>
       </div>
 
-      <GmsNews />
+      <Suspense
+        fallback={
+          <section aria-busy="true" className="mb-8 space-y-5">
+            <h2 className="font-bold text-gm-navy text-heading-md">
+              Latest from us
+            </h2>
+            <p role="status">Loading updates…</p>
+          </section>
+        }
+      >
+        <GmsNews />
+      </Suspense>
 
-      <News />
+      <Suspense
+        fallback={
+          <section
+            aria-busy="true"
+            className="mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:bg-gm-surface lg:px-8 lg:py-12"
+          >
+            <h2 className="flex h-7 items-center font-bold text-gm-navy text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
+              Weather news
+            </h2>
+            <p role="status">Loading weather news…</p>
+          </section>
+        }
+      >
+        <News />
+      </Suspense>
 
       <ExploringWebsite />
     </div>

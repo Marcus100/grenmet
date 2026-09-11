@@ -59,7 +59,7 @@ export async function EditorSection() {
               ) : (
                 <CircleAlert
                   aria-hidden="true"
-                  className="size-4 text-gm-sun"
+                  className="size-4 text-gm-lime-ink"
                 />
               )}
             </div>

@@ -7,6 +7,7 @@ import * as z from "zod";
 import { parkingActionSchema } from "./parkingActionSchema.js";
 
 export const parkingPermitCreateSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   user_id: z.uuid(),
   department_id: z.string(),
   company_name: z.union([z.string(), z.null()]).optional(),

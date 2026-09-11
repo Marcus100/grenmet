@@ -44,6 +44,7 @@ const server = setupServer(
     return HttpResponse.json(
       {
         ...version(),
+        id: crypto.randomUUID(),
         version: (body.base_version ?? 0) + 1,
         definition: body.definition,
       },

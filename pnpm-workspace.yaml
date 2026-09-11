@@ -20,6 +20,13 @@ minimumReleaseAgeExclude:
   - "ultracite@7.11.0"
 strictPeerDependencies: false
 autoInstallPeers: true
+# Host and devcontainer bind-mount the same repo, so they must share one store.
+# A relative path resolves to the same physical dir from both, on the same fs as
+# node_modules (required for hardlinking). Never set an absolute path here.
+storeDir: .pnpm-store
+# pnpm 12 otherwise reinstalls before running any script, which wipes the shared
+# node_modules mid-command. Install explicitly instead.
+verifyDepsBeforeRun: false
 publicHoistPattern:
   - tailwindcss
   - "@tailwindcss/*"

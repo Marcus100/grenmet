@@ -1,4 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// Matcher tests do not need deployment credentials or the auth service.
+vi.mock("@/lib/auth-config", () => ({
+  getSessionCookieName: () => "test-session",
+}));
+
 import { config } from "./proxy";
 
 /**

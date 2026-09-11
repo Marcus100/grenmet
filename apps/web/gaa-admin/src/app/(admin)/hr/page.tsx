@@ -28,6 +28,9 @@ export default async function HrPage() {
         <Link className="underline" href="/hr/documents">
           Employee documents
         </Link>
+        <Link className="underline" href="/hr/training">
+          Employee training
+        </Link>
         <Link className="underline" href="/hr/parking">
           Parking expiry
         </Link>

@@ -11,7 +11,7 @@ import { TimesheetEditor } from "./timesheet-editor";
 
 const BASE = "http://localhost";
 const ADD_ENTRY = /add entry/i;
-const SUBMIT_TO_HR = /submit to hr/i;
+const SUBMIT_TO_HR = /sign & submit/i;
 
 const PROFILE = {
   id: "u-1",
@@ -23,6 +23,13 @@ const PROFILE = {
 const EMPTY_TIMESHEETS = { data: [], count: 0 };
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () => HttpResponse.json(PROFILE)),
   http.get(`${BASE}/api/v1/hr/timesheets/me`, () =>
     HttpResponse.json(EMPTY_TIMESHEETS)
@@ -164,7 +171,23 @@ describe("TimesheetEditor", () => {
         (await screen.findAllByText("06 Sept 2026")).length
       ).toBeGreaterThan(0);
       expect(submitted).toEqual(
-        failFirst ? [{ mode: "SELF" }, { mode: "SELF" }] : [{ mode: "SELF" }]
+        failFirst
+          ? [
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+            ]
+          : [
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+            ]
       );
       expect(posted).toHaveLength(1);
       expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeDisabled();

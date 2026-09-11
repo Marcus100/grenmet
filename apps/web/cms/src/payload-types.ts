@@ -163,6 +163,10 @@ export interface Content {
   image?: (number | null) | Media;
   kind: "article" | "page";
   /**
+   * Choose where this published article appears on the GMS website.
+   */
+  placement?: ("latest" | "news" | "both") | null;
+  /**
    * A URL name such as hurricane-season-preparation.
    */
   slug: string;
@@ -299,6 +303,7 @@ export interface ContentSelect<T extends boolean = true> {
   createdAt?: T;
   image?: T;
   kind?: T;
+  placement?: T;
   slug?: T;
   status?: T;
   summary?: T;

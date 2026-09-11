@@ -8,6 +8,7 @@ import { shiftPeriodSchema } from "./shiftPeriodSchema.js";
 import { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
 
 export const statusReportCreateSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   department_id: z.string(),
   report_date: z.iso.date(),
   shift_code: z.string(),

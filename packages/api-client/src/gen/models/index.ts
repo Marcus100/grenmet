@@ -81,6 +81,17 @@ export type {
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404,
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422,
 } from "./ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
+export type {
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostBody,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostOptions,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostPath,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostResponse,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostResponses,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus200,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus403,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404,
+  ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422,
+} from "./ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type { BodyUploadDocumentApiV1HrDocumentsPost } from "./BodyUploadDocumentApiV1HrDocumentsPost.js";
@@ -415,6 +426,16 @@ export type {
   CreateTimesheetApiV1HrTimesheetsPostStatus422,
 } from "./CreateTimesheetApiV1HrTimesheetsPost.js";
 export type {
+  CreateTrainingRecordApiV1HrTrainingRecordsPostBody,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostOptions,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostResponse,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostResponses,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostStatus201,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostStatus400,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostStatus403,
+  CreateTrainingRecordApiV1HrTrainingRecordsPostStatus422,
+} from "./CreateTrainingRecordApiV1HrTrainingRecordsPost.js";
+export type {
   CreateUserApiV1AuthUsersPostBody,
   CreateUserApiV1AuthUsersPostOptions,
   CreateUserApiV1AuthUsersPostResponse,
@@ -457,6 +478,14 @@ export type {
   DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404,
   DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422,
 } from "./DeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
+export type {
+  DeleteMySignatureApiV1HrSignatureMeDeleteOptions,
+  DeleteMySignatureApiV1HrSignatureMeDeleteResponse,
+  DeleteMySignatureApiV1HrSignatureMeDeleteResponses,
+  DeleteMySignatureApiV1HrSignatureMeDeleteStatus204,
+  DeleteMySignatureApiV1HrSignatureMeDeleteStatus400,
+  DeleteMySignatureApiV1HrSignatureMeDeleteStatus401,
+} from "./DeleteMySignatureApiV1HrSignatureMeDelete.js";
 export type {
   DeleteRoleApiV1AuthRolesRoleIdDeleteOptions,
   DeleteRoleApiV1AuthRolesRoleIdDeletePath,
@@ -538,6 +567,18 @@ export type {
   DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus422,
   DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus503,
 } from "./DownloadDocumentApiV1HrDocumentsDocumentIdDownloadGet.js";
+export type {
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetOptions,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetPath,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetResponse,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetResponses,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200Json,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200Pdf,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus403,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus404,
+  DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus422,
+} from "./DownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGet.js";
 export type {
   DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBody,
   DraftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostOptions,
@@ -1155,6 +1196,24 @@ export type {
   ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422,
 } from "./ReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export type {
+  ReadMySignatureApiV1HrSignatureMeGetOptions,
+  ReadMySignatureApiV1HrSignatureMeGetResponse,
+  ReadMySignatureApiV1HrSignatureMeGetResponses,
+  ReadMySignatureApiV1HrSignatureMeGetStatus200,
+  ReadMySignatureApiV1HrSignatureMeGetStatus400,
+  ReadMySignatureApiV1HrSignatureMeGetStatus401,
+} from "./ReadMySignatureApiV1HrSignatureMeGet.js";
+export type {
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetOptions,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetQuery,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetResponse,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetResponses,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus200,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus400,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus401,
+  ReadMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus422,
+} from "./ReadMySignedDocumentsApiV1HrSignedDocumentsMeGet.js";
+export type {
   ReadMyTimesheetsApiV1HrTimesheetsMeGetOptions,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery,
   ReadMyTimesheetsApiV1HrTimesheetsMeGetResponse,
@@ -1387,6 +1446,24 @@ export type {
   ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422,
 } from "./ReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 export type {
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetOptions,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetQuery,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetResponse,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetResponses,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetStatus200,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetStatus403,
+  ReadTrainingEmployeesApiV1HrTrainingEmployeesGetStatus422,
+} from "./ReadTrainingEmployeesApiV1HrTrainingEmployeesGet.js";
+export type {
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetOptions,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetQuery,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetResponse,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetResponses,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetStatus200,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetStatus403,
+  ReadTrainingRecordsApiV1HrTrainingRecordsGetStatus422,
+} from "./ReadTrainingRecordsApiV1HrTrainingRecordsGet.js";
+export type {
   ReadUserByIdApiV1AuthUsersUserIdGetOptions,
   ReadUserByIdApiV1AuthUsersUserIdGetPath,
   ReadUserByIdApiV1AuthUsersUserIdGetResponse,
@@ -1555,6 +1632,16 @@ export type {
   SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422,
 } from "./SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export type {
+  SaveMySignatureApiV1HrSignatureMePutBody,
+  SaveMySignatureApiV1HrSignatureMePutOptions,
+  SaveMySignatureApiV1HrSignatureMePutResponse,
+  SaveMySignatureApiV1HrSignatureMePutResponses,
+  SaveMySignatureApiV1HrSignatureMePutStatus200,
+  SaveMySignatureApiV1HrSignatureMePutStatus400,
+  SaveMySignatureApiV1HrSignatureMePutStatus401,
+  SaveMySignatureApiV1HrSignatureMePutStatus422,
+} from "./SaveMySignatureApiV1HrSignatureMePut.js";
+export type {
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBody,
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutOptions,
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutPath,
@@ -1589,6 +1676,10 @@ export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 export type { ShiftSwapRequestsPublic } from "./ShiftSwapRequestsPublic.js";
 export type { ShiftSwapSubmit } from "./ShiftSwapSubmit.js";
+export type { SignatureInput } from "./SignatureInput.js";
+export type { SignaturePublic } from "./SignaturePublic.js";
+export type { SignedDocumentList } from "./SignedDocumentList.js";
+export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
 export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./StaffCard.js";
@@ -1713,6 +1804,20 @@ export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
 export type { Title } from "./Title.js";
 export { title } from "./Title.js";
 export type { Token } from "./Token.js";
+export type { TrainingArchiveInput } from "./TrainingArchiveInput.js";
+export type { TrainingEmployeeList } from "./TrainingEmployeeList.js";
+export type { TrainingEmployeePublic } from "./TrainingEmployeePublic.js";
+export type {
+  TrainingRecordInput,
+  TrainingRecordInputResultEnum,
+} from "./TrainingRecordInput.js";
+export { trainingRecordInputResultEnum } from "./TrainingRecordInput.js";
+export type { TrainingRecordList } from "./TrainingRecordList.js";
+export type {
+  TrainingRecordPublic,
+  TrainingRecordPublicResultEnum,
+} from "./TrainingRecordPublic.js";
+export { trainingRecordPublicResultEnum } from "./TrainingRecordPublic.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 export type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";

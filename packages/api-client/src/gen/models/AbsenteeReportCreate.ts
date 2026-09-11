@@ -6,6 +6,7 @@
 import type { AbsenceReason } from "./AbsenceReason.js";
 
 export type AbsenteeReportCreate = {
+  signature_version?: string | null;
   /**
    * @description
    * Format: `uuid`

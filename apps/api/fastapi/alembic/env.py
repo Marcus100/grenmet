@@ -65,12 +65,14 @@ from src.hr.roster.models import (  # noqa: F401
     RosterRevision,
     ShiftCatalog,
 )
+from src.hr.signatures.models import SavedSignature, SignedDocument  # noqa: F401
 from src.hr.timesheet.models import (  # noqa: F401
     DepartmentPolicy,
     Timesheet,
     TimesheetEntry,
     TimesheetSubmission,
 )
+from src.hr.training.models import TrainingRecord  # noqa: F401
 from src.hr.workflow.models import (  # noqa: F401
     ApprovalActionLog,
     WorkflowInstance,

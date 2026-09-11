@@ -3,9 +3,17 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "./src"),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
+      // Static image imports: see src/test/image-stub.ts.
+      {
+        find: /^.*\.(png|jpe?g|gif|svg|webp|avif)$/,
+        replacement: path.resolve(
+          import.meta.dirname,
+          "./src/test/image-stub.ts"
+        ),
+      },
+    ],
   },
   test: {
     environment: "jsdom",

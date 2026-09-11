@@ -81,6 +81,7 @@ away from GMS.
 | `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
 | `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
+| `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
 | `scripts/scrapy-wxwatch` | GMS forecast-support operations delivered by Barrels | Active | Deploy bounded schedules with freshness, storage, database, and alert ownership |
@@ -90,6 +91,7 @@ away from GMS.
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
 | `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
+| `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
 
 ## Infrastructure and operations

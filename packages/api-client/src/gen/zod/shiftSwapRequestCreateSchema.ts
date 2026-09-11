@@ -7,6 +7,7 @@ import * as z from "zod";
 import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestCreateSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   counterpart_user_id: z.uuid(),
   department_id: z.string(),
   swap_type: swapTypeSchema.optional().default("TEMPORARY"),

@@ -4,5 +4,6 @@
  */
 
 export type StatusReportSubmit = {
+  signature_version?: string | null;
   co_approver_user_ids?: string[];
 };

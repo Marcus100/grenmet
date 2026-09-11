@@ -4,13 +4,14 @@ from datetime import date
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 from .models import SwapType
 
 
-class ShiftSwapRequestCreate(BaseModel):
+class ShiftSwapRequestCreate(SignatureConsent):
     counterpart_user_id: uuid.UUID
     department_id: str
     swap_type: SwapType = SwapType.TEMPORARY
@@ -28,7 +29,7 @@ class ShiftSwapRequestCreate(BaseModel):
     as_draft: bool = False
 
 
-class ShiftSwapSubmit(BaseModel):
+class ShiftSwapSubmit(SignatureConsent):
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 

@@ -1,6 +1,3 @@
-// Payload regenerates this file with namespace imports; Biome's
-// noNamespaceImport rule requires named ones, so the aliased form below is
-// reapplied after each `payload migrate:create`.
 import {
   down as down_20260906_203710_initial,
   up as up_20260906_203710_initial,
@@ -9,6 +6,10 @@ import {
   down as down_20260910_184226,
   up as up_20260910_184226,
 } from "./20260910_184226";
+import {
+  down as down_20260910_224049_content_placement,
+  up as up_20260910_224049_content_placement,
+} from "./20260910_224049_content_placement";
 
 export const migrations = [
   {
@@ -20,5 +21,10 @@ export const migrations = [
     up: up_20260910_184226,
     down: down_20260910_184226,
     name: "20260910_184226",
+  },
+  {
+    up: up_20260910_224049_content_placement,
+    down: down_20260910_224049_content_placement,
+    name: "20260910_224049_content_placement",
   },
 ];

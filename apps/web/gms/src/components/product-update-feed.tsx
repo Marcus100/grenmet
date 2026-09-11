@@ -29,7 +29,7 @@ export function ProductUpdateFeed({
   }
   return (
     <div className="space-y-4">
-      {mobileCarousel ? <DesktopUpdates posts={posts} /> : null}
+      {mobileCarousel ? <DesktopUpdates onShare={share} posts={posts} /> : null}
       {status ? (
         <p className="text-sm" role="status">
           {status}
@@ -48,7 +48,7 @@ export function ProductUpdateFeed({
             key={post.id}
           >
             <header className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-gm-blue font-bold text-gm-text-inverse">
+              <span className="grid size-10 place-items-center rounded-full bg-gm-blue-ink font-bold text-gm-text-inverse">
                 G
               </span>
               <div>
@@ -106,7 +106,7 @@ export function ProductUpdateFeed({
             </p>
             <div className="flex items-center justify-between gap-3">
               <Link
-                className="font-semibold text-gm-blue underline"
+                className="font-semibold text-gm-blue-ink underline"
                 href={post.href}
               >
                 Open update
@@ -126,7 +126,13 @@ export function ProductUpdateFeed({
   );
 }
 
-function DesktopUpdates({ posts }: { posts: ProductPost[] }) {
+function DesktopUpdates({
+  posts,
+  onShare,
+}: {
+  posts: ProductPost[];
+  onShare: (post: ProductPost) => Promise<void>;
+}) {
   return (
     <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
       {posts.map((post, index) => (
@@ -176,9 +182,16 @@ function DesktopUpdates({ posts }: { posts: ProductPost[] }) {
             >
               {post.summary}
             </Link>
+            <Button
+              onClick={() => onShare(post)}
+              type="button"
+              variant="outline"
+            >
+              Share update
+            </Button>
             {index === 0 ? (
               <Link
-                className="mt-auto pt-6 font-semibold text-gm-blue"
+                className="mt-auto pt-6 font-semibold text-gm-blue-ink"
                 href={post.href}
               >
                 Read more <span aria-hidden="true">→</span>

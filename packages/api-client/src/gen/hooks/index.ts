@@ -34,6 +34,11 @@ export {
   useArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost,
 } from "./useArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
 export {
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostMutationKey,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostMutationOptions,
+  useArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost,
+} from "./useArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
+export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions,
   useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost,
@@ -159,6 +164,11 @@ export {
   useCreateTimesheetApiV1HrTimesheetsPost,
 } from "./useCreateTimesheetApiV1HrTimesheetsPost.js";
 export {
+  createTrainingRecordApiV1HrTrainingRecordsPostMutationKey,
+  createTrainingRecordApiV1HrTrainingRecordsPostMutationOptions,
+  useCreateTrainingRecordApiV1HrTrainingRecordsPost,
+} from "./useCreateTrainingRecordApiV1HrTrainingRecordsPost.js";
+export {
   createUserApiV1AuthUsersPostMutationKey,
   createUserApiV1AuthUsersPostMutationOptions,
   useCreateUserApiV1AuthUsersPost,
@@ -178,6 +188,11 @@ export {
   deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteMutationOptions,
   useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete,
 } from "./useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete.js";
+export {
+  deleteMySignatureApiV1HrSignatureMeDeleteMutationKey,
+  deleteMySignatureApiV1HrSignatureMeDeleteMutationOptions,
+  useDeleteMySignatureApiV1HrSignatureMeDelete,
+} from "./useDeleteMySignatureApiV1HrSignatureMeDelete.js";
 export {
   deleteRoleApiV1AuthRolesRoleIdDeleteMutationKey,
   deleteRoleApiV1AuthRolesRoleIdDeleteMutationOptions,
@@ -213,6 +228,11 @@ export {
   downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetQueryOptions,
   useDownloadDocumentApiV1HrDocumentsDocumentIdDownloadGet,
 } from "./useDownloadDocumentApiV1HrDocumentsDocumentIdDownloadGet.js";
+export {
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetQueryKey,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetQueryOptions,
+  useDownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGet,
+} from "./useDownloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGet.js";
 export {
   draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationKey,
   draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostMutationOptions,
@@ -519,6 +539,16 @@ export {
   useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet,
 } from "./useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet.js";
 export {
+  readMySignatureApiV1HrSignatureMeGetQueryKey,
+  readMySignatureApiV1HrSignatureMeGetQueryOptions,
+  useReadMySignatureApiV1HrSignatureMeGet,
+} from "./useReadMySignatureApiV1HrSignatureMeGet.js";
+export {
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQueryKey,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQueryOptions,
+  useReadMySignedDocumentsApiV1HrSignedDocumentsMeGet,
+} from "./useReadMySignedDocumentsApiV1HrSignedDocumentsMeGet.js";
+export {
   readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey,
   readMyTimesheetsApiV1HrTimesheetsMeGetQueryOptions,
   useReadMyTimesheetsApiV1HrTimesheetsMeGet,
@@ -659,6 +689,16 @@ export {
   useReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet,
 } from "./useReadTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGet.js";
 export {
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryKey,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryOptions,
+  useReadTrainingEmployeesApiV1HrTrainingEmployeesGet,
+} from "./useReadTrainingEmployeesApiV1HrTrainingEmployeesGet.js";
+export {
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryKey,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryOptions,
+  useReadTrainingRecordsApiV1HrTrainingRecordsGet,
+} from "./useReadTrainingRecordsApiV1HrTrainingRecordsGet.js";
+export {
   readUserByIdApiV1AuthUsersUserIdGetQueryKey,
   readUserByIdApiV1AuthUsersUserIdGetQueryOptions,
   useReadUserByIdApiV1AuthUsersUserIdGet,
@@ -733,6 +773,11 @@ export {
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationOptions,
   useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost,
 } from "./useSaveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
+export {
+  saveMySignatureApiV1HrSignatureMePutMutationKey,
+  saveMySignatureApiV1HrSignatureMePutMutationOptions,
+  useSaveMySignatureApiV1HrSignatureMePut,
+} from "./useSaveMySignatureApiV1HrSignatureMePut.js";
 export {
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutMutationKey,
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutMutationOptions,

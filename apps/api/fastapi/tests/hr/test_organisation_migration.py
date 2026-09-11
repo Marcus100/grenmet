@@ -1,32 +1,45 @@
 """Rehearse ownership backfill inside a rolled-back test-DB transaction."""
 
-import importlib.util
-import re
-from pathlib import Path
+import os
 
 import pytest
+from alembic.config import Config
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
+from alembic.script import ScriptDirectory
 from sqlalchemy import text
 
 from src.config import settings
 from src.database import engine
+from tests.database_target import require_owned_database
 
 
 @pytest.fixture
-def old_schema(db_async):
-    _ = db_async
-    assert re.fullmatch(r".+_test(_gw\d+)?", settings.POSTGRES_DB)
-    path = Path("alembic/versions/2026-09-10_hr_organisation_boundary.py")
-    spec = importlib.util.spec_from_file_location("organisation_migration", path)
-    assert spec and spec.loader
-    migration = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(migration)
+async def old_schema(db, db_async):
+    # Seeding commits the rows, then refresh opens a read transaction. Release
+    # its locks before a separate connection performs transactional DDL.
+    # The session-wide autouse legacy fixture is a second independent session.
+    # Either one can retain locks after seeding or previous tests.
+    db.rollback()
+    await db_async.rollback()
+    require_owned_database(settings.POSTGRES_DB, os.environ)
+    scripts = ScriptDirectory.from_config(Config("alembic.ini"))
+    target = scripts.get_revision("a8b2c3d4e5f6")
+    assert target is not None
+    migration = target.module
     with engine.connect() as connection:
         transaction = connection.begin()
         try:
-            with Operations.context(MigrationContext.configure(connection)):
-                migration.downgrade()
+            connection.execute(text("SET LOCAL lock_timeout = '5s'"))
+            connection.execute(text("SET LOCAL statement_timeout = '30s'"))
+            context = MigrationContext.configure(connection)
+            with Operations.context(context):
+                # Remove descendants first: newer tables may reference this
+                # migration's constraints. All DDL remains inside the rollback.
+                for revision in scripts.iterate_revisions(
+                    context.get_current_heads(), target.down_revision
+                ):
+                    revision.module.downgrade()
                 yield connection, migration
         finally:
             transaction.rollback()
