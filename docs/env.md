@@ -438,3 +438,36 @@ credentials into staging.
 
 Stripe price/return URL and PostHog host inputs accept environment secrets first,
 with environment variables retained as a compatibility fallback.
+
+
+### Observability activation
+
+Use separate staging and production projects for PostHog and Sentry. Browser
+keys are embedded during the web image build: adding a GitHub secret requires
+rebuilding the corresponding environment images, not just restarting containers.
+PostHog remains disabled without its project key. Its shared provider disables
+session recording, autocapture and person profiles and sends only allowlisted
+page-section counts; preserve these controls when activating it.
+
+The API image ships with `DD_TRACE_ENABLED=false`,
+`DD_INSTRUMENTATION_TELEMETRY_ENABLED=false` and
+`DD_REMOTE_CONFIGURATION_ENABLED=false`. There is no Datadog Agent in the core
+Compose stack. Do not enable exports until an agent is provisioned with a
+container-reachable `DD_TRACE_AGENT_URL`, separate environment configuration,
+and `DD_SERVICE`, `DD_ENV`, `DD_VERSION` tags. A Datadog cloud API key belongs on
+the agent, not in browser configuration. The current deployment renderer does
+not forward Datadog enablement settings; wiring the agent and these settings is
+a separate deployment change, not an existing activated integration.
+
+Sentry preserves exception types and stack locations while redacting payloads,
+local variables and log contents. Log-only events retain a generic safe title.
+Readiness failures remain reported; do not suppress database or Redis outages to
+make the issue feed look healthy. After deploying, verify a controlled test
+error arrives in the correct environment and that no traces target localhost.
+
+Google OAuth uses separate web clients (or separately approved callbacks) for
+`https://auth.staging.barrels.gd/google/callback` and
+`https://auth.barrels.gd/google/callback`. Configure the environment's
+`GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` together; the deployment supplies
+the callback URL. Client creation, consent-screen/test-user setup, and a real
+browser callback/MFA test remain required before declaring Google enabled.

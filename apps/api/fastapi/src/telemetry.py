@@ -5,6 +5,7 @@ from typing import Any
 
 def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:
     """Retain error types/stacks, never request payloads, locals or draft content."""
+    had_logentry = bool(event.get("logentry"))
     for key in (
         "user",
         "request",
@@ -18,6 +19,8 @@ def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str
         event.pop(key, None)
     if event.get("message"):
         event["message"] = "[redacted]"
+    elif had_logentry:
+        event["message"] = "Log event (details redacted)"
     for exception in event.get("exception", {}).get("values", []):
         if exception.get("value"):
             exception["value"] = "[redacted]"
