@@ -7,6 +7,7 @@ import type { RequestStatus } from "./RequestStatus.js";
 import type { SwapType } from "./SwapType.js";
 
 export type ShiftSwapRequestPublic = {
+  signed_document_id?: string | null;
   submitted_at?: string | null;
   /**
    * @description

@@ -8,6 +8,7 @@ import type { ProfAppointmentType } from "./ProfAppointmentType.js";
 import type { RequestStatus } from "./RequestStatus.js";
 
 export type LeaveRequestPublic = {
+  signed_document_id?: string | null;
   submitted_at?: string | null;
   /**
    * @description

@@ -77,6 +77,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef(
         "parking.permit.read.department", "Read parking permits across a department"
     ),
+    PermissionDef("hr.training.manage", "Record and archive employee training history"),
+    PermissionDef(
+        "hr.training.read.department",
+        "Read training history within assigned departments",
+    ),
     # HR — employee documents
     PermissionDef("hr.document.create", "Upload employee documents"),
     PermissionDef(
@@ -151,6 +156,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "parking.permit.read.department",
             "hr.document.create",
             "hr.document.read.department",
+            "hr.training.read.department",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",
@@ -172,6 +178,7 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "parking.permit.read.department",
             "hr.document.create",
             "hr.document.read.department",
+            "hr.training.read.department",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",
@@ -187,8 +194,10 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "hr.employment.manage",
             "hr.document.create",
             "hr.document.read.department",
+            "hr.training.read.department",
             "hr.document.read.restricted",
             "hr.document.manage",
+            "hr.training.manage",
             "calendar.view",
             "calendar.event.create",
             "calendar.manage",

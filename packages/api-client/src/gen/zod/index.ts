@@ -73,6 +73,16 @@ export {
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404Schema,
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422Schema,
 } from "./archiveDocumentApiV1HrDocumentsDocumentIdArchivePostSchema.js";
+export {
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostBodySchema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostErrorSchema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostPathRecordIdSchema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostResponseSchema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus200Schema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus403Schema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404Schema,
+  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422Schema,
+} from "./archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostSchema.js";
 export { balanceInputSchema } from "./balanceInputSchema.js";
 export { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
 export { bodyUploadDocumentApiV1HrDocumentsPostSchema } from "./bodyUploadDocumentApiV1HrDocumentsPostSchema.js";
@@ -343,6 +353,15 @@ export {
   createTimesheetApiV1HrTimesheetsPostStatus422Schema,
 } from "./createTimesheetApiV1HrTimesheetsPostSchema.js";
 export {
+  createTrainingRecordApiV1HrTrainingRecordsPostBodySchema,
+  createTrainingRecordApiV1HrTrainingRecordsPostErrorSchema,
+  createTrainingRecordApiV1HrTrainingRecordsPostResponseSchema,
+  createTrainingRecordApiV1HrTrainingRecordsPostStatus201Schema,
+  createTrainingRecordApiV1HrTrainingRecordsPostStatus400Schema,
+  createTrainingRecordApiV1HrTrainingRecordsPostStatus403Schema,
+  createTrainingRecordApiV1HrTrainingRecordsPostStatus422Schema,
+} from "./createTrainingRecordApiV1HrTrainingRecordsPostSchema.js";
+export {
   createUserApiV1AuthUsersPostBodySchema,
   createUserApiV1AuthUsersPostErrorSchema,
   createUserApiV1AuthUsersPostResponseSchema,
@@ -381,6 +400,13 @@ export {
   deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404Schema,
   deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422Schema,
 } from "./deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteSchema.js";
+export {
+  deleteMySignatureApiV1HrSignatureMeDeleteErrorSchema,
+  deleteMySignatureApiV1HrSignatureMeDeleteResponseSchema,
+  deleteMySignatureApiV1HrSignatureMeDeleteStatus204Schema,
+  deleteMySignatureApiV1HrSignatureMeDeleteStatus400Schema,
+  deleteMySignatureApiV1HrSignatureMeDeleteStatus401Schema,
+} from "./deleteMySignatureApiV1HrSignatureMeDeleteSchema.js";
 export {
   deleteRoleApiV1AuthRolesRoleIdDeleteErrorSchema,
   deleteRoleApiV1AuthRolesRoleIdDeletePathRoleIdSchema,
@@ -453,6 +479,17 @@ export {
   downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus422Schema,
   downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus503Schema,
 } from "./downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetSchema.js";
+export {
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetErrorSchema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetPathDocumentIdSchema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetResponseSchema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200Schema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200SchemaJson,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200SchemaPdf,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus403Schema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus404Schema,
+  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus422Schema,
+} from "./downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetSchema.js";
 export {
   draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBodySchema,
   draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostErrorSchema,
@@ -1016,6 +1053,23 @@ export {
   readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422Schema,
 } from "./readMyLeaveRequestsApiV1HrLeaveRequestsMeGetSchema.js";
 export {
+  readMySignatureApiV1HrSignatureMeGetErrorSchema,
+  readMySignatureApiV1HrSignatureMeGetResponseSchema,
+  readMySignatureApiV1HrSignatureMeGetStatus200Schema,
+  readMySignatureApiV1HrSignatureMeGetStatus400Schema,
+  readMySignatureApiV1HrSignatureMeGetStatus401Schema,
+} from "./readMySignatureApiV1HrSignatureMeGetSchema.js";
+export {
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetErrorSchema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQueryPageSchema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQuerySizeSchema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetResponseSchema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus200Schema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus400Schema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus401Schema,
+  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus422Schema,
+} from "./readMySignedDocumentsApiV1HrSignedDocumentsMeGetSchema.js";
+export {
   readMyTimesheetsApiV1HrTimesheetsMeGetErrorSchema,
   readMyTimesheetsApiV1HrTimesheetsMeGetQueryPageSchema,
   readMyTimesheetsApiV1HrTimesheetsMeGetQuerySizeSchema,
@@ -1221,6 +1275,29 @@ export {
   readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422Schema,
 } from "./readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetSchema.js";
 export {
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetErrorSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryOrganisationIdSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryPageSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQuerySearchSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetQuerySizeSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetResponseSchema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus200Schema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus403Schema,
+  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus422Schema,
+} from "./readTrainingEmployeesApiV1HrTrainingEmployeesGetSchema.js";
+export {
+  readTrainingRecordsApiV1HrTrainingRecordsGetErrorSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryIncludeArchivedSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryOrganisationIdSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryPageSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQuerySizeSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetQueryUserIdSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetResponseSchema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetStatus200Schema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetStatus403Schema,
+  readTrainingRecordsApiV1HrTrainingRecordsGetStatus422Schema,
+} from "./readTrainingRecordsApiV1HrTrainingRecordsGetSchema.js";
+export {
   readUserByIdApiV1AuthUsersUserIdGetErrorSchema,
   readUserByIdApiV1AuthUsersUserIdGetPathUserIdSchema,
   readUserByIdApiV1AuthUsersUserIdGetResponseSchema,
@@ -1369,6 +1446,15 @@ export {
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422Schema,
 } from "./saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostSchema.js";
 export {
+  saveMySignatureApiV1HrSignatureMePutBodySchema,
+  saveMySignatureApiV1HrSignatureMePutErrorSchema,
+  saveMySignatureApiV1HrSignatureMePutResponseSchema,
+  saveMySignatureApiV1HrSignatureMePutStatus200Schema,
+  saveMySignatureApiV1HrSignatureMePutStatus400Schema,
+  saveMySignatureApiV1HrSignatureMePutStatus401Schema,
+  saveMySignatureApiV1HrSignatureMePutStatus422Schema,
+} from "./saveMySignatureApiV1HrSignatureMePutSchema.js";
+export {
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBodySchema,
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutErrorSchema,
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutPathTemplateIdSchema,
@@ -1399,6 +1485,10 @@ export { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js"
 export { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 export { shiftSwapRequestsPublicSchema } from "./shiftSwapRequestsPublicSchema.js";
 export { shiftSwapSubmitSchema } from "./shiftSwapSubmitSchema.js";
+export { signatureInputSchema } from "./signatureInputSchema.js";
+export { signaturePublicSchema } from "./signaturePublicSchema.js";
+export { signedDocumentListSchema } from "./signedDocumentListSchema.js";
+export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
 export { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
@@ -1509,6 +1599,12 @@ export { timesheetSubmitRequestSchema } from "./timesheetSubmitRequestSchema.js"
 export { timesheetSummaryByShiftSchema } from "./timesheetSummaryByShiftSchema.js";
 export { titleSchema } from "./titleSchema.js";
 export { tokenSchema } from "./tokenSchema.js";
+export { trainingArchiveInputSchema } from "./trainingArchiveInputSchema.js";
+export { trainingEmployeeListSchema } from "./trainingEmployeeListSchema.js";
+export { trainingEmployeePublicSchema } from "./trainingEmployeePublicSchema.js";
+export { trainingRecordInputSchema } from "./trainingRecordInputSchema.js";
+export { trainingRecordListSchema } from "./trainingRecordListSchema.js";
+export { trainingRecordPublicSchema } from "./trainingRecordPublicSchema.js";
 export { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.js";
 export { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";

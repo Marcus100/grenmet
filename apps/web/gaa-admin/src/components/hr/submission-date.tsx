@@ -1,4 +1,5 @@
 export interface SubmissionMetadata {
+  signed_document_id?: string | null;
   status?: string;
   submitted_at?: string | null;
 }

@@ -6,6 +6,7 @@
 import type { TimesheetStatus } from "./TimesheetStatus.js";
 
 export type TimesheetPublic = {
+  signed_document_id?: string | null;
   /**
    * @description
    * Format: `uuid`

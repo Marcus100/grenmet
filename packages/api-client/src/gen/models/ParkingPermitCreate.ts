@@ -6,6 +6,7 @@
 import type { ParkingAction } from "./ParkingAction.js";
 
 export type ParkingPermitCreate = {
+  signature_version?: string | null;
   /**
    * @description
    * Format: `uuid`

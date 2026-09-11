@@ -8,7 +8,12 @@ export const metadata: Metadata = {
     "GAA employee profile, Digital ID and verified employment details.",
 };
 
-export default function Profile() {
+export default async function Profile({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
   return (
     <div className="@container flex flex-col gap-6">
       <div className="flex flex-col gap-1">
@@ -21,7 +26,9 @@ export default function Profile() {
       </div>
 
       <StaffDigitalCard />
-      <UserProfileContent />
+      <UserProfileContent
+        initialTab={tab === "signature" ? "signature" : "overview"}
+      />
     </div>
   );
 }
