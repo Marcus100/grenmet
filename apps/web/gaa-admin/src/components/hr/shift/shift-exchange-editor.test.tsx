@@ -22,7 +22,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 const BASE = "http://localhost";
-const SUBMIT_LABEL = "Submit";
+const SUBMIT_LABEL = "Sign & submit";
 
 const PROFILE = {
   id: "99999999-9999-4999-8999-999999999999",
@@ -59,6 +59,13 @@ const isoDay = (day: number) =>
   `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(day)}`;
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () => HttpResponse.json(PROFILE)),
   http.get(`${BASE}/api/v1/hr/departments/dept_met/members`, () =>
     HttpResponse.json(MEMBERS)
@@ -183,6 +190,7 @@ describe("ShiftExchangeEditor (wired)", () => {
       target_shift_code: "E",
       reason: "Family commitment",
       as_draft: false,
+      signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
   }, 20_000);

@@ -4392,6 +4392,558 @@
         }
       }
     },
+    "/api/v1/hr/training-records": {
+      "get": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Read employee training history",
+        "description": "Own history or history within active training read/manage grants. Scope is applied before pagination.",
+        "operationId": "read_training_records_api_v1_hr_training_records_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "include_archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Archived"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Record an employee training outcome",
+        "description": "Requires an active hr.training.manage grant for the employee's department. A completion record does not certify competency.",
+        "operationId": "create_training_record_api_v1_hr_training_records_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingRecordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid training date"
+          },
+          "403": {
+            "description": "Training management access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/training-employees": {
+      "get": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Find employees within training access",
+        "description": "Scoped employee search for training history. Employees can find themselves; managers can find employees within their active grants.",
+        "operationId": "read_training_employees_api_v1_hr_training_employees_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingEmployeeList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/training-records/{record_id}/archive": {
+      "post": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Archive an incorrect training record",
+        "description": "Retains history and records an archive reason. Corrections are entered as replacement records.",
+        "operationId": "archive_training_record_api_v1_hr_training_records__record_id__archive_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingArchiveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "404": {
+            "description": "Training record not found or inaccessible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/signature/me": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Read my saved signature",
+        "description": "Returns only the authenticated user's saved signature.",
+        "operationId": "read_my_signature_api_v1_hr_signature_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SignaturePublic"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Read My Signature Api V1 Hr Signature Me Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Save my signature",
+        "description": "Creates or replaces your private PNG signature. Previously signed documents remain unchanged.",
+        "operationId": "save_my_signature_api_v1_hr_signature_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignatureInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignaturePublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Delete my saved signature",
+        "description": "Deletes the reusable signature, retaining existing signed documents.",
+        "operationId": "delete_my_signature_api_v1_hr_signature_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/signed-documents/me": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "List my signed documents",
+        "description": "Lists permanent signed submissions you signed or that concern you.",
+        "operationId": "read_my_signed_documents_api_v1_hr_signed_documents_me_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/signed-documents/{document_id}/pdf": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Download a signed HR document",
+        "description": "Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject.",
+        "operationId": "download_signed_document_api_v1_hr_signed_documents__document_id__pdf_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original signed PDF",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "403": {
+            "description": "Not allowed"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/leave-requests": {
       "post": {
         "tags": [
@@ -9883,6 +10435,18 @@
       },
       "AbsenteeReportCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -10033,6 +10597,18 @@
       },
       "AbsenteeReportPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -10188,6 +10764,18 @@
       },
       "AbsenteeReportSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -15482,6 +16070,18 @@
       },
       "LeaveRequestCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "department_id": {
             "type": "string",
             "title": "Department Id"
@@ -15695,6 +16295,18 @@
       },
       "LeaveRequestPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -15903,6 +16515,18 @@
       },
       "LeaveRequestSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -16225,6 +16849,18 @@
       },
       "ParkingPermitCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -16390,6 +17026,18 @@
       },
       "ParkingPermitPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -18919,6 +19567,18 @@
       },
       "ShiftSwapRequestCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "counterpart_user_id": {
             "type": "string",
             "format": "uuid",
@@ -19012,6 +19672,18 @@
       },
       "ShiftSwapRequestPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -19188,6 +19860,18 @@
       },
       "ShiftSwapSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -19199,6 +19883,105 @@
         },
         "type": "object",
         "title": "ShiftSwapSubmit"
+      },
+      "SignatureInput": {
+        "properties": {
+          "image_data_url": {
+            "type": "string",
+            "maxLength": 350000,
+            "title": "Image Data Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_data_url"
+        ],
+        "title": "SignatureInput"
+      },
+      "SignaturePublic": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Version"
+          },
+          "image_data_url": {
+            "type": "string",
+            "title": "Image Data Url"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "image_data_url",
+          "updated_at"
+        ],
+        "title": "SignaturePublic"
+      },
+      "SignedDocumentList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SignedDocumentPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "SignedDocumentList"
+      },
+      "SignedDocumentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Entity Id"
+          },
+          "signer_name": {
+            "type": "string",
+            "title": "Signer Name"
+          },
+          "signed_at": {
+            "type": "string",
+            "title": "Signed At"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "entity_type",
+          "entity_id",
+          "signer_name",
+          "signed_at",
+          "sha256"
+        ],
+        "title": "SignedDocumentPublic"
       },
       "StaffCard": {
         "properties": {
@@ -19457,6 +20240,18 @@
       },
       "StatusReportCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "department_id": {
             "type": "string",
             "title": "Department Id"
@@ -19852,6 +20647,18 @@
       },
       "StatusReportPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -20111,6 +20918,18 @@
       },
       "StatusReportSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -20460,6 +21279,18 @@
       },
       "TimesheetPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -20567,6 +21398,18 @@
       },
       "TimesheetSubmitRequest": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "mode": {
             "$ref": "#/components/schemas/SubmissionMode",
             "default": "SELF"
@@ -20644,6 +21487,316 @@
           "access_token"
         ],
         "title": "Token"
+      },
+      "TrainingArchiveInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "TrainingArchiveInput"
+      },
+      "TrainingEmployeeList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingEmployeePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "TrainingEmployeeList"
+      },
+      "TrainingEmployeePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "can_create": {
+            "type": "boolean",
+            "title": "Can Create"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "department_id",
+          "can_create"
+        ],
+        "title": "TrainingEmployeePublic"
+      },
+      "TrainingRecordInput": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "course_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Course Name"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "completed_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Completed On"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "attended",
+              "failed"
+            ],
+            "title": "Result"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "course_name",
+          "provider",
+          "completed_on",
+          "result"
+        ],
+        "title": "TrainingRecordInput"
+      },
+      "TrainingRecordList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingRecordPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "can_create": {
+            "type": "boolean",
+            "title": "Can Create"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size",
+          "can_create"
+        ],
+        "title": "TrainingRecordList"
+      },
+      "TrainingRecordPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "course_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Course Name"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "completed_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Completed On"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "attended",
+              "failed"
+            ],
+            "title": "Result"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "archive_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archive Reason"
+          },
+          "can_manage": {
+            "type": "boolean",
+            "title": "Can Manage",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "course_name",
+          "provider",
+          "completed_on",
+          "result",
+          "id",
+          "department_id",
+          "created_by",
+          "created_at"
+        ],
+        "title": "TrainingRecordPublic"
       },
       "TwoFactorCodeRequest": {
         "properties": {

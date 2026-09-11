@@ -27,6 +27,13 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () =>
     HttpResponse.json({
       id: "u-1",
@@ -149,7 +156,7 @@ describe("AbsenteeEditor (wired)", () => {
 
     const user = userEvent.setup();
     wrap(<AbsenteeEditor />);
-    await screen.findByRole("button", { name: "Submit" });
+    await screen.findByRole("button", { name: "Sign & submit" });
 
     // Pick today in the DatePicker popover calendar.
     const today = new Date();
@@ -162,7 +169,7 @@ describe("AbsenteeEditor (wired)", () => {
 
     await user.type(screen.getByLabelText("Reason(s) — details"), "Flu");
 
-    await user.click(screen.getByRole("button", { name: "Submit" }));
+    await user.click(screen.getByRole("button", { name: "Sign & submit" }));
 
     await waitFor(() => {
       expect(posted).toHaveLength(1);
@@ -174,6 +181,7 @@ describe("AbsenteeEditor (wired)", () => {
       reason: "UNCERTIFIED_SICK",
       notes: "Flu",
       as_draft: false,
+      signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
   }, 20_000);

@@ -16,19 +16,40 @@
 
 @layer base {
   :root {
-    /* Brand hues */
-    --gm-blue: #1a56b8;
-    --gm-navy: #15006b;
-    --gm-sky: #39a9f5;
-    --gm-sun: #ff981e;
+    /* Brand hues. Mini Brand Presentation 2026. Use them for fills, borders,
+       large display type and chart series. For small text, and for fills that
+       sit behind small white text, use the matching -ink below instead.
 
-    /* Duty-roster shift inks. The brand ramp read as time of day, darkened so
-       each passes WCAG AA (>=4.5:1) as 11px ink on white in the roster grid —
-       the raw hues do not (blue 4.16:1, sky 2.57:1, sun 2.15:1). Night needs no
-       entry: --gm-navy already clears it at 16.88:1. */
-    --gm-shift-morning: #0d6fb8;
+       navy/blue/sky are the kit values unmodified. --gm-lime follows the 2026
+       logo artwork (#b9ee63), not the brand document's #ccf5ab: every icon file
+       in the delivery paints the leaf #b9ee63, and the artwork is the surface a
+       reader actually sees. Pending the designer's confirmation that the deeper
+       green is deliberate — see docs/design-system.md. */
+    --gm-navy: #0b132b;
+    --gm-blue: #2878f5;
+    --gm-sky: #37a3ef;
+    --gm-lime: #b9ee63;
+
+    /* AA inks. The kit hues do not clear WCAG AA (>=4.5:1) on white as small
+       text — blue 4.12:1, sky 2.75:1, lime 1.36:1 — so each carries a darkened,
+       hue-preserving ink at the headroom the shift ramp already uses (~5.2:1).
+       Contrast is symmetric, so an ink doubles as the fill to use when small
+       white text sits on it. --gm-navy needs no ink: it clears white at
+       18.38:1. --gm-lime is a fill only — as ink on white it is never legible,
+       and --gm-lime-ink is a green in the lime hue, not the kit colour. */
+    --gm-blue-ink: #0b63ee;
+    --gm-sky-ink: #0f70b5;
+    --gm-lime-ink: #3f7a0f;
+
+    /* Duty-roster shift inks. The brand ramp read as time of day. Morning and
+       evening now point at the AA inks above — identical job (11px ink on
+       white in the roster grid), so one source rather than two. --gm-shift-day
+       still derives from the retired orange and needs a replacement tone; see
+       docs/design-system.md. Night needs no entry: --gm-navy clears white at
+       18.38:1. */
+    --gm-shift-morning: var(--gm-sky-ink);
     --gm-shift-day: #a35c00;
-    --gm-shift-evening: #1b52bd;
+    --gm-shift-evening: var(--gm-blue-ink);
 
     /* Surfaces */
     --gm-surface-page: #ffffff;
@@ -85,7 +106,10 @@
   --color-gm-blue: var(--gm-blue);
   --color-gm-navy: var(--gm-navy);
   --color-gm-sky: var(--gm-sky);
-  --color-gm-sun: var(--gm-sun);
+  --color-gm-lime: var(--gm-lime);
+  --color-gm-blue-ink: var(--gm-blue-ink);
+  --color-gm-sky-ink: var(--gm-sky-ink);
+  --color-gm-lime-ink: var(--gm-lime-ink);
   --color-gm-shift-morning: var(--gm-shift-morning);
   --color-gm-shift-day: var(--gm-shift-day);
   --color-gm-shift-evening: var(--gm-shift-evening);

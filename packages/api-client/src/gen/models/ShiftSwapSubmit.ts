@@ -4,5 +4,6 @@
  */
 
 export type ShiftSwapSubmit = {
+  signature_version?: string | null;
   co_approver_user_ids?: string[];
 };

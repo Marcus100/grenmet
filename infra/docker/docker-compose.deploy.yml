@@ -409,6 +409,7 @@ services:
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
       NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
+      CMS_API_URL: http://web-cms:3006
       CAP_API_URL: http://api:8000
       WXPRODUCTS_API_URL: ${WXPRODUCTS_API_URL:-http://web-admin:3001}
       AUTH_API_URL: https://api.${BASE_DOMAIN}

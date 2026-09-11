@@ -7,6 +7,7 @@ import type { ShiftPeriod } from "./ShiftPeriod.js";
 import type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
 
 export type StatusReportCreate = {
+  signature_version?: string | null;
   department_id: string;
   /**
    * @description

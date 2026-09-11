@@ -379,3 +379,41 @@ versions remain immutable when a newer draft is created. The selected profile
 version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
 Threshold evaluation and transport/channel enforcement are not performed here.
 Creating a draft never publishes it; its assessment remains Unknown.
+
+
+### Employee training history
+
+- `GET /api/v1/hr/training-employees`: organisation-scoped, paginated employee search (`organisation_id`, `search`, `page`, `size`). Includes employees with accessible historical records after department transfers; masks a current department outside the viewer's scope.
+- `GET /api/v1/hr/training-records`: paginated employee history (`organisation_id`, optional `user_id`, `include_archived`, `page`, `size`). Defaults to the current employee. Authorisation precedes counts and pagination; responses include `can_create` and per-record `can_manage`.
+- `POST /api/v1/hr/training-records`: records course/provider text, training end date (`completed_on`), result (`completed`, `attended`, `failed`), optional certificate expiry and notes. Requires an active `hr.training.manage` organisation/department grant. Department is derived from employment, never accepted from the client. Future training end dates and expiry before successful completion are rejected.
+- `POST /api/v1/hr/training-records/{record_id}/archive`: requires management of the filing department and a reason (5–500 characters). Retains the original row, actor and archive timestamp. Repeated archive calls preserve the first reason. Corrections are replacement records, not edits.
+
+Employees read their own history. `hr.training.read.department` allows scoped department reads; `hr.training.manage` also permits reads. SELF grants do not become department access. Expired/revoked assignments confer no authority. HR administrators receive management in the default permission bundles; supervisors and management receive read access. Existing seeding applies these keys to role bundles without creating new scoped assignments.
+
+The single feature is training history, not a course catalogue, competency assessment, skills matrix or reminder system. Certificate files remain in Employee Documents; this record does not grant document access or certify operational competence. Migration `c1d2e3f4a5b6` adds only `hr.training_record`; no workflow enum changes are needed because this is an HR-maintained register rather than an approval request.
+
+
+### HR saved signatures and signed submissions
+
+Authenticated `GET/PUT/DELETE /api/v1/hr/signature/me` reads, replaces or deletes
+only the caller's reusable PNG signature. PNGs are decoded, size/dimension limited,
+checked for blank content, and re-encoded before private database storage.
+
+The six HR form create/submit contracts accept optional `signature_version` as
+explicit consent to apply that version of the caller's saved signature. Draft
+saves never sign. Stale/deleted versions fail the submission transaction. Omission
+preserves legacy unsigned API submissions; gaa-admin requires a signature for its
+Sign & submit action. Proxy submitters sign as themselves, never as the employee.
+
+`GET /api/v1/hr/signed-documents/me` lists the caller's signed/subject records.
+`GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
+subject, or an HR document reader scoped over the subject and organisation.
+Authorized HR form responses include `signed_document_id` when a signed copy exists.
+All signature and PDF responses use private, no-store caching. Signed PDFs, signer
+identity, signature version, timestamp, canonical form snapshot and SHA-256 are
+committed with submission and remain unchanged when the saved signature changes.
+
+Signed PDFs are server-rendered submission records, including stored form fields
+and timesheet/status entries; they do not depend on browser print settings or
+editable display-only fields. Existing paper preview layouts remain available for
+unsigned drafts. Signing the submission does not apply signatures for approvers.

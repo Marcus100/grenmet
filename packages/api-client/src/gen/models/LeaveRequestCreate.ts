@@ -7,6 +7,7 @@ import type { LeaveType } from "./LeaveType.js";
 import type { ProfAppointmentType } from "./ProfAppointmentType.js";
 
 export type LeaveRequestCreate = {
+  signature_version?: string | null;
   department_id: string;
   leave_type: LeaveType;
   /**

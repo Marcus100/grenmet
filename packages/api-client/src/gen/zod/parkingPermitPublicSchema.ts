@@ -8,6 +8,7 @@ import { parkingActionSchema } from "./parkingActionSchema.js";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const parkingPermitPublicSchema = z.object({
+  signed_document_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_at: z.union([z.string(), z.null()]).optional(),
   id: z.uuid(),
   user_id: z.uuid(),

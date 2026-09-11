@@ -6,6 +6,7 @@
 import type { SwapType } from "./SwapType.js";
 
 export type ShiftSwapRequestCreate = {
+  signature_version?: string | null;
   /**
    * @description
    * Format: `uuid`

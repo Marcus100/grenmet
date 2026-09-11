@@ -22,6 +22,7 @@
     "@content-collections/core": "catalog:",
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",
+    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@headlessui/react": "catalog:",
     "@sentry/nextjs": "catalog:",

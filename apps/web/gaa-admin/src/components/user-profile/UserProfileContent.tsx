@@ -15,12 +15,17 @@ import {
 } from "@barrelsgd/ui/components/ui/tabs";
 import { useQueryClient } from "@tanstack/react-query";
 import { EmployeeDocuments } from "@/components/hr/documents/employee-documents";
+import { SignatureSettings } from "@/components/hr/signatures/signature-settings";
 import { EmployeeDetailsCard } from "@/components/user-profile/EmployeeDetailsCard";
 import UserAddressCard from "@/components/user-profile/UserAddressCard";
 import UserInfoCard from "@/components/user-profile/UserInfoCard";
 import UserMetaCard from "@/components/user-profile/UserMetaCard";
 
-export default function UserProfileContent() {
+export default function UserProfileContent({
+  initialTab = "overview",
+}: {
+  initialTab?: "overview" | "signature";
+}) {
   const queryClient = useQueryClient();
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const updateProfileMutation = useUpdateHrProfileMeApiV1HrProfileMePatch({
@@ -59,12 +64,13 @@ export default function UserProfileContent() {
   }
 
   return (
-    <Tabs className="gap-4" defaultValue="overview">
+    <Tabs className="gap-4" defaultValue={initialTab}>
       <TabsList className="w-full">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="personal">Personal</TabsTrigger>
         <TabsTrigger value="employment">Employment</TabsTrigger>
         <TabsTrigger value="documents">Documents</TabsTrigger>
+        <TabsTrigger value="signature">Signature</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview">
@@ -86,6 +92,9 @@ export default function UserProfileContent() {
         </div>
       </TabsContent>
 
+      <TabsContent value="signature">
+        <SignatureSettings />
+      </TabsContent>
       <TabsContent value="documents">
         <EmployeeDocuments
           organisationId={

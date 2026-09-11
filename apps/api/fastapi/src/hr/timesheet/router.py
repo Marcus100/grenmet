@@ -1,12 +1,16 @@
+from collections.abc import Sequence
 from typing import Any
 
 from fastapi import APIRouter, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import TimesheetDep
+from src.hr.submission import signed_document_ids
 from src.pagination import PaginationDep
 
 from . import service
+from .models import Timesheet
 from .schemas import (
     TimesheetCreate,
     TimesheetDetails,
@@ -18,6 +22,22 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/hr/timesheets", tags=["hr-timesheets"])
+
+
+async def _public_list(
+    session: AsyncSession, rows: Sequence[Timesheet]
+) -> list[TimesheetPublic]:
+    signed = await signed_document_ids(session, [row.id for row in rows])
+    results = []
+    for row in rows:
+        result = TimesheetPublic.model_validate(row, from_attributes=True)
+        result.signed_document_id = signed.get(row.id)
+        results.append(result)
+    return results
+
+
+async def _public(session: AsyncSession, row: Timesheet) -> TimesheetPublic:
+    return (await _public_list(session, [row]))[0]
 
 
 @router.post(
@@ -40,7 +60,7 @@ async def create_timesheet(
         session=session, current_user=current_user, payload=payload
     )
     return TimesheetDetails(
-        timesheet=TimesheetPublic.model_validate(timesheet, from_attributes=True),
+        timesheet=await _public(session, timesheet),
         entries=[
             TimesheetEntryPublic.model_validate(entry, from_attributes=True)
             for entry in entries
@@ -69,12 +89,15 @@ async def submit_timesheet(
     timesheet: TimesheetDep,
     payload: TimesheetSubmitRequest,
 ) -> Any:
-    return await service.submit_timesheet(
+    result = await service.submit_timesheet(
         session=session,
         current_user=current_user,
         timesheet_id=timesheet.id,
         submission_mode=payload.mode,
+        signature_version=payload.signature_version,
     )
+
+    return await _public(session, result)
 
 
 @router.patch(
@@ -94,9 +117,11 @@ async def submit_timesheet(
 async def approve_timesheet(
     *, session: SessionDep, current_user: CurrentUser, timesheet: TimesheetDep
 ) -> Any:
-    return await service.approve_timesheet(
+    result = await service.approve_timesheet(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
+
+    return await _public(session, result)
 
 
 @router.get(
@@ -116,9 +141,7 @@ async def read_my_timesheets(
         limit=pagination.limit,
     )
     return TimesheetListPublic(
-        data=[
-            TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
-        ],
+        data=await _public_list(session, rows),
         count=total,
         page=pagination.page,
         size=pagination.size,
@@ -149,9 +172,7 @@ async def read_department_timesheets(
         limit=pagination.limit,
     )
     return TimesheetListPublic(
-        data=[
-            TimesheetPublic.model_validate(item, from_attributes=True) for item in rows
-        ],
+        data=await _public_list(session, rows),
         count=total,
         page=pagination.page,
         size=pagination.size,
@@ -203,7 +224,7 @@ async def read_timesheet(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
     return TimesheetDetails(
-        timesheet=TimesheetPublic.model_validate(timesheet_data, from_attributes=True),
+        timesheet=await _public(session, timesheet_data),
         entries=[
             TimesheetEntryPublic.model_validate(entry, from_attributes=True)
             for entry in entries

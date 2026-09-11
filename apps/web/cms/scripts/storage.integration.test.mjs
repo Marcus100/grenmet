@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
+import { readdirSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
@@ -64,13 +65,20 @@ test("CMS fresh and repeated migrations preserve data and reject schema-push his
           .count,
         1
       );
-      assert.equal(
+      const expectedMigrations = readdirSync(
+        new URL("../src/migrations/", import.meta.url)
+      )
+        .filter((file) => file.endsWith(".ts") && file !== "index.ts")
+        .map((file) => file.slice(0, -3))
+        .sort();
+      assert.deepEqual(
         (
           await client.query(
-            "SELECT count(*)::int AS count FROM payload_migrations"
+            "SELECT name FROM payload_migrations ORDER BY name"
           )
-        ).rows[0].count,
-        2
+        ).rows.map((row) => row.name),
+        expectedMigrations,
+        "every committed migration is applied exactly once"
       );
       await client.query(
         "INSERT INTO payload_migrations(name, batch) VALUES ('dev', -1)"

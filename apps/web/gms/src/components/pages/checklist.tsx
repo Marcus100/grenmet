@@ -12,7 +12,7 @@ export function Checklist({
       className="flex gap-2 text-body-base text-gm-text-secondary leading-body-base"
       key={item}
     >
-      <span aria-hidden="true" className="text-gm-blue">
+      <span aria-hidden="true" className="text-gm-blue-ink">
         {ordered ? "" : "•"}
       </span>
       <span>{item}</span>

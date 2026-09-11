@@ -25,6 +25,7 @@ from src.hr.exceptions import (
     HRValidationError,
 )
 from src.hr.roster.models import RosterAssignment
+from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
 from src.hr.workflow.models import (
     WorkflowAction,
@@ -152,6 +153,7 @@ async def submit_timesheet(
     current_user: User,
     timesheet_id: uuid.UUID,
     submission_mode: SubmissionMode,
+    signature_version: uuid.UUID | None = None,
 ) -> Timesheet:
     await session.execute(
         select(Timesheet).where(Timesheet.id == timesheet_id).with_for_update()
@@ -200,6 +202,13 @@ async def submit_timesheet(
             submitted_by_user_id=current_user.id,
             submission_mode=submission_mode,
         )
+    )
+    await signature_service.capture(
+        session=session,
+        actor=current_user,
+        entity=timesheet,
+        entity_type="timesheet",
+        signature_version=signature_version,
     )
     await session.commit()
     await session.refresh(timesheet)

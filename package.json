@@ -51,7 +51,12 @@
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
     "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh",
     "storage:init": "bash scripts/production/init-local.sh",
-    "test:delivery": "node --test scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs"
+    "test:delivery": "node --test scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs",
+    "verify:quick": "pnpm check && pnpm type-check && pnpm test",
+    "verify:backend": "node scripts/verification/run.mjs backend",
+    "verify:storage": "node scripts/verification/run.mjs storage",
+    "verify:release": "node scripts/verification/run.mjs release",
+    "test:verification": "node --test scripts/verification/*.test.mjs scripts/perf/*.test.mjs && uv run --frozen --package fast-back python -m unittest tests.test_database_target"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.12",

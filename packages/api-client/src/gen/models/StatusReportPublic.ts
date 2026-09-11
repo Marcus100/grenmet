@@ -7,6 +7,7 @@ import type { RequestStatus } from "./RequestStatus.js";
 import type { ShiftPeriod } from "./ShiftPeriod.js";
 
 export type StatusReportPublic = {
+  signed_document_id?: string | null;
   submitted_at?: string | null;
   /**
    * @description
