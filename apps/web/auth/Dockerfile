@@ -60,6 +60,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/email-templates/ packages/email-templates/
+COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/auth/ apps/web/auth/

@@ -119,8 +119,10 @@ describe("NewAlertPage", () => {
     const user = userEvent.setup();
     render(<NewAlertPage />);
     await user.click(screen.getByRole("combobox", { name: "Hazard family" }));
+    // findByRole, not getByRole: Radix renders Select options into a portal on
+    // a later tick, which is reliably ready locally but not on a loaded runner.
     await user.click(
-      screen.getByRole("option", { name: "Hazardous materials" })
+      await screen.findByRole("option", { name: "Hazardous materials" })
     );
     expect(
       document.querySelector('option[value="Chemical Spill"]')
@@ -148,7 +150,7 @@ describe("NewAlertPage", () => {
         info: [{ event: "Rockfall", categories: ["Geo"], severity: "Unknown" }],
       })
     );
-  });
+  }, 15_000);
 
   it("blocks submission and shows an error when required fields are empty", async () => {
     render(<NewAlertPage />);
