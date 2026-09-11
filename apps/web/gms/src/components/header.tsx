@@ -1,7 +1,7 @@
 "use client";
 
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { Menu, TriangleAlertIcon } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
@@ -32,13 +32,7 @@ export function Header({ alerts }: HeaderProps) {
             className="shrink-0"
             href="/"
           >
-            <Image
-              alt="Grenada Meteorological Service"
-              height={36}
-              priority
-              src="/gmslogos/logo-primary-navy.png"
-              width={150}
-            />
+            <Logo className="h-9 w-auto" priority variant="primary" />
           </Link>
 
           {/* Logo and the alerts pill hold the viewport edges; the nav itself
@@ -49,7 +43,7 @@ export function Header({ alerts }: HeaderProps) {
 
           <div className="flex shrink-0 items-center">
             <Link
-              className="hidden h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md bg-gm-risk-yellow px-4 font-semibold text-body-base text-gm-text-primary leading-body-base hover:bg-gm-sun lg:flex"
+              className="hidden h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md bg-gm-risk-yellow px-4 font-semibold text-body-base text-gm-text-primary leading-body-base hover:bg-gm-lime lg:flex"
               href="/warnings"
             >
               <TriangleAlertIcon

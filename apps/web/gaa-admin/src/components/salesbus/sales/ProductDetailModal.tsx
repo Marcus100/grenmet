@@ -101,7 +101,7 @@ export function ProductDetailModal({
 
         {/* Add to Cart Button */}
         <Button
-          className="w-full bg-gm-blue hover:bg-gm-navy"
+          className="w-full bg-gm-blue-ink hover:bg-gm-navy"
           onClick={handleAddToCart}
           size="touch"
         >

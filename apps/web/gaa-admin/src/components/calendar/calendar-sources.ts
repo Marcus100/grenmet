@@ -75,7 +75,7 @@ const EVENT_KIND_COLOR: Record<string, string> = {
   MEETING: "var(--gm-blue)",
   TRAINING: "var(--gm-sky)",
   INSPECTION: "var(--gm-risk-amber)",
-  VISIT: "var(--gm-sun)",
+  VISIT: "var(--gm-lime)",
   MAINTENANCE: "var(--gm-risk-grey)",
   OBSERVANCE: "var(--gm-risk-green)",
   DEADLINE: "var(--gm-risk-red)",
@@ -119,14 +119,14 @@ export function toEventLayer(events: CalendarEventPublic[]): CalendarEvent[] {
 /**
  * Shift colours, keyed by code and falling back to category.
  *
- * Only existing `--gm-*` tokens: the four work shifts run sky -> blue -> sun ->
+ * Only existing `--gm-*` tokens: the four work shifts run sky -> blue -> lime ->
  * navy across the day, leave is the risk green/amber pair, and off-duty is the
  * neutral grey. No new design tokens, no hardcoded colour values.
  */
 const CODE_COLOR: Record<string, string> = {
   M: "var(--gm-sky)",
   D: "var(--gm-blue)",
-  E: "var(--gm-sun)",
+  E: "var(--gm-lime)",
   N: "var(--gm-navy)",
   O: "var(--gm-risk-grey)",
   V: "var(--gm-risk-green)",

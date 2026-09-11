@@ -22,7 +22,7 @@ export function LinkList({ links }: { links: readonly ListedLink[] }) {
               {link.description}
             </span>
             {link.meta && (
-              <span className="text-gm-blue text-label leading-label">
+              <span className="text-gm-blue-ink text-label leading-label">
                 {link.meta}
               </span>
             )}

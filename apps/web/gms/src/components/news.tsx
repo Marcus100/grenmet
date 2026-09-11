@@ -24,7 +24,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
         <p className="text-body-sm text-gm-text-secondary leading-body-sm">
           {post.summary}
         </p>
-        <p className="text-gm-blue text-label leading-label">
+        <p className="text-gm-blue-ink text-label leading-label">
           Published {post.published}
         </p>
       </div>
@@ -103,7 +103,7 @@ export async function News() {
           Weather news
         </p>
         <a
-          className="font-medium text-body text-gm-blue leading-body"
+          className="font-medium text-body text-gm-blue-ink leading-body"
           href="/news"
         >
           See more

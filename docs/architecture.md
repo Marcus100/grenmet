@@ -50,7 +50,7 @@ Logo roles:
 | Roundel or seal | Formal bulletins, certificates, reports, and institutional applications |
 | Reverse marks | Dark surfaces and photo backgrounds where the service mark needs contrast |
 
-Use the PNGs as design evidence for role and placement guidance only. They are not the canonical source for brand-color sampling. Canonical values should be audited from original vector or source artwork before current token values change.
+Canonical colour now comes from the Mini Brand Presentation 2026 kit, which states its hex values directly; they are transcribed verbatim into `packages/gms/src/styles/foundation.css`. Do not sample colour from the PNGs. The role table above maps onto the `Logo` component's variants — horizontal primary to `primary`, compact mark to `icon`, roundel to `submark`, reverse marks to each variant's dark-surface asset. See `docs/design-system.md` for the token contract and the AA ink rule.
 
 ## Design System Lanes
 
