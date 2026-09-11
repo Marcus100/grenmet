@@ -51,6 +51,19 @@ async def organisation_choices(
             .scalars()
             .all()
         )
+        from src.hr.training.models import TrainingRecord
+
+        ids.update(
+            (
+                await session.execute(
+                    select(TrainingRecord.organisation_id).where(
+                        TrainingRecord.user_id == actor.id
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
         statement = statement.where(col(Organisation.id).in_(ids))
     return list(
         (await session.execute(statement.order_by(Organisation.name))).scalars().all()

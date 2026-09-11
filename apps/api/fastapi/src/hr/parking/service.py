@@ -8,6 +8,7 @@ from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import ERROR_PARKING_FILE_FOR_USER_NOT_ALLOWED
 from src.hr.exceptions import HRPermissionDeniedError, ParkingPermitNotFoundError
+from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity
 from src.utils.datetime import utc_now
@@ -59,6 +60,13 @@ async def create_parking_permit(
         entity_id=permit.id,
     )
     session.add(permit)
+    await signature_service.capture(
+        session=session,
+        actor=current_user,
+        entity=permit,
+        entity_type="parking_permit",
+        signature_version=payload.signature_version,
+    )
     await session.commit()
     await session.refresh(permit)
     logger.info(

@@ -18,6 +18,7 @@ interface FormActionBarProps {
   /** Short status note, e.g. "Draft saved just now". */
   statusHint?: ReactNode;
   submitDisabled?: boolean;
+  submitLabel?: string;
 }
 
 /**
@@ -37,6 +38,7 @@ export function FormActionBar({
   statusHint,
   saveDisabled = false,
   submitDisabled = false,
+  submitLabel = "Submit",
 }: FormActionBarProps) {
   const busy = isSaving || isSubmitting;
 
@@ -93,7 +95,7 @@ export function FormActionBar({
             ) : (
               <Send data-icon="inline-start" />
             )}
-            {isSubmitting ? "Submitting…" : "Submit"}
+            {isSubmitting ? "Submitting…" : submitLabel}
           </Button>
         ) : null}
       </div>

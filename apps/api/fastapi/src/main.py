@@ -45,7 +45,9 @@ from src.hr.leave.router import router as hr_leave_router
 from src.hr.parking.router import router as hr_parking_router
 from src.hr.roster.router import router as hr_roster_router
 from src.hr.routers.profile import router as hr_profile_router
+from src.hr.signatures.router import router as hr_signatures_router
 from src.hr.timesheet.router import router as hr_timesheet_router
+from src.hr.training.router import router as hr_training_router
 from src.hr.workflow.router import router as hr_workflow_router
 from src.logging_config import configure_logging
 from src.rate_limit import limiter
@@ -159,6 +161,8 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_training_router, prefix="/api/v1")
+app.include_router(hr_signatures_router, prefix="/api/v1")
 app.include_router(hr_leave_router, prefix="/api/v1")
 app.include_router(hr_absentee_router, prefix="/api/v1")
 app.include_router(hr_exchange_router, prefix="/api/v1")

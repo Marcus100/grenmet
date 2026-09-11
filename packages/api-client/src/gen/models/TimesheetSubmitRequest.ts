@@ -6,6 +6,7 @@
 import type { SubmissionMode } from "./SubmissionMode.js";
 
 export type TimesheetSubmitRequest = {
+  signature_version?: string | null;
   /**
    * @default 'SELF'
    * @type string | undefined

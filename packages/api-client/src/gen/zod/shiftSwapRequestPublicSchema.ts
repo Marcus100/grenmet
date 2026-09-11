@@ -8,6 +8,7 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestPublicSchema = z.object({
+  signed_document_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_at: z.union([z.string(), z.null()]).optional(),
   id: z.uuid(),
   requesting_user_id: z.uuid(),

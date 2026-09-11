@@ -7,6 +7,7 @@ import * as z from "zod";
 import { timesheetStatusSchema } from "./timesheetStatusSchema.js";
 
 export const timesheetPublicSchema = z.object({
+  signed_document_id: z.union([z.uuid(), z.null()]).optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   department_id: z.string(),

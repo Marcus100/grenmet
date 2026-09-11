@@ -6,5 +6,6 @@
 import * as z from "zod";
 
 export const leaveRequestSubmitSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   co_approver_user_ids: z.array(z.uuid()).optional(),
 });

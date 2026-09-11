@@ -15,6 +15,7 @@ from src.hr.constants import (
 from src.hr.dependencies import get_absentee_report_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import RequestStatus
+from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -75,6 +76,14 @@ async def create_absentee_report(
         submit=not payload.as_draft,
     )
     session.add(report)
+    if not payload.as_draft:
+        await signature_service.capture(
+            session=session,
+            actor=current_user,
+            entity=report,
+            entity_type="absentee_report",
+            signature_version=payload.signature_version,
+        )
     await session.commit()
     await session.refresh(report)
     logger.info(
@@ -129,6 +138,13 @@ async def submit_absentee_report(
     report.status = RequestStatus.SUBMITTED
     report.updated_at = utc_now()
     session.add(report)
+    await signature_service.capture(
+        session=session,
+        actor=current_user,
+        entity=report,
+        entity_type="absentee_report",
+        signature_version=payload.signature_version,
+    )
     await session.commit()
     await session.refresh(report)
     logger.info(

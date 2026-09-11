@@ -5,13 +5,14 @@ from decimal import Decimal
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 from .models import LeaveType, ProfAppointmentType
 
 
-class LeaveRequestCreate(BaseModel):
+class LeaveRequestCreate(SignatureConsent):
     department_id: str
     leave_type: LeaveType
     start_date: date
@@ -36,7 +37,7 @@ class LeaveRequestCreate(BaseModel):
     as_draft: bool = False
 
 
-class LeaveRequestSubmit(BaseModel):
+class LeaveRequestSubmit(SignatureConsent):
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 

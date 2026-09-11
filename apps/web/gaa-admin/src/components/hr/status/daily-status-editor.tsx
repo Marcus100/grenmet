@@ -36,6 +36,11 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import {
+  signedDocumentsKey,
+  useSigning,
+} from "@/components/hr/signatures/signature-api";
+import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
@@ -104,6 +109,7 @@ function draftToFormValues(report: StatusReportPublic): DailyStatusValues {
 export function DailyStatusEditor() {
   const form = useForm({ defaultValues: EMPTY_DAILY_STATUS });
   const queryClient = useQueryClient();
+  const signature = useSigning();
   const sessionUser = useSessionUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -174,6 +180,12 @@ export function DailyStatusEditor() {
   }
 
   function handleDownloadPdf() {
+    if (submission?.signed_document_id) {
+      window.location.assign(
+        `/api/v1/hr/signed-documents/${submission.signed_document_id}/pdf`
+      );
+      return;
+    }
     window.print();
   }
 
@@ -184,6 +196,10 @@ export function DailyStatusEditor() {
   }
 
   async function persist(values: DailyStatusValues, asDraft: boolean) {
+    if (!(asDraft || signature.data)) {
+      toast.error("Save your signature in your profile before signing");
+      return;
+    }
     if (!(asDraft || values.date)) {
       toast.error("Report date is required");
       return;
@@ -223,14 +239,19 @@ export function DailyStatusEditor() {
           });
           const submitted = await submitMutation.mutateAsync({
             path: { report_id: draftId },
-            body: { co_approver_user_ids: coApprovers },
+            body: {
+              signature_version: signature.data?.version,
+              co_approver_user_ids: coApprovers,
+            },
           });
           setSubmission(submitted);
+          await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
         } else {
           const submitted = await createMutation.mutateAsync({
             body: {
               ...buildStatusReportPayload(values, departmentId),
               as_draft: false,
+              signature_version: signature.data?.version,
               co_approver_user_ids: coApprovers,
             },
           });
@@ -255,6 +276,7 @@ export function DailyStatusEditor() {
         <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-3">
+              <SigningPanel submission={submission} />
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
@@ -263,7 +285,8 @@ export function DailyStatusEditor() {
                 onSave={submission ? undefined : () => persist(values, true)}
                 onSubmit={submission ? undefined : () => persist(values, false)}
                 statusHint={statusHint}
-                submitDisabled={!departmentId}
+                submitDisabled={!(departmentId && signature.data)}
+                submitLabel="Sign & submit"
               />
             </div>
 

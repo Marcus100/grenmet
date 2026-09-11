@@ -30,6 +30,13 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () =>
     HttpResponse.json({
       employment: { department: { id: "dept_met", name: "Met" } },
@@ -154,7 +161,7 @@ describe("DailyStatusEditor (wired)", () => {
 
     const user = userEvent.setup();
     wrap(<DailyStatusEditor />);
-    await screen.findByRole("button", { name: "Submit" });
+    await screen.findByRole("button", { name: "Sign & submit" });
 
     // DatePicker: open the popover and pick the 15th of the current month.
     await user.click(screen.getByRole("button", { name: "Date" }));
@@ -172,7 +179,7 @@ describe("DailyStatusEditor (wired)", () => {
       target: { value: "All systems normal" },
     });
 
-    await user.click(screen.getByRole("button", { name: "Submit" }));
+    await user.click(screen.getByRole("button", { name: "Sign & submit" }));
 
     await waitFor(() => {
       expect(posted).toHaveLength(1);
@@ -187,6 +194,7 @@ describe("DailyStatusEditor (wired)", () => {
       personnel_summary: "2 on sick leave",
       general_remarks: "All systems normal",
       as_draft: false,
+      signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
   }, 20_000);

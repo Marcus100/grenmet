@@ -8,6 +8,7 @@ import { leaveTypeSchema } from "./leaveTypeSchema.js";
 import { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 
 export const leaveRequestCreateSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   department_id: z.string(),
   leave_type: leaveTypeSchema,
   start_date: z.iso.date(),

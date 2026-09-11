@@ -7,5 +7,6 @@ import * as z from "zod";
 import { submissionModeSchema } from "./submissionModeSchema.js";
 
 export const timesheetSubmitRequestSchema = z.object({
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
   mode: submissionModeSchema.optional().default("SELF"),
 });

@@ -4,5 +4,6 @@
  */
 
 export type LeaveRequestSubmit = {
+  signature_version?: string | null;
   co_approver_user_ids?: string[];
 };

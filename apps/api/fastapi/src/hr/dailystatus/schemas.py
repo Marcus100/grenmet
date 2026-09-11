@@ -4,6 +4,7 @@ from datetime import date
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
@@ -18,7 +19,7 @@ class StatusReportEntryInput(BaseModel):
     notes: str | None = None
 
 
-class StatusReportCreate(BaseModel):
+class StatusReportCreate(SignatureConsent):
     department_id: str
     report_date: date
     shift_code: str
@@ -47,7 +48,7 @@ class StatusReportCreate(BaseModel):
     as_draft: bool = False
 
 
-class StatusReportSubmit(BaseModel):
+class StatusReportSubmit(SignatureConsent):
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)
 
 
