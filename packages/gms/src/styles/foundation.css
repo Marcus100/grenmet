@@ -16,17 +16,22 @@
 
 @layer base {
   :root {
-    /* Brand hues. Mini Brand Presentation 2026 — the official kit values,
-       unmodified. Use them for fills, borders, large display type and chart
-       series. For small text, and for fills that sit behind small white text,
-       use the matching -ink below instead. */
+    /* Brand hues. Mini Brand Presentation 2026. Use them for fills, borders,
+       large display type and chart series. For small text, and for fills that
+       sit behind small white text, use the matching -ink below instead.
+
+       navy/blue/sky are the kit values unmodified. --gm-lime follows the 2026
+       logo artwork (#b9ee63), not the brand document's #ccf5ab: every icon file
+       in the delivery paints the leaf #b9ee63, and the artwork is the surface a
+       reader actually sees. Pending the designer's confirmation that the deeper
+       green is deliberate — see docs/design-system.md. */
     --gm-navy: #0b132b;
     --gm-blue: #2878f5;
     --gm-sky: #37a3ef;
-    --gm-lime: #ccf5ab;
+    --gm-lime: #b9ee63;
 
     /* AA inks. The kit hues do not clear WCAG AA (>=4.5:1) on white as small
-       text — blue 4.12:1, sky 2.75:1, lime 1.22:1 — so each carries a darkened,
+       text — blue 4.12:1, sky 2.75:1, lime 1.36:1 — so each carries a darkened,
        hue-preserving ink at the headroom the shift ramp already uses (~5.2:1).
        Contrast is symmetric, so an ink doubles as the fill to use when small
        white text sits on it. --gm-navy needs no ink: it clears white at
