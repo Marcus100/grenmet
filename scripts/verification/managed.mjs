@@ -46,6 +46,7 @@ export async function verifyManaged(mode, { run, inContainer, env, log }) {
       "verify:quick",
       "check:drift",
       "docs:check-links",
+      "docs:check-portfolio",
       "test:guardrails",
       "test:delivery",
       "test:verification",
