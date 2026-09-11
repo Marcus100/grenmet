@@ -1,4 +1,5 @@
 const authFailure = /auth.staging.example.test/;
+const honoFailure = /Functional smoke failed: hapi/;
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -18,7 +19,7 @@ test("deployment probes the real sign-in route and requires its form", async () 
     }
     return Promise.resolve(
       new Response(
-        '<main>{"docs":[],"ready":true,"data":[],"products":[]}</main>'
+        '<main>{"status":"ok","docs":[],"ready":true,"data":[],"products":[]}</main>'
       )
     );
   };
@@ -75,7 +76,7 @@ test("CAP and product storage failures block release rather than reading as empt
           new Response(
             new URL(url).pathname === failedPath
               ? "Unavailable"
-              : '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>',
+              : '<main><form>{"status":"ok","docs":[],"ready":true,"data":[],"products":[]}</form></main>',
             { status: new URL(url).pathname === failedPath ? 503 : 200 }
           )
         )
@@ -83,3 +84,41 @@ test("CAP and product storage failures block release rather than reading as empt
     );
   }
 });
+
+for (const domain of ["staging.example.test", "example.test"]) {
+  test(`Hono HTTPS health gates deployment to ${domain}`, async () => {
+    const healthUrl = `https://hapi.${domain}/health`;
+    const urls = [];
+    const healthy = (url) => {
+      urls.push(url);
+      return Promise.resolve(
+        new Response(
+          url === healthUrl
+            ? '{"status":"ok","service":"api-hono"}'
+            : '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>'
+        )
+      );
+    };
+    await checkDeployment(domain, healthy);
+    assert.ok(urls.includes(healthUrl));
+    for (const response of [
+      new Response('{"status":"ok"}', { status: 503 }),
+      new Response('{"status":"unhealthy"}'),
+      new Response("<html>Proxy fallback</html>"),
+    ]) {
+      await assert.rejects(
+        checkDeployment(domain, (url) =>
+          url === healthUrl ? Promise.resolve(response) : healthy(url)
+        ),
+        honoFailure
+      );
+    }
+    const tlsFailure = new Error("self-signed certificate");
+    await assert.rejects(
+      checkDeployment(domain, (url) =>
+        url === healthUrl ? Promise.reject(tlsFailure) : healthy(url)
+      ),
+      (error) => error === tlsFailure
+    );
+  });
+}
