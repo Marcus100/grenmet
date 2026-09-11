@@ -84,7 +84,7 @@ export function ProductUpdateFeed({
               </div>
             )}
             <Link
-              aria-label={"Read " + post.title}
+              aria-label={`Read ${post.title}`}
               className="relative block overflow-hidden rounded-xl"
               href={post.href}
             >
@@ -145,7 +145,7 @@ function DesktopUpdates({
           key={post.id}
         >
           <Link
-            aria-label={"Read " + post.title}
+            aria-label={`Read ${post.title}`}
             className="relative block shrink-0"
             href={post.href}
           >
