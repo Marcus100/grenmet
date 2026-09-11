@@ -49,7 +49,7 @@ export function WeatherDateNav({ days }: { days: ForecastDay[] }) {
                 aria-hidden="true"
                 className={cn(
                   "size-5 shrink-0",
-                  isSunny ? "text-gm-sun" : "text-gm-text-muted"
+                  isSunny ? "text-gm-lime-ink" : "text-gm-text-muted"
                 )}
                 strokeWidth={1.6}
                 style={{ visibility: day.high === null ? "hidden" : "visible" }}

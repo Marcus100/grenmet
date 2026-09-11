@@ -35,7 +35,7 @@ export function ExploringWebsite() {
         {RELATED_LINKS.map((link, i) => (
           <Link
             className={cn(
-              "flex items-center justify-between gap-4 border-gm-border border-t py-5 font-semibold text-body-base text-gm-blue leading-body-base lg:text-nav lg:leading-nav",
+              "flex items-center justify-between gap-4 border-gm-border border-t py-5 font-semibold text-body-base text-gm-blue-ink leading-body-base lg:text-nav lg:leading-nav",
               i === RELATED_LINKS.length - 1 && "border-b"
             )}
             href={link.href}

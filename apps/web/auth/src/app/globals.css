@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* GMS brand palette — this surface is Grenada Meteorological Service facing.
+   Palette only; the semantic layer still resolves from @barrelsgd/ui. */
+@import "@barrelsgd/gms/styles/foundation";
+
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -289,6 +293,53 @@
   --height-header: var(--header-height);
 }
 /* END BARRELS DESIGN SYSTEM V1 */
+
+/*
+  GMS brand layer — Mini Brand Presentation 2026.
+
+  Layer 2 of the shared foundation resolves entirely through layer 1, so
+  remapping the layer 1 primitives onto the --gm-* palette rebrands every shared
+  shadcn primitive (Button, Input, Card, Badge, Sidebar, charts) without
+  restating the semantic contract.
+
+  This must sit AFTER the generated block: both write :root inside @layer base,
+  so source order decides. An @import cannot be used, because CSS requires
+  imports to precede other rules and the generated block would then win.
+*/
+@layer base {
+  :root {
+    --brand-primary: var(--gm-navy);
+    --brand-primary-accent: var(--gm-blue-ink);
+    --brand-accent: var(--gm-sky);
+    --brand-highlight: var(--gm-lime);
+
+    --brand-surface-page: var(--gm-surface-page);
+    --brand-surface: var(--gm-surface);
+    --brand-surface-panel: var(--gm-surface-panel);
+    --brand-surface-secondary: var(--gm-surface-secondary);
+    --brand-surface-muted: var(--gm-surface-muted);
+
+    --brand-text-primary: var(--gm-text-primary);
+    --brand-text-secondary: var(--gm-text-secondary);
+    --brand-text-muted: var(--gm-text-muted);
+    --brand-text-inverse: var(--gm-text-inverse);
+
+    --brand-border: var(--gm-border);
+
+    /* Hazard colours carry regulated meaning and follow the CAP risk scale,
+       not the brand. */
+    --status-positive: var(--gm-risk-green);
+    --status-caution: var(--gm-risk-yellow);
+    --status-warning: var(--gm-risk-amber);
+    --status-negative: var(--gm-risk-red);
+    --status-neutral: var(--gm-risk-grey);
+
+    /* The one correction layer 1 cannot express. --accent is the kit sky, a
+       light hue, so it must carry dark ink (6.46:1); the inverse text that
+       layer 2 defaults to would be 2.75:1. */
+    --accent-foreground: var(--gm-text-primary);
+  }
+}
 
 /*
   --auth-accent* are app-local tokens distinct from the shadcn --accent

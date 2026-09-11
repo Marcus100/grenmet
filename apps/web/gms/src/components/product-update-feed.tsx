@@ -48,7 +48,7 @@ export function ProductUpdateFeed({
             key={post.id}
           >
             <header className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-gm-blue font-bold text-gm-text-inverse">
+              <span className="grid size-10 place-items-center rounded-full bg-gm-blue-ink font-bold text-gm-text-inverse">
                 G
               </span>
               <div>
@@ -106,7 +106,7 @@ export function ProductUpdateFeed({
             </p>
             <div className="flex items-center justify-between gap-3">
               <Link
-                className="font-semibold text-gm-blue underline"
+                className="font-semibold text-gm-blue-ink underline"
                 href={post.href}
               >
                 Open update
@@ -191,7 +191,7 @@ function DesktopUpdates({
             </Button>
             {index === 0 ? (
               <Link
-                className="mt-auto pt-6 font-semibold text-gm-blue"
+                className="mt-auto pt-6 font-semibold text-gm-blue-ink"
                 href={post.href}
               >
                 Read more <span aria-hidden="true">→</span>

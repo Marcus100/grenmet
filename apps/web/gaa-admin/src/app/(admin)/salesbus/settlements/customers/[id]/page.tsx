@@ -82,7 +82,7 @@ export default function CustomerDetailPage() {
           <span className="font-medium text-base text-foreground sm:text-lg">
             Current Amount Owed
           </span>
-          <span className="font-bold text-gm-blue text-lg sm:text-xl">
+          <span className="font-bold text-gm-blue-ink text-lg sm:text-xl">
             {formatPrice(balance.currentBalance)}
           </span>
         </div>
@@ -90,7 +90,7 @@ export default function CustomerDetailPage() {
 
       {/* Add Payment button */}
       <Button
-        className="flex w-full items-center justify-center gap-2 bg-gm-blue hover:bg-gm-navy"
+        className="flex w-full items-center justify-center gap-2 bg-gm-blue-ink hover:bg-gm-navy"
         size="touch"
       >
         <DollarSign className="h-5 w-5" />
