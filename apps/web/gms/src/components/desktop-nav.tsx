@@ -31,7 +31,7 @@ interface DesktopNavProps {
 // nowrap plus a smaller step below xl: at 1024 the six labels, the logo and
 // the alerts pill need ~1237px on one line, which simply is not there.
 const TOP_LEVEL =
-  "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2 font-semibold text-body-base text-gm-text-primary leading-body-base underline-offset-6 outline-none hover:text-gm-blue focus-visible:ring-2 focus-visible:ring-gm-blue xl:px-2.5 xl:text-nav xl:leading-nav";
+  "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2 font-semibold text-body-base text-gm-text-primary leading-body-base underline-offset-6 outline-none hover:text-gm-blue-ink focus-visible:ring-2 focus-visible:ring-gm-blue xl:px-2.5 xl:text-nav xl:leading-nav";
 
 const CARD =
   "flex w-64 flex-none flex-col items-start gap-5 rounded-md border border-gm-border p-6 outline-none hover:bg-gm-surface focus-visible:bg-gm-surface";
@@ -67,7 +67,7 @@ function FeaturedCard({
               : "Live status for Grenada, Carriacou and Petite Martinique."}
           </span>
         </span>
-        <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue leading-body">
+        <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue-ink leading-body">
           See all warnings
           <ChevronRightIcon aria-hidden="true" className="size-4" />
         </span>
@@ -81,7 +81,7 @@ function FeaturedCard({
       <span className="flex size-11 items-center justify-center rounded-md bg-gm-surface">
         <Icon
           aria-hidden="true"
-          className="size-6 text-gm-sun"
+          className="size-6 text-gm-lime-ink"
           strokeWidth={1.6}
         />
       </span>
@@ -93,7 +93,7 @@ function FeaturedCard({
           Morning, midday and evening reports from the GMS forecast desk.
         </span>
       </span>
-      <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue leading-body">
+      <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue-ink leading-body">
         Today&apos;s forecast
         <ChevronRightIcon aria-hidden="true" className="size-4" />
       </span>
@@ -122,7 +122,7 @@ function Panel({
                   className="group/link flex flex-col items-start gap-1 outline-none"
                   render={<Link href={link.href} />}
                 >
-                  <span className="font-medium text-body text-gm-text-primary leading-body group-hover/link:text-gm-blue group-focus-visible/link:text-gm-blue">
+                  <span className="font-medium text-body text-gm-text-primary leading-body group-hover/link:text-gm-blue-ink group-focus-visible/link:text-gm-blue-ink">
                     {link.name}
                   </span>
                   <span className="text-body-sm text-gm-text-secondary leading-body-sm">

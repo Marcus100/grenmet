@@ -85,7 +85,7 @@ export default ResetPasswordEmail;
 // ─── Styles ──────────────────────────────────────────────────────────────────
 
 const body: React.CSSProperties = {
-  backgroundColor: "#fafbfc",
+  backgroundColor: "#f3f8fc",
   fontFamily: "Arial, Helvetica, sans-serif",
   margin: 0,
   padding: 0,
@@ -106,7 +106,7 @@ const header: React.CSSProperties = {
 };
 
 const heading: React.CSSProperties = {
-  color: "#333333",
+  color: "#111827",
   fontSize: "20px",
   fontWeight: "600",
   lineHeight: "1.4",
@@ -118,7 +118,7 @@ const content: React.CSSProperties = {
 };
 
 const paragraph: React.CSSProperties = {
-  color: "#555555",
+  color: "#4b5563",
   fontSize: "16px",
   lineHeight: "1.6",
   margin: "12px 0",
@@ -130,7 +130,7 @@ const buttonSection: React.CSSProperties = {
 };
 
 const button: React.CSSProperties = {
-  backgroundColor: "#009688",
+  backgroundColor: "#0b63ee",
   borderRadius: "8px",
   color: "#ffffff",
   display: "inline-block",
@@ -146,17 +146,17 @@ const linkText: React.CSSProperties = {
 };
 
 const linkStyle: React.CSSProperties = {
-  color: "#009688",
+  color: "#0b63ee",
   fontSize: "14px",
 };
 
 const divider: React.CSSProperties = {
-  borderColor: "#cccccc",
+  borderColor: "#d0d5dd",
   margin: "24px 0",
 };
 
 const footer: React.CSSProperties = {
-  color: "#888888",
+  color: "#6b7280",
   fontSize: "14px",
   lineHeight: "1.5",
   margin: 0,

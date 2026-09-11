@@ -125,6 +125,108 @@ components. Only GMS surfaces import it:
 dependency direction is one-way: `@barrelsgd/ui` must never reference `--gm-*`,
 and a component needing a brand colour belongs in that brand's package.
 
+### GMS palette (Mini Brand Presentation 2026)
+
+The official kit. `packages/gms/src/styles/foundation.css` carries these values
+verbatim — do not round or re-derive them.
+
+| Token | Value | Role |
+|---|---|---|
+| `--gm-navy` | `#0b132b` | Authority. Primary dark surface, ink on light. |
+| `--gm-blue` | `#2878f5` | Primary brand blue. Fills, borders, large display type. |
+| `--gm-sky` | `#37a3ef` | Atmosphere. Secondary fills and chart series. |
+| `--gm-lime` | `#ccf5ab` | Nutmeg accent. **Fill only** — never ink on light. |
+
+**The ink rule.** The kit hues do not clear WCAG AA (4.5:1) against white as
+small text — blue is 4.12:1, sky 2.75:1, lime 1.22:1. Each therefore carries a
+darkened, hue-preserving ink at the ~5.2:1 headroom the shift ramp already uses:
+
+| Token | Value | On white |
+|---|---|---|
+| `--gm-blue-ink` | `#0b63ee` | 5.21:1 |
+| `--gm-sky-ink` | `#0f70b5` | 5.24:1 |
+| `--gm-lime-ink` | `#3f7a0f` | 5.25:1 |
+
+Contrast is symmetric, so an ink is also the fill to use when small **white**
+text sits on it — a `bg-gm-blue` button with a 14px white label must be
+`bg-gm-blue-ink`. `--gm-navy` needs no ink: it clears white at 18.38:1.
+
+Pick by size, not by habit:
+
+- Text under 24px regular / 18.66px bold, and icons under ~24px → **ink**.
+- Larger display type, decorative fills, borders and focus rings → **brand hue**.
+- `--gm-lime-ink` is a green in the lime hue, not the kit colour. Use it only
+  where lime must read as ink; prefer lime as a fill on navy (15.07:1).
+
+**Retired.** `--gm-sun` (`#ff981e`) is gone — the 2026 kit has no warm tone.
+Former uses now take the lime accent.
+
+### How a GMS surface picks up the brand
+
+Two lines in the app stylesheet, in this order:
+
+1. `@import "@barrelsgd/gms/styles/foundation";` with the other imports — this
+   supplies the `--gm-*` palette and the `gm-*` Tailwind utilities.
+2. A **GMS brand layer** block *after* the generated design-system block, which
+   remaps the layer 1 primitives onto `--gm-*`.
+
+Step 2 is what actually rebrands shared shadcn primitives. Because layer 2
+resolves entirely through layer 1, remapping ~19 primitives rebrands every
+Button, Input, Card, Badge, Sidebar and chart without restating the semantic
+contract. It cannot be an `@import`: CSS requires imports to precede other
+rules, so the generated block would win. `gms`, `gaa-admin`, `auth` and `docs`
+all carry it.
+
+One correction lives in that block because layer 1 cannot express it:
+`--accent` is the kit sky, a light hue, so it carries `--gm-text-primary`
+(6.46:1) rather than the inverse text layer 2 defaults to (2.75:1).
+
+Theme presets in `gaa-admin` use `:root[data-theme-preset="…"]` (specificity
+0,2,0) and still win over the brand layer's `:root`, so preset selection is
+unaffected.
+
+### Logo
+
+`@barrelsgd/gms/components/logo` renders the 2026 artwork. Four variants, each
+pairing an asset for light surfaces with one for dark:
+
+| Variant | Light surface | Dark surface |
+|---|---|---|
+| `primary` | `logo-primary-navy` | `logo-primary-white` |
+| `wordmark` | `logo-wordmark-navy` | `logo-wordmark-white` |
+| `submark` | `logo-submark-navy` | `logo-submark-blue` |
+| `icon` | `logo-icon-color` | `logo-icon-white` |
+
+`primary` and `wordmark` are one geometry in two inks, so a theme flip never
+shifts layout. `submark` is the badge, which carries its own field — the navy
+badge on light, the blue badge on dark, because the navy badge's outer ring
+disappears against `--gm-navy`. `icon` is the bare mark; it goes white on dark
+because the mark's navy interior vanishes there.
+
+The caller constrains the size — `className="h-9 w-auto"` for a lockup,
+`className="size-7"` for the icon. Never set `width`/`height` on it: the
+lockups are 2.99:1 and fixed dimensions distort them.
+
+Three further lockups ship in `packages/gms/src/assets/logo` for design use and
+are deliberately not exposed as variants: `logo-primary-color` (the kit's
+full-colour white-background lockup), `logo-stacked-white` (the kit's stacked
+hero lockup) and `logo-icon-navy`.
+
+Favicons derive from the mark, not the badge: at 16-48px the badge's ring text
+degrades into noise, so `favicon.ico` and `favicon-16/32` are a navy disc with
+the white mark, which also holds contrast on light and dark browser tabs. The
+real badge is used at 180px and above (`apple-touch-icon`, `android-chrome-*`),
+where the ring text is legible.
+
+**Open item.** `--gm-shift-day` (`#a35c00`) still derives from the retired
+orange. The duty-roster ramp needs a replacement tone that stays
+distinguishable from morning and evening.
+
+**Known pre-existing gap**, not introduced by the 2026 kit:
+`--muted-foreground` on `--muted` is 4.11:1. It predates this palette (the same
+two values were already paired) and is only a failure in that specific
+combination — `--muted-foreground` on `--background` is 5.0:1.
+
 ### When to use what
 
 | Use | How |
