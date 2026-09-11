@@ -25,7 +25,7 @@ export async function GmsNews() {
         <h2 className="font-bold text-gm-navy text-heading-md">
           Latest from us
         </h2>
-        <Link className="text-gm-blue underline" href="/updates">
+        <Link className="text-gm-blue-ink underline" href="/updates">
           All updates
         </Link>
       </header>

@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Logo } from "@barrelsgd/gms/components/logo";
 
 const LINK_ROWS = [
   [
@@ -104,7 +104,7 @@ export function Footer() {
             {ABOUT_SERVICES_COPY}
           </p>
           <a
-            className="font-bold text-body-base text-gm-blue leading-body-base"
+            className="font-bold text-body-base text-gm-blue-ink leading-body-base"
             href="/about"
           >
             About our services
@@ -158,12 +158,7 @@ export function Footer() {
           ))}
         </div>
         <div className="flex flex-col gap-2">
-          <Image
-            alt="Grenada Meteorological Service"
-            height={46}
-            src="/gmslogos/logo-primary-navy.png"
-            width={192}
-          />
+          <Logo className="h-11.5 w-auto" variant="primary" />
           <p className="font-semibold text-body-sm text-gm-text-primary">
             Grenada Airports Authority
           </p>
@@ -174,12 +169,7 @@ export function Footer() {
 
       {/* Institutional lockup — mobile */}
       <div className="flex flex-col gap-2.5 px-6 py-7 lg:hidden">
-        <Image
-          alt="Grenada Meteorological Service"
-          height={43}
-          src="/gmslogos/logo-primary-navy.png"
-          width={180}
-        />
+        <Logo className="h-11 w-auto" variant="primary" />
         <p className="font-semibold text-body-sm text-gm-text-primary">
           Grenada Airports Authority
         </p>

@@ -1,8 +1,8 @@
 "use client";
 
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, XIcon } from "lucide-react";
-import Image from "next/image";
 import { useEffect } from "react";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
@@ -26,13 +26,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       {/* Header */}
       <div className="flex h-header shrink-0 items-center justify-between border-gm-border border-b pr-5 pl-6">
-        <Image
-          alt="Grenada Meteorological Service"
-          height={36}
-          priority
-          src="/gmslogos/logo-primary-navy.png"
-          width={150}
-        />
+        <Logo className="h-9 w-auto" priority variant="primary" />
         <button
           aria-label="Close navigation"
           className="flex size-11 items-center justify-center"
@@ -47,7 +41,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
       <div className="flex h-1 w-full shrink-0">
         <div className="h-full flex-[55] bg-gm-blue" />
         <div className="h-full flex-[25] bg-gm-sky" />
-        <div className="h-full flex-[20] bg-gm-sun" />
+        <div className="h-full flex-[20] bg-gm-lime" />
       </div>
 
       {/* Nav body */}
