@@ -107,8 +107,8 @@ jobs:
       - name: Check Docker workspace dependencies
         run: node scripts/guardrails/check-docker-workspaces.mjs
 
-      - name: Test verification entry points
-        run: node --test scripts/verification/*.test.mjs
+      - name: Test verification entry points and performance tooling
+        run: node --test scripts/verification/*.test.mjs scripts/perf/*.test.mjs
 
       - name: Test repository guardrails
         run: pnpm test:guardrails
