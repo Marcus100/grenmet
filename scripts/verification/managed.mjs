@@ -82,7 +82,7 @@ export async function verifyManaged(mode, { run, inContainer, env, log }) {
         VERIFY_RUN_ID: randomUUID().replaceAll("-", ""),
         REDIS_URL: `redis://127.0.0.1:${await port("redis", "6379")}/0`,
         SECRET_KEY: "verification-only-secret-at-least-32-characters",
-        FIRST_SUPERUSER: "admin@example.test",
+        FIRST_SUPERUSER: "admin@example.com",
         FIRST_SUPERUSER_PASSWORD: "verification-only-password",
         PROJECT_NAME: "Disposable verification",
       });
