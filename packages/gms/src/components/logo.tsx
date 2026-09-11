@@ -30,6 +30,10 @@ interface LogoAsset {
 // mark — full colour on light, white on dark, because the mark's navy interior
 // vanishes against a dark surface.
 //
+// A `monogram` variant (the mark plus "GMS", between the full lockup and the
+// bare mark) is wanted and the artwork exists, but it ships only as SVG and this
+// package cannot import SVG — see ../assets/images.d.ts. Blocked on that.
+//
 // Three further lockups ship in ../assets/logo for design use and are
 // deliberately not exposed here: logo-primary-color (the kit's full-colour
 // white-background lockup), logo-stacked-white (the kit's stacked hero lockup)

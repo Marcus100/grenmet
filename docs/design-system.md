@@ -135,10 +135,20 @@ verbatim — do not round or re-derive them.
 | `--gm-navy` | `#0b132b` | Authority. Primary dark surface, ink on light. |
 | `--gm-blue` | `#2878f5` | Primary brand blue. Fills, borders, large display type. |
 | `--gm-sky` | `#37a3ef` | Atmosphere. Secondary fills and chart series. |
-| `--gm-lime` | `#ccf5ab` | Nutmeg accent. **Fill only** — never ink on light. |
+| `--gm-lime` | `#b9ee63` | Nutmeg accent. **Fill only** — never ink on light. |
+
+**Lime follows the artwork, not the brand document.** The Mini Brand
+Presentation specifies `#ccf5ab`, but every icon file in the 2026 logo delivery
+paints the leaf `#b9ee63`, and the artwork is what a reader actually sees. The
+token moved to match it on 11 Sep 2026. The change is contrast-neutral: dark
+text on lime went 14.54:1 → 13.07:1, and lime on white 1.22:1 → 1.36:1, so it
+remains a fill-only colour. `--gm-lime-ink` is unaffected — it is a separate
+green, not a derivative. **Pending the designer's confirmation** that the deeper
+green is deliberate rather than a stale export; revert here and in
+`packages/gms/src/styles/foundation.css` if it is not.
 
 **The ink rule.** The kit hues do not clear WCAG AA (4.5:1) against white as
-small text — blue is 4.12:1, sky 2.75:1, lime 1.22:1. Each therefore carries a
+small text — blue is 4.12:1, sky 2.75:1, lime 1.36:1. Each therefore carries a
 darkened, hue-preserving ink at the ~5.2:1 headroom the shift ramp already uses:
 
 | Token | Value | On white |
@@ -156,7 +166,7 @@ Pick by size, not by habit:
 - Text under 24px regular / 18.66px bold, and icons under ~24px → **ink**.
 - Larger display type, decorative fills, borders and focus rings → **brand hue**.
 - `--gm-lime-ink` is a green in the lime hue, not the kit colour. Use it only
-  where lime must read as ink; prefer lime as a fill on navy (15.07:1).
+  where lime must read as ink; prefer lime as a fill on navy (13.55:1).
 
 **Retired.** `--gm-sun` (`#ff981e`) is gone — the 2026 kit has no warm tone.
 Former uses now take the lime accent.
@@ -190,12 +200,12 @@ unaffected.
 `@barrelsgd/gms/components/logo` renders the 2026 artwork. Four variants, each
 pairing an asset for light surfaces with one for dark:
 
-| Variant | Light surface | Dark surface |
-|---|---|---|
-| `primary` | `logo-primary-navy` | `logo-primary-white` |
-| `wordmark` | `logo-wordmark-navy` | `logo-wordmark-white` |
-| `submark` | `logo-submark-navy` | `logo-submark-blue` |
-| `icon` | `logo-icon-color` | `logo-icon-white` |
+| Variant | Ratio | Light surface | Dark surface |
+|---|---|---|---|
+| `primary` | 2.99:1 | `logo-primary-navy` | `logo-primary-white` |
+| `wordmark` | 2.51:1 | `logo-wordmark-navy` | `logo-wordmark-white` |
+| `submark` | 1.01:1 | `logo-submark-navy` | `logo-submark-blue` |
+| `icon` | 0.61:1 | `logo-icon-color` | `logo-icon-white` |
 
 `primary` and `wordmark` are one geometry in two inks, so a theme flip never
 shifts layout. `submark` is the badge, which carries its own field — the navy
@@ -203,9 +213,25 @@ badge on light, the blue badge on dark, because the navy badge's outer ring
 disappears against `--gm-navy`. `icon` is the bare mark; it goes white on dark
 because the mark's navy interior vanishes there.
 
+**Blocked: this package cannot import SVG.** `gaa-admin` runs `@svgr/webpack`
+(its `next.config`), so a `.svg` imported from `packages/gms` resolves to a React
+component there and to a URL in `gms` — the same import means two different
+things in the two apps that render `Logo`. Every vector asset in the 2026
+delivery is therefore unusable from here as a static import.
+
+This blocks a wanted `monogram` variant (the mark plus "GMS", the step between
+the full lockup and the bare mark: at `h-9` the lockup is ~122px wide, the
+monogram ~87px, the icon ~22px). The artwork exists and is outlined, but ships
+only as SVG. Two routes out, neither yet chosen: inline the artwork as a `.tsx`
+component in this package, which is bundler-independent and would also allow
+`currentColor` theming in place of paired light/dark files; or align the SVG
+handling across app bundler configs. Note also that the supplied
+`GMS navy.svg` is defective — its droplet path declares no fill, so it renders
+`#000` beside `#0b132b` lettering.
+
 The caller constrains the size — `className="h-9 w-auto"` for a lockup,
-`className="size-7"` for the icon. Never set `width`/`height` on it: the
-lockups are 2.99:1 and fixed dimensions distort them.
+`className="size-7"` for the icon. Never set `width`/`height` on it: every
+variant is a fixed ratio (see the table) and hardcoded dimensions distort them.
 
 Three further lockups ship in `packages/gms/src/assets/logo` for design use and
 are deliberately not exposed as variants: `logo-primary-color` (the kit's
