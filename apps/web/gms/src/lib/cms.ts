@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { z } from "zod";
 import { env } from "@/lib/env";
 
@@ -43,16 +44,16 @@ async function getContent(params: {
   }
 }
 
-export function fetchPublishedContent(
+export const fetchPublishedContent = cache(function fetchPublishedContent(
   kind?: "article" | "page",
   placement?: "latest" | "news"
 ): Promise<ContentResult> {
   return getContent({ kind, placement });
-}
+});
 
-export async function fetchContentBySlug(
+export const fetchContentBySlug = cache(async function fetchContentBySlug(
   slug: string
 ): Promise<PublishedContent | undefined> {
   const result = await getContent({ slug });
   return result.articles[0];
-}
+});
