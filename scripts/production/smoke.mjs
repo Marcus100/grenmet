@@ -1,3 +1,4 @@
+const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/g;
 const validDomain = /^[a-z0-9.-]+$/;
 const renderError =
   /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/;
@@ -18,6 +19,34 @@ export async function check(url, expected, fetcher = fetch) {
     );
 }
 
+export async function checkCmsSignIn(domain, fetcher = fetch) {
+  const response = await fetcher(`https://cms.${domain}/signin`, {
+    redirect: "follow",
+    signal: AbortSignal.timeout(20_000),
+  });
+  const body = await response.text();
+  const expected = new URL(`https://auth.${domain}/`);
+  expected.searchParams.set("app", "gms-cms");
+  expected.searchParams.set("returnTo", `https://cms.${domain}/admin`);
+  const links = [...body.matchAll(anchorHref)];
+  const hasDestination = links.some((match) => {
+    try {
+      const url = new URL(match[1].replaceAll("&amp;", "&"));
+      return (
+        url.origin === expected.origin &&
+        url.pathname === "/" &&
+        url.searchParams.get("app") === "gms-cms" &&
+        url.searchParams.get("returnTo") ===
+          expected.searchParams.get("returnTo")
+      );
+    } catch {
+      return false;
+    }
+  });
+  if (!(validPage(response, body, "<a") && hasDestination))
+    throw new Error(`CMS sign-in destination failed for cms.${domain}`);
+}
+
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
@@ -35,6 +64,7 @@ export async function checkDeployment(domain, fetcher = fetch) {
     await check(`https://${host}.${domain}${path}`, marker, fetcher);
   for (const host of ["docs", "weather", "signal", "mbia", "events"])
     await check(`https://${host}.${domain}/`, "<main", fetcher);
+  await checkCmsSignIn(domain, fetcher);
 }
 
 if (import.meta.main) {
