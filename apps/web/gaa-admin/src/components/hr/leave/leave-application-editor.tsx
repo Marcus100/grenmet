@@ -188,7 +188,7 @@ export function LeaveApplicationEditor() {
       toast.error("Save your signature in your profile before signing");
       return;
     }
-    if (!(asDraft || (values.startDate && values.endDate))) {
+    if (!(values.startDate && values.endDate)) {
       toast.error("Start and end dates are required");
       return;
     }

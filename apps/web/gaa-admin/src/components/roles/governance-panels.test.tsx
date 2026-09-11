@@ -40,11 +40,11 @@ const workflow = {
   ],
 };
 const server = setupServer(
-  http.get(base + "/api/v1/hr/setup/roles", () => HttpResponse.json([role])),
-  http.get(base + "/api/v1/hr/setup/workflows", () =>
+  http.get(`${base}/api/v1/hr/setup/roles`, () => HttpResponse.json([role])),
+  http.get(`${base}/api/v1/hr/setup/workflows`, () =>
     HttpResponse.json([workflow])
   ),
-  http.get(base + "/api/v1/auth/users", () =>
+  http.get(`${base}/api/v1/auth/users`, () =>
     HttpResponse.json({
       data: [{ id: "user-1", full_name: "HR Recorder", is_active: true }],
       count: 1,
@@ -78,7 +78,7 @@ describe("Governance panels", () => {
     let saved: unknown;
     server.use(
       http.put(
-        base + "/api/v1/hr/setup/workflows/template-1",
+        `${base}/api/v1/hr/setup/workflows/template-1`,
         async ({ request }) => {
           saved = await request.json();
           return HttpResponse.json(workflow);
@@ -111,7 +111,7 @@ describe("Governance panels", () => {
   it("requires a reason before revoking access", async () => {
     let saved: unknown;
     server.use(
-      http.get(base + "/api/v1/auth/access-reviews", () =>
+      http.get(`${base}/api/v1/auth/access-reviews`, () =>
         HttpResponse.json({
           assignments: [
             {
@@ -132,7 +132,7 @@ describe("Governance panels", () => {
         })
       ),
       http.post(
-        base + "/api/v1/auth/access-reviews/grant-1",
+        `${base}/api/v1/auth/access-reviews/grant-1`,
         async ({ request }) => {
           saved = await request.json();
           return HttpResponse.json({ id: "review-1" });
@@ -159,7 +159,7 @@ describe("Governance panels", () => {
   });
   it("blocks conflicting imports and displays uncertain counts", async () => {
     server.use(
-      http.get(base + "/api/v1/hr/setup/organisation", () =>
+      http.get(`${base}/api/v1/hr/setup/organisation`, () =>
         HttpResponse.json({
           catalogue: {
             units: [
@@ -198,7 +198,7 @@ describe("Governance panels", () => {
   it("edits a permission bundle explicitly", async () => {
     let saved: unknown;
     server.use(
-      http.get(base + "/api/v1/auth/permissions", () =>
+      http.get(`${base}/api/v1/auth/permissions`, () =>
         HttpResponse.json({
           data: [
             { key: "workflow.instance.action", description: "Act" },
@@ -207,7 +207,7 @@ describe("Governance panels", () => {
           count: 2,
         })
       ),
-      http.put(base + "/api/v1/hr/setup/roles/role-1", async ({ request }) => {
+      http.put(`${base}/api/v1/hr/setup/roles/role-1`, async ({ request }) => {
         saved = await request.json();
         return HttpResponse.json(role);
       })

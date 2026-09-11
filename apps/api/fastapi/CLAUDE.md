@@ -201,7 +201,7 @@ my_domain_settings = MyDomainConfig()
 
 **Logging** — `src/logging_config.py` configures JSON output (Datadog-compatible) via `python-json-logger`. Call `configure_logging()` once at startup (already wired in `main.py`). Set `LOG_FORMAT=text` locally for human-readable output, `LOG_LEVEL` to control verbosity.
 
-**ddtrace** — Installed as a runtime dep. In production, run the app via `ddtrace-run uvicorn src.main:app` so APM tracing, trace ID injection into logs, and auto-instrumentation of FastAPI/SQLAlchemy/httpx are active. Set `DD_LOGS_INJECTION=true`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` in the environment.
+**ddtrace** — Installed as a runtime dep. The production image defaults trace exports, instrumentation telemetry and remote configuration to disabled until a Datadog Agent is provisioned. In production, run the app via `ddtrace-run uvicorn src.main:app` so APM tracing, trace ID injection into logs, and auto-instrumentation of FastAPI/SQLAlchemy/httpx are active. Set `DD_LOGS_INJECTION=true`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` in the environment.
 
 **Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py`. Controlled by `SENTRY_DSN` env var.
 

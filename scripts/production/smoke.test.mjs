@@ -1,15 +1,18 @@
+const cmsFailure = /CMS sign-in destination failed/;
 const authFailure = /auth.staging.example.test/;
 const honoFailure = /Functional smoke failed: hapi/;
 
 import assert from "node:assert/strict";
 import test from "node:test";
-import { check, checkDeployment, validPage } from "./smoke.mjs";
+import { check, checkCmsSignIn, checkDeployment, validPage } from "./smoke.mjs";
 
 test("deployment probes the real sign-in route and requires its form", async () => {
   const urls = [];
   const fetcher = (url) => {
     urls.push(url);
     const { hostname, pathname } = new URL(url);
+    if (pathname === "/signin")
+      return Promise.resolve(new Response(cmsLink("staging.example.test")));
     if (hostname.startsWith("auth.")) {
       return Promise.resolve(
         new Response("<form>Sign in</form>", {
@@ -91,6 +94,8 @@ for (const domain of ["staging.example.test", "example.test"]) {
     const urls = [];
     const healthy = (url) => {
       urls.push(url);
+      if (new URL(url).pathname === "/signin")
+        return Promise.resolve(new Response(cmsLink(domain)));
       return Promise.resolve(
         new Response(
           url === healthUrl
@@ -122,3 +127,34 @@ for (const domain of ["staging.example.test", "example.test"]) {
     );
   });
 }
+
+function cmsLink(domain) {
+  return `<a href="https://auth.${domain}/?app=gms-cms&amp;returnTo=${encodeURIComponent(`https://cms.${domain}/admin`)}">Sign in with GMS</a>`;
+}
+
+test("CMS sign-in rejects build defaults and cross-environment destinations", async () => {
+  const domain = "staging.example.test";
+  await checkCmsSignIn(domain, async () => new Response(cmsLink(domain)));
+  for (const body of [
+    '<a href="http://localhost:3000/?app=gms-cms&amp;returnTo=http%3A%2F%2Flocalhost%3A3006%2Fadmin">Sign in</a>',
+    cmsLink("example.test"),
+    cmsLink(domain).replace(
+      encodeURIComponent(`https://cms.${domain}/admin`),
+      encodeURIComponent("https://other.example.test/admin")
+    ),
+    `<script>${cmsLink(domain)}</script>Application error:`,
+    "<main>Sign in</main>",
+  ]) {
+    await assert.rejects(
+      checkCmsSignIn(domain, async () => new Response(body)),
+      cmsFailure
+    );
+  }
+  await assert.rejects(
+    checkCmsSignIn(
+      domain,
+      async () => new Response(cmsLink(domain), { status: 500 })
+    ),
+    cmsFailure
+  );
+});

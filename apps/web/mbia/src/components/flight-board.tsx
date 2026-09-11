@@ -110,6 +110,10 @@ export function FlightBoard({
       aria-label={`${AIRPORTS[airport].name} ${board}`}
       className="overflow-hidden rounded-2xl bg-gaa-navy-ink text-white shadow-xl"
     >
+      <p className="border-white/10 border-b px-5 py-3 text-sm sm:px-6">
+        Demo flight board. Times and statuses are sample data. Confirm your
+        flight with your airline.
+      </p>
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-4 sm:px-6">
         <BoardToggle board={board} onChange={setBoard} />
         {compact ? null : (
@@ -186,10 +190,6 @@ export function FlightBoard({
           </tbody>
         </table>
       </div>
-      <p className="border-white/10 border-t px-5 py-3 text-white/40 text-xs sm:px-6">
-        Sample schedule shown — live flight status is coming soon. Always
-        confirm times with your airline.
-      </p>
     </section>
   );
 }

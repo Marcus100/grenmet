@@ -655,6 +655,12 @@ export function EventOverview({ dashboard }: { dashboard: EventDashboard }) {
         <OverviewHeader event={event} />
 
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+          {event.isDemo && (
+            <p className="mb-6 rounded-xl border border-border bg-card p-4 text-body">
+              Demo workspace. All figures are sample data. Ticket sales, orders,
+              payments and event management are not available here.
+            </p>
+          )}
           <section
             aria-labelledby="event-status-heading"
             className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
