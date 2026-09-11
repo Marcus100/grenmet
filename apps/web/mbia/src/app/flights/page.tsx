@@ -29,7 +29,7 @@ export default async function FlightsPage({
   return (
     <>
       <SectionHero
-        dek="Live arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
+        dek="Sample arrivals and departures for Maurice Bishop International Airport (GND) and Lauriston Airport, Carriacou (CRU)."
         eyebrow="Flight Information"
         title="Arrivals & departures"
       />

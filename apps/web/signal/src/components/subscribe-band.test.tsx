@@ -1,35 +1,20 @@
+const demoMessage = /demo.*subscriptions are not open/i;
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { SubscribeBand } from "./subscribe-band";
 
-const SUCCESS_RE = /you in/i;
+afterEach(() => vi.unstubAllGlobals());
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-});
-
-describe("SubscribeBand", () => {
-  it("posts the form and shows a success message", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ ok: true }),
-    });
-    vi.stubGlobal("fetch", fetchMock);
-
-    const user = userEvent.setup();
-    render(<SubscribeBand />);
-
-    await user.type(
-      screen.getByLabelText("Email address"),
-      "reader@example.gd"
-    );
-    await user.click(screen.getByRole("button", { name: "Subscribe" }));
-
-    expect(await screen.findByRole("status")).toHaveTextContent(SUCCESS_RE);
-    expect(fetchMock).toHaveBeenCalledWith(
-      "/api/subscribe",
-      expect.objectContaining({ method: "POST" })
-    );
-  });
+it("labels the demo and prevents collecting subscriptions", async () => {
+  const fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  render(<SubscribeBand />);
+  expect(screen.getByText(demoMessage)).toBeInTheDocument();
+  expect(screen.getByLabelText("Email address")).toBeDisabled();
+  const button = screen.getByRole("button", { name: "Subscribe" });
+  expect(button).toBeDisabled();
+  await userEvent.setup().click(button);
+  expect(fetchMock).not.toHaveBeenCalled();
 });
