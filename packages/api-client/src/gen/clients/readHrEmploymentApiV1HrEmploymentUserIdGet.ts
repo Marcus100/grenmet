@@ -3,55 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet403,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet404,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGet422,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams,
-  ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions,
+  ReadHrEmploymentApiV1HrEmploymentUserIdGetResponses,
 } from "../models/ReadHrEmploymentApiV1HrEmploymentUserIdGet.js";
-
-function getReadHrEmploymentApiV1HrEmploymentUserIdGetUrl(
-  user_id: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams["user_id"]
-) {
-  const res = {
-    method: "GET",
-    url: `/api/v1/hr/employment/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Return a user's employment record (department, status, position) so an admin can review or edit it. Supervisor or admin only.
  * @summary Get employment record (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */
-export async function readHrEmploymentApiV1HrEmploymentUserIdGet(
-  user_id: ReadHrEmploymentApiV1HrEmploymentUserIdGetPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readHrEmploymentApiV1HrEmploymentUserIdGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadHrEmploymentApiV1HrEmploymentUserIdGetOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReadHrEmploymentApiV1HrEmploymentUserIdGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadHrEmploymentApiV1HrEmploymentUserIdGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet403
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet404
-      | ReadHrEmploymentApiV1HrEmploymentUserIdGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadHrEmploymentApiV1HrEmploymentUserIdGetUrl(
-      user_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/employment/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadHrEmploymentApiV1HrEmploymentUserIdGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

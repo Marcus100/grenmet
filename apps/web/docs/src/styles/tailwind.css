@@ -1,4 +1,7 @@
 @import "tailwindcss";
+/* GMS brand palette — this surface is Grenada Meteorological Service facing.
+   Palette only; the semantic layer still resolves from @barrelsgd/ui. */
+@import "@barrelsgd/gms/styles/foundation";
 @plugin "@tailwindcss/typography";
 @config "../../typography.ts";
 
@@ -41,7 +44,10 @@
     --status-negative: #cc0033;
     --status-neutral: #dcdcdc;
 
-    --brand-font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+    --brand-font-sans: var(
+      --font-noto-sans,
+      var(--font-inter, ui-sans-serif, system-ui, sans-serif)
+    );
     --brand-font-document: var(
       --font-noto-sans,
       "Noto Sans",
@@ -68,7 +74,8 @@
     --font-size-body: 14px;
     --font-size-body-base: 16px;
     --font-size-nav: 20px;
-    --font-size-heading-sm: 18px;
+    --font-size-heading-sm: 22px;
+    --font-size-heading-base: 26px;
     --font-size-heading-md: 30px;
     --font-size-heading-lg: 34px;
     --line-height-micro: 16px;
@@ -78,7 +85,8 @@
     --line-height-body: 20px;
     --line-height-body-base: 24px;
     --line-height-nav: 28px;
-    --line-height-heading-sm: 24px;
+    --line-height-heading-sm: 28px;
+    --line-height-heading-base: 32px;
     --line-height-heading-md: 36px;
     --line-height-heading-lg: 36px;
 
@@ -268,6 +276,7 @@
   --text-body-base: var(--font-size-body-base);
   --text-nav: var(--font-size-nav);
   --text-heading-sm: var(--font-size-heading-sm);
+  --text-heading-base: var(--font-size-heading-base);
   --text-heading-md: var(--font-size-heading-md);
   --text-heading-lg: var(--font-size-heading-lg);
   --leading-micro: var(--line-height-micro);
@@ -278,12 +287,60 @@
   --leading-body-base: var(--line-height-body-base);
   --leading-nav: var(--line-height-nav);
   --leading-heading-sm: var(--line-height-heading-sm);
+  --leading-heading-base: var(--line-height-heading-base);
   --leading-heading-md: var(--line-height-heading-md);
   --leading-heading-lg: var(--line-height-heading-lg);
   --shadow-card: var(--brand-shadow-card);
   --height-header: var(--header-height);
 }
 /* END BARRELS DESIGN SYSTEM V1 */
+
+/*
+  GMS brand layer — Mini Brand Presentation 2026.
+
+  Layer 2 of the shared foundation resolves entirely through layer 1, so
+  remapping the layer 1 primitives onto the --gm-* palette rebrands every shared
+  shadcn primitive (Button, Input, Card, Badge, Sidebar, charts) without
+  restating the semantic contract.
+
+  This must sit AFTER the generated block: both write :root inside @layer base,
+  so source order decides. An @import cannot be used, because CSS requires
+  imports to precede other rules and the generated block would then win.
+*/
+@layer base {
+  :root {
+    --brand-primary: var(--gm-navy);
+    --brand-primary-accent: var(--gm-blue-ink);
+    --brand-accent: var(--gm-sky);
+    --brand-highlight: var(--gm-lime);
+
+    --brand-surface-page: var(--gm-surface-page);
+    --brand-surface: var(--gm-surface);
+    --brand-surface-panel: var(--gm-surface-panel);
+    --brand-surface-secondary: var(--gm-surface-secondary);
+    --brand-surface-muted: var(--gm-surface-muted);
+
+    --brand-text-primary: var(--gm-text-primary);
+    --brand-text-secondary: var(--gm-text-secondary);
+    --brand-text-muted: var(--gm-text-muted);
+    --brand-text-inverse: var(--gm-text-inverse);
+
+    --brand-border: var(--gm-border);
+
+    /* Hazard colours carry regulated meaning and follow the CAP risk scale,
+       not the brand. */
+    --status-positive: var(--gm-risk-green);
+    --status-caution: var(--gm-risk-yellow);
+    --status-warning: var(--gm-risk-amber);
+    --status-negative: var(--gm-risk-red);
+    --status-neutral: var(--gm-risk-grey);
+
+    /* The one correction layer 1 cannot express. --accent is the kit sky, a
+       light hue, so it must carry dark ink (6.46:1); the inverse text that
+       layer 2 defaults to would be 2.75:1. */
+    --accent-foreground: var(--gm-text-primary);
+  }
+}
 
 @theme {
   --text-2xs: 0.75rem;

@@ -6,20 +6,17 @@
 import * as z from "zod";
 import { shiftCategorySchema } from "./shiftCategorySchema.js";
 
-/**
- * @description One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime — a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times.
- */
 export const rosterCalendarEntrySchema = z
   .object({
-    user_id: z.string().uuid(),
+    user_id: z.uuid(),
     display_name: z.string(),
-    roster_name: z.optional(z.union([z.string(), z.null()])),
-    assignment_date: z.string().date(),
+    roster_name: z.union([z.string(), z.null()]).optional(),
+    assignment_date: z.iso.date(),
     shift_code: z.string(),
     label: z.string(),
-    category: z.lazy(() => shiftCategorySchema),
-    starts_at_local: z.optional(z.union([z.string(), z.null()])),
-    ends_at_local: z.optional(z.union([z.string(), z.null()])),
+    category: shiftCategorySchema,
+    starts_at_local: z.union([z.string(), z.null()]).optional(),
+    ends_at_local: z.union([z.string(), z.null()]).optional(),
     all_day: z.boolean(),
     is_draft: z.boolean(),
   })

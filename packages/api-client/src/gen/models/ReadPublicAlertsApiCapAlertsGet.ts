@@ -5,16 +5,21 @@
 
 import type { CapAlertListPublic } from "./CapAlertListPublic.js";
 
-/**
- * CapAlertListPublic
- * @description Successful Response
- */
-export type ReadPublicAlertsApiCapAlertsGet200 = CapAlertListPublic;
+export type ReadPublicAlertsApiCapAlertsGetStatus200 = CapAlertListPublic;
 
-export type ReadPublicAlertsApiCapAlertsGetQueryResponse =
-  ReadPublicAlertsApiCapAlertsGet200;
-
-export type ReadPublicAlertsApiCapAlertsGetQuery = {
-  Response: ReadPublicAlertsApiCapAlertsGet200;
-  Errors: any;
+export type ReadPublicAlertsApiCapAlertsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadPublicAlertsApiCapAlertsGetResponses = {
+  "200": ReadPublicAlertsApiCapAlertsGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadPublicAlertsApiCapAlertsGetResponse =
+  ReadPublicAlertsApiCapAlertsGetStatus200;

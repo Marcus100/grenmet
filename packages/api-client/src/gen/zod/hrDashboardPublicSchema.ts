@@ -9,19 +9,19 @@ import { dashboardPersonSchema } from "./dashboardPersonSchema.js";
 import { dashboardRequestSchema } from "./dashboardRequestSchema.js";
 
 export const hrDashboardPublicSchema = z.object({
-  date: z.string().date(),
+  date: z.iso.date(),
   scope: z.string(),
   can_approve: z.boolean(),
-  vacation_balance: z.optional(
-    z.union([z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/), z.null()])
-  ),
-  next_shift: z.optional(z.union([z.string(), z.null()])),
-  open_requests: z.number().int(),
-  active_staff: z.number().int(),
-  departments: z.number().int(),
-  shift_types: z.number().int(),
-  requests: z.optional(z.array(z.lazy(() => dashboardRequestSchema))),
-  on_duty: z.optional(z.array(z.lazy(() => dashboardPersonSchema))),
-  away: z.optional(z.array(z.lazy(() => dashboardPersonSchema))),
-  approvals: z.optional(z.array(z.lazy(() => dashboardApprovalSchema))),
+  vacation_balance: z
+    .union([z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/), z.null()])
+    .optional(),
+  next_shift: z.union([z.string(), z.null()]).optional(),
+  open_requests: z.int(),
+  active_staff: z.int(),
+  departments: z.int(),
+  shift_types: z.int(),
+  requests: z.array(dashboardRequestSchema).optional(),
+  on_duty: z.array(dashboardPersonSchema).optional(),
+  away: z.array(dashboardPersonSchema).optional(),
+  approvals: z.array(dashboardApprovalSchema).optional(),
 });

@@ -1,5 +1,6 @@
 import type {
   AuthConfig,
+  EffectiveAccess,
   MessageResponse,
   SessionAccessTokenResponse,
   SessionLoginResponse,
@@ -146,5 +147,14 @@ export function loginWithPassword(
     grant_type: "password",
     username: input.username,
     password: input.password,
+  });
+}
+
+export function getEffectiveAccess(
+  config: AuthConfig,
+  accessToken: string
+): Promise<EffectiveAccess> {
+  return authApiFetch<EffectiveAccess>(config, "/auth/access/me", {
+    accessToken,
   });
 }

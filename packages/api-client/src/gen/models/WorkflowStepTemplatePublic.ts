@@ -5,40 +5,48 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-/**
- * WorkflowStepTemplatePublic
- */
+export const workflowStepTemplatePublicPurposeEnum = {
+  APPROVAL: "APPROVAL",
+  REVIEW: "REVIEW",
+  RECORDING: "RECORDING",
+} as const;
+
+export type WorkflowStepTemplatePublicPurposeEnum =
+  (typeof workflowStepTemplatePublicPurposeEnum)[keyof typeof workflowStepTemplatePublicPurposeEnum];
+
 export type WorkflowStepTemplatePublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   workflow_template_id: string;
-  /**
-   * @type integer
-   */
   step_order: number;
-  /**
-   * @type string, uuid
-   */
-  required_role_id: string;
-  /**
-   * @type string
-   */
+  required_role_id?: string | null;
+  required_user_id?: string | null;
   required_scope: RoleAssignmentScope;
-  /**
-   * @type boolean
-   */
   is_required: boolean;
   /**
-   * @type string
+   * @default true
+   * @type boolean | undefined
    */
-  created_at: string;
+  scope_enforced?: boolean;
   /**
-   * @type string
+   * @default 'APPROVAL'
+   * @type string | undefined
    */
+  purpose?: WorkflowStepTemplatePublicPurposeEnum;
+  /**
+   * @default 'Approval'
+   * @type string | undefined
+   */
+  label?: string;
+  created_at: string;
   updated_at: string;
 };

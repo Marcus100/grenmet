@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 
-export type ReadPermissionsApiV1AuthPermissionsGetQueryParams = {
+export type ReadPermissionsApiV1AuthPermissionsGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,24 +24,27 @@ export type ReadPermissionsApiV1AuthPermissionsGetQueryParams = {
   size?: number;
 };
 
-/**
- * PaginatedResponse[PermissionPublic]
- * @description Permissions returned
- */
-export type ReadPermissionsApiV1AuthPermissionsGet200 =
+export type ReadPermissionsApiV1AuthPermissionsGetStatus200 =
   PaginatedResponsePermissionPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadPermissionsApiV1AuthPermissionsGet422 = HTTPValidationError;
+export type ReadPermissionsApiV1AuthPermissionsGetStatus422 =
+  HTTPValidationError;
 
-export type ReadPermissionsApiV1AuthPermissionsGetQueryResponse =
-  ReadPermissionsApiV1AuthPermissionsGet200;
-
-export type ReadPermissionsApiV1AuthPermissionsGetQuery = {
-  Response: ReadPermissionsApiV1AuthPermissionsGet200;
-  QueryParams: ReadPermissionsApiV1AuthPermissionsGetQueryParams;
-  Errors: ReadPermissionsApiV1AuthPermissionsGet422;
+export type ReadPermissionsApiV1AuthPermissionsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadPermissionsApiV1AuthPermissionsGetQuery;
+  headers?: never;
 };
+
+export type ReadPermissionsApiV1AuthPermissionsGetResponses = {
+  "200": ReadPermissionsApiV1AuthPermissionsGetStatus200;
+  "422": ReadPermissionsApiV1AuthPermissionsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadPermissionsApiV1AuthPermissionsGetResponse =
+  | ReadPermissionsApiV1AuthPermissionsGetStatus200
+  | ReadPermissionsApiV1AuthPermissionsGetStatus422;

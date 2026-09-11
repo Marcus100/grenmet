@@ -8,14 +8,14 @@ import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { gradePublicSchema } from "./gradePublicSchema.js";
 
 export const departmentMemberPublicSchema = z.object({
-  user_id: z.string().uuid(),
+  user_id: z.uuid(),
   username: z.string(),
   first_name: z.string(),
   last_name: z.string(),
   full_name: z.string(),
-  roster_name: z.optional(z.union([z.string(), z.null()])),
-  employee_number: z.optional(z.union([z.string(), z.null()])),
-  position: z.optional(z.union([z.string(), z.null()])),
-  grade: z.optional(z.union([z.lazy(() => gradePublicSchema), z.null()])),
-  employment_status: z.lazy(() => employmentStatusSchema),
+  roster_name: z.union([z.string(), z.null()]).optional(),
+  employee_number: z.union([z.string(), z.null()]).optional(),
+  position: z.union([z.string(), z.null()]).optional(),
+  grade: z.union([gradePublicSchema, z.null()]).optional(),
+  employment_status: employmentStatusSchema,
 });

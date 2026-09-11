@@ -10,52 +10,48 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readUserByIdApiV1AuthUsersUserIdGet } from "../clients/readUserByIdApiV1AuthUsersUserIdGet.js";
 import type {
-  ReadUserByIdApiV1AuthUsersUserIdGet403,
-  ReadUserByIdApiV1AuthUsersUserIdGet422,
-  ReadUserByIdApiV1AuthUsersUserIdGetPathParams,
-  ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+  ReadUserByIdApiV1AuthUsersUserIdGetOptions,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus403,
+  ReadUserByIdApiV1AuthUsersUserIdGetStatus422,
 } from "../models/ReadUserByIdApiV1AuthUsersUserIdGet.js";
 
-export const readUserByIdApiV1AuthUsersUserIdGetQueryKey = (
-  user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"]
-) =>
-  [
-    { url: "/api/v1/auth/users/:user_id", params: { user_id: user_id } },
-  ] as const;
+export const readUserByIdApiV1AuthUsersUserIdGetQueryKey = ({
+  path,
+}: Omit<ReadUserByIdApiV1AuthUsersUserIdGetOptions, "headers">) =>
+  [{ url: "/api/v1/auth/users/:user_id", params: path }] as const;
 
-export type ReadUserByIdApiV1AuthUsersUserIdGetQueryKey = ReturnType<
+type ReadUserByIdApiV1AuthUsersUserIdGetQueryKey = ReturnType<
   typeof readUserByIdApiV1AuthUsersUserIdGetQueryKey
 >;
 
 export function readUserByIdApiV1AuthUsersUserIdGetQueryOptions(
-  user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  { path }: ReadUserByIdApiV1AuthUsersUserIdGetOptions,
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
-  const queryKey = readUserByIdApiV1AuthUsersUserIdGetQueryKey(user_id);
+  const queryKey = readUserByIdApiV1AuthUsersUserIdGetQueryKey({ path });
   return queryOptions<
-    ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+    ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
     ResponseErrorConfig<
-      | ReadUserByIdApiV1AuthUsersUserIdGet403
-      | ReadUserByIdApiV1AuthUsersUserIdGet422
+      | ReadUserByIdApiV1AuthUsersUserIdGetStatus403
+      | ReadUserByIdApiV1AuthUsersUserIdGetStatus422
     >,
-    ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+    ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
     typeof queryKey
   >({
-    enabled: !!user_id,
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readUserByIdApiV1AuthUsersUserIdGet(user_id, config);
+      return readUserByIdApiV1AuthUsersUserIdGet({
+        ...config,
+        path,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,49 +62,61 @@ export function readUserByIdApiV1AuthUsersUserIdGetQueryOptions(
  * {@link /api/v1/auth/users/:user_id}
  */
 export function useReadUserByIdApiV1AuthUsersUserIdGet<
-  TData = ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
-  TQueryData = ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+  TData = ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
+  TQueryData = ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
   TQueryKey extends QueryKey = ReadUserByIdApiV1AuthUsersUserIdGetQueryKey,
 >(
-  user_id: ReadUserByIdApiV1AuthUsersUserIdGetPathParams["user_id"],
+  {
+    path,
+  }: {
+    path:
+      | ReadUserByIdApiV1AuthUsersUserIdGetOptions["path"]
+      | (() => ReadUserByIdApiV1AuthUsersUserIdGetOptions["path"]);
+  },
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadUserByIdApiV1AuthUsersUserIdGetQueryResponse,
+        ReadUserByIdApiV1AuthUsersUserIdGetStatus200,
         ResponseErrorConfig<
-          | ReadUserByIdApiV1AuthUsersUserIdGet403
-          | ReadUserByIdApiV1AuthUsersUserIdGet422
+          | ReadUserByIdApiV1AuthUsersUserIdGetStatus403
+          | ReadUserByIdApiV1AuthUsersUserIdGetStatus422
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
+  const resolvedParams = { path: typeof path === "function" ? path() : path };
   const queryKey =
-    queryOptions?.queryKey ??
-    readUserByIdApiV1AuthUsersUserIdGetQueryKey(user_id);
+    resolvedOptions?.queryKey ??
+    readUserByIdApiV1AuthUsersUserIdGetQueryKey(resolvedParams);
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
-      ...readUserByIdApiV1AuthUsersUserIdGetQueryOptions(user_id, config),
+      ...readUserByIdApiV1AuthUsersUserIdGetQueryOptions(
+        resolvedParams,
+        config
+      ),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadUserByIdApiV1AuthUsersUserIdGet403
-      | ReadUserByIdApiV1AuthUsersUserIdGet422
+      | ReadUserByIdApiV1AuthUsersUserIdGetStatus403
+      | ReadUserByIdApiV1AuthUsersUserIdGetStatus422
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

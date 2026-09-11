@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponses,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
-
-function getUpdateHrEmploymentApiV1HrEmploymentUserIdPatchUrl(
-  user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/hr/employment/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a user's employment record and approval authority. Supervisor or admin only.
  * @summary Update employment (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */
-export async function updateHrEmploymentApiV1HrEmploymentUserIdPatch(
-  user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"],
-  data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateHrEmploymentApiV1HrEmploymentUserIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
-    >,
-    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateHrEmploymentApiV1HrEmploymentUserIdPatchUrl(
-      user_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/employment/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -8,33 +8,26 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 import { userRoleAssignmentUpdateSchema } from "./userRoleAssignmentUpdateSchema.js";
 
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParamsSchema =
-  z.object({
-    assignment_id: z.string().uuid(),
-  });
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathAssignmentIdSchema =
+  z.uuid();
 
-/**
- * @description Role assignment updated
- */
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200Schema =
-  z.lazy(() => userRoleAssignmentPublicSchema);
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200Schema =
+  userRoleAssignmentPublicSchema;
 
-/**
- * @description Role assignment not found
- */
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404Schema =
-  z.any();
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequestSchema =
-  z.lazy(() => userRoleAssignmentUpdateSchema);
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponseSchema =
+  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200Schema;
 
-export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponseSchema =
-  z.lazy(
-    () => updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch200Schema
-  );
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchErrorSchema =
+  z.union([
+    updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404Schema,
+    updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422Schema,
+  ]);
+
+export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchBodySchema =
+  userRoleAssignmentUpdateSchema;

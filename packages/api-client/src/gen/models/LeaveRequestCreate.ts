@@ -6,36 +6,32 @@
 import type { LeaveType } from "./LeaveType.js";
 import type { ProfAppointmentType } from "./ProfAppointmentType.js";
 
-/**
- * LeaveRequestCreate
- */
 export type LeaveRequestCreate = {
-  /**
-   * @type string
-   */
+  signature_version?: string | null;
   department_id: string;
-  /**
-   * @type string
-   */
   leave_type: LeaveType;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   start_date: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   end_date: string;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   days_requested?: number | string;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   days_with_pay?: number | string;
   /**
-   * @default "0.0"
+   * @default 0.0
    */
   days_without_pay?: number | string;
   professional_appointment_subtype?: ProfAppointmentType | null;
@@ -56,9 +52,6 @@ export type LeaveRequestCreate = {
   requires_acting_appointment?: boolean;
   acting_officer_id?: string | null;
   expected_return_date?: string | null;
-  /**
-   * @type array | undefined
-   */
   co_approver_user_ids?: string[];
   /**
    * @default false

@@ -7,42 +7,37 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { parkingPermitListPublicSchema } from "./parkingPermitListPublicSchema.js";
 
-export const readParkingPermitsApiV1HrParkingPermitsGetQueryParamsSchema =
-  z.object({
-    department_id: z.optional(z.union([z.string(), z.null()])),
-    page: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .default(1)
-      .describe("Page number (1-indexed)"),
-    size: z.coerce
-      .number()
-      .int()
-      .min(1)
-      .max(1000)
-      .default(100)
-      .describe("Items per page"),
-  });
+export const readParkingPermitsApiV1HrParkingPermitsGetQueryDepartmentIdSchema =
+  z.union([z.string(), z.null()]).optional();
 
-/**
- * @description Parking permits returned
- */
-export const readParkingPermitsApiV1HrParkingPermitsGet200Schema = z.lazy(
-  () => parkingPermitListPublicSchema
-);
+export const readParkingPermitsApiV1HrParkingPermitsGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Insufficient permission
- */
-export const readParkingPermitsApiV1HrParkingPermitsGet403Schema = z.any();
+export const readParkingPermitsApiV1HrParkingPermitsGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readParkingPermitsApiV1HrParkingPermitsGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readParkingPermitsApiV1HrParkingPermitsGetStatus200Schema =
+  parkingPermitListPublicSchema;
 
-export const readParkingPermitsApiV1HrParkingPermitsGetQueryResponseSchema =
-  z.lazy(() => readParkingPermitsApiV1HrParkingPermitsGet200Schema);
+export const readParkingPermitsApiV1HrParkingPermitsGetStatus403Schema =
+  z.unknown();
+
+export const readParkingPermitsApiV1HrParkingPermitsGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readParkingPermitsApiV1HrParkingPermitsGetResponseSchema =
+  readParkingPermitsApiV1HrParkingPermitsGetStatus200Schema;
+
+export const readParkingPermitsApiV1HrParkingPermitsGetErrorSchema = z.union([
+  readParkingPermitsApiV1HrParkingPermitsGetStatus403Schema,
+  readParkingPermitsApiV1HrParkingPermitsGetStatus422Schema,
+]);

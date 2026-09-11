@@ -6,6 +6,6 @@
 import * as z from "zod";
 
 export const leavePublicSchema = z.object({
-  balances: z.optional(z.object({}).catchall(z.number().int())),
-  carry_over: z.optional(z.object({}).catchall(z.number().int())),
+  balances: z.object({}).catchall(z.int()).optional(),
+  carry_over: z.object({}).catchall(z.int()).optional(),
 });

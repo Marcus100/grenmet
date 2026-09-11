@@ -37,6 +37,10 @@ class AuthConfig(BaseSettings):
     LOGIN_LOCKOUT_SECONDS: int = 900
     LOGIN_FAILURE_WINDOW_SECONDS: int = 900
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    # bcrypt cost factor. 12 is the modern recommended minimum and is
+    # enforced as a floor outside local; test runs lower it (BCRYPT_ROUNDS=4)
+    # because each hash+verify at cost 12 costs ~440ms, which dominated CI.
+    BCRYPT_ROUNDS: int = 12
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
@@ -84,6 +88,12 @@ class AuthConfig(BaseSettings):
             )
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._validate_secret_strength("SECRET_KEY", self.SECRET_KEY)
+        if self.ENVIRONMENT != "local" and self.BCRYPT_ROUNDS < 12:
+            raise ValueError(
+                f"BCRYPT_ROUNDS must be at least 12 in the {self.ENVIRONMENT} "
+                f"environment (got {self.BCRYPT_ROUNDS}); a lowered cost factor "
+                "is a test-only optimisation."
+            )
         return self
 
 

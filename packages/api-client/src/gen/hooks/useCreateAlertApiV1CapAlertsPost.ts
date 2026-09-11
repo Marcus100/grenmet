@@ -9,43 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createAlertApiV1CapAlertsPost } from "../clients/createAlertApiV1CapAlertsPost.js";
 import type {
-  CreateAlertApiV1CapAlertsPost422,
-  CreateAlertApiV1CapAlertsPostMutationRequest,
-  CreateAlertApiV1CapAlertsPostMutationResponse,
+  CreateAlertApiV1CapAlertsPostOptions,
+  CreateAlertApiV1CapAlertsPostStatus201,
+  CreateAlertApiV1CapAlertsPostStatus422,
 } from "../models/CreateAlertApiV1CapAlertsPost.js";
 
 export const createAlertApiV1CapAlertsPostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts" }] as const;
 
-export type CreateAlertApiV1CapAlertsPostMutationKey = ReturnType<
-  typeof createAlertApiV1CapAlertsPostMutationKey
->;
-
 export function createAlertApiV1CapAlertsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateAlertApiV1CapAlertsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createAlertApiV1CapAlertsPostMutationKey();
   return mutationOptions<
-    CreateAlertApiV1CapAlertsPostMutationResponse,
-    ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-    { data: CreateAlertApiV1CapAlertsPostMutationRequest },
+    CreateAlertApiV1CapAlertsPostStatus201,
+    ResponseErrorConfig<CreateAlertApiV1CapAlertsPostStatus422>,
+    CreateAlertApiV1CapAlertsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createAlertApiV1CapAlertsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createAlertApiV1CapAlertsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -57,14 +52,14 @@ export function createAlertApiV1CapAlertsPostMutationOptions<
 export function useCreateAlertApiV1CapAlertsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateAlertApiV1CapAlertsPostMutationResponse,
-      ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-      { data: CreateAlertApiV1CapAlertsPostMutationRequest },
+      CreateAlertApiV1CapAlertsPostStatus201,
+      ResponseErrorConfig<CreateAlertApiV1CapAlertsPostStatus422>,
+      CreateAlertApiV1CapAlertsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateAlertApiV1CapAlertsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -75,16 +70,16 @@ export function useCreateAlertApiV1CapAlertsPost<TContext>(
   const baseOptions = createAlertApiV1CapAlertsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateAlertApiV1CapAlertsPostMutationResponse,
-    ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-    { data: CreateAlertApiV1CapAlertsPostMutationRequest },
+    CreateAlertApiV1CapAlertsPostStatus201,
+    ResponseErrorConfig<CreateAlertApiV1CapAlertsPostStatus422>,
+    CreateAlertApiV1CapAlertsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateAlertApiV1CapAlertsPostMutationResponse,
-    ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-    { data: CreateAlertApiV1CapAlertsPostMutationRequest },
+    CreateAlertApiV1CapAlertsPostStatus201,
+    ResponseErrorConfig<CreateAlertApiV1CapAlertsPostStatus422>,
+    CreateAlertApiV1CapAlertsPostOptions,
     TContext
   >(
     {
@@ -94,9 +89,9 @@ export function useCreateAlertApiV1CapAlertsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateAlertApiV1CapAlertsPostMutationResponse,
-    ResponseErrorConfig<CreateAlertApiV1CapAlertsPost422>,
-    { data: CreateAlertApiV1CapAlertsPostMutationRequest },
+    CreateAlertApiV1CapAlertsPostStatus201,
+    ResponseErrorConfig<CreateAlertApiV1CapAlertsPostStatus422>,
+    CreateAlertApiV1CapAlertsPostOptions,
     TContext
   >;
 }

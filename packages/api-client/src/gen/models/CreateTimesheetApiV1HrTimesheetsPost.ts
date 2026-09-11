@@ -7,44 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetCreate } from "./TimesheetCreate.js";
 import type { TimesheetDetails } from "./TimesheetDetails.js";
 
-/**
- * @description Timesheet and entries created
- */
-export type CreateTimesheetApiV1HrTimesheetsPost200 = any;
+export type CreateTimesheetApiV1HrTimesheetsPostStatus201 = TimesheetDetails;
 
-/**
- * TimesheetDetails
- * @description Successful Response
- */
-export type CreateTimesheetApiV1HrTimesheetsPost201 = TimesheetDetails;
+export type CreateTimesheetApiV1HrTimesheetsPostStatus403 = unknown;
 
-/**
- * @description Self/proxy submission disabled or not allowed for user
- */
-export type CreateTimesheetApiV1HrTimesheetsPost403 = any;
+export type CreateTimesheetApiV1HrTimesheetsPostStatus422 = HTTPValidationError;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateTimesheetApiV1HrTimesheetsPost422 = HTTPValidationError;
+export type CreateTimesheetApiV1HrTimesheetsPostBody = TimesheetCreate;
 
-/**
- * TimesheetCreate
- */
-export type CreateTimesheetApiV1HrTimesheetsPostMutationRequest =
-  TimesheetCreate;
-
-export type CreateTimesheetApiV1HrTimesheetsPostMutationResponse =
-  | CreateTimesheetApiV1HrTimesheetsPost200
-  | CreateTimesheetApiV1HrTimesheetsPost201;
-
-export type CreateTimesheetApiV1HrTimesheetsPostMutation = {
-  Response:
-    | CreateTimesheetApiV1HrTimesheetsPost200
-    | CreateTimesheetApiV1HrTimesheetsPost201;
-  Request: CreateTimesheetApiV1HrTimesheetsPostMutationRequest;
-  Errors:
-    | CreateTimesheetApiV1HrTimesheetsPost403
-    | CreateTimesheetApiV1HrTimesheetsPost422;
+export type CreateTimesheetApiV1HrTimesheetsPostOptions = {
+  body: CreateTimesheetApiV1HrTimesheetsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateTimesheetApiV1HrTimesheetsPostResponses = {
+  "201": CreateTimesheetApiV1HrTimesheetsPostStatus201;
+  "403": CreateTimesheetApiV1HrTimesheetsPostStatus403;
+  "422": CreateTimesheetApiV1HrTimesheetsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateTimesheetApiV1HrTimesheetsPostResponse =
+  | CreateTimesheetApiV1HrTimesheetsPostStatus201
+  | CreateTimesheetApiV1HrTimesheetsPostStatus403
+  | CreateTimesheetApiV1HrTimesheetsPostStatus422;

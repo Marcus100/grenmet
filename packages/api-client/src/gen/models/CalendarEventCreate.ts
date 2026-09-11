@@ -5,27 +5,26 @@
 
 import type { CalendarEventKind } from "./CalendarEventKind.js";
 
-/**
- * CalendarEventCreate
- */
 export type CalendarEventCreate = {
   department_id?: string | null;
-  /**
-   * @type string
-   */
   title: string;
   description?: string | null;
   /**
    * @description What a department puts on its calendar besides the duty roster.
+   * @default 'MEETING'
    * @type string | undefined
    */
   kind?: CalendarEventKind;
   /**
-   * @type string, date-time
+   * @description
+   * Format: `date-time`
+   * @type string
    */
   starts_at: string;
   /**
-   * @type string, date-time
+   * @description
+   * Format: `date-time`
+   * @type string
    */
   ends_at: string;
   /**

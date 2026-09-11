@@ -8,9 +8,6 @@ import type { EmergencyContactUpdate } from "./EmergencyContactUpdate.js";
 import type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 import type { RosterPreferencesUpdate } from "./RosterPreferencesUpdate.js";
 
-/**
- * UserProfileUpdateMe
- */
 export type UserProfileUpdateMe = {
   profile?: ProfileDetailsUpdate | null;
   address?: AddressUpdate | null;

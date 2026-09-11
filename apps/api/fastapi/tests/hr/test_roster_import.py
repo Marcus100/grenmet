@@ -44,7 +44,11 @@ async def test_roster_csv_validation_detects_invalid_shift(
     await db_async.refresh(user, attribute_names=["roles"])
     user.roles.append(role)
     if not await db_async.get(Department, "dept_csv"):
-        db_async.add(Department(id="dept_csv", name="Dept CSV"))
+        db_async.add(
+            Department(
+                organisation_id="gaa", code="dept_csv", id="dept_csv", name="Dept CSV"
+            )
+        )
     result = await db_async.execute(
         select(ShiftCatalog).where(ShiftCatalog.code == "M")
     )

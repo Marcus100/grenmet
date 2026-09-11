@@ -8,32 +8,27 @@ import { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 import { googleCompleteSchema } from "./googleCompleteSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const googleCompleteApiV1AuthModernGoogleCompletePost200Schema = z.lazy(
-  () => googleChallengePublicSchema
-);
+export const googleCompleteApiV1AuthModernGoogleCompletePostStatus200Schema =
+  googleChallengePublicSchema;
 
-/**
- * @description Invalid or expired proof
- */
-export const googleCompleteApiV1AuthModernGoogleCompletePost400Schema = z.any();
+export const googleCompleteApiV1AuthModernGoogleCompletePostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Account is not eligible
- */
-export const googleCompleteApiV1AuthModernGoogleCompletePost403Schema = z.any();
+export const googleCompleteApiV1AuthModernGoogleCompletePostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const googleCompleteApiV1AuthModernGoogleCompletePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const googleCompleteApiV1AuthModernGoogleCompletePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const googleCompleteApiV1AuthModernGoogleCompletePostMutationRequestSchema =
-  z.lazy(() => googleCompleteSchema);
+export const googleCompleteApiV1AuthModernGoogleCompletePostResponseSchema =
+  googleCompleteApiV1AuthModernGoogleCompletePostStatus200Schema;
 
-export const googleCompleteApiV1AuthModernGoogleCompletePostMutationResponseSchema =
-  z.lazy(() => googleCompleteApiV1AuthModernGoogleCompletePost200Schema);
+export const googleCompleteApiV1AuthModernGoogleCompletePostErrorSchema =
+  z.union([
+    googleCompleteApiV1AuthModernGoogleCompletePostStatus400Schema,
+    googleCompleteApiV1AuthModernGoogleCompletePostStatus403Schema,
+    googleCompleteApiV1AuthModernGoogleCompletePostStatus422Schema,
+  ]);
+
+export const googleCompleteApiV1AuthModernGoogleCompletePostBodySchema =
+  googleCompleteSchema;

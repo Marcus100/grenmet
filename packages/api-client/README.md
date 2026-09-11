@@ -7,7 +7,9 @@ Generated TypeScript API client for the FastAPI backend.
 This package follows a **commit generated code** workflow:
 
 - Generated output in `src/gen` is committed to git.
-- CI regenerates the client and fails when committed artifacts are stale.
+- `pnpm check:drift` and CI regenerate in a temporary directory and compare the complete file set and contents, including added and removed files. Working files are never overwritten.
+- The check uses installed dependencies and the same Kubb configuration, generation command, and Biome configuration as normal generation. Missing inputs or generation failures fail the check.
+- Backend-code-to-OpenAPI verification remains a separate API CI check.
 - Consumers can install and use the package without running code generation.
 
 ## Common commands
@@ -30,3 +32,29 @@ Full client generation flow:
 
 1. Refresh `apps/api/fastapi/openapi.json` with the command above.
 2. Run `pnpm generate:api-client` from repo root.
+
+## Kubb 5 usage
+
+The generator uses the OpenAPI adapter, TypeScript parser, Fetch, React Query, and Zod plugins. Biome formats generated files and Ultracite/Biome checks the workspace; do not use Prettier or edit generated files by hand.
+
+Operations accept grouped request options. Call `unwrap()` when only the successful response body is needed:
+
+```ts
+const users = await readUsersApiV1AuthUsersGet({
+  query: { page: 1, size: 20 },
+}).unwrap();
+
+const mutation = useUpdateUserApiV1AuthUsersUserIdPatch();
+await mutation.mutateAsync({
+  path: { user_id: userId },
+  body: { first_name: "Jane" },
+});
+```
+
+Query hooks accept the same `path`/`query` groups and still return response bodies through TanStack Query. Set `query.enabled` explicitly when a required ID is not available yet; Kubb 5 does not add this guard.
+
+Use `configureApiClient` for the browser's shared base URL and request-time headers. Server requests carrying a user's credentials must use an isolated `createClient` instance passed through the operation's `client` option. Never put server-side bearer tokens into the shared client.
+
+Failed requests throw `ResponseError`, with HTTP status in `error.status` and the API error body in `error.data`. Generated imports use `.js` extensions for Node ESM consumers. Integer fields remain JavaScript numbers.
+
+Run `pnpm --filter @barrelsgd/api-client test` for transport and OpenAPI contract regression checks.

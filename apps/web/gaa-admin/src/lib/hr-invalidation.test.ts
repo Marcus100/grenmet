@@ -37,19 +37,25 @@ describe("invalidateAfterRosterImport", () => {
     expect(keys).toContain(
       JSON.stringify(
         listPeriodsApiV1HrRostersPeriodsGetQueryKey({
-          department_id: "dept_met",
+          query: {
+            department_id: "dept_met",
+          },
         })
       )
     );
     expect(keys).toContain(
       JSON.stringify(
         listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          "dept_met"
+          { path: { department_id: "dept_met" } }
         )
       )
     );
     expect(keys).toContain(
-      JSON.stringify(getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey("p-1"))
+      JSON.stringify(
+        getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+          path: { period_id: "p-1" },
+        })
+      )
     );
     // Every call carries a specific queryKey — no app-wide invalidate.
     for (const call of invalidateQueries.mock.calls) {
@@ -73,22 +79,26 @@ describe("invalidateAfterEmploymentChange", () => {
     });
     const keys = invalidatedKeys(invalidateQueries);
     expect(keys).toContain(
-      JSON.stringify(readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey("u-1"))
+      JSON.stringify(
+        readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey({
+          path: { user_id: "u-1" },
+        })
+      )
     );
     expect(keys).toContain(
-      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey())
+      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey({}))
     );
     expect(keys).toContain(
       JSON.stringify(
         listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          "dept_old"
+          { path: { department_id: "dept_old" } }
         )
       )
     );
     expect(keys).toContain(
       JSON.stringify(
         listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          "dept_new"
+          { path: { department_id: "dept_new" } }
         )
       )
     );
@@ -103,15 +113,15 @@ describe("invalidateAfterUserOnboard", () => {
     await invalidateAfterUserOnboard(client, { departmentId: "dept_met" });
     const keys = invalidatedKeys(invalidateQueries);
     expect(keys).toContain(
-      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey())
+      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey({}))
     );
     expect(keys).toContain(
-      JSON.stringify(readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey())
+      JSON.stringify(readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({}))
     );
     expect(keys).toContain(
       JSON.stringify(
         listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          "dept_met"
+          { path: { department_id: "dept_met" } }
         )
       )
     );

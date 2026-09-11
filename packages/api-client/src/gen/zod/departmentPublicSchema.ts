@@ -6,6 +6,8 @@
 import * as z from "zod";
 
 export const departmentPublicSchema = z.object({
+  organisation_id: z.string(),
+  code: z.string(),
   id: z.string(),
   name: z.string(),
 });

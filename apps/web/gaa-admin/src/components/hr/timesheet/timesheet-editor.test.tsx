@@ -11,7 +11,7 @@ import { TimesheetEditor } from "./timesheet-editor";
 
 const BASE = "http://localhost";
 const ADD_ENTRY = /add entry/i;
-const SUBMIT_TO_HR = /submit to hr/i;
+const SUBMIT_TO_HR = /sign & submit/i;
 
 const PROFILE = {
   id: "u-1",
@@ -23,6 +23,13 @@ const PROFILE = {
 const EMPTY_TIMESHEETS = { data: [], count: 0 };
 
 const server = setupServer(
+  http.get(`${BASE}/api/v1/hr/signature/me`, () =>
+    HttpResponse.json({
+      version: "11111111-1111-4111-8111-111111111111",
+      image_data_url: "data:image/png;base64,aGVsbG8=",
+      updated_at: "2026-09-11T12:00:00Z",
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/profile/me`, () => HttpResponse.json(PROFILE)),
   http.get(`${BASE}/api/v1/hr/timesheets/me`, () =>
     HttpResponse.json(EMPTY_TIMESHEETS)
@@ -88,97 +95,116 @@ describe("TimesheetEditor", () => {
     expect(screen.getAllByText("Meteorology").length).toBeGreaterThanOrEqual(1);
   });
 
-  it.each([
-    false,
-    true,
-  ])("submits the entries and reuses the saved draft on retry (%s)", async (failFirst) => {
-    const posted: unknown[] = [];
-    const submitted: unknown[] = [];
-    server.use(
-      http.post(`${BASE}/api/v1/hr/timesheets`, async ({ request }) => {
-        posted.push(await request.json());
-        return HttpResponse.json(
-          {
-            timesheet: {
-              id: "ts-1",
-              user_id: "u-1",
-              department_id: "dept_met",
-              period_start: "2026-07-01",
-              period_end: "2026-07-01",
-              status: "DRAFT",
-              created_at: "2026-07-04T00:00:00+0000",
-              updated_at: "2026-07-04T00:00:00+0000",
+  it.each([false, true])(
+    "submits the entries and reuses the saved draft on retry (%s)",
+    async (failFirst) => {
+      const posted: unknown[] = [];
+      const submitted: unknown[] = [];
+      server.use(
+        http.post(`${BASE}/api/v1/hr/timesheets`, async ({ request }) => {
+          posted.push(await request.json());
+          return HttpResponse.json(
+            {
+              timesheet: {
+                id: "ts-1",
+                user_id: "u-1",
+                department_id: "dept_met",
+                period_start: "2026-07-01",
+                period_end: "2026-07-01",
+                status: "DRAFT",
+                created_at: "2026-07-04T00:00:00+0000",
+                updated_at: "2026-07-04T00:00:00+0000",
+              },
+              entries: [],
             },
-            entries: [],
-          },
-          { status: 201 }
-        );
-      }),
-      http.patch(
-        `${BASE}/api/v1/hr/timesheets/ts-1/submit`,
-        async ({ request }) => {
-          submitted.push(await request.json());
-          if (failFirst && submitted.length === 1)
-            return HttpResponse.json(
-              { detail: "Temporary submission failure" },
-              { status: 409 }
-            );
-          return HttpResponse.json({
-            id: "ts-1",
-            status: "SUBMITTED",
-            submitted_at: "2026-09-07T02:30:00Z",
-          });
-        }
-      )
-    );
-
-    const user = userEvent.setup();
-    renderEditor();
-
-    await user.click(screen.getByRole("button", { name: ADD_ENTRY }));
-
-    // Pick the 15th of the currently shown month from the DATE calendar.
-    await user.click(screen.getByLabelText("DATE"));
-    const grid = await screen.findByRole("grid");
-    await user.click(within(grid).getByText("15"));
-    const expectedDate = `${format(new Date(), "yyyy-MM")}-15`;
-
-    await user.type(screen.getByLabelText("ROSTER HRS"), "8");
-    await user.type(screen.getByLabelText("ACTUAL HRS"), "7.5");
-    await user.type(screen.getByLabelText("REMARKS"), "Left early");
-
-    await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
-
-    await waitFor(() => {
-      expect(posted).toHaveLength(1);
-    });
-    if (failFirst) {
-      await waitFor(() => expect(submitted).toHaveLength(1));
-      await waitFor(() =>
-        expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeEnabled()
+            { status: 201 }
+          );
+        }),
+        http.patch(
+          `${BASE}/api/v1/hr/timesheets/ts-1/submit`,
+          async ({ request }) => {
+            submitted.push(await request.json());
+            if (failFirst && submitted.length === 1)
+              return HttpResponse.json(
+                { detail: "Temporary submission failure" },
+                { status: 409 }
+              );
+            return HttpResponse.json({
+              id: "ts-1",
+              status: "SUBMITTED",
+              submitted_at: "2026-09-07T02:30:00Z",
+            });
+          }
+        )
       );
+
+      const user = userEvent.setup();
+      renderEditor();
+
+      await user.click(screen.getByRole("button", { name: ADD_ENTRY }));
+
+      // Pick the 15th of the currently shown month from the DATE calendar.
+      await user.click(screen.getByLabelText("DATE"));
+      const grid = await screen.findByRole("grid");
+      await user.click(within(grid).getByText("15"));
+      const expectedDate = `${format(new Date(), "yyyy-MM")}-15`;
+
+      await user.type(screen.getByLabelText("ROSTER HRS"), "8");
+      await user.type(screen.getByLabelText("ACTUAL HRS"), "7.5");
+      await user.type(screen.getByLabelText("REMARKS"), "Left early");
+
       await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
-    }
-    expect((await screen.findAllByText("06 Sept 2026")).length).toBeGreaterThan(
-      0
-    );
-    expect(submitted).toEqual(
-      failFirst ? [{ mode: "SELF" }, { mode: "SELF" }] : [{ mode: "SELF" }]
-    );
-    expect(posted).toHaveLength(1);
-    expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeDisabled();
-    expect(posted[0]).toEqual({
-      department_id: "dept_met",
-      period_start: expectedDate,
-      period_end: expectedDate,
-      entries: [
-        {
-          entry_date: expectedDate,
-          roster_hours: "8",
-          actual_hours: "7.5",
-          comments: "Left early",
-        },
-      ],
-    });
-  }, 20_000);
+
+      await waitFor(() => {
+        expect(posted).toHaveLength(1);
+      });
+      if (failFirst) {
+        await waitFor(() => expect(submitted).toHaveLength(1));
+        await waitFor(() =>
+          expect(
+            screen.getByRole("button", { name: SUBMIT_TO_HR })
+          ).toBeEnabled()
+        );
+        await user.click(screen.getByRole("button", { name: SUBMIT_TO_HR }));
+      }
+      expect(
+        (await screen.findAllByText("06 Sept 2026")).length
+      ).toBeGreaterThan(0);
+      expect(submitted).toEqual(
+        failFirst
+          ? [
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+            ]
+          : [
+              {
+                mode: "SELF",
+                signature_version: "11111111-1111-4111-8111-111111111111",
+              },
+            ]
+      );
+      expect(posted).toHaveLength(1);
+      expect(screen.getByRole("button", { name: SUBMIT_TO_HR })).toBeDisabled();
+      expect(posted[0]).toEqual({
+        department_id: "dept_met",
+        period_start: expectedDate,
+        period_end: expectedDate,
+        entries: [
+          {
+            entry_date: expectedDate,
+            roster_hours: "8",
+            actual_hours: "7.5",
+            comments: "Left early",
+          },
+        ],
+      });
+    },
+    20_000
+  );
 });

@@ -9,35 +9,31 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { twofaSetupApiV12FaSetupPost } from "../clients/twofaSetupApiV12FaSetupPost.js";
-import type { TwofaSetupApiV12FaSetupPostMutationResponse } from "../models/TwofaSetupApiV12FaSetupPost.js";
+import type { TwofaSetupApiV12FaSetupPostStatus200 } from "../models/TwofaSetupApiV12FaSetupPost.js";
 
 export const twofaSetupApiV12FaSetupPostMutationKey = () =>
   [{ url: "/api/v1/2fa/setup" }] as const;
 
-export type TwofaSetupApiV12FaSetupPostMutationKey = ReturnType<
-  typeof twofaSetupApiV12FaSetupPostMutationKey
->;
-
 export function twofaSetupApiV12FaSetupPostMutationOptions<TContext = unknown>(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = twofaSetupApiV12FaSetupPostMutationKey();
   return mutationOptions<
-    TwofaSetupApiV12FaSetupPostMutationResponse,
+    TwofaSetupApiV12FaSetupPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >({
     mutationKey,
-    mutationFn: async () => {
-      return twofaSetupApiV12FaSetupPost(config);
+    mutationFn: async (_) => {
+      return twofaSetupApiV12FaSetupPost({
+        ...config,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -50,12 +46,14 @@ export function twofaSetupApiV12FaSetupPostMutationOptions<TContext = unknown>(
 export function useTwofaSetupApiV12FaSetupPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      TwofaSetupApiV12FaSetupPostMutationResponse,
+      TwofaSetupApiV12FaSetupPostStatus200,
       ResponseErrorConfig<Error>,
-      void,
+      undefined,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -66,16 +64,16 @@ export function useTwofaSetupApiV12FaSetupPost<TContext>(
   const baseOptions = twofaSetupApiV12FaSetupPostMutationOptions(
     config
   ) as UseMutationOptions<
-    TwofaSetupApiV12FaSetupPostMutationResponse,
+    TwofaSetupApiV12FaSetupPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >;
 
   return useMutation<
-    TwofaSetupApiV12FaSetupPostMutationResponse,
+    TwofaSetupApiV12FaSetupPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >(
     {
@@ -85,9 +83,9 @@ export function useTwofaSetupApiV12FaSetupPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    TwofaSetupApiV12FaSetupPostMutationResponse,
+    TwofaSetupApiV12FaSetupPostStatus200,
     ResponseErrorConfig<Error>,
-    void,
+    undefined,
     TContext
   >;
 }

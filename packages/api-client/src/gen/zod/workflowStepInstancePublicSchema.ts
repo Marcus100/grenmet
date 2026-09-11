@@ -8,17 +8,23 @@ import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 import { workflowActionSchema } from "./workflowActionSchema.js";
 
 export const workflowStepInstancePublicSchema = z.object({
-  id: z.string().uuid(),
-  workflow_instance_id: z.string().uuid(),
-  step_order: z.number().int(),
-  required_role_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  required_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  required_scope: z.lazy(() => roleAssignmentScopeSchema),
+  id: z.uuid(),
+  workflow_instance_id: z.uuid(),
+  step_order: z.int(),
+  required_role_id: z.union([z.uuid(), z.null()]).optional(),
+  required_user_id: z.union([z.uuid(), z.null()]).optional(),
+  required_scope: roleAssignmentScopeSchema,
   is_required: z.boolean(),
-  approver_user_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  action: z.optional(z.union([z.lazy(() => workflowActionSchema), z.null()])),
-  comments: z.optional(z.union([z.string(), z.null()])),
-  acted_at: z.optional(z.union([z.string(), z.null()])),
+  scope_enforced: z.boolean().optional().default(true),
+  purpose: z
+    .enum(["APPROVAL", "REVIEW", "RECORDING"])
+    .optional()
+    .default("APPROVAL"),
+  label: z.string().optional().default("Approval"),
+  approver_user_id: z.union([z.uuid(), z.null()]).optional(),
+  action: z.union([workflowActionSchema, z.null()]).optional(),
+  comments: z.union([z.string(), z.null()]).optional(),
+  acted_at: z.union([z.string(), z.null()]).optional(),
   created_at: z.string(),
   updated_at: z.string(),
 });

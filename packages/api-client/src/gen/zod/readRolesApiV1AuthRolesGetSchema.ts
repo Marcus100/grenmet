@@ -7,36 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
 
-export const readRolesApiV1AuthRolesGetQueryParamsSchema = z.object({
-  page: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .default(1)
-    .describe("Page number (1-indexed)"),
-  size: z.coerce
-    .number()
-    .int()
-    .min(1)
-    .max(1000)
-    .default(100)
-    .describe("Items per page"),
-});
+export const readRolesApiV1AuthRolesGetQueryPageSchema = z
+  .int()
+  .min(1)
+  .optional()
+  .default(1)
+  .describe("Page number (1-indexed)");
 
-/**
- * @description Roles returned
- */
-export const readRolesApiV1AuthRolesGet200Schema = z.lazy(
-  () => paginatedResponseRolePublicSchema
-);
+export const readRolesApiV1AuthRolesGetQuerySizeSchema = z
+  .int()
+  .min(1)
+  .max(1000)
+  .optional()
+  .default(100)
+  .describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readRolesApiV1AuthRolesGet422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const readRolesApiV1AuthRolesGetStatus200Schema =
+  paginatedResponseRolePublicSchema;
 
-export const readRolesApiV1AuthRolesGetQueryResponseSchema = z.lazy(
-  () => readRolesApiV1AuthRolesGet200Schema
-);
+export const readRolesApiV1AuthRolesGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readRolesApiV1AuthRolesGetResponseSchema =
+  readRolesApiV1AuthRolesGetStatus200Schema;
+
+export const readRolesApiV1AuthRolesGetErrorSchema =
+  readRolesApiV1AuthRolesGetStatus422Schema;

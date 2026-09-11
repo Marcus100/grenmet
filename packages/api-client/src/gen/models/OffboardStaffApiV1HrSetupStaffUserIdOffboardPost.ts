@@ -6,50 +6,47 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams = {
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * Message
- * @description Successful Response
- */
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPost200 = Message;
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200 = Message;
 
-/**
- * @description Administrator access required
- */
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403 = any;
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404 = any;
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409 = any;
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422 =
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422 =
   HTTPValidationError;
 
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse =
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost200;
-
-export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutation = {
-  Response: OffboardStaffApiV1HrSetupStaffUserIdOffboardPost200;
-  PathParams: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams;
-  Errors:
-    | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-    | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-    | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-    | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422;
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions = {
+  body?: never;
+  path: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPath;
+  query?: never;
+  headers?: never;
 };
+
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponses = {
+  "200": OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200;
+  "403": OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403;
+  "404": OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404;
+  "409": OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409;
+  "422": OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponse =
+  | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200
+  | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403
+  | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404
+  | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409
+  | OffboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422;

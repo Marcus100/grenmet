@@ -3,53 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ImportCsvApiV1HrRostersImportCsvPost400,
-  ImportCsvApiV1HrRostersImportCsvPost403,
-  ImportCsvApiV1HrRostersImportCsvPost422,
-  ImportCsvApiV1HrRostersImportCsvPostMutationRequest,
-  ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
+  ImportCsvApiV1HrRostersImportCsvPostOptions,
+  ImportCsvApiV1HrRostersImportCsvPostResponses,
 } from "../models/ImportCsvApiV1HrRostersImportCsvPost.js";
-
-function getImportCsvApiV1HrRostersImportCsvPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/rosters/import-csv` as const };
-  return res;
-}
 
 /**
  * @description Create roster import job and optionally apply valid rows. Requires roster.import permission.
  * @summary Import roster from CSV
  * {@link /api/v1/hr/rosters/import-csv}
  */
-export async function importCsvApiV1HrRostersImportCsvPost(
-  data: ImportCsvApiV1HrRostersImportCsvPostMutationRequest,
-  config: Partial<
-    RequestConfig<ImportCsvApiV1HrRostersImportCsvPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function importCsvApiV1HrRostersImportCsvPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ImportCsvApiV1HrRostersImportCsvPostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ImportCsvApiV1HrRostersImportCsvPostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ImportCsvApiV1HrRostersImportCsvPostMutationResponse,
-    ResponseErrorConfig<
-      | ImportCsvApiV1HrRostersImportCsvPost400
-      | ImportCsvApiV1HrRostersImportCsvPost403
-      | ImportCsvApiV1HrRostersImportCsvPost422
-    >,
-    ImportCsvApiV1HrRostersImportCsvPostMutationRequest
-  >({
-    method: "POST",
-    url: getImportCsvApiV1HrRostersImportCsvPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/rosters/import-csv",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ImportCsvApiV1HrRostersImportCsvPostResponses, ThrowOnError>
+    >
+  );
 }

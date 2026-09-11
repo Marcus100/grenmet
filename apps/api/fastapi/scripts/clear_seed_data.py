@@ -5,12 +5,14 @@ Usage:
     python scripts/clear_seed_data.py
 """
 
+import argparse
 import logging
 import sys
 
 from sqlmodel import Session, select
 
 from src.auth.models import User
+from src.config import settings
 from src.database import engine
 
 logging.basicConfig(
@@ -21,6 +23,15 @@ logger = logging.getLogger(__name__)
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--apply", action="store_true")
+    args = parser.parse_args()
+    if settings.ENVIRONMENT != "local":
+        parser.error("Demo fixtures and cleanup are restricted to local databases")
+    if not args.apply:
+        print("Preview only; use --apply explicitly in a local database")
+        return
+
     """Clear all seed data (test users)."""
     logger.info("=" * 60)
     logger.info("Clearing seed data...")

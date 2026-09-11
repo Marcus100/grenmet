@@ -82,6 +82,10 @@ Implemented examples:
 | FastAPI `HTTPException` | `{"detail": ...}` |
 | Rate limit exceeded | SlowAPI's 429 response |
 
+The generated FastAPI `ValidationError` schema includes optional `input` and
+`ctx` fields alongside required `loc`, `msg` and `type`. Clients must tolerate
+those optional fields; they do not change application route definitions.
+
 Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
 
 ## Pagination
@@ -144,7 +148,7 @@ All HR routes are under `/api/v1/hr`, require an authenticated session, and are 
 by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
-`absentee-reports`, `status-reports`, `parking-permits`, `workflows`.
+`absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
 
 ### Department calendar
 
@@ -163,6 +167,44 @@ important; the author may edit or cancel their own entry, and changing anyone el
 requires `calendar.manage`. Entries are **cancelled, never deleted** — the calendar is
 a record of what was planned as well as what happened, so cancelled entries are
 omitted from reads unless `include_cancelled=true`.
+
+### Employee documents
+
+The initial release supports contracts, identification, certificates, licences,
+qualifications and signed forms. Medical, disciplinary, appraisal and `OTHER`
+records remain stored but are unavailable through these endpoints, including by
+ID. New uploads in those categories are rejected. Generic form attachment fields
+are retained for compatibility but non-null values are rejected until the
+attachment consumer and its access policy are implemented.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/hr/document-employees` | Paginated, name-searchable employee choices filtered by active document assignments before counting |
+| `POST /api/v1/hr/documents` | `hr.document.create` for self; filing for another employee also requires scoped `hr.document.manage` |
+| `GET /api/v1/hr/documents` | Own documents by default; explicit employee/department filters can only narrow access |
+| `GET /api/v1/hr/documents/{document_id}` | Same category and scope policy as listing |
+| `GET /api/v1/hr/documents/{document_id}/download` | Rechecks access; private, no-store 307 redirect to a 120-second signed URL |
+| `PATCH /api/v1/hr/documents/{document_id}` | Subject who uploaded it, or scoped document manager; metadata only |
+| `POST /api/v1/hr/documents/{document_id}/archive` | Same management check; retains both metadata and stored file |
+
+Department readers see only certification, licence and qualification records of
+other staff. Scoped document managers see all six launch categories. An employee
+can read their own launch-category documents, but can only edit/archive those
+they uploaded. Revoked or expired assignments confer no authority over others;
+flat role membership is insufficient for cross-employee access. An explicit
+department grant can cover a department other than the manager's own.
+
+Lists include `can_upload`; document rows include `can_manage` for UI controls.
+Mutations independently recheck permissions. Uploads use multipart/form-data,
+accept the existing PDF/image/Word/Excel allowlist, cap file bytes at 25 MiB and
+reject empty files or expiry before issue. Titles cannot be blank or null on
+update. Category and file bytes cannot be replaced through PATCH.
+
+These checks enforce the current GAA department model, not organisation
+isolation. See [organisation boundary](../hr/organisation-boundary.md) for the
+separately approved migration prerequisite. Do not enable another organisation
+on the strength of these document checks alone.
+
 
 ### Roster calendar feed
 
@@ -251,3 +293,127 @@ Password recovery uses a hashed, expiring, single-use challenge. Resetting or ch
 `POST /api/v1/auth/modern/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/modern/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
 
 Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account controls. Configure the email provider and Google OAuth callback for the target environment before advertising those flows; application code alone does not configure providers.
+
+### HR creation responses
+
+Creating a leave request, absentee report, daily status report, shift swap, or timesheet returns `201 Created` with its public response model, including when saving a draft. These routes do not advertise a separate untyped `200` response. Kubb generates the corresponding success types from this contract.
+
+### Dependency readiness
+
+`GET /api/v1/utils/ready/` retains its existing response contract but now requires the committed Alembic revision and readable auth/HR tables. Empty operational datasets are valid. Missing schemas, stale revisions and unavailable databases return 503. Liveness remains `/api/v1/utils/health-check/`.
+
+### Private weather images
+
+`GET /api/v1/wxwatch/images/{storage_path}` requires an active authenticated user and returns a private, non-cacheable 307 redirect to a 60-second signed GET URL. Keys are restricted to raster images within the environment-specific bucket’s `wxwatch/` prefix. It never reads or writes another application’s tables. Invalid paths return 400; unconfigured object storage returns 503. The admin’s existing authenticated proxy exchanges the session cookie for a bearer token.
+
+### Authored product grade policies
+
+Under /api/v1/hr, GET /product-access/me returns the current user's allowed
+product kinds. Superusers can GET /setup/product-access and PUT
+/setup/product-access/{kind} with a grade_ids array. Unknown kinds and inactive
+or non-GMS grades return 400; policy writes require administrator access.
+An empty policy permits only superusers. Policies use ingested employment grades,
+are evaluated on each request and are audited. CAP permissions remain independent.
+See [GMS authored products](../operations/gms-products.md) for publication behavior.
+
+
+## GMS onboarding reference data
+
+`GET /api/v1/hr/setup/catalogue?department_id=<id>` previews missing ingested
+GMS grades, safe-default approval policies and standard two-stage HR workflow
+templates. `POST /api/v1/hr/setup/catalogue` accepts `{"department_id":"<id>"}`
+and adds missing records atomically. Both endpoints require an active superuser.
+Recognized existing department IDs are `gms` and `meteorological_department`;
+identity is not inferred from editable names. Conflicting grade identities block
+import with 409. Existing records, disabled grades, staff, role assignments and
+operational data remain unchanged. Repeated imports are no-ops.
+
+New HR/CAP submissions require their approval policy; missing policies return
+409. Staff setup can save partial verified personnel details, but HR workflow
+readiness still requires a staff credential and complete active employment.
+
+
+## GAA governance
+
+Authenticated `GET /api/v1/auth/access/me` returns effective role names, permission keys and the independent superuser flag. `GET /api/v1/hr/organisation` returns the source organisation catalogue without employee identities.
+
+Superuser-only endpoints: `GET`/`POST /api/v1/hr/setup/organisation` preview/apply an additive import; `GET /api/v1/hr/setup/workflows` and `PUT /api/v1/hr/setup/workflows/{template_id}` read/save future workflow configurations; `GET /api/v1/auth/access-reviews` lists scoped and legacy grants plus review history; `POST /api/v1/auth/access-reviews/{assignment_id}` records RETAIN or REVOKE with a reason. Self-review is forbidden. Workflow inbox items expose purpose, label, blocking status and step ID; action requests may identify the exact step so nonblocking recording remains addressable after final approval.
+
+See the [GAA governance launch procedure](../operations/gaa-governance-launch.md) for scope semantics, source uncertainties and preservation guarantees.
+
+
+### HR organisation ownership
+
+`GET /api/v1/hr/organisations` lists the authenticated user's available organisation
+contexts. Employment, department, document and role-assignment responses include
+`organisation_id`; departments also expose their organisation-scoped `code`.
+
+Department lists, employee-document lists and document employee choices accept
+`organisation_id`; document uploads accept it as a multipart field. Omitting it is
+supported only when the caller's context is unique. Explicit inaccessible context
+returns 403; ambiguous omitted context returns 400. Document detail, download,
+metadata correction and archive validate the stored filing organisation.
+
+Role assignment creation accepts an organisation ID or derives ownership from its
+department/employment when unambiguous. Management and listing use active scoped
+`user.manage` grants. `ALL` is organisation-wide; platform superusers remain global.
+An assignment's organisation is immutable, department/org mismatches are rejected,
+and explicit null scope returns 400. Employment derives organisation from its
+department; transfers and supervisors across organisations are rejected.
+
+
+### CAP hazard profiles
+
+Authenticated `/api/v1/cap/hazard-profiles` provides version history (GET),
+`/{key}/versions` creates an immutable DRAFT version (POST, optimistic
+`base_version`), `/{profile_id}/approve` records independent approval (POST),
+and `/{profile_id}/draft` starts an alert draft from an approved subtype/template
+(POST). Reads require `cap.alert.read`; saves require `cap.settings.manage`;
+approval also requires `cap.alert.approve` and a different actor from the author;
+draft creation requires `cap.alert.create`. Conflicting versions return 409.
+
+Profiles contain subtypes, CAP category mappings, per-message-level assessment
+rules, impacts, affected groups, responses, templates, authority names and intended
+channels. Incomplete profiles are savable drafts but cannot be approved. Approved
+versions remain immutable when a newer draft is created. The selected profile
+version is recorded in the resulting alert's `GMS:hazard-profile` parameter.
+Threshold evaluation and transport/channel enforcement are not performed here.
+Creating a draft never publishes it; its assessment remains Unknown.
+
+
+### Employee training history
+
+- `GET /api/v1/hr/training-employees`: organisation-scoped, paginated employee search (`organisation_id`, `search`, `page`, `size`). Includes employees with accessible historical records after department transfers; masks a current department outside the viewer's scope.
+- `GET /api/v1/hr/training-records`: paginated employee history (`organisation_id`, optional `user_id`, `include_archived`, `page`, `size`). Defaults to the current employee. Authorisation precedes counts and pagination; responses include `can_create` and per-record `can_manage`.
+- `POST /api/v1/hr/training-records`: records course/provider text, training end date (`completed_on`), result (`completed`, `attended`, `failed`), optional certificate expiry and notes. Requires an active `hr.training.manage` organisation/department grant. Department is derived from employment, never accepted from the client. Future training end dates and expiry before successful completion are rejected.
+- `POST /api/v1/hr/training-records/{record_id}/archive`: requires management of the filing department and a reason (5–500 characters). Retains the original row, actor and archive timestamp. Repeated archive calls preserve the first reason. Corrections are replacement records, not edits.
+
+Employees read their own history. `hr.training.read.department` allows scoped department reads; `hr.training.manage` also permits reads. SELF grants do not become department access. Expired/revoked assignments confer no authority. HR administrators receive management in the default permission bundles; supervisors and management receive read access. Existing seeding applies these keys to role bundles without creating new scoped assignments.
+
+The single feature is training history, not a course catalogue, competency assessment, skills matrix or reminder system. Certificate files remain in Employee Documents; this record does not grant document access or certify operational competence. Migration `c1d2e3f4a5b6` adds only `hr.training_record`; no workflow enum changes are needed because this is an HR-maintained register rather than an approval request.
+
+
+### HR saved signatures and signed submissions
+
+Authenticated `GET/PUT/DELETE /api/v1/hr/signature/me` reads, replaces or deletes
+only the caller's reusable PNG signature. PNGs are decoded, size/dimension limited,
+checked for blank content, and re-encoded before private database storage.
+
+The six HR form create/submit contracts accept optional `signature_version` as
+explicit consent to apply that version of the caller's saved signature. Draft
+saves never sign. Stale/deleted versions fail the submission transaction. Omission
+preserves legacy unsigned API submissions; gaa-admin requires a signature for its
+Sign & submit action. Proxy submitters sign as themselves, never as the employee.
+
+`GET /api/v1/hr/signed-documents/me` lists the caller's signed/subject records.
+`GET /api/v1/hr/signed-documents/{id}/pdf` returns the original PDF to the signer,
+subject, or an HR document reader scoped over the subject and organisation.
+Authorized HR form responses include `signed_document_id` when a signed copy exists.
+All signature and PDF responses use private, no-store caching. Signed PDFs, signer
+identity, signature version, timestamp, canonical form snapshot and SHA-256 are
+committed with submission and remain unchanged when the saved signature changes.
+
+Signed PDFs are server-rendered submission records, including stored form fields
+and timesheet/status entries; they do not depend on browser print settings or
+editable display-only fields. Existing paper preview layouts remain available for
+unsigned drafts. Signing the submission does not apply signatures for approvers.

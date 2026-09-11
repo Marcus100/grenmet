@@ -7,42 +7,35 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
 import type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 
-/**
- * ShiftCatalogPublic
- * @description Shift type created
- */
-export type CreateShiftApiV1HrRostersShiftsPost201 = ShiftCatalogPublic;
+export type CreateShiftApiV1HrRostersShiftsPostStatus201 = ShiftCatalogPublic;
 
-/**
- * @description A shift with this code exists
- */
-export type CreateShiftApiV1HrRostersShiftsPost400 = any;
+export type CreateShiftApiV1HrRostersShiftsPostStatus400 = unknown;
 
-/**
- * @description Insufficient permission
- */
-export type CreateShiftApiV1HrRostersShiftsPost403 = any;
+export type CreateShiftApiV1HrRostersShiftsPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateShiftApiV1HrRostersShiftsPost422 = HTTPValidationError;
+export type CreateShiftApiV1HrRostersShiftsPostStatus422 = HTTPValidationError;
 
-/**
- * ShiftCatalogCreate
- */
-export type CreateShiftApiV1HrRostersShiftsPostMutationRequest =
-  ShiftCatalogCreate;
+export type CreateShiftApiV1HrRostersShiftsPostBody = ShiftCatalogCreate;
 
-export type CreateShiftApiV1HrRostersShiftsPostMutationResponse =
-  CreateShiftApiV1HrRostersShiftsPost201;
-
-export type CreateShiftApiV1HrRostersShiftsPostMutation = {
-  Response: CreateShiftApiV1HrRostersShiftsPost201;
-  Request: CreateShiftApiV1HrRostersShiftsPostMutationRequest;
-  Errors:
-    | CreateShiftApiV1HrRostersShiftsPost400
-    | CreateShiftApiV1HrRostersShiftsPost403
-    | CreateShiftApiV1HrRostersShiftsPost422;
+export type CreateShiftApiV1HrRostersShiftsPostOptions = {
+  body: CreateShiftApiV1HrRostersShiftsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateShiftApiV1HrRostersShiftsPostResponses = {
+  "201": CreateShiftApiV1HrRostersShiftsPostStatus201;
+  "400": CreateShiftApiV1HrRostersShiftsPostStatus400;
+  "403": CreateShiftApiV1HrRostersShiftsPostStatus403;
+  "422": CreateShiftApiV1HrRostersShiftsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateShiftApiV1HrRostersShiftsPostResponse =
+  | CreateShiftApiV1HrRostersShiftsPostStatus201
+  | CreateShiftApiV1HrRostersShiftsPostStatus400
+  | CreateShiftApiV1HrRostersShiftsPostStatus403
+  | CreateShiftApiV1HrRostersShiftsPostStatus422;

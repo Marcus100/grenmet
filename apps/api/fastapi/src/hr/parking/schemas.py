@@ -4,11 +4,12 @@ from decimal import Decimal
 
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingAction
+from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
 
 
-class ParkingPermitCreate(BaseModel):
+class ParkingPermitCreate(SignatureConsent):
     user_id: uuid.UUID
     department_id: str
     company_name: str | None = None

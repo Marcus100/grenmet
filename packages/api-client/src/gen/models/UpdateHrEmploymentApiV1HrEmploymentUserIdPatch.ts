@@ -7,52 +7,47 @@ import type { EmploymentAdminUpdate } from "./EmploymentAdminUpdate.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserProfilePublic } from "./UserProfilePublic.js";
 
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams = {
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * UserProfilePublic
- * @description Employment updated
- */
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200 =
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200 =
   UserProfilePublic;
 
-/**
- * @description Insufficient permission
- */
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403 = any;
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403 = unknown;
 
-/**
- * @description User or employment record not found
- */
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404 = any;
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422 =
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * EmploymentAdminUpdate
- */
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest =
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchBody =
   EmploymentAdminUpdate;
 
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse =
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200;
-
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutation = {
-  Response: UpdateHrEmploymentApiV1HrEmploymentUserIdPatch200;
-  Request: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-  PathParams: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams;
-  Errors:
-    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-    | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422;
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions = {
+  body: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchBody;
+  path: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponses = {
+  "200": UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200;
+  "403": UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403;
+  "404": UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404;
+  "422": UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchResponse =
+  | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200
+  | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+  | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+  | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422;

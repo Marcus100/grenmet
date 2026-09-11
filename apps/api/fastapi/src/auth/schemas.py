@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from pydantic import EmailStr, Field
 
@@ -234,7 +235,7 @@ class UserRoleAssignmentBase(BaseModel):
 
 
 class UserRoleAssignmentCreate(UserRoleAssignmentBase):
-    pass
+    organisation_id: str | None = None
 
 
 class UserRoleAssignmentUpdate(BaseModel):
@@ -244,6 +245,7 @@ class UserRoleAssignmentUpdate(BaseModel):
 
 
 class UserRoleAssignmentPublic(UserRoleAssignmentBase):
+    organisation_id: str
     id: uuid.UUID
     effective_from: UtcDateTime
     created_at: UtcDateTime
@@ -253,3 +255,43 @@ class UserRoleAssignmentPublic(UserRoleAssignmentBase):
 class UserRoleAssignmentsPublic(BaseModel):
     data: list[UserRoleAssignmentPublic]
     count: int
+
+
+class EffectiveAccess(BaseModel):
+    is_superuser: bool
+    role_names: list[str]
+    permission_keys: list[str]
+
+
+class ReviewInput(BaseModel):
+    decision: Literal["RETAIN", "REVOKE"]
+    reason: str = Field(min_length=5, max_length=1000)
+
+
+class ReviewPublic(BaseModel):
+    id: uuid.UUID
+    assignment_id: uuid.UUID
+    subject_id: uuid.UUID
+    reviewer_id: uuid.UUID
+    decision: str
+    reason: str
+    created_at: UtcDateTime
+
+
+class ReviewAssignment(BaseModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    name: str
+    role: str
+    scope: str
+    department_id: str | None
+    effective_from: UtcDateTime
+    effective_to: UtcDateTime | None
+    is_superuser: bool
+    permissions: list[str]
+
+
+class AccessReviewData(BaseModel):
+    assignments: list[ReviewAssignment]
+    reviews: list[ReviewPublic]
+    superusers: list[str]

@@ -7,30 +7,29 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
-/**
- * Message
- * @description Successful Response
- */
-export type LogoutAllSessionsApiV1LoginSessionLogoutAllPost200 = Message;
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200 = Message;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type LogoutAllSessionsApiV1LoginSessionLogoutAllPost422 =
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422 =
   HTTPValidationError;
 
-/**
- * SessionTokenRequest
- */
-export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest =
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostBody =
   SessionTokenRequest;
 
-export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationResponse =
-  LogoutAllSessionsApiV1LoginSessionLogoutAllPost200;
-
-export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutation = {
-  Response: LogoutAllSessionsApiV1LoginSessionLogoutAllPost200;
-  Request: LogoutAllSessionsApiV1LoginSessionLogoutAllPostMutationRequest;
-  Errors: LogoutAllSessionsApiV1LoginSessionLogoutAllPost422;
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostOptions = {
+  body: LogoutAllSessionsApiV1LoginSessionLogoutAllPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponses = {
+  "200": LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200;
+  "422": LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type LogoutAllSessionsApiV1LoginSessionLogoutAllPostResponse =
+  | LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200
+  | LogoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422;

@@ -6,9 +6,6 @@
 import type { EmploymentStatus } from "./EmploymentStatus.js";
 import type { EmploymentType } from "./EmploymentType.js";
 
-/**
- * EmploymentUpdate
- */
 export type EmploymentUpdate = {
   employee_number?: string | null;
   department_id?: string | null;

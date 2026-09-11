@@ -5,16 +5,7 @@
 
 import type { CalendarEventPublic } from "./CalendarEventPublic.js";
 
-/**
- * CalendarEventsPublic
- */
 export type CalendarEventsPublic = {
-  /**
-   * @type array
-   */
   data: CalendarEventPublic[];
-  /**
-   * @type integer
-   */
   count: number;
 };

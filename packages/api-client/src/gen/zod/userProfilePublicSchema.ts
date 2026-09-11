@@ -16,16 +16,16 @@ import { rosterPreferencesPublicSchema } from "./rosterPreferencesPublicSchema.j
 import { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 
 export const userProfilePublicSchema = z.object({
-  id: z.string().uuid(),
-  identity: z.lazy(() => profileIdentityPublicSchema),
-  profile: z.lazy(() => profileDetailsPublicSchema),
-  address: z.lazy(() => addressPublicSchema),
-  emergency_contact: z.lazy(() => emergencyContactPublicSchema),
-  employment: z.lazy(() => employmentPublicSchema),
-  roles: z.optional(z.array(z.lazy(() => srcHrSchemasRolePublicSchema))),
-  permissions: z.optional(z.array(z.string())),
-  roster_preferences: z.lazy(() => rosterPreferencesPublicSchema),
-  leave: z.lazy(() => leavePublicSchema),
-  approval_authority: z.lazy(() => approvalAuthorityPublicSchema),
-  audit: z.lazy(() => profileAuditPublicSchema),
+  id: z.uuid(),
+  identity: profileIdentityPublicSchema,
+  profile: profileDetailsPublicSchema,
+  address: addressPublicSchema,
+  emergency_contact: emergencyContactPublicSchema,
+  employment: employmentPublicSchema,
+  roles: z.array(srcHrSchemasRolePublicSchema).optional(),
+  permissions: z.array(z.string()).optional(),
+  roster_preferences: rosterPreferencesPublicSchema,
+  leave: leavePublicSchema,
+  approval_authority: approvalAuthorityPublicSchema,
+  audit: profileAuditPublicSchema,
 });

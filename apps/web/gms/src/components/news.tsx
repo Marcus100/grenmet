@@ -1,40 +1,8 @@
 import Image from "next/image";
+import { fetchPublishedContent } from "@/lib/cms";
+import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 
-const posts = [
-  {
-    id: 1,
-    title:
-      "Tropical wave brings heavy showers to southern parishes this weekend",
-    summary:
-      "Wave heights of 6–9 ft are expected through the weekend. The GMS urges mariners to exercise extreme caution and monitor updated bulletins.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1561553543-e4c7b608b98d?auto=format&fit=crop&w=800&q=80",
-    published: "Friday, May 16",
-    href: "#",
-  },
-  {
-    id: 2,
-    title: "Sea state remains rough — small craft advisory in effect",
-    summary:
-      "Wave heights of 6–9 ft are expected through the weekend. The GMS urges mariners to exercise extreme caution and monitor updated bulletins.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=800&q=80",
-    published: "Thursday, May 15",
-    href: "#",
-  },
-  {
-    id: 3,
-    title: "Dry season outlook: warmer and drier conditions ahead for Grenada",
-    summary:
-      "The seasonal forecast indicates below-normal rainfall and above-normal temperatures for the coming months across the tri-island state.",
-    imageUrl:
-      "https://images.unsplash.com/photo-1504370805625-d32c54b16100?auto=format&fit=crop&w=800&q=80",
-    published: "Wednesday, May 14",
-    href: "#",
-  },
-];
-
-function NewsCard({ post }: { post: (typeof posts)[number] }) {
+function NewsCard({ post }: { post: WeatherArticle }) {
   return (
     <a
       className="flex flex-col overflow-clip rounded border border-gm-border bg-background p-px shadow-card"
@@ -56,7 +24,7 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
         <p className="text-body-sm text-gm-text-secondary leading-body-sm">
           {post.summary}
         </p>
-        <p className="text-gm-blue text-label leading-label">
+        <p className="text-gm-blue-ink text-label leading-label">
           Published {post.published}
         </p>
       </div>
@@ -64,10 +32,10 @@ function NewsCard({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-function LeadNewsCard({ post }: { post: (typeof posts)[number] }) {
+function LeadNewsCard({ post }: { post: WeatherArticle }) {
   return (
-    <a className="flex w-175 shrink-0 flex-col" href={post.href}>
-      <div className="relative h-99 w-full overflow-hidden rounded-md bg-gm-surface">
+    <a className="flex w-175 min-w-0 flex-col" href={post.href}>
+      <div className="relative h-80 w-full overflow-hidden rounded-md bg-gm-surface">
         <Image
           alt=""
           className="object-cover"
@@ -91,7 +59,7 @@ function LeadNewsCard({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-function ListNewsRow({ post }: { post: (typeof posts)[number] }) {
+function ListNewsRow({ post }: { post: WeatherArticle }) {
   return (
     <a
       className="flex items-start gap-6 border-gm-border border-t py-6 first:pt-0"
@@ -101,11 +69,16 @@ function ListNewsRow({ post }: { post: (typeof posts)[number] }) {
         <p className="font-bold text-gm-blue text-nav leading-nav">
           {post.title}
         </p>
+        {/* The summary is in the data and the mobile card already shows it;
+            rendering it here fills the column and matches that treatment. */}
+        <p className="text-body-sm text-gm-text-secondary leading-body-sm">
+          {post.summary}
+        </p>
         <p className="font-semibold text-body-sm text-gm-text-muted uppercase leading-body-sm tracking-wide">
           Published {post.published}
         </p>
       </div>
-      <div className="relative h-30.5 w-52 shrink-0 overflow-hidden rounded-md bg-gm-surface">
+      <div className="relative h-30.5 w-40 shrink-0 overflow-hidden rounded-md bg-gm-surface xl:w-52">
         <Image
           alt=""
           className="object-cover"
@@ -118,7 +91,9 @@ function ListNewsRow({ post }: { post: (typeof posts)[number] }) {
   );
 }
 
-export function News() {
+export async function News() {
+  const result = await fetchPublishedContent("article", "news");
+  const posts = result.articles.map(contentToArticle);
   const [lead, ...rest] = posts;
 
   return (
@@ -128,24 +103,32 @@ export function News() {
           Weather news
         </p>
         <a
-          className="font-medium text-body text-gm-blue leading-body"
+          className="font-medium text-body text-gm-blue-ink leading-body"
           href="/news"
         >
           See more
         </a>
       </div>
 
+      {result.status === "unavailable" && (
+        <p role="status">News cannot be retrieved right now.</p>
+      )}
+      {result.status === "ok" && posts.length === 0 && (
+        <p>No published articles are available.</p>
+      )}
       {/* Mobile: stacked equal cards */}
-      <div className="flex flex-col gap-4 lg:hidden">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden [&>*:first-child]:md:col-span-2">
         {posts.map((post) => (
           <NewsCard key={post.id} post={post} />
         ))}
       </div>
 
       {/* Desktop: one lead article beside a list of the rest */}
+      {/* The list column holds a floor so the lead shrinks instead: below
+          about 1200px the rows had no room left for their own text. */}
       <div className="hidden lg:flex lg:items-start lg:gap-10">
         {lead && <LeadNewsCard post={lead} />}
-        <div className="flex flex-1 flex-col">
+        <div className="flex min-w-112 flex-1 flex-col">
           {rest.map((post) => (
             <ListNewsRow key={post.id} post={post} />
           ))}

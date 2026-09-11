@@ -150,6 +150,10 @@ async def read_inbox(session: SessionDep, current_user: CurrentUser) -> Any:
             submitted_at=instance.submitted_at,
             current_step_order=instance.current_step_order,
             step_is_named=step.required_user_id is not None,
+            step_id=step.id,
+            is_required=step.is_required,
+            purpose=step.purpose,
+            label=step.label,
         )
         for instance, step, requester in rows
     ]
@@ -212,6 +216,7 @@ async def take_action(
     action_in: WorkflowActionRequest,
     background_tasks: BackgroundTasks,
 ) -> Any:
+    previous_status = workflow_instance.status
     instance = await service.apply_workflow_action(
         session=session,
         current_user=current_user,
@@ -221,6 +226,7 @@ async def take_action(
     # When this approval was the final one, notify HR admins (fire-and-forget).
     if (
         action_in.action == WorkflowAction.APPROVE
+        and previous_status != WorkflowStatus.APPROVED
         and instance.status == WorkflowStatus.APPROVED
         and email_settings.emails_enabled
     ):

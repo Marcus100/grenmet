@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";
 
-/**
- * @description Successful Response
- */
-export const twofaSetupApiV12FaSetupPost200Schema = z.lazy(
-  () => twoFactorSetupResponseSchema
-);
+export const twofaSetupApiV12FaSetupPostStatus200Schema =
+  twoFactorSetupResponseSchema;
 
-export const twofaSetupApiV12FaSetupPostMutationResponseSchema = z.lazy(
-  () => twofaSetupApiV12FaSetupPost200Schema
-);
+export const twofaSetupApiV12FaSetupPostResponseSchema =
+  twofaSetupApiV12FaSetupPostStatus200Schema;

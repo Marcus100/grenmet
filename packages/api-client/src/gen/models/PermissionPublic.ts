@@ -3,38 +3,22 @@
  * Do not edit manually.
  */
 
-/**
- * PermissionPublic
- */
 export type PermissionPublic = {
   key?: string | null;
-  /**
-   * @type string
-   */
   action: string;
-  /**
-   * @type string
-   */
   entity: string;
-  /**
-   * @type string
-   */
   access: string;
   /**
-   * @default ""
+   * @default ''
    * @type string | undefined
    */
   description?: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

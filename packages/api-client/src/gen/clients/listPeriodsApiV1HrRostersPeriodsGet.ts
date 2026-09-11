@@ -3,47 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ListPeriodsApiV1HrRostersPeriodsGet403,
-  ListPeriodsApiV1HrRostersPeriodsGet422,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
-  ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
+  ListPeriodsApiV1HrRostersPeriodsGetOptions,
+  ListPeriodsApiV1HrRostersPeriodsGetResponses,
 } from "../models/ListPeriodsApiV1HrRostersPeriodsGet.js";
-
-function getListPeriodsApiV1HrRostersPeriodsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/rosters/periods` as const };
-  return res;
-}
 
 /**
  * @description Return roster periods for a department, newest first. Requires roster.view permission.
  * @summary List roster periods
  * {@link /api/v1/hr/rosters/periods}
  */
-export async function listPeriodsApiV1HrRostersPeriodsGet(
-  params: ListPeriodsApiV1HrRostersPeriodsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function listPeriodsApiV1HrRostersPeriodsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ListPeriodsApiV1HrRostersPeriodsGetOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ListPeriodsApiV1HrRostersPeriodsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ListPeriodsApiV1HrRostersPeriodsGetQueryResponse,
-    ResponseErrorConfig<
-      | ListPeriodsApiV1HrRostersPeriodsGet403
-      | ListPeriodsApiV1HrRostersPeriodsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getListPeriodsApiV1HrRostersPeriodsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/rosters/periods",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ListPeriodsApiV1HrRostersPeriodsGetResponses, ThrowOnError>
+    >
+  );
 }

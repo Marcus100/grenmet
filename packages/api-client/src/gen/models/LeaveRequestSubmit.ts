@@ -3,12 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * LeaveRequestSubmit
- */
 export type LeaveRequestSubmit = {
-  /**
-   * @type array | undefined
-   */
+  signature_version?: string | null;
   co_approver_user_ids?: string[];
 };

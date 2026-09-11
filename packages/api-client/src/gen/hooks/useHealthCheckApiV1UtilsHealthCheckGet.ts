@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { healthCheckApiV1UtilsHealthCheckGet } from "../clients/healthCheckApiV1UtilsHealthCheckGet.js";
-import type { HealthCheckApiV1UtilsHealthCheckGetQueryResponse } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
+import type { HealthCheckApiV1UtilsHealthCheckGetStatus200 } from "../models/HealthCheckApiV1UtilsHealthCheckGet.js";
 
 export const healthCheckApiV1UtilsHealthCheckGetQueryKey = () =>
   [{ url: "/api/v1/utils/health-check/" }] as const;
 
-export type HealthCheckApiV1UtilsHealthCheckGetQueryKey = ReturnType<
+type HealthCheckApiV1UtilsHealthCheckGetQueryKey = ReturnType<
   typeof healthCheckApiV1UtilsHealthCheckGetQueryKey
 >;
 
 export function healthCheckApiV1UtilsHealthCheckGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = healthCheckApiV1UtilsHealthCheckGetQueryKey();
   return queryOptions<
-    HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
+    HealthCheckApiV1UtilsHealthCheckGetStatus200,
     ResponseErrorConfig<Error>,
-    HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
+    HealthCheckApiV1UtilsHealthCheckGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return healthCheckApiV1UtilsHealthCheckGet(config);
+      return healthCheckApiV1UtilsHealthCheckGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -52,40 +50,42 @@ export function healthCheckApiV1UtilsHealthCheckGetQueryOptions(
  * {@link /api/v1/utils/health-check/}
  */
 export function useHealthCheckApiV1UtilsHealthCheckGet<
-  TData = HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
-  TQueryData = HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
+  TData = HealthCheckApiV1UtilsHealthCheckGetStatus200,
+  TQueryData = HealthCheckApiV1UtilsHealthCheckGetStatus200,
   TQueryKey extends QueryKey = HealthCheckApiV1UtilsHealthCheckGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        HealthCheckApiV1UtilsHealthCheckGetQueryResponse,
+        HealthCheckApiV1UtilsHealthCheckGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? healthCheckApiV1UtilsHealthCheckGetQueryKey();
+    resolvedOptions?.queryKey ?? healthCheckApiV1UtilsHealthCheckGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...healthCheckApiV1UtilsHealthCheckGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

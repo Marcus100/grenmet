@@ -2,6 +2,7 @@
 
 import {
   type EmploymentStatus,
+  type RoleAssignmentScope,
   type SrcAuthSchemasRolePublic as RolePublic,
   readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
   readUsersApiV1AuthUsersGetQueryKey,
@@ -53,6 +54,9 @@ export function ManageUserDialog({
   const queryClient = useQueryClient();
   const [internalOpen, setInternalOpen] = useState(false);
   const [roleToAdd, setRoleToAdd] = useState("");
+  const [roleScope, setRoleScope] = useState<RoleAssignmentScope>("SELF");
+  const [roleDepartment, setRoleDepartment] = useState("");
+  const [roleExpiry, setRoleExpiry] = useState("");
 
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
@@ -62,7 +66,7 @@ export function ManageUserDialog({
   };
 
   const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
-    { user_id: user.id },
+    { query: { user_id: user.id } },
     { query: { enabled: open } }
   );
   const assignments = assignmentsQuery.data?.data ?? [];
@@ -75,13 +79,16 @@ export function ManageUserDialog({
     useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete();
   const updateUserMutation = useUpdateUserApiV1AuthUsersUserIdPatch();
 
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet({
-    query: { enabled: open },
-  });
+  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet(
+    {},
+    {
+      query: { enabled: open },
+    }
+  );
   const departments = departmentsQuery.data?.data ?? [];
   // 404 (no record yet) is expected — retry:false so it doesn't refetch.
   const employmentQuery = useReadHrEmploymentApiV1HrEmploymentUserIdGet(
-    user.id,
+    { path: { user_id: user.id } },
     {
       query: { enabled: open, retry: false },
     }
@@ -136,7 +143,9 @@ export function ManageUserDialog({
   async function refresh() {
     await queryClient.invalidateQueries({
       queryKey: readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({
-        user_id: user.id,
+        query: {
+          user_id: user.id,
+        },
       }),
     });
   }
@@ -144,27 +153,41 @@ export function ManageUserDialog({
   async function addRole() {
     const role = roles.find((r) => r.name === roleToAdd);
     if (!role) return;
-    await assignMutation.mutateAsync({
-      data: { user_id: user.id, role_id: role.id },
-    });
-    await refresh();
-    setRoleToAdd("");
-    toast.success(`Assigned ${role.name} to ${user.username}`);
+    try {
+      await assignMutation.mutateAsync({
+        body: {
+          user_id: user.id,
+          role_id: role.id,
+          scope: roleScope,
+          department_id: roleScope === "DEPARTMENT" ? roleDepartment : null,
+          effective_to: roleExpiry
+            ? new Date(roleExpiry + "Z").toISOString()
+            : null,
+        },
+      });
+      await refresh();
+      setRoleToAdd("");
+      toast.success(`Assigned ${role.name} to ${user.username}`);
+    } catch {
+      toast.error(
+        "Unable to assign role. Check the scope, department and expiry."
+      );
+    }
   }
 
   async function revoke(assignmentId: string, roleName: string) {
-    await revokeMutation.mutateAsync({ assignment_id: assignmentId });
+    await revokeMutation.mutateAsync({ path: { assignment_id: assignmentId } });
     await refresh();
     toast.success(`Revoked ${roleName} from ${user.username}`);
   }
 
   async function toggleActive() {
     await updateUserMutation.mutateAsync({
-      user_id: user.id,
-      data: { is_active: !user.is_active },
+      path: { user_id: user.id },
+      body: { is_active: !user.is_active },
     });
     await queryClient.invalidateQueries({
-      queryKey: readUsersApiV1AuthUsersGetQueryKey(),
+      queryKey: readUsersApiV1AuthUsersGetQueryKey({}),
     });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`
@@ -179,8 +202,8 @@ export function ManageUserDialog({
     const previousDepartmentId = currentEmployment?.department_id;
     if (currentEmployment) {
       await updateEmploymentMutation.mutateAsync({
-        user_id: user.id,
-        data: {
+        path: { user_id: user.id },
+        body: {
           employment: {
             department_id: emp.department_id,
             employee_number: emp.employee_number.trim() || null,
@@ -195,8 +218,8 @@ export function ManageUserDialog({
         return;
       }
       await createEmploymentMutation.mutateAsync({
-        user_id: user.id,
-        data: {
+        path: { user_id: user.id },
+        body: {
           employee_number: emp.employee_number.trim(),
           department_id: emp.department_id,
           position: emp.position.trim() || null,
@@ -244,7 +267,13 @@ export function ManageUserDialog({
               const role = rolesById.get(assignment.role_id);
               return (
                 <Badge key={assignment.id} variant="secondary">
-                  {role?.name ?? assignment.role_id}
+                  {role?.name ?? assignment.role_id} · {assignment.scope}
+                  {assignment.department_id
+                    ? ` / ${assignment.department_id}`
+                    : ""}
+                  {assignment.effective_to
+                    ? ` · ends ${assignment.effective_to}`
+                    : ""}
                   <button
                     aria-label={`Revoke ${role?.name ?? "role"}`}
                     className="ml-1 rounded-sm hover:text-destructive"
@@ -258,6 +287,51 @@ export function ManageUserDialog({
               );
             })}
           </div>
+          <label className="space-y-1 text-sm" htmlFor="assignment-scope">
+            Assignment scope
+            <NativeSelect
+              aria-label="Assignment scope"
+              id="assignment-scope"
+              onChange={(event) => {
+                const value = event.target.value;
+                if (
+                  value === "SELF" ||
+                  value === "DEPARTMENT" ||
+                  value === "ALL"
+                )
+                  setRoleScope(value);
+              }}
+              value={roleScope}
+            >
+              <option value="SELF">Self</option>
+              <option value="DEPARTMENT">Department</option>
+              <option value="ALL">All departments</option>
+            </NativeSelect>
+          </label>
+          {roleScope === "DEPARTMENT" && (
+            <NativeSelect
+              aria-label="Assignment department"
+              onChange={(event) => setRoleDepartment(event.target.value)}
+              value={roleDepartment}
+            >
+              <option value="">Choose department</option>
+              {departments.map((department) => (
+                <option key={department.id} value={department.id}>
+                  {department.name}
+                </option>
+              ))}
+            </NativeSelect>
+          )}
+          <label className="space-y-1 text-sm" htmlFor="assignment-expiry">
+            Access expires at (UTC, optional)
+            <Input
+              aria-label="Access expiry"
+              id="assignment-expiry"
+              onChange={(event) => setRoleExpiry(event.target.value)}
+              type="datetime-local"
+              value={roleExpiry}
+            />
+          </label>
           <div className="flex items-center gap-2">
             <NativeSelect
               aria-label="Role to assign"
@@ -273,7 +347,11 @@ export function ManageUserDialog({
               ))}
             </NativeSelect>
             <Button
-              disabled={!roleToAdd || assignMutation.isPending}
+              disabled={
+                !roleToAdd ||
+                assignMutation.isPending ||
+                (roleScope === "DEPARTMENT" && !roleDepartment)
+              }
               onClick={addRole}
               size="sm"
               type="button"

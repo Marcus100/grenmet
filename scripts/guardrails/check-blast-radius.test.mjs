@@ -37,7 +37,7 @@ const write = (repository, file, contents = `${file}\n`) => {
 
 const createRepository = (t, files = { "README.md": "initial\n" }) => {
   const repository = mkdtempSync(join(tmpdir(), "grenmet-guardrails-"));
-  t.after(() => rmSync(repository, { recursive: true, force: true }));
+  t.after(() => rmSync(repository, { force: true, recursive: true }));
 
   git(repository, "init", "--quiet", "--initial-branch=main");
   git(repository, "config", "user.email", "guardrails@example.com");
@@ -305,4 +305,55 @@ test("admin routes and Drizzle schemas explain cross-cutting validation", (t) =>
   assert.match(result.stdout, /Drizzle production validation required/);
   assert.match(result.stdout, /web-migrate production service/);
   assert.match(result.stdout, /wxwatch and wxproducts databases/);
+});
+
+const TELEMETRY_MAIN =
+  "from src.utils.router import router as utils_router\nif settings.SENTRY_DSN:\n    sentry_sdk.init(\n        enable_tracing=True,\n    )\n";
+const withTelemetry = (source) =>
+  source
+    .replace(
+      "from src.utils.router import router as utils_router",
+      "from src.telemetry import sentry_options\nfrom src.utils.router import router as utils_router"
+    )
+    .replace("        enable_tracing=True,", "        **sentry_options(),");
+
+test("the exact telemetry-only startup edit passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const { base, repository } = createRepository(t, { [file]: TELEMETRY_MAIN });
+  write(repository, file, withTelemetry(TELEMETRY_MAIN));
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("telemetry plus a route edit still requires contract companions", (t) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const { base, repository } = createRepository(t, { [file]: TELEMETRY_MAIN });
+  write(
+    repository,
+    file,
+    withTelemetry(TELEMETRY_MAIN) + "app.include_router(new_router)\n"
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
+});
+
+test("telemetry does not exempt other router files", (t) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const { base, repository } = createRepository(t, { [file]: TELEMETRY_MAIN });
+  write(repository, file, withTelemetry(TELEMETRY_MAIN));
+  write(
+    repository,
+    "apps/api/fastapi/src/weather/router.py",
+    "router = new_route\n"
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
 });

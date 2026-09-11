@@ -6,43 +6,31 @@
 import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathParamsSchema =
-  z.object({
-    absentee_report_id: z.string().uuid(),
-  });
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathAbsenteeReportIdSchema =
+  z.uuid();
 
-/**
- * @description Absentee report deleted
- */
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204Schema =
-  z.any();
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204Schema =
+  z.unknown();
 
-/**
- * @description Absentee report is not a draft
- */
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete400Schema =
-  z.any();
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to delete this absentee report
- */
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete403Schema =
-  z.any();
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403Schema =
+  z.unknown();
 
-/**
- * @description Absentee report not found
- */
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete404Schema =
-  z.any();
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteMutationResponseSchema =
-  z.lazy(
-    () =>
-      deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete204Schema
-  );
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponseSchema =
+  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204Schema;
+
+export const deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteErrorSchema =
+  z.union([
+    deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400Schema,
+    deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403Schema,
+    deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404Schema,
+    deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422Schema,
+  ]);

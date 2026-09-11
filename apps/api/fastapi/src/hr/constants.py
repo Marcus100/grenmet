@@ -104,3 +104,17 @@ ERROR_CALENDAR_EVENT_NOT_AUTHOR = (
 ERROR_CALENDAR_EVENT_NO_DEPARTMENT = (
     "No department to add a calendar entry to: this account has no employment record"
 )
+
+# --- Employee documents (hr/documents/service.py) ---
+ERROR_DOCUMENT_NOT_FOUND = "Document not found"
+ERROR_DOCUMENT_TYPE_NOT_ALLOWED = (
+    "Files of type {content_type} cannot be stored as HR documents"
+)
+ERROR_DOCUMENT_TOO_LARGE = "A document may be at most {limit_mb} MB"
+ERROR_DOCUMENT_EMPTY_FILE = "The uploaded file is empty"
+ERROR_DOCUMENT_EXPIRY_BEFORE_ISSUE = "expiry_date must be on or after issued_date"
+ERROR_DOCUMENT_FILE_FOR_USER_NOT_ALLOWED = (
+    "Not allowed to file a document for this user"
+)
+ERROR_DOCUMENT_READ_NOT_ALLOWED = "Not allowed to read this document"
+ERROR_DOCUMENT_MANAGE_NOT_ALLOWED = "Not allowed to change or archive this document"

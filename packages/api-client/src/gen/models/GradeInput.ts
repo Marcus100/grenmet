@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GradeInput
- */
 export type GradeInput = {
   /**
    * @minLength 1

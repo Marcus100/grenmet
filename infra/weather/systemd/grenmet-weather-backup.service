@@ -1,0 +1,12 @@
+[Unit]
+Description=Daily off-host weather backup
+After=docker.service network-online.target
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+EnvironmentFile=/etc/grenmet/backup/.env.local
+ExecStart=/usr/bin/python3 /opt/grenmet/scripts/production/weather-backup.py /etc/grenmet/weather-backup.json
+TimeoutStartSec=3h
+UMask=0077

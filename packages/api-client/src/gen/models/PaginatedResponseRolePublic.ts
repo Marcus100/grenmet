@@ -5,17 +5,8 @@
 
 import type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 
-/**
- * PaginatedResponse[RolePublic]
- */
 export type PaginatedResponseRolePublic = {
-  /**
-   * @type array
-   */
   data: SrcAuthSchemasRolePublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

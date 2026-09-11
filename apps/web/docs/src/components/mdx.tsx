@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import { clsx } from "cn";
 import Link from "next/link";
 
 import { Feedback } from "@/components/Feedback";

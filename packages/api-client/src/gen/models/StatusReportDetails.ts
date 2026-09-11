@@ -6,16 +6,7 @@
 import type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 import type { StatusReportPublic } from "./StatusReportPublic.js";
 
-/**
- * StatusReportDetails
- */
 export type StatusReportDetails = {
-  /**
-   * @type object
-   */
   report: StatusReportPublic;
-  /**
-   * @type array
-   */
   entries: StatusReportEntryPublic[];
 };

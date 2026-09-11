@@ -7,36 +7,32 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { UserProfilePublic } from "./UserProfilePublic.js";
 import type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 
-/**
- * UserProfilePublic
- * @description Profile updated
- */
-export type UpdateHrProfileMeApiV1HrProfileMePatch200 = UserProfilePublic;
+export type UpdateHrProfileMeApiV1HrProfileMePatchStatus200 = UserProfilePublic;
 
-/**
- * @description HR profile not found for this user
- */
-export type UpdateHrProfileMeApiV1HrProfileMePatch404 = any;
+export type UpdateHrProfileMeApiV1HrProfileMePatchStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateHrProfileMeApiV1HrProfileMePatch422 = HTTPValidationError;
+export type UpdateHrProfileMeApiV1HrProfileMePatchStatus422 =
+  HTTPValidationError;
 
-/**
- * UserProfileUpdateMe
- */
-export type UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest =
-  UserProfileUpdateMe;
+export type UpdateHrProfileMeApiV1HrProfileMePatchBody = UserProfileUpdateMe;
 
-export type UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse =
-  UpdateHrProfileMeApiV1HrProfileMePatch200;
-
-export type UpdateHrProfileMeApiV1HrProfileMePatchMutation = {
-  Response: UpdateHrProfileMeApiV1HrProfileMePatch200;
-  Request: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest;
-  Errors:
-    | UpdateHrProfileMeApiV1HrProfileMePatch404
-    | UpdateHrProfileMeApiV1HrProfileMePatch422;
+export type UpdateHrProfileMeApiV1HrProfileMePatchOptions = {
+  body: UpdateHrProfileMeApiV1HrProfileMePatchBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateHrProfileMeApiV1HrProfileMePatchResponses = {
+  "200": UpdateHrProfileMeApiV1HrProfileMePatchStatus200;
+  "404": UpdateHrProfileMeApiV1HrProfileMePatchStatus404;
+  "422": UpdateHrProfileMeApiV1HrProfileMePatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateHrProfileMeApiV1HrProfileMePatchResponse =
+  | UpdateHrProfileMeApiV1HrProfileMePatchStatus200
+  | UpdateHrProfileMeApiV1HrProfileMePatchStatus404
+  | UpdateHrProfileMeApiV1HrProfileMePatchStatus422;

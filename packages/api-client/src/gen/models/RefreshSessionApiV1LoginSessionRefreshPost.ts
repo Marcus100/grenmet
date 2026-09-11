@@ -7,30 +7,30 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 import type { SessionTokenRequest } from "./SessionTokenRequest.js";
 
-/**
- * SessionLoginResponse
- * @description Successful Response
- */
-export type RefreshSessionApiV1LoginSessionRefreshPost200 =
+export type RefreshSessionApiV1LoginSessionRefreshPostStatus200 =
   SessionLoginResponse;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type RefreshSessionApiV1LoginSessionRefreshPost422 = HTTPValidationError;
+export type RefreshSessionApiV1LoginSessionRefreshPostStatus422 =
+  HTTPValidationError;
 
-/**
- * SessionTokenRequest
- */
-export type RefreshSessionApiV1LoginSessionRefreshPostMutationRequest =
+export type RefreshSessionApiV1LoginSessionRefreshPostBody =
   SessionTokenRequest;
 
-export type RefreshSessionApiV1LoginSessionRefreshPostMutationResponse =
-  RefreshSessionApiV1LoginSessionRefreshPost200;
-
-export type RefreshSessionApiV1LoginSessionRefreshPostMutation = {
-  Response: RefreshSessionApiV1LoginSessionRefreshPost200;
-  Request: RefreshSessionApiV1LoginSessionRefreshPostMutationRequest;
-  Errors: RefreshSessionApiV1LoginSessionRefreshPost422;
+export type RefreshSessionApiV1LoginSessionRefreshPostOptions = {
+  body: RefreshSessionApiV1LoginSessionRefreshPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type RefreshSessionApiV1LoginSessionRefreshPostResponses = {
+  "200": RefreshSessionApiV1LoginSessionRefreshPostStatus200;
+  "422": RefreshSessionApiV1LoginSessionRefreshPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type RefreshSessionApiV1LoginSessionRefreshPostResponse =
+  | RefreshSessionApiV1LoginSessionRefreshPostStatus200
+  | RefreshSessionApiV1LoginSessionRefreshPostStatus422;

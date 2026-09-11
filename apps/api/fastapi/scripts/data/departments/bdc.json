@@ -1,0 +1,51 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "BDC",
+    "name": "Business Development & Corporate Communications Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 11 (Business Development & Corporate Communications). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Business Development & Communications Manager",
+      "rank": 1,
+      "establishment_band": "Executive Management",
+      "_deck_posts": 1
+    },
+    {
+      "code": "PROPERTIES_CONCESSIONS_MANAGER",
+      "label": "Properties & Concessions Manager",
+      "rank": 2,
+      "establishment_band": "Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "BUSINESS_DEVELOPMENT_OFFICER",
+      "label": "Business Development Officer",
+      "rank": 3,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "PROPERTIES_CONCESSIONS_OFFICER",
+      "label": "Properties & Concessions Officer",
+      "rank": 4,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "EXECUTIVE_LOUNGE_ASSISTANT",
+      "label": "Executive Lounge Assistant",
+      "rank": 5,
+      "establishment_band": "Clerical",
+      "_deck_posts": 4
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

@@ -7,33 +7,23 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const deleteUserApiV1AuthUsersUserIdDeletePathParamsSchema = z.object({
-  user_id: z.string().uuid(),
-});
+export const deleteUserApiV1AuthUsersUserIdDeletePathUserIdSchema = z.uuid();
 
-/**
- * @description User deleted
- */
-export const deleteUserApiV1AuthUsersUserIdDelete200Schema = z.lazy(
-  () => messageSchema
-);
+export const deleteUserApiV1AuthUsersUserIdDeleteStatus200Schema =
+  messageSchema;
 
-/**
- * @description Insufficient privileges or self-deletion
- */
-export const deleteUserApiV1AuthUsersUserIdDelete403Schema = z.any();
+export const deleteUserApiV1AuthUsersUserIdDeleteStatus403Schema = z.unknown();
 
-/**
- * @description User not found
- */
-export const deleteUserApiV1AuthUsersUserIdDelete404Schema = z.any();
+export const deleteUserApiV1AuthUsersUserIdDeleteStatus404Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const deleteUserApiV1AuthUsersUserIdDelete422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const deleteUserApiV1AuthUsersUserIdDeleteStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const deleteUserApiV1AuthUsersUserIdDeleteMutationResponseSchema =
-  z.lazy(() => deleteUserApiV1AuthUsersUserIdDelete200Schema);
+export const deleteUserApiV1AuthUsersUserIdDeleteResponseSchema =
+  deleteUserApiV1AuthUsersUserIdDeleteStatus200Schema;
+
+export const deleteUserApiV1AuthUsersUserIdDeleteErrorSchema = z.union([
+  deleteUserApiV1AuthUsersUserIdDeleteStatus403Schema,
+  deleteUserApiV1AuthUsersUserIdDeleteStatus404Schema,
+  deleteUserApiV1AuthUsersUserIdDeleteStatus422Schema,
+]);

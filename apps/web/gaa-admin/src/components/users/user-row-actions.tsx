@@ -36,11 +36,11 @@ export function UserRowActions({
 
   async function toggleActive() {
     await updateUserMutation.mutateAsync({
-      user_id: user.id,
-      data: { is_active: !user.is_active },
+      path: { user_id: user.id },
+      body: { is_active: !user.is_active },
     });
     await queryClient.invalidateQueries({
-      queryKey: readUsersApiV1AuthUsersGetQueryKey(),
+      queryKey: readUsersApiV1AuthUsersGetQueryKey({}),
     });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`

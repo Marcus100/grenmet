@@ -6,16 +6,7 @@
 import type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
-/**
- * RosterPeriodDetails
- */
 export type RosterPeriodDetails = {
-  /**
-   * @type object
-   */
   period: RosterPeriodPublic;
-  /**
-   * @type array
-   */
   assignments: RosterAssignmentPublic[];
 };

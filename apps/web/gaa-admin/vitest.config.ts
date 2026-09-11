@@ -3,10 +3,30 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    environment: "jsdom",
     globals: true,
-    maxWorkers: 4,
-    setupFiles: ["./src/test/setup.ts"],
+    // Share one worker limit across both projects alongside the other Turbo task.
+    maxWorkers: 2,
+    projects: [
+      {
+        test: {
+          name: "node",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+          exclude: ["src/components/document/use-paper-scale.test.ts"],
+        },
+      },
+      {
+        test: {
+          name: "dom",
+          environment: "jsdom",
+          include: [
+            "src/**/*.test.tsx",
+            "src/components/document/use-paper-scale.test.ts",
+          ],
+          setupFiles: ["./src/test/setup.ts"],
+        },
+      },
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],

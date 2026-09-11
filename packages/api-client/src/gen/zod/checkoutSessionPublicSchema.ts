@@ -7,5 +7,5 @@ import * as z from "zod";
 
 export const checkoutSessionPublicSchema = z.object({
   id: z.string(),
-  url: z.string().url().min(1).max(2083),
+  url: z.url().min(1).max(2083),
 });

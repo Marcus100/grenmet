@@ -8,43 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 import { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 
-export const updateStatusReportApiV1HrStatusReportsReportIdPatchPathParamsSchema =
-  z.object({
-    report_id: z.string().uuid(),
-  });
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchPathReportIdSchema =
+  z.uuid();
 
-/**
- * @description Status report updated
- */
-export const updateStatusReportApiV1HrStatusReportsReportIdPatch200Schema =
-  z.lazy(() => statusReportPublicSchema);
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchStatus200Schema =
+  statusReportPublicSchema;
 
-/**
- * @description Status report is not a draft
- */
-export const updateStatusReportApiV1HrStatusReportsReportIdPatch400Schema =
-  z.any();
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to edit this status report
- */
-export const updateStatusReportApiV1HrStatusReportsReportIdPatch403Schema =
-  z.any();
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description Status report not found
- */
-export const updateStatusReportApiV1HrStatusReportsReportIdPatch404Schema =
-  z.any();
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateStatusReportApiV1HrStatusReportsReportIdPatch422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateStatusReportApiV1HrStatusReportsReportIdPatchMutationRequestSchema =
-  z.lazy(() => statusReportCreateSchema);
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchResponseSchema =
+  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus200Schema;
 
-export const updateStatusReportApiV1HrStatusReportsReportIdPatchMutationResponseSchema =
-  z.lazy(() => updateStatusReportApiV1HrStatusReportsReportIdPatch200Schema);
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchErrorSchema =
+  z.union([
+    updateStatusReportApiV1HrStatusReportsReportIdPatchStatus400Schema,
+    updateStatusReportApiV1HrStatusReportsReportIdPatchStatus403Schema,
+    updateStatusReportApiV1HrStatusReportsReportIdPatchStatus404Schema,
+    updateStatusReportApiV1HrStatusReportsReportIdPatchStatus422Schema,
+  ]);
+
+export const updateStatusReportApiV1HrStatusReportsReportIdPatchBodySchema =
+  statusReportCreateSchema;

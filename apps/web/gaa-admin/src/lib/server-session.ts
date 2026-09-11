@@ -9,6 +9,7 @@ import {
   readSessionCookie as _readSessionCookie,
 } from "@barrelsgd/auth/server";
 import type { NextResponse } from "next/server";
+import { cache } from "react";
 import { getAuthConfig } from "@/lib/auth-config";
 
 export type {
@@ -22,9 +23,9 @@ export function clearSessionCookieOnResponse(response: NextResponse): void {
   _clearSessionCookieOnResponse(getAuthConfig(), response);
 }
 
-export function readSessionCookie(): Promise<string | null> {
-  return _readSessionCookie(getAuthConfig());
-}
+export const readSessionCookie = cache(
+  (): Promise<string | null> => _readSessionCookie(getAuthConfig())
+);
 
 export function authApiFetch<T>(
   path: string,
@@ -33,9 +34,9 @@ export function authApiFetch<T>(
   return _authApiFetch<T>(getAuthConfig(), path, init);
 }
 
-export function exchangeSessionForAccessToken(sessionToken: string) {
-  return _exchangeSessionForAccessToken(getAuthConfig(), sessionToken);
-}
+export const exchangeSessionForAccessToken = cache((sessionToken: string) =>
+  _exchangeSessionForAccessToken(getAuthConfig(), sessionToken)
+);
 
 export function logoutSession(sessionToken: string): Promise<void> {
   return _logoutSession(getAuthConfig(), sessionToken);

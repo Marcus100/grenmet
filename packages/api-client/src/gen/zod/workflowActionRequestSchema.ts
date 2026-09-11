@@ -7,6 +7,7 @@ import * as z from "zod";
 import { workflowActionSchema } from "./workflowActionSchema.js";
 
 export const workflowActionRequestSchema = z.object({
-  action: z.lazy(() => workflowActionSchema),
-  comments: z.optional(z.union([z.string(), z.null()])),
+  step_id: z.union([z.uuid(), z.null()]).optional(),
+  action: workflowActionSchema,
+  comments: z.union([z.string().max(1000), z.null()]).optional(),
 });

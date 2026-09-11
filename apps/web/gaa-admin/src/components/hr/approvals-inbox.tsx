@@ -55,12 +55,16 @@ export function ApprovalsInbox() {
 
   const items = inboxQuery.data?.data ?? [];
 
-  async function act(instanceId: string, action: WorkflowAction) {
+  async function act(
+    instanceId: string,
+    action: WorkflowAction,
+    stepId?: string | null
+  ) {
     setPendingId(instanceId);
     try {
       await actionMutation.mutateAsync({
-        instance_id: instanceId,
-        data: { action },
+        path: { instance_id: instanceId },
+        body: { action, step_id: stepId },
       });
       await queryClient.invalidateQueries({
         queryKey: readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey(),
@@ -88,6 +92,11 @@ export function ApprovalsInbox() {
     );
   }
 
+  if (inboxQuery.isError)
+    return (
+      <p role="alert">Unable to load your workflow tasks. Refresh to retry.</p>
+    );
+
   if (items.length === 0) {
     return (
       <div className="rounded-xl border bg-card p-6 text-center text-muted-foreground text-sm">
@@ -112,7 +121,7 @@ export function ApprovalsInbox() {
           {items.map((item) => {
             const busy = pendingId === item.instance_id;
             return (
-              <TableRow key={item.instance_id}>
+              <TableRow key={item.step_id ?? item.instance_id}>
                 <TableCell className="font-medium">
                   {WORKFLOW_TYPE_LABELS[item.workflow_type] ??
                     item.workflow_type}
@@ -121,34 +130,48 @@ export function ApprovalsInbox() {
                 <TableCell>{formatDate(item.submitted_at)}</TableCell>
                 <TableCell>
                   <Badge variant={item.step_is_named ? "secondary" : "outline"}>
-                    {item.step_is_named ? "Co-approver" : "Approver"}
+                    {item.purpose === "RECORDING"
+                      ? "Recording"
+                      : (item.label ??
+                        (item.step_is_named ? "Co-approver" : "Approver"))}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <div className="flex justify-end gap-2">
+                    {item.purpose !== "RECORDING" &&
+                      item.is_required !== false && (
+                        <>
+                          <Button
+                            disabled={busy}
+                            onClick={() =>
+                              act(item.instance_id, "RETURN", item.step_id)
+                            }
+                            size="sm"
+                            type="button"
+                            variant="ghost"
+                          >
+                            <CornerUpLeft data-icon="inline-start" />
+                            Return
+                          </Button>
+                          <Button
+                            disabled={busy}
+                            onClick={() =>
+                              act(item.instance_id, "REJECT", item.step_id)
+                            }
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                          >
+                            <X data-icon="inline-start" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
                     <Button
                       disabled={busy}
-                      onClick={() => act(item.instance_id, "RETURN")}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      <CornerUpLeft data-icon="inline-start" />
-                      Return
-                    </Button>
-                    <Button
-                      disabled={busy}
-                      onClick={() => act(item.instance_id, "REJECT")}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      <X data-icon="inline-start" />
-                      Reject
-                    </Button>
-                    <Button
-                      disabled={busy}
-                      onClick={() => act(item.instance_id, "APPROVE")}
+                      onClick={() =>
+                        act(item.instance_id, "APPROVE", item.step_id)
+                      }
                       size="sm"
                       type="button"
                     >
@@ -157,7 +180,11 @@ export function ApprovalsInbox() {
                       ) : (
                         <Check data-icon="inline-start" />
                       )}
-                      Approve
+                      {item.purpose === "RECORDING"
+                        ? "Mark recorded"
+                        : item.purpose === "REVIEW"
+                          ? "Complete review"
+                          : "Approve"}
                     </Button>
                   </div>
                 </TableCell>

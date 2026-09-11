@@ -8,6 +8,8 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
+import { OrganisationChart } from "@/components/hr/setup/organisation-chart";
+import { CatalogueSetup } from "./catalogue-setup";
 import {
   approveRegistration,
   offboardStaff,
@@ -197,9 +199,21 @@ function StaffEditor({
             name="mailbox_ready"
             type="checkbox"
           />
-          Mailbox is ready for verification
+          Account enabled — unchecking disables sign-in and ends sessions
         </label>
-        <Button disabled={busy || staff.status === "inactive"} type="submit">
+        <p className="text-muted-foreground text-sm md:col-span-2">
+          Save the details you have verified. HR requests require an employee
+          number, employment type, and start date. Blank personnel fields
+          preserve existing values.
+        </p>
+        <Button
+          disabled={
+            busy ||
+            staff.status === "inactive" ||
+            !grades.some((grade) => grade.is_active)
+          }
+          type="submit"
+        >
           {busy ? "Saving…" : "Save staff setup"}
         </Button>
       </form>
@@ -484,6 +498,26 @@ export function StaffSetupManager() {
         </Link>
         .
       </p>
+      <OrganisationChart staff={staff} />
+      <CatalogueSetup onSaved={load} />
+      {grades.length === 0 && (
+        <p role="alert">
+          No grades are configured. Preview and import the missing reference
+          data above before assigning staff.
+        </p>
+      )}
+      {grades.length > 0 && !grades.some((grade) => grade.is_active) && (
+        <p role="alert">
+          All grades are inactive. An administrator must review grade activation
+          before assigning staff.
+        </p>
+      )}
+      {policies.length === 0 && (
+        <p role="alert">
+          Approval policies are missing. New HR and CAP submissions are blocked
+          until policies are configured.
+        </p>
+      )}
       <div className="space-y-3">
         {staff.map((person) => (
           <StaffEditor

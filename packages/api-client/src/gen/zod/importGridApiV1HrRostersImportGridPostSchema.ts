@@ -8,37 +8,30 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { rosterGridImportRequestSchema } from "./rosterGridImportRequestSchema.js";
 import { rosterGridImportResultSchema } from "./rosterGridImportResultSchema.js";
 
-/**
- * @description Roster imported
- */
-export const importGridApiV1HrRostersImportGridPost200Schema = z.lazy(
-  () => rosterGridImportResultSchema
-);
+export const importGridApiV1HrRostersImportGridPostStatus200Schema =
+  rosterGridImportResultSchema;
 
-/**
- * @description Grid has unmatched names or invalid codes
- */
-export const importGridApiV1HrRostersImportGridPost400Schema = z.any();
+export const importGridApiV1HrRostersImportGridPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const importGridApiV1HrRostersImportGridPost403Schema = z.any();
+export const importGridApiV1HrRostersImportGridPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Department not found
- */
-export const importGridApiV1HrRostersImportGridPost404Schema = z.any();
+export const importGridApiV1HrRostersImportGridPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const importGridApiV1HrRostersImportGridPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const importGridApiV1HrRostersImportGridPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const importGridApiV1HrRostersImportGridPostMutationRequestSchema =
-  z.lazy(() => rosterGridImportRequestSchema);
+export const importGridApiV1HrRostersImportGridPostResponseSchema =
+  importGridApiV1HrRostersImportGridPostStatus200Schema;
 
-export const importGridApiV1HrRostersImportGridPostMutationResponseSchema =
-  z.lazy(() => importGridApiV1HrRostersImportGridPost200Schema);
+export const importGridApiV1HrRostersImportGridPostErrorSchema = z.union([
+  importGridApiV1HrRostersImportGridPostStatus400Schema,
+  importGridApiV1HrRostersImportGridPostStatus403Schema,
+  importGridApiV1HrRostersImportGridPostStatus404Schema,
+  importGridApiV1HrRostersImportGridPostStatus422Schema,
+]);
+
+export const importGridApiV1HrRostersImportGridPostBodySchema =
+  rosterGridImportRequestSchema;

@@ -9,51 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { importGridApiV1HrRostersImportGridPost } from "../clients/importGridApiV1HrRostersImportGridPost.js";
 import type {
-  ImportGridApiV1HrRostersImportGridPost400,
-  ImportGridApiV1HrRostersImportGridPost403,
-  ImportGridApiV1HrRostersImportGridPost404,
-  ImportGridApiV1HrRostersImportGridPost422,
-  ImportGridApiV1HrRostersImportGridPostMutationRequest,
-  ImportGridApiV1HrRostersImportGridPostMutationResponse,
+  ImportGridApiV1HrRostersImportGridPostOptions,
+  ImportGridApiV1HrRostersImportGridPostStatus200,
+  ImportGridApiV1HrRostersImportGridPostStatus400,
+  ImportGridApiV1HrRostersImportGridPostStatus403,
+  ImportGridApiV1HrRostersImportGridPostStatus404,
+  ImportGridApiV1HrRostersImportGridPostStatus422,
 } from "../models/ImportGridApiV1HrRostersImportGridPost.js";
 
 export const importGridApiV1HrRostersImportGridPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/import-grid" }] as const;
 
-export type ImportGridApiV1HrRostersImportGridPostMutationKey = ReturnType<
-  typeof importGridApiV1HrRostersImportGridPostMutationKey
->;
-
 export function importGridApiV1HrRostersImportGridPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<ImportGridApiV1HrRostersImportGridPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = importGridApiV1HrRostersImportGridPostMutationKey();
   return mutationOptions<
-    ImportGridApiV1HrRostersImportGridPostMutationResponse,
+    ImportGridApiV1HrRostersImportGridPostStatus200,
     ResponseErrorConfig<
-      | ImportGridApiV1HrRostersImportGridPost400
-      | ImportGridApiV1HrRostersImportGridPost403
-      | ImportGridApiV1HrRostersImportGridPost404
-      | ImportGridApiV1HrRostersImportGridPost422
+      | ImportGridApiV1HrRostersImportGridPostStatus400
+      | ImportGridApiV1HrRostersImportGridPostStatus403
+      | ImportGridApiV1HrRostersImportGridPostStatus404
+      | ImportGridApiV1HrRostersImportGridPostStatus422
     >,
-    { data: ImportGridApiV1HrRostersImportGridPostMutationRequest },
+    ImportGridApiV1HrRostersImportGridPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return importGridApiV1HrRostersImportGridPost(data, config);
+    mutationFn: async ({ body }) => {
+      return importGridApiV1HrRostersImportGridPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -66,19 +61,19 @@ export function importGridApiV1HrRostersImportGridPostMutationOptions<
 export function useImportGridApiV1HrRostersImportGridPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ImportGridApiV1HrRostersImportGridPostMutationResponse,
+      ImportGridApiV1HrRostersImportGridPostStatus200,
       ResponseErrorConfig<
-        | ImportGridApiV1HrRostersImportGridPost400
-        | ImportGridApiV1HrRostersImportGridPost403
-        | ImportGridApiV1HrRostersImportGridPost404
-        | ImportGridApiV1HrRostersImportGridPost422
+        | ImportGridApiV1HrRostersImportGridPostStatus400
+        | ImportGridApiV1HrRostersImportGridPostStatus403
+        | ImportGridApiV1HrRostersImportGridPostStatus404
+        | ImportGridApiV1HrRostersImportGridPostStatus422
       >,
-      { data: ImportGridApiV1HrRostersImportGridPostMutationRequest },
+      ImportGridApiV1HrRostersImportGridPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<ImportGridApiV1HrRostersImportGridPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -90,26 +85,26 @@ export function useImportGridApiV1HrRostersImportGridPost<TContext>(
   const baseOptions = importGridApiV1HrRostersImportGridPostMutationOptions(
     config
   ) as UseMutationOptions<
-    ImportGridApiV1HrRostersImportGridPostMutationResponse,
+    ImportGridApiV1HrRostersImportGridPostStatus200,
     ResponseErrorConfig<
-      | ImportGridApiV1HrRostersImportGridPost400
-      | ImportGridApiV1HrRostersImportGridPost403
-      | ImportGridApiV1HrRostersImportGridPost404
-      | ImportGridApiV1HrRostersImportGridPost422
+      | ImportGridApiV1HrRostersImportGridPostStatus400
+      | ImportGridApiV1HrRostersImportGridPostStatus403
+      | ImportGridApiV1HrRostersImportGridPostStatus404
+      | ImportGridApiV1HrRostersImportGridPostStatus422
     >,
-    { data: ImportGridApiV1HrRostersImportGridPostMutationRequest },
+    ImportGridApiV1HrRostersImportGridPostOptions,
     TContext
   >;
 
   return useMutation<
-    ImportGridApiV1HrRostersImportGridPostMutationResponse,
+    ImportGridApiV1HrRostersImportGridPostStatus200,
     ResponseErrorConfig<
-      | ImportGridApiV1HrRostersImportGridPost400
-      | ImportGridApiV1HrRostersImportGridPost403
-      | ImportGridApiV1HrRostersImportGridPost404
-      | ImportGridApiV1HrRostersImportGridPost422
+      | ImportGridApiV1HrRostersImportGridPostStatus400
+      | ImportGridApiV1HrRostersImportGridPostStatus403
+      | ImportGridApiV1HrRostersImportGridPostStatus404
+      | ImportGridApiV1HrRostersImportGridPostStatus422
     >,
-    { data: ImportGridApiV1HrRostersImportGridPostMutationRequest },
+    ImportGridApiV1HrRostersImportGridPostOptions,
     TContext
   >(
     {
@@ -119,14 +114,14 @@ export function useImportGridApiV1HrRostersImportGridPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ImportGridApiV1HrRostersImportGridPostMutationResponse,
+    ImportGridApiV1HrRostersImportGridPostStatus200,
     ResponseErrorConfig<
-      | ImportGridApiV1HrRostersImportGridPost400
-      | ImportGridApiV1HrRostersImportGridPost403
-      | ImportGridApiV1HrRostersImportGridPost404
-      | ImportGridApiV1HrRostersImportGridPost422
+      | ImportGridApiV1HrRostersImportGridPostStatus400
+      | ImportGridApiV1HrRostersImportGridPostStatus403
+      | ImportGridApiV1HrRostersImportGridPostStatus404
+      | ImportGridApiV1HrRostersImportGridPostStatus422
     >,
-    { data: ImportGridApiV1HrRostersImportGridPostMutationRequest },
+    ImportGridApiV1HrRostersImportGridPostOptions,
     TContext
   >;
 }

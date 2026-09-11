@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetListPublic } from "./TimesheetListPublic.js";
 
-export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams = {
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
@@ -24,23 +24,27 @@ export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams = {
   size?: number;
 };
 
-/**
- * TimesheetListPublic
- * @description Timesheets returned
- */
-export type ReadMyTimesheetsApiV1HrTimesheetsMeGet200 = TimesheetListPublic;
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus200 =
+  TimesheetListPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadMyTimesheetsApiV1HrTimesheetsMeGet422 = HTTPValidationError;
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus422 =
+  HTTPValidationError;
 
-export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryResponse =
-  ReadMyTimesheetsApiV1HrTimesheetsMeGet200;
-
-export type ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery = {
-  Response: ReadMyTimesheetsApiV1HrTimesheetsMeGet200;
-  QueryParams: ReadMyTimesheetsApiV1HrTimesheetsMeGetQueryParams;
-  Errors: ReadMyTimesheetsApiV1HrTimesheetsMeGet422;
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadMyTimesheetsApiV1HrTimesheetsMeGetQuery;
+  headers?: never;
 };
+
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetResponses = {
+  "200": ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus200;
+  "422": ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadMyTimesheetsApiV1HrTimesheetsMeGetResponse =
+  | ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus200
+  | ReadMyTimesheetsApiV1HrTimesheetsMeGetStatus422;

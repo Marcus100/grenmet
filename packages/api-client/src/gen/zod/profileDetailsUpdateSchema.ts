@@ -8,12 +8,12 @@ import { genderSchema } from "./genderSchema.js";
 import { titleSchema } from "./titleSchema.js";
 
 export const profileDetailsUpdateSchema = z.object({
-  title: z.optional(z.union([z.lazy(() => titleSchema), z.null()])),
-  first_name: z.optional(z.union([z.string(), z.null()])),
-  middle_name: z.optional(z.union([z.string(), z.null()])),
-  last_name: z.optional(z.union([z.string(), z.null()])),
-  date_of_birth: z.optional(z.union([z.string().date(), z.null()])),
-  nationality: z.optional(z.union([z.string(), z.null()])),
-  gender: z.optional(z.union([z.lazy(() => genderSchema), z.null()])),
-  phone: z.optional(z.union([z.string(), z.null()])),
+  title: z.union([titleSchema, z.null()]).optional(),
+  first_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  middle_name: z.union([z.string().max(100), z.null()]).optional(),
+  last_name: z.union([z.string().min(1).max(100), z.null()]).optional(),
+  date_of_birth: z.union([z.iso.date(), z.null()]).optional(),
+  nationality: z.union([z.string().max(100), z.null()]).optional(),
+  gender: z.union([genderSchema, z.null()]).optional(),
+  phone: z.union([z.string().max(30), z.null()]).optional(),
 });

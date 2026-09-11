@@ -9,9 +9,6 @@ import type { CapReferenceCreate } from "./CapReferenceCreate.js";
 import type { CapScope } from "./CapScope.js";
 import type { CapStatus } from "./CapStatus.js";
 
-/**
- * CapAlertUpdate
- */
 export type CapAlertUpdate = {
   identifier?: string | null;
   sender?: string | null;

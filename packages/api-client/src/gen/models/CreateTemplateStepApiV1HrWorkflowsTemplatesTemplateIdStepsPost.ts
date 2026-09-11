@@ -7,65 +7,57 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { WorkflowStepTemplateCreate } from "./WorkflowStepTemplateCreate.js";
 import type { WorkflowStepTemplatePublic } from "./WorkflowStepTemplatePublic.js";
 
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams =
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     template_id: string;
   };
 
-/**
- * @description Step created
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200 =
-  any;
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200 =
+  unknown;
 
-/**
- * WorkflowStepTemplatePublic
- * @description Successful Response
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201 =
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201 =
   WorkflowStepTemplatePublic;
 
-/**
- * @description Insufficient permission
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403 =
-  any;
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403 =
+  unknown;
 
-/**
- * @description Workflow template not found
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404 =
-  any;
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422 =
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422 =
   HTTPValidationError;
 
-/**
- * WorkflowStepTemplateCreate
- */
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest =
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostBody =
   WorkflowStepTemplateCreate;
 
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse =
-  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200
-  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201;
-
-export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutation =
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions =
   {
-    Response:
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost200
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost201;
-    Request: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest;
-    PathParams: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams;
-    Errors:
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422;
+    body: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostBody;
+    path: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPath;
+    query?: never;
+    headers?: never;
   };
+
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponses =
+  {
+    "200": CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200;
+    "201": CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201;
+    "403": CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403;
+    "404": CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404;
+    "422": CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponse =
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404
+  | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422;

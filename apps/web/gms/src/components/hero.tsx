@@ -1,9 +1,14 @@
+/**
+ * Headline and decorative waves for the brand surface. The surface itself —
+ * background, radius and padding — belongs to the weather layout, so the
+ * forecast panel sits *on* the colour rather than overlapping a separate band.
+ */
 export function Hero() {
   return (
-    <div className="relative overflow-hidden bg-gm-blue px-10 pt-18 pb-38">
+    <>
       <svg
         aria-hidden="true"
-        className="absolute inset-0 block h-full w-full"
+        className="pointer-events-none absolute inset-0 block h-full w-full"
         preserveAspectRatio="none"
         viewBox="0 0 1440 420"
       >
@@ -19,9 +24,11 @@ export function Hero() {
           <path d="M-60 240C140 180 280 60 520 66s400 160 660 110 300-140 340-160" />
         </g>
       </svg>
-      <h1 className="relative font-bold text-gm-text-inverse text-heading-lg leading-heading-lg tracking-tight">
+      {/* heading-md, not heading-lg: the temperature is the page's largest
+          element, and the slogan should not compete with it. */}
+      <h1 className="relative font-bold text-gm-text-inverse text-heading-md leading-heading-md tracking-tight">
         Your spice weather
       </h1>
-    </div>
+    </>
   );
 }

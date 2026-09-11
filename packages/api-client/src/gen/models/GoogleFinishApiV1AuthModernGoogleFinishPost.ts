@@ -7,44 +7,37 @@ import type { GoogleFinish } from "./GoogleFinish.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { SessionLoginResponse } from "./SessionLoginResponse.js";
 
-/**
- * SessionLoginResponse
- * @description Successful Response
- */
-export type GoogleFinishApiV1AuthModernGoogleFinishPost200 =
+export type GoogleFinishApiV1AuthModernGoogleFinishPostStatus200 =
   SessionLoginResponse;
 
-/**
- * @description Invalid or expired proof
- */
-export type GoogleFinishApiV1AuthModernGoogleFinishPost400 = any;
+export type GoogleFinishApiV1AuthModernGoogleFinishPostStatus400 = unknown;
 
-/**
- * @description Account is not eligible
- */
-export type GoogleFinishApiV1AuthModernGoogleFinishPost403 = any;
+export type GoogleFinishApiV1AuthModernGoogleFinishPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type GoogleFinishApiV1AuthModernGoogleFinishPost422 =
+export type GoogleFinishApiV1AuthModernGoogleFinishPostStatus422 =
   HTTPValidationError;
 
-/**
- * GoogleFinish
- */
-export type GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest =
-  GoogleFinish;
+export type GoogleFinishApiV1AuthModernGoogleFinishPostBody = GoogleFinish;
 
-export type GoogleFinishApiV1AuthModernGoogleFinishPostMutationResponse =
-  GoogleFinishApiV1AuthModernGoogleFinishPost200;
-
-export type GoogleFinishApiV1AuthModernGoogleFinishPostMutation = {
-  Response: GoogleFinishApiV1AuthModernGoogleFinishPost200;
-  Request: GoogleFinishApiV1AuthModernGoogleFinishPostMutationRequest;
-  Errors:
-    | GoogleFinishApiV1AuthModernGoogleFinishPost400
-    | GoogleFinishApiV1AuthModernGoogleFinishPost403
-    | GoogleFinishApiV1AuthModernGoogleFinishPost422;
+export type GoogleFinishApiV1AuthModernGoogleFinishPostOptions = {
+  body: GoogleFinishApiV1AuthModernGoogleFinishPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type GoogleFinishApiV1AuthModernGoogleFinishPostResponses = {
+  "200": GoogleFinishApiV1AuthModernGoogleFinishPostStatus200;
+  "400": GoogleFinishApiV1AuthModernGoogleFinishPostStatus400;
+  "403": GoogleFinishApiV1AuthModernGoogleFinishPostStatus403;
+  "422": GoogleFinishApiV1AuthModernGoogleFinishPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type GoogleFinishApiV1AuthModernGoogleFinishPostResponse =
+  | GoogleFinishApiV1AuthModernGoogleFinishPostStatus200
+  | GoogleFinishApiV1AuthModernGoogleFinishPostStatus400
+  | GoogleFinishApiV1AuthModernGoogleFinishPostStatus403
+  | GoogleFinishApiV1AuthModernGoogleFinishPostStatus422;

@@ -9,39 +9,38 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { deleteFeedApiV1CapFeedsFeedIdDelete } from "../clients/deleteFeedApiV1CapFeedsFeedIdDelete.js";
 import type {
-  DeleteFeedApiV1CapFeedsFeedIdDelete422,
-  DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-  DeleteFeedApiV1CapFeedsFeedIdDeletePathParams,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+  DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422,
 } from "../models/DeleteFeedApiV1CapFeedsFeedIdDelete.js";
 
 export const deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey = () =>
   [{ url: "/api/v1/cap/feeds/:feed_id" }] as const;
 
-export type DeleteFeedApiV1CapFeedsFeedIdDeleteMutationKey = ReturnType<
-  typeof deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey
->;
-
 export function deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey = deleteFeedApiV1CapFeedsFeedIdDeleteMutationKey();
   return mutationOptions<
-    DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDelete422>,
-    { feed_id: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams["feed_id"] },
+    DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422>,
+    DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ feed_id }) => {
-      return deleteFeedApiV1CapFeedsFeedIdDelete(feed_id, config);
+    mutationFn: async ({ path }) => {
+      return deleteFeedApiV1CapFeedsFeedIdDelete({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -53,12 +52,14 @@ export function deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions<
 export function useDeleteFeedApiV1CapFeedsFeedIdDelete<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-      ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDelete422>,
-      { feed_id: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams["feed_id"] },
+      DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+      ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422>,
+      DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -70,16 +71,16 @@ export function useDeleteFeedApiV1CapFeedsFeedIdDelete<TContext>(
   const baseOptions = deleteFeedApiV1CapFeedsFeedIdDeleteMutationOptions(
     config
   ) as UseMutationOptions<
-    DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDelete422>,
-    { feed_id: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams["feed_id"] },
+    DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422>,
+    DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
     TContext
   >;
 
   return useMutation<
-    DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDelete422>,
-    { feed_id: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams["feed_id"] },
+    DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422>,
+    DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
     TContext
   >(
     {
@@ -89,9 +90,9 @@ export function useDeleteFeedApiV1CapFeedsFeedIdDelete<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    DeleteFeedApiV1CapFeedsFeedIdDeleteMutationResponse,
-    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDelete422>,
-    { feed_id: DeleteFeedApiV1CapFeedsFeedIdDeletePathParams["feed_id"] },
+    DeleteFeedApiV1CapFeedsFeedIdDeleteStatus204,
+    ResponseErrorConfig<DeleteFeedApiV1CapFeedsFeedIdDeleteStatus422>,
+    DeleteFeedApiV1CapFeedsFeedIdDeleteOptions,
     TContext
   >;
 }

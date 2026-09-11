@@ -9,57 +9,46 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateHrEmploymentApiV1HrEmploymentUserIdPatch } from "../clients/updateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 import type {
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
-  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404,
+  UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422,
 } from "../models/UpdateHrEmploymentApiV1HrEmploymentUserIdPatch.js";
 
 export const updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey = () =>
   [{ url: "/api/v1/hr/employment/:user_id" }] as const;
 
-export type UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey =
-  ReturnType<typeof updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey>;
-
 export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationKey();
   return mutationOptions<
-    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
-      data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-    },
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ user_id, data }) => {
-      return updateHrEmploymentApiV1HrEmploymentUserIdPatch(
-        user_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateHrEmploymentApiV1HrEmploymentUserIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -72,21 +61,18 @@ export function updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions<
 export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422
       >,
-      {
-        user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
-        data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-      },
+      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -99,30 +85,24 @@ export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
     updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+        | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422
       >,
-      {
-        user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
-        data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-      },
+      UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
-      data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-    },
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
     TContext
   >(
     {
@@ -132,16 +112,13 @@ export function useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponse,
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch403
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch404
-      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatch422
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404
+      | UpdateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422
     >,
-    {
-      user_id: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchPathParams["user_id"];
-      data: UpdateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequest;
-    },
+    UpdateHrEmploymentApiV1HrEmploymentUserIdPatchOptions,
     TContext
   >;
 }

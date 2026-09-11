@@ -5,9 +5,6 @@
 
 import * as z from "zod";
 
-/**
- * @description What a department puts on its calendar besides the duty roster.
- */
 export const calendarEventKindSchema = z
   .enum([
     "MEETING",

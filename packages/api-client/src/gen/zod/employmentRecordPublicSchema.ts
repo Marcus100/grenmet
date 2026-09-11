@@ -8,16 +8,15 @@ import { employmentStatusSchema } from "./employmentStatusSchema.js";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const employmentRecordPublicSchema = z.object({
-  id: z.string().uuid(),
-  user_id: z.string().uuid(),
-  employee_number: z.optional(z.union([z.string(), z.null()])),
+  organisation_id: z.string(),
+  id: z.uuid(),
+  user_id: z.uuid(),
+  employee_number: z.union([z.string(), z.null()]).optional(),
   department_id: z.string(),
-  position: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(
-    z.union([z.lazy(() => employmentTypeSchema), z.null()])
-  ),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  work_location: z.optional(z.union([z.string(), z.null()])),
-  status: z.lazy(() => employmentStatusSchema),
+  position: z.union([z.string(), z.null()]).optional(),
+  employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
+  work_location: z.union([z.string(), z.null()]).optional(),
+  status: employmentStatusSchema,
 });

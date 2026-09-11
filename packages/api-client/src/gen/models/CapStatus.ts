@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capStatusCapStatusEnum = {
+export const capStatus = {
   Actual: "Actual",
   Exercise: "Exercise",
   System: "System",
@@ -11,10 +11,4 @@ export const capStatusCapStatusEnum = {
   Draft: "Draft",
 } as const;
 
-export type CapStatusCapStatusEnumKey =
-  (typeof capStatusCapStatusEnum)[keyof typeof capStatusCapStatusEnum];
-
-/**
- * CapStatus
- */
-export type CapStatus = CapStatusCapStatusEnumKey;
+export type CapStatus = (typeof capStatus)[keyof typeof capStatus];

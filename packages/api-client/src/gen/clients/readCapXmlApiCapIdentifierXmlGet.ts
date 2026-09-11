@@ -3,43 +3,33 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadCapXmlApiCapIdentifierXmlGet422,
-  ReadCapXmlApiCapIdentifierXmlGetPathParams,
-  ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
+  ReadCapXmlApiCapIdentifierXmlGetOptions,
+  ReadCapXmlApiCapIdentifierXmlGetResponses,
 } from "../models/ReadCapXmlApiCapIdentifierXmlGet.js";
-
-function getReadCapXmlApiCapIdentifierXmlGetUrl(
-  identifier: ReadCapXmlApiCapIdentifierXmlGetPathParams["identifier"]
-) {
-  const res = { method: "GET", url: `/api/cap/${identifier}.xml` as const };
-  return res;
-}
 
 /**
  * @summary Read Cap Xml
  * {@link /api/cap/:identifier.xml}
  */
-export async function readCapXmlApiCapIdentifierXmlGet(
-  identifier: ReadCapXmlApiCapIdentifierXmlGetPathParams["identifier"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readCapXmlApiCapIdentifierXmlGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadCapXmlApiCapIdentifierXmlGetOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<ReadCapXmlApiCapIdentifierXmlGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadCapXmlApiCapIdentifierXmlGetQueryResponse,
-    ResponseErrorConfig<ReadCapXmlApiCapIdentifierXmlGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadCapXmlApiCapIdentifierXmlGetUrl(identifier).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/cap/{identifier}.xml",
+      ...config,
+    }) as Promise<
+      RequestResult<ReadCapXmlApiCapIdentifierXmlGetResponses, ThrowOnError>
+    >
+  );
 }

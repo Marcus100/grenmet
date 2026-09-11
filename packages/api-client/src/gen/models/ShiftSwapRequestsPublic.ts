@@ -5,17 +5,8 @@
 
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 
-/**
- * ShiftSwapRequestsPublic
- */
 export type ShiftSwapRequestsPublic = {
-  /**
-   * @type array
-   */
   data: ShiftSwapRequestPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

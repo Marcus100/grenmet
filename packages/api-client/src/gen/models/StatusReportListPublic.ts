@@ -5,17 +5,8 @@
 
 import type { StatusReportPublic } from "./StatusReportPublic.js";
 
-/**
- * StatusReportListPublic
- */
 export type StatusReportListPublic = {
-  /**
-   * @type array
-   */
   data: StatusReportPublic[];
-  /**
-   * @type integer
-   */
   count: number;
   /**
    * @default 1

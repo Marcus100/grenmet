@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-export const capScopeCapScopeEnum = {
+export const capScope = {
   Public: "Public",
   Restricted: "Restricted",
   Private: "Private",
 } as const;
 
-export type CapScopeCapScopeEnumKey =
-  (typeof capScopeCapScopeEnum)[keyof typeof capScopeCapScopeEnum];
-
-/**
- * CapScope
- */
-export type CapScope = CapScopeCapScopeEnumKey;
+export type CapScope = (typeof capScope)[keyof typeof capScope];

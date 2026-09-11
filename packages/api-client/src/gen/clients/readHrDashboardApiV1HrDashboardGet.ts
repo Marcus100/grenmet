@@ -3,44 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadHrDashboardApiV1HrDashboardGet401,
-  ReadHrDashboardApiV1HrDashboardGet403,
-  ReadHrDashboardApiV1HrDashboardGetQueryResponse,
+  ReadHrDashboardApiV1HrDashboardGetOptions,
+  ReadHrDashboardApiV1HrDashboardGetResponses,
 } from "../models/ReadHrDashboardApiV1HrDashboardGet.js";
-
-function getReadHrDashboardApiV1HrDashboardGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/dashboard` as const };
-  return res;
-}
 
 /**
  * @description Read personal requests and recorded vacation balance, published department roster and actionable approvals. Missing balances remain null.
  * @summary Read the live HR dashboard
  * {@link /api/v1/hr/dashboard}
  */
-export async function readHrDashboardApiV1HrDashboardGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readHrDashboardApiV1HrDashboardGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<ReadHrDashboardApiV1HrDashboardGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadHrDashboardApiV1HrDashboardGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadHrDashboardApiV1HrDashboardGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadHrDashboardApiV1HrDashboardGet401
-      | ReadHrDashboardApiV1HrDashboardGet403
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadHrDashboardApiV1HrDashboardGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/dashboard",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadHrDashboardApiV1HrDashboardGetResponses, ThrowOnError>
+    >
+  );
 }

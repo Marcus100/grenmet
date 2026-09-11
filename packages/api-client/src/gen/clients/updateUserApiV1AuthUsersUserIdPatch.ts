@@ -3,62 +3,35 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateUserApiV1AuthUsersUserIdPatch403,
-  UpdateUserApiV1AuthUsersUserIdPatch404,
-  UpdateUserApiV1AuthUsersUserIdPatch409,
-  UpdateUserApiV1AuthUsersUserIdPatch422,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-  UpdateUserApiV1AuthUsersUserIdPatchPathParams,
+  UpdateUserApiV1AuthUsersUserIdPatchOptions,
+  UpdateUserApiV1AuthUsersUserIdPatchResponses,
 } from "../models/UpdateUserApiV1AuthUsersUserIdPatch.js";
-
-function getUpdateUserApiV1AuthUsersUserIdPatchUrl(
-  user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"]
-) {
-  const res = {
-    method: "PATCH",
-    url: `/api/v1/auth/users/${user_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
-export async function updateUserApiV1AuthUsersUserIdPatch(
-  user_id: UpdateUserApiV1AuthUsersUserIdPatchPathParams["user_id"],
-  data: UpdateUserApiV1AuthUsersUserIdPatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateUserApiV1AuthUsersUserIdPatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateUserApiV1AuthUsersUserIdPatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateUserApiV1AuthUsersUserIdPatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateUserApiV1AuthUsersUserIdPatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateUserApiV1AuthUsersUserIdPatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateUserApiV1AuthUsersUserIdPatch403
-      | UpdateUserApiV1AuthUsersUserIdPatch404
-      | UpdateUserApiV1AuthUsersUserIdPatch409
-      | UpdateUserApiV1AuthUsersUserIdPatch422
-    >,
-    UpdateUserApiV1AuthUsersUserIdPatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateUserApiV1AuthUsersUserIdPatchUrl(user_id).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/auth/users/{user_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<UpdateUserApiV1AuthUsersUserIdPatchResponses, ThrowOnError>
+    >
+  );
 }

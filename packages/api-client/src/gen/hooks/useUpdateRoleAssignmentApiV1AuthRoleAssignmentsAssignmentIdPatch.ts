@@ -9,63 +9,50 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch } from "../clients/updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 import type {
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
-  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404,
+  UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422,
 } from "../models/UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch.js";
 
 export const updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationKey =
   () => [{ url: "/api/v1/auth/role-assignments/:assignment_id" }] as const;
 
-export type UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationKey =
-  ReturnType<
-    typeof updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationKey
-  >;
-
 export function updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationKey();
   return mutationOptions<
-    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422
     >,
-    {
-      assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"];
-      data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-    },
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ assignment_id, data }) => {
-      return updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch(
-        assignment_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
 
 /**
- * @description Update a user-role assignment (superuser only).
+ * @description Update a user-role assignment (within active user.manage scope).
  * @summary Update role assignment
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */
@@ -74,20 +61,17 @@ export function useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch
 >(
   options: {
     mutation?: UseMutationOptions<
-      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
+      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
+        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422
       >,
-      {
-        assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"];
-        data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-      },
+      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -100,28 +84,22 @@ export function useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch
     updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
+      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
       ResponseErrorConfig<
-        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
+        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+        | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422
       >,
-      {
-        assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"];
-        data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-      },
+      UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422
     >,
-    {
-      assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"];
-      data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-    },
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
     TContext
   >(
     {
@@ -131,15 +109,12 @@ export function useUpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch
     },
     queryClient
   ) as UseMutationResult<
-    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationResponse,
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200,
     ResponseErrorConfig<
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch404
-      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatch422
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404
+      | UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422
     >,
-    {
-      assignment_id: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathParams["assignment_id"];
-      data: UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchMutationRequest;
-    },
+    UpdateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchOptions,
     TContext
   >;
 }

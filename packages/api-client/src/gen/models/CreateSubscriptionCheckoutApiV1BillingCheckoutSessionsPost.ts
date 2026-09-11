@@ -5,36 +5,39 @@
 
 import type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
 
-/**
- * CheckoutSessionPublic
- * @description Checkout Session created
- */
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201 =
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201 =
   CheckoutSessionPublic;
 
-/**
- * @description Authentication required
- */
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401 = any;
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401 =
+  unknown;
 
-/**
- * @description Stripe request failed
- */
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502 = any;
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502 =
+  unknown;
 
-/**
- * @description Billing is not configured
- */
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503 = any;
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503 =
+  unknown;
 
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutationResponse =
-  CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201;
-
-export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostMutation =
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostOptions =
   {
-    Response: CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost201;
-    Errors:
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost401
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost502
-      | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPost503;
+    body?: never;
+    path?: never;
+    query?: never;
+    headers?: never;
   };
+
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponses =
+  {
+    "201": CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201;
+    "401": CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401;
+    "502": CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502;
+    "503": CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponse =
+  | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201
+  | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401
+  | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502
+  | CreateSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503;

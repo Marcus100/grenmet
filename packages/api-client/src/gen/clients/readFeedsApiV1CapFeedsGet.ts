@@ -3,36 +3,32 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadFeedsApiV1CapFeedsGetQueryResponse } from "../models/ReadFeedsApiV1CapFeedsGet.js";
-
-function getReadFeedsApiV1CapFeedsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/feeds` as const };
-  return res;
-}
+  ReadFeedsApiV1CapFeedsGetOptions,
+  ReadFeedsApiV1CapFeedsGetResponses,
+} from "../models/ReadFeedsApiV1CapFeedsGet.js";
 
 /**
  * @summary Read Feeds
  * {@link /api/v1/cap/feeds}
  */
-export async function readFeedsApiV1CapFeedsGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readFeedsApiV1CapFeedsGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadFeedsApiV1CapFeedsGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadFeedsApiV1CapFeedsGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadFeedsApiV1CapFeedsGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadFeedsApiV1CapFeedsGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/feeds",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadFeedsApiV1CapFeedsGetResponses, ThrowOnError>
+    >
+  );
 }

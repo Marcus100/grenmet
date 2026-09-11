@@ -7,63 +7,57 @@ import type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 import type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams =
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPath =
   {
     /**
-     * @type string, uuid
+     * @description
+     * Format: `uuid`
+     * @type string
      */
     absentee_report_id: string;
   };
 
-/**
- * AbsenteeReportPublic
- * @description Absentee report submitted
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200 =
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200 =
   AbsenteeReportPublic;
 
-/**
- * @description Absentee report is not a draft
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400 =
-  any;
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to submit this absentee report
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403 =
-  any;
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403 =
+  unknown;
 
-/**
- * @description Absentee report not found
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404 =
-  any;
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422 =
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422 =
   HTTPValidationError;
 
-/**
- * AbsenteeReportSubmit
- */
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest =
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBody =
   AbsenteeReportSubmit;
 
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationResponse =
-  SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200;
-
-export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutation =
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostOptions =
   {
-    Response: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost200;
-    Request: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationRequest;
-    PathParams: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathParams;
-    Errors:
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost400
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost403
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost404
-      | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost422;
+    body: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBody;
+    path: SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPath;
+    query?: never;
+    headers?: never;
   };
+
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponses =
+  {
+    "200": SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200;
+    "400": SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400;
+    "403": SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403;
+    "404": SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404;
+    "422": SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422;
+  };
+
+/**
+ * @description Union of all possible responses
+ */
+export type SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponse =
+  | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200
+  | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400
+  | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403
+  | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404
+  | SubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422;

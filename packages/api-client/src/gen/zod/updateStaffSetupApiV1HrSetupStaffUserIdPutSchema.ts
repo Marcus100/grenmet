@@ -8,42 +8,33 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { staffInputSchema } from "./staffInputSchema.js";
 
-export const updateStaffSetupApiV1HrSetupStaffUserIdPutPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const updateStaffSetupApiV1HrSetupStaffUserIdPut200Schema = z.lazy(
-  () => messageSchema
-);
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutStatus200Schema =
+  messageSchema;
 
-/**
- * @description Administrator access required
- */
-export const updateStaffSetupApiV1HrSetupStaffUserIdPut403Schema = z.any();
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const updateStaffSetupApiV1HrSetupStaffUserIdPut404Schema = z.any();
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const updateStaffSetupApiV1HrSetupStaffUserIdPut409Schema = z.any();
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateStaffSetupApiV1HrSetupStaffUserIdPut422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequestSchema =
-  z.lazy(() => staffInputSchema);
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutResponseSchema =
+  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus200Schema;
 
-export const updateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponseSchema =
-  z.lazy(() => updateStaffSetupApiV1HrSetupStaffUserIdPut200Schema);
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutErrorSchema = z.union([
+  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus403Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus404Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus409Schema,
+  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus422Schema,
+]);
+
+export const updateStaffSetupApiV1HrSetupStaffUserIdPutBodySchema =
+  staffInputSchema;

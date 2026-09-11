@@ -46,3 +46,51 @@ Google requires `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI
 Email verification requires working outbound mail and a reachable auth frontend. Do not mark an address verified merely because it appears in a roster. Before launch, verify both administrator addresses and enroll their authenticators; new staff should activate only when their mailbox is ready. Provider delivery and live Google sign-in require external credentials and end-to-end verification; tests do not establish that these services are configured.
 
 The Digital ID remains independent of account email and personnel number. Rewards, loyalty and gamification are future extensions; no points, rewards balances or QR verification claims are seeded.
+
+
+## Repeatable onboarding startup and repair
+
+Treat schema migration, reference data and staff onboarding as separate steps.
+No schema migration is required for the catalogue repair; it uses existing tables.
+
+1. Provision the environment's empty databases and distinct runtime/migration
+   credentials. Apply the committed Alembic and admin/CMS migrations using the
+   existing deployment runner. Do not copy a developer database into staging or
+   production.
+2. For a genuinely fresh API database, run `python scripts/initial_data.py` under
+   its runtime configuration as an explicit operator action. This initializes
+   the configured initial administrator and permission/role catalogue. Supply a
+   unique administrator password through the environment secret; do not ship a
+   seed password. Review existing account conflicts before any staff import.
+3. For a new GMS installation create the department with permanent ID `gms`
+   using `POST /api/v1/hr/departments`; the current dashboard derives IDs from
+   names, so use the API to set this explicit ID. Retain an existing
+   `meteorological_department`; do not create a duplicate `gms` department.
+4. In HR Setup > Staff baseline > Reference data setup, select the department,
+   preview missing records, resolve conflicts, then import. The six grade
+   definitions are derived from `scripts/gms-roster/profiles/gms.json`; a test
+   enforces equality with the packaged runtime catalogue. Existing edits and
+   deliberately disabled records are preserved. The import creates safe-default
+   policies and missing two-stage templates, but grants no staff roles.
+5. Complete staff membership, verified personnel fields, email/account approval,
+   department-scoped approver assignments and audited opening leave balances.
+   Verify an ordinary allowed and denied account; superuser tests are insufficient.
+6. Run `python scripts/check_onboarding.py --require-complete` for reference-data
+   acceptance. Prestart runs the same diagnostic without the strict flag so a
+   fresh installation remains accessible for setup. This is separate from HTTP
+   and schema readiness and does not certify available approvers or live providers.
+
+Local development may use explicit demo fixtures only in local/test databases.
+Dev CI uses isolated test databases. Staging uses reviewed reference data and
+labelled acceptance records. Production uses its own secrets, reviewed personnel
+and actual opening balances. Do not seed demo transactions, publications or
+shared passwords during deployment. Retain backups and test restoration before
+production acceptance; compatible-image rollback preserves additive data.
+
+The old staff baseline importer preserves its completion marker and is not a
+repair command. It now resolves an existing known GMS department before creating
+one and refuses ambiguous duplicate identities. Use reference-data repair for
+partial existing installations. No automatic staff import runs on branch pushes.
+
+References: [Alembic data migration guidance](https://alembic.sqlalchemy.org/en/latest/cookbook.html#data-migrations-general-techniques)
+and [GitHub deployment environment controls](https://docs.github.com/en/actions/concepts/workflows-and-actions/deployment-environments).

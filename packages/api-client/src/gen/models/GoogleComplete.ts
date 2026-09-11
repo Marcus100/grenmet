@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * GoogleComplete
- */
 export type GoogleComplete = {
   /**
    * @pattern ^[a-f0-9]{64}$

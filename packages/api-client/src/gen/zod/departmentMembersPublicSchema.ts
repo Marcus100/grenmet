@@ -7,6 +7,6 @@ import * as z from "zod";
 import { departmentMemberPublicSchema } from "./departmentMemberPublicSchema.js";
 
 export const departmentMembersPublicSchema = z.object({
-  data: z.array(z.lazy(() => departmentMemberPublicSchema)),
-  count: z.number().int(),
+  data: z.array(departmentMemberPublicSchema),
+  count: z.int(),
 });

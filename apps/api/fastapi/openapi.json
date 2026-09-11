@@ -1511,7 +1511,7 @@
           "role-assignments"
         ],
         "summary": "List role assignments",
-        "description": "Return role assignments, optionally filtered by user_id (superuser only).",
+        "description": "Return role assignments, optionally filtered by user_id (within active user.manage scope).",
         "operationId": "read_role_assignments_api_v1_auth_role_assignments_get",
         "security": [
           {
@@ -1565,7 +1565,7 @@
           "role-assignments"
         ],
         "summary": "Create role assignment",
-        "description": "Create a user-role assignment (superuser only).",
+        "description": "Create a user-role assignment (within active user.manage scope).",
         "operationId": "create_role_assignment_api_v1_auth_role_assignments_post",
         "security": [
           {
@@ -1612,7 +1612,7 @@
           "role-assignments"
         ],
         "summary": "Get role assignment by ID",
-        "description": "Return a role assignment by ID (superuser only).",
+        "description": "Return a role assignment by ID (within active user.manage scope).",
         "operationId": "read_role_assignment_api_v1_auth_role_assignments__assignment_id__get",
         "security": [
           {
@@ -1662,7 +1662,7 @@
           "role-assignments"
         ],
         "summary": "Update role assignment",
-        "description": "Update a user-role assignment (superuser only).",
+        "description": "Update a user-role assignment (within active user.manage scope).",
         "operationId": "update_role_assignment_api_v1_auth_role_assignments__assignment_id__patch",
         "security": [
           {
@@ -1797,6 +1797,36 @@
         ]
       }
     },
+    "/api/v1/hr/organisations": {
+      "get": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "List accessible organisations",
+        "operationId": "read_organisations_api_v1_hr_organisations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrganisationPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Organisations Api V1 Hr Organisations Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/departments": {
       "get": {
         "tags": [
@@ -1805,6 +1835,29 @@
         "summary": "List departments",
         "description": "Return all departments, ordered by name. Requires roster.view permission.",
         "operationId": "list_departments_endpoint_api_v1_hr_departments_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Departments returned",
@@ -1818,13 +1871,18 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       },
       "post": {
         "tags": [
@@ -1833,15 +1891,20 @@
         "summary": "Create department",
         "description": "Create a department. Requires user.manage permission.",
         "operationId": "create_department_endpoint_api_v1_hr_departments_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DepartmentCreate"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "201": {
@@ -1870,12 +1933,7 @@
               }
             }
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/departments/{department_id}": {
@@ -3924,7 +3982,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Timesheet and entries created",
             "content": {
               "application/json": {
                 "schema": {
@@ -3932,9 +3990,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Timesheet and entries created"
           },
           "403": {
             "description": "Self/proxy submission disabled or not allowed for user"
@@ -4337,6 +4392,558 @@
         }
       }
     },
+    "/api/v1/hr/training-records": {
+      "get": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Read employee training history",
+        "description": "Own history or history within active training read/manage grants. Scope is applied before pagination.",
+        "operationId": "read_training_records_api_v1_hr_training_records_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "include_archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Archived"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Record an employee training outcome",
+        "description": "Requires an active hr.training.manage grant for the employee's department. A completion record does not certify competency.",
+        "operationId": "create_training_record_api_v1_hr_training_records_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingRecordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid training date"
+          },
+          "403": {
+            "description": "Training management access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/training-employees": {
+      "get": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Find employees within training access",
+        "description": "Scoped employee search for training history. Employees can find themselves; managers can find employees within their active grants.",
+        "operationId": "read_training_employees_api_v1_hr_training_employees_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingEmployeeList"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/training-records/{record_id}/archive": {
+      "post": {
+        "tags": [
+          "hr-training"
+        ],
+        "summary": "Archive an incorrect training record",
+        "description": "Retains history and records an archive reason. Corrections are entered as replacement records.",
+        "operationId": "archive_training_record_api_v1_hr_training_records__record_id__archive_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrainingArchiveInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingRecordPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Organisation access denied"
+          },
+          "404": {
+            "description": "Training record not found or inaccessible"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/signature/me": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Read my saved signature",
+        "description": "Returns only the authenticated user's saved signature.",
+        "operationId": "read_my_signature_api_v1_hr_signature_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SignaturePublic"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Read My Signature Api V1 Hr Signature Me Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Save my signature",
+        "description": "Creates or replaces your private PNG signature. Previously signed documents remain unchanged.",
+        "operationId": "save_my_signature_api_v1_hr_signature_me_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignatureInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignaturePublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Delete my saved signature",
+        "description": "Deletes the reusable signature, retaining existing signed documents.",
+        "operationId": "delete_my_signature_api_v1_hr_signature_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/signed-documents/me": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "List my signed documents",
+        "description": "Lists permanent signed submissions you signed or that concern you.",
+        "operationId": "read_my_signed_documents_api_v1_hr_signed_documents_me_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SignedDocumentList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "400": {
+            "description": "Invalid signature"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/signed-documents/{document_id}/pdf": {
+      "get": {
+        "tags": [
+          "hr-signatures"
+        ],
+        "summary": "Download a signed HR document",
+        "description": "Returns the original PDF to its signer, subject, or an HR document reader with scope over the subject.",
+        "operationId": "download_signed_document_api_v1_hr_signed_documents__document_id__pdf_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original signed PDF",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "403": {
+            "description": "Not allowed"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/leave-requests": {
       "post": {
         "tags": [
@@ -4357,7 +4964,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Leave request created",
             "content": {
               "application/json": {
                 "schema": {
@@ -4365,9 +4972,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Leave request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -4731,7 +5335,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Absentee report created",
             "content": {
               "application/json": {
                 "schema": {
@@ -4739,9 +5343,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Absentee report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5113,7 +5714,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Shift swap request created",
             "content": {
               "application/json": {
                 "schema": {
@@ -5121,9 +5722,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Shift swap request created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5421,7 +6019,7 @@
         },
         "responses": {
           "201": {
-            "description": "Successful Response",
+            "description": "Status report created",
             "content": {
               "application/json": {
                 "schema": {
@@ -5429,9 +6027,6 @@
                 }
               }
             }
-          },
-          "200": {
-            "description": "Status report created"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5954,6 +6549,722 @@
           },
           "404": {
             "description": "Parking permit not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/documents": {
+      "post": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "Upload an employee document",
+        "description": "Upload a document against a person as multipart/form-data. Requires hr.document.create; filing against another person additionally requires scoped hr.document.manage over them. Only the six launch categories are accepted; confidential categories and form attachments are deferred.",
+        "operationId": "upload_document_api_v1_hr_documents_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_document_api_v1_hr_documents_post"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Rejected file or date range"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "503": {
+            "description": "Storage not configured"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "List employee documents",
+        "description": "List documents (own by default). A user_id or department_id filter requires scoped authority over the target. Supervisors see credentials only; scoped document managers see personnel documents. Deferred categories are omitted.",
+        "operationId": "read_documents_api_v1_hr_documents_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/DocumentCategory"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "include_archived",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Archived"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documents returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentListPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/document-employees": {
+      "get": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "List employees available in the document workspace",
+        "description": "Only employees covered by active document read or management assignments are returned. Search and counts are scoped before pagination.",
+        "operationId": "read_document_employees_api_v1_hr_document_employees_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 100,
+              "default": "",
+              "title": "Search"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "description": "Page number (1-indexed)",
+              "default": 1,
+              "title": "Page"
+            },
+            "description": "Page number (1-indexed)"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 1000,
+              "minimum": 1,
+              "description": "Items per page",
+              "default": 100,
+              "title": "Size"
+            },
+            "description": "Items per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scoped employee choices",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentEmployeeListPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/documents/{document_id}": {
+      "get": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "Get an employee document",
+        "description": "Return a launch-category document within the same scope as document lists.",
+        "operationId": "read_document_api_v1_hr_documents__document_id__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Document not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "Correct employee document metadata",
+        "description": "Update correctable metadata. Requires hr.document.manage, or being the uploader of a document on their own record. Management is scoped. Category cannot be changed \u2014 re-file the document instead.",
+        "operationId": "patch_document_api_v1_hr_documents__document_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmployeeDocumentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentPublic"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date range"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Document not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/documents/{document_id}/download": {
+      "get": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "Download an employee document",
+        "description": "Redirect to a short-lived presigned download URL. The access check runs on every request, so the link cannot be shared as a standing grant.",
+        "operationId": "download_document_api_v1_hr_documents__document_id__download_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Redirect to storage"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Document not found"
+          },
+          "503": {
+            "description": "Storage not configured"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/documents/{document_id}/archive": {
+      "post": {
+        "tags": [
+          "hr-documents"
+        ],
+        "summary": "Archive an employee document",
+        "description": "Archive a document. Requires scoped hr.document.manage, or being its subject and uploader. HR documents are never hard-deleted; the row and its file are retained.",
+        "operationId": "archive_document_api_v1_hr_documents__document_id__archive_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document archived",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmployeeDocumentPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission"
+          },
+          "404": {
+            "description": "Document not found"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/hazard-profiles": {
+      "get": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Read Hazard Profiles",
+        "operationId": "read_hazard_profiles_api_v1_cap_hazard_profiles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CapProfilePublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Hazard Profiles Api V1 Cap Hazard Profiles Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{key}/versions": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Save Hazard Profile",
+        "operationId": "save_hazard_profile_api_v1_cap_hazard_profiles__key__versions_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,99}$",
+              "title": "Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapProfileSave"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{profile_id}/approve": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Approve Hazard Profile",
+        "operationId": "approve_hazard_profile_api_v1_cap_hazard_profiles__profile_id__approve_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/cap/hazard-profiles/{profile_id}/draft": {
+      "post": {
+        "tags": [
+          "cap",
+          "cap"
+        ],
+        "summary": "Draft From Hazard Profile",
+        "operationId": "draft_from_hazard_profile_api_v1_cap_hazard_profiles__profile_id__draft_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "profile_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Profile Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapProfileDraftRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapAlertPublic"
+                }
+              }
+            }
           },
           "422": {
             "description": "Validation Error",
@@ -7395,6 +8706,47 @@
         }
       }
     },
+    "/api/v1/wxwatch/images/{storage_path}": {
+      "get": {
+        "tags": [
+          "weather-images"
+        ],
+        "summary": "Weather Image",
+        "description": "Issue a short-lived download redirect scoped to the environment's wxwatch prefix.",
+        "operationId": "weather_image_api_v1_wxwatch_images__storage_path__get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "storage_path",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Storage Path"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/modern/email/request": {
       "post": {
         "tags": [
@@ -8420,6 +9772,266 @@
         }
       }
     },
+    "/api/v1/hr/product-access/me": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Read current authored product access",
+        "description": "Evaluate current GMS employment grade and per-product policies. CAP permissions are independent.",
+        "operationId": "read_product_access_api_v1_hr_product_access_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductAccessCurrent"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/product-access": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Review authored product grade policies",
+        "description": "List the allowed GMS grades for each authored product. Administrators only.",
+        "operationId": "read_product_policies_api_v1_hr_setup_product_access_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductAccessPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Product Policies Api V1 Hr Setup Product Access Get"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/product-access/{kind}": {
+      "put": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Configure authored product grade access",
+        "description": "Replace one product's allowed GMS grades and record an audit event. An empty list permits only superusers. CAP is unchanged.",
+        "operationId": "update_product_policy_api_v1_hr_setup_product_access__kind__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Kind"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductAccessInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductAccessPublic"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "400": {
+            "description": "Unknown product kind or inactive/non-GMS grade"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/catalogue": {
+      "get": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Preview missing GMS reference data",
+        "description": "Preview missing ingested grades, approval policies and workflow templates without changing records.",
+        "operationId": "preview_catalogue_api_v1_hr_setup_catalogue_get",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguePreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Import missing GMS reference data",
+        "description": "Add only missing GMS reference data atomically; preserve existing records and reject conflicts.",
+        "operationId": "import_catalogue_api_v1_hr_setup_catalogue_post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CatalogueApply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CataloguePreview"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/hr/dashboard": {
       "get": {
         "tags": [
@@ -8452,6 +10064,360 @@
           }
         ]
       }
+    },
+    "/api/v1/auth/access/me": {
+      "get": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Read effective access",
+        "description": "Read current role permissions. Superuser bypass is explicit; roles are evaluated using current assignment dates.",
+        "operationId": "read_effective_access_api_v1_auth_access_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EffectiveAccess"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/access-reviews": {
+      "get": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Review staff access",
+        "description": "Administrators review assignments, permission bundles and historical decisions.",
+        "operationId": "read_access_reviews_api_v1_auth_access_reviews_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessReviewData"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/access-reviews/{assignment_id}": {
+      "post": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Record access review",
+        "description": "Retain or revoke one assignment with a reason and immutable snapshot. Self-review is prohibited.",
+        "operationId": "record_access_review_api_v1_auth_access_reviews__assignment_id__post",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewPublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/setup/organisation": {
+      "get": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Preview GAA organisation seed",
+        "description": "Compare the May 2026 structure with existing data; never change staff or access.",
+        "operationId": "preview_organisation_api_v1_hr_setup_organisation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Seed missing GAA structure",
+        "description": "Add missing departments, hierarchy and positions atomically. Preserve GMS staff, roster, grades and access.",
+        "operationId": "import_organisation_api_v1_hr_setup_organisation_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/workflows": {
+      "get": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Read workflow configuration",
+        "description": "Read active department templates with stage assignees and approval restrictions.",
+        "operationId": "read_workflow_configuration_api_v1_hr_setup_workflows_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WorkflowConfigurationPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Read Workflow Configuration Api V1 Hr Setup Workflows Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/setup/workflows/{template_id}": {
+      "put": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Configure future workflows",
+        "description": "Replace template stages and approval restrictions atomically. Existing instance snapshots are preserved.",
+        "operationId": "save_workflow_configuration_api_v1_hr_setup_workflows__template_id__put",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "template_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Template Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowConfigurationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowConfigurationPublic"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/hr/organisation": {
+      "get": {
+        "tags": [
+          "governance"
+        ],
+        "summary": "Read GAA position catalogue",
+        "description": "Authenticated reference catalogue of GAA departments and positions; no staff identities or grants.",
+        "operationId": "read_organisation_catalogue_api_v1_hr_organisation_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationCatalogue"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Insufficient access"
+          },
+          "409": {
+            "description": "Configuration conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -8469,6 +10435,18 @@
       },
       "AbsenteeReportCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -8619,6 +10597,18 @@
       },
       "AbsenteeReportPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -8774,6 +10764,18 @@
       },
       "AbsenteeReportSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -8785,6 +10787,38 @@
         },
         "type": "object",
         "title": "AbsenteeReportSubmit"
+      },
+      "AccessReviewData": {
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewAssignment"
+            },
+            "type": "array",
+            "title": "Assignments"
+          },
+          "reviews": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewPublic"
+            },
+            "type": "array",
+            "title": "Reviews"
+          },
+          "superusers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Superusers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "assignments",
+          "reviews",
+          "superusers"
+        ],
+        "title": "AccessReviewData"
       },
       "AccountSecurityPublic": {
         "properties": {
@@ -9142,6 +11176,132 @@
           "password"
         ],
         "title": "Body_login_access_token_api_v1_login_access_token_post"
+      },
+      "Body_upload_document_api_v1_hr_documents_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "description": "The document to store"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
+          "category": {
+            "$ref": "#/components/schemas/DocumentCategory",
+            "default": "OTHER"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "issued_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "issuing_authority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuing Authority"
+          },
+          "reference_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Number"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file",
+          "user_id",
+          "title"
+        ],
+        "title": "Body_upload_document_api_v1_hr_documents_post"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -11220,6 +13380,382 @@
         ],
         "title": "CapPredefinedAreaPublic"
       },
+      "CapProfileDefinition": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "family": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Family"
+          },
+          "subtypes": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileSubtype"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Subtypes"
+          },
+          "templates": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileTemplate"
+            },
+            "type": "array",
+            "maxItems": 3,
+            "title": "Templates"
+          },
+          "issuing_authority": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Issuing Authority",
+            "default": ""
+          },
+          "reviewing_authority": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Reviewing Authority",
+            "default": ""
+          },
+          "contact": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Contact",
+            "default": "meteorology@gaa.gd; 1-473-444-4142"
+          },
+          "channels": {
+            "items": {
+              "type": "string",
+              "enum": [
+                "CAP feed",
+                "Email / EDIS",
+                "WIS2",
+                "GMS website",
+                "Agency channels"
+              ]
+            },
+            "type": "array",
+            "title": "Channels"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 5000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "family",
+          "subtypes"
+        ],
+        "title": "CapProfileDefinition"
+      },
+      "CapProfileDraftRequest": {
+        "properties": {
+          "subtype": {
+            "type": "string",
+            "title": "Subtype"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subtype",
+          "level"
+        ],
+        "title": "CapProfileDraftRequest"
+      },
+      "CapProfilePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "definition": {
+            "$ref": "#/components/schemas/CapProfileDefinition"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "APPROVED"
+            ],
+            "title": "State"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approval_errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Approval Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "key",
+          "version",
+          "definition",
+          "state",
+          "created_by",
+          "created_at",
+          "approved_by",
+          "approved_at",
+          "approval_errors"
+        ],
+        "title": "CapProfilePublic"
+      },
+      "CapProfileRule": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level",
+            "default": "Warning"
+          },
+          "metric": {
+            "type": "string",
+            "maxLength": 200,
+            "title": "Metric",
+            "default": ""
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              ">=",
+              ">",
+              "<=",
+              "<",
+              "observed"
+            ],
+            "title": "Operator",
+            "default": ">="
+          },
+          "threshold": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Threshold"
+          },
+          "unit": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Unit",
+            "default": ""
+          },
+          "duration_minutes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Minutes"
+          },
+          "area": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Area",
+            "default": ""
+          },
+          "evidence": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Evidence",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "CapProfileRule"
+      },
+      "CapProfileSave": {
+        "properties": {
+          "base_version": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Base Version",
+            "default": 0
+          },
+          "definition": {
+            "$ref": "#/components/schemas/CapProfileDefinition"
+          }
+        },
+        "type": "object",
+        "required": [
+          "definition"
+        ],
+        "title": "CapProfileSave"
+      },
+      "CapProfileSubtype": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "categories": {
+            "items": {
+              "$ref": "#/components/schemas/CapCategory"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Categories"
+          },
+          "rules": {
+            "items": {
+              "$ref": "#/components/schemas/CapProfileRule"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Rules"
+          },
+          "impacts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Impacts"
+          },
+          "responses": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Responses"
+          },
+          "affected_groups": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Affected Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "CapProfileSubtype"
+      },
+      "CapProfileTemplate": {
+        "properties": {
+          "level": {
+            "type": "string",
+            "enum": [
+              "Advisory",
+              "Watch",
+              "Warning"
+            ],
+            "title": "Level"
+          },
+          "headline": {
+            "type": "string",
+            "maxLength": 500,
+            "title": "Headline",
+            "default": ""
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Description",
+            "default": ""
+          },
+          "instruction": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Instruction",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "level"
+        ],
+        "title": "CapProfileTemplate"
+      },
       "CapPublishPublic": {
         "properties": {
           "alert": {
@@ -11769,6 +14305,64 @@
         ],
         "title": "CapValidationResult"
       },
+      "CatalogueApply": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id"
+        ],
+        "title": "CatalogueApply"
+      },
+      "CataloguePreview": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "missing_grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Grade Ids"
+          },
+          "missing_policy_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Policy Keys"
+          },
+          "missing_workflow_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Workflow Types"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "missing_grade_ids",
+          "missing_policy_keys",
+          "missing_workflow_types",
+          "conflicts"
+        ],
+        "title": "CataloguePreview"
+      },
       "CheckoutSessionPublic": {
         "properties": {
           "id": {
@@ -11882,6 +14476,30 @@
       },
       "DepartmentCreate": {
         "properties": {
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
           "id": {
             "type": "string",
             "maxLength": 100,
@@ -12005,6 +14623,14 @@
       },
       "DepartmentPublic": {
         "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -12016,6 +14642,8 @@
         },
         "type": "object",
         "required": [
+          "organisation_id",
+          "code",
           "id",
           "name"
         ],
@@ -12055,6 +14683,119 @@
           "count"
         ],
         "title": "DepartmentsPublic"
+      },
+      "DocumentCategory": {
+        "type": "string",
+        "enum": [
+          "CONTRACT",
+          "IDENTIFICATION",
+          "CERTIFICATION",
+          "LICENCE",
+          "QUALIFICATION",
+          "MEDICAL",
+          "DISCIPLINARY",
+          "APPRAISAL",
+          "SIGNED_FORM",
+          "OTHER"
+        ],
+        "title": "DocumentCategory"
+      },
+      "DocumentEmployeeListPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentEmployeePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "DocumentEmployeeListPublic"
+      },
+      "DocumentEmployeePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "can_upload": {
+            "type": "boolean",
+            "title": "Can Upload"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "department_id",
+          "can_upload"
+        ],
+        "title": "DocumentEmployeePublic"
+      },
+      "DocumentSensitivity": {
+        "type": "string",
+        "enum": [
+          "STANDARD",
+          "RESTRICTED"
+        ],
+        "title": "DocumentSensitivity"
+      },
+      "EffectiveAccess": {
+        "properties": {
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser"
+          },
+          "role_names": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Role Names"
+          },
+          "permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permission Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_superuser",
+          "role_names",
+          "permission_keys"
+        ],
+        "title": "EffectiveAccess"
       },
       "EmailConfirm": {
         "properties": {
@@ -12173,6 +14914,298 @@
         "type": "object",
         "title": "EmergencyContactUpdate"
       },
+      "EmployeeDocumentListPublic": {
+        "properties": {
+          "can_upload": {
+            "type": "boolean",
+            "title": "Can Upload",
+            "default": false
+          },
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EmployeeDocumentPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page",
+            "default": 1
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size",
+            "default": 100
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "EmployeeDocumentListPublic"
+      },
+      "EmployeeDocumentPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
+          "can_manage": {
+            "type": "boolean",
+            "title": "Can Manage",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "category": {
+            "$ref": "#/components/schemas/DocumentCategory"
+          },
+          "sensitivity": {
+            "$ref": "#/components/schemas/DocumentSensitivity"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "original_filename": {
+            "type": "string",
+            "title": "Original Filename"
+          },
+          "content_type": {
+            "type": "string",
+            "title": "Content Type"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "title": "Size Bytes"
+          },
+          "issued_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "issuing_authority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuing Authority"
+          },
+          "reference_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Number"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "uploaded_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Uploaded By User Id"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "id",
+          "user_id",
+          "category",
+          "sensitivity",
+          "title",
+          "original_filename",
+          "content_type",
+          "size_bytes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "EmployeeDocumentPublic"
+      },
+      "EmployeeDocumentUpdate": {
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "issued_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued Date"
+          },
+          "expiry_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expiry Date"
+          },
+          "issuing_authority": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuing Authority"
+          },
+          "reference_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Number"
+          }
+        },
+        "type": "object",
+        "title": "EmployeeDocumentUpdate",
+        "description": "Correctable metadata only.\n\nCategory is not updatable: moving a MEDICAL document to OTHER would widen who\ncan read it after the fact. Re-file it instead, so the audit trail shows two\nrows rather than one silently reclassified one."
+      },
       "EmploymentAdminUpdate": {
         "properties": {
           "employment": {
@@ -12273,6 +15306,17 @@
       },
       "EmploymentPublic": {
         "properties": {
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
           "grade": {
             "anyOf": [
               {
@@ -12392,6 +15436,10 @@
       },
       "EmploymentRecordPublic": {
         "properties": {
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -12479,6 +15527,7 @@
         },
         "type": "object",
         "required": [
+          "organisation_id",
           "id",
           "user_id",
           "department_id",
@@ -13021,6 +16070,18 @@
       },
       "LeaveRequestCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "department_id": {
             "type": "string",
             "title": "Department Id"
@@ -13234,6 +16295,18 @@
       },
       "LeaveRequestPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -13442,6 +16515,18 @@
       },
       "LeaveRequestSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -13503,6 +16588,130 @@
           "new_password"
         ],
         "title": "NewPassword"
+      },
+      "OrganisationCatalogue": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "source_date": {
+            "type": "string",
+            "title": "Source Date"
+          },
+          "units": {
+            "items": {
+              "$ref": "#/components/schemas/UnitSpec"
+            },
+            "type": "array",
+            "title": "Units"
+          },
+          "positions": {
+            "items": {
+              "$ref": "#/components/schemas/PositionSpec"
+            },
+            "type": "array",
+            "title": "Positions"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "source",
+          "source_date",
+          "units",
+          "positions",
+          "notes"
+        ],
+        "title": "OrganisationCatalogue"
+      },
+      "OrganisationPreview": {
+        "properties": {
+          "catalogue": {
+            "$ref": "#/components/schemas/OrganisationCatalogue"
+          },
+          "missing_departments": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Departments"
+          },
+          "missing_units": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Units"
+          },
+          "missing_positions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Missing Positions"
+          },
+          "conflicts": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Conflicts"
+          },
+          "gms_staff_by_grade": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Gms Staff By Grade"
+          },
+          "gms_differences": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Gms Differences"
+          }
+        },
+        "type": "object",
+        "required": [
+          "catalogue"
+        ],
+        "title": "OrganisationPreview"
+      },
+      "OrganisationPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "OrganisationPublic"
       },
       "PaginatedResponse_PermissionPublic_": {
         "properties": {
@@ -13640,6 +16849,18 @@
       },
       "ParkingPermitCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "user_id": {
             "type": "string",
             "format": "uuid",
@@ -13805,6 +17026,18 @@
       },
       "ParkingPermitPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -14155,6 +17388,147 @@
           "key"
         ],
         "title": "PolicyPublic"
+      },
+      "PositionSpec": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "unit_id": {
+            "type": "string",
+            "title": "Unit Id"
+          },
+          "reports_to_position_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reports To Position Id"
+          },
+          "additional_connection_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Connection Id"
+          },
+          "grade_code": {
+            "type": "string",
+            "title": "Grade Code"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "authorised_posts": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorised Posts"
+          },
+          "reported_vacancies": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Vacancies"
+          },
+          "source_slide": {
+            "type": "integer",
+            "title": "Source Slide"
+          },
+          "notes": {
+            "type": "string",
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "unit_id",
+          "grade_code",
+          "title",
+          "authorised_posts",
+          "reported_vacancies",
+          "source_slide",
+          "notes"
+        ],
+        "title": "PositionSpec"
+      },
+      "ProductAccessCurrent": {
+        "properties": {
+          "allowed_kinds": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Allowed Kinds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "allowed_kinds"
+        ],
+        "title": "ProductAccessCurrent"
+      },
+      "ProductAccessInput": {
+        "properties": {
+          "grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Grade Ids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade_ids"
+        ],
+        "title": "ProductAccessInput"
+      },
+      "ProductAccessPublic": {
+        "properties": {
+          "grade_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "title": "Grade Ids"
+          },
+          "kind": {
+            "type": "string",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "grade_ids",
+          "kind"
+        ],
+        "title": "ProductAccessPublic"
       },
       "ProfAppointmentType": {
         "type": "string",
@@ -14555,6 +17929,154 @@
           "CANCELLED"
         ],
         "title": "RequestStatus"
+      },
+      "ReviewAssignment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "scope": {
+            "type": "string",
+            "title": "Scope"
+          },
+          "department_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Department Id"
+          },
+          "effective_from": {
+            "type": "string",
+            "title": "Effective From"
+          },
+          "effective_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effective To"
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser"
+          },
+          "permissions": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permissions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "user_id",
+          "name",
+          "role",
+          "scope",
+          "department_id",
+          "effective_from",
+          "effective_to",
+          "is_superuser",
+          "permissions"
+        ],
+        "title": "ReviewAssignment"
+      },
+      "ReviewInput": {
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "RETAIN",
+              "REVOKE"
+            ],
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "decision",
+          "reason"
+        ],
+        "title": "ReviewInput"
+      },
+      "ReviewPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Assignment Id"
+          },
+          "subject_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Subject Id"
+          },
+          "reviewer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Reviewer Id"
+          },
+          "decision": {
+            "type": "string",
+            "title": "Decision"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "assignment_id",
+          "subject_id",
+          "reviewer_id",
+          "decision",
+          "reason",
+          "created_at"
+        ],
+        "title": "ReviewPublic"
       },
       "RoleAssignmentScope": {
         "type": "string",
@@ -16045,6 +19567,18 @@
       },
       "ShiftSwapRequestCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "counterpart_user_id": {
             "type": "string",
             "format": "uuid",
@@ -16138,6 +19672,18 @@
       },
       "ShiftSwapRequestPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -16314,6 +19860,18 @@
       },
       "ShiftSwapSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -16325,6 +19883,105 @@
         },
         "type": "object",
         "title": "ShiftSwapSubmit"
+      },
+      "SignatureInput": {
+        "properties": {
+          "image_data_url": {
+            "type": "string",
+            "maxLength": 350000,
+            "title": "Image Data Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image_data_url"
+        ],
+        "title": "SignatureInput"
+      },
+      "SignaturePublic": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Version"
+          },
+          "image_data_url": {
+            "type": "string",
+            "title": "Image Data Url"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "image_data_url",
+          "updated_at"
+        ],
+        "title": "SignaturePublic"
+      },
+      "SignedDocumentList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SignedDocumentPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "SignedDocumentList"
+      },
+      "SignedDocumentPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "entity_type": {
+            "type": "string",
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Entity Id"
+          },
+          "signer_name": {
+            "type": "string",
+            "title": "Signer Name"
+          },
+          "signed_at": {
+            "type": "string",
+            "title": "Signed At"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "entity_type",
+          "entity_id",
+          "signer_name",
+          "signed_at",
+          "sha256"
+        ],
+        "title": "SignedDocumentPublic"
       },
       "StaffCard": {
         "properties": {
@@ -16583,6 +20240,18 @@
       },
       "StatusReportCreate": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "department_id": {
             "type": "string",
             "title": "Department Id"
@@ -16978,6 +20647,18 @@
       },
       "StatusReportPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "submitted_at": {
             "anyOf": [
               {
@@ -17237,6 +20918,18 @@
       },
       "StatusReportSubmit": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "co_approver_user_ids": {
             "items": {
               "type": "string",
@@ -17586,6 +21279,18 @@
       },
       "TimesheetPublic": {
         "properties": {
+          "signed_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signed Document Id"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -17693,6 +21398,18 @@
       },
       "TimesheetSubmitRequest": {
         "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
           "mode": {
             "$ref": "#/components/schemas/SubmissionMode",
             "default": "SELF"
@@ -17771,6 +21488,316 @@
         ],
         "title": "Token"
       },
+      "TrainingArchiveInput": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "TrainingArchiveInput"
+      },
+      "TrainingEmployeeList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingEmployeePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size"
+        ],
+        "title": "TrainingEmployeeList"
+      },
+      "TrainingEmployeePublic": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "can_create": {
+            "type": "boolean",
+            "title": "Can Create"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "department_id",
+          "can_create"
+        ],
+        "title": "TrainingEmployeePublic"
+      },
+      "TrainingRecordInput": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "course_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Course Name"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "completed_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Completed On"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "attended",
+              "failed"
+            ],
+            "title": "Result"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "course_name",
+          "provider",
+          "completed_on",
+          "result"
+        ],
+        "title": "TrainingRecordInput"
+      },
+      "TrainingRecordList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingRecordPublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "size": {
+            "type": "integer",
+            "title": "Size"
+          },
+          "can_create": {
+            "type": "boolean",
+            "title": "Can Create"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count",
+          "page",
+          "size",
+          "can_create"
+        ],
+        "title": "TrainingRecordList"
+      },
+      "TrainingRecordPublic": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Organisation Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "course_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Course Name"
+          },
+          "provider": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Provider"
+          },
+          "completed_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Completed On"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "completed",
+              "attended",
+              "failed"
+            ],
+            "title": "Result"
+          },
+          "expires_on": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires On"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "archived_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archived At"
+          },
+          "archive_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archive Reason"
+          },
+          "can_manage": {
+            "type": "boolean",
+            "title": "Can Manage",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "user_id",
+          "course_name",
+          "provider",
+          "completed_on",
+          "result",
+          "id",
+          "department_id",
+          "created_by",
+          "created_at"
+        ],
+        "title": "TrainingRecordPublic"
+      },
       "TwoFactorCodeRequest": {
         "properties": {
           "code": {
@@ -17838,6 +21865,41 @@
           "enabled"
         ],
         "title": "TwoFactorStatusPublic"
+      },
+      "UnitSpec": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "source_slide": {
+            "type": "integer",
+            "title": "Source Slide"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "parent_id",
+          "source_slide"
+        ],
+        "title": "UnitSpec"
       },
       "UpdatePassword": {
         "properties": {
@@ -18234,6 +22296,17 @@
               }
             ],
             "title": "Effective To"
+          },
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
           }
         },
         "type": "object",
@@ -18281,6 +22354,10 @@
             ],
             "title": "Effective To"
           },
+          "organisation_id": {
+            "type": "string",
+            "title": "Organisation Id"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -18303,6 +22380,7 @@
         "required": [
           "user_id",
           "role_id",
+          "organisation_id",
           "id",
           "effective_from",
           "created_at",
@@ -18582,6 +22660,13 @@
           "type": {
             "type": "string",
             "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
           }
         },
         "type": "object",
@@ -18605,6 +22690,18 @@
       },
       "WorkflowActionRequest": {
         "properties": {
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          },
           "action": {
             "$ref": "#/components/schemas/WorkflowAction"
           },
@@ -18626,6 +22723,71 @@
           "action"
         ],
         "title": "WorkflowActionRequest"
+      },
+      "WorkflowConfigurationInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "allow_self_approval": {
+            "type": "boolean",
+            "title": "Allow Self Approval",
+            "default": false
+          },
+          "require_distinct_approvers": {
+            "type": "boolean",
+            "title": "Require Distinct Approvers",
+            "default": true
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepTemplateCreate"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "steps"
+        ],
+        "title": "WorkflowConfigurationInput"
+      },
+      "WorkflowConfigurationPublic": {
+        "properties": {
+          "template": {
+            "$ref": "#/components/schemas/WorkflowTemplatePublic"
+          },
+          "allow_self_approval": {
+            "type": "boolean",
+            "title": "Allow Self Approval"
+          },
+          "require_distinct_approvers": {
+            "type": "boolean",
+            "title": "Require Distinct Approvers"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStepTemplatePublic"
+            },
+            "type": "array",
+            "title": "Steps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "template",
+          "allow_self_approval",
+          "require_distinct_approvers",
+          "steps"
+        ],
+        "title": "WorkflowConfigurationPublic"
       },
       "WorkflowInboxItem": {
         "properties": {
@@ -18684,6 +22846,33 @@
           "step_is_named": {
             "type": "boolean",
             "title": "Step Is Named"
+          },
+          "step_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Step Id"
+          },
+          "is_required": {
+            "type": "boolean",
+            "title": "Is Required",
+            "default": true
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose",
+            "default": "APPROVAL"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": "Approval"
           }
         },
         "type": "object",
@@ -18913,6 +23102,26 @@
             "type": "boolean",
             "title": "Is Required"
           },
+          "scope_enforced": {
+            "type": "boolean",
+            "title": "Scope Enforced",
+            "default": true
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "APPROVAL",
+              "REVIEW",
+              "RECORDING"
+            ],
+            "title": "Purpose",
+            "default": "APPROVAL"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": "Approval"
+          },
           "approver_user_id": {
             "anyOf": [
               {
@@ -18986,9 +23195,28 @@
             "title": "Step Order"
           },
           "required_role_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Required Role Id"
+          },
+          "required_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required User Id"
           },
           "required_scope": {
             "$ref": "#/components/schemas/RoleAssignmentScope",
@@ -18998,12 +23226,33 @@
             "type": "boolean",
             "title": "Is Required",
             "default": true
+          },
+          "scope_enforced": {
+            "type": "boolean",
+            "title": "Scope Enforced",
+            "default": true
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "APPROVAL",
+              "REVIEW",
+              "RECORDING"
+            ],
+            "title": "Purpose",
+            "default": "APPROVAL"
+          },
+          "label": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Label",
+            "default": "Approval"
           }
         },
         "type": "object",
         "required": [
-          "step_order",
-          "required_role_id"
+          "step_order"
         ],
         "title": "WorkflowStepTemplateCreate"
       },
@@ -19024,9 +23273,28 @@
             "title": "Step Order"
           },
           "required_role_id": {
-            "type": "string",
-            "format": "uuid",
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Required Role Id"
+          },
+          "required_user_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required User Id"
           },
           "required_scope": {
             "$ref": "#/components/schemas/RoleAssignmentScope"
@@ -19034,6 +23302,26 @@
           "is_required": {
             "type": "boolean",
             "title": "Is Required"
+          },
+          "scope_enforced": {
+            "type": "boolean",
+            "title": "Scope Enforced",
+            "default": true
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "APPROVAL",
+              "REVIEW",
+              "RECORDING"
+            ],
+            "title": "Purpose",
+            "default": "APPROVAL"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label",
+            "default": "Approval"
           },
           "created_at": {
             "type": "string",
@@ -19049,7 +23337,6 @@
           "id",
           "workflow_template_id",
           "step_order",
-          "required_role_id",
           "required_scope",
           "is_required",
           "created_at",

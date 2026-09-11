@@ -5,13 +5,12 @@
 
 import type { Title } from "./Title.js";
 
-/**
- * UserCreate
- */
 export type UserCreate = {
   /**
+   * @description
+   * Format: `email`
    * @maxLength 255
-   * @type string, email
+   * @type string
    */
   email: string;
   /**

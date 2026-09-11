@@ -3,22 +3,13 @@
  * Do not edit manually.
  */
 
-/**
- * RosterCsvValidationRequest
- */
 export type RosterCsvValidationRequest = {
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @default "roster.csv"
+   * @default 'roster.csv'
    * @type string | undefined
    */
   file_name?: string;
   roster_period_id?: string | null;
-  /**
-   * @type string
-   */
   csv_text: string;
 };

@@ -3,12 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * StatusReportSubmit
- */
 export type StatusReportSubmit = {
-  /**
-   * @type array | undefined
-   */
+  signature_version?: string | null;
   co_approver_user_ids?: string[];
 };

@@ -1,0 +1,49 @@
+{
+  "name": "@barrelsgd/web-cms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --port 3006",
+    "build": "next build",
+    "start": "next start --port 3006",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "check:ci": "biome ci .",
+    "lint": "biome lint .",
+    "generate:types": "node --env-file-if-exists=.env.local node_modules/payload/bin.js generate:types",
+    "generate:importmap": "node --env-file-if-exists=.env.local node_modules/payload/bin.js generate:importmap",
+    "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
+    "db:generate": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:create",
+    "db:status": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:status",
+    "db:adopt": "node --env-file-if-exists=.env.local scripts/adopt.mjs"
+  },
+  "dependencies": {
+    "payload": "catalog:",
+    "@payloadcms/next": "catalog:",
+    "@payloadcms/db-postgres": "catalog:",
+    "@payloadcms/ui": "catalog:",
+    "graphql": "catalog:",
+    "next": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-markdown": "catalog:",
+    "remark-gfm": "catalog:",
+    "@t3-oss/env-nextjs": "catalog:",
+    "zod": "catalog:",
+    "@barrelsgd/api-client": "workspace:*",
+    "@barrelsgd/auth": "workspace:*",
+    "pg": "catalog:",
+    "@payloadcms/email-resend": "catalog:"
+  },
+  "devDependencies": {
+    "@barrelsgd/tsconfig": "workspace:*",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -5,9 +5,6 @@
 
 import type { ShiftCategory } from "./ShiftCategory.js";
 
-/**
- * ShiftCatalogCreate
- */
 export type ShiftCatalogCreate = {
   /**
    * @maxLength 10
@@ -19,9 +16,6 @@ export type ShiftCatalogCreate = {
    * @type string
    */
   label: string;
-  /**
-   * @type string
-   */
   category: ShiftCategory;
   start_time?: string | null;
   end_time?: string | null;

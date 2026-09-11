@@ -3,36 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type { ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse } from "../models/ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
-
-function getReadPredefinedAreasApiV1CapAreasPredefinedGetUrl() {
-  const res = { method: "GET", url: `/api/v1/cap/areas/predefined` as const };
-  return res;
-}
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetOptions,
+  ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses,
+} from "../models/ReadPredefinedAreasApiV1CapAreasPredefinedGet.js";
 
 /**
  * @summary Read Predefined Areas
  * {@link /api/v1/cap/areas/predefined}
  */
-export async function readPredefinedAreasApiV1CapAreasPredefinedGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readPredefinedAreasApiV1CapAreasPredefinedGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadPredefinedAreasApiV1CapAreasPredefinedGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadPredefinedAreasApiV1CapAreasPredefinedGetQueryResponse,
-    ResponseErrorConfig<Error>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadPredefinedAreasApiV1CapAreasPredefinedGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/cap/areas/predefined",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadPredefinedAreasApiV1CapAreasPredefinedGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -6,7 +6,7 @@
 #   pnpm reset   - Tear down infra with volumes, then start Postgres only
 services:
   postgres:
-    image: postgis/postgis:17-3.5
+    image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
     container_name: grenmet-postgres
     restart: "no"
     ports:
@@ -14,10 +14,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ../postgres/init-databases.sh:/docker-entrypoint-initdb.d/01-init.sh:ro
+      - ../postgres/init-cms.sh:/docker-entrypoint-initdb.d/02-cms.sh:ro
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-app}
       POSTGRES_USER: ${POSTGRES_USER:-app}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changethis}
+      CMS_DB_NAME: ${CMS_DB_NAME:-gms_cms}
+      CMS_DB_USER: ${CMS_DB_USER:-gms_cms}
+      CMS_DB_PASSWORD: ${CMS_DB_PASSWORD:-changethis}
       APP_DB_NAME: ${APP_DB_NAME:-}
       APP_DB_USER: ${APP_DB_USER:-}
       APP_DB_PASSWORD: ${APP_DB_PASSWORD:-}

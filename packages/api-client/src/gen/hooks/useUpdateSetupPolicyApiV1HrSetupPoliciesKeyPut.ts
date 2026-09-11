@@ -9,55 +9,47 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { updateSetupPolicyApiV1HrSetupPoliciesKeyPut } from "../clients/updateSetupPolicyApiV1HrSetupPoliciesKeyPut.js";
 import type {
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
-  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409,
+  UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422,
 } from "../models/UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut.js";
 
 export const updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationKey = () =>
   [{ url: "/api/v1/hr/setup/policies/:key" }] as const;
 
-export type UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationKey = ReturnType<
-  typeof updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationKey
->;
-
 export function updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationKey();
   return mutationOptions<
-    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422
     >,
-    {
-      key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"];
-      data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-    },
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ key, data }) => {
-      return updateSetupPolicyApiV1HrSetupPoliciesKeyPut(key, data, config);
+    mutationFn: async ({ path, body }) => {
+      return updateSetupPolicyApiV1HrSetupPoliciesKeyPut({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -70,22 +62,19 @@ export function updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationOptions<
 export function useUpdateSetupPolicyApiV1HrSetupPoliciesKeyPut<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
+      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
       ResponseErrorConfig<
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422
       >,
-      {
-        key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"];
-        data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-      },
+      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -98,32 +87,26 @@ export function useUpdateSetupPolicyApiV1HrSetupPoliciesKeyPut<TContext>(
     updateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationOptions(
       config
     ) as UseMutationOptions<
-      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
+      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
       ResponseErrorConfig<
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+        | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422
       >,
-      {
-        key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"];
-        data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-      },
+      UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
       TContext
     >;
 
   return useMutation<
-    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422
     >,
-    {
-      key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"];
-      data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-    },
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
     TContext
   >(
     {
@@ -133,17 +116,14 @@ export function useUpdateSetupPolicyApiV1HrSetupPoliciesKeyPut<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationResponse,
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200,
     ResponseErrorConfig<
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut403
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut404
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut409
-      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPut422
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409
+      | UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422
     >,
-    {
-      key: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutPathParams["key"];
-      data: UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutMutationRequest;
-    },
+    UpdateSetupPolicyApiV1HrSetupPoliciesKeyPutOptions,
     TContext
   >;
 }

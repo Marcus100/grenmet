@@ -7,7 +7,7 @@ import type { CapAlertListPublic } from "./CapAlertListPublic.js";
 import type { CapLifecycleState } from "./CapLifecycleState.js";
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type ReadAlertsApiV1CapAlertsGetQueryParams = {
+export type ReadAlertsApiV1CapAlertsGetQuery = {
   lifecycle_state?: CapLifecycleState | null;
   /**
    * @description Page number (1-indexed)
@@ -26,23 +26,25 @@ export type ReadAlertsApiV1CapAlertsGetQueryParams = {
   size?: number;
 };
 
-/**
- * CapAlertListPublic
- * @description Successful Response
- */
-export type ReadAlertsApiV1CapAlertsGet200 = CapAlertListPublic;
+export type ReadAlertsApiV1CapAlertsGetStatus200 = CapAlertListPublic;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadAlertsApiV1CapAlertsGet422 = HTTPValidationError;
+export type ReadAlertsApiV1CapAlertsGetStatus422 = HTTPValidationError;
 
-export type ReadAlertsApiV1CapAlertsGetQueryResponse =
-  ReadAlertsApiV1CapAlertsGet200;
-
-export type ReadAlertsApiV1CapAlertsGetQuery = {
-  Response: ReadAlertsApiV1CapAlertsGet200;
-  QueryParams: ReadAlertsApiV1CapAlertsGetQueryParams;
-  Errors: ReadAlertsApiV1CapAlertsGet422;
+export type ReadAlertsApiV1CapAlertsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadAlertsApiV1CapAlertsGetQuery;
+  headers?: never;
 };
+
+export type ReadAlertsApiV1CapAlertsGetResponses = {
+  "200": ReadAlertsApiV1CapAlertsGetStatus200;
+  "422": ReadAlertsApiV1CapAlertsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadAlertsApiV1CapAlertsGetResponse =
+  | ReadAlertsApiV1CapAlertsGetStatus200
+  | ReadAlertsApiV1CapAlertsGetStatus422;

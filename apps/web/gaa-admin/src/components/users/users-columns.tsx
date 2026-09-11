@@ -10,13 +10,17 @@ import {
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import { cn, getInitials } from "@barrelsgd/ui/lib/utils";
-import type { ColumnDef, RowData } from "@tanstack/react-table";
+import type { RowData, TableFeatures } from "@tanstack/react-table";
+import type { LegacyColumnDef } from "@tanstack/react-table/legacy";
 import { Check, Clock, X } from "lucide-react";
 import { UserRowActions } from "./user-row-actions";
 import type { UserRow, UserRowStatus } from "./users-row";
 
 declare module "@tanstack/react-table" {
-  interface TableMeta<TData extends RowData> {
+  interface TableMeta<
+    in out TFeatures extends TableFeatures,
+    in out TData extends RowData,
+  > {
     /** Live role list, threaded to the actions cell for the manage dialog. */
     roles?: RolePublic[];
   }
@@ -145,7 +149,7 @@ function includesRole(
   return Array.isArray(roles) && roles.includes(value);
 }
 
-export const usersColumns: ColumnDef<UserRow>[] = [
+export const usersColumns: LegacyColumnDef<UserRow>[] = [
   {
     id: "select",
     header: ({ table }) => (

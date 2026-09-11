@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createShiftApiV1HrRostersShiftsPost } from "../clients/createShiftApiV1HrRostersShiftsPost.js";
 import type {
-  CreateShiftApiV1HrRostersShiftsPost400,
-  CreateShiftApiV1HrRostersShiftsPost403,
-  CreateShiftApiV1HrRostersShiftsPost422,
-  CreateShiftApiV1HrRostersShiftsPostMutationRequest,
-  CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+  CreateShiftApiV1HrRostersShiftsPostOptions,
+  CreateShiftApiV1HrRostersShiftsPostStatus201,
+  CreateShiftApiV1HrRostersShiftsPostStatus400,
+  CreateShiftApiV1HrRostersShiftsPostStatus403,
+  CreateShiftApiV1HrRostersShiftsPostStatus422,
 } from "../models/CreateShiftApiV1HrRostersShiftsPost.js";
 
 export const createShiftApiV1HrRostersShiftsPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/shifts" }] as const;
 
-export type CreateShiftApiV1HrRostersShiftsPostMutationKey = ReturnType<
-  typeof createShiftApiV1HrRostersShiftsPostMutationKey
->;
-
 export function createShiftApiV1HrRostersShiftsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateShiftApiV1HrRostersShiftsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createShiftApiV1HrRostersShiftsPostMutationKey();
   return mutationOptions<
-    CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+    CreateShiftApiV1HrRostersShiftsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftApiV1HrRostersShiftsPost400
-      | CreateShiftApiV1HrRostersShiftsPost403
-      | CreateShiftApiV1HrRostersShiftsPost422
+      | CreateShiftApiV1HrRostersShiftsPostStatus400
+      | CreateShiftApiV1HrRostersShiftsPostStatus403
+      | CreateShiftApiV1HrRostersShiftsPostStatus422
     >,
-    { data: CreateShiftApiV1HrRostersShiftsPostMutationRequest },
+    CreateShiftApiV1HrRostersShiftsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createShiftApiV1HrRostersShiftsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createShiftApiV1HrRostersShiftsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function createShiftApiV1HrRostersShiftsPostMutationOptions<
 export function useCreateShiftApiV1HrRostersShiftsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+      CreateShiftApiV1HrRostersShiftsPostStatus201,
       ResponseErrorConfig<
-        | CreateShiftApiV1HrRostersShiftsPost400
-        | CreateShiftApiV1HrRostersShiftsPost403
-        | CreateShiftApiV1HrRostersShiftsPost422
+        | CreateShiftApiV1HrRostersShiftsPostStatus400
+        | CreateShiftApiV1HrRostersShiftsPostStatus403
+        | CreateShiftApiV1HrRostersShiftsPostStatus422
       >,
-      { data: CreateShiftApiV1HrRostersShiftsPostMutationRequest },
+      CreateShiftApiV1HrRostersShiftsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateShiftApiV1HrRostersShiftsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useCreateShiftApiV1HrRostersShiftsPost<TContext>(
   const baseOptions = createShiftApiV1HrRostersShiftsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+    CreateShiftApiV1HrRostersShiftsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftApiV1HrRostersShiftsPost400
-      | CreateShiftApiV1HrRostersShiftsPost403
-      | CreateShiftApiV1HrRostersShiftsPost422
+      | CreateShiftApiV1HrRostersShiftsPostStatus400
+      | CreateShiftApiV1HrRostersShiftsPostStatus403
+      | CreateShiftApiV1HrRostersShiftsPostStatus422
     >,
-    { data: CreateShiftApiV1HrRostersShiftsPostMutationRequest },
+    CreateShiftApiV1HrRostersShiftsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+    CreateShiftApiV1HrRostersShiftsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftApiV1HrRostersShiftsPost400
-      | CreateShiftApiV1HrRostersShiftsPost403
-      | CreateShiftApiV1HrRostersShiftsPost422
+      | CreateShiftApiV1HrRostersShiftsPostStatus400
+      | CreateShiftApiV1HrRostersShiftsPostStatus403
+      | CreateShiftApiV1HrRostersShiftsPostStatus422
     >,
-    { data: CreateShiftApiV1HrRostersShiftsPostMutationRequest },
+    CreateShiftApiV1HrRostersShiftsPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useCreateShiftApiV1HrRostersShiftsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateShiftApiV1HrRostersShiftsPostMutationResponse,
+    CreateShiftApiV1HrRostersShiftsPostStatus201,
     ResponseErrorConfig<
-      | CreateShiftApiV1HrRostersShiftsPost400
-      | CreateShiftApiV1HrRostersShiftsPost403
-      | CreateShiftApiV1HrRostersShiftsPost422
+      | CreateShiftApiV1HrRostersShiftsPostStatus400
+      | CreateShiftApiV1HrRostersShiftsPostStatus403
+      | CreateShiftApiV1HrRostersShiftsPostStatus422
     >,
-    { data: CreateShiftApiV1HrRostersShiftsPostMutationRequest },
+    CreateShiftApiV1HrRostersShiftsPostOptions,
     TContext
   >;
 }

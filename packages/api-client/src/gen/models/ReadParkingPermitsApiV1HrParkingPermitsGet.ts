@@ -6,7 +6,7 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 
-export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams = {
+export type ReadParkingPermitsApiV1HrParkingPermitsGetQuery = {
   department_id?: string | null;
   /**
    * @description Page number (1-indexed)
@@ -25,31 +25,31 @@ export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams = {
   size?: number;
 };
 
-/**
- * ParkingPermitListPublic
- * @description Parking permits returned
- */
-export type ReadParkingPermitsApiV1HrParkingPermitsGet200 =
+export type ReadParkingPermitsApiV1HrParkingPermitsGetStatus200 =
   ParkingPermitListPublic;
 
-/**
- * @description Insufficient permission
- */
-export type ReadParkingPermitsApiV1HrParkingPermitsGet403 = any;
+export type ReadParkingPermitsApiV1HrParkingPermitsGetStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ReadParkingPermitsApiV1HrParkingPermitsGet422 = HTTPValidationError;
+export type ReadParkingPermitsApiV1HrParkingPermitsGetStatus422 =
+  HTTPValidationError;
 
-export type ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse =
-  ReadParkingPermitsApiV1HrParkingPermitsGet200;
-
-export type ReadParkingPermitsApiV1HrParkingPermitsGetQuery = {
-  Response: ReadParkingPermitsApiV1HrParkingPermitsGet200;
-  QueryParams: ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams;
-  Errors:
-    | ReadParkingPermitsApiV1HrParkingPermitsGet403
-    | ReadParkingPermitsApiV1HrParkingPermitsGet422;
+export type ReadParkingPermitsApiV1HrParkingPermitsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: ReadParkingPermitsApiV1HrParkingPermitsGetQuery;
+  headers?: never;
 };
+
+export type ReadParkingPermitsApiV1HrParkingPermitsGetResponses = {
+  "200": ReadParkingPermitsApiV1HrParkingPermitsGetStatus200;
+  "403": ReadParkingPermitsApiV1HrParkingPermitsGetStatus403;
+  "422": ReadParkingPermitsApiV1HrParkingPermitsGetStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadParkingPermitsApiV1HrParkingPermitsGetResponse =
+  | ReadParkingPermitsApiV1HrParkingPermitsGetStatus200
+  | ReadParkingPermitsApiV1HrParkingPermitsGetStatus403
+  | ReadParkingPermitsApiV1HrParkingPermitsGetStatus422;

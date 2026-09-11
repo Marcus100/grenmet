@@ -9,65 +9,59 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "../clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 import type {
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest,
-  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+  CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422,
 } from "../models/CreateRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 
 export const createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey = () =>
   [{ url: "/api/v1/auth/role-assignments" }] as const;
 
-export type CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey =
-  ReturnType<
-    typeof createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey
-  >;
-
 export function createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationKey();
   return mutationOptions<
-    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-    { data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest },
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422>,
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createRoleAssignmentApiV1AuthRoleAssignmentsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createRoleAssignmentApiV1AuthRoleAssignmentsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
 
 /**
- * @description Create a user-role assignment (superuser only).
+ * @description Create a user-role assignment (within active user.manage scope).
  * @summary Create role assignment
  * {@link /api/v1/auth/role-assignments}
  */
 export function useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-      ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-      { data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest },
+      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+      ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422>,
+      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -80,16 +74,16 @@ export function useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost<TContext>(
     createRoleAssignmentApiV1AuthRoleAssignmentsPostMutationOptions(
       config
     ) as UseMutationOptions<
-      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-      ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-      { data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest },
+      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+      ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422>,
+      CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
       TContext
     >;
 
   return useMutation<
-    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-    { data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest },
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422>,
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
     TContext
   >(
     {
@@ -99,9 +93,9 @@ export function useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationResponse,
-    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPost422>,
-    { data: CreateRoleAssignmentApiV1AuthRoleAssignmentsPostMutationRequest },
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201,
+    ResponseErrorConfig<CreateRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422>,
+    CreateRoleAssignmentApiV1AuthRoleAssignmentsPostOptions,
     TContext
   >;
 }

@@ -7,58 +7,51 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 import type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams = {
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   shift_swap_id: string;
 };
 
-/**
- * ShiftSwapRequestPublic
- * @description Shift swap request updated
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200 =
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200 =
   ShiftSwapRequestPublic;
 
-/**
- * @description Shift swap request is not a draft
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400 = any;
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400 = unknown;
 
-/**
- * @description Not allowed to edit this shift swap request
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403 = any;
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403 = unknown;
 
-/**
- * @description Shift swap request not found
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404 = any;
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422 =
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422 =
   HTTPValidationError;
 
-/**
- * ShiftSwapRequestCreate
- */
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest =
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchBody =
   ShiftSwapRequestCreate;
 
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationResponse =
-  UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200;
-
-export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutation = {
-  Response: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch200;
-  Request: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchMutationRequest;
-  PathParams: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathParams;
-  Errors:
-    | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch400
-    | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch403
-    | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch404
-    | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch422;
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchOptions = {
+  body: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchBody;
+  path: UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchResponses = {
+  "200": UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200;
+  "400": UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400;
+  "403": UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403;
+  "404": UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404;
+  "422": UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchResponse =
+  | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200
+  | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400
+  | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403
+  | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404
+  | UpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422;

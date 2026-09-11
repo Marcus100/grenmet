@@ -3,21 +3,9 @@
  * Do not edit manually.
  */
 
-/**
- * GradePublic
- */
 export type GradePublic = {
-  /**
-   * @type string
-   */
   code: string;
-  /**
-   * @type string
-   */
   label: string;
-  /**
-   * @type integer
-   */
   rank: number;
   establishment_band?: string | null;
 };

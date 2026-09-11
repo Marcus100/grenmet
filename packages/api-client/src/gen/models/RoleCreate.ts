@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-/**
- * RoleCreate
- */
 export type RoleCreate = {
-  /**
-   * @type string
-   */
   name: string;
   /**
-   * @default ""
+   * @default ''
    * @type string | undefined
    */
   description?: string;

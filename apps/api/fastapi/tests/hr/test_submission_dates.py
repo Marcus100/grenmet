@@ -9,7 +9,7 @@ from src.hr.leave.models import LeaveRequest
 from src.hr.leave.schemas import LeaveRequestSubmit
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
 from src.pagination import PaginationParams
-from tests.factories import make_department, make_user
+from tests.factories import make_department, make_ready_staff, make_user
 from tests.hr.test_workflow import _leave_payload, _setup_leave_template
 
 
@@ -19,6 +19,7 @@ async def test_submission_date_survives_listing_and_approval(
     user = await make_user(db_async, superuser=True)
     dept = await make_department(db_async, "submission_dates")
     await _setup_leave_template(db_async, dept.id)
+    await make_ready_staff(db_async, user, dept.id)
     payload = _leave_payload(dept.id).model_copy(update={"as_draft": True})
     draft = await router.create_leave_request(
         session=db_async, current_user=user, payload=payload
@@ -54,10 +55,19 @@ async def test_legacy_form_does_not_invent_submission_date(
 ) -> None:
     user = await make_user(db_async, superuser=True)
     dept = await make_department(db_async, "legacy_submission_dates")
-    created = await router.create_leave_request(
-        session=db_async, current_user=user, payload=_leave_payload(dept.id)
+    await make_ready_staff(db_async, user, dept.id)
+    from src.hr.models import RequestStatus
+
+    created = LeaveRequest(
+        user_id=user.id,
+        status=RequestStatus.SUBMITTED,
+        **_leave_payload(dept.id).model_dump(
+            exclude={"as_draft", "co_approver_user_ids"}
+        ),
     )
+    db_async.add(created)
+    await db_async.commit()
     assert created.status.value == "SUBMITTED"
-    assert created.submitted_at is None
+    assert created.workflow_instance_id is None
     listed = await router.read_my_leave_requests(db_async, user, PaginationParams())
     assert listed.data[0].submitted_at is None

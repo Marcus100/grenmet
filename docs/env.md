@@ -51,7 +51,7 @@ not require an env file unless those defaults need to be overridden.
 | `scripts/scrapy-wxwatch/.env.local` | wxwatch crawler and database pipeline | N/A |
 | `infra/docker/staging.env` | Staging non-secret deploy configuration | First `--env-file` in deploy workflow |
 | `infra/docker/production.env` | Production non-secret deploy configuration | First `--env-file` in deploy workflow |
-| Runtime `.env.secrets` | Deploy-only secrets and derived database URLs | Second `--env-file`; generated and deleted by CI |
+| Runtime `infra/docker/runtime/.env.local` | Deploy-only secrets and derived database URLs | Second `--env-file`; generated and deleted by CI |
 
 > **Why two Docker files?** The infra compose needs database provisioning variables (`WXWATCH_DB_NAME`, `APP_DB_USER`, `ADMINER_DESIGN`) that don't belong in the FastAPI env. Sharing one file caused infra variables to be sourced from the wrong place.
 
@@ -193,16 +193,19 @@ Port map: 3001=gaa-admin, 3002=docs, 3003=gms, 3004=signal. See [`ports.md`](./p
 
 For staging/production, replace with the actual subdomain hosts (no port needed).
 
-**Production (both domains — `barrels.gd` + `weather.gd` coexist; see [`weather-gd-golive.md`](./weather-gd-golive.md)):**
+**Production:**
+
+```text
+AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd
 ```
-AUTH_ALLOWED_RETURN_HOSTS=.barrels.gd,.weather.gd
-```
-A leading-dot entry matches the apex domain and every subdomain (cookie `Domain`
-semantics), so no per-app maintenance is needed. Suffix matching is implemented in
-`apps/web/auth/src/lib/return-to.ts` (`getSafeReturnTo`) and covered by
-`apps/web/auth/src/test/return-to.test.ts`. In the new deploy stack this value is
-assembled as `.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS}` — see
-`infra/docker/production.env`. Staging uses `.staging.barrels.gd` only.
+
+Staging uses `.staging.barrels.gd`. The shared Compose file assembles this as
+`.${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}`; current production configuration does
+not add `.weather.gd`. Production CORS origins are the seven frontend hosts
+listed in `infra/docker/production.env`; staging uses their staging equivalents.
+
+A leading-dot entry accepts the apex and its subdomains. The superseded
+weather.gd go-live plan is historical context, not an active allowlist recipe.
 
 ### Apps that delegate auth (docs, gms)
 
@@ -337,3 +340,101 @@ secrets, not in either file.
 .env.local
 .env.*.local
 ```
+
+## Storage alignment and CMS
+
+Local migration commands explicitly load `.env.local` and use the same migration runners as deployment. Generic `DB_URL` fallbacks are unsupported. `python3 scripts/production/check-local-env.py` reports missing variable names and ignore coverage without displaying values.
+
+CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `SESSION_COOKIE_NAME` and `SESSION_COOKIE_DOMAIN`. `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
+
+The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
+
+### CMS uploaded media
+
+`CMS_MEDIA_DIR` selects the server-side upload directory (default `media` locally).
+Deployment uses `/app/media` backed by the project-specific `cms-media` Docker
+volume. The image creates that directory with the non-root runtime user's
+ownership. Local uploads are excluded from the Docker build context.
+Include this volume with the CMS database in backup and restore procedures;
+a persistent volume alone is not an off-host backup. Existing container-local
+uploads need explicit copying into the volume before replacing that container.
+
+### CMS email
+
+CMS uses Payload's official Resend adapter. In `apps/web/cms/.env.local`, configure `RESEND_API_KEY` and `EMAILS_FROM_EMAIL` (an address on your verified Resend domain). `EMAILS_FROM_NAME` defaults to `GMS Content`. Keep the API key private and restart the local CMS after configuring it. With no key, local development and migrations remain usable and Payload reports email as unconfigured. A key without a sender fails configuration validation.
+
+Deployment supplies the existing environment-scoped `RESEND_API_KEY` secret and `EMAILS_FROM_EMAIL` setting to CMS. The adapter sends only when CMS calls its email API; startup and migration do not send test messages. Shared FastAPI sign-in remains responsible for account emails. Mailchimp campaigns are separate and have not been configured by this change.
+
+## Integration separation for local, staging and production
+
+Use app-specific local configuration for host-run development. Inside deployment
+containers, localhost refers to that container: CAP uses `http://api:8000`,
+GMS authored products use `http://web-admin:3001`, and email rendering uses
+`http://web-auth:3000`. Browser API requests and redirects use public HTTPS
+origins under `staging.barrels.gd` or `barrels.gd`. Local host processes use
+localhost ports from [the port map](ports.md); agent-container processes use
+`host.docker.internal` for host-published database and Redis ports.
+
+| Integration | Local | Staging | Production |
+|---|---|---|---|
+| CAP / authored products | API :8000 / admin :3001 | Private service origins above | Same private service origins, separate databases |
+| Google OAuth | Local callback registered separately | `https://auth.staging.barrels.gd/google/callback` | `https://auth.barrels.gd/google/callback` |
+| Sentry | Empty disables reporting; use a development project if enabled | `SENTRY_DSN_STAGING`; project `grenmet-staging` | `SENTRY_DSN_PRODUCTION`; project `grenmet-production` |
+| PostHog | Empty project key disables analytics | Separate staging project key and ingest host | Production project key and ingest host |
+| Stripe | Test key and local webhook forwarding | Test key, matching test price and endpoint signing secret | Live key, matching live price and endpoint signing secret |
+| Resend | Development sender or local SMTP | Environment-scoped key, verified sender, matching webhook secret | Production key, verified sender, matching webhook secret |
+| Object storage | Optional local/test configuration | Staging bucket and scoped credentials | Production bucket and scoped credentials |
+
+The renderer rejects partial Google, CAP-signing, Stripe, and storage credential
+bundles. Stripe redirects must be HTTPS outside local; its secret key must match
+the deployment mode. Provider endpoints must use HTTPS. CAP signing is optional;
+configure both certificate and key to enable it. These checks establish valid
+configuration, not provider-side connectivity or successful delivery.
+
+`NEXT_PUBLIC_*` variables are compiled into browser bundles. Configure Sentry,
+PostHog, public API origins and site origins in the build's GitHub environment,
+then rebuild the image after changes. Runtime-only changes cannot repair an
+already compiled browser value. Never put Stripe secret keys, webhook secrets,
+Sentry upload tokens, or storage credentials in public variables.
+
+The September 2026 release audit found Sentry and Resend secret names in both
+GitHub environments, but no PostHog, Stripe, Google OAuth, CAP signing, Resend
+webhook or email-render credentials. Production also lacked the new CMS and
+FastAPI runtime database credentials and core infrastructure variables. Supply
+these through GitHub environment settings before claiming those integrations
+are connected. Datadog logging hooks alone do not establish an APM connection;
+a collector/agent is not configured by this release.
+
+GMS local authored-product rendering requires `WXPRODUCTS_API_URL` in its typed
+server environment. Publication authorization is configured through the
+superuser-only grade policy API, not environment user-ID allowlists. Defaults
+permit active staff in ingested GMS senior technician, assistant manager and
+manager grades; each product can override its permitted grade IDs.
+
+GMS's news pages read published editorial content from the CMS via
+`CMS_API_URL` (optional; pointed at the `apps/web/cms` deployment's base URL).
+With it unset, GMS falls back to its static reference articles. The CMS itself
+exposes this feed unauthenticated at `/api/public/content`, filtered to
+`status: published` content by the `content` collection's own access control.
+
+### GitHub environment secret names
+
+Add credentials independently to **Settings → Environments → staging / production
+→ Secrets**. Missing optional integrations stay disabled; do not copy production
+credentials into staging.
+
+- PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, optionally `NEXT_PUBLIC_POSTHOG_HOST`.
+- Stripe: `BILLING_STRIPE_SECRET_KEY`, `BILLING_STRIPE_WEBHOOK_SECRET`,
+  `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
+  `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
+- Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
+- Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
+- Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,
+  and environment-scoped `SENTRY_AUTH_TOKEN` for source-map upload.
+- Storage: `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`,
+  `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
+  and `STORAGE_PUBLIC_BASE_URL`.
+
+Stripe price/return URL and PostHog host inputs accept environment secrets first,
+with environment variables retained as a compatibility fallback.

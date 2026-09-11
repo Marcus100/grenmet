@@ -7,24 +7,17 @@ import * as z from "zod";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathParamsSchema =
-  z.object({
-    alert_id: z.string().uuid(),
-  });
+export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathAlertIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePost200Schema = z.lazy(
-  () => capAlertPublicSchema
-);
+export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200Schema =
+  capAlertPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostMutationResponseSchema =
-  z.lazy(() => duplicateAlertApiV1CapAlertsAlertIdDuplicatePost200Schema);
+export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponseSchema =
+  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200Schema;
+
+export const duplicateAlertApiV1CapAlertsAlertIdDuplicatePostErrorSchema =
+  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422Schema;

@@ -3,50 +3,34 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  TwofaActivateApiV12FaActivatePost400,
-  TwofaActivateApiV12FaActivatePost422,
-  TwofaActivateApiV12FaActivatePostMutationRequest,
-  TwofaActivateApiV12FaActivatePostMutationResponse,
+  TwofaActivateApiV12FaActivatePostOptions,
+  TwofaActivateApiV12FaActivatePostResponses,
 } from "../models/TwofaActivateApiV12FaActivatePost.js";
-
-function getTwofaActivateApiV12FaActivatePostUrl() {
-  const res = { method: "POST", url: `/api/v1/2fa/activate` as const };
-  return res;
-}
 
 /**
  * @summary Activate 2FA
  * {@link /api/v1/2fa/activate}
  */
-export async function twofaActivateApiV12FaActivatePost(
-  data: TwofaActivateApiV12FaActivatePostMutationRequest,
-  config: Partial<
-    RequestConfig<TwofaActivateApiV12FaActivatePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function twofaActivateApiV12FaActivatePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<TwofaActivateApiV12FaActivatePostOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<TwofaActivateApiV12FaActivatePostResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    TwofaActivateApiV12FaActivatePostMutationResponse,
-    ResponseErrorConfig<
-      | TwofaActivateApiV12FaActivatePost400
-      | TwofaActivateApiV12FaActivatePost422
-    >,
-    TwofaActivateApiV12FaActivatePostMutationRequest
-  >({
-    method: "POST",
-    url: getTwofaActivateApiV12FaActivatePostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/2fa/activate",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<TwofaActivateApiV12FaActivatePostResponses, ThrowOnError>
+    >
+  );
 }

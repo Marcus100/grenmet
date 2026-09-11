@@ -3,54 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
-  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
+  ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponses,
 } from "../models/ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
-
-function getReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/modern/security/recovery-codes` as const,
-  };
-  return res;
-}
 
 /**
  * @description Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.
  * @summary Replace MFA recovery codes
  * {@link /api/v1/auth/modern/security/recovery-codes}
  */
-export async function replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost(
-  data: ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest,
-  config: Partial<
-    RequestConfig<ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationResponse,
-    ResponseErrorConfig<
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost400
-      | ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost422
-    >,
-    ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostMutationRequest
-  >({
-    method: "POST",
-    url: getReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/modern/security/recovery-codes",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReplaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

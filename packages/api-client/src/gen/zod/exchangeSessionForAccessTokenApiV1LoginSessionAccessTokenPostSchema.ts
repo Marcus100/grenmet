@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";
 import { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
 
-/**
- * @description Successful Response
- */
-export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200Schema =
-  z.lazy(() => sessionAccessTokenResponseSchema);
+export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200Schema =
+  sessionAccessTokenResponseSchema;
 
-/**
- * @description Validation Error
- */
-export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationRequestSchema =
-  z.lazy(() => sessionTokenRequestSchema);
+export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponseSchema =
+  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200Schema;
 
-export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostMutationResponseSchema =
-  z.lazy(
-    () => exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost200Schema
-  );
+export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostErrorSchema =
+  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422Schema;
+
+export const exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostBodySchema =
+  sessionTokenRequestSchema;

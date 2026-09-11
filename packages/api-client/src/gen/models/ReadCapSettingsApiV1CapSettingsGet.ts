@@ -5,16 +5,21 @@
 
 import type { CapSettingsPublic } from "./CapSettingsPublic.js";
 
-/**
- * CapSettingsPublic
- * @description Successful Response
- */
-export type ReadCapSettingsApiV1CapSettingsGet200 = CapSettingsPublic;
+export type ReadCapSettingsApiV1CapSettingsGetStatus200 = CapSettingsPublic;
 
-export type ReadCapSettingsApiV1CapSettingsGetQueryResponse =
-  ReadCapSettingsApiV1CapSettingsGet200;
-
-export type ReadCapSettingsApiV1CapSettingsGetQuery = {
-  Response: ReadCapSettingsApiV1CapSettingsGet200;
-  Errors: any;
+export type ReadCapSettingsApiV1CapSettingsGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadCapSettingsApiV1CapSettingsGetResponses = {
+  "200": ReadCapSettingsApiV1CapSettingsGetStatus200;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadCapSettingsApiV1CapSettingsGetResponse =
+  ReadCapSettingsApiV1CapSettingsGetStatus200;

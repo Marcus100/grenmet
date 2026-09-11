@@ -22,6 +22,11 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
+import {
+  signedDocumentsKey,
+  useSigning,
+} from "@/components/hr/signatures/signature-api";
+import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import {
@@ -53,6 +58,7 @@ function toEntry(row: TimesheetRow): TimesheetEntryInput {
 export function TimesheetEditor() {
   const form = useForm({ defaultValues: EMPTY_TIMESHEET });
   const queryClient = useQueryClient();
+  const signature = useSigning();
   const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
   const departmentId = profileQuery.data?.employment?.department?.id;
   const createMutation = useCreateTimesheetApiV1HrTimesheetsPost();
@@ -75,6 +81,10 @@ export function TimesheetEditor() {
   });
 
   async function submitToHr(values: typeof EMPTY_TIMESHEET) {
+    if (!signature.data) {
+      toast.error("Save your signature in your profile before signing");
+      return;
+    }
     const rows = values.rows.filter((row) => !isRowEmpty(row));
     if (rows.length === 0) {
       toast.error("Add at least one entry before submitting");
@@ -95,7 +105,7 @@ export function TimesheetEditor() {
       let timesheetId = savedTimesheetId;
       if (!timesheetId) {
         const created = await createMutation.mutateAsync({
-          data: {
+          body: {
             department_id: departmentId,
             period_start: periodStart,
             period_end: periodEnd,
@@ -107,12 +117,13 @@ export function TimesheetEditor() {
       }
       if (!timesheetId) throw new Error("The saved timesheet has no ID");
       const submitted = await submitMutation.mutateAsync({
-        timesheet_id: timesheetId,
-        data: { mode: "SELF" },
+        path: { timesheet_id: timesheetId },
+        body: { mode: "SELF", signature_version: signature.data.version },
       });
       setSubmission(submitted);
+      await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
       await queryClient.invalidateQueries({
-        queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey(),
+        queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey({}),
       });
       toast.success("Time sheet submitted");
     } catch (error) {
@@ -125,7 +136,7 @@ export function TimesheetEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-lg">Official Time Sheet</h2>
@@ -146,7 +157,8 @@ export function TimesheetEditor() {
                   disabled={
                     createMutation.isPending ||
                     submitMutation.isPending ||
-                    Boolean(submission)
+                    Boolean(submission) ||
+                    !signature.data
                   }
                   onClick={() => submitToHr(values)}
                   size="sm"
@@ -155,11 +167,12 @@ export function TimesheetEditor() {
                   <Send data-icon="inline-start" />
                   {createMutation.isPending || submitMutation.isPending
                     ? "Submitting…"
-                    : "Submit to HR"}
+                    : "Sign & submit"}
                 </Button>
               </div>
             </div>
 
+            <SigningPanel submission={submission} />
             <Separator />
 
             {!savedTimesheetId && (
@@ -289,7 +302,10 @@ export function TimesheetEditor() {
             )}
           </div>
 
-          <DocumentPreview title="Official Time Sheet">
+          <DocumentPreview
+            showDownloadPdf={!submission?.signed_document_id}
+            title="Official Time Sheet"
+          >
             <TimesheetDocument submission={submission} values={values} />
           </DocumentPreview>
         </div>

@@ -8,40 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 import { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 
-/**
- * @description Public holiday created
- */
-export const createHolidayApiV1HrRostersPublicHolidaysPost200Schema = z.any();
+export const createHolidayApiV1HrRostersPublicHolidaysPostStatus200Schema =
+  z.unknown();
 
-/**
- * @description Successful Response
- */
-export const createHolidayApiV1HrRostersPublicHolidaysPost201Schema = z.lazy(
-  () => publicHolidayPublicSchema
-);
+export const createHolidayApiV1HrRostersPublicHolidaysPostStatus201Schema =
+  publicHolidayPublicSchema;
 
-/**
- * @description Duplicate date
- */
-export const createHolidayApiV1HrRostersPublicHolidaysPost400Schema = z.any();
+export const createHolidayApiV1HrRostersPublicHolidaysPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createHolidayApiV1HrRostersPublicHolidaysPost403Schema = z.any();
+export const createHolidayApiV1HrRostersPublicHolidaysPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const createHolidayApiV1HrRostersPublicHolidaysPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createHolidayApiV1HrRostersPublicHolidaysPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const createHolidayApiV1HrRostersPublicHolidaysPostMutationRequestSchema =
-  z.lazy(() => publicHolidayCreateSchema);
-
-export const createHolidayApiV1HrRostersPublicHolidaysPostMutationResponseSchema =
+export const createHolidayApiV1HrRostersPublicHolidaysPostResponseSchema =
   z.union([
-    z.lazy(() => createHolidayApiV1HrRostersPublicHolidaysPost200Schema),
-    z.lazy(() => createHolidayApiV1HrRostersPublicHolidaysPost201Schema),
+    createHolidayApiV1HrRostersPublicHolidaysPostStatus200Schema,
+    createHolidayApiV1HrRostersPublicHolidaysPostStatus201Schema,
   ]);
+
+export const createHolidayApiV1HrRostersPublicHolidaysPostErrorSchema = z.union(
+  [
+    createHolidayApiV1HrRostersPublicHolidaysPostStatus400Schema,
+    createHolidayApiV1HrRostersPublicHolidaysPostStatus403Schema,
+    createHolidayApiV1HrRostersPublicHolidaysPostStatus422Schema,
+  ]
+);
+
+export const createHolidayApiV1HrRostersPublicHolidaysPostBodySchema =
+  publicHolidayCreateSchema;

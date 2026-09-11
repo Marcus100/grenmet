@@ -3,12 +3,11 @@
  * Do not edit manually.
  */
 
-/**
- * EmailRequest
- */
 export type EmailRequest = {
   /**
-   * @type string, email
+   * @description
+   * Format: `email`
+   * @type string
    */
   email: string;
 };

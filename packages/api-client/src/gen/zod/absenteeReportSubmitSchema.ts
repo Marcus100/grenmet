@@ -6,5 +6,6 @@
 import * as z from "zod";
 
 export const absenteeReportSubmitSchema = z.object({
-  co_approver_user_ids: z.optional(z.array(z.string().uuid())),
+  signature_version: z.union([z.uuid(), z.null()]).optional(),
+  co_approver_user_ids: z.array(z.uuid()).optional(),
 });

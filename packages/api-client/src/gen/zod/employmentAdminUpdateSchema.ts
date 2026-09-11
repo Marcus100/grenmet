@@ -8,10 +8,8 @@ import { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.j
 import { employmentUpdateSchema } from "./employmentUpdateSchema.js";
 
 export const employmentAdminUpdateSchema = z.object({
-  employment: z.optional(
-    z.union([z.lazy(() => employmentUpdateSchema), z.null()])
-  ),
-  approval_authority: z.optional(
-    z.union([z.lazy(() => approvalAuthorityUpdateSchema), z.null()])
-  ),
+  employment: z.union([employmentUpdateSchema, z.null()]).optional(),
+  approval_authority: z
+    .union([approvalAuthorityUpdateSchema, z.null()])
+    .optional(),
 });

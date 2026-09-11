@@ -32,6 +32,11 @@ import { DatePicker } from "@/components/document/date-picker";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import {
+  signedDocumentsKey,
+  useSigning,
+} from "@/components/hr/signatures/signature-api";
+import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import { displayName } from "@/lib/people";
@@ -67,6 +72,7 @@ function draftToFormValues(swap: ShiftSwapRequestPublic): typeof EMPTY_FORM {
 export function ShiftExchangeEditor() {
   const form = useForm({ defaultValues: EMPTY_FORM });
   const queryClient = useQueryClient();
+  const signature = useSigning();
   const sessionUser = useSessionUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -75,11 +81,11 @@ export function ShiftExchangeEditor() {
   const departmentId = profileQuery.data?.employment?.department?.id;
   const membersQuery =
     useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      departmentId ?? "",
+      { path: { department_id: departmentId ?? "" } },
       { query: { enabled: Boolean(departmentId) } }
     );
   const members = membersQuery.data?.data ?? [];
-  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet();
+  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
   const createMutation = useCreateShiftSwapApiV1HrShiftSwapsPost();
   const updateMutation = useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch();
   const submitMutation =
@@ -145,12 +151,18 @@ export function ShiftExchangeEditor() {
   }
 
   function handleDownloadPdf() {
+    if (submission?.signed_document_id) {
+      window.location.assign(
+        `/api/v1/hr/signed-documents/${submission.signed_document_id}/pdf`
+      );
+      return;
+    }
     window.print();
   }
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey(),
+      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
     });
   }
 
@@ -168,6 +180,10 @@ export function ShiftExchangeEditor() {
   }
 
   async function persist(values: typeof EMPTY_FORM, asDraft: boolean) {
+    if (!(asDraft || signature.data)) {
+      toast.error("Save your signature in your profile before signing");
+      return;
+    }
     if (!asDraft) {
       if (!values.counterpartUserId) {
         toast.error("Select the department member to exchange with");
@@ -191,14 +207,14 @@ export function ShiftExchangeEditor() {
       if (asDraft) {
         if (draftId) {
           await updateMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: buildPayload(values, departmentId),
+            path: { shift_swap_id: draftId },
+            body: buildPayload(values, departmentId),
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
         } else {
           const created = await createMutation.mutateAsync({
-            data: {
+            body: {
               ...buildPayload(values, departmentId),
               as_draft: true,
               co_approver_user_ids: [],
@@ -212,23 +228,29 @@ export function ShiftExchangeEditor() {
       } else {
         if (draftId) {
           await updateMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: buildPayload(values, departmentId),
+            path: { shift_swap_id: draftId },
+            body: buildPayload(values, departmentId),
           });
           const submitted = await submitMutation.mutateAsync({
-            shift_swap_id: draftId,
-            data: { co_approver_user_ids: coApprovers },
-          });
-          setSubmission(submitted);
-        } else {
-          const submitted = await createMutation.mutateAsync({
-            data: {
-              ...buildPayload(values, departmentId),
-              as_draft: false,
+            path: { shift_swap_id: draftId },
+            body: {
+              signature_version: signature.data?.version,
               co_approver_user_ids: coApprovers,
             },
           });
           setSubmission(submitted);
+          await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
+        } else {
+          const submitted = await createMutation.mutateAsync({
+            body: {
+              ...buildPayload(values, departmentId),
+              as_draft: false,
+              signature_version: signature.data?.version,
+              co_approver_user_ids: coApprovers,
+            },
+          });
+          setSubmission(submitted);
+          await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
         }
         toast.success("Shift exchange request submitted");
         setStatusHint("Submitted copy — Reset to start a new form");
@@ -246,9 +268,10 @@ export function ShiftExchangeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid items-start gap-5 xl:grid-cols-2">
+        <div className="grid @4xl:grid-cols-2 items-start gap-5">
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-3">
+              <SigningPanel submission={submission} />
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
@@ -257,7 +280,8 @@ export function ShiftExchangeEditor() {
                 onSave={submission ? undefined : () => persist(values, true)}
                 onSubmit={submission ? undefined : () => persist(values, false)}
                 statusHint={statusHint}
-                submitDisabled={!departmentId}
+                submitDisabled={!(departmentId && signature.data)}
+                submitLabel="Sign & submit"
               />
             </div>
 

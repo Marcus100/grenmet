@@ -7,56 +7,49 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 import type { StaffInput } from "./StaffInput.js";
 
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams = {
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
 };
 
-/**
- * Message
- * @description Successful Response
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPut200 = Message;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200 = Message;
 
-/**
- * @description Administrator access required
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPut403 = any;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPut404 = any;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPut409 = any;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPut422 = HTTPValidationError;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422 =
+  HTTPValidationError;
 
-/**
- * StaffInput
- */
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest =
-  StaffInput;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutBody = StaffInput;
 
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationResponse =
-  UpdateStaffSetupApiV1HrSetupStaffUserIdPut200;
-
-export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutation = {
-  Response: UpdateStaffSetupApiV1HrSetupStaffUserIdPut200;
-  Request: UpdateStaffSetupApiV1HrSetupStaffUserIdPutMutationRequest;
-  PathParams: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPathParams;
-  Errors:
-    | UpdateStaffSetupApiV1HrSetupStaffUserIdPut403
-    | UpdateStaffSetupApiV1HrSetupStaffUserIdPut404
-    | UpdateStaffSetupApiV1HrSetupStaffUserIdPut409
-    | UpdateStaffSetupApiV1HrSetupStaffUserIdPut422;
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutOptions = {
+  body: UpdateStaffSetupApiV1HrSetupStaffUserIdPutBody;
+  path: UpdateStaffSetupApiV1HrSetupStaffUserIdPutPath;
+  query?: never;
+  headers?: never;
 };
+
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponses = {
+  "200": UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200;
+  "403": UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403;
+  "404": UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404;
+  "409": UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409;
+  "422": UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type UpdateStaffSetupApiV1HrSetupStaffUserIdPutResponse =
+  | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus200
+  | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus403
+  | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus404
+  | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus409
+  | UpdateStaffSetupApiV1HrSetupStaffUserIdPutStatus422;

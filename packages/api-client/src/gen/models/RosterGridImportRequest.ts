@@ -3,28 +3,23 @@
  * Do not edit manually.
  */
 
-/**
- * RosterGridImportRequest
- */
 export type RosterGridImportRequest = {
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_start: string;
   /**
-   * @type string, date
-   */
-  period_end: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  period_end: string;
   csv_text: string;
   /**
-   * @default "roster.csv"
+   * @default 'roster.csv'
    * @type string | undefined
    */
   file_name?: string;

@@ -3,9 +3,6 @@
  * Do not edit manually.
  */
 
-/**
- * CapFeedImportCreate
- */
 export type CapFeedImportCreate = {
   /**
    * @minLength 1

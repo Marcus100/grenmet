@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from pydantic import Field
 
+from src.hr.signatures.schemas import SignatureConsent
 from src.models import BaseModel, UtcDateTime
 
 from .models import SubmissionMode, TimesheetStatus
@@ -37,6 +38,7 @@ class TimesheetCreate(BaseModel):
 
 
 class TimesheetPublic(BaseModel):
+    signed_document_id: uuid.UUID | None = None
     id: uuid.UUID
     user_id: uuid.UUID
     department_id: str
@@ -72,7 +74,7 @@ class TimesheetDetails(BaseModel):
     entries: list[TimesheetEntryPublic]
 
 
-class TimesheetSubmitRequest(BaseModel):
+class TimesheetSubmitRequest(SignatureConsent):
     mode: SubmissionMode = SubmissionMode.SELF
 
 

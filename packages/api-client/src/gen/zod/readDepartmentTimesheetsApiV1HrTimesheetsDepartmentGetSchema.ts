@@ -7,45 +7,29 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { timesheetListPublicSchema } from "./timesheetListPublicSchema.js";
 
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryParamsSchema =
-  z.object({
-    department_id: z.string(),
-    page: z.optional(
-      z.coerce
-        .number()
-        .int()
-        .min(1)
-        .default(1)
-        .describe("Page number (1-indexed)")
-    ),
-    size: z.optional(
-      z.coerce
-        .number()
-        .int()
-        .min(1)
-        .max(1000)
-        .default(100)
-        .describe("Items per page")
-    ),
-  });
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryDepartmentIdSchema =
+  z.string();
 
-/**
- * @description Timesheets returned
- */
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200Schema =
-  z.lazy(() => timesheetListPublicSchema);
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryPageSchema =
+  z.int().min(1).optional().default(1).describe("Page number (1-indexed)");
 
-/**
- * @description Insufficient permission
- */
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet403Schema =
-  z.any();
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuerySizeSchema =
+  z.int().min(1).max(1000).optional().default(100).describe("Items per page");
 
-/**
- * @description Validation Error
- */
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200Schema =
+  timesheetListPublicSchema;
 
-export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryResponseSchema =
-  z.lazy(() => readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGet200Schema);
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403Schema =
+  z.unknown();
+
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422Schema =
+  HTTPValidationErrorSchema;
+
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponseSchema =
+  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200Schema;
+
+export const readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetErrorSchema =
+  z.union([
+    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403Schema,
+    readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422Schema,
+  ]);

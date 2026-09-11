@@ -3,43 +3,33 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadUsersApiV1AuthUsersGet422,
-  ReadUsersApiV1AuthUsersGetQueryParams,
-  ReadUsersApiV1AuthUsersGetQueryResponse,
+  ReadUsersApiV1AuthUsersGetOptions,
+  ReadUsersApiV1AuthUsersGetResponses,
 } from "../models/ReadUsersApiV1AuthUsersGet.js";
-
-function getReadUsersApiV1AuthUsersGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/users` as const };
-  return res;
-}
 
 /**
  * @description Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).
  * @summary List users
  * {@link /api/v1/auth/users}
  */
-export async function readUsersApiV1AuthUsersGet(
-  params?: ReadUsersApiV1AuthUsersGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readUsersApiV1AuthUsersGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadUsersApiV1AuthUsersGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadUsersApiV1AuthUsersGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadUsersApiV1AuthUsersGetQueryResponse,
-    ResponseErrorConfig<ReadUsersApiV1AuthUsersGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadUsersApiV1AuthUsersGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/users",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadUsersApiV1AuthUsersGetResponses, ThrowOnError>
+    >
+  );
 }

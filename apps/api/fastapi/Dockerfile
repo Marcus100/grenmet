@@ -30,6 +30,7 @@ COPY --chown=appuser:appuser pyproject.toml uv.lock ./
 COPY --chown=appuser:appuser apps/api/fastapi/pyproject.toml apps/api/fastapi/pyproject.toml
 COPY --chown=appuser:appuser scripts/scrapy-wxwatch/pyproject.toml scripts/scrapy-wxwatch/pyproject.toml
 COPY --chown=appuser:appuser scripts/sutron-collector/pyproject.toml scripts/sutron-collector/pyproject.toml
+COPY --chown=appuser:appuser scripts/gms-ingest/pyproject.toml scripts/gms-ingest/pyproject.toml
 COPY --chown=appuser:appuser notebooks/pyproject.toml notebooks/pyproject.toml
 COPY --chown=appuser:appuser geonetcast/pyproject.toml geonetcast/pyproject.toml
 

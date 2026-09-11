@@ -8,34 +8,24 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 import { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 
-/**
- * @description Session created successfully
- */
-export const loginSessionApiV1LoginSessionPost200Schema = z.lazy(
-  () => sessionLoginResponseSchema
-);
+export const loginSessionApiV1LoginSessionPostStatus200Schema =
+  sessionLoginResponseSchema;
 
-/**
- * @description Incorrect email/password or inactive user
- */
-export const loginSessionApiV1LoginSessionPost400Schema = z.any();
+export const loginSessionApiV1LoginSessionPostStatus400Schema = z.unknown();
 
-/**
- * @description Validation Error
- */
-export const loginSessionApiV1LoginSessionPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const loginSessionApiV1LoginSessionPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Rate limit exceeded
- */
-export const loginSessionApiV1LoginSessionPost429Schema = z.any();
+export const loginSessionApiV1LoginSessionPostStatus429Schema = z.unknown();
 
-export const loginSessionApiV1LoginSessionPostMutationRequestSchema = z.lazy(
-  () => sessionLoginRequestSchema
-);
+export const loginSessionApiV1LoginSessionPostResponseSchema =
+  loginSessionApiV1LoginSessionPostStatus200Schema;
 
-export const loginSessionApiV1LoginSessionPostMutationResponseSchema = z.lazy(
-  () => loginSessionApiV1LoginSessionPost200Schema
-);
+export const loginSessionApiV1LoginSessionPostErrorSchema = z.union([
+  loginSessionApiV1LoginSessionPostStatus400Schema,
+  loginSessionApiV1LoginSessionPostStatus422Schema,
+  loginSessionApiV1LoginSessionPostStatus429Schema,
+]);
+
+export const loginSessionApiV1LoginSessionPostBodySchema =
+  sessionLoginRequestSchema;

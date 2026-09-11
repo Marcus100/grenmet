@@ -3,27 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capSettingsPublicSchema } from "./capSettingsPublicSchema.js";
 import { capSettingsUpdateSchema } from "./capSettingsUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const updateCapSettingsApiV1CapSettingsPatch200Schema = z.lazy(
-  () => capSettingsPublicSchema
-);
+export const updateCapSettingsApiV1CapSettingsPatchStatus200Schema =
+  capSettingsPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const updateCapSettingsApiV1CapSettingsPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateCapSettingsApiV1CapSettingsPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateCapSettingsApiV1CapSettingsPatchMutationRequestSchema =
-  z.lazy(() => capSettingsUpdateSchema);
+export const updateCapSettingsApiV1CapSettingsPatchResponseSchema =
+  updateCapSettingsApiV1CapSettingsPatchStatus200Schema;
 
-export const updateCapSettingsApiV1CapSettingsPatchMutationResponseSchema =
-  z.lazy(() => updateCapSettingsApiV1CapSettingsPatch200Schema);
+export const updateCapSettingsApiV1CapSettingsPatchErrorSchema =
+  updateCapSettingsApiV1CapSettingsPatchStatus422Schema;
+
+export const updateCapSettingsApiV1CapSettingsPatchBodySchema =
+  capSettingsUpdateSchema;

@@ -6,51 +6,51 @@
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { RosterPeriodPublic } from "./RosterPeriodPublic.js";
 
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams = {
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   period_id: string;
 };
 
-/**
- * RosterPeriodPublic
- * @description Roster period published
- */
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200 =
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200 =
   RosterPeriodPublic;
 
-/**
- * @description Period already published or closed
- */
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400 = any;
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400 =
+  unknown;
 
-/**
- * @description Insufficient permission
- */
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403 = any;
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403 =
+  unknown;
 
-/**
- * @description Roster period not found
- */
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404 = any;
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422 =
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422 =
   HTTPValidationError;
 
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutationResponse =
-  PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200;
-
-export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchMutation = {
-  Response: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch200;
-  PathParams: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathParams;
-  Errors:
-    | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch400
-    | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch403
-    | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch404
-    | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch422;
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions = {
+  body?: never;
+  path: PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponses = {
+  "200": PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200;
+  "400": PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400;
+  "403": PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403;
+  "404": PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404;
+  "422": PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponse =
+  | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200
+  | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400
+  | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403
+  | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404
+  | PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422;

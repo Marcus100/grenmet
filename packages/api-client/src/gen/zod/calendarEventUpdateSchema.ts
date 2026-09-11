@@ -7,12 +7,12 @@ import * as z from "zod";
 import { calendarEventKindSchema } from "./calendarEventKindSchema.js";
 
 export const calendarEventUpdateSchema = z.object({
-  title: z.optional(z.union([z.string(), z.null()])),
-  description: z.optional(z.union([z.string(), z.null()])),
-  kind: z.optional(z.union([z.lazy(() => calendarEventKindSchema), z.null()])),
-  starts_at: z.optional(z.union([z.string().datetime(), z.null()])),
-  ends_at: z.optional(z.union([z.string().datetime(), z.null()])),
-  all_day: z.optional(z.union([z.boolean(), z.null()])),
-  location: z.optional(z.union([z.string(), z.null()])),
-  cancelled: z.optional(z.union([z.boolean(), z.null()])),
+  title: z.union([z.string(), z.null()]).optional(),
+  description: z.union([z.string(), z.null()]).optional(),
+  kind: z.union([calendarEventKindSchema, z.null()]).optional(),
+  starts_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  ends_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  all_day: z.union([z.boolean(), z.null()]).optional(),
+  location: z.union([z.string(), z.null()]).optional(),
+  cancelled: z.union([z.boolean(), z.null()]).optional(),
 });

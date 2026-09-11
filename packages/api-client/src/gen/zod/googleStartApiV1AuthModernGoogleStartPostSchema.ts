@@ -8,32 +8,26 @@ import { googleStartPublicSchema } from "./googleStartPublicSchema.js";
 import { googleStartSchema } from "./googleStartSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const googleStartApiV1AuthModernGoogleStartPost200Schema = z.lazy(
-  () => googleStartPublicSchema
-);
+export const googleStartApiV1AuthModernGoogleStartPostStatus200Schema =
+  googleStartPublicSchema;
 
-/**
- * @description Invalid or expired proof
- */
-export const googleStartApiV1AuthModernGoogleStartPost400Schema = z.any();
+export const googleStartApiV1AuthModernGoogleStartPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Account is not eligible
- */
-export const googleStartApiV1AuthModernGoogleStartPost403Schema = z.any();
+export const googleStartApiV1AuthModernGoogleStartPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const googleStartApiV1AuthModernGoogleStartPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const googleStartApiV1AuthModernGoogleStartPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const googleStartApiV1AuthModernGoogleStartPostMutationRequestSchema =
-  z.lazy(() => googleStartSchema);
+export const googleStartApiV1AuthModernGoogleStartPostResponseSchema =
+  googleStartApiV1AuthModernGoogleStartPostStatus200Schema;
 
-export const googleStartApiV1AuthModernGoogleStartPostMutationResponseSchema =
-  z.lazy(() => googleStartApiV1AuthModernGoogleStartPost200Schema);
+export const googleStartApiV1AuthModernGoogleStartPostErrorSchema = z.union([
+  googleStartApiV1AuthModernGoogleStartPostStatus400Schema,
+  googleStartApiV1AuthModernGoogleStartPostStatus403Schema,
+  googleStartApiV1AuthModernGoogleStartPostStatus422Schema,
+]);
+
+export const googleStartApiV1AuthModernGoogleStartPostBodySchema =
+  googleStartSchema;

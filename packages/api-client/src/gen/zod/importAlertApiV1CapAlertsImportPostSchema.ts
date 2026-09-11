@@ -3,29 +3,21 @@
  * Do not edit manually.
  */
 
-import * as z from "zod";
 import { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 
-/**
- * @description Successful Response
- */
-export const importAlertApiV1CapAlertsImportPost201Schema = z.lazy(
-  () => capAlertPublicSchema
-);
+export const importAlertApiV1CapAlertsImportPostStatus201Schema =
+  capAlertPublicSchema;
 
-/**
- * @description Validation Error
- */
-export const importAlertApiV1CapAlertsImportPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const importAlertApiV1CapAlertsImportPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const importAlertApiV1CapAlertsImportPostMutationRequestSchema = z.lazy(
-  () => capAlertImportRequestSchema
-);
+export const importAlertApiV1CapAlertsImportPostResponseSchema =
+  importAlertApiV1CapAlertsImportPostStatus201Schema;
 
-export const importAlertApiV1CapAlertsImportPostMutationResponseSchema = z.lazy(
-  () => importAlertApiV1CapAlertsImportPost201Schema
-);
+export const importAlertApiV1CapAlertsImportPostErrorSchema =
+  importAlertApiV1CapAlertsImportPostStatus422Schema;
+
+export const importAlertApiV1CapAlertsImportPostBodySchema =
+  capAlertImportRequestSchema;

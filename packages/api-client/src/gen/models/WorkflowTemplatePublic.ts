@@ -5,36 +5,17 @@
 
 import type { WorkflowType } from "./WorkflowType.js";
 
-/**
- * WorkflowTemplatePublic
- */
 export type WorkflowTemplatePublic = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   workflow_type: WorkflowType;
-  /**
-   * @type string
-   */
   name: string;
-  /**
-   * @type boolean
-   */
   is_active: boolean;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

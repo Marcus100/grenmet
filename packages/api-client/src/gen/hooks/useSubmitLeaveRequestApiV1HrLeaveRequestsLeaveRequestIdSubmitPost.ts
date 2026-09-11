@@ -9,62 +9,49 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "../clients/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 import type {
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
-  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404,
+  SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422,
 } from "../models/SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
 
 export const submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey =
   () =>
     [{ url: "/api/v1/hr/leave-requests/:leave_request_id/submit" }] as const;
 
-export type SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey =
-  ReturnType<
-    typeof submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey
-  >;
-
 export function submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey =
     submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationKey();
   return mutationOptions<
-    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422
     >,
-    {
-      leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"];
-      data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-    },
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ leave_request_id, data }) => {
-      return submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost(
-        leave_request_id,
-        data,
-        config
-      );
+    mutationFn: async ({ path, body }) => {
+      return submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -79,22 +66,19 @@ export function useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPos
 >(
   options: {
     mutation?: UseMutationOptions<
-      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422
       >,
-      {
-        leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"];
-        data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-      },
+      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -107,32 +91,26 @@ export function useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPos
     submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationOptions(
       config
     ) as UseMutationOptions<
-      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
       ResponseErrorConfig<
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+        | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422
       >,
-      {
-        leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"];
-        data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-      },
+      SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
       TContext
     >;
 
   return useMutation<
-    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422
     >,
-    {
-      leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"];
-      data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-    },
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
     TContext
   >(
     {
@@ -142,17 +120,14 @@ export function useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPos
     },
     queryClient
   ) as UseMutationResult<
-    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationResponse,
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200,
     ResponseErrorConfig<
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost400
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost403
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost404
-      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost422
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404
+      | SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422
     >,
-    {
-      leave_request_id: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathParams["leave_request_id"];
-      data: SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostMutationRequest;
-    },
+    SubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostOptions,
     TContext
   >;
 }

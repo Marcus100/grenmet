@@ -13,9 +13,9 @@ on:
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR; push/called runs are unique per run.
+# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
 concurrency:
-  group: ci-api-client-${{ github.event.pull_request.number || github.run_id }}
+  group: ci-api-client-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
   cancel-in-progress: true
 
 jobs:
@@ -41,11 +41,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate API client
-        run: pnpm generate:api-client
+      - name: Test API drift checker
+        run: node --test scripts/api/check-api-drift.test.mjs
 
       - name: Ensure generated client is committed
-        run: git diff --exit-code -- packages/api-client/src/gen
+        run: pnpm check:drift
 
       - name: Type-check API client package
         run: pnpm --filter @barrelsgd/api-client run type-check

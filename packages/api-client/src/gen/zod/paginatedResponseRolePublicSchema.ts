@@ -7,9 +7,9 @@ import * as z from "zod";
 import { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 
 export const paginatedResponseRolePublicSchema = z.object({
-  data: z.array(z.lazy(() => srcAuthSchemasRolePublicSchema)),
-  count: z.number().int(),
-  page: z.optional(z.number().int().default(1)),
-  size: z.optional(z.number().int().default(100)),
-  total_pages: z.optional(z.number().int().default(1)),
+  data: z.array(srcAuthSchemasRolePublicSchema),
+  count: z.int(),
+  page: z.int().optional().default(1),
+  size: z.int().optional().default(100),
+  total_pages: z.int().optional().default(1),
 });

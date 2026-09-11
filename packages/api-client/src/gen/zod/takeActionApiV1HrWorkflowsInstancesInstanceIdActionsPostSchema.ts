@@ -8,45 +8,34 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { workflowActionRequestSchema } from "./workflowActionRequestSchema.js";
 import { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
 
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathParamsSchema =
-  z.object({
-    instance_id: z.string().uuid(),
-  });
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathInstanceIdSchema =
+  z.uuid();
 
-/**
- * @description Action applied
- */
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200Schema =
-  z.lazy(() => workflowInstancePublicSchema);
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200Schema =
+  workflowInstancePublicSchema;
 
-/**
- * @description Workflow cannot be submitted or is not pending
- */
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost400Schema =
-  z.any();
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Not allowed to perform this workflow action
- */
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost403Schema =
-  z.any();
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Workflow instance or step not found
- */
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost404Schema =
-  z.any();
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationRequestSchema =
-  z.lazy(() => workflowActionRequestSchema);
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponseSchema =
+  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200Schema;
 
-export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostMutationResponseSchema =
-  z.lazy(
-    () => takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost200Schema
-  );
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostErrorSchema =
+  z.union([
+    takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400Schema,
+    takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403Schema,
+    takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404Schema,
+    takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422Schema,
+  ]);
+
+export const takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBodySchema =
+  workflowActionRequestSchema;

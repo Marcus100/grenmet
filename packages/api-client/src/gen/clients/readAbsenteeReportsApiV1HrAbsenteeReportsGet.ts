@@ -3,47 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
-  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions,
+  ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponses,
 } from "../models/ReadAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
-
-function getReadAbsenteeReportsApiV1HrAbsenteeReportsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/absentee-reports` as const };
-  return res;
-}
 
 /**
  * @description List absentee reports (own or by department). Department filter requires absentee.report.read.department.
  * @summary List absentee reports
  * {@link /api/v1/hr/absentee-reports}
  */
-export async function readAbsenteeReportsApiV1HrAbsenteeReportsGet(
-  params?: ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAbsenteeReportsApiV1HrAbsenteeReportsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAbsenteeReportsApiV1HrAbsenteeReportsGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet403
-      | ReadAbsenteeReportsApiV1HrAbsenteeReportsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAbsenteeReportsApiV1HrAbsenteeReportsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/absentee-reports",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadAbsenteeReportsApiV1HrAbsenteeReportsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

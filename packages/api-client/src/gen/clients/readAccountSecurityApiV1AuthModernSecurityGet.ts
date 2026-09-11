@@ -3,44 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadAccountSecurityApiV1AuthModernSecurityGet401,
-  ReadAccountSecurityApiV1AuthModernSecurityGet403,
-  ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
+  ReadAccountSecurityApiV1AuthModernSecurityGetOptions,
+  ReadAccountSecurityApiV1AuthModernSecurityGetResponses,
 } from "../models/ReadAccountSecurityApiV1AuthModernSecurityGet.js";
-
-function getReadAccountSecurityApiV1AuthModernSecurityGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/modern/security` as const };
-  return res;
-}
 
 /**
  * @description Show verified sign-in methods and active sessions for the current account, without exposing session secrets.
  * @summary Read account security
  * {@link /api/v1/auth/modern/security}
  */
-export async function readAccountSecurityApiV1AuthModernSecurityGet(
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readAccountSecurityApiV1AuthModernSecurityGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadAccountSecurityApiV1AuthModernSecurityGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadAccountSecurityApiV1AuthModernSecurityGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadAccountSecurityApiV1AuthModernSecurityGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadAccountSecurityApiV1AuthModernSecurityGet401
-      | ReadAccountSecurityApiV1AuthModernSecurityGet403
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadAccountSecurityApiV1AuthModernSecurityGetUrl().url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/modern/security",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadAccountSecurityApiV1AuthModernSecurityGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

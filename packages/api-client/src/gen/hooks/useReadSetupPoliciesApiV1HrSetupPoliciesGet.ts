@@ -10,47 +10,45 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readSetupPoliciesApiV1HrSetupPoliciesGet } from "../clients/readSetupPoliciesApiV1HrSetupPoliciesGet.js";
 import type {
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet403,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet404,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGet409,
-  ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404,
+  ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409,
 } from "../models/ReadSetupPoliciesApiV1HrSetupPoliciesGet.js";
 
 export const readSetupPoliciesApiV1HrSetupPoliciesGetQueryKey = () =>
   [{ url: "/api/v1/hr/setup/policies" }] as const;
 
-export type ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryKey = ReturnType<
+type ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryKey = ReturnType<
   typeof readSetupPoliciesApiV1HrSetupPoliciesGetQueryKey
 >;
 
 export function readSetupPoliciesApiV1HrSetupPoliciesGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readSetupPoliciesApiV1HrSetupPoliciesGetQueryKey();
   return queryOptions<
-    ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+    ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
     ResponseErrorConfig<
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet403
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet404
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet409
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409
     >,
-    ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+    ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readSetupPoliciesApiV1HrSetupPoliciesGet(config);
+      return readSetupPoliciesApiV1HrSetupPoliciesGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,50 +59,52 @@ export function readSetupPoliciesApiV1HrSetupPoliciesGetQueryOptions(
  * {@link /api/v1/hr/setup/policies}
  */
 export function useReadSetupPoliciesApiV1HrSetupPoliciesGet<
-  TData = ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
-  TQueryData = ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+  TData = ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
+  TQueryData = ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
   TQueryKey extends QueryKey = ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadSetupPoliciesApiV1HrSetupPoliciesGetQueryResponse,
+        ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus200,
         ResponseErrorConfig<
-          | ReadSetupPoliciesApiV1HrSetupPoliciesGet403
-          | ReadSetupPoliciesApiV1HrSetupPoliciesGet404
-          | ReadSetupPoliciesApiV1HrSetupPoliciesGet409
+          | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403
+          | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404
+          | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409
         >,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ??
+    resolvedOptions?.queryKey ??
     readSetupPoliciesApiV1HrSetupPoliciesGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readSetupPoliciesApiV1HrSetupPoliciesGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet403
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet404
-      | ReadSetupPoliciesApiV1HrSetupPoliciesGet409
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus403
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus404
+      | ReadSetupPoliciesApiV1HrSetupPoliciesGetStatus409
     >
   > & { queryKey: TQueryKey };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

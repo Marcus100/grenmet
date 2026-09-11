@@ -3,56 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  EmailConfirmApiV1AuthModernEmailConfirmPost400,
-  EmailConfirmApiV1AuthModernEmailConfirmPost403,
-  EmailConfirmApiV1AuthModernEmailConfirmPost422,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest,
-  EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
+  EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
+  EmailConfirmApiV1AuthModernEmailConfirmPostResponses,
 } from "../models/EmailConfirmApiV1AuthModernEmailConfirmPost.js";
-
-function getEmailConfirmApiV1AuthModernEmailConfirmPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/auth/modern/email/confirm` as const,
-  };
-  return res;
-}
 
 /**
  * @description Verify email and establish password. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify email and establish password
  * {@link /api/v1/auth/modern/email/confirm}
  */
-export async function emailConfirmApiV1AuthModernEmailConfirmPost(
-  data: EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest,
-  config: Partial<
-    RequestConfig<EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function emailConfirmApiV1AuthModernEmailConfirmPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    EmailConfirmApiV1AuthModernEmailConfirmPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    EmailConfirmApiV1AuthModernEmailConfirmPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    EmailConfirmApiV1AuthModernEmailConfirmPostMutationResponse,
-    ResponseErrorConfig<
-      | EmailConfirmApiV1AuthModernEmailConfirmPost400
-      | EmailConfirmApiV1AuthModernEmailConfirmPost403
-      | EmailConfirmApiV1AuthModernEmailConfirmPost422
-    >,
-    EmailConfirmApiV1AuthModernEmailConfirmPostMutationRequest
-  >({
-    method: "POST",
-    url: getEmailConfirmApiV1AuthModernEmailConfirmPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/auth/modern/email/confirm",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        EmailConfirmApiV1AuthModernEmailConfirmPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

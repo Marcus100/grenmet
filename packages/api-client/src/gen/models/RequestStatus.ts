@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const requestStatusRequestStatusEnum = {
+export const requestStatus = {
   DRAFT: "DRAFT",
   SUBMITTED: "SUBMITTED",
   APPROVED: "APPROVED",
@@ -11,10 +11,4 @@ export const requestStatusRequestStatusEnum = {
   CANCELLED: "CANCELLED",
 } as const;
 
-export type RequestStatusRequestStatusEnumKey =
-  (typeof requestStatusRequestStatusEnum)[keyof typeof requestStatusRequestStatusEnum];
-
-/**
- * RequestStatus
- */
-export type RequestStatus = RequestStatusRequestStatusEnumKey;
+export type RequestStatus = (typeof requestStatus)[keyof typeof requestStatus];

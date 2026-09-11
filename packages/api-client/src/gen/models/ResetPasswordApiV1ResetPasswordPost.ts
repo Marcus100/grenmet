@@ -7,35 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Message } from "./Message.js";
 import type { NewPassword } from "./NewPassword.js";
 
-/**
- * Message
- * @description Successful Response
- */
-export type ResetPasswordApiV1ResetPasswordPost200 = Message;
+export type ResetPasswordApiV1ResetPasswordPostStatus200 = Message;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type ResetPasswordApiV1ResetPasswordPost422 = HTTPValidationError;
+export type ResetPasswordApiV1ResetPasswordPostStatus422 = HTTPValidationError;
 
-/**
- * @description Rate limit exceeded
- */
-export type ResetPasswordApiV1ResetPasswordPost429 = any;
+export type ResetPasswordApiV1ResetPasswordPostStatus429 = unknown;
 
-/**
- * NewPassword
- */
-export type ResetPasswordApiV1ResetPasswordPostMutationRequest = NewPassword;
+export type ResetPasswordApiV1ResetPasswordPostBody = NewPassword;
 
-export type ResetPasswordApiV1ResetPasswordPostMutationResponse =
-  ResetPasswordApiV1ResetPasswordPost200;
-
-export type ResetPasswordApiV1ResetPasswordPostMutation = {
-  Response: ResetPasswordApiV1ResetPasswordPost200;
-  Request: ResetPasswordApiV1ResetPasswordPostMutationRequest;
-  Errors:
-    | ResetPasswordApiV1ResetPasswordPost422
-    | ResetPasswordApiV1ResetPasswordPost429;
+export type ResetPasswordApiV1ResetPasswordPostOptions = {
+  body: ResetPasswordApiV1ResetPasswordPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ResetPasswordApiV1ResetPasswordPostResponses = {
+  "200": ResetPasswordApiV1ResetPasswordPostStatus200;
+  "422": ResetPasswordApiV1ResetPasswordPostStatus422;
+  "429": ResetPasswordApiV1ResetPasswordPostStatus429;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ResetPasswordApiV1ResetPasswordPostResponse =
+  | ResetPasswordApiV1ResetPasswordPostStatus200
+  | ResetPasswordApiV1ResetPasswordPostStatus422
+  | ResetPasswordApiV1ResetPasswordPostStatus429;

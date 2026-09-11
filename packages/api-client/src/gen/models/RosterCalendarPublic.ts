@@ -5,16 +5,7 @@
 
 import type { RosterCalendarEntry } from "./RosterCalendarEntry.js";
 
-/**
- * RosterCalendarPublic
- */
 export type RosterCalendarPublic = {
-  /**
-   * @type array
-   */
   data: RosterCalendarEntry[];
-  /**
-   * @type integer
-   */
   count: number;
 };

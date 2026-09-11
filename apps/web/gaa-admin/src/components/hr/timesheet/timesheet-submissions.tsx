@@ -12,7 +12,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function TimesheetSubmissions() {
-  const query = useReadMyTimesheetsApiV1HrTimesheetsMeGet();
+  const query = useReadMyTimesheetsApiV1HrTimesheetsMeGet({});
   const timesheets = query.data?.data ?? [];
 
   if (query.isLoading || timesheets.length === 0) {

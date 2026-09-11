@@ -9,47 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "../clients/submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 import type {
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPost422,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-  SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+  SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422,
 } from "../models/SubmitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 
 export const submitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/submit" }] as const;
 
-export type SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey = ReturnType<
-  typeof submitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey
->;
-
 export function submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = submitAlertApiV1CapAlertsAlertIdSubmitPostMutationKey();
   return mutationOptions<
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-    {
-      alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"];
-      data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-    },
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422>,
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id, data }) => {
-      return submitAlertApiV1CapAlertsAlertIdSubmitPost(alert_id, data, config);
+    mutationFn: async ({ path, body }) => {
+      return submitAlertApiV1CapAlertsAlertIdSubmitPost({
+        ...config,
+        path,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -61,17 +53,14 @@ export function submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions<
 export function useSubmitAlertApiV1CapAlertsAlertIdSubmitPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-      ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-      {
-        alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"];
-        data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-      },
+      SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+      ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422>,
+      SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -83,22 +72,16 @@ export function useSubmitAlertApiV1CapAlertsAlertIdSubmitPost<TContext>(
   const baseOptions = submitAlertApiV1CapAlertsAlertIdSubmitPostMutationOptions(
     config
   ) as UseMutationOptions<
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-    {
-      alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"];
-      data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-    },
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422>,
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
     TContext
   >;
 
   return useMutation<
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-    {
-      alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"];
-      data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-    },
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422>,
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
     TContext
   >(
     {
@@ -108,12 +91,9 @@ export function useSubmitAlertApiV1CapAlertsAlertIdSubmitPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationResponse,
-    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPost422>,
-    {
-      alert_id: SubmitAlertApiV1CapAlertsAlertIdSubmitPostPathParams["alert_id"];
-      data: SubmitAlertApiV1CapAlertsAlertIdSubmitPostMutationRequest;
-    },
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus200,
+    ResponseErrorConfig<SubmitAlertApiV1CapAlertsAlertIdSubmitPostStatus422>,
+    SubmitAlertApiV1CapAlertsAlertIdSubmitPostOptions,
     TContext
   >;
 }

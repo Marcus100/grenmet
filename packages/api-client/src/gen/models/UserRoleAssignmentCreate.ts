@@ -5,22 +5,25 @@
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
 
-/**
- * UserRoleAssignmentCreate
- */
 export type UserRoleAssignmentCreate = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   user_id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   role_id: string;
   /**
+   * @default 'SELF'
    * @type string | undefined
    */
   scope?: RoleAssignmentScope;
   department_id?: string | null;
   effective_to?: string | null;
+  organisation_id?: string | null;
 };

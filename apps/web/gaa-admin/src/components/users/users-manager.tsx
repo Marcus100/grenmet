@@ -30,17 +30,19 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@barrelsgd/ui/components/ui/tabs";
+import type {
+  ColumnFiltersState,
+  ColumnVisibilityState,
+  PaginationState,
+  SortingState,
+} from "@tanstack/react-table";
 import {
-  type ColumnFiltersState,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  type PaginationState,
-  type SortingState,
-  useReactTable,
-  type VisibilityState,
-} from "@tanstack/react-table";
+  useLegacyTable,
+} from "@tanstack/react-table/legacy";
 import {
   Cog,
   Download,
@@ -61,9 +63,15 @@ import {
 import { UsersTable } from "./users-table";
 
 export function UsersManager() {
-  const usersQuery = useReadUsersApiV1AuthUsersGet({ page: 1, size: 100 });
-  const rolesQuery = useReadRolesApiV1AuthRolesGet({ page: 1, size: 100 });
-  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet();
+  const usersQuery = useReadUsersApiV1AuthUsersGet({
+    query: { page: 1, size: 100 },
+  });
+  const rolesQuery = useReadRolesApiV1AuthRolesGet({
+    query: { page: 1, size: 100 },
+  });
+  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
+    {}
+  );
 
   const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data]);
   const rows = useMemo(
@@ -81,15 +89,16 @@ export function UsersManager() {
     { id: "joinedDate", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    search: false,
-  });
+  const [columnVisibility, setColumnVisibility] =
+    useState<ColumnVisibilityState>({
+      search: false,
+    });
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
     pageSize: 10,
   });
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: rows,
     columns: usersColumns,
     meta: { roles },

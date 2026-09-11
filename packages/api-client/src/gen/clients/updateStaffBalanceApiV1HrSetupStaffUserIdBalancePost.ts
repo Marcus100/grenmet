@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
-  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
+  UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponses,
 } from "../models/UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost.js";
-
-function getUpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostUrl(
-  user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/setup/staff/${user_id}/balance` as const,
-  };
-  return res;
-}
 
 /**
  * @description Record an audited leave balance adjustment.
  * @summary Record an audited leave balance adjustment
  * {@link /api/v1/hr/setup/staff/:user_id/balance}
  */
-export async function updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost(
-  user_id: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathParams["user_id"],
-  data: UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationResponse,
-    ResponseErrorConfig<
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost403
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost404
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost409
-      | UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePost422
-    >,
-    UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostMutationRequest
-  >({
-    method: "POST",
-    url: getUpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostUrl(
-      user_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/setup/staff/{user_id}/balance",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

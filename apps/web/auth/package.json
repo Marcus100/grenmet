@@ -20,6 +20,7 @@
   "dependencies": {
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/email-templates": "workspace:*",
+    "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "next": "catalog:",
     "posthog-node": "catalog:",

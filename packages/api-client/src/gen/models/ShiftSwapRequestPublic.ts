@@ -6,66 +6,50 @@
 import type { RequestStatus } from "./RequestStatus.js";
 import type { SwapType } from "./SwapType.js";
 
-/**
- * ShiftSwapRequestPublic
- */
 export type ShiftSwapRequestPublic = {
+  signed_document_id?: string | null;
   submitted_at?: string | null;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   requesting_user_id: string;
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   counterpart_user_id: string;
-  /**
-   * @type string
-   */
   department_id: string;
-  /**
-   * @type string
-   */
   swap_type: SwapType;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   source_date: string;
-  /**
-   * @type string
-   */
   source_shift_code: string;
   /**
-   * @type string, date
-   */
-  target_date: string;
-  /**
+   * @description
+   * Format: `date`
    * @type string
    */
+  target_date: string;
   target_shift_code: string;
   effective_date?: string | null;
   restoration_date?: string | null;
   reason?: string | null;
-  /**
-   * @type boolean
-   */
   counterpart_agreed: boolean;
   counterpart_agreed_at?: string | null;
-  /**
-   * @type string
-   */
   status: RequestStatus;
   workflow_instance_id?: string | null;
-  /**
-   * @type string
-   */
   created_at: string;
-  /**
-   * @type string
-   */
   updated_at: string;
 };

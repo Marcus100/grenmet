@@ -3,43 +3,33 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadRolesApiV1AuthRolesGet422,
-  ReadRolesApiV1AuthRolesGetQueryParams,
-  ReadRolesApiV1AuthRolesGetQueryResponse,
+  ReadRolesApiV1AuthRolesGetOptions,
+  ReadRolesApiV1AuthRolesGetResponses,
 } from "../models/ReadRolesApiV1AuthRolesGet.js";
-
-function getReadRolesApiV1AuthRolesGetUrl() {
-  const res = { method: "GET", url: `/api/v1/auth/roles` as const };
-  return res;
-}
 
 /**
  * @description Return roles (superuser only).
  * @summary List roles
  * {@link /api/v1/auth/roles}
  */
-export async function readRolesApiV1AuthRolesGet(
-  params?: ReadRolesApiV1AuthRolesGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readRolesApiV1AuthRolesGet<ThrowOnError extends boolean = true>(
+  options: Options<ReadRolesApiV1AuthRolesGetOptions, ThrowOnError> = {}
+): Unwrappable<
+  RequestResult<ReadRolesApiV1AuthRolesGetResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadRolesApiV1AuthRolesGetQueryResponse,
-    ResponseErrorConfig<ReadRolesApiV1AuthRolesGet422>,
-    unknown
-  >({
-    method: "GET",
-    url: getReadRolesApiV1AuthRolesGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/auth/roles",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<ReadRolesApiV1AuthRolesGetResponses, ThrowOnError>
+    >
+  );
 }

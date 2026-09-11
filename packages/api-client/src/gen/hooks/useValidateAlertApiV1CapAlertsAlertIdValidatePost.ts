@@ -9,41 +9,39 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { validateAlertApiV1CapAlertsAlertIdValidatePost } from "../clients/validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 import type {
-  ValidateAlertApiV1CapAlertsAlertIdValidatePost422,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-  ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+  ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422,
 } from "../models/ValidateAlertApiV1CapAlertsAlertIdValidatePost.js";
 
 export const validateAlertApiV1CapAlertsAlertIdValidatePostMutationKey = () =>
   [{ url: "/api/v1/cap/alerts/:alert_id/validate" }] as const;
 
-export type ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationKey =
-  ReturnType<typeof validateAlertApiV1CapAlertsAlertIdValidatePostMutationKey>;
-
 export function validateAlertApiV1CapAlertsAlertIdValidatePostMutationOptions<
   TContext = unknown,
->(config: Partial<RequestConfig> & { client?: Client } = {}) {
+>(
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
+) {
   const mutationKey =
     validateAlertApiV1CapAlertsAlertIdValidatePostMutationKey();
   return mutationOptions<
-    ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-    {
-      alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"];
-    },
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422>,
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ alert_id }) => {
-      return validateAlertApiV1CapAlertsAlertIdValidatePost(alert_id, config);
+    mutationFn: async ({ path }) => {
+      return validateAlertApiV1CapAlertsAlertIdValidatePost({
+        ...config,
+        path,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -55,14 +53,14 @@ export function validateAlertApiV1CapAlertsAlertIdValidatePostMutationOptions<
 export function useValidateAlertApiV1CapAlertsAlertIdValidatePost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-      ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-      {
-        alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"];
-      },
+      ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+      ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422>,
+      ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
       TContext
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -75,20 +73,16 @@ export function useValidateAlertApiV1CapAlertsAlertIdValidatePost<TContext>(
     validateAlertApiV1CapAlertsAlertIdValidatePostMutationOptions(
       config
     ) as UseMutationOptions<
-      ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-      ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-      {
-        alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"];
-      },
+      ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+      ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422>,
+      ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
       TContext
     >;
 
   return useMutation<
-    ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-    {
-      alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"];
-    },
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422>,
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
     TContext
   >(
     {
@@ -98,11 +92,9 @@ export function useValidateAlertApiV1CapAlertsAlertIdValidatePost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    ValidateAlertApiV1CapAlertsAlertIdValidatePostMutationResponse,
-    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePost422>,
-    {
-      alert_id: ValidateAlertApiV1CapAlertsAlertIdValidatePostPathParams["alert_id"];
-    },
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus200,
+    ResponseErrorConfig<ValidateAlertApiV1CapAlertsAlertIdValidatePostStatus422>,
+    ValidateAlertApiV1CapAlertsAlertIdValidatePostOptions,
     TContext
   >;
 }

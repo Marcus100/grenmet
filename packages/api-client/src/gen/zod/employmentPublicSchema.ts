@@ -10,19 +10,16 @@ import { employmentTypeSchema } from "./employmentTypeSchema.js";
 import { gradePublicSchema } from "./gradePublicSchema.js";
 
 export const employmentPublicSchema = z.object({
-  grade: z.optional(z.union([z.lazy(() => gradePublicSchema), z.null()])),
-  supervisor_name: z.optional(z.union([z.string(), z.null()])),
-  details_complete: z.optional(z.boolean().default(false)),
-  employee_number: z.optional(z.union([z.string(), z.null()])),
-  department: z.optional(
-    z.union([z.lazy(() => departmentPublicSchema), z.null()])
-  ),
-  position: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(
-    z.union([z.lazy(() => employmentTypeSchema), z.null()])
-  ),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  work_location: z.optional(z.union([z.string(), z.null()])),
-  status: z.optional(z.union([z.lazy(() => employmentStatusSchema), z.null()])),
+  organisation_id: z.union([z.string(), z.null()]).optional(),
+  grade: z.union([gradePublicSchema, z.null()]).optional(),
+  supervisor_name: z.union([z.string(), z.null()]).optional(),
+  details_complete: z.boolean().optional().default(false),
+  employee_number: z.union([z.string(), z.null()]).optional(),
+  department: z.union([departmentPublicSchema, z.null()]).optional(),
+  position: z.union([z.string(), z.null()]).optional(),
+  employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
+  work_location: z.union([z.string(), z.null()]).optional(),
+  status: z.union([employmentStatusSchema, z.null()]).optional(),
 });

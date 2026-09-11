@@ -7,36 +7,31 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 import type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 
-/**
- * TwoFactorStatusPublic
- * @description Successful Response
- */
-export type TwofaDisableApiV12FaDisablePost200 = TwoFactorStatusPublic;
+export type TwofaDisableApiV12FaDisablePostStatus200 = TwoFactorStatusPublic;
 
-/**
- * @description Incorrect password
- */
-export type TwofaDisableApiV12FaDisablePost400 = any;
+export type TwofaDisableApiV12FaDisablePostStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type TwofaDisableApiV12FaDisablePost422 = HTTPValidationError;
+export type TwofaDisableApiV12FaDisablePostStatus422 = HTTPValidationError;
 
-/**
- * TwoFactorDisableRequest
- */
-export type TwofaDisableApiV12FaDisablePostMutationRequest =
-  TwoFactorDisableRequest;
+export type TwofaDisableApiV12FaDisablePostBody = TwoFactorDisableRequest;
 
-export type TwofaDisableApiV12FaDisablePostMutationResponse =
-  TwofaDisableApiV12FaDisablePost200;
-
-export type TwofaDisableApiV12FaDisablePostMutation = {
-  Response: TwofaDisableApiV12FaDisablePost200;
-  Request: TwofaDisableApiV12FaDisablePostMutationRequest;
-  Errors:
-    | TwofaDisableApiV12FaDisablePost400
-    | TwofaDisableApiV12FaDisablePost422;
+export type TwofaDisableApiV12FaDisablePostOptions = {
+  body: TwofaDisableApiV12FaDisablePostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type TwofaDisableApiV12FaDisablePostResponses = {
+  "200": TwofaDisableApiV12FaDisablePostStatus200;
+  "400": TwofaDisableApiV12FaDisablePostStatus400;
+  "422": TwofaDisableApiV12FaDisablePostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type TwofaDisableApiV12FaDisablePostResponse =
+  | TwofaDisableApiV12FaDisablePostStatus200
+  | TwofaDisableApiV12FaDisablePostStatus400
+  | TwofaDisableApiV12FaDisablePostStatus422;

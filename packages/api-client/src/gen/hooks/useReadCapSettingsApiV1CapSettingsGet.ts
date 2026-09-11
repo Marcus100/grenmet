@@ -10,38 +10,36 @@ import type {
   UseQueryResult,
 } from "@tanstack/react-query";
 import { queryOptions, useQuery } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { readCapSettingsApiV1CapSettingsGet } from "../clients/readCapSettingsApiV1CapSettingsGet.js";
-import type { ReadCapSettingsApiV1CapSettingsGetQueryResponse } from "../models/ReadCapSettingsApiV1CapSettingsGet.js";
+import type { ReadCapSettingsApiV1CapSettingsGetStatus200 } from "../models/ReadCapSettingsApiV1CapSettingsGet.js";
 
 export const readCapSettingsApiV1CapSettingsGetQueryKey = () =>
   [{ url: "/api/v1/cap/settings" }] as const;
 
-export type ReadCapSettingsApiV1CapSettingsGetQueryKey = ReturnType<
+type ReadCapSettingsApiV1CapSettingsGetQueryKey = ReturnType<
   typeof readCapSettingsApiV1CapSettingsGetQueryKey
 >;
 
 export function readCapSettingsApiV1CapSettingsGetQueryOptions(
-  config: Partial<RequestConfig> & { client?: Client } = {}
+  config: Partial<
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const queryKey = readCapSettingsApiV1CapSettingsGetQueryKey();
   return queryOptions<
-    ReadCapSettingsApiV1CapSettingsGetQueryResponse,
+    ReadCapSettingsApiV1CapSettingsGetStatus200,
     ResponseErrorConfig<Error>,
-    ReadCapSettingsApiV1CapSettingsGetQueryResponse,
+    ReadCapSettingsApiV1CapSettingsGetStatus200,
     typeof queryKey
   >({
     queryKey,
     queryFn: async ({ signal }) => {
-      if (!config.signal) {
-        config.signal = signal;
-      }
-      return readCapSettingsApiV1CapSettingsGet(config);
+      return readCapSettingsApiV1CapSettingsGet({
+        ...config,
+        signal: config.signal ?? signal,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -51,40 +49,42 @@ export function readCapSettingsApiV1CapSettingsGetQueryOptions(
  * {@link /api/v1/cap/settings}
  */
 export function useReadCapSettingsApiV1CapSettingsGet<
-  TData = ReadCapSettingsApiV1CapSettingsGetQueryResponse,
-  TQueryData = ReadCapSettingsApiV1CapSettingsGetQueryResponse,
+  TData = ReadCapSettingsApiV1CapSettingsGetStatus200,
+  TQueryData = ReadCapSettingsApiV1CapSettingsGetStatus200,
   TQueryKey extends QueryKey = ReadCapSettingsApiV1CapSettingsGetQueryKey,
 >(
   options: {
     query?: Partial<
       QueryObserverOptions<
-        ReadCapSettingsApiV1CapSettingsGetQueryResponse,
+        ReadCapSettingsApiV1CapSettingsGetStatus200,
         ResponseErrorConfig<Error>,
         TData,
         TQueryData,
         TQueryKey
       >
     > & { client?: QueryClient };
-    client?: Partial<RequestConfig> & { client?: Client };
+    client?: Partial<
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
-  const { client: queryClient, ...queryOptions } = queryConfig;
+  const { client: queryClient, ...resolvedOptions } = queryConfig;
   const queryKey =
-    queryOptions?.queryKey ?? readCapSettingsApiV1CapSettingsGetQueryKey();
+    resolvedOptions?.queryKey ?? readCapSettingsApiV1CapSettingsGetQueryKey();
 
-  const query = useQuery(
+  const queryResult = useQuery(
     {
       ...readCapSettingsApiV1CapSettingsGetQueryOptions(config),
+      ...resolvedOptions,
       queryKey,
-      ...queryOptions,
     } as unknown as QueryObserverOptions,
     queryClient
   ) as UseQueryResult<TData, ResponseErrorConfig<Error>> & {
     queryKey: TQueryKey;
   };
 
-  query.queryKey = queryKey as TQueryKey;
+  queryResult.queryKey = queryKey as TQueryKey;
 
-  return query;
+  return queryResult;
 }

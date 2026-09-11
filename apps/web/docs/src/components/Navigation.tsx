@@ -1,7 +1,7 @@
 "use client";
 
 import { CloseButton } from "@headlessui/react";
-import clsx from "clsx";
+import { clsx } from "cn";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";

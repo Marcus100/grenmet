@@ -3,62 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
-  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
+  CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponses,
 } from "../models/CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost.js";
-
-function getCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostUrl(
-  template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/workflows/templates/${template_id}/steps` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create a step template for a workflow template. Requires workflow.template.manage permission.
  * @summary Add step to workflow template
  * {@link /api/v1/hr/workflows/templates/:template_id/steps}
  */
-export async function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost(
-  template_id: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathParams["template_id"],
-  data: CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost403
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost404
-      | CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPost422
-    >,
-    CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostUrl(
-      template_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/workflows/templates/{template_id}/steps",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

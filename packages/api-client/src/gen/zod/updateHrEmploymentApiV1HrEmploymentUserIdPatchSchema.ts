@@ -8,37 +8,30 @@ import { employmentAdminUpdateSchema } from "./employmentAdminUpdateSchema.js";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatchPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Employment updated
- */
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema = z.lazy(
-  () => userProfilePublicSchema
-);
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200Schema =
+  userProfilePublicSchema;
 
-/**
- * @description Insufficient permission
- */
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatch403Schema = z.any();
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403Schema =
+  z.unknown();
 
-/**
- * @description User or employment record not found
- */
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatch404Schema = z.any();
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatch422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationRequestSchema =
-  z.lazy(() => employmentAdminUpdateSchema);
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchResponseSchema =
+  updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200Schema;
 
-export const updateHrEmploymentApiV1HrEmploymentUserIdPatchMutationResponseSchema =
-  z.lazy(() => updateHrEmploymentApiV1HrEmploymentUserIdPatch200Schema);
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchErrorSchema =
+  z.union([
+    updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403Schema,
+    updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404Schema,
+    updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422Schema,
+  ]);
+
+export const updateHrEmploymentApiV1HrEmploymentUserIdPatchBodySchema =
+  employmentAdminUpdateSchema;

@@ -39,6 +39,7 @@ from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.calendar.models import CalendarEvent  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
+from src.hr.documents.models import EmployeeDocument  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
 from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
 from src.hr.models import (  # noqa: F401
@@ -64,12 +65,14 @@ from src.hr.roster.models import (  # noqa: F401
     RosterRevision,
     ShiftCatalog,
 )
+from src.hr.signatures.models import SavedSignature, SignedDocument  # noqa: F401
 from src.hr.timesheet.models import (  # noqa: F401
     DepartmentPolicy,
     Timesheet,
     TimesheetEntry,
     TimesheetSubmission,
 )
+from src.hr.training.models import TrainingRecord  # noqa: F401
 from src.hr.workflow.models import (  # noqa: F401
     ApprovalActionLog,
     WorkflowInstance,
@@ -126,6 +129,7 @@ def do_run_migrations(connection: Connection) -> None:
     )
 
     with context.begin_transaction():
+        connection.exec_driver_sql("SELECT pg_advisory_xact_lock(73190506)")
         context.run_migrations()
 
 

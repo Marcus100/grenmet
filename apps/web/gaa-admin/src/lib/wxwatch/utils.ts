@@ -1,8 +1,13 @@
+import { env } from "@/env";
+
 /**
  * Get the URL path for serving an image from the public folder.
  * This is a client-safe utility function.
  */
 export function getImageUrl(storagePath: string): string {
+  if (env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE === "true") {
+    return `/api/v1/wxwatch/images/${storagePath.split("/").map(encodeURIComponent).join("/")}`;
+  }
   return `/wxwatch/${storagePath}`;
 }
 

@@ -3,16 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * GoogleChallengePublic
- */
 export type GoogleChallengePublic = {
-  /**
-   * @type string
-   */
   challenge: string;
-  /**
-   * @type boolean
-   */
   requires_totp: boolean;
 };

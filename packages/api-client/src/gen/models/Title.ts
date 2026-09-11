@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const titleTitleEnum = {
+export const title = {
   MR: "MR",
   MRS: "MRS",
   MS: "MS",
@@ -11,11 +11,4 @@ export const titleTitleEnum = {
   DR: "DR",
 } as const;
 
-export type TitleTitleEnumKey =
-  (typeof titleTitleEnum)[keyof typeof titleTitleEnum];
-
-/**
- * Title
- * @description Honorific prefix for a person\'s name (used on official bylines).
- */
-export type Title = TitleTitleEnumKey;
+export type Title = (typeof title)[keyof typeof title];

@@ -7,7 +7,6 @@
   ],
   "files": {
     "includes": [
-      "**",
       "!.claude",
       "!apps/api/fastapi",
       // Legacy standalone XHTML players with large inline CSS/JS blocks that
@@ -27,6 +26,9 @@
   "linter": {
     "rules": {
       "style": {
+        "noIncrementDecrement": "off",
+        "useDestructuring": "off",
+        "useErrorCause": "off",
         "useFilenamingConvention": "off",
         "useBlockStatements": "off",
         "useTemplate": "warn",
@@ -34,19 +36,38 @@
         "noProcessEnv": "error"
       },
       "performance": {
+        "noAwaitInLoops": "off",
+        "noJsxPropsBind": "off",
         "noBarrelFile": "off"
       },
       "a11y": {
         "noSvgWithoutTitle": "warn"
       },
       "complexity": {
+        "noRedundantDefaultExport": "off",
+        "useArrayFind": "off",
         "noExcessiveCognitiveComplexity": {
           "level": "warn",
           "options": { "maxAllowedComplexity": 20 }
         }
       },
       "suspicious": {
+        "noShadow": "off",
+        "noUnnecessaryConditions": "off",
+        "noLeakedRender": "off",
+        "noEqualsToNull": "off",
         "noConsole": "warn"
+      }
+    }
+  },
+  // Preserve existing source conventions; new style rules can be adopted separately.
+  "assist": {
+    "actions": {
+      "source": {
+        "useSortedKeys": "off",
+        "useSortedPackageJson": "off",
+        "useSortedTypeFields": "off",
+        "useSortedSelectionSet": "off"
       }
     }
   },

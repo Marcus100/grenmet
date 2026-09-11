@@ -7,43 +7,31 @@ import * as z from "zod";
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { messageSchema } from "./messageSchema.js";
 
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathParamsSchema =
-  z.object({
-    user_id: z.string().uuid(),
-  });
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathUserIdSchema =
+  z.uuid();
 
-/**
- * @description Successful Response
- */
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200Schema =
-  z.lazy(() => messageSchema);
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200Schema =
+  messageSchema;
 
-/**
- * @description Administrator access required
- */
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost403Schema =
-  z.any();
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Record not found
- */
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost404Schema =
-  z.any();
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404Schema =
+  z.unknown();
 
-/**
- * @description Setup conflict
- */
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost409Schema =
-  z.any();
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost422Schema =
-  z.lazy(() => HTTPValidationErrorSchema);
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostMutationResponseSchema =
-  z.lazy(
-    () =>
-      approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost200Schema
-  );
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponseSchema =
+  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200Schema;
+
+export const approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostErrorSchema =
+  z.union([
+    approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403Schema,
+    approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404Schema,
+    approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409Schema,
+    approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422Schema,
+  ]);

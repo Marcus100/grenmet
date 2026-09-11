@@ -7,15 +7,18 @@ const manifests = new Map(
     "packages/*/package.json",
     "apps/web/*/package.json",
     "apps/api/honoapi/package.json",
-  ]).map((path) => [readJson(path).name, { path, data: readJson(path) }])
+  ]).map((path) => [readJson(path).name, { data: readJson(path), path }])
 );
 
 // These Dockerfiles intentionally cache installation using explicit manifest
 // COPY instructions. Validate that list against the actual workspace graph.
-const installPattern = /^RUN pnpm install\b/m;
+const installPattern = /^RUN (?:HUSKY=0 )?pnpm install\b/m;
 const copyPattern = /^COPY (\S+\/package\.json)\s+/gm;
 let failures = 0;
-for (const dockerfile of globSync("apps/web/*/Dockerfile")) {
+for (const dockerfile of globSync([
+  "apps/web/*/Dockerfile",
+  "apps/api/honoapi/Dockerfile",
+])) {
   const source = readFileSync(dockerfile, "utf8");
   const install = source.search(installPattern);
   if (install < 0) {

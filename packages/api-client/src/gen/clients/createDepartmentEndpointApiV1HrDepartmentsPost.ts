@@ -3,53 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateDepartmentEndpointApiV1HrDepartmentsPost400,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost403,
-  CreateDepartmentEndpointApiV1HrDepartmentsPost422,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest,
-  CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
+  CreateDepartmentEndpointApiV1HrDepartmentsPostResponses,
 } from "../models/CreateDepartmentEndpointApiV1HrDepartmentsPost.js";
-
-function getCreateDepartmentEndpointApiV1HrDepartmentsPostUrl() {
-  const res = { method: "POST", url: `/api/v1/hr/departments` as const };
-  return res;
-}
 
 /**
  * @description Create a department. Requires user.manage permission.
  * @summary Create department
  * {@link /api/v1/hr/departments}
  */
-export async function createDepartmentEndpointApiV1HrDepartmentsPost(
-  data: CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createDepartmentEndpointApiV1HrDepartmentsPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateDepartmentEndpointApiV1HrDepartmentsPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateDepartmentEndpointApiV1HrDepartmentsPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateDepartmentEndpointApiV1HrDepartmentsPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost400
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost403
-      | CreateDepartmentEndpointApiV1HrDepartmentsPost422
-    >,
-    CreateDepartmentEndpointApiV1HrDepartmentsPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateDepartmentEndpointApiV1HrDepartmentsPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/departments",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateDepartmentEndpointApiV1HrDepartmentsPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

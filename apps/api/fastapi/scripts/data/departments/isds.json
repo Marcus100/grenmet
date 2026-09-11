@@ -1,0 +1,51 @@
+{
+  "profile_version": 1,
+  "organisation": {
+    "code": "GAA"
+  },
+  "department": {
+    "code": "ISDS",
+    "name": "Information Systems & Digital Services Department"
+  },
+  "_source": "GAA Organisational Charts, May 2026, slide 13 (Information Systems & Digital Services). Establishment snapshot: post counts in _deck_posts are as at 2026-05-06 and are NOT loaded into the database.",
+  "_grades": "Grade bands in seniority order. establishment_band maps the department's local band onto the GAA-wide establishment ladder. _deck_posts records the budgeted posts shown on the chart; the Grade table has no post-count column, so the seeder ignores it.",
+  "grades": [
+    {
+      "code": "MANAGER",
+      "label": "Information Systems & Digital Services Manager",
+      "rank": 1,
+      "establishment_band": "Executive Management",
+      "_deck_posts": 1
+    },
+    {
+      "code": "SYSTEMS_ADMINISTRATOR",
+      "label": "Systems Administrator",
+      "rank": 2,
+      "establishment_band": "Assistant Manager",
+      "_deck_posts": 1
+    },
+    {
+      "code": "SENIOR_DATABASE_APP_OFFICER",
+      "label": "Snr. Database & App Officer",
+      "rank": 3,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "CYBER_SECURITY_OFFICER",
+      "label": "Cyber Security & Digitization Officer",
+      "rank": 4,
+      "establishment_band": "Professional",
+      "_deck_posts": 1
+    },
+    {
+      "code": "IT_TECHNICIAN",
+      "label": "IT Technician",
+      "rank": 5,
+      "establishment_band": "Technical/Administrative",
+      "_deck_posts": 3
+    }
+  ],
+  "_people": "No people: the source chart is anonymised. Employment records are seeded separately.",
+  "people": []
+}

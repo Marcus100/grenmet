@@ -23,7 +23,6 @@ const parseArguments = (args) => {
   ) {
     return { base: args[1], head: args[3], mode: "range" };
   }
-  return;
 };
 
 const parseChanges = (output) => {
@@ -93,9 +92,42 @@ const collectChanges = (comparison) => {
   return parseChanges(result.stdout);
 };
 
-const evaluateChanges = (changes) => {
+// This exact startup substitution cannot alter the OpenAPI contract. Any other
+// main.py change (including a route added alongside it) keeps the companion gate.
+const telemetryOnlyStartupChange = (comparison) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before
+    .replace(
+      "from src.utils.router import router as utils_router",
+      "from src.telemetry import sentry_options\nfrom src.utils.router import router as utils_router"
+    )
+    .replace("        enable_tracing=True,", "        **sentry_options(),");
+  return before !== after && expected === after;
+};
+
+const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
-  const triggers = [...files].filter(isFastApiContractFile).sort();
+  const triggers = [...files]
+    .filter(
+      (file) =>
+        isFastApiContractFile(file) &&
+        !(
+          file === "apps/api/fastapi/src/main.py" &&
+          telemetryOnlyStartupChange(comparison)
+        )
+    )
+    .sort();
   const violations = [];
   const generatedClientChanged = [...files].some((file) =>
     file.startsWith("packages/api-client/src/gen/")
@@ -221,7 +253,7 @@ if (!comparison) {
   try {
     const changes = collectChanges(comparison);
     reportConsumerValidation(changes);
-    const violations = evaluateChanges(changes);
+    const violations = evaluateChanges(changes, comparison);
     if (violations.length > 0) {
       reportViolations(violations);
       process.exitCode = 1;

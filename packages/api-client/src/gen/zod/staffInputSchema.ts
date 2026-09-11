@@ -9,11 +9,9 @@ import { employmentTypeSchema } from "./employmentTypeSchema.js";
 export const staffInputSchema = z.object({
   department_id: z.string(),
   grade_id: z.string(),
-  employee_number: z.optional(z.union([z.string(), z.null()])),
-  employment_type: z.optional(
-    z.union([z.lazy(() => employmentTypeSchema), z.null()])
-  ),
-  start_date: z.optional(z.union([z.string().date(), z.null()])),
-  supervisor_id: z.optional(z.union([z.string().uuid(), z.null()])),
-  mailbox_ready: z.optional(z.boolean().default(false)),
+  employee_number: z.union([z.string().min(1).max(50), z.null()]).optional(),
+  employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
+  start_date: z.union([z.iso.date(), z.null()]).optional(),
+  supervisor_id: z.union([z.uuid(), z.null()]).optional(),
+  mailbox_ready: z.boolean().optional().default(false),
 });

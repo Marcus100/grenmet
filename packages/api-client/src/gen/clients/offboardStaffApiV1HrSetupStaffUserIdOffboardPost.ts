@@ -3,57 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
-  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
+  OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponses,
 } from "../models/OffboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
-
-function getOffboardStaffApiV1HrSetupStaffUserIdOffboardPostUrl(
-  user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/setup/staff/${user_id}/offboard` as const,
-  };
-  return res;
-}
 
 /**
  * @description Invalidate staff credential and revoke access.
  * @summary Invalidate staff credential and revoke access
  * {@link /api/v1/hr/setup/staff/:user_id/offboard}
  */
-export async function offboardStaffApiV1HrSetupStaffUserIdOffboardPost(
-  user_id: OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPathParams["user_id"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function offboardStaffApiV1HrSetupStaffUserIdOffboardPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    OffboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationResponse,
-    ResponseErrorConfig<
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost403
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost404
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost409
-      | OffboardStaffApiV1HrSetupStaffUserIdOffboardPost422
-    >,
-    unknown
-  >({
-    method: "POST",
-    url: getOffboardStaffApiV1HrSetupStaffUserIdOffboardPostUrl(
-      user_id
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/setup/staff/{user_id}/offboard",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        OffboardStaffApiV1HrSetupStaffUserIdOffboardPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

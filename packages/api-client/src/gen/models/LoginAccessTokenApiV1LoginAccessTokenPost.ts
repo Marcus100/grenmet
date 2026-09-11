@@ -7,42 +7,37 @@ import type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./BodyLoginA
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { Token } from "./Token.js";
 
-/**
- * Token
- * @description Login successful, access token returned
- */
-export type LoginAccessTokenApiV1LoginAccessTokenPost200 = Token;
+export type LoginAccessTokenApiV1LoginAccessTokenPostStatus200 = Token;
 
-/**
- * @description Incorrect email/password or inactive user
- */
-export type LoginAccessTokenApiV1LoginAccessTokenPost400 = any;
+export type LoginAccessTokenApiV1LoginAccessTokenPostStatus400 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type LoginAccessTokenApiV1LoginAccessTokenPost422 = HTTPValidationError;
+export type LoginAccessTokenApiV1LoginAccessTokenPostStatus422 =
+  HTTPValidationError;
 
-/**
- * @description Rate limit exceeded
- */
-export type LoginAccessTokenApiV1LoginAccessTokenPost429 = any;
+export type LoginAccessTokenApiV1LoginAccessTokenPostStatus429 = unknown;
 
-/**
- * Body_login_access_token_api_v1_login_access_token_post
- */
-export type LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest =
+export type LoginAccessTokenApiV1LoginAccessTokenPostBody =
   BodyLoginAccessTokenApiV1LoginAccessTokenPost;
 
-export type LoginAccessTokenApiV1LoginAccessTokenPostMutationResponse =
-  LoginAccessTokenApiV1LoginAccessTokenPost200;
-
-export type LoginAccessTokenApiV1LoginAccessTokenPostMutation = {
-  Response: LoginAccessTokenApiV1LoginAccessTokenPost200;
-  Request: LoginAccessTokenApiV1LoginAccessTokenPostMutationRequest;
-  Errors:
-    | LoginAccessTokenApiV1LoginAccessTokenPost400
-    | LoginAccessTokenApiV1LoginAccessTokenPost422
-    | LoginAccessTokenApiV1LoginAccessTokenPost429;
+export type LoginAccessTokenApiV1LoginAccessTokenPostOptions = {
+  body: LoginAccessTokenApiV1LoginAccessTokenPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type LoginAccessTokenApiV1LoginAccessTokenPostResponses = {
+  "200": LoginAccessTokenApiV1LoginAccessTokenPostStatus200;
+  "400": LoginAccessTokenApiV1LoginAccessTokenPostStatus400;
+  "422": LoginAccessTokenApiV1LoginAccessTokenPostStatus422;
+  "429": LoginAccessTokenApiV1LoginAccessTokenPostStatus429;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type LoginAccessTokenApiV1LoginAccessTokenPostResponse =
+  | LoginAccessTokenApiV1LoginAccessTokenPostStatus200
+  | LoginAccessTokenApiV1LoginAccessTokenPostStatus400
+  | LoginAccessTokenApiV1LoginAccessTokenPostStatus422
+  | LoginAccessTokenApiV1LoginAccessTokenPostStatus429;

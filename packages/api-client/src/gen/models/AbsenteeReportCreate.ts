@@ -5,28 +5,24 @@
 
 import type { AbsenceReason } from "./AbsenceReason.js";
 
-/**
- * AbsenteeReportCreate
- */
 export type AbsenteeReportCreate = {
+  signature_version?: string | null;
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   report_date: string;
   expected_shift_code?: string | null;
   absence_start_time?: string | null;
   absence_end_time?: string | null;
-  /**
-   * @type string
-   */
   reason: AbsenceReason;
   notes?: string | null;
   /**
@@ -41,9 +37,6 @@ export type AbsenteeReportCreate = {
    */
   replacement_arranged?: boolean;
   replacement_user_id?: string | null;
-  /**
-   * @type array | undefined
-   */
   co_approver_user_ids?: string[];
   /**
    * @default false

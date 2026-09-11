@@ -5,34 +5,33 @@
 
 import type { GradeSetup } from "./GradeSetup.js";
 
-/**
- * Response Read Setup Grades Api V1 Hr Setup Grades Get
- * @description Successful Response
- */
-export type ReadSetupGradesApiV1HrSetupGradesGet200 = GradeSetup[];
+export type ReadSetupGradesApiV1HrSetupGradesGetStatus200 = GradeSetup[];
 
-/**
- * @description Administrator access required
- */
-export type ReadSetupGradesApiV1HrSetupGradesGet403 = any;
+export type ReadSetupGradesApiV1HrSetupGradesGetStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type ReadSetupGradesApiV1HrSetupGradesGet404 = any;
+export type ReadSetupGradesApiV1HrSetupGradesGetStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type ReadSetupGradesApiV1HrSetupGradesGet409 = any;
+export type ReadSetupGradesApiV1HrSetupGradesGetStatus409 = unknown;
 
-export type ReadSetupGradesApiV1HrSetupGradesGetQueryResponse =
-  ReadSetupGradesApiV1HrSetupGradesGet200;
-
-export type ReadSetupGradesApiV1HrSetupGradesGetQuery = {
-  Response: ReadSetupGradesApiV1HrSetupGradesGet200;
-  Errors:
-    | ReadSetupGradesApiV1HrSetupGradesGet403
-    | ReadSetupGradesApiV1HrSetupGradesGet404
-    | ReadSetupGradesApiV1HrSetupGradesGet409;
+export type ReadSetupGradesApiV1HrSetupGradesGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadSetupGradesApiV1HrSetupGradesGetResponses = {
+  "200": ReadSetupGradesApiV1HrSetupGradesGetStatus200;
+  "403": ReadSetupGradesApiV1HrSetupGradesGetStatus403;
+  "404": ReadSetupGradesApiV1HrSetupGradesGetStatus404;
+  "409": ReadSetupGradesApiV1HrSetupGradesGetStatus409;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadSetupGradesApiV1HrSetupGradesGetResponse =
+  | ReadSetupGradesApiV1HrSetupGradesGetStatus200
+  | ReadSetupGradesApiV1HrSetupGradesGetStatus403
+  | ReadSetupGradesApiV1HrSetupGradesGetStatus404
+  | ReadSetupGradesApiV1HrSetupGradesGetStatus409;

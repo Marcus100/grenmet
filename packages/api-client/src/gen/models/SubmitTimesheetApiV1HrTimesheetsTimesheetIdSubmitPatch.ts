@@ -7,58 +7,54 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { TimesheetPublic } from "./TimesheetPublic.js";
 import type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams = {
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   timesheet_id: string;
 };
 
-/**
- * TimesheetPublic
- * @description Timesheet submitted
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200 =
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200 =
   TimesheetPublic;
 
-/**
- * @description Timesheet already submitted
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400 = any;
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400 =
+  unknown;
 
-/**
- * @description Not allowed (self only for own; proxy not allowed)
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403 = any;
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403 =
+  unknown;
 
-/**
- * @description Timesheet not found
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404 = any;
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422 =
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422 =
   HTTPValidationError;
 
-/**
- * TimesheetSubmitRequest
- */
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest =
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchBody =
   TimesheetSubmitRequest;
 
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationResponse =
-  SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200;
-
-export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutation = {
-  Response: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch200;
-  Request: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchMutationRequest;
-  PathParams: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathParams;
-  Errors:
-    | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch400
-    | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch403
-    | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch404
-    | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch422;
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchOptions = {
+  body: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchBody;
+  path: SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPath;
+  query?: never;
+  headers?: never;
 };
+
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponses = {
+  "200": SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200;
+  "400": SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400;
+  "403": SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403;
+  "404": SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404;
+  "422": SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponse =
+  | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200
+  | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400
+  | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403
+  | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404
+  | SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422;

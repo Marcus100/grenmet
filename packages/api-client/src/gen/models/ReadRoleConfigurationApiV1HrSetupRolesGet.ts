@@ -5,34 +5,34 @@
 
 import type { RoleConfiguration } from "./RoleConfiguration.js";
 
-/**
- * Response Read Role Configuration Api V1 Hr Setup Roles Get
- * @description Successful Response
- */
-export type ReadRoleConfigurationApiV1HrSetupRolesGet200 = RoleConfiguration[];
+export type ReadRoleConfigurationApiV1HrSetupRolesGetStatus200 =
+  RoleConfiguration[];
 
-/**
- * @description Administrator access required
- */
-export type ReadRoleConfigurationApiV1HrSetupRolesGet403 = any;
+export type ReadRoleConfigurationApiV1HrSetupRolesGetStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type ReadRoleConfigurationApiV1HrSetupRolesGet404 = any;
+export type ReadRoleConfigurationApiV1HrSetupRolesGetStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type ReadRoleConfigurationApiV1HrSetupRolesGet409 = any;
+export type ReadRoleConfigurationApiV1HrSetupRolesGetStatus409 = unknown;
 
-export type ReadRoleConfigurationApiV1HrSetupRolesGetQueryResponse =
-  ReadRoleConfigurationApiV1HrSetupRolesGet200;
-
-export type ReadRoleConfigurationApiV1HrSetupRolesGetQuery = {
-  Response: ReadRoleConfigurationApiV1HrSetupRolesGet200;
-  Errors:
-    | ReadRoleConfigurationApiV1HrSetupRolesGet403
-    | ReadRoleConfigurationApiV1HrSetupRolesGet404
-    | ReadRoleConfigurationApiV1HrSetupRolesGet409;
+export type ReadRoleConfigurationApiV1HrSetupRolesGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadRoleConfigurationApiV1HrSetupRolesGetResponses = {
+  "200": ReadRoleConfigurationApiV1HrSetupRolesGetStatus200;
+  "403": ReadRoleConfigurationApiV1HrSetupRolesGetStatus403;
+  "404": ReadRoleConfigurationApiV1HrSetupRolesGetStatus404;
+  "409": ReadRoleConfigurationApiV1HrSetupRolesGetStatus409;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadRoleConfigurationApiV1HrSetupRolesGetResponse =
+  | ReadRoleConfigurationApiV1HrSetupRolesGetStatus200
+  | ReadRoleConfigurationApiV1HrSetupRolesGetStatus403
+  | ReadRoleConfigurationApiV1HrSetupRolesGetStatus404
+  | ReadRoleConfigurationApiV1HrSetupRolesGetStatus409;

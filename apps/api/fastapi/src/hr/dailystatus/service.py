@@ -13,6 +13,7 @@ from src.hr.constants import (
 from src.hr.dependencies import get_status_report_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import RequestStatus
+from src.hr.signatures import service as signature_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -80,6 +81,14 @@ async def create_status_report(
         submit=not payload.as_draft,
     )
     session.add(report)
+    if not payload.as_draft:
+        await signature_service.capture(
+            session=session,
+            actor=current_user,
+            entity=report,
+            entity_type="status_report",
+            signature_version=payload.signature_version,
+        )
     await session.commit()
     await session.refresh(report)
     # No per-row refresh: entry id/created_at/updated_at are Python-side
@@ -132,6 +141,13 @@ async def submit_status_report(
     report.status = RequestStatus.SUBMITTED
     report.updated_at = utc_now()
     session.add(report)
+    await signature_service.capture(
+        session=session,
+        actor=current_user,
+        entity=report,
+        entity_type="status_report",
+        signature_version=payload.signature_version,
+    )
     await session.commit()
     await session.refresh(report)
     logger.info(

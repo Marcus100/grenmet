@@ -20,8 +20,7 @@
     "react": "*"
   },
   "dependencies": {
-    "@react-email/components": "^1.0.12",
-    "@react-email/render": "^2.0.8"
+    "react-email": "^6.9.3"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

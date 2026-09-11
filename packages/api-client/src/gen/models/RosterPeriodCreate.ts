@@ -3,20 +3,18 @@
  * Do not edit manually.
  */
 
-/**
- * RosterPeriodCreate
- */
 export type RosterPeriodCreate = {
-  /**
-   * @type string
-   */
   department_id: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_start: string;
   /**
-   * @type string, date
+   * @description
+   * Format: `date`
+   * @type string
    */
   period_end: string;
 };

@@ -3,54 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  CreateTemplateApiV1HrWorkflowsTemplatesPost403,
-  CreateTemplateApiV1HrWorkflowsTemplatesPost422,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
+  CreateTemplateApiV1HrWorkflowsTemplatesPostResponses,
 } from "../models/CreateTemplateApiV1HrWorkflowsTemplatesPost.js";
-
-function getCreateTemplateApiV1HrWorkflowsTemplatesPostUrl() {
-  const res = {
-    method: "POST",
-    url: `/api/v1/hr/workflows/templates` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create a new workflow template. Requires workflow.template.manage permission.
  * @summary Create workflow template
  * {@link /api/v1/hr/workflows/templates}
  */
-export async function createTemplateApiV1HrWorkflowsTemplatesPost(
-  data: CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest,
-  config: Partial<
-    RequestConfig<CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function createTemplateApiV1HrWorkflowsTemplatesPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    CreateTemplateApiV1HrWorkflowsTemplatesPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    CreateTemplateApiV1HrWorkflowsTemplatesPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    CreateTemplateApiV1HrWorkflowsTemplatesPostMutationResponse,
-    ResponseErrorConfig<
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost403
-      | CreateTemplateApiV1HrWorkflowsTemplatesPost422
-    >,
-    CreateTemplateApiV1HrWorkflowsTemplatesPostMutationRequest
-  >({
-    method: "POST",
-    url: getCreateTemplateApiV1HrWorkflowsTemplatesPostUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/hr/workflows/templates",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        CreateTemplateApiV1HrWorkflowsTemplatesPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

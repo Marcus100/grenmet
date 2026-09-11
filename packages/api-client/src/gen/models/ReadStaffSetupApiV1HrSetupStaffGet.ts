@@ -5,34 +5,33 @@
 
 import type { StaffSetup } from "./StaffSetup.js";
 
-/**
- * Response Read Staff Setup Api V1 Hr Setup Staff Get
- * @description Successful Response
- */
-export type ReadStaffSetupApiV1HrSetupStaffGet200 = StaffSetup[];
+export type ReadStaffSetupApiV1HrSetupStaffGetStatus200 = StaffSetup[];
 
-/**
- * @description Administrator access required
- */
-export type ReadStaffSetupApiV1HrSetupStaffGet403 = any;
+export type ReadStaffSetupApiV1HrSetupStaffGetStatus403 = unknown;
 
-/**
- * @description Record not found
- */
-export type ReadStaffSetupApiV1HrSetupStaffGet404 = any;
+export type ReadStaffSetupApiV1HrSetupStaffGetStatus404 = unknown;
 
-/**
- * @description Setup conflict
- */
-export type ReadStaffSetupApiV1HrSetupStaffGet409 = any;
+export type ReadStaffSetupApiV1HrSetupStaffGetStatus409 = unknown;
 
-export type ReadStaffSetupApiV1HrSetupStaffGetQueryResponse =
-  ReadStaffSetupApiV1HrSetupStaffGet200;
-
-export type ReadStaffSetupApiV1HrSetupStaffGetQuery = {
-  Response: ReadStaffSetupApiV1HrSetupStaffGet200;
-  Errors:
-    | ReadStaffSetupApiV1HrSetupStaffGet403
-    | ReadStaffSetupApiV1HrSetupStaffGet404
-    | ReadStaffSetupApiV1HrSetupStaffGet409;
+export type ReadStaffSetupApiV1HrSetupStaffGetOptions = {
+  body?: never;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type ReadStaffSetupApiV1HrSetupStaffGetResponses = {
+  "200": ReadStaffSetupApiV1HrSetupStaffGetStatus200;
+  "403": ReadStaffSetupApiV1HrSetupStaffGetStatus403;
+  "404": ReadStaffSetupApiV1HrSetupStaffGetStatus404;
+  "409": ReadStaffSetupApiV1HrSetupStaffGetStatus409;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type ReadStaffSetupApiV1HrSetupStaffGetResponse =
+  | ReadStaffSetupApiV1HrSetupStaffGetStatus200
+  | ReadStaffSetupApiV1HrSetupStaffGetStatus403
+  | ReadStaffSetupApiV1HrSetupStaffGetStatus404
+  | ReadStaffSetupApiV1HrSetupStaffGetStatus409;

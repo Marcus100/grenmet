@@ -3,64 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
-  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
+  UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponses,
 } from "../models/UpdateSetupGradeApiV1HrSetupGradesGradeIdPut.js";
-
-function getUpdateSetupGradeApiV1HrSetupGradesGradeIdPutUrl(
-  grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"]
-) {
-  const res = {
-    method: "PUT",
-    url: `/api/v1/hr/setup/grades/${grade_id}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Create or update a grade.
  * @summary Create or update a grade
  * {@link /api/v1/hr/setup/grades/:grade_id}
  */
-export async function updateSetupGradeApiV1HrSetupGradesGradeIdPut(
-  grade_id: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutPathParams["grade_id"],
-  data: UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateSetupGradeApiV1HrSetupGradesGradeIdPut<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationResponse,
-    ResponseErrorConfig<
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut403
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut404
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut409
-      | UpdateSetupGradeApiV1HrSetupGradesGradeIdPut422
-    >,
-    UpdateSetupGradeApiV1HrSetupGradesGradeIdPutMutationRequest
-  >({
-    method: "PUT",
-    url: getUpdateSetupGradeApiV1HrSetupGradesGradeIdPutUrl(
-      grade_id
-    ).url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PUT",
+      url: "/api/v1/hr/setup/grades/{grade_id}",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateSetupGradeApiV1HrSetupGradesGradeIdPutResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

@@ -6,16 +6,7 @@
 import type { CapAlertPublic } from "./CapAlertPublic.js";
 import type { CapSnapshotPublic } from "./CapSnapshotPublic.js";
 
-/**
- * CapPublishPublic
- */
 export type CapPublishPublic = {
-  /**
-   * @type object
-   */
   alert: CapAlertPublic;
-  /**
-   * @type object
-   */
   snapshot: CapSnapshotPublic;
 };

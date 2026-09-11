@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const capMessageTypeCapMessageTypeEnum = {
+export const capMessageType = {
   Alert: "Alert",
   Update: "Update",
   Cancel: "Cancel",
@@ -11,10 +11,5 @@ export const capMessageTypeCapMessageTypeEnum = {
   Error: "Error",
 } as const;
 
-export type CapMessageTypeCapMessageTypeEnumKey =
-  (typeof capMessageTypeCapMessageTypeEnum)[keyof typeof capMessageTypeCapMessageTypeEnum];
-
-/**
- * CapMessageType
- */
-export type CapMessageType = CapMessageTypeCapMessageTypeEnumKey;
+export type CapMessageType =
+  (typeof capMessageType)[keyof typeof capMessageType];

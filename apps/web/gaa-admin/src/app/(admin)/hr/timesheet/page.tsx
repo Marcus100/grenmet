@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function TimesheetPage() {
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       <div>
         <h1 className="font-semibold text-2xl tracking-tight">
           Official Time Sheet

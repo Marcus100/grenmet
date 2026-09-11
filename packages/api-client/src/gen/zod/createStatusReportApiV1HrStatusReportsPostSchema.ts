@@ -8,35 +8,22 @@ import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 import { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 
-/**
- * @description Status report created
- */
-export const createStatusReportApiV1HrStatusReportsPost200Schema = z.any();
+export const createStatusReportApiV1HrStatusReportsPostStatus201Schema =
+  statusReportDetailsSchema;
 
-/**
- * @description Successful Response
- */
-export const createStatusReportApiV1HrStatusReportsPost201Schema = z.lazy(
-  () => statusReportDetailsSchema
-);
+export const createStatusReportApiV1HrStatusReportsPostStatus403Schema =
+  z.unknown();
 
-/**
- * @description Insufficient permission
- */
-export const createStatusReportApiV1HrStatusReportsPost403Schema = z.any();
+export const createStatusReportApiV1HrStatusReportsPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Validation Error
- */
-export const createStatusReportApiV1HrStatusReportsPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const createStatusReportApiV1HrStatusReportsPostResponseSchema =
+  createStatusReportApiV1HrStatusReportsPostStatus201Schema;
 
-export const createStatusReportApiV1HrStatusReportsPostMutationRequestSchema =
-  z.lazy(() => statusReportCreateSchema);
+export const createStatusReportApiV1HrStatusReportsPostErrorSchema = z.union([
+  createStatusReportApiV1HrStatusReportsPostStatus403Schema,
+  createStatusReportApiV1HrStatusReportsPostStatus422Schema,
+]);
 
-export const createStatusReportApiV1HrStatusReportsPostMutationResponseSchema =
-  z.union([
-    z.lazy(() => createStatusReportApiV1HrStatusReportsPost200Schema),
-    z.lazy(() => createStatusReportApiV1HrStatusReportsPost201Schema),
-  ]);
+export const createStatusReportApiV1HrStatusReportsPostBodySchema =
+  statusReportCreateSchema;

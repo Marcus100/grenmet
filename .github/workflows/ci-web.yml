@@ -1,10 +1,11 @@
 name: CI — Web Apps
 
 on:
-  # No paths filter anywhere. Flow is dev → (PR) → staging → (PR) → main; those
+  # Required workflows always report; image selection happens inside jobs.
+  # No workflow-level paths filter. Flow is dev → (PR) → staging → (PR) → main; those
   # promotion PRs are integration gates that must not skip checks (a path-skipped
-  # required check also deadlocks the PR). Full suite on every push and PR to a
-  # long-lived branch keeps the gates honest and safe to mark "required".
+  # required check also deadlocks the PR). Promotion PRs check every image; dev changes select affected images.
+  # The stable aggregate gate fails on unexpected skips or selection failures.
   # No staging push trigger: pipeline-staging calls this workflow on staging
   # pushes (Phase 3c cutover), so a standalone run would be a duplicate.
   push:
@@ -12,18 +13,40 @@ on:
   pull_request:
     branches: [main, staging, dev]
   workflow_call:
+    inputs:
+      deployment-builds:
+        description: Deployment pipeline builds and smoke-tests its published images
+        type: boolean
+        default: false
 
 # Hardcoded per-file prefix: inside a workflow_call child, github.workflow is the
 # CALLER's name, so a ${{ github.workflow }} group makes sibling children cancel
-# each other. PR runs dedupe per PR; push/called runs are unique per run.
+# each other. PR runs dedupe per PR, dev pushes per branch; deployment children stay unique.
 concurrency:
-  group: ci-web-${{ github.event.pull_request.number || github.run_id }}
+  group: ci-web-${{ github.event.pull_request.number || (github.ref == 'refs/heads/dev' && github.ref) || github.run_id }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  image-selection:
+    name: Select image checks
+    runs-on: ubuntu-latest
+    outputs:
+      web: ${{ steps.select.outputs.web }}
+      weather: ${{ steps.select.outputs.weather }}
+      api: ${{ steps.select.outputs.api }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+      - name: Select affected images (full set when comparison is unavailable)
+        id: select
+        env:
+          IMAGE_BUILD_MODE: ${{ inputs.deployment-builds && 'deployment' || ((github.event_name == 'push' && github.ref == 'refs/heads/dev' || github.event_name == 'pull_request' && github.base_ref == 'dev') && 'affected' || 'full') }}
+        run: node scripts/ci/select-images.mjs
+
   # Job 1: Biome lint/format check (fast, runs on all web code)
   biome:
     name: Biome Check
@@ -78,8 +101,14 @@ jobs:
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
 
+      - name: Test delivery guardrails
+        run: pnpm test:delivery
+
       - name: Check Docker workspace dependencies
         run: node scripts/guardrails/check-docker-workspaces.mjs
+
+      - name: Test verification entry points and performance tooling
+        run: node --test scripts/verification/*.test.mjs scripts/perf/*.test.mjs
 
       - name: Test repository guardrails
         run: pnpm test:guardrails
@@ -148,21 +177,144 @@ jobs:
       - name: Run all TypeScript unit tests
         run: pnpm test
 
-  # Job 7: Build all web apps (validates no build errors)
+  # Stable required gate: absent images are intentional only when selection succeeds.
+  # Runtime Dockerfiles already compile each application; do not rebuild with pnpm.
   build:
     name: Build Web Apps
-    needs: [biome, type-check, peer-check, guardrails, drift, tests]
+    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, container-smoke, storage-integration, weather-images]
+    if: always()
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
+    steps:
+      - name: Verify checks and selected images
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module <<'JS'
+          const results = JSON.parse(process.env.RESULTS);
+          const selection = results['image-selection'];
+          for (const [name, job] of Object.entries(results)) {
+            const key = name === 'container-smoke' ? 'web' : name === 'weather-images' ? 'weather' : null;
+            const omitted = key && selection.result === 'success' && selection.outputs[key] === '[]';
+            if (job.result !== 'success' && !(omitted && job.result === 'skipped')) {
+              console.error(`${name}: ${job.result}`);
+              process.exitCode = 1;
+            }
+          }
+          JS
+
+  container-smoke:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.web != '[]'
+    name: Container smoke (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    # packages: read only. This job builds untrusted pull-request code, so it
+    # reads the shared build cache but must never write it — a writable cache
+    # here would let a PR plant layers that a later staging/release build reuses.
+    permissions:
+      contents: read
+      packages: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.image-selection.outputs.web) }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
-
-      - name: Setup Node.js with pnpm
-        uses: ./.github/actions/setup-node
-
-      - name: Build all web apps
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Resolve registry owner
+        id: ctx
+        run: echo "owner=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+      - name: Log in to GitHub Container Registry (build cache is read-only here)
+        # Best-effort: without credentials the build simply runs cache-cold
+        # rather than failing the check.
+        continue-on-error: true
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build runtime image
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
+        with:
+          context: .
+          file: ${{ matrix.path }}/Dockerfile
+          target: ${{ matrix.target || 'runner' }}
+          load: true
+          tags: smoke-${{ matrix.app }}:ci
+          cache-from: type=registry,ref=ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-buildcache:${{ matrix.image }}
+      - name: Smoke-test the runtime or migration image
         env:
-          # admin-gms validates RESEND_API_KEY at build time via @t3-oss/env-nextjs.
-          # Its WXWATCH/WXPRODUCTS_DATABASE_URL are optional, so no DB URL is needed here.
-          RESEND_API_KEY: re_placeholder
-        run: pnpm build
+          IMAGE: smoke-${{ matrix.app }}:ci
+          KIND: ${{ matrix.target == 'migrate' && matrix.app || matrix.app == 'auth' && 'auth' || 'web' }}
+          PORT: ${{ matrix.port }}
+          HEALTH: ${{ matrix.app == 'hono' && '/health' || '/api/health' }}
+        run: bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
+      - name: Enforce image vulnerability policy
+        uses: ./.github/actions/scan-image
+        with:
+          image: smoke-${{ matrix.app }}:ci
+          scope: ${{ matrix.path }}/Dockerfile#${{ matrix.target || 'runner' }}
+          name: ${{ matrix.app }}
+
+
+  storage-integration:
+    name: Core storage integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5@sha256:01a6a70e41e6c4467c8f55f6063555ed72db2d6662cd0d571040d42eadaeb6f6
+        env:
+          POSTGRES_USER: storage_test
+          POSTGRES_PASSWORD: test-only-password
+          POSTGRES_DB: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U storage_test -d postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: ./.github/actions/setup-node
+      - name: Install PostgreSQL client for runtime privilege checks
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Build API client required by CMS migration configuration
+        run: pnpm --filter @barrelsgd/api-client build
+      - name: Fresh, concurrent and failed migrations; catalogue preservation
+        env:
+          STORAGE_TEST_POSTGRES_URL: postgresql://storage_test:test-only-password@localhost:5432/postgres
+          RUNTIME_ROLE_TEST_REQUIRED: "true"
+        run: bash scripts/verification/storage.sh
+
+  weather-images:
+    needs: [image-selection]
+    if: needs.image-selection.outputs.weather != '[]'
+    name: Weather image build (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.image-selection.outputs.weather) }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c
+      - uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          target: ${{ matrix.target }}
+          push: false
+          load: true
+          tags: weather-${{ matrix.name }}:ci
+          platforms: linux/amd64
+          cache-from: type=gha,scope=weather-${{ matrix.name }}
+          cache-to: type=gha,scope=weather-${{ matrix.name }},mode=max,ignore-error=true
+      - name: Enforce weather image vulnerability policy
+        uses: ./.github/actions/scan-image
+        with:
+          image: weather-${{ matrix.name }}:ci
+          scope: ${{ matrix.dockerfile }}#${{ matrix.target || 'runner' }}
+          name: ${{ matrix.name }}

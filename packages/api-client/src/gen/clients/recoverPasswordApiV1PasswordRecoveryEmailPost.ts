@@ -3,53 +3,43 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  RecoverPasswordApiV1PasswordRecoveryEmailPost422,
-  RecoverPasswordApiV1PasswordRecoveryEmailPost429,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
-  RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
+  RecoverPasswordApiV1PasswordRecoveryEmailPostResponses,
 } from "../models/RecoverPasswordApiV1PasswordRecoveryEmailPost.js";
-
-function getRecoverPasswordApiV1PasswordRecoveryEmailPostUrl(
-  email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"]
-) {
-  const res = {
-    method: "POST",
-    url: `/api/v1/password-recovery/${email}` as const,
-  };
-  return res;
-}
 
 /**
  * @description Password Recovery.
  * @summary Recover Password
  * {@link /api/v1/password-recovery/:email}
  */
-export async function recoverPasswordApiV1PasswordRecoveryEmailPost(
-  email: RecoverPasswordApiV1PasswordRecoveryEmailPostPathParams["email"],
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function recoverPasswordApiV1PasswordRecoveryEmailPost<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    RecoverPasswordApiV1PasswordRecoveryEmailPostOptions,
+    ThrowOnError
+  >
+): Unwrappable<
+  RequestResult<
+    RecoverPasswordApiV1PasswordRecoveryEmailPostResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    RecoverPasswordApiV1PasswordRecoveryEmailPostMutationResponse,
-    ResponseErrorConfig<
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost422
-      | RecoverPasswordApiV1PasswordRecoveryEmailPost429
-    >,
-    unknown
-  >({
-    method: "POST",
-    url: getRecoverPasswordApiV1PasswordRecoveryEmailPostUrl(
-      email
-    ).url.toString(),
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "POST",
+      url: "/api/v1/password-recovery/{email}",
+      ...config,
+    }) as Promise<
+      RequestResult<
+        RecoverPasswordApiV1PasswordRecoveryEmailPostResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

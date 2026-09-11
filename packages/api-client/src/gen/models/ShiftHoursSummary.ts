@@ -3,13 +3,7 @@
  * Do not edit manually.
  */
 
-/**
- * ShiftHoursSummary
- */
 export type ShiftHoursSummary = {
-  /**
-   * @type string
-   */
   shift_code: string;
   /**
    * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
@@ -31,8 +25,5 @@ export type ShiftHoursSummary = {
    * @type string
    */
   total_break_hours: string;
-  /**
-   * @type integer
-   */
   entry_count: number;
 };

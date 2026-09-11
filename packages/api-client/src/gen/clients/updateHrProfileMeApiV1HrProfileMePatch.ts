@@ -3,51 +3,38 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  UpdateHrProfileMeApiV1HrProfileMePatch404,
-  UpdateHrProfileMeApiV1HrProfileMePatch422,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
+  UpdateHrProfileMeApiV1HrProfileMePatchOptions,
+  UpdateHrProfileMeApiV1HrProfileMePatchResponses,
 } from "../models/UpdateHrProfileMeApiV1HrProfileMePatch.js";
-
-function getUpdateHrProfileMeApiV1HrProfileMePatchUrl() {
-  const res = { method: "PATCH", url: `/api/v1/hr/profile/me` as const };
-  return res;
-}
 
 /**
  * @description Update the current user's HR profile (identity, address, preferences).
  * @summary Update my HR profile
  * {@link /api/v1/hr/profile/me}
  */
-export async function updateHrProfileMeApiV1HrProfileMePatch(
-  data: UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest,
-  config: Partial<
-    RequestConfig<UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest>
-  > & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function updateHrProfileMeApiV1HrProfileMePatch<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<UpdateHrProfileMeApiV1HrProfileMePatchOptions, ThrowOnError>
+): Unwrappable<
+  RequestResult<UpdateHrProfileMeApiV1HrProfileMePatchResponses, ThrowOnError>
+> {
+  const { client: request = client, ...config } = options;
 
-  const requestData = data;
-
-  const res = await request<
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationResponse,
-    ResponseErrorConfig<
-      | UpdateHrProfileMeApiV1HrProfileMePatch404
-      | UpdateHrProfileMeApiV1HrProfileMePatch422
-    >,
-    UpdateHrProfileMeApiV1HrProfileMePatchMutationRequest
-  >({
-    method: "PATCH",
-    url: getUpdateHrProfileMeApiV1HrProfileMePatchUrl().url.toString(),
-    data: requestData,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "PATCH",
+      url: "/api/v1/hr/profile/me",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        UpdateHrProfileMeApiV1HrProfileMePatchResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

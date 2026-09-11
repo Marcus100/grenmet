@@ -8,32 +8,26 @@ import { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLogin
 import { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 import { tokenSchema } from "./tokenSchema.js";
 
-/**
- * @description Login successful, access token returned
- */
-export const loginAccessTokenApiV1LoginAccessTokenPost200Schema = z.lazy(
-  () => tokenSchema
-);
+export const loginAccessTokenApiV1LoginAccessTokenPostStatus200Schema =
+  tokenSchema;
 
-/**
- * @description Incorrect email/password or inactive user
- */
-export const loginAccessTokenApiV1LoginAccessTokenPost400Schema = z.any();
+export const loginAccessTokenApiV1LoginAccessTokenPostStatus400Schema =
+  z.unknown();
 
-/**
- * @description Validation Error
- */
-export const loginAccessTokenApiV1LoginAccessTokenPost422Schema = z.lazy(
-  () => HTTPValidationErrorSchema
-);
+export const loginAccessTokenApiV1LoginAccessTokenPostStatus422Schema =
+  HTTPValidationErrorSchema;
 
-/**
- * @description Rate limit exceeded
- */
-export const loginAccessTokenApiV1LoginAccessTokenPost429Schema = z.any();
+export const loginAccessTokenApiV1LoginAccessTokenPostStatus429Schema =
+  z.unknown();
 
-export const loginAccessTokenApiV1LoginAccessTokenPostMutationRequestSchema =
-  z.lazy(() => bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema);
+export const loginAccessTokenApiV1LoginAccessTokenPostResponseSchema =
+  loginAccessTokenApiV1LoginAccessTokenPostStatus200Schema;
 
-export const loginAccessTokenApiV1LoginAccessTokenPostMutationResponseSchema =
-  z.lazy(() => loginAccessTokenApiV1LoginAccessTokenPost200Schema);
+export const loginAccessTokenApiV1LoginAccessTokenPostErrorSchema = z.union([
+  loginAccessTokenApiV1LoginAccessTokenPostStatus400Schema,
+  loginAccessTokenApiV1LoginAccessTokenPostStatus422Schema,
+  loginAccessTokenApiV1LoginAccessTokenPostStatus429Schema,
+]);
+
+export const loginAccessTokenApiV1LoginAccessTokenPostBodySchema =
+  bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema;

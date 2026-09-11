@@ -8,31 +8,40 @@ Staging and production run as Docker Compose stacks on dedicated DigitalOcean dr
 
 | Environment | Compose project | Compose file | Domains |
 | --- | --- | --- | --- |
-| Staging | `grenmet-staging` | `infra/docker/docker-compose.staging.yml` | `*.staging.barrels.gd` |
-| Production | `grenmet` | `infra/docker/docker-compose.prod.yml` | `*.barrels.gd` |
+| Staging | `grenmet-staging` | `infra/docker/docker-compose.deploy.yml` + `staging.env` | `*.staging.barrels.gd` |
+| Production | `grenmet` | `infra/docker/docker-compose.deploy.yml` + `production.env` | `*.barrels.gd` |
 
 Each stack includes:
 
-- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, and `wxproducts`.
+- `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, and `transport`.
 - `api`: FastAPI backend on internal port `8000`.
 - `prestart`: one-shot FastAPI migration/bootstrap container.
 - `redis` + `worker`: Redis and the arq background worker (CAP outbox).
 - `web-migrate`: one-shot Drizzle migration runner for the `wxwatch` + `wxproducts` databases, built from the gaa-admin `migrate` image stage; runs before `web-admin`.
-- `web-auth`, `web-admin`, `web-hurricaneplan`, `web-spicewx` — the four deployed web apps. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps were consolidated into `web-admin` in 2026-06 (path-prefixed routes); `signal` is not yet deployed.
+- `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, and `web-events`: seven configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
+- `api-hono`: Node API on internal port `4000`, routed through `hapi`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
 ## Deployments
 
-Staging deployment is automated from the `staging` branch. The deploy workflow waits for the API image workflow and web image workflow where applicable, writes a temporary `.env` file from GitHub environment secrets, validates the compose file, pulls images, runs `docker compose up -d`, performs health checks, and deletes the temporary `.env`.
+A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds, and
+deployment with the `staging` tag. Publishing a release runs `pipeline-prod.yml`,
+which builds all images and deploys the release tag for API, web, Hono, and
+migration images. Merging to `main` does not build deployment images or deploy.
 
-Production deployment is triggered by a published GitHub Release or manual workflow dispatch in `.github/workflows/deploy-prod.yml`. In the current workflow:
+The shared `deploy.yml` layers the committed environment file with temporary
+`.env.secrets`, validates Compose, starts Postgres, ensures databases exist, and
+starts the stack with migrations and health checks. It removes the secrets file
+in cleanup. Runtime containers still hold their configured environment values.
 
-- The API image uses the release tag when available, otherwise `latest`.
-- Web app services use `WEB_TAG=latest` in the production compose environment.
-- Production should be protected by the GitHub `production` environment reviewer rules.
+The **Deploy**, **Deploy to Production**, and **Deploy to Staging** manual entry
+points redeploy existing images. Supply an explicit tag and use the matching
+release workflow ref for rollback. See the [release runbook](operations/release-runbook.md).
+For a fallback without CI, use the [manual procedure](deployment.md#manual-deploy-fallback--no-ci).
 
-Do not deploy by editing containers manually. If manual fallback is required, follow the fallback section in [deployment.md](deployment.md#manual-deploy-fallback--no-ci), then remove the temporary `.env` file.
+This inventory describes the configured target layout. Confirm the relevant
+pipeline succeeded before treating a new service or domain as live.
 
 ## Health Checks
 
@@ -51,38 +60,40 @@ Environment URLs:
 | Staging | `https://api.staging.barrels.gd/api/v1/utils/health-check/` | `https://api.staging.barrels.gd/api/v1/utils/ready/` |
 | Production | `https://api.barrels.gd/api/v1/utils/health-check/` | `https://api.barrels.gd/api/v1/utils/ready/` |
 
-The deploy workflows currently check liveness and make a best-effort request to the auth app root. Use readiness when diagnosing database or migration failures.
+Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`) plus Hono (`/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
 
 ## Incident Triage
 
 Start with the smallest failing boundary:
 
 1. DNS and TLS: verify the host resolves to the expected droplet and Traefik can issue certificates.
-2. Stack status: run `docker compose -p grenmet-staging ps` or `docker compose -p grenmet ps`.
+2. Stack status: inspect the target project with `docker ps` and the configured container health states.
 3. API liveness and readiness: check both probes above.
 4. Logs: inspect `prestart`, `api`, `proxy`, `db`, then the specific web service.
 5. Database: verify `db` is healthy and the target database exists.
 6. Recent deploy: compare the failing service image tag with the last successful workflow run.
 
-Useful commands on a server:
+Useful commands on a server (confirm names with `docker ps -a`):
 
 ```bash
-docker compose -p grenmet ps
-docker compose -p grenmet logs api --tail 100
-docker compose -p grenmet logs prestart --tail 100
-docker compose -p grenmet logs proxy --tail 100
-docker compose -p grenmet logs db --tail 100
+docker ps -a --filter label=com.docker.compose.project=grenmet
+docker logs grenmet-api-1 --tail 100
+docker logs grenmet-prestart-1 --tail 100
+docker logs grenmet-proxy-1 --tail 100
+docker logs grenmet-db-1 --tail 100
 ```
 
-Use `grenmet-staging` for staging.
+For staging, use project/prefix `grenmet-staging`. Compose operations require the
+explicit Compose file, committed environment file, temporary secrets, and project
+arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--no-ci).
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually.
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the original five databases remain covered. Staging is disposable and has no scheduled backup requirement.
 
 Implemented backup behavior:
 
-- Dumps `app_prod`, `wxwatch`, and `wxproducts` with `pg_dump --format=custom --compress=9`.
+- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, and `transport` with `pg_dump --format=custom --compress=9`.
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
@@ -93,11 +104,11 @@ Restore drill outline:
 
 ```bash
 # On a controlled server, never directly on production first.
-docker compose -p grenmet exec -T db createdb -U "$POSTGRES_USER" restore_test
+docker exec -i grenmet-db-1 createdb -U "$POSTGRES_USER" restore_test
 docker cp /path/to/app_prod_YYYYMMDD_HHMMSS.dump grenmet-db-1:/tmp/restore.dump
-docker compose -p grenmet exec -T db pg_restore -U "$POSTGRES_USER" -d restore_test /tmp/restore.dump
-docker compose -p grenmet exec -T db psql -U "$POSTGRES_USER" -d restore_test -c "\dt"
-docker compose -p grenmet exec -T db dropdb -U "$POSTGRES_USER" restore_test
+docker exec -i grenmet-db-1 pg_restore -U "$POSTGRES_USER" -d restore_test /tmp/restore.dump
+docker exec -i grenmet-db-1 psql -U "$POSTGRES_USER" -d restore_test -c "\dt"
+docker exec -i grenmet-db-1 dropdb -U "$POSTGRES_USER" restore_test
 ```
 
 For a real production restore, stop dependent app containers first, restore to the exact target database, then run readiness checks and application smoke tests before reopening the service.
@@ -124,4 +135,4 @@ These are not implemented as repo-level controls yet:
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Redis-backed distributed rate limiting.
 - Background worker execution for CAP publish job events.
-- Automated restore drills.
+- Timed, end-to-end recovery drills proving application recovery and RTO. The backup workflow already restores each database dump into a temporary database and checks for tables.

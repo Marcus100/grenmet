@@ -5,49 +5,51 @@
 
 import type { HTTPValidationError } from "./HTTPValidationError.js";
 
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams = {
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeletePath = {
   /**
-   * @type string, uuid
+   * @description
+   * Format: `uuid`
+   * @type string
    */
   report_id: string;
 };
 
-/**
- * @description Status report deleted
- */
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDelete204 = any;
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204 =
+  unknown;
 
-/**
- * @description Status report is not a draft
- */
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDelete400 = any;
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400 =
+  unknown;
 
-/**
- * @description Not allowed to delete this status report
- */
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDelete403 = any;
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403 =
+  unknown;
 
-/**
- * @description Status report not found
- */
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDelete404 = any;
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404 =
+  unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDelete422 =
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422 =
   HTTPValidationError;
 
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutationResponse =
-  DeleteStatusReportApiV1HrStatusReportsReportIdDelete204;
-
-export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteMutation = {
-  Response: DeleteStatusReportApiV1HrStatusReportsReportIdDelete204;
-  PathParams: DeleteStatusReportApiV1HrStatusReportsReportIdDeletePathParams;
-  Errors:
-    | DeleteStatusReportApiV1HrStatusReportsReportIdDelete400
-    | DeleteStatusReportApiV1HrStatusReportsReportIdDelete403
-    | DeleteStatusReportApiV1HrStatusReportsReportIdDelete404
-    | DeleteStatusReportApiV1HrStatusReportsReportIdDelete422;
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteOptions = {
+  body?: never;
+  path: DeleteStatusReportApiV1HrStatusReportsReportIdDeletePath;
+  query?: never;
+  headers?: never;
 };
+
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponses = {
+  "204": DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204;
+  "400": DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400;
+  "403": DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403;
+  "404": DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404;
+  "422": DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type DeleteStatusReportApiV1HrStatusReportsReportIdDeleteResponse =
+  | DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204
+  | DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400
+  | DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403
+  | DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404
+  | DeleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422;

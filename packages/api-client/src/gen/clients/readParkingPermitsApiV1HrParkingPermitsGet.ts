@@ -3,47 +3,44 @@
  * Do not edit manually.
  */
 
+import type { Options, RequestResult, Unwrappable } from "../.kubb/client.js";
+import { client, withUnwrap } from "../.kubb/client.js";
 import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
-import type {
-  ReadParkingPermitsApiV1HrParkingPermitsGet403,
-  ReadParkingPermitsApiV1HrParkingPermitsGet422,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
-  ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
+  ReadParkingPermitsApiV1HrParkingPermitsGetOptions,
+  ReadParkingPermitsApiV1HrParkingPermitsGetResponses,
 } from "../models/ReadParkingPermitsApiV1HrParkingPermitsGet.js";
-
-function getReadParkingPermitsApiV1HrParkingPermitsGetUrl() {
-  const res = { method: "GET", url: `/api/v1/hr/parking-permits` as const };
-  return res;
-}
 
 /**
  * @description List parking permits (own or by department). Department filter requires parking.permit.read.department.
  * @summary List parking permits
  * {@link /api/v1/hr/parking-permits}
  */
-export async function readParkingPermitsApiV1HrParkingPermitsGet(
-  params?: ReadParkingPermitsApiV1HrParkingPermitsGetQueryParams,
-  config: Partial<RequestConfig> & { client?: Client } = {}
-) {
-  const { client: request = fetch, ...requestConfig } = config;
+export function readParkingPermitsApiV1HrParkingPermitsGet<
+  ThrowOnError extends boolean = true,
+>(
+  options: Options<
+    ReadParkingPermitsApiV1HrParkingPermitsGetOptions,
+    ThrowOnError
+  > = {}
+): Unwrappable<
+  RequestResult<
+    ReadParkingPermitsApiV1HrParkingPermitsGetResponses,
+    ThrowOnError
+  >
+> {
+  const { client: request = client, ...config } = options;
 
-  const res = await request<
-    ReadParkingPermitsApiV1HrParkingPermitsGetQueryResponse,
-    ResponseErrorConfig<
-      | ReadParkingPermitsApiV1HrParkingPermitsGet403
-      | ReadParkingPermitsApiV1HrParkingPermitsGet422
-    >,
-    unknown
-  >({
-    method: "GET",
-    url: getReadParkingPermitsApiV1HrParkingPermitsGetUrl().url.toString(),
-    params,
-    ...requestConfig,
-  });
-  return res.data;
+  return withUnwrap(
+    request({
+      method: "GET",
+      url: "/api/v1/hr/parking-permits",
+      security: [{ type: "oauth2" }],
+      ...config,
+    }) as Promise<
+      RequestResult<
+        ReadParkingPermitsApiV1HrParkingPermitsGetResponses,
+        ThrowOnError
+      >
+    >
+  );
 }

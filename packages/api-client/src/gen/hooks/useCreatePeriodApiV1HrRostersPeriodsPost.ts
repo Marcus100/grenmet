@@ -9,49 +9,44 @@ import type {
   UseMutationResult,
 } from "@tanstack/react-query";
 import { mutationOptions, useMutation } from "@tanstack/react-query";
-import type {
-  Client,
-  RequestConfig,
-  ResponseErrorConfig,
-} from "../../client.js";
-import fetch from "../../client.js";
+import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { createPeriodApiV1HrRostersPeriodsPost } from "../clients/createPeriodApiV1HrRostersPeriodsPost.js";
 import type {
-  CreatePeriodApiV1HrRostersPeriodsPost400,
-  CreatePeriodApiV1HrRostersPeriodsPost403,
-  CreatePeriodApiV1HrRostersPeriodsPost422,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationRequest,
-  CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+  CreatePeriodApiV1HrRostersPeriodsPostOptions,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus201,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus400,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus403,
+  CreatePeriodApiV1HrRostersPeriodsPostStatus422,
 } from "../models/CreatePeriodApiV1HrRostersPeriodsPost.js";
 
 export const createPeriodApiV1HrRostersPeriodsPostMutationKey = () =>
   [{ url: "/api/v1/hr/rosters/periods" }] as const;
 
-export type CreatePeriodApiV1HrRostersPeriodsPostMutationKey = ReturnType<
-  typeof createPeriodApiV1HrRostersPeriodsPostMutationKey
->;
-
 export function createPeriodApiV1HrRostersPeriodsPostMutationOptions<
   TContext = unknown,
 >(
   config: Partial<
-    RequestConfig<CreatePeriodApiV1HrRostersPeriodsPostMutationRequest>
-  > & { client?: Client } = {}
+    Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+  > = {}
 ) {
   const mutationKey = createPeriodApiV1HrRostersPeriodsPostMutationKey();
   return mutationOptions<
-    CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+    CreatePeriodApiV1HrRostersPeriodsPostStatus201,
     ResponseErrorConfig<
-      | CreatePeriodApiV1HrRostersPeriodsPost400
-      | CreatePeriodApiV1HrRostersPeriodsPost403
-      | CreatePeriodApiV1HrRostersPeriodsPost422
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus422
     >,
-    { data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest },
+    CreatePeriodApiV1HrRostersPeriodsPostOptions,
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ data }) => {
-      return createPeriodApiV1HrRostersPeriodsPost(data, config);
+    mutationFn: async ({ body }) => {
+      return createPeriodApiV1HrRostersPeriodsPost({
+        ...config,
+        body,
+        throwOnError: true,
+      }).unwrap();
     },
   });
 }
@@ -64,18 +59,18 @@ export function createPeriodApiV1HrRostersPeriodsPostMutationOptions<
 export function useCreatePeriodApiV1HrRostersPeriodsPost<TContext>(
   options: {
     mutation?: UseMutationOptions<
-      CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+      CreatePeriodApiV1HrRostersPeriodsPostStatus201,
       ResponseErrorConfig<
-        | CreatePeriodApiV1HrRostersPeriodsPost400
-        | CreatePeriodApiV1HrRostersPeriodsPost403
-        | CreatePeriodApiV1HrRostersPeriodsPost422
+        | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+        | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+        | CreatePeriodApiV1HrRostersPeriodsPostStatus422
       >,
-      { data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest },
+      CreatePeriodApiV1HrRostersPeriodsPostOptions,
       TContext
     > & { client?: QueryClient };
     client?: Partial<
-      RequestConfig<CreatePeriodApiV1HrRostersPeriodsPostMutationRequest>
-    > & { client?: Client };
+      Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
+    >;
   } = {}
 ) {
   const { mutation = {}, client: config = {} } = options ?? {};
@@ -87,24 +82,24 @@ export function useCreatePeriodApiV1HrRostersPeriodsPost<TContext>(
   const baseOptions = createPeriodApiV1HrRostersPeriodsPostMutationOptions(
     config
   ) as UseMutationOptions<
-    CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+    CreatePeriodApiV1HrRostersPeriodsPostStatus201,
     ResponseErrorConfig<
-      | CreatePeriodApiV1HrRostersPeriodsPost400
-      | CreatePeriodApiV1HrRostersPeriodsPost403
-      | CreatePeriodApiV1HrRostersPeriodsPost422
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus422
     >,
-    { data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest },
+    CreatePeriodApiV1HrRostersPeriodsPostOptions,
     TContext
   >;
 
   return useMutation<
-    CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+    CreatePeriodApiV1HrRostersPeriodsPostStatus201,
     ResponseErrorConfig<
-      | CreatePeriodApiV1HrRostersPeriodsPost400
-      | CreatePeriodApiV1HrRostersPeriodsPost403
-      | CreatePeriodApiV1HrRostersPeriodsPost422
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus422
     >,
-    { data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest },
+    CreatePeriodApiV1HrRostersPeriodsPostOptions,
     TContext
   >(
     {
@@ -114,13 +109,13 @@ export function useCreatePeriodApiV1HrRostersPeriodsPost<TContext>(
     },
     queryClient
   ) as UseMutationResult<
-    CreatePeriodApiV1HrRostersPeriodsPostMutationResponse,
+    CreatePeriodApiV1HrRostersPeriodsPostStatus201,
     ResponseErrorConfig<
-      | CreatePeriodApiV1HrRostersPeriodsPost400
-      | CreatePeriodApiV1HrRostersPeriodsPost403
-      | CreatePeriodApiV1HrRostersPeriodsPost422
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus400
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus403
+      | CreatePeriodApiV1HrRostersPeriodsPostStatus422
     >,
-    { data: CreatePeriodApiV1HrRostersPeriodsPostMutationRequest },
+    CreatePeriodApiV1HrRostersPeriodsPostOptions,
     TContext
   >;
 }

@@ -5,33 +5,28 @@
 
 import type { ParkingAction } from "./ParkingAction.js";
 
-/**
- * ParkingPermitCreate
- */
 export type ParkingPermitCreate = {
+  signature_version?: string | null;
   /**
-   * @type string, uuid
-   */
-  user_id: string;
-  /**
+   * @description
+   * Format: `uuid`
    * @type string
    */
+  user_id: string;
   department_id: string;
   company_name?: string | null;
   phone?: string | null;
-  /**
-   * @type string
-   */
   vehicle_registration_no: string;
   vehicle_insurance_issue_date?: string | null;
   vehicle_insurance_expiry_date?: string | null;
   /**
+   * @default 'NEW_PERMIT'
    * @type string | undefined
    */
   action_requested?: ParkingAction;
   action_other_detail?: string | null;
   /**
-   * @default "40.00"
+   * @default 40.00
    */
   fee_amount?: number | string;
 };

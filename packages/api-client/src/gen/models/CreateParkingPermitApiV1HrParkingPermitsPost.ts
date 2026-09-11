@@ -7,38 +7,34 @@ import type { HTTPValidationError } from "./HTTPValidationError.js";
 import type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 import type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
 
-/**
- * ParkingPermitPublic
- * @description Parking permit application created
- */
-export type CreateParkingPermitApiV1HrParkingPermitsPost201 =
+export type CreateParkingPermitApiV1HrParkingPermitsPostStatus201 =
   ParkingPermitPublic;
 
-/**
- * @description Insufficient permission
- */
-export type CreateParkingPermitApiV1HrParkingPermitsPost403 = any;
+export type CreateParkingPermitApiV1HrParkingPermitsPostStatus403 = unknown;
 
-/**
- * HTTPValidationError
- * @description Validation Error
- */
-export type CreateParkingPermitApiV1HrParkingPermitsPost422 =
+export type CreateParkingPermitApiV1HrParkingPermitsPostStatus422 =
   HTTPValidationError;
 
-/**
- * ParkingPermitCreate
- */
-export type CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest =
+export type CreateParkingPermitApiV1HrParkingPermitsPostBody =
   ParkingPermitCreate;
 
-export type CreateParkingPermitApiV1HrParkingPermitsPostMutationResponse =
-  CreateParkingPermitApiV1HrParkingPermitsPost201;
-
-export type CreateParkingPermitApiV1HrParkingPermitsPostMutation = {
-  Response: CreateParkingPermitApiV1HrParkingPermitsPost201;
-  Request: CreateParkingPermitApiV1HrParkingPermitsPostMutationRequest;
-  Errors:
-    | CreateParkingPermitApiV1HrParkingPermitsPost403
-    | CreateParkingPermitApiV1HrParkingPermitsPost422;
+export type CreateParkingPermitApiV1HrParkingPermitsPostOptions = {
+  body: CreateParkingPermitApiV1HrParkingPermitsPostBody;
+  path?: never;
+  query?: never;
+  headers?: never;
 };
+
+export type CreateParkingPermitApiV1HrParkingPermitsPostResponses = {
+  "201": CreateParkingPermitApiV1HrParkingPermitsPostStatus201;
+  "403": CreateParkingPermitApiV1HrParkingPermitsPostStatus403;
+  "422": CreateParkingPermitApiV1HrParkingPermitsPostStatus422;
+};
+
+/**
+ * @description Union of all possible responses
+ */
+export type CreateParkingPermitApiV1HrParkingPermitsPostResponse =
+  | CreateParkingPermitApiV1HrParkingPermitsPostStatus201
+  | CreateParkingPermitApiV1HrParkingPermitsPostStatus403
+  | CreateParkingPermitApiV1HrParkingPermitsPostStatus422;
