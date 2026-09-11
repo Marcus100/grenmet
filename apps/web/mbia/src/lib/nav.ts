@@ -158,7 +158,7 @@ export const QUICK_TASKS: (NavLink & { description: string })[] = [
   {
     label: "Arrivals",
     href: "/flights?board=arrivals",
-    description: "Live arrival status at MBIA and Lauriston",
+    description: "Sample arrival board for MBIA and Lauriston",
   },
   {
     label: "Departures",

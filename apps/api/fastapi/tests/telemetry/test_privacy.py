@@ -36,3 +36,13 @@ class PrivacyTests(unittest.TestCase):
         self.assertFalse(options["include_local_variables"])
         self.assertEqual(options["max_request_body_size"], "never")
         self.assertEqual(options["traces_sample_rate"], 0)
+
+    def test_log_only_events_keep_a_safe_title(self):
+        event = {
+            "logger": "ddtrace.internal.writer.writer",
+            "logentry": {"formatted": "secret payload"},
+        }
+        result = scrub_sentry_event(event, {})
+        self.assertEqual(result["message"], "Log event (details redacted)")
+        self.assertNotIn("secret payload", json.dumps(result))
+        self.assertEqual(result["logger"], "ddtrace.internal.writer.writer")

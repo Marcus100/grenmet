@@ -1,6 +1,9 @@
 import { buildSharedSignInUrl } from "@barrelsgd/auth/server";
 import { getEnv } from "../../../env";
 import { getAuthConfig } from "../../../lib/auth-config";
+// Authentication destinations come from the deployed runtime environment.
+export const dynamic = "force-dynamic";
+
 export default function SignIn() {
   const url = buildSharedSignInUrl(getAuthConfig(), {
     origin: getEnv().CMS_URL,

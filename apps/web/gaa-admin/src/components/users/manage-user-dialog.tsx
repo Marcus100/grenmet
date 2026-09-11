@@ -161,7 +161,7 @@ export function ManageUserDialog({
           scope: roleScope,
           department_id: roleScope === "DEPARTMENT" ? roleDepartment : null,
           effective_to: roleExpiry
-            ? new Date(roleExpiry + "Z").toISOString()
+            ? new Date(`${roleExpiry}Z`).toISOString()
             : null,
         },
       });
