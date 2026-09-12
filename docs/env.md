@@ -471,3 +471,80 @@ Google OAuth uses separate web clients (or separately approved callbacks) for
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` together; the deployment supplies
 the callback URL. Client creation, consent-screen/test-user setup, and a real
 browser callback/MFA test remain required before declaring Google enabled.
+
+## Complete environment and integration inventory
+
+This document is the canonical inventory of variables currently referenced by
+the repository. The same variable can be consumed by more than one service;
+configure it once per environment and pass it only to the services that need
+it. The names below are grouped by responsibility rather than repeated for
+every application.
+
+### Environment-specific responsibilities
+
+| Environment | Required baseline | Optional integrations | Isolation requirements |
+|---|---|---|---|
+| Local development | Compose database users/passwords, FastAPI settings, shared session settings, local origins, Redis | Local Sentry, PostHog, Google OAuth, Stripe test mode, SMTP/Resend, test storage | Use `.env.local` files only; use test credentials and localhost callbacks |
+| Staging | Deployment topology, all database passwords, bootstrap credentials, session settings, Resend, CMS database password, Payload secret | Sentry, PostHog, Google OAuth, Stripe test mode, storage, email rendering, CAP signing | Separate domains, databases, buckets, OAuth callbacks, analytics projects, webhooks, and provider keys |
+| Production | Deployment topology, all database passwords, bootstrap credentials, session settings, Resend, CMS database password, Payload secret | Sentry, PostHog, Google OAuth, Stripe live mode, storage, email rendering, CAP signing | Never reuse staging credentials, callback URLs, buckets, analytics projects, or webhook secrets |
+
+The deployment workflow derives `DATABASE_URL`, the module-specific `*_DB_URL`
+values, image tags, and container service URLs. They are runtime inputs, but
+they should not be manually maintained as independent GitHub secrets.
+
+### Optional and future integrations
+
+The following are potential integrations represented by the code or roadmap,
+but they are not all deployment prerequisites:
+
+- Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
+- Google Analytics: `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
+- Stripe billing: the complete `BILLING_STRIPE_*` and checkout URL bundle.
+- Resend webhooks and email rendering: `RESEND_WEBHOOK_SECRET`,
+  `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
+- CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
+  `CAP_SIGNING_KEY_REF`.
+- Datadog: `DD_*` values, only after an agent or collector is provisioned.
+- CAP MQTT, outbound webhooks, WIS2Box, static maps, and social-image
+  publication consumers; these are currently dormant and have no required
+  runtime credentials.
+- Republic ePay for Events payments; the provider contract, webhook protocol,
+  and environment variables have not yet been selected.
+- External uptime and paging; no provider has yet been selected.
+
+Do not invent credentials for dormant or unselected integrations. Add their
+variables only when the provider contract, callback/webhook endpoints, staging
+test path, and production ownership have been documented.
+
+### Operator-only provider audit credentials
+
+These credentials support the read-only integration checker and are separate
+from application runtime configuration:
+
+```text
+SENTRY_READ_TOKEN
+SENTRY_ORG
+SENTRY_PROJECT
+POSTHOG_PERSONAL_API_KEY
+POSTHOG_PROJECT_ID
+GOOGLE_ANALYTICS_ACCESS_TOKEN
+GOOGLE_ANALYTICS_PROPERTY_ID
+CLOUDFLARE_API_TOKEN
+CLOUDFLARE_ZONE_ID
+DIGITALOCEAN_ACCESS_TOKEN
+RESEND_READ_TOKEN
+```
+
+Keep them in the operator's secure environment or secret manager. They are not
+required for normal application startup or deployment unless a live provider
+audit is explicitly requested.
+
+### Completeness and verification checklist
+
+For each staging and production variable, record whether it is required or
+optional, secret or public, configured, and verified. A configured value is not
+proof of connectivity: verify OAuth callbacks, email delivery, storage upload
+and download, Stripe webhook signatures, analytics events, and Sentry events
+separately. Browser `NEXT_PUBLIC_*` values require a new web image build after
+they change.
