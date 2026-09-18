@@ -94,6 +94,7 @@ class Goes19Spider(WeatherSpider):
         item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
         item["source_modified"] = self._parse_datetime_iso(date_str)
         item["observation_time"] = observation_time
+        item["time_basis"] = "filename"
         item["fetched_at"] = datetime.now(timezone.utc).isoformat()
         item["image_urls"] = [image_url]
         item["etag"] = None

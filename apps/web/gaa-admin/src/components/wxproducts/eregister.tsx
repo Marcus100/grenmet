@@ -1,3 +1,11 @@
+"use client";
+
+import {
+  createRegisterObservationApiV1EregisterObservationsPost,
+  listRegisterObservationsApiV1EregisterObservationsGet,
+  type RegisterObservationRead,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPost,
+} from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -6,6 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@barrelsgd/ui/components/ui/card";
+import { Input } from "@barrelsgd/ui/components/ui/input";
+import { Label } from "@barrelsgd/ui/components/ui/label";
 import {
   Table,
   TableBody,
@@ -30,10 +40,11 @@ import {
   ThermometerSnowflake,
   Wind,
 } from "lucide-react";
+import { type FormEvent, useEffect, useState } from "react";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
-// Static representative content — a design cut of the legacy Excel register;
-// data entry and wis2box/SYNOP transmission are wired in a later phase.
+// The register is backed by the dedicated FastAPI eRegister database; the
+// representative rows remain visible when that service is unavailable.
 
 const STATION = {
   name: "Maurice Bishop International Airport",
@@ -206,6 +217,78 @@ const OBS_LOG: ObsLogRow[] = [
   },
 ];
 
+const REGISTER_GROUPS = [
+  {
+    title: "IDENTIFICATION",
+    fields: [
+      ["Report", "report_type", "MiMiMjMj"],
+      ["Day", "day", "YY"],
+      ["Hour", "time_utc", "GG"],
+      ["Station", "station_id", "IIiii"],
+      ["Wind ind.", "wind_indicator", "iw"],
+    ],
+  },
+  {
+    title: "SECTION 1 · GLOBAL DATA",
+    fields: [
+      ["Precip. ind.", "precip_indicator", "iR"],
+      ["Station/weather ind.", "station_wx_indicator", "ix"],
+      ["Cloud base", "cloud_base", "h"],
+      ["Visibility", "visibility", "VV"],
+      ["Total cloud", "total_cloud", "N"],
+      ["Wind dir.", "wind_dir", "dd"],
+      ["Wind speed", "wind_speed", "ff"],
+      ["Air temp.", "air_temp", "1snTTT"],
+      ["Dew point", "dew_point", "2snTdTdTd"],
+      ["Station pressure", "station_pressure", "3P0P0P0P0"],
+      ["MSL pressure", "msl_pressure", "4PPPP"],
+      ["Pressure tendency", "pressure_tendency", "5a"],
+      ["Pressure change", "pressure_change", "5ppp"],
+      ["Precip. amount", "precip_amount", "6RRR"],
+      ["Precip. period", "precip_period", "6tR"],
+      ["Present weather", "present_wx", "7ww"],
+      ["Past wx 1", "past_wx_1", "7W1"],
+      ["Past wx 2", "past_wx_2", "7W2"],
+      ["Low cloud amt.", "low_cloud_amount", "8Nh"],
+      ["Low cloud type", "low_cloud_type", "8CL"],
+      ["Mid cloud type", "mid_cloud_type", "8CM"],
+      ["High cloud type", "high_cloud_type", "8CH"],
+    ],
+  },
+  {
+    title: "SECTION 3 · REGIONAL / NATIONAL DATA",
+    fields: [
+      ["State of sky", "s3_state_of_sky", "0"],
+      ["Low cloud dir.", "s3_cloud_dir_low", "DL"],
+      ["Mid cloud dir.", "s3_cloud_dir_mid", "DM"],
+      ["High cloud dir.", "s3_cloud_dir_high", "DH"],
+      ["Max temp.", "s3_max_temp", "1snTxTxTx"],
+      ["Min temp.", "s3_min_temp", "2snTnTnTn"],
+      ["24h baro change", "s3_baro_change_24h", "5appp"],
+      ["24h rainfall", "s3_rainfall_24h", "7RRR"],
+      ["Layer 1 amt.", "s3_layer1_amount", "8Ns"],
+      ["Layer 1 form", "s3_layer1_form", "C"],
+      ["Layer 1 height", "s3_layer1_height", "hshs"],
+      ["Layer 2 amt.", "s3_layer2_amount", "8Ns"],
+      ["Layer 2 form", "s3_layer2_form", "C"],
+      ["Layer 2 height", "s3_layer2_height", "hshs"],
+      ["Layer 3 amt.", "s3_layer3_amount", "8Ns"],
+      ["Layer 3 form", "s3_layer3_form", "C"],
+      ["Layer 3 height", "s3_layer3_height", "hshs"],
+      ["Layer 4 amt.", "s3_layer4_amount", "8Ns"],
+      ["Layer 4 form", "s3_layer4_form", "C"],
+      ["Layer 4 height", "s3_layer4_height", "hshs"],
+      ["Special phenomena", "s3_special_phenomena", "95SpSpspsp"],
+      ["Remarks", "s3_remarks", "—"],
+      ["Notes", "notes", "—"],
+    ],
+  },
+] as const;
+
+const REGISTER_DEFAULTS: Record<string, string> = Object.fromEntries(
+  REGISTER_GROUPS.flatMap((group) => group.fields.map(([, key]) => [key, ""]))
+);
+
 // Shared spreadsheet-style cell chrome: vertical gridlines between columns.
 const GRID_CELL = "border-border border-r last:border-r-0";
 const HEAD_ROW = "bg-muted/50 hover:bg-muted/50";
@@ -287,6 +370,309 @@ function SummaryHead({
 }
 
 export function ERegister() {
+  const [view, setView] = useState<"archive" | "new">("archive");
+  const [liveObservations, setLiveObservations] = useState<
+    RegisterObservationRead[]
+  >([]);
+  const [observedAt, setObservedAt] = useState("2026-07-07T23:00");
+  const [structuredValues, setStructuredValues] = useState<
+    Record<string, string>
+  >({
+    ...REGISTER_DEFAULTS,
+    report_type: "AAXX",
+    day: "07",
+    time_utc: "23",
+    station_id: STATION.number,
+    wind_indicator: "4",
+    wind_dir: "070",
+    wind_speed: "10",
+    visibility: "10",
+    total_cloud: "6",
+    air_temp: "25.4",
+    dew_point: "23.0",
+    msl_pressure: "1014.9",
+  });
+  const [validationIssues, setValidationIssues] = useState<
+    { field: string; message: string }[]
+  >([]);
+  const [validationState, setValidationState] = useState<
+    "idle" | "checking" | "valid" | "invalid" | "error"
+  >("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [liveState, setLiveState] = useState<
+    "loading" | "ready" | "unavailable"
+  >("loading");
+
+  useEffect(() => {
+    let active = true;
+    listRegisterObservationsApiV1EregisterObservationsGet({
+      query: { kind: "SYNOP", station_id: STATION.number, limit: 6 },
+      throwOnError: false,
+    })
+      .then((result) => {
+        if (!active) return;
+        if (result.error || !result.data) {
+          setLiveState("unavailable");
+          return;
+        }
+        setLiveObservations(result.data.observations);
+        setLiveState("ready");
+      })
+      .catch(() => {
+        if (active) setLiveState("unavailable");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function validateDraft() {
+    setValidationState("checking");
+    const result =
+      await validateSynopObservationApiV1EregisterObservationsValidateSynopPost(
+        {
+          body: { workbook: structuredValues },
+          throwOnError: false,
+        }
+      );
+    if (result.error || !result.data) {
+      setValidationState("error");
+      return;
+    }
+    setValidationIssues(result.data.issues ?? []);
+    setValidationState(result.data.valid ? "valid" : "invalid");
+  }
+
+  async function saveDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaveState("saving");
+    const result =
+      await createRegisterObservationApiV1EregisterObservationsPost({
+        body: {
+          station_id: STATION.number,
+          station_name: STATION.name,
+          aerodrome_icao: STATION.icao,
+          kind: "SYNOP",
+          observed_at: new Date(observedAt).toISOString(),
+          body: {
+            ...structuredValues,
+            source: "eregister-workbook",
+            validation: "pending_wmo_encoder",
+          },
+          raw_tac: null,
+        },
+        throwOnError: false,
+      });
+    if (result.error || !result.data) {
+      setSaveState("error");
+      return;
+    }
+    setSaveState("saved");
+    setLiveObservations((current) => [result.data, ...current].slice(0, 6));
+    setLiveState("ready");
+  }
+
+  const displayedLog: ObsLogRow[] = liveObservations.length
+    ? liveObservations.map((observation) => ({
+        id: observation.id,
+        hour: observation.observed_at
+          ? new Date(observation.observed_at).toISOString().slice(11, 16)
+          : "Unknown",
+        synop: observation.raw_tac ?? "Structured SYNOP record",
+      }))
+    : OBS_LOG;
+
+  if (view === "new") {
+    const updateValue = (key: keyof typeof structuredValues, value: string) =>
+      setStructuredValues((current) => ({ ...current, [key]: value }));
+    const iso = new Date(observedAt).toISOString();
+    const metarPreview = `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${structuredValues.wind_dir}${structuredValues.wind_speed.padStart(2, "0")}KT ${structuredValues.visibility === "10" ? "9999" : structuredValues.visibility} ${structuredValues.present_wx || "NSW"} ${structuredValues.total_cloud === "0" ? "NSC" : `BKN${structuredValues.total_cloud}00`} ${structuredValues.air_temp}/${structuredValues.dew_point} Q${structuredValues.msl_pressure.replace(".", "")}`;
+
+    return (
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+              Meteorological Observations Register
+            </p>
+            <h1 className="mt-1 font-semibold text-2xl tracking-tight">
+              New observation
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {STATION.name} · {STATION.icao} · structured WMO entry
+            </p>
+          </div>
+          <Button onClick={() => setView("archive")} variant="outline">
+            Observation archive
+          </Button>
+        </div>
+        <SectionCard
+          action={<Badge variant="light-info">Draft · QC required</Badge>}
+          title="Hourly observation workbook"
+        >
+          <form className="space-y-5 p-4" onSubmit={saveDraft}>
+            <div className="grid gap-4 border-b pb-5 md:grid-cols-3">
+              <div className="grid gap-2">
+                <Label htmlFor="new-observed-at">Observation time (UTC)</Label>
+                <Input
+                  id="new-observed-at"
+                  onChange={(event) => setObservedAt(event.target.value)}
+                  type="datetime-local"
+                  value={observedAt}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Station</Label>
+                <Input disabled value={`${STATION.icao} · ${STATION.number}`} />
+              </div>
+              <div className="grid gap-2">
+                <Label>Observer</Label>
+                <Input disabled value={STATION.observer} />
+              </div>
+            </div>
+            <div className="grid gap-4">
+              {REGISTER_GROUPS.map((group) => (
+                <Card className="gap-0 overflow-hidden py-0" key={group.title}>
+                  <CardHeader className="border-b bg-muted/30 px-3 py-2">
+                    <CardTitle className="font-semibold text-xs uppercase tracking-wide">
+                      {group.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="overflow-x-auto p-0">
+                    <Table className="min-w-max border-collapse">
+                      <TableHeader>
+                        <TableRow className="bg-muted/40 hover:bg-muted/40">
+                          {group.fields.map(([label, key, code]) => (
+                            <TableHead
+                              className="h-28 min-w-10 border-border border-r p-0 align-bottom"
+                              key={key}
+                            >
+                              <div className="flex h-28 flex-col items-center justify-end gap-1 pb-1">
+                                <span className="block rotate-180 whitespace-nowrap text-[11px] [writing-mode:vertical-rl]">
+                                  {label}
+                                </span>
+                                <span className="block whitespace-nowrap font-mono font-normal text-[10px] text-muted-foreground">
+                                  {code}
+                                </span>
+                              </div>
+                            </TableHead>
+                          ))}
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        <TableRow className="align-top">
+                          {group.fields.map(([label, key]) => (
+                            <TableCell
+                              className="border-border border-r p-0"
+                              key={key}
+                            >
+                              <Input
+                                aria-label={label}
+                                className={`h-7 min-w-10 rounded-none border-0 bg-transparent px-0.5 font-mono text-[11px] shadow-none focus-visible:ring-1 ${validationIssues.some((issue) => issue.field === key) ? "bg-destructive/10 text-destructive" : ""}`}
+                                onChange={(event) => {
+                                  updateValue(key, event.target.value);
+                                  setValidationIssues((issues) =>
+                                    issues.filter(
+                                      (issue) => issue.field !== key
+                                    )
+                                  );
+                                  setValidationState("idle");
+                                }}
+                                value={structuredValues[key] ?? ""}
+                              />
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            {validationIssues.length > 0 && (
+              <div
+                className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive text-xs"
+                role="alert"
+              >
+                {validationIssues.map((issue) => (
+                  <p key={`${issue.field}-${issue.message}`}>
+                    <strong>{issue.field}</strong>: {issue.message}
+                  </p>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-muted-foreground text-xs">
+                {validationState === "valid"
+                  ? "WMO checks passed for the current workbook."
+                  : "Validate before saving to identify WMO field errors."}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={validationState === "checking"}
+                  onClick={validateDraft}
+                  type="button"
+                  variant="outline"
+                >
+                  {validationState === "checking"
+                    ? "Checking…"
+                    : "Validate observation"}
+                </Button>
+                <Button disabled={saveState === "saving"} type="submit">
+                  <Save />
+                  {saveState === "saving" ? "Saving…" : "Save draft"}
+                </Button>
+              </div>
+            </div>
+            {saveState === "saved" && (
+              <p className="text-muted-foreground text-xs" role="status">
+                Draft saved to eRegister. QC approval is still required.
+              </p>
+            )}
+            {saveState === "error" && (
+              <p className="text-destructive text-xs" role="alert">
+                Draft could not be saved. Check the API and try again.
+              </p>
+            )}
+          </form>
+        </SectionCard>
+        <div className="grid gap-6 xl:grid-cols-2">
+          <SectionCard
+            action={<Badge variant="secondary">Preview</Badge>}
+            title="SYNOP"
+          >
+            <div className="space-y-3 p-4">
+              <p className="text-muted-foreground text-xs">
+                WMO encoder will generate this after code-table and cross-field
+                validation.
+              </p>
+              <code className="block rounded-lg bg-muted px-3 py-3 font-mono text-muted-foreground text-xs">
+                Pending validation · {STATION.number} ·{" "}
+                {observedAt.replace("T", " ")} UTC
+              </code>
+            </div>
+          </SectionCard>
+          <SectionCard
+            action={<Badge variant="secondary">Preview</Badge>}
+            title="METAR / SPECI"
+          >
+            <div className="space-y-3 p-4">
+              <p className="text-muted-foreground text-xs">
+                SPECI appears only when a configured special-report trigger
+                applies.
+              </p>
+              <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
+                {metarPreview}
+              </code>
+            </div>
+          </SectionCard>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       {/* Station header */}
@@ -304,6 +690,16 @@ export function ERegister() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => setView("archive")}
+            size="lg"
+            variant={view === "archive" ? "default" : "outline"}
+          >
+            Observation archive
+          </Button>
+          <Button onClick={() => setView("new")} size="lg" variant="outline">
+            New observation
+          </Button>
           <Button size="lg" variant="outline">
             <Send />
             Send last obs
@@ -332,6 +728,13 @@ export function ERegister() {
           <span className="font-medium">{STATION.observer}</span>
         </span>
         <Badge variant="light-success">QC passed</Badge>
+        <Badge variant={liveState === "ready" ? "light-info" : "secondary"}>
+          {liveState === "ready"
+            ? `${liveObservations.length} live SYNOP records`
+            : liveState === "loading"
+              ? "Loading live SYNOP"
+              : "Sample register data"}
+        </Badge>
         <Badge variant="light-info">CL backed up · {STATION.backedUp}</Badge>
         <a
           className="ml-auto inline-flex items-center gap-1.5 font-medium text-primary text-sm hover:underline"
@@ -514,7 +917,7 @@ export function ERegister() {
       <SectionCard
         action={
           <span className="text-muted-foreground text-xs">
-            Last {OBS_LOG.length} hours
+            Last {displayedLog.length} records
           </span>
         }
         title="Transmitted observations"
@@ -532,7 +935,7 @@ export function ERegister() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {OBS_LOG.map((row) => (
+            {displayedLog.map((row) => (
               <TableRow key={row.id}>
                 <TableCell
                   className={`${GRID_CELL} px-3.5 font-medium tabular-nums`}
@@ -545,7 +948,13 @@ export function ERegister() {
                   {row.synop}
                 </TableCell>
                 <TableCell className="px-3.5">
-                  <Badge variant="light-success">Sent</Badge>
+                  <Badge
+                    variant={
+                      liveState === "ready" ? "secondary" : "light-success"
+                    }
+                  >
+                    {liveState === "ready" ? "Recorded" : "Sample"}
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}
@@ -554,8 +963,8 @@ export function ERegister() {
       </SectionCard>
 
       <p className="text-muted-foreground text-xs">
-        Static design preview — observation entry, QC and wis2box transmission
-        are wired in a later phase.
+        Live records are read from FastAPI. QC approval and WIS2box publication
+        remain explicit workflow steps.
       </p>
     </div>
   );

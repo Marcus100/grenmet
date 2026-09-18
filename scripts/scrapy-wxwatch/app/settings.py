@@ -70,7 +70,7 @@ DOWNLOAD_DELAY = 1
 ITEM_PIPELINES = {
     "app.pipelines.SpiderNamePipeline": 100,  # Add spider name to items
     "app.pipelines.MinutePathImagesPipeline": 200,  # Download images
-    "app.pipelines.PostgresPipeline": 300,  # Write to PostgreSQL
+    "app.pipelines.FastApiPipeline": 300,  # Persist through FastAPI
 }
 
 # Local development stores images under this project; a complete STORAGE_*
@@ -115,12 +115,3 @@ LOG_FORMAT = "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
 
 # Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
-
-# PostgreSQL database connection settings
-# Used by PostgresPipeline for direct database writes
-# On Windows, use 127.0.0.1 instead of localhost for Docker connections
-DB_HOST = os.getenv("DB_HOST", "127.0.0.1")
-DB_PORT = int(os.getenv("DB_PORT", "5432"))
-DB_NAME = os.getenv("DB_NAME", "wxwatch")
-DB_USER = os.getenv("DB_USER", "wxwatch")
-DB_PASSWORD = os.getenv("DB_PASSWORD")

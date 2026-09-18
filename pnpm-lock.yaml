@@ -936,6 +936,9 @@ importers:
 
   apps/web/gms:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../../../packages/api-client
       '@barrelsgd/gms':
         specifier: workspace:*
         version: link:../../../packages/gms

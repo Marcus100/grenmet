@@ -10,9 +10,62 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
 
 ## Confirmed v1 decisions
 
-- Web UI uses Inter through `--brand-font-sans`.
-- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--brand-font-document` and `font-document`.
-- V1 is light-mode only. Dark token modes and runtime dark-mode behavior are deferred.
+- Web UI typography is lane-split by design, not one family — ratified as final v1
+  policy after a full app-by-app review:
+  1. **GMS institutional** (`gms`, `auth`, `docs`, `events`) — Noto Sans through
+     `--brand-font-sans`, unmodified (screen and print share one family — see commit
+     `7dcfc9ff`).
+  2. **Internal staff tool** (`gaa-admin`) — Inter by default, user-switchable (Geist,
+     Schibsted Grotesk, Noto Sans, Geist Mono, JetBrains Mono) via its font-switcher
+     registry (`PREFERENCE_DEFAULTS.font = "inter"` in
+     `packages/theme/src/lib/preferences-config.ts`). Personalization is a legitimate
+     feature for a staff tool in a way it isn't for a public brand surface.
+  2b. **`gaa-admin` document/print sub-lane** (wxproducts + hr, via the `Paper`
+      component) — always Noto Sans through `font-document`, independent of the
+      user's UI font choice, plus the monospace data role below for tabular/coded
+      content such as `eregister.tsx`'s SYNOP/METAR displays.
+  3. **`mbia`** (Grenada Airports Authority — a separate consumer brand from GMS) —
+     Manrope (display) + Inter (body), via an explicit `--font-sans` override in its
+     own `@theme inline` block.
+  4. **`signal`** (a separate consumer/editorial brand) — Source Serif 4 (headlines) +
+     Inter (body), same override pattern as `mbia`.
+  5. **Transactional email** (`packages/email-templates`) — hardcoded
+     `Arial, Helvetica, sans-serif`. Intentional, not a gap: email clients don't
+     reliably honor custom/web fonts, so a web-safe stack is the correct choice here.
+
+  `cms` (pure Payload CMS admin — no custom font code; typography comes entirely from
+  Payload's own bundled UI) and `packages/gms/src/styles/foundation.css` (deliberately
+  typography-free — colors only, by the file's own design) are out of scope.
+
+  **Retracted:** an earlier design exploration floated a "PWA lane" needing its own
+  font treatment. No PWA manifest or service worker exists anywhere in this repo — the
+  one PWA shell that ever existed (`salesbus`, before it folded into `gaa-admin`) was
+  explicitly dropped. There is no PWA lane to design typography for.
+
+  **Considered and declined:** a wholesale font swap for any lane (e.g. IBM Plex
+  Sans) — nothing in a 12-typeface comparison bench justified the visible-rebrand
+  cost; Atkinson Hyperlegible for warning banners — was tied to the now-retracted PWA
+  framing, not worth a new font asset for a hypothetical (`packages/gms/src/components/alert-card.tsx`
+  is the one component where this could be scoped if ever revisited); and any change
+  to `packages/email-templates` — Arial/Helvetica stays.
+- A monospace data role exists for tabular/coded content — raw METAR/TAF/SYNOP
+  strings, station IDs, other fixed-width data — via `--brand-font-mono` and the
+  `font-mono` Tailwind alias. It resolves to JetBrains Mono where an app loads it
+  (`gaa-admin`, already loaded via its font-switcher registry) and falls through to
+  the system monospace stack everywhere else, so no new font asset was needed to add
+  it. `InfoTable` (`apps/web/gms/src/components/pages/info-table.tsx`) exposes a
+  `monoColumns` prop for this; `gaa-admin`'s `eregister.tsx` already used bare
+  `font-mono` throughout and now resolves through the deliberate token instead of the
+  browser's generic system-mono stack.
+- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--brand-font-document` and `font-document`. Five legacy `wxproducts` files
+  (`marinebulletin.tsx`, `morningfcst.tsx`, `eveningfcst.tsx`, `middayfcst.tsx`,
+  `hourly.tsx`) apply `font-document` directly in their own className instead of
+  through the `Paper` component — same correct visual outcome, just not centralized;
+  non-urgent cleanup, not a typography bug.
+- Dark mode is supported via the class-based `dark` variant (see [Dark Mode](#dark-mode)) —
+  V1's original light-only constraint has been superseded. `gaa-admin` is the only app with
+  a wired runtime toggle as of this writing; the token architecture is being corrected so a
+  brand's dark palette can override cleanly (see Dark Mode below) before other apps adopt it.
 - `gms` is the public web reference implementation.
 - `gaa-admin` is a denser internal dashboard lane that uses the same foundations without copying public-site layout density.
 - For v1, the user is the sole approver for public `--gm-*` token additions or value changes.
@@ -321,7 +374,12 @@ App-local aliases are acceptable during migration only when they resolve back to
 
 The next v1 milestone is foundation compliance, not component migration. Apps should converge first on shared colors, typography, spacing, radius, shadows, and light-mode behavior.
 
-Inter is the Barrels design-system web UI font and must flow through `--brand-font-sans`. Official bulletins, PDFs, and fixed-output documents use Noto Sans through `--gm-font-document` and the `font-gm-document` Tailwind alias. Public web surfaces should stay on Inter unless they are rendering an official document template.
+Noto Sans is the Barrels design-system default and flows through `--brand-font-sans`
+(`gms`, `auth`, `docs`, `events`); `gaa-admin` overrides it to Inter by default via its
+font-switcher registry (see Confirmed v1 decisions, above). Official bulletins, PDFs, and
+fixed-output documents use Noto Sans through `--brand-font-document` and the
+`font-document` Tailwind alias. (No `--gm-font-document` or `font-gm-document` token
+exists; document typography is a shared `@barrelsgd/ui` concern, not a GMS brand token.)
 
 Document-specific fixed sizes and official-output typography must stay inside the Document Templates lane. Shared `@barrelsgd/ui` primitives should remain token-clean and should not gain A4, PDF, bulletin, or HR form assumptions.
 
@@ -350,17 +408,26 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 ### App Roles
 
+`cap`, `hr`, `wxwatch`, `wxproducts`, and `salesbus` are no longer separate apps —
+they are folded into `gaa-admin` as internal modules (a cross-cutting surface; see
+`CLAUDE.md`'s Blast-Radius Gate). The table below reflects the current app roster.
+
 | App | Design-system role | Direction |
 |---|---|---|
 | `gms` | Public web reference app | Keep this as the lowest-drift public implementation and validate public patterns here first. |
-| `gaa-admin` | Internal dashboard normalization target | Preserve operational density while mapping TailAdmin aliases back to design-system tokens. |
-| `wxproducts` | Document-heavy weather product lane | Keep Noto Sans and fixed A4/PDF dimensions inside official product templates. |
-| `hr` | Document-heavy HR operations lane | Keep official forms in the document lane; use Inter for normal web UI. |
-| `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with Inter, design-system radii, shadows, and semantic colors. |
-| `wxwatch` | Media/gallery cleanup lane | Keep media viewport behavior local while aligning labels, timestamps, and shell styling. |
-| `salesbus` | App-specific operational UI lane | Share foundations without forcing weather-specific product patterns. |
+| `gaa-admin` | Internal dashboard normalization target; hosts the cap/hr/wxwatch/wxproducts/salesbus modules | Preserve operational density while mapping TailAdmin aliases back to design-system tokens. Keep Noto Sans/A4 dimensions inside the wxproducts and hr document modules; the shell itself defaults to Inter. |
+| `auth` | Brand cleanup lane | Align sign-in/sign-up surfaces with design-system radii, shadows, and semantic colors. |
 | `docs` | Documentation-template cleanup lane | Keep content-template measurements local until the public shell is rebuilt. |
-| `cap` | Public alert-viewer lane | Bridged 2026-06-13; map the initial hard-coded colors back to design-system tokens as the UI settles. |
+| `mbia` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Highest hard-coded-color count outside `gaa-admin`/`docs`; bring under the same audit/doc coverage as the other apps. |
+| `signal` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Uses `Source_Serif_4` instead of the shared sans; carries app-local `--signal-*` tokens unmapped to the design system. |
+| `events` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Lowest drift of the three direct-import apps as of this writing. |
+| `cms` | Payload CMS admin; out of design-system scope | Payload's own admin UI is not migrated; do not extend `--gm-*`/foundation coverage here without a separate decision. |
+
+**Foundation block coverage.** `gms`, `gaa-admin`, `auth`, and `docs` receive the generated
+`BARRELS DESIGN SYSTEM V1` block (via `pnpm design-system:sync`) and are covered by the
+blocking `design-system:check` gate. `mbia`, `signal`, and `events` import
+`@barrelsgd/ui/styles/globals` directly instead and sit outside that gate — this is the
+current state, not a settled decision; whether the two patterns converge is open.
 
 ### Migration Order
 
@@ -375,14 +442,12 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 | App | Status | Accepted exceptions | Next action |
 |---|---|---|---|
 | `gms` | Reference app | Fixed media heights and `WeatherDateNav` active-state compensation | Keep as the visual baseline and avoid component rewrites until foundations settle. |
-| `wxwatch` | Reference cleanup | Gallery and lightbox viewport dimensions are fixed-media behavior | Keep image sizing local; use shared type tokens for labels and timestamps. |
-| `salesbus` | Foundation migration | Touch-target sizing remains product-specific | Remove app-local theme aliases first; keep local UI component APIs stable. |
-| `wxproducts` | Product/print reference | A4 print/PDF dimensions are fixed-output requirements | Use `font-document` for official templates and warning token pairs for impact/response displays. |
-| `hr` | Product/print migration | A4 form dimensions are fixed-output requirements | Resolve font bridge drift and document print dimensions as exceptions. |
-| `auth` | Brand cleanup | None for v1 unless approved in roadmap notes | Use Inter through `--brand-font-sans`; replace repeated radii and shadows with design-system tokens. |
-| `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Keep runtime light-only; remove visible theme-switch affordances. |
-| `gaa-admin` | Dedicated template normalization | TailAdmin scale compatibility may remain while mapped back to design-system tokens | Map template aliases to design-system tokens before removing high-volume `dark:` classes. |
-| `cap` | Foundation migration | None recorded yet | Receives the foundation block as of 2026-06-13; replace the initial hard-coded colors with design-system tokens. |
+| `auth` | Brand cleanup | None for v1 unless approved in roadmap notes | Replace repeated radii and shadows with design-system tokens. |
+| `docs` | Template cleanup | Docs-template layout measurements remain local until the shell is rebuilt | Highest migration debt of the four gated apps — see audit summary below. |
+| `gaa-admin` | Dedicated template normalization; hosts cap/hr/wxwatch/wxproducts/salesbus as modules | TailAdmin scale compatibility may remain while mapped back to design-system tokens; A4/PDF dimensions and Noto Sans stay local to the wxproducts/hr modules | Map template aliases to design-system tokens; module-level exceptions (fixed A4 dimensions, gallery/lightbox viewport sizing, touch-target sizing) stay local to their module rather than becoming shell-wide. |
+| `mbia` | Not on the generated block | — | Bring onto foundation coverage or confirm direct-import stays the pattern; see App Roles above. |
+| `signal` | Not on the generated block | — | Same as `mbia`, plus resolve the `Source_Serif_4` / non-canonical font drift. |
+| `events` | Not on the generated block | — | Same as `mbia`. |
 
 Run the warning-only audit command to find foundation drift:
 
@@ -400,7 +465,7 @@ The audit reports hard-coded colors, non-canonical font usage, arbitrary spacing
 
 ## Foundation Audit
 
-The canonical token set lives in `packages/ui/src/styles/globals.css` — 81 public `--gm-*` tokens covering color, spacing, radius, typography, line-height, and shadow. There is no external collection to reconcile against.
+The canonical **brand-neutral** token set lives in `packages/ui/src/styles/globals.css` (brand primitives, status semantics, shared type/shadow scale — no `--gm-*` tokens; those moved out in boundary 5b). The canonical **GMS palette** — 48 public `--gm-*` tokens covering brand hues, inks, surfaces, text, risk/warning pairs, and border/focus — lives in `packages/gms/src/styles/foundation.css`. There is no external collection to reconcile against.
 
 Before changing a token value, run `pnpm design-system:audit` to see where it is already used, and `pnpm design-system:contrast` if the change touches a warning fg/bg pair.
 
@@ -412,24 +477,21 @@ Repo-side audit status as of 2026-06-13 (the `design-system:*` scripts were brok
 - `pnpm design-system:contrast` passes for all five warning foreground/background pairs.
 - `pnpm design-system:audit` remains warning-only. It reports expected migration debt, not CI failures.
 
-Current audit summary:
+Current audit summary (after the `darkMode` rule was narrowed — see below):
 
 | App/package | Audit status |
 |---|---|
 | `auth` | No findings. |
-| `cap` | Small set of hard-coded colors (5) from the initial build. |
 | `gms` | Reference app with only accepted pilot exceptions: fixed media heights, `WeatherDateNav` active-state compensation, and month label leading. |
-| `wxwatch` | Small fixed-media/gallery viewport exceptions. |
-| `salesbus` | Small product-specific sizing exceptions. |
-| `wxproducts` | Fixed A4/PDF dimensions in the document lane. |
-| `hr` | Fixed A4 form dimensions and document-specific type sizing in the document lane. |
-| `@barrelsgd/ui` | `alert-card` has weather/product fixed sizing and sub-scale text that should stay intentional until the warning lane settles. |
-| `gaa-admin` | Highest dashboard migration debt: TailAdmin local tokens, hard-coded chart colors, spacing, shadows, and one dark hook. |
-| `docs` | Highest template migration debt: docs-template colors, local type tokens, dark utility branches (90 darkMode findings), and template spacing. |
+| `signal` | 33 findings: hard-coded colors (12), unmapped local `--signal-*` tokens (11), and typography drift (10) including the `Source_Serif_4` import. Not on the generated foundation block. |
+| `mbia` | 52 findings: hard-coded colors (18), unmapped local tokens (18), typography drift (13). Not on the generated foundation block. |
+| `docs` | 58 findings: unmapped local tokens (29), hard-coded colors (13), spacing (11). Highest template migration debt among the four gated apps. |
+| `gaa-admin` | 79 findings: spacing (38), typography drift (27), hard-coded colors (6), unmapped local tokens (6). Mostly TailAdmin-scale compatibility in the shell and its cap/hr/wxwatch/wxproducts/salesbus modules. |
+| `@barrelsgd/ui` | 63 findings, almost entirely arbitrary spacing (37) and radius (16) in upstream shadcn primitives (`chart.tsx`, `sidebar.tsx`, `combobox.tsx`) that predate the token contract. |
 
 The audit also surfaces two additional categories not present in the initial pilot:
-- **darkMode** — detects freestanding `.dark {}` CSS rule blocks (V1 is light-mode only). Active in `gaa-admin`; retained as migration debt because downstream third-party overrides depend on it.
-- **typography** — detects font imports and `--font-sans` overrides that bypass the shared font bridge. V1 apps should resolve web UI typography back to `--gm-font-sans`; official document templates may use `--gm-font-document`.
+- **darkMode** — now scoped to system-preference auto-detection (`prefers-color-scheme`, `enableSystem`, `defaultTheme="system"`, `resolvedTheme`, `setTheme("dark")`) that bypasses the `@barrelsgd/theme` preferences store. It no longer flags `dark:` utility classes or `.dark {}` rule blocks — those are the sanctioned dark-mode mechanism (see [Dark Mode](#dark-mode)) and were previously ~144 false positives across the repo (90 of them in `docs` alone). Zero live findings as of this pass.
+- **typography** — detects font imports and `--font-sans` overrides that bypass the shared font bridge. Web UI typography should resolve back to `--brand-font-sans`; official document templates use `--brand-font-document`. (There is no `--gm-font-sans` or `--gm-font-document` token — typography is a shared `@barrelsgd/ui` concern, not a GMS brand token.)
 
 Surface tokens `--gm-surface-secondary` (`#eaf2fb`) and `--gm-surface-muted` (`#e4eef7`) are now first-class design-system tokens. The shadcn semantics `--secondary`, `--muted`, and `--sidebar-accent` resolve through them rather than declaring raw hex. The fixed header dimension is exposed as `--gm-height-header: 72px` with a `h-gm-header` Tailwind alias, distinct from the spacing scale token `--gm-spacing-72`.
 
@@ -448,6 +510,19 @@ Dark mode is supported via the class-based `dark` variant. The foundation define
 Apps may follow the user's theme preference (light / dark / system) via the `@barrelsgd/theme` preferences store, which sets `data-theme-mode`/the `dark` class on `<html>` (with SSR cookie persistence + a boot script to avoid flash). Printable document "papers" intentionally stay light (white) in both modes — only the surrounding chrome adapts.
 
 `gaa-admin` ships the shared `.dark` palette in its `globals.css`; the multi-app rollout is to lift that `.dark` block into the shared foundation so every app inherits it. Prefer semantic tokens over parallel `dark:*` utility branches. When a token's dark value needs tuning, edit the `.dark` block alongside the light `:root` block, and keep warning-pattern contrast passing in both modes.
+
+**Known architecture gap.** `packages/ui/src/styles/globals.css`'s `.dark {}` block
+currently hardcodes semantic-layer values directly (e.g. `--primary: #39a9f5`) instead of
+resolving through layer 1 brand primitives the way the light `:root` block does. Because
+`.dark {}` sits outside `@layer base` while every brand layer (including GMS's) sits
+inside it, the unlayered `.dark` rule wins by CSS layer precedence regardless of source
+order — so activating `.dark` on a GMS surface currently replaces the GMS palette with
+`@barrelsgd/ui`'s own default dark colors instead of a GMS dark palette. `gaa-admin` is
+the only app with a wired runtime toggle today, and it is not GMS-branded in dark mode
+either, for the same reason. This needs a fix (route `.dark` through layer 1, give GMS
+its own `.dark` brand-layer block with dark-appropriate `--gm-*` values) before dark mode
+rolls out to GMS-branded apps; new `--gm-*` tokens for that palette need approval per
+Governance, above.
 
 ## Warning Pattern Checklist
 

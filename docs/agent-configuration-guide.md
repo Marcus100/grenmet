@@ -97,25 +97,44 @@ Isolated parallel work         -> subagent
 
 ## What exists in this repository
 
-The repository has two overlapping agent configuration trees:
+> **2026-09 update:** the directory layout and the two issues flagged below
+> under "Important local improvement opportunities" (#1 skill duplication,
+> #2 the commit contradiction) have since been resolved — see
+> `docs/audit-2026-09-documentation.md` and the current `.claude/hooks/`,
+> `.codex/config.toml`, and `.agents/skills` symlink. The rest of this guide
+> (concepts, vocabulary, learning path) still applies; treat the "What exists
+> in this repository" section below as historical unless re-verified.
+
+The repository has one agent configuration tree with two entry points:
 
 ```text
 /workspace
-├── AGENTS.md
-├── CLAUDE.md
+├── AGENTS.md          # Codex entry point
+├── CLAUDE.md           # Claude Code entry point — both cross-reference
 ├── .agents/
-│   ├── skills/
+│   ├── skills/         # symlink -> ../.claude/skills (canonical)
 │   ├── rules/
-│   └── hooks.json
-└── .claude/
-    ├── skills/
-    ├── commands/
-    └── settings.json
+│   └── commands/
+├── .claude/
+│   ├── skills/         # canonical — edit here, not via the symlink
+│   ├── hooks/           # shared .mjs scripts, invoked by both tools below
+│   ├── commands/
+│   └── settings.json    # Claude Code hooks + permissions
+└── .codex/
+    └── config.toml      # Codex hooks — same scripts as .claude/hooks/
 ```
 
-The `.agents/skills/` and `.claude/skills/` directories contain substantial overlap, including skills for implementation, TDD, triage, debugging, prototyping, domain modeling, grilling, and handoff. This may be intentional, but it creates synchronization and ownership questions.
-
-The current hook in [`.agents/hooks.json`](../.agents/hooks.json) runs `pnpm dlx ultracite fix` after a file edit. The Claude settings file permits selected `pnpm`, `turbo`, and `gh` operations. The Figma MCP permissions were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md).
+`.claude/hooks/` mechanically enforces the Never tier for both tools: a
+`PreToolUse` hook blocks `git commit`/`push`/`gh pr merge`/etc.
+(`block-dangerous-git.mjs`) and edits to `.env*`/generated-client files
+(`protect-files.mjs`); a `PostToolUse`/`Stop` hook auto-formats
+(`format-changed-file.mjs` for Claude Code, scoped to the touched file;
+`pnpm fix` for Codex, once per turn). A `scripts/guardrails/*.test.mjs` suite
+(picked up automatically by `pnpm test:guardrails` and CI) self-checks that
+these hooks stay wired correctly — see `check-agent-config.test.mjs` and
+`agent-hook-behavior.test.mjs`. The Claude settings file permits selected
+`pnpm`, `turbo`, and `gh` read-only operations. The Figma MCP permissions
+were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md).
 
 ## Repository instructions
 
@@ -264,6 +283,9 @@ MCP should be evaluated using least privilege, explicit consent, secure credenti
 
 ### 1. Choose a canonical skill source
 
+**Resolved (2026-09):** `.claude/skills/` is canonical; `.agents/skills` is a
+symlink to it. Kept below as an example of the decision process.
+
 There is currently significant duplication between `.agents/skills/` and `.claude/skills/`. Decide whether shared skills should be:
 
 - maintained independently;
@@ -275,6 +297,10 @@ There is currently significant duplication between `.agents/skills/` and `.claud
 Document the decision in `AGENTS.md` and `CLAUDE.md`.
 
 ### 2. Resolve contradictory instructions
+
+**Resolved (2026-09):** `/implement` no longer instructs a commit; the Never
+tier is now also enforced by a `PreToolUse` hook, not prose alone. Kept below
+as an example of the failure mode.
 
 Known example:
 

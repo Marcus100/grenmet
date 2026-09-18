@@ -59,7 +59,7 @@ const ignoredDirectories = new Set([
 
 const categoryLabels = {
   colors: "Hard-coded colors",
-  darkMode: "Dark/system theme hooks",
+  darkMode: "System-preference theme hooks",
   localTokens: "Local theme tokens not mapped to the design system",
   radius: "Arbitrary radius values",
   shadows: "App-local shadows/elevation",
@@ -89,9 +89,13 @@ const arbitraryRadiusPattern = /\brounded(?:-[a-z0-9]+)?-\[[^\]\n]+\]/g;
 const cssRadiusDeclarationPattern = /\bborder-radius\s*:\s*([^;]+);/gi;
 const shadowPattern =
   /\bshadow-\[[^\]\n]+\]|\bbox-shadow\s*:\s*[^;]+;|--(?:shadow|shadow-theme)-[a-z0-9-]+\s*:\s*[^;]+;/gi;
+// `dark:` utility classes and `.dark {}` rule blocks are the sanctioned dark-mode
+// mechanism (see docs/design-system.md#dark-mode) and are no longer flagged. This
+// pattern instead catches system-preference auto-detection, which bypasses the
+// @barrelsgd/theme preferences store (the cookie-persisted theme_mode + ThemeBootScript
+// path) that V1 dark mode is supposed to go through.
 const darkModePattern =
-  /\bprefers-color-scheme\b|\bdark:|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
-const darkBlockPattern = /^\s*\.dark\s*\{/m;
+  /\bprefers-color-scheme\b|\benableSystem\b|\bdefaultTheme\s*=\s*["']system["']|\bresolvedTheme\b|\bsetTheme\(\s*["']dark["']\s*\)/g;
 const themeFontOverridePattern =
   /--font-sans\s*:\s*(?!var\(--brand-font-sans)[^;]+;/g;
 const localTokenPattern =
@@ -308,7 +312,7 @@ function scanFontImportFindings(report, filePath, lineNumber, line) {
           filePath,
           lineNumber,
           importedFont,
-          "Inter is the default web UI font for v1; Noto Sans is reserved for the official document lane."
+          "Only Inter and Noto Sans are recognized web UI fonts. If this is an intentional per-app display/headline pairing (e.g. mbia's Manrope, signal's Source Serif 4), confirm it is documented in that app's CLAUDE.md rather than undocumented drift."
         );
       }
     }
@@ -327,7 +331,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         `font-family: ${value}`,
-        "Map typography back to --brand-font-sans or the Inter bridge token."
+        "Map typography back to --brand-font-sans (Noto Sans by default) or a documented app-level override (e.g. Inter in gaa-admin/mbia/signal), not a raw font-family value."
       );
     }
   }
@@ -341,7 +345,7 @@ function scanTypographyFindings(report, filePath, lineNumber, line) {
         filePath,
         lineNumber,
         value,
-        "Local font tokens should resolve to the provisional Inter contract."
+        "Local font tokens should resolve to --brand-font-sans, --brand-font-document, or a documented app-level override, not an arbitrary value."
       );
     }
   }
@@ -468,7 +472,7 @@ function scanDarkModeFindings(report, filePath, lineNumber, line) {
       filePath,
       lineNumber,
       match[0],
-      "V1 is light-mode only; dark hooks should be inactive or intentionally deferred."
+      "Route theme switching through @barrelsgd/theme's preferences store instead of OS-level system-preference detection."
     );
   }
 }
@@ -517,20 +521,6 @@ async function scanFile(report, filePath) {
 
   for (let index = 0; index < lines.length; index += 1) {
     scanLine(report, filePath, index + 1, lines[index]);
-  }
-
-  // File-level check: freestanding .dark {} rule block (not caught by per-line scan).
-  // The darkModePattern catches `dark:` utility classes; this catches the CSS rule block
-  // itself, which activates dark tokens whenever the .dark class is applied.
-  if (darkBlockPattern.test(source)) {
-    addFinding(
-      report,
-      "darkMode",
-      filePath,
-      0,
-      ".dark { }",
-      "V1 is light-mode only. A .dark {} CSS rule block activates dark tokens on .dark class. Remove or guard behind a V2 feature flag."
-    );
   }
 }
 

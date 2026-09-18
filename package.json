@@ -46,6 +46,7 @@
     "test": "turbo run test --concurrency=2",
     "validate": "turbo run type-check lint test",
     "fix": "ultracite fix",
+    "fix:changed": "node scripts/guardrails/fix-changed.mjs",
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",
     "check:drift": "node scripts/api/check-api-drift.mjs",
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",

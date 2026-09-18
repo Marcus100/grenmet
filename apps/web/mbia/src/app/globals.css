@@ -65,8 +65,18 @@
   }
 }
 
-/* GAA-specific Tailwind utilities + font tokens */
+/* GAA-specific Tailwind utilities + font tokens.
+
+   --font-sans overrides the shared --brand-font-sans (Noto Sans first) back to
+   Inter: GAA is a separate brand from GMS with its own Manrope/Inter pairing,
+   documented in this app's CLAUDE.md. Commit 7dcfc9ff added a repo-wide Noto
+   Sans load that silently won here once --font-noto-sans became defined; this
+   restores the pre-existing, intended body face. */
 @theme inline {
+  --font-sans: var(
+    --font-inter,
+    var(--font-noto-sans, ui-sans-serif, system-ui, sans-serif)
+  );
   --font-display: var(--font-manrope, var(--font-sans));
 
   --color-gaa-navy: var(--gaa-navy);

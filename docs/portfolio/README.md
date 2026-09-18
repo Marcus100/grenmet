@@ -77,3 +77,7 @@ priority. Pre-emption changes sequencing, not ownership.
 5. Run `pnpm docs:check-portfolio`, `pnpm docs:check-links`, and
    `pnpm test:docs`.
 
+
+## GAA modular-platform delivery
+
+The [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md) records the September 2026 product decisions, three-PWA sequence, Hono/FastAPI boundaries and acceptance gates. The [source register](gaa-source-and-capability-register.md) tracks new GAA forms, airport references, conflicts and incomplete reviews. These refine the client programme without replacing company priorities.

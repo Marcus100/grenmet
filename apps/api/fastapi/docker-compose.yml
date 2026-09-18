@@ -61,6 +61,8 @@ services:
     env_file:
       - .env.local
     environment:
+      - WXWATCH_LOCAL_IMAGES_DIR=/app/wxwatch-images
+      - 'WXWATCH_LOCAL_ASSET_ROOTS={"nhc-local":"/app/nhc-archive"}'
       - POSTGRES_SERVER=grenmet-postgres
       - POSTGRES_PORT=${POSTGRES_PORT:-5432}
       - POSTGRES_DB=${POSTGRES_DB?Variable not set}
@@ -72,6 +74,8 @@ services:
       - EMAILS_FROM_EMAIL=noreply@barrels.gd
       - REDIS_URL=redis://grenmet-redis:6379/0
     volumes:
+      - ../../../scripts/scrapy-wxwatch/data/images:/app/wxwatch-images:ro
+      - ../../../data/gms-ingest/nhc:/app/nhc-archive:ro
       - ./src:/app/apps/api/fastapi/src
       - ./alembic:/app/apps/api/fastapi/alembic
       - ./email-templates:/app/apps/api/fastapi/email-templates

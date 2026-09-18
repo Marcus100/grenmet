@@ -4,6 +4,8 @@
 
 Proposed
 
+Amended 2026-09-16 following the product interview. See the [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md). Planning agreement does not establish deployed behaviour or institutional operational acceptance.
+
 ## Context
 
 What began as HR forms for the Meteorology department is intended to grow into a
@@ -77,6 +79,15 @@ any implementation begins.
 
 ### Identity
 
+**September amendment: separate personal and work accounts**, with no initial
+account linking. Each account can use shared sign-in across permitted apps;
+personal registration grants no staff access. An admin confirms staff status;
+role-based defaults provide explicit app grants, with individual exceptions.
+Sensitive cases require designated handlers or explicit authorisation.
+Cross-domain sign-in, local logout and logout-all are target requirements; the
+cookie exchange described below is the existing starting point, not proof that
+these targets are met. Invitation, contractor and leaver workflows remain open.
+
 **One central login, operated by Barrels.** Identity is not per-app and not
 per-department: staff sign in once at the shared `auth` surface (ADR-0002), which
 issues an opaque session cookie that server-side app code exchanges for a
@@ -146,9 +157,17 @@ App-only clock-in in the PWA — no badge/access-control integration.
 
 ### Client / mobile strategy
 
-**One codebase: an installable, responsive PWA.** Staff-facing surfaces
-(clock-in, janitor tasks, bus sign-up, self-service) are phone-first, add-to-home
--screen, offline-capable as a later step. No native app / app-store track.
+**Three focused PWAs: Janitor, Bus and public GMS**, sharing backend capabilities.
+GAA Admin retains staff administration/configuration; the GMS website remains.
+This supersedes the single-staff-PWA proposal. Offline scope is previously loaded
+permitted reads, with freshness, expiry and logout clearing. Mutations require
+connectivity; passenger manifests stay online initially. No native app track.
+
+FastAPI is the current migration target for browser sessions, response composition,
+custom business operations, operational data and authoritative permissions. Hono is
+deferred; existing Next.js adapters remain until the replacement auth flow is verified. Payload
+retains its CMS boundary. Shared TypeScript packages do not duplicate backend
+business authority.
 
 ### Form UX
 
@@ -182,6 +201,10 @@ happens to ship in shared UI.
 
 ## Rollout / module roadmap
 
+The earlier list below is superseded for new migration work by shared foundations
+→ Janitor → Bus → GMS PWA → IT service desk/PIMU → wider linked GAA workflows.
+Attendance/payroll are not prerequisites for the PWAs. Existing HR work continues.
+
 1. **HR approval workflow** (now) — first module, proves the engine + core
    (ADR-0008).
 2. **Time-check / attendance** (next) — clock-in as above; feeds timesheets and,
@@ -193,8 +216,10 @@ happens to ship in shared UI.
 6. **Payroll** — deferred; keep attendance/leave data clean and payroll-ready so
    either "export to existing payroll" or "compute in-app" stays open.
 
-Delivery is **Meteorology pilot → harden → onboard departments one at a time**,
-each self-configuring its approval chains, shift patterns, and roles.
+Delivery is **relevant MBIA team pilot → harden → expand by department/site**,
+including Lauriston after acceptance. Existing Meteorology HR pilots continue;
+cleaning and transport use their own teams. Responsible owners approve department
+configuration, approval chains, shift patterns and roles.
 
 ## Consequences
 
@@ -209,9 +234,8 @@ each self-configuring its approval chains, shift patterns, and roles.
   once multiple departments are live.
 - Platform-owned identity means GAA joiner/leaver management lives here until (if)
   SSO is added; auth must stay pluggable to keep that door open.
-- One PWA for all staff apps keeps releases instant and cross-platform, but means
-  device-native capabilities (e.g. iOS NFC, background push) are constrained by
-  the web platform — accepted deliberately (drove the NFC-Android + QR-iOS split).
+- Three focused PWAs share contracts, identity facilities and UI primitives;
+  each needs independent install, cache, update and device verification.
 - Attendance is only as trustworthy as a static on-site token until rotating codes
   land; acceptable for the pilot, revisited before org-wide rollout.
 - Payroll is intentionally unplanned beyond "keep data payroll-ready"; that

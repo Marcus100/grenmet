@@ -1,11 +1,14 @@
+import { NextRequest } from "next/server";
 import { describe, expect, it, vi } from "vitest";
 
 // Matcher tests do not need deployment credentials or the auth service.
 vi.mock("@/lib/auth-config", () => ({
+  getAuthApiBaseUrl: () => "http://trusted-api:8000",
+  getAuthApiPrefix: () => "/api/v1",
   getSessionCookieName: () => "test-session",
 }));
 
-import { config } from "./proxy";
+import { config, proxy } from "./proxy";
 
 /**
  * Next compiles each matcher entry into an anchored path regex. Rebuilding it
@@ -47,4 +50,32 @@ describe("proxy matcher", () => {
     expect(runsProxyOn("/favicon.ico")).toBe(false);
     expect(runsProxyOn("/images/logo/gms.png")).toBe(false);
   });
+});
+
+it("routes weather to the runtime backend without a session exchange or login redirect", () => {
+  const response = proxy(
+    new NextRequest("https://admin.test/_backend/weather/products?kind=marine")
+  );
+  expect(response.headers.get("x-middleware-rewrite")).toBe(
+    "http://trusted-api:8000/api/v1/wxproducts/products?kind=marine"
+  );
+});
+it("routes browser-session validation to FastAPI", () => {
+  const response = proxy(
+    new NextRequest("https://admin.test/_backend/browser-session")
+  );
+  expect(response.headers.get("x-middleware-rewrite")).toBe(
+    "http://trusted-api:8000/api/v1/auth/browser/session"
+  );
+});
+
+it("routes archive downloads to FastAPI without stripping their path", () => {
+  const response = proxy(
+    new NextRequest(
+      "https://admin.test/_backend/wxwatch/images/cimss/chart.gif"
+    )
+  );
+  expect(response.headers.get("x-middleware-rewrite")).toBe(
+    "http://trusted-api:8000/api/v1/wxwatch/images/cimss/chart.gif"
+  );
 });

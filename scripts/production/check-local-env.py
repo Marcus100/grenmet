@@ -8,8 +8,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED = {
     "infra/docker": ["POSTGRES_USER", "POSTGRES_PASSWORD"],
-    "apps/api/fastapi": ["SECRET_KEY", "POSTGRES_SERVER", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB"],
-    "apps/web/gaa-admin": ["RESEND_API_KEY", "WXWATCH_DATABASE_URL", "WXPRODUCTS_DATABASE_URL", "TRANSPORT_DATABASE_URL", "JANITORIAL_DATABASE_URL"],
+    "apps/api/fastapi": ["SECRET_KEY", "POSTGRES_SERVER", "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB", "WXPRODUCTS_DATABASE_URL", "WXWATCH_DATABASE_URL"],
+    "apps/web/gaa-admin": ["RESEND_API_KEY", "TRANSPORT_DATABASE_URL", "JANITORIAL_DATABASE_URL"],
     "apps/web/cms": ["DATABASE_URL", "PAYLOAD_SECRET"],
 }
 failures = 0

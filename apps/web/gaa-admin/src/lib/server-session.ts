@@ -29,7 +29,10 @@ export const readSessionCookie = cache(
 
 export function authApiFetch<T>(
   path: string,
-  init: Omit<RequestInit, "body" | "headers"> & { body?: unknown } = {}
+  init: Omit<RequestInit, "body" | "headers"> & {
+    body?: unknown;
+    accessToken?: string;
+  } = {}
 ): Promise<T> {
   return _authApiFetch<T>(getAuthConfig(), path, init);
 }
