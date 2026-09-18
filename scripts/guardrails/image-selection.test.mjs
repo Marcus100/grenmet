@@ -53,13 +53,13 @@ test("unknown, lockfile and CI inputs conservatively select everything", () => {
     "infra/weather/Dockerfile.collectors",
   ]) {
     const selected = selectImages([path]);
-    assert.equal(selected.web.length, 11);
+    assert.equal(selected.web.length, 10);
     assert.equal(selected.weather.length, 0);
     assert.equal(selected.api, true);
   }
 });
 test("promotion checks are full; deployment builds own their smoke checks", () => {
-  assert.equal(selectImages([], "full").web.length, 11);
+  assert.equal(selectImages([], "full").web.length, 10);
   assert.deepEqual(selectImages(["pnpm-lock.yaml"], "deployment"), {
     web: [],
     weather: [],

@@ -50,10 +50,8 @@ services:
       EREGISTER_DB_NAME: ${EREGISTER_DB_NAME}
       EREGISTER_DB_USER: ${EREGISTER_DB_USER}
       EREGISTER_DB_PASSWORD: ${EREGISTER_DB_PASSWORD:?EREGISTER_DB_PASSWORD required}
-      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
       JANITORIAL_DB_USER: ${JANITORIAL_DB_USER}
       JANITORIAL_DB_PASSWORD: ${JANITORIAL_DB_PASSWORD}
-      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
       TRANSPORT_DB_USER: ${TRANSPORT_DB_USER}
       TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD}
       CMS_DB_NAME: ${CMS_DB_NAME:?CMS_DB_NAME required}
@@ -85,8 +83,6 @@ services:
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       EREGISTER_DB_NAME: ${EREGISTER_DB_NAME:-eregister}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
       POSTGRES_SERVER: db
@@ -120,8 +116,6 @@ services:
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       EREGISTER_DB_NAME: ${EREGISTER_DB_NAME:-eregister}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts}
       POSTGRES_SERVER: db
@@ -235,25 +229,6 @@ services:
     networks:
       - grenmet
 
-  # ── Web-owned Drizzle migrations ─────────────────────────────────────────────
-  # Janitorial and transport remain in the admin migration image. Weather domains
-  # are owned by FastAPI and migrate through the prestart service.
-  web-migrate:
-    logging: *bounded-logging
-    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-gaa-admin-migrate:${WEB_TAG}
-    restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT}
-      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
-      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
-    networks:
-      - grenmet
-
   cms-migrate:
     logging: *bounded-logging
     image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cms-migrate:${WEB_TAG}
@@ -301,6 +276,7 @@ services:
       - "traefik.http.services.web-cms${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
     networks: [grenmet]
 
+
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
     logging: *bounded-logging
@@ -343,9 +319,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    depends_on:
-      web-migrate:
-        condition: service_completed_successfully
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
@@ -361,10 +334,6 @@ services:
       # Consolidated apps' dedicated Postgres databases.
       ENVIRONMENT: ${ENVIRONMENT}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME}
-      TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME}
-      JANITORIAL_DB_NAME: ${JANITORIAL_DB_NAME}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       CAP_API_URL: http://api:8000
     labels:
       - "traefik.enable=true"

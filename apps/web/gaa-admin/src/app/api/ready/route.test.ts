@@ -1,52 +1,54 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const checks = vi.hoisted(() => ({
-  database: vi.fn(),
   weather: vi.fn(),
   imagery: vi.fn(),
+  apiReady: vi.fn(),
 }));
-vi.mock("@/db/readiness", () => ({ checkDatabase: checks.database }));
 vi.mock("@/db/wxproducts/authored-queries", () => ({
   listPublishedProducts: checks.weather,
 }));
-vi.mock("@/env", () => ({
-  env: {
-    WXWATCH_DATABASE_URL: "wxwatch",
-    TRANSPORT_DATABASE_URL: "transport",
-    JANITORIAL_DATABASE_URL: "janitorial",
-  },
-}));
-
 vi.mock("@/db/wxwatch/queries", () => ({ checkImageryReady: checks.imagery }));
+vi.mock("@/lib/auth-config", () => ({
+  getAuthApiBaseUrl: () => "http://api.test",
+  getAuthApiPrefix: () => "/api/v1",
+}));
 
 import { GET } from "./route";
 
 beforeEach(() => {
   vi.clearAllMocks();
-  checks.database.mockResolvedValue(true);
   checks.imagery.mockResolvedValue(true);
   checks.weather.mockResolvedValue([]);
+  checks.apiReady.mockResolvedValue(new Response(null, { status: 200 }));
+  vi.stubGlobal("fetch", checks.apiReady);
 });
 
 describe("readiness after weather database handover", () => {
-  it("accepts an empty weather feed and only connects to unmigrated databases", async () => {
+  it("accepts an empty weather feed and a ready FastAPI service", async () => {
     const response = await GET();
     expect(response.status).toBe(200);
-    expect(checks.database.mock.calls.map(([url]) => url)).toEqual([
-      "transport",
-      "janitorial",
-    ]);
     expect(checks.weather).toHaveBeenCalledOnce();
+    expect(checks.apiReady).toHaveBeenCalledOnce();
+    expect(checks.apiReady.mock.calls[0][0].href).toBe(
+      "http://api.test/api/v1/utils/ready/"
+    );
+    expect(checks.apiReady.mock.calls[0][1]).toMatchObject({
+      cache: "no-store",
+      redirect: "error",
+    });
     expect(response.headers.get("Cache-Control")).toBe("no-store");
   });
+
   it("fails readiness when FastAPI weather storage is unavailable", async () => {
     checks.weather.mockRejectedValue(new Error("private connection detail"));
     const response = await GET();
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ status: "unavailable" });
   });
-  it("still fails when an unmigrated domain database is unavailable", async () => {
-    checks.database.mockResolvedValueOnce(false);
+
+  it("fails when the FastAPI readiness endpoint is unavailable", async () => {
+    checks.apiReady.mockResolvedValueOnce(new Response(null, { status: 503 }));
     expect((await GET()).status).toBe(503);
   });
 });

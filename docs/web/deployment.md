@@ -12,7 +12,6 @@ The build workflow publishes these images under `ghcr.io/marcus100/`:
 | --- | --- |
 | Auth | `barrelsgd-web-auth` |
 | GAA Admin | `barrelsgd-web-gaa-admin` |
-| Admin migrations | `barrelsgd-web-gaa-admin-migrate` |
 | Docs | `barrelsgd-web-docs` |
 | Weather (gms) | `barrelsgd-web-gms` |
 | Signal | `barrelsgd-web-signal` |
@@ -22,7 +21,7 @@ The build workflow publishes these images under `ghcr.io/marcus100/`:
 
 FastAPI is built separately as `ghcr.io/marcus100/grenmet`. Staging uses tag
 `staging`; production releases use the same release tag for every image,
-including migrations. Both environments consume `docker-compose.deploy.yml`.
+with FastAPI prestart handling domain migrations and seeds. Both environments consume `docker-compose.deploy.yml`.
 
 Signal, MBIA, Events, and Hono have Dockerfiles and container startup checks in
 web CI. Their product features may still be prototypes; deployment support does
